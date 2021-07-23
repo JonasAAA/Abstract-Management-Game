@@ -4,13 +4,15 @@ using System.Linq;
 
 namespace Game1
 {
-    public class Splitter
+    public class ProporSplitter
     {
         private readonly int length;
         private readonly double[] proportions, necAdds;
 
-        public Splitter(double[] proportions)
+        public ProporSplitter(double[] proportions)
         {
+            if (proportions.Any(a => a < 0))
+                throw new ArgumentException();
             length = proportions.Length;
             double propSum = proportions.Sum();
             if (propSum is 0)

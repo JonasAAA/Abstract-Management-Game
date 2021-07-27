@@ -1,46 +1,25 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 
 namespace Game1
 {
-    public class MyArray<T> : IEnumerable<T>
+    public class MyArray<T> : ConstArray<T>
     {
-        public static readonly int length;
-
-        static MyArray()
-            => length = 3;
-
-        protected readonly T[] array;
-
         public MyArray()
-            => array = new T[length];
+            : base()
+        { }
 
         public MyArray(T value)
-            : this()
-            => Array.Fill(array: array, value: value);
+            : base(value: value)
+        { }
 
-        protected MyArray(IEnumerable<T> values)
-        {
-            array = values.ToArray();
-            if (array.Length != length)
-                throw new ArgumentException();
-        }
+        public MyArray(IEnumerable<T> values)
+            : base(values: values)
+        { }
 
-        public T this[int index]
+        public new T this[int index]
         {
             get => array[index];
-            init => array[index] = value;
+            set => array[index] = value;
         }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            for (int i = 0; i < length; i++)
-                yield return array[i];
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Game1
 {
@@ -12,19 +14,24 @@ namespace Game1
         private readonly NodeState state;
         private readonly Image image;
         private readonly List<Link> links;
-        private readonly MyArray<double> stayProps;
-        private readonly MyArray<List<double>> linkProps;
+        // resToLinksSplitters[i][j] - resource i to link j (remain in the node if j is links.Count)
+        private readonly MyArray<ProporSplitter> resToLinksSplitters;
         private Industry industry;
 
         public Node(Vector2 position, NodeState state, Image image)
         {
+            state.arrived[0] += 1;
             this.position = position;
             this.state = state;
             radius = image.Width * .5f;
             this.image = image;
             links = new();
-            stayProps = new(value: 1);
-            linkProps = new();
+            resToLinksSplitters = new();
+            for (int i = 0; i < ConstArray.length; i++)
+            {
+                resToLinksSplitters[i] = new ProporSplitter();
+                resToLinksSplitters[i].InsertVar(index: 0);
+            }
             industry = Industry.emptyParams.MakeIndustry(state); 
         }
 
@@ -32,28 +39,50 @@ namespace Game1
         {
             if (!link.Contains(this))
                 throw new ArgumentException();
+            foreach (var resToLinksSplitter in resToLinksSplitters)
+                resToLinksSplitter.InsertVar(index: links.Count);
             links.Add(link);
-            foreach (var linkProp in linkProps)
-                linkProp.Add(0);
         }
 
         public bool Contains(Vector2 position)
             => Vector2.Distance(this.position, position) <= radius;
 
-        public void AddRes(IntArray resAmounts)
-            => state.arrived += resAmounts;
+        public void AddRes(ConstIntArray resAmounts)
+        {
+            if (resAmounts.Any(a => a < 0))
+                throw new ArgumentException();
+            state.arrived += resAmounts;
+        }
 
         public void ActiveUpdate()
         { }
 
         public void Update()
         {
+            if (state.arrived.Any(a => a < 0))
+                throw new Exception();
+
             industry.FinishProduction();
+            
+            //maybe I should just send one resource at a time rather then pack them to IntArray
+            IntArray[] resSplitAmounts = new IntArray[links.Count + 1];
+            for (int i = 0; i < resSplitAmounts.Length; i++)
+                resSplitAmounts[i] = new();
 
-            foreach (var linkProp in linkProps)
+            for (int j = 0; j < ConstArray.length; j++)
             {
-
+                if (!resToLinksSplitters[j].CanSplit(amount: state.arrived[j]))
+                    throw new NotImplementedException();
+                int[] split = resToLinksSplitters[j].Split(amount: state.arrived[j]);
+                Debug.Assert(split.Length == resSplitAmounts.Length);
+                for (int i = 0; i < resSplitAmounts.Length; i++)
+                    resSplitAmounts[i][j] = split[i];
             }
+
+            for (int i = 0; i < links.Count; i++)
+                links[i].AddRes(start: this, resAmounts: resSplitAmounts[i]);
+
+            state.stored += resSplitAmounts[^1];
 
             industry.StartProduction();
         }

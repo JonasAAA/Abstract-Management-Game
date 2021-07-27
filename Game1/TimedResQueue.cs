@@ -7,7 +7,7 @@ namespace Game1
     {
         private readonly TimeSpan duration;
         private readonly Queue<TimeSpan> endTimes;
-        private readonly Queue<IntArray> resAmounts;
+        private readonly Queue<ConstIntArray> resAmounts;
 
         public bool Empty
             => endTimes.Count is 0;
@@ -20,15 +20,15 @@ namespace Game1
             resAmounts = new();
         }
 
-        public void Enqueue(IntArray newResAmounts)
+        public void Enqueue(ConstIntArray newResAmounts)
         {
             endTimes.Enqueue(C.GameTime.TotalGameTime + duration);
             resAmounts.Enqueue(newResAmounts);
         }
 
-        public IntArray DoneResAmounts()
+        public ConstIntArray DoneResAmounts()
         {
-            IntArray doneResAmounts = new();
+            ConstIntArray doneResAmounts = new();
             while (endTimes.Count > 0 && endTimes.Peek() < C.GameTime.TotalGameTime)
             {
                 doneResAmounts += resAmounts.Dequeue();

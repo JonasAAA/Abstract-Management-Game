@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
@@ -6,20 +8,48 @@ namespace Game1
 {
     public class ProporSplitter
     {
-        private readonly int length;
-        private readonly double[] proportions, necAdds;
+        public int Count
+            => proportions.Count;
 
-        public ProporSplitter(double[] proportions)
+        public ReadOnlyCollection<double> Proportions
         {
-            if (proportions.Any(a => a < 0))
-                throw new ArgumentException();
-            length = proportions.Length;
-            double propSum = proportions.Sum();
-            if (propSum is 0)
-                throw new ArgumentException();
+            get => proportions;
+            set
+            {
+                if (value.Any(a => a < 0))
+                    throw new ArgumentException();
+                double propSum = value.Sum();
+                if (propSum is 0)
+                    proportions = value;
+                else
+                    proportions = new((from a in value select a / propSum).ToArray());
+                necAdds = new(collection: new double[Count]);
+            }
+        }
 
-            this.proportions = proportions.Select(a => a / propSum).ToArray();
-            necAdds = new double[length];
+        private ReadOnlyCollection<double> proportions;
+        private List<double> necAdds;
+
+        public ProporSplitter()
+        {
+            Proportions = new(list: Array.Empty<double>());
+            necAdds = new();
+        }
+
+        public void InsertVar(int index)
+        {
+            var tempProportions = proportions.ToList();
+            tempProportions.Insert(index: index, item: 0);
+            proportions = tempProportions.AsReadOnly();
+            necAdds.Insert(index: index, item: 0);
+        }
+
+        public bool CanSplit(int amount)
+        {
+            if (amount < 0)
+                throw new ArgumentOutOfRangeException();
+
+            return amount is 0 || proportions.Sum() is not 0;
         }
 
         public int[] Split(int amount)
@@ -27,10 +57,18 @@ namespace Game1
             if (amount < 0)
                 throw new ArgumentOutOfRangeException();
 
-            var answer = new int[length];
-            var perfect = new double[length];
+            if (!CanSplit(amount: amount))
+                throw new Exception();
+
+            if (amount is 0)
+                return new int[Count];
+
+            Debug.Assert(C.IsTiny(value: Proportions.Sum() - 1));
+
+            var answer = new int[Count];
+            var perfect = new double[Count];
             int unusedAmount = amount;
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < Count; i++)
             {
                 perfect[i] = amount * proportions[i] + necAdds[i];
                 answer[i] = (int)perfect[i];
@@ -38,7 +76,7 @@ namespace Game1
                 unusedAmount -= answer[i];
             }
 
-            var priorityInds = Enumerable.Range(start: 0, count: length).OrderByDescending(a => necAdds[a]);
+            var priorityInds = Enumerable.Range(start: 0, count: Count).OrderByDescending(a => necAdds[a]);
             foreach (int ind in priorityInds)
             {
                 if (unusedAmount is 0)
@@ -47,6 +85,9 @@ namespace Game1
                 necAdds[ind]--;
                 unusedAmount--;
             }
+
+            double necAddsSum = necAdds.Sum();
+            necAdds = necAdds.Select(a => a - necAddsSum / Count).ToList();
 
             Debug.Assert(unusedAmount is 0);
             Debug.Assert(C.IsTiny(value: necAdds.Sum()));

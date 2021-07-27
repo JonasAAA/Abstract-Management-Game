@@ -20,7 +20,7 @@ namespace Game1
                 travel = new(duration: travelTime);
             }
 
-            public void AddRes(IntArray resAmounts)
+            public void AddRes(ConstIntArray resAmounts)
                 => travel.Enqueue(newResAmounts: resAmounts);
 
             public void Update()
@@ -52,7 +52,7 @@ namespace Game1
         public bool Contains(Vector2 position)
             => false;
 
-        public void AddRes(Node start, IntArray resAmounts)
+        public void AddRes(Node start, ConstIntArray resAmounts)
         {
             if (start == node1)
             {

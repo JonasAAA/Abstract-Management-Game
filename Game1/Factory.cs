@@ -7,14 +7,14 @@ namespace Game1
     {
         public new class Params : Industry.Params
         {
-            public readonly ConstIntArray demand, supply;
+            public readonly ConstUIntArray demand, supply;
             public readonly TimeSpan prodTime;
 
-            public Params(List<Upgrade> upgrades, ConstIntArray supDemDiff, TimeSpan prodTime)
+            public Params(List<Upgrade> upgrades, ConstUIntArray demand, ConstUIntArray supply, TimeSpan prodTime)
                 : base(upgrades)
             {
-                demand = supDemDiff.NegPart;
-                supply = supDemDiff.PosPart;
+                this.demand = demand;
+                this.supply = supply;
                 this.prodTime = prodTime;
             }
 

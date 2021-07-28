@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 namespace Game1
 {
@@ -20,7 +19,7 @@ namespace Game1
 
         public Node(Vector2 position, NodeState state, Image image)
         {
-            state.arrived[0] += 1;
+            //state.arrived[0] += 1;
             this.position = position;
             this.state = state;
             radius = image.Width * .5f;
@@ -35,7 +34,7 @@ namespace Game1
             industry = Industry.emptyParams.MakeIndustry(state); 
         }
 
-        public void AddEdge(Link link)
+        public void AddLink(Link link)
         {
             if (!link.Contains(this))
                 throw new ArgumentException();
@@ -47,25 +46,18 @@ namespace Game1
         public bool Contains(Vector2 position)
             => Vector2.Distance(this.position, position) <= radius;
 
-        public void AddRes(ConstIntArray resAmounts)
-        {
-            if (resAmounts.Any(a => a < 0))
-                throw new ArgumentException();
-            state.arrived += resAmounts;
-        }
+        public void AddRes(ConstUIntArray resAmounts)
+            => state.arrived += resAmounts;
 
         public void ActiveUpdate()
         { }
 
         public void Update()
         {
-            if (state.arrived.Any(a => a < 0))
-                throw new Exception();
-
             industry.FinishProduction();
-            
+
             //maybe I should just send one resource at a time rather then pack them to IntArray
-            IntArray[] resSplitAmounts = new IntArray[links.Count + 1];
+            UIntArray[] resSplitAmounts = new UIntArray[links.Count + 1];
             for (int i = 0; i < resSplitAmounts.Length; i++)
                 resSplitAmounts[i] = new();
 
@@ -73,7 +65,7 @@ namespace Game1
             {
                 if (!resToLinksSplitters[j].CanSplit(amount: state.arrived[j]))
                     throw new NotImplementedException();
-                int[] split = resToLinksSplitters[j].Split(amount: state.arrived[j]);
+                uint[] split = resToLinksSplitters[j].Split(amount: state.arrived[j]);
                 Debug.Assert(split.Length == resSplitAmounts.Length);
                 for (int i = 0; i < resSplitAmounts.Length; i++)
                     resSplitAmounts[i][j] = split[i];

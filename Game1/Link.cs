@@ -1,6 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Game1
 {
@@ -11,32 +13,76 @@ namespace Game1
             public readonly Node begin, end;
 
             private readonly TimedResQueue travel;
+            private readonly TimeSpan minSafeTime;
+            private TimeSpan minNextStartTime;
+            private ConstUIntArray waitingResAmounts;
 
-            public DirLink(Node begin, Node end, TimeSpan travelTime)
+            public DirLink(Node begin, Node end, TimeSpan travelTime, double minSafeDist)
             {
                 this.begin = begin;
                 this.end = end;
 
                 travel = new(duration: travelTime);
+                if (minSafeDist < 0 || minSafeDist > Vector2.Distance(begin.position, end.position))
+                    throw new ArgumentOutOfRangeException();
+                minSafeTime = travelTime * (minSafeDist / Vector2.Distance(begin.position, end.position));
+                minNextStartTime = TimeSpan.MinValue;
+                waitingResAmounts = new();
             }
 
-            public void AddRes(ConstIntArray resAmounts)
-                => travel.Enqueue(newResAmounts: resAmounts);
+            public void AddRes(ConstUIntArray resAmounts)
+            {
+                waitingResAmounts += resAmounts;
+
+                if (/*!waitingResAmounts.IsEmpty && */minNextStartTime <= C.GameTime.TotalGameTime)
+                {
+                    travel.Enqueue(newResAmounts: waitingResAmounts);
+                    minNextStartTime = C.GameTime.TotalGameTime + minSafeTime;
+                    waitingResAmounts = new();
+                }
+            }
 
             public void Update()
                 => end.AddRes(resAmounts: travel.DoneResAmounts());
+
+            public void DrawTravelingRes()
+            {
+                //for (int i = 0; i < ConstArray.length; i++)
+                int i = 0;
+                {
+                    travel.GetData
+                    (
+                        resInd: i,
+                        completionProps: out List<double> completionProps,
+                        resAmounts: out List<uint> resAmounts
+                    );
+
+                    foreach (var (completionProp, resAmount) in completionProps.Zip(resAmounts))
+                    {
+                        Image image = new(imageName: "big disk", width: (1 + resAmount) * 10);
+                        image.Color = Color.Yellow;
+                        image.Draw
+                        (
+                            position: begin.position + (float)completionProp * (end.position - begin.position)
+                        );
+                    }
+                }
+            }
         }
 
-        private readonly Node node1, node2;
+        public readonly Node node1, node2;
         private readonly DirLink link1To2, link2To1;
 
-        public Link(Node node1, Node node2, TimeSpan travelTime)
+        public Link(Node node1, Node node2, TimeSpan travelTime, double minSafeDist)
         {
             this.node1 = node1;
             this.node2 = node2;
+
+            if (minSafeDist < 0)
+                throw new ArgumentOutOfRangeException();
             
-            link1To2 = new(begin: node1, end: node2, travelTime: travelTime);
-            link2To1 = new(begin: node2, end: node1, travelTime: travelTime);
+            link1To2 = new(begin: node1, end: node2, travelTime: travelTime, minSafeDist: minSafeDist);
+            link2To1 = new(begin: node2, end: node1, travelTime: travelTime, minSafeDist: minSafeDist);
         }
 
         public Node Other(Node node)
@@ -52,7 +98,7 @@ namespace Game1
         public bool Contains(Vector2 position)
             => false;
 
-        public void AddRes(Node start, ConstIntArray resAmounts)
+        public void AddRes(Node start, ConstUIntArray resAmounts)
         {
             if (start == node1)
             {
@@ -91,6 +137,9 @@ namespace Game1
                 effects: SpriteEffects.None,
                 layerDepth: 0
             );
+
+            link1To2.DrawTravelingRes();
+            link2To1.DrawTravelingRes();
         }
 
         public override int GetHashCode()

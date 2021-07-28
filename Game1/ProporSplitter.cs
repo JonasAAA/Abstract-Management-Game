@@ -44,34 +44,26 @@ namespace Game1
             necAdds.Insert(index: index, item: 0);
         }
 
-        public bool CanSplit(int amount)
+        public bool CanSplit(uint amount)
+            => amount is 0 || proportions.Sum() is not 0;
+
+        public uint[] Split(uint amount)
         {
-            if (amount < 0)
-                throw new ArgumentOutOfRangeException();
-
-            return amount is 0 || proportions.Sum() is not 0;
-        }
-
-        public int[] Split(int amount)
-        {
-            if (amount < 0)
-                throw new ArgumentOutOfRangeException();
-
             if (!CanSplit(amount: amount))
                 throw new Exception();
 
             if (amount is 0)
-                return new int[Count];
+                return new uint[Count];
 
             Debug.Assert(C.IsTiny(value: Proportions.Sum() - 1));
 
-            var answer = new int[Count];
+            var answer = new uint[Count];
             var perfect = new double[Count];
-            int unusedAmount = amount;
+            uint unusedAmount = amount;
             for (int i = 0; i < Count; i++)
             {
                 perfect[i] = amount * proportions[i] + necAdds[i];
-                answer[i] = (int)perfect[i];
+                answer[i] = (uint)perfect[i];
                 necAdds[i] = perfect[i] - answer[i];
                 unusedAmount -= answer[i];
             }

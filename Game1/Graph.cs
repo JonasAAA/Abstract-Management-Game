@@ -35,6 +35,9 @@ namespace Game1
                 throw new ArgumentException();
             linkSet.Add(link);
             links.Add(link);
+
+            link.node1.AddLink(link: link);
+            link.node2.AddLink(link: link);
         }
 
         public void Update()

@@ -2,7 +2,7 @@
 {
     public class NodeState
     {
-        public IntArray stored, arrived;
+        public UIntArray stored, arrived;
 
         public NodeState()
         {

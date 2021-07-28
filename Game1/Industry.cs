@@ -23,9 +23,9 @@ namespace Game1
         {
             public readonly Params parameters;
             public readonly TimeSpan minTime;
-            public readonly ConstIntArray cost;
+            public readonly ConstUIntArray cost;
 
-            public Upgrade(Params parameters, TimeSpan minTime, ConstIntArray cost)
+            public Upgrade(Params parameters, TimeSpan minTime, ConstUIntArray cost)
             {
                 this.parameters = parameters;
                 this.minTime = minTime;

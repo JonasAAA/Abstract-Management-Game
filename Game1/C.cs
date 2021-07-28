@@ -16,7 +16,7 @@ namespace Game1
         public static GameTime GameTime { get; private set; }
         public static Camera Camera { get; private set; }
 
-        private static readonly double minPosDouble;
+        public static readonly double minPosDouble;
         private static readonly Random random;
 
         static C()

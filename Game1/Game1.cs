@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace Game1
 {
@@ -37,7 +38,7 @@ namespace Game1
         {
             C.Initialize
             (
-                scrollSpeed: 10,
+                scrollSpeed: 1,
                 Content: Content,
                 spriteBatch: new(GraphicsDevice)
             );

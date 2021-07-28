@@ -50,19 +50,22 @@ namespace Game1
                 (
                     node1: nodes[0],
                     node2: nodes[1],
-                    travelTime: TimeSpan.FromSeconds(5)
+                    travelTime: TimeSpan.FromSeconds(15),
+                    minSafeDist: 100
                 ),
                 new
                 (
                     node1: nodes[0],
                     node2: nodes[2],
-                    travelTime: TimeSpan.FromSeconds(5)
+                    travelTime: TimeSpan.FromSeconds(5),
+                    minSafeDist: 100
                 ),
                 new
                 (
                     node1: nodes[2],
                     node2: nodes[1],
-                    travelTime: TimeSpan.FromSeconds(5)
+                    travelTime: TimeSpan.FromSeconds(5),
+                    minSafeDist: 100
                 ),
             };
 

@@ -6,14 +6,14 @@ namespace Game1
     public sealed class Camera
     {
         private Matrix worldToScreen, screenToWorld;
-        private readonly float scrollSpeed;
-        private readonly float scale;
+        private readonly float scrollSpeed, scale, boundWidth;
         private Vector2 worldCenter, screenCenter;
 
         public Camera(float scrollSpeed)
         {
             this.scrollSpeed = scrollSpeed;
             scale = 1;
+            boundWidth = 30;
             worldCenter = new(0, 0);
             screenCenter = new(C.ScreenWidth * .5f, C.ScreenHeight * .5f);
             Update();
@@ -27,13 +27,13 @@ namespace Game1
 
         public void Update()
         {
-            if (MyMouse.ScreenPos.X <= 5)
+            if (MyMouse.ScreenPos.X <= boundWidth)
                 worldCenter.X -= scrollSpeed;
-            if (MyMouse.ScreenPos.X >= C.ScreenWidth - 5)
+            if (MyMouse.ScreenPos.X >= C.ScreenWidth - boundWidth)
                 worldCenter.X += scrollSpeed;
-            if (MyMouse.ScreenPos.Y <= 5)
+            if (MyMouse.ScreenPos.Y <= boundWidth)
                 worldCenter.Y -= scrollSpeed;
-            if (MyMouse.ScreenPos.Y >= C.ScreenHeight - 5)
+            if (MyMouse.ScreenPos.Y >= C.ScreenHeight - boundWidth)
                 worldCenter.Y += scrollSpeed;
 
             worldToScreen = Matrix.CreateTranslation(xPosition: -worldCenter.X, yPosition: -worldCenter.Y, zPosition: 0) *

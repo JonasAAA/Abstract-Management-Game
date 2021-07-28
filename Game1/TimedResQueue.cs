@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Game1
 {
@@ -7,7 +9,7 @@ namespace Game1
     {
         private readonly TimeSpan duration;
         private readonly Queue<TimeSpan> endTimes;
-        private readonly Queue<ConstIntArray> resAmounts;
+        private readonly Queue<ConstUIntArray> resAmounts;
 
         public bool Empty
             => endTimes.Count is 0;
@@ -20,21 +22,39 @@ namespace Game1
             resAmounts = new();
         }
 
-        public void Enqueue(ConstIntArray newResAmounts)
+        public void Enqueue(ConstUIntArray newResAmounts)
         {
             endTimes.Enqueue(C.GameTime.TotalGameTime + duration);
             resAmounts.Enqueue(newResAmounts);
         }
 
-        public ConstIntArray DoneResAmounts()
+        public ConstUIntArray DoneResAmounts()
         {
-            ConstIntArray doneResAmounts = new();
+            ConstUIntArray doneResAmounts = new();
             while (endTimes.Count > 0 && endTimes.Peek() < C.GameTime.TotalGameTime)
             {
                 doneResAmounts += resAmounts.Dequeue();
                 endTimes.Dequeue();
             }
             return doneResAmounts;
+        }
+
+        public void GetData(int resInd, out List<double> completionProps, out List<uint> resAmounts)
+        {
+            completionProps = new();
+            resAmounts = new();
+
+            Debug.Assert(endTimes.Count == this.resAmounts.Count);
+
+            foreach (var (endTime, resAmount) in endTimes.Zip(this.resAmounts))
+            {
+                completionProps.Add(1 - (endTime.TotalSeconds - C.GameTime.TotalGameTime.TotalSeconds) / duration.TotalSeconds);
+                if (completionProps[^1] < -C.minPosDouble || completionProps[^1] > 1 + C.minPosDouble)
+                    throw new Exception();
+                resAmounts.Add(resAmount[resInd]);
+            }
+
+            Debug.Assert(completionProps.Count == resAmounts.Count);
         }
     }
 }

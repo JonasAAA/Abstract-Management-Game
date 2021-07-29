@@ -25,6 +25,13 @@
 /processorParam:TextureFormat=Color
 /build:big disk.png
 
+#begin font.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:font.spritefont
+
 #begin node.png
 /importer:TextureImporter
 /processor:TextureProcessor

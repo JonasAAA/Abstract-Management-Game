@@ -79,9 +79,11 @@ namespace Game1
             }
 
             double necAddsSum = necAdds.Sum();
+            Debug.Assert(C.IsTiny(necAddsSum));
             necAdds = necAdds.Select(a => a - necAddsSum / Count).ToList();
 
             Debug.Assert(unusedAmount is 0);
+            Debug.Assert(answer.Sum() == amount);
             Debug.Assert(C.IsTiny(value: necAdds.Sum()));
 
             return answer;

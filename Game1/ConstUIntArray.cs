@@ -18,7 +18,7 @@ namespace Game1
         { }
 
         public bool IsEmpty
-            => array.All(a => a is 0);
+            => array.Sum() is 0;
 
         public static UIntArray operator +(ConstUIntArray uintArray1, ConstUIntArray uintArray2)
             => new(uintArray1.Zip(uintArray2, (a, b) => a + b));
@@ -36,9 +36,9 @@ namespace Game1
             => value * uintArray;
 
         public static bool operator <=(ConstUIntArray uintArray1, ConstUIntArray uintArray2)
-            => uintArray1.Zip(uintArray2, (a, b) => a <= b).All(c => c);
+            => uintArray1.Zip(uintArray2).All(a => a.First <= a.Second);
 
         public static bool operator >=(ConstUIntArray uintArray1, ConstUIntArray uintArray2)
-            => uintArray1.Zip(uintArray2, (a, b) => a >= b).All(c => c);
+            => uintArray1.Zip(uintArray2).All(a => a.First >= a.Second);
     }
 }

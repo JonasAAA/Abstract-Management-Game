@@ -7,20 +7,25 @@ namespace Game1
     {
         public new class Params : Industry.Params
         {
-            public readonly ConstUIntArray demand, supply;
+            public readonly ConstUIntArray supply, demand;
             public readonly TimeSpan prodTime;
 
-            public Params(List<Upgrade> upgrades, ConstUIntArray demand, ConstUIntArray supply, TimeSpan prodTime)
-                : base(upgrades)
+            public Params(string name, List<Upgrade> upgrades, ConstUIntArray supply, ConstUIntArray demand, TimeSpan prodTime)
+                : base(name, upgrades)
             {
-                this.demand = demand;
                 this.supply = supply;
+                this.demand = demand;
+                if (prodTime.TotalSeconds < 0)
+                    throw new ArgumentException();
                 this.prodTime = prodTime;
             }
 
             public override Industry MakeIndustry(NodeState state)
                 => new Factory(parameters: this, state: state);
         }
+
+        protected override bool IsProducing
+            => !production.Empty;
 
         private readonly Params parameters;
         private readonly TimedResQueue production;
@@ -32,7 +37,7 @@ namespace Game1
             production = new(duration: parameters.prodTime);
         }
 
-        public override void StartProduction()
+        protected override void StartProduction()
         {
             base.StartProduction();
 
@@ -43,11 +48,21 @@ namespace Game1
             }
         }
 
-        public override void FinishProduction()
+        public override Industry FinishProduction()
         {
-            base.FinishProduction();
-
             state.arrived += production.DoneResAmounts();
+
+            return base.FinishProduction();
+        }
+
+        public override string GetText()
+        {
+            string text = $"{parameters.name}\n";
+            if (production.Empty)
+                text += "idle";
+            else
+                text += $"producing {production.PeekCompletionProp() * 100: 0.}%";
+            return text;
         }
     }
 }

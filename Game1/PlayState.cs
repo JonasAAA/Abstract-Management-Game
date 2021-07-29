@@ -14,8 +14,7 @@ namespace Game1
             {
                 new
                 (
-                    position: new(300, 300),
-                    state: new(),
+                    state: new(position: new(300, 300)),
                     image: new
                     (
                         imageName: "node",
@@ -24,8 +23,7 @@ namespace Game1
                 ),
                 new
                 (
-                    position: new(-500, 300),
-                    state: new(),
+                    state: new(position: new(-500, 300)),
                     image: new
                     (
                         imageName: "node",
@@ -34,8 +32,16 @@ namespace Game1
                 ),
                 new
                 (
-                    position: new(0, -200),
-                    state: new(),
+                    state: new(position: new(0, -200)),
+                    image: new
+                    (
+                        imageName: "node",
+                        width: 64
+                    )
+                ),
+                new
+                (
+                    state: new(position: new(500, 0)),
                     image: new
                     (
                         imageName: "node",
@@ -64,6 +70,13 @@ namespace Game1
                 (
                     node1: nodes[2],
                     node2: nodes[1],
+                    travelTime: TimeSpan.FromSeconds(5),
+                    minSafeDist: 100
+                ),
+                new
+                (
+                    node1: nodes[0],
+                    node2: nodes[3],
                     travelTime: TimeSpan.FromSeconds(5),
                     minSafeDist: 100
                 ),

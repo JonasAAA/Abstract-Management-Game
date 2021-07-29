@@ -16,6 +16,7 @@ namespace Game1
             private readonly TimeSpan minSafeTime;
             private TimeSpan minNextStartTime;
             private ConstUIntArray waitingResAmounts;
+            private readonly Texture2D diskTexture;
 
             public DirLink(Node begin, Node end, TimeSpan travelTime, double minSafeDist)
             {
@@ -23,21 +24,23 @@ namespace Game1
                 this.end = end;
 
                 travel = new(duration: travelTime);
-                if (minSafeDist < 0 || minSafeDist > Vector2.Distance(begin.position, end.position))
+                if (minSafeDist < 0 || minSafeDist > Vector2.Distance(begin.Position, end.Position))
                     throw new ArgumentOutOfRangeException();
-                minSafeTime = travelTime * (minSafeDist / Vector2.Distance(begin.position, end.position));
+                minSafeTime = travelTime * (minSafeDist / Vector2.Distance(begin.Position, end.Position));
                 minNextStartTime = TimeSpan.MinValue;
                 waitingResAmounts = new();
+
+                diskTexture = C.Content.Load<Texture2D>("big disk");
             }
 
             public void AddRes(ConstUIntArray resAmounts)
             {
                 waitingResAmounts += resAmounts;
 
-                if (/*!waitingResAmounts.IsEmpty && */minNextStartTime <= C.GameTime.TotalGameTime)
+                if (!waitingResAmounts.IsEmpty && minNextStartTime <= C.TotalGameTime)
                 {
                     travel.Enqueue(newResAmounts: waitingResAmounts);
-                    minNextStartTime = C.GameTime.TotalGameTime + minSafeTime;
+                    minNextStartTime = C.TotalGameTime + minSafeTime;
                     waitingResAmounts = new();
                 }
             }
@@ -47,6 +50,7 @@ namespace Game1
 
             public void DrawTravelingRes()
             {
+                // temporary
                 //for (int i = 0; i < ConstArray.length; i++)
                 int i = 0;
                 {
@@ -59,11 +63,21 @@ namespace Game1
 
                     foreach (var (completionProp, resAmount) in completionProps.Zip(resAmounts))
                     {
-                        Image image = new(imageName: "big disk", width: (1 + resAmount) * 10);
-                        image.Color = Color.Yellow;
-                        image.Draw
+                        // temporary
+                        Vector2 travelDir = end.Position - begin.Position;
+                        travelDir.Normalize();
+                        Vector2 orthToTravelDir = new(travelDir.Y, -travelDir.X);
+                        C.SpriteBatch.Draw
                         (
-                            position: begin.position + (float)completionProp * (end.position - begin.position)
+                            texture: diskTexture,
+                            position: begin.Position + (float)completionProp * (end.Position - begin.Position) + orthToTravelDir * i * 10,
+                            sourceRectangle: null,
+                            color: C.ResColors[i],
+                            rotation: 0,
+                            origin: new(diskTexture.Width * .5f, diskTexture.Height * .5f),
+                            scale: (float)Math.Sqrt(resAmount) * 2 / diskTexture.Width,
+                            effects: SpriteEffects.None,
+                            layerDepth: 0
                         );
                     }
                 }
@@ -75,11 +89,11 @@ namespace Game1
 
         public Link(Node node1, Node node2, TimeSpan travelTime, double minSafeDist)
         {
+            if (node1 == node2)
+                throw new ArgumentException();
+
             this.node1 = node1;
             this.node2 = node2;
-
-            if (minSafeDist < 0)
-                throw new ArgumentOutOfRangeException();
             
             link1To2 = new(begin: node1, end: node2, travelTime: travelTime, minSafeDist: minSafeDist);
             link2To1 = new(begin: node2, end: node1, travelTime: travelTime, minSafeDist: minSafeDist);
@@ -125,15 +139,16 @@ namespace Game1
         public void Draw(bool active)
         {
             Texture2D pixel = C.Content.Load<Texture2D>(assetName: "pixel");
+            // temporary
             C.SpriteBatch.Draw
             (
                 texture: pixel,
-                position: (node1.position + node2.position) / 2,
+                position: (node1.Position + node2.Position) / 2,
                 sourceRectangle: null,
                 color: active ? Color.Yellow : Color.Green,
-                rotation: C.Rotation(vector: node1.position - node2.position),
+                rotation: C.Rotation(vector: node1.Position - node2.Position),
                 origin: new Vector2(.5f, .5f),
-                scale: new Vector2(Vector2.Distance(node1.position, node2.position), 10),
+                scale: new Vector2(Vector2.Distance(node1.Position, node2.Position), 10),
                 effects: SpriteEffects.None,
                 layerDepth: 0
             );

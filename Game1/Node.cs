@@ -7,7 +7,8 @@ namespace Game1
 {
     public class Node : IUIElement
     {
-        public readonly Vector2 position;
+        public Vector2 Position
+            => state.position;
         public readonly float radius;
 
         private readonly NodeState state;
@@ -17,10 +18,8 @@ namespace Game1
         private readonly MyArray<ProporSplitter> resToLinksSplitters;
         private Industry industry;
 
-        public Node(Vector2 position, NodeState state, Image image)
+        public Node(NodeState state, Image image)
         {
-            //state.arrived[0] += 1;
-            this.position = position;
             this.state = state;
             radius = image.Width * .5f;
             this.image = image;
@@ -31,7 +30,7 @@ namespace Game1
                 resToLinksSplitters[i] = new ProporSplitter();
                 resToLinksSplitters[i].InsertVar(index: 0);
             }
-            industry = Industry.emptyParams.MakeIndustry(state); 
+            industry = Industry.emptyParams.MakeIndustry(state);
         }
 
         public void AddLink(Link link)
@@ -39,22 +38,52 @@ namespace Game1
             if (!link.Contains(this))
                 throw new ArgumentException();
             foreach (var resToLinksSplitter in resToLinksSplitters)
+            {
                 resToLinksSplitter.InsertVar(index: links.Count);
+                // temporary
+                double[] proportions = new double[resToLinksSplitter.Count];
+                Array.Fill(array: proportions, value: 1);
+                proportions[^1] = 0;
+                resToLinksSplitter.Proportions = new(proportions);
+            }
             links.Add(link);
         }
 
         public bool Contains(Vector2 position)
-            => Vector2.Distance(this.position, position) <= radius;
+            => Vector2.Distance(this.Position, position) <= radius;
 
         public void AddRes(ConstUIntArray resAmounts)
             => state.arrived += resAmounts;
 
         public void ActiveUpdate()
-        { }
+        {
+            //// temporary
+            //if (Keyboard.GetState().IsKeyDown(Keys.F))
+            //{
+            //    Factory.Params parameters = new
+            //    (
+            //        name: "factory",
+            //        upgrades: new(),
+            //        supply: new()
+            //        {
+            //            [0] = 10,
+            //        },
+            //        demand: new(),
+            //        prodTime: TimeSpan.FromSeconds(value: 2)
+            //    );
+
+            //    industry = parameters.MakeIndustry(state: state);
+            //}
+
+            industry.ActiveUpdate();
+        }
 
         public void Update()
         {
-            industry.FinishProduction();
+            industry = industry.FinishProduction();
+
+            //// temporary
+            //state.arrived += new UIntArray(value: 1);
 
             //maybe I should just send one resource at a time rather then pack them to IntArray
             UIntArray[] resSplitAmounts = new UIntArray[links.Count + 1];
@@ -75,8 +104,9 @@ namespace Game1
                 links[i].AddRes(start: this, resAmounts: resSplitAmounts[i]);
 
             state.stored += resSplitAmounts[^1];
+            state.arrived = new();
 
-            industry.StartProduction();
+            industry.StartProductionIfCan();
         }
 
         public void Draw(bool active)
@@ -85,7 +115,8 @@ namespace Game1
                 image.Color = Color.Yellow;
             else
                 image.Color = Color.White;
-            image.Draw(position);
+            image.Draw(Position);
+            industry.Draw();
         }
     }
 }

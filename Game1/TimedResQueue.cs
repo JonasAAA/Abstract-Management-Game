@@ -16,6 +16,8 @@ namespace Game1
 
         public TimedResQueue(TimeSpan duration)
         {
+            if (duration.TotalSeconds < 0)
+                throw new ArgumentException();
             this.duration = duration;
             
             endTimes = new();
@@ -24,14 +26,14 @@ namespace Game1
 
         public void Enqueue(ConstUIntArray newResAmounts)
         {
-            endTimes.Enqueue(C.GameTime.TotalGameTime + duration);
+            endTimes.Enqueue(C.TotalGameTime + duration);
             resAmounts.Enqueue(newResAmounts);
         }
 
         public ConstUIntArray DoneResAmounts()
         {
             ConstUIntArray doneResAmounts = new();
-            while (endTimes.Count > 0 && endTimes.Peek() < C.GameTime.TotalGameTime)
+            while (endTimes.Count > 0 && endTimes.Peek() < C.TotalGameTime)
             {
                 doneResAmounts += resAmounts.Dequeue();
                 endTimes.Dequeue();
@@ -39,6 +41,7 @@ namespace Game1
             return doneResAmounts;
         }
 
+        // could have a version of this without taking resInd
         public void GetData(int resInd, out List<double> completionProps, out List<uint> resAmounts)
         {
             completionProps = new();
@@ -48,13 +51,20 @@ namespace Game1
 
             foreach (var (endTime, resAmount) in endTimes.Zip(this.resAmounts))
             {
-                completionProps.Add(1 - (endTime.TotalSeconds - C.GameTime.TotalGameTime.TotalSeconds) / duration.TotalSeconds);
-                if (completionProps[^1] < -C.minPosDouble || completionProps[^1] > 1 + C.minPosDouble)
-                    throw new Exception();
+                if (resAmount[resInd] is 0)
+                    continue;
+                completionProps.Add(C.DonePart(endTime: endTime, duration: duration));
                 resAmounts.Add(resAmount[resInd]);
             }
 
             Debug.Assert(completionProps.Count == resAmounts.Count);
+        }
+
+        public double PeekCompletionProp()
+        {
+            if (Empty)
+                throw new InvalidOperationException();
+            return C.DonePart(endTime: endTimes.Peek(), duration: duration);
         }
     }
 }

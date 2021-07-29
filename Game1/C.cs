@@ -11,9 +11,10 @@ namespace Game1
             => GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
         public static int ScreenHeight
             => GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+        public static ConstArray<Color> ResColors { get; private set; }
         public static ContentManager Content { get; private set; }
         public static SpriteBatch SpriteBatch { get; private set; }
-        public static GameTime GameTime { get; private set; }
+        public static TimeSpan TotalGameTime { get; private set; }
         public static Camera Camera { get; private set; }
 
         public static readonly double minPosDouble;
@@ -27,15 +28,16 @@ namespace Game1
             random = new();
         }
 
-        public static void Initialize(float scrollSpeed, ContentManager Content, SpriteBatch spriteBatch)
+        public static void Initialize(float scrollSpeed, ContentManager Content, SpriteBatch spriteBatch, ConstArray<Color> resColors)
         {
             Camera = new(scrollSpeed);
             C.Content = Content;
             SpriteBatch = spriteBatch;
+            ResColors = resColors;
         }
 
         public static void Update(GameTime gameTime)
-            => C.GameTime = gameTime;
+            => TotalGameTime = gameTime.TotalGameTime;
 
         public static double Random(double min, double max)
             => min + random.NextDouble() * (max - min);
@@ -51,5 +53,14 @@ namespace Game1
 
         public static bool IsTiny(double value)
             => Math.Abs(value) < minPosDouble;
+
+        public static double DonePart(TimeSpan endTime, TimeSpan duration)
+        {
+            if (duration <= TimeSpan.Zero)
+                throw new ArgumentOutOfRangeException();
+            if (TotalGameTime + duration < endTime)
+                throw new ArgumentException();
+            return Math.Min(1 - (endTime - TotalGameTime) / duration, 1);
+        }
     }
 }

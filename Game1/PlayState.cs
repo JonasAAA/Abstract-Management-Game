@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 
 namespace Game1
@@ -9,12 +10,16 @@ namespace Game1
 
         public PlayState()
         {
-            graph = new Graph();
+            graph = new Graph(ambientWattsPerSec: 100);
             List<Node> nodes = new()
             {
                 new
                 (
-                    state: new(position: new(300, 300)),
+                    state: new
+                    (
+                        position: new(300, 300),
+                        maxBatchDemResStored: 2
+                    ),
                     image: new
                     (
                         imageName: "node",
@@ -23,7 +28,11 @@ namespace Game1
                 ),
                 new
                 (
-                    state: new(position: new(-500, 300)),
+                    state: new
+                    (
+                        position: new(-500, 300),
+                        maxBatchDemResStored: 2
+                    ),
                     image: new
                     (
                         imageName: "node",
@@ -32,7 +41,11 @@ namespace Game1
                 ),
                 new
                 (
-                    state: new(position: new(0, -200)),
+                    state: new
+                    (
+                        position: new(0, -200),
+                        maxBatchDemResStored: 2
+                    ),
                     image: new
                     (
                         imageName: "node",
@@ -41,7 +54,11 @@ namespace Game1
                 ),
                 new
                 (
-                    state: new(position: new(500, 0)),
+                    state: new
+                    (
+                        position: new(500, 0),
+                        maxBatchDemResStored: 2
+                    ),
                     image: new
                     (
                         imageName: "node",
@@ -57,28 +74,32 @@ namespace Game1
                     node1: nodes[0],
                     node2: nodes[1],
                     travelTime: TimeSpan.FromSeconds(15),
-                    minSafeDist: 100
+                    minSafeDist: 100,
+                    reqWattsPerKgPerSec: 1
                 ),
                 new
                 (
                     node1: nodes[0],
                     node2: nodes[2],
                     travelTime: TimeSpan.FromSeconds(5),
-                    minSafeDist: 100
+                    minSafeDist: 100,
+                    reqWattsPerKgPerSec: 1
                 ),
                 new
                 (
                     node1: nodes[2],
                     node2: nodes[1],
                     travelTime: TimeSpan.FromSeconds(5),
-                    minSafeDist: 100
+                    minSafeDist: 100,
+                    reqWattsPerKgPerSec: 1
                 ),
                 new
                 (
                     node1: nodes[0],
                     node2: nodes[3],
-                    travelTime: TimeSpan.FromSeconds(5),
-                    minSafeDist: 100
+                    travelTime: TimeSpan.FromSeconds(3),
+                    minSafeDist: 100,
+                    reqWattsPerKgPerSec: 1
                 ),
             };
 
@@ -89,10 +110,11 @@ namespace Game1
                 graph.AddEdge(link);
         }
 
-        public void Update()
+        public void Update(GameTime gameTime)
         {
             C.Camera.Update();
-            graph.Update();
+
+            graph.Update(gameTime: gameTime);
         }
 
         public void Draw()

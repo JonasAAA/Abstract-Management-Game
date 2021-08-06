@@ -1,17 +1,22 @@
 ﻿using Microsoft.Xna.Framework;
+using System;
 
 namespace Game1
 {
     public class NodeState
     {
         public readonly Vector2 position;
-        public UIntArray stored, arrived;
+        public ULongArray storedRes, waitingRes;
+        public readonly ulong maxBatchDemResStored;
 
-        public NodeState(Vector2 position)
+        public NodeState(Vector2 position, ulong maxBatchDemResStored)
         {
             this.position = position;
-            stored = new();
-            arrived = new();
+            storedRes = new();
+            waitingRes = new();
+            if (maxBatchDemResStored is 0)
+                throw new ArgumentOutOfRangeException();
+            this.maxBatchDemResStored = maxBatchDemResStored;
         }
     }
 }

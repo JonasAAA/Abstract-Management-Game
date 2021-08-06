@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -10,15 +12,20 @@ namespace Game1
         private readonly List<Link> links;
         private readonly HashSet<Node> nodeSet;
         private readonly HashSet<Link> linkSet;
+        private readonly ulong ambientWattsPerSec;
         private IUIElement activeElement;
+        private ulong reqWattsPerSec, prodWattsPerSec;
 
-        public Graph()
+        public Graph(ulong ambientWattsPerSec)
         {
             nodes = new();
             links = new();
             nodeSet = new();
             linkSet = new();
+            this.ambientWattsPerSec = ambientWattsPerSec;
             activeElement = null;
+            reqWattsPerSec = 0;
+            prodWattsPerSec = ambientWattsPerSec;
         }
 
         public void AddNode(Node node)
@@ -40,13 +47,25 @@ namespace Game1
             link.node2.AddLink(link: link);
         }
 
-        public void Update()
+        public void Update(GameTime gameTime)
         {
-            foreach (var link in links)
-                link.Update();
+            reqWattsPerSec = nodes.Sum(node => node.ReqWattsPerSec()) + links.Sum(link => link.ReqWattsPerSec());
+            prodWattsPerSec = ambientWattsPerSec + nodes.Sum(node => node.ProdWattsPerSec());
 
-            foreach (var node in nodes)
-                node.Update();
+            if (reqWattsPerSec > prodWattsPerSec)
+                C.Update(elapsed: gameTime.ElapsedGameTime * prodWattsPerSec / reqWattsPerSec);
+            else
+                C.Update(elapsed: gameTime.ElapsedGameTime);
+
+
+
+            links.ForEach(link => link.StartUpdate());
+
+            nodes.ForEach(node => node.StartUpdate());
+
+            links.ForEach(link => link.EndUpdate());
+
+            nodes.ForEach(node => node.EndUpdate());
 
             if (MyMouse.RightClick)
             {
@@ -75,6 +94,19 @@ namespace Game1
 
             foreach (var node in nodes)
                 node.Draw(active: node == activeElement);
+
+            C.SpriteBatch.DrawString
+            (
+                spriteFont: C.Content.Load<SpriteFont>("font"),
+                text: $"required: {reqWattsPerSec}\nproduced: {prodWattsPerSec}",
+                position: new Vector2(-500, -500),
+                color: Color.Black,
+                rotation: 0,
+                origin: Vector2.Zero,
+                scale: .15f,
+                effects: SpriteEffects.None,
+                layerDepth: 0
+            );
         }
     }
 }

@@ -15,10 +15,11 @@ namespace Game1
             private readonly TimedResQueue travel;
             private readonly TimeSpan minSafeTime;
             private TimeSpan minNextStartTime;
-            private ConstUIntArray waitingResAmounts;
+            private ConstULongArray waitingRes, curWaitingRes;
+            private readonly ulong reqWattsPerKgPerSec;
             private readonly Texture2D diskTexture;
 
-            public DirLink(Node begin, Node end, TimeSpan travelTime, double minSafeDist)
+            public DirLink(Node begin, Node end, TimeSpan travelTime, double minSafeDist, ulong reqWattsPerKgPerSec)
             {
                 this.begin = begin;
                 this.end = end;
@@ -28,37 +29,46 @@ namespace Game1
                     throw new ArgumentOutOfRangeException();
                 minSafeTime = travelTime * (minSafeDist / Vector2.Distance(begin.Position, end.Position));
                 minNextStartTime = TimeSpan.MinValue;
-                waitingResAmounts = new();
-
+                waitingRes = new();
+                curWaitingRes = new();
+                this.reqWattsPerKgPerSec = reqWattsPerKgPerSec;
                 diskTexture = C.Content.Load<Texture2D>("big disk");
             }
 
-            public void AddRes(ConstUIntArray resAmounts)
-            {
-                waitingResAmounts += resAmounts;
+            public ulong ReqWattsPerSec()
+                => travel.TotalWeight() * reqWattsPerKgPerSec;
 
-                if (!waitingResAmounts.IsEmpty && minNextStartTime <= C.TotalGameTime)
+            public void AddRes(ConstULongArray resAmounts)
+                => waitingRes += resAmounts;
+
+            public void StartUpdate()
+            {
+                if (!curWaitingRes.IsEmpty() && minNextStartTime <= C.TotalGameTime)
                 {
-                    travel.Enqueue(newResAmounts: waitingResAmounts);
+                    travel.Enqueue(newResAmounts: curWaitingRes);
                     minNextStartTime = C.TotalGameTime + minSafeTime;
-                    waitingResAmounts = new();
+                    curWaitingRes = new();
                 }
+                end.AddRes(resAmounts: travel.DoneResAmounts());
             }
 
-            public void Update()
-                => end.AddRes(resAmounts: travel.DoneResAmounts());
+            public void EndUpdate()
+            {
+                curWaitingRes += waitingRes;
+                waitingRes = new();
+            }
 
             public void DrawTravelingRes()
             {
                 // temporary
-                //for (int i = 0; i < ConstArray.length; i++)
-                int i = 0;
+                for (int i = 0; i < ConstArray.length; i++)
+                //int i = 0;
                 {
                     travel.GetData
                     (
                         resInd: i,
                         completionProps: out List<double> completionProps,
-                        resAmounts: out List<uint> resAmounts
+                        resAmounts: out List<ulong> resAmounts
                     );
 
                     foreach (var (completionProp, resAmount) in completionProps.Zip(resAmounts))
@@ -87,7 +97,7 @@ namespace Game1
         public readonly Node node1, node2;
         private readonly DirLink link1To2, link2To1;
 
-        public Link(Node node1, Node node2, TimeSpan travelTime, double minSafeDist)
+        public Link(Node node1, Node node2, TimeSpan travelTime, double minSafeDist, ulong reqWattsPerKgPerSec)
         {
             if (node1 == node2)
                 throw new ArgumentException();
@@ -95,8 +105,8 @@ namespace Game1
             this.node1 = node1;
             this.node2 = node2;
             
-            link1To2 = new(begin: node1, end: node2, travelTime: travelTime, minSafeDist: minSafeDist);
-            link2To1 = new(begin: node2, end: node1, travelTime: travelTime, minSafeDist: minSafeDist);
+            link1To2 = new(begin: node1, end: node2, travelTime: travelTime, minSafeDist: minSafeDist, reqWattsPerKgPerSec: reqWattsPerKgPerSec);
+            link2To1 = new(begin: node2, end: node1, travelTime: travelTime, minSafeDist: minSafeDist, reqWattsPerKgPerSec: reqWattsPerKgPerSec);
         }
 
         public Node Other(Node node)
@@ -112,7 +122,7 @@ namespace Game1
         public bool Contains(Vector2 position)
             => false;
 
-        public void AddRes(Node start, ConstUIntArray resAmounts)
+        public void AddRes(Node start, ConstULongArray resAmounts)
         {
             if (start == node1)
             {
@@ -127,13 +137,22 @@ namespace Game1
             throw new ArgumentException();
         }
 
+        public ulong ReqWattsPerSec()
+            => link1To2.ReqWattsPerSec() + link2To1.ReqWattsPerSec();
+
         public void ActiveUpdate()
         { }
 
-        public void Update()
+        public void StartUpdate()
         {
-            link1To2.Update();
-            link2To1.Update();
+            link1To2.StartUpdate();
+            link2To1.StartUpdate();
+        }
+
+        public void EndUpdate()
+        {
+            link1To2.EndUpdate();
+            link2To1.EndUpdate();
         }
 
         public void Draw(bool active)

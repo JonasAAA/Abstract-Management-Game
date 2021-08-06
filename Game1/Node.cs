@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Game1
 {
@@ -14,9 +15,10 @@ namespace Game1
         private readonly NodeState state;
         private readonly Image image;
         private readonly List<Link> links;
-        // resToLinksSplitters[i][j] - resource i to link j (remain in the node if j is links.Count)
+        // resToLinksSplitters[i][j] - resource i to link j
         private readonly MyArray<ProporSplitter> resToLinksSplitters;
         private Industry industry;
+        private ULongArray curWaitingRes;
 
         public Node(NodeState state, Image image)
         {
@@ -26,11 +28,9 @@ namespace Game1
             links = new();
             resToLinksSplitters = new();
             for (int i = 0; i < ConstArray.length; i++)
-            {
                 resToLinksSplitters[i] = new ProporSplitter();
-                resToLinksSplitters[i].InsertVar(index: 0);
-            }
             industry = Industry.emptyParams.MakeIndustry(state);
+            curWaitingRes = new();
         }
 
         public void AddLink(Link link)
@@ -40,11 +40,7 @@ namespace Game1
             foreach (var resToLinksSplitter in resToLinksSplitters)
             {
                 resToLinksSplitter.InsertVar(index: links.Count);
-                // temporary
-                double[] proportions = new double[resToLinksSplitter.Count];
-                Array.Fill(array: proportions, value: 1);
-                proportions[^1] = 0;
-                resToLinksSplitter.Proportions = new(proportions);
+                resToLinksSplitter.Proportions = new(Enumerable.Repeat(element: 1.0, count: (int)resToLinksSplitter.Count).ToList());
             }
             links.Add(link);
         }
@@ -52,49 +48,39 @@ namespace Game1
         public bool Contains(Vector2 position)
             => Vector2.Distance(this.Position, position) <= radius;
 
-        public void AddRes(ConstUIntArray resAmounts)
-            => state.arrived += resAmounts;
+        public void AddRes(ConstULongArray resAmounts)
+            => state.waitingRes += resAmounts;
+
+        public ulong ReqWattsPerSec()
+            => industry.ReqWattsPerSec();
+
+        public ulong ProdWattsPerSec()
+            => industry.ProdWattsPerSec();
 
         public void ActiveUpdate()
+            => industry.ActiveUpdate();
+
+        public void StartUpdate()
         {
-            //// temporary
-            //if (Keyboard.GetState().IsKeyDown(Keys.F))
-            //{
-            //    Factory.Params parameters = new
-            //    (
-            //        name: "factory",
-            //        upgrades: new(),
-            //        supply: new()
-            //        {
-            //            [0] = 10,
-            //        },
-            //        demand: new(),
-            //        prodTime: TimeSpan.FromSeconds(value: 2)
-            //    );
-
-            //    industry = parameters.MakeIndustry(state: state);
-            //}
-
-            industry.ActiveUpdate();
-        }
-
-        public void Update()
-        {
+            industry.StartProduction();
             industry = industry.FinishProduction();
 
-            //// temporary
-            //state.arrived += new UIntArray(value: 1);
+            curWaitingRes += state.storedRes;
+            state.storedRes = new();
 
-            //maybe I should just send one resource at a time rather then pack them to IntArray
-            UIntArray[] resSplitAmounts = new UIntArray[links.Count + 1];
+            state.storedRes = curWaitingRes.Min(industry.TargetStoredResAmounts());
+            curWaitingRes -= state.storedRes;
+
+            // maybe I should just send one resource at a time rather then pack them to ULongArray
+            ULongArray[] resSplitAmounts = new ULongArray[links.Count];
             for (int i = 0; i < resSplitAmounts.Length; i++)
                 resSplitAmounts[i] = new();
 
             for (int j = 0; j < ConstArray.length; j++)
             {
-                if (!resToLinksSplitters[j].CanSplit(amount: state.arrived[j]))
+                if (!resToLinksSplitters[j].CanSplit(amount: curWaitingRes[j]))
                     throw new NotImplementedException();
-                uint[] split = resToLinksSplitters[j].Split(amount: state.arrived[j]);
+                ulong[] split = resToLinksSplitters[j].Split(amount: curWaitingRes[j]);
                 Debug.Assert(split.Length == resSplitAmounts.Length);
                 for (int i = 0; i < resSplitAmounts.Length; i++)
                     resSplitAmounts[i][j] = split[i];
@@ -103,14 +89,19 @@ namespace Game1
             for (int i = 0; i < links.Count; i++)
                 links[i].AddRes(start: this, resAmounts: resSplitAmounts[i]);
 
-            state.stored += resSplitAmounts[^1];
-            state.arrived = new();
+            curWaitingRes = new();
+        }
 
-            industry.StartProductionIfCan();
+        public void EndUpdate()
+        {
+            curWaitingRes += state.waitingRes;
+            state.waitingRes = new();
         }
 
         public void Draw(bool active)
         {
+            //Draw amount of resources in storage
+            //or write percentage of required res
             if (active)
                 image.Color = Color.Yellow;
             else

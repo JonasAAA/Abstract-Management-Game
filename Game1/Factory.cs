@@ -7,17 +7,21 @@ namespace Game1
     {
         public new class Params : Industry.Params
         {
-            public readonly ConstUIntArray supply, demand;
+            public readonly ConstULongArray supply, demand;
             public readonly TimeSpan prodTime;
+            public readonly ulong reqWattsPerSec;
 
-            public Params(string name, List<Upgrade> upgrades, ConstUIntArray supply, ConstUIntArray demand, TimeSpan prodTime)
-                : base(name, upgrades)
+            public Params(string name, List<Upgrade> upgrades, ConstULongArray supply, ConstULongArray demand, TimeSpan prodTime, ulong reqWattsPerSec)
+                : base(name: name, upgrades: upgrades)
             {
                 this.supply = supply;
                 this.demand = demand;
                 if (prodTime.TotalSeconds < 0)
                     throw new ArgumentException();
                 this.prodTime = prodTime;
+                if (reqWattsPerSec <= 0)
+                    throw new ArgumentOutOfRangeException();
+                this.reqWattsPerSec = reqWattsPerSec;
             }
 
             public override Industry MakeIndustry(NodeState state)
@@ -31,26 +35,45 @@ namespace Game1
         private readonly TimedResQueue production;
 
         public Factory(Params parameters, NodeState state)
-            : base(parameters, state)
+            : base(parameters: parameters, state: state)
         {
             this.parameters = parameters;
             production = new(duration: parameters.prodTime);
         }
 
-        protected override void StartProduction()
+        public override ULongArray TargetStoredResAmounts()
+        {
+            ULongArray answer = base.TargetStoredResAmounts();
+            if (CanStartProduction)
+                answer += parameters.demand * state.maxBatchDemResStored;
+            return answer;
+        }
+
+        public override ulong ReqWattsPerSec()
+        {
+            ulong answer = base.ReqWattsPerSec();
+            if (!production.Empty)
+                answer += parameters.reqWattsPerSec;
+            return answer;
+        }
+
+        public override void StartProduction()
         {
             base.StartProduction();
 
-            if (production.Empty && state.stored >= parameters.demand)
+            if (!CanStartProduction)
+                return;
+
+            if (production.Empty && state.storedRes >= parameters.demand)
             {
-                state.stored -= parameters.demand;
+                state.storedRes -= parameters.demand;
                 production.Enqueue(newResAmounts: parameters.supply);
             }
         }
 
         public override Industry FinishProduction()
         {
-            state.arrived += production.DoneResAmounts();
+            state.waitingRes += production.DoneResAmounts();
 
             return base.FinishProduction();
         }
@@ -62,6 +85,8 @@ namespace Game1
                 text += "idle";
             else
                 text += $"producing {production.PeekCompletionProp() * 100: 0.}%";
+            if (!CanStartProduction)
+                text += "\nwill not start new";
             return text;
         }
     }

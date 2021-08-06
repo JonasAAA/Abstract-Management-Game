@@ -8,15 +8,15 @@ namespace Game1
 {
     public class ProporSplitter
     {
-        public int Count
-            => proportions.Count;
+        public uint Count
+            => (uint)proportions.Count;
 
         public ReadOnlyCollection<double> Proportions
         {
             get => proportions;
             set
             {
-                if (value.Any(a => a < 0))
+                if (value.Count != Count || value.Any(a => a < 0))
                     throw new ArgumentException();
                 double propSum = value.Sum();
                 if (propSum is 0)
@@ -32,7 +32,7 @@ namespace Game1
 
         public ProporSplitter()
         {
-            Proportions = new(list: Array.Empty<double>());
+            proportions = new(list: Array.Empty<double>());
             necAdds = new();
         }
 
@@ -44,31 +44,31 @@ namespace Game1
             necAdds.Insert(index: index, item: 0);
         }
 
-        public bool CanSplit(uint amount)
+        public bool CanSplit(ulong amount)
             => amount is 0 || proportions.Sum() is not 0;
 
-        public uint[] Split(uint amount)
+        public ulong[] Split(ulong amount)
         {
             if (!CanSplit(amount: amount))
                 throw new Exception();
 
             if (amount is 0)
-                return new uint[Count];
+                return new ulong[Count];
 
             Debug.Assert(C.IsTiny(value: Proportions.Sum() - 1));
 
-            var answer = new uint[Count];
+            var answer = new ulong[Count];
             var perfect = new double[Count];
-            uint unusedAmount = amount;
+            ulong unusedAmount = amount;
             for (int i = 0; i < Count; i++)
             {
                 perfect[i] = amount * proportions[i] + necAdds[i];
-                answer[i] = (uint)perfect[i];
+                answer[i] = (ulong)perfect[i];
                 necAdds[i] = perfect[i] - answer[i];
                 unusedAmount -= answer[i];
             }
 
-            var priorityInds = Enumerable.Range(start: 0, count: Count).OrderByDescending(a => necAdds[a]);
+            var priorityInds = Enumerable.Range(start: 0, count: (int)Count).OrderByDescending(a => necAdds[a]);
             foreach (int ind in priorityInds)
             {
                 if (unusedAmount is 0)

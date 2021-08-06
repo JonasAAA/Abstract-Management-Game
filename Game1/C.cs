@@ -7,10 +7,10 @@ namespace Game1
 {
     public static class C
     {
-        public static int ScreenWidth
-            => GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-        public static int ScreenHeight
-            => GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+        public static uint ScreenWidth
+            => (uint)GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+        public static uint ScreenHeight
+            => (uint)GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
         public static ConstArray<Color> ResColors { get; private set; }
         public static ContentManager Content { get; private set; }
         public static SpriteBatch SpriteBatch { get; private set; }
@@ -36,8 +36,8 @@ namespace Game1
             ResColors = resColors;
         }
 
-        public static void Update(GameTime gameTime)
-            => TotalGameTime = gameTime.TotalGameTime;
+        public static void Update(TimeSpan elapsed)
+            => TotalGameTime += elapsed;
 
         public static double Random(double min, double max)
             => min + random.NextDouble() * (max - min);

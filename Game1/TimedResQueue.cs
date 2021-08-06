@@ -9,7 +9,8 @@ namespace Game1
     {
         private readonly TimeSpan duration;
         private readonly Queue<TimeSpan> endTimes;
-        private readonly Queue<ConstUIntArray> resAmounts;
+        private readonly Queue<ConstULongArray> resAmounts;
+        private ConstULongArray totalResAmounts;
 
         public bool Empty
             => endTimes.Count is 0;
@@ -22,27 +23,33 @@ namespace Game1
             
             endTimes = new();
             resAmounts = new();
+            totalResAmounts = new();
         }
 
-        public void Enqueue(ConstUIntArray newResAmounts)
+        public ulong TotalWeight()
+            => totalResAmounts.TotalWeight();
+
+        public void Enqueue(ConstULongArray newResAmounts)
         {
             endTimes.Enqueue(C.TotalGameTime + duration);
             resAmounts.Enqueue(newResAmounts);
+            totalResAmounts += newResAmounts;
         }
 
-        public ConstUIntArray DoneResAmounts()
+        public ConstULongArray DoneResAmounts()
         {
-            ConstUIntArray doneResAmounts = new();
+            ConstULongArray doneResAmounts = new();
             while (endTimes.Count > 0 && endTimes.Peek() < C.TotalGameTime)
             {
                 doneResAmounts += resAmounts.Dequeue();
                 endTimes.Dequeue();
             }
+            totalResAmounts -= doneResAmounts;
             return doneResAmounts;
         }
 
         // could have a version of this without taking resInd
-        public void GetData(int resInd, out List<double> completionProps, out List<uint> resAmounts)
+        public void GetData(int resInd, out List<double> completionProps, out List<ulong> resAmounts)
         {
             completionProps = new();
             resAmounts = new();

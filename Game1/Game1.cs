@@ -25,8 +25,8 @@ namespace Game1
 
         protected override void Initialize()
         {
-            graphics.PreferredBackBufferWidth = C.ScreenWidth;
-            graphics.PreferredBackBufferHeight = C.ScreenHeight;
+            graphics.PreferredBackBufferWidth = (int)C.ScreenWidth;
+            graphics.PreferredBackBufferHeight = (int)C.ScreenHeight;
             //graphics.IsFullScreen = true;
             graphics.ApplyChanges();
 
@@ -53,13 +53,11 @@ namespace Game1
 
         protected override void Update(GameTime gameTime)
         {
-            C.Update(gameTime: gameTime);
-
             exitButton.Update();
 
             MyMouse.Update();
 
-            playState.Update();
+            playState.Update(gameTime: gameTime);
 
             base.Update(gameTime);
         }

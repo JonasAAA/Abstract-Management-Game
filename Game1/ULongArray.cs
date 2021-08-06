@@ -2,21 +2,21 @@
 
 namespace Game1
 {
-    public class UIntArray : ConstUIntArray
+    public class ULongArray : ConstULongArray
     {
-        public UIntArray()
+        public ULongArray()
             : base()
         { }
 
-        public UIntArray(uint value)
+        public ULongArray(ulong value)
             : base(value: value)
         { }
 
-        public UIntArray(IEnumerable<uint> values)
+        public ULongArray(IEnumerable<ulong> values)
             : base(values: values)
         { }
 
-        public new uint this[int index]
+        public new ulong this[int index]
         {
             get => array[index];
             set => array[index] = value;

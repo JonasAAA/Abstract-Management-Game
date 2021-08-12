@@ -2,7 +2,7 @@
 {
     public enum IndustryType
     {
-        Building,
+        Construction,
         Production,
         PowerPlant,
         Research,

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Game1
 {
@@ -9,8 +8,8 @@ namespace Game1
         {
             public readonly ulong prodWattsPerSec;
 
-            public Params(string name, List<Upgrade> upgrades, ulong prodWattsPerSec)
-                : base(name: name, industryType: IndustryType.PowerPlant, upgrades: upgrades)
+            public Params(string name, ulong prodWattsPerSec)
+                : base(industryType: IndustryType.PowerPlant, name: name)
             {
                 if (prodWattsPerSec <= 0)
                     throw new ArgumentOutOfRangeException();
@@ -23,13 +22,62 @@ namespace Game1
 
         private readonly Params parameters;
 
-        public PowerPlant(Params parameters, NodeState state)
+        private PowerPlant(Params parameters, NodeState state)
             : base(parameters: parameters, state: state)
         {
             this.parameters = parameters;
         }
 
+        public override ULongArray TargetStoredResAmounts()
+            => new();
+
+        public override ulong ReqWattsPerSec()
+            => 0;
+
         public override ulong ProdWattsPerSec()
-            => base.ProdWattsPerSec() + parameters.prodWattsPerSec;
+            => parameters.prodWattsPerSec;
+
+        public override Industry Update()
+            => this;
+
+        public override string GetText()
+            => parameters.name;
     }
 }
+
+
+//using System;
+//using System.Collections.Generic;
+
+//namespace Game1
+//{
+//    public class PowerPlant : Industry
+//    {
+//        public new class Params : Industry.Params
+//        {
+//            public readonly ulong prodWattsPerSec;
+
+//            public Params(string name, List<Upgrade> upgrades, ulong prodWattsPerSec)
+//                : base(name: name, industryType: IndustryType.PowerPlant, upgrades: upgrades)
+//            {
+//                if (prodWattsPerSec <= 0)
+//                    throw new ArgumentOutOfRangeException();
+//                this.prodWattsPerSec = prodWattsPerSec;
+//            }
+
+//            public override Industry MakeIndustry(NodeState state)
+//                => new PowerPlant(parameters: this, state: state);
+//        }
+
+//        private readonly Params parameters;
+
+//        public PowerPlant(Params parameters, NodeState state)
+//            : base(parameters: parameters, state: state)
+//        {
+//            this.parameters = parameters;
+//        }
+
+//        public override ulong ProdWattsPerSec()
+//            => base.ProdWattsPerSec() + parameters.prodWattsPerSec;
+//    }
+//}

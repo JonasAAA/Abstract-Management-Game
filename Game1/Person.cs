@@ -18,6 +18,7 @@ namespace Game1
         public readonly Dictionary<IndustryType, double> skills;
         public double MinAcceptableEnjoyment { get; private set; }
         public Node Node { get; set; }
+        public Job Job { get; set; }
 
         private Person(Dictionary<IndustryType, double> enjoyments, Dictionary<IndustryType, double> talents, Dictionary<IndustryType, double> skills)
         {
@@ -34,6 +35,7 @@ namespace Game1
             this.skills = new(skills);
 
             Node = null;
+            Job = null;
         }
 
         public static Person GenerateNew()
@@ -58,6 +60,12 @@ namespace Game1
         {
             if (EvaluateJob(job: job) is double.NegativeInfinity)
                 throw new ArgumentException();
+
+            //if (Job is not null)
+            //{
+            //    job.node.
+            //}
+            Job = job;
 
             // TODO:
             // travel to new job destination

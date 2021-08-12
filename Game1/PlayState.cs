@@ -6,11 +6,8 @@ namespace Game1
 {
     public sealed class PlayState
     {
-        private readonly Graph graph;
-
         public PlayState()
         {
-            graph = new Graph(ambientWattsPerSec: 100);
             List<Node> nodes = new()
             {
                 new
@@ -104,24 +101,24 @@ namespace Game1
             };
 
             foreach (var node in nodes)
-                graph.AddNode(node);
+                Graph.AddNode(node);
 
             foreach (var link in links)
-                graph.AddEdge(link);
+                Graph.AddEdge(link);
         }
 
         public void Update(GameTime gameTime)
         {
             C.Camera.Update();
 
-            graph.Update(gameTime: gameTime);
+            Graph.Update(gameTime: gameTime);
         }
 
         public void Draw()
         {
             C.Camera.BeginDraw();
 
-            graph.Draw();
+            Graph.Draw();
 
             C.Camera.EndDraw();
         }

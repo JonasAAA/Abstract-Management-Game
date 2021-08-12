@@ -62,8 +62,9 @@ namespace Game1
 
         public void StartUpdate()
         {
-            industry.StartProduction();
-            industry = industry.FinishProduction();
+            industry = industry.Update();
+            //industry.StartProduction();
+            //industry = industry.FinishProduction();
 
             curWaitingRes += state.storedRes;
             state.storedRes = new();

@@ -9,21 +9,16 @@ namespace Game1
 {
     public class Industry
     {
-        private enum UpgrStage
-        {
-            None,
-            Queued,
-            Upgrading
-        }
-
         public class Params
         {
             public readonly string name;
+            public readonly IndustryType industryType;
             public readonly ReadOnlyCollection<Upgrade> upgrades;
 
-            public Params(string name, List<Upgrade> upgrades)
+            public Params(string name, IndustryType industryType, List<Upgrade> upgrades)
             {
                 this.name = name;
+                this.industryType = industryType;
                 this.upgrades = new(upgrades);
             }
 
@@ -53,10 +48,20 @@ namespace Game1
             }
         }
 
+        private enum UpgrStage
+        {
+            None,
+            Queued,
+            Upgrading
+        }
+
+        public static readonly uint TypeCount;
         public static readonly Params emptyParams;
 
         static Industry()
         {
+            TypeCount = (uint)Enum.GetValues<IndustryType>().Length;
+
             Factory.Params factory0_lvl2 = new
             (
                 name: nameof(factory0_lvl2),
@@ -70,7 +75,8 @@ namespace Game1
                     [1] = 50,
                 },
                 prodTime: TimeSpan.FromSeconds(value: 2),
-                reqWattsPerSec: 10
+                reqWattsPerSec: 10,
+                reqSkill: 10
             );
 
             Factory.Params factory1_lvl2 = new
@@ -86,7 +92,8 @@ namespace Game1
                     [0] = 50,
                 },
                 prodTime: TimeSpan.FromSeconds(value: 2),
-                reqWattsPerSec: 10
+                reqWattsPerSec: 10,
+                reqSkill: 10
             );
 
             Factory.Params factory2_lvl2 = new
@@ -103,7 +110,8 @@ namespace Game1
                     [1] = 50,
                 },
                 prodTime: TimeSpan.FromSeconds(value: 2),
-                reqWattsPerSec: 10
+                reqWattsPerSec: 10,
+                reqSkill: 10
             );
 
             PowerPlant.Params power_plant_lvl2 = new
@@ -136,7 +144,8 @@ namespace Game1
                 },
                 demand: new(),
                 prodTime: TimeSpan.FromSeconds(value: 5),
-                reqWattsPerSec: 10
+                reqWattsPerSec: 10,
+                reqSkill: 10
             );
 
             Factory.Params factory1_lvl1 = new
@@ -159,7 +168,8 @@ namespace Game1
                 },
                 demand: new(),
                 prodTime: TimeSpan.FromSeconds(value: 5),
-                reqWattsPerSec: 10
+                reqWattsPerSec: 10,
+                reqSkill: 10
             );
 
             Factory.Params factory2_lvl1 = new
@@ -186,7 +196,8 @@ namespace Game1
                     [1] = 5,
                 },
                 prodTime: TimeSpan.FromSeconds(value: 5),
-                reqWattsPerSec: 10
+                reqWattsPerSec: 10,
+                reqSkill: 10
             );
 
             PowerPlant.Params power_plant_lvl1 = new
@@ -214,6 +225,7 @@ namespace Game1
             emptyParams = new Params
             (
                 name: "empty",
+                industryType: IndustryType.Research,
                 upgrades: new()
                 {
                     new
@@ -328,7 +340,7 @@ namespace Game1
             }
         }
 
-        public virtual void StartProduction()
+        public virtual Industry Update()
         {
             if (CurUpgrStage is UpgrStage.Queued && !IsProducing && state.storedRes >= upgrade.cost)
             {
@@ -336,14 +348,28 @@ namespace Game1
                 state.storedRes -= upgrade.cost;
                 CanStartProduction = false;
             }
-        }
 
-        public virtual Industry FinishProduction()
-        {
             if (CurUpgrStage is UpgrStage.Upgrading && upgradeEndTime.Value <= C.TotalGameTime)
                 return upgrade.parameters.MakeIndustry(state: state);
             return this;
         }
+
+        //public virtual void StartProduction()
+        //{
+        //    if (CurUpgrStage is UpgrStage.Queued && !IsProducing && state.storedRes >= upgrade.cost)
+        //    {
+        //        upgradeEndTime = C.TotalGameTime + upgrade.duration;
+        //        state.storedRes -= upgrade.cost;
+        //        CanStartProduction = false;
+        //    }
+        //}
+
+        //public virtual Industry FinishProduction()
+        //{
+        //    if (CurUpgrStage is UpgrStage.Upgrading && upgradeEndTime.Value <= C.TotalGameTime)
+        //        return upgrade.parameters.MakeIndustry(state: state);
+        //    return this;
+        //}
 
         public virtual string GetText()
             => parameters.name;

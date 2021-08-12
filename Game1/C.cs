@@ -62,5 +62,11 @@ namespace Game1
                 throw new ArgumentException();
             return Math.Min(1 - (endTime - TotalGameTime) / duration, 1);
         }
+
+        public static bool IsInSuitableRange(double value)
+            => value >= 0 && value <= 1;
+
+        public static bool IsSuitable(double value)
+            => value is double.NegativeInfinity || IsInSuitableRange(value: value);
     }
 }

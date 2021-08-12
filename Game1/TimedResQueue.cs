@@ -17,7 +17,7 @@ namespace Game1
 
         public TimedResQueue(TimeSpan duration)
         {
-            if (duration.TotalSeconds < 0)
+            if (duration < TimeSpan.Zero)
                 throw new ArgumentException();
             this.duration = duration;
             

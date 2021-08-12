@@ -10,7 +10,7 @@ namespace Game1
             public readonly ulong prodWattsPerSec;
 
             public Params(string name, List<Upgrade> upgrades, ulong prodWattsPerSec)
-                : base(name: name, upgrades: upgrades)
+                : base(name: name, industryType: IndustryType.PowerPlant, upgrades: upgrades)
             {
                 if (prodWattsPerSec <= 0)
                     throw new ArgumentOutOfRangeException();

@@ -10,18 +10,22 @@ namespace Game1
             public readonly ConstULongArray supply, demand;
             public readonly TimeSpan prodTime;
             public readonly ulong reqWattsPerSec;
+            public readonly double reqSkill;
 
-            public Params(string name, List<Upgrade> upgrades, ConstULongArray supply, ConstULongArray demand, TimeSpan prodTime, ulong reqWattsPerSec)
-                : base(name: name, upgrades: upgrades)
+            public Params(string name, List<Upgrade> upgrades, ConstULongArray supply, ConstULongArray demand, TimeSpan prodTime, ulong reqWattsPerSec, double reqSkill)
+                : base(name: name, industryType: IndustryType.Production, upgrades: upgrades)
             {
                 this.supply = supply;
                 this.demand = demand;
-                if (prodTime.TotalSeconds < 0)
+                if (prodTime < TimeSpan.Zero)
                     throw new ArgumentException();
                 this.prodTime = prodTime;
                 if (reqWattsPerSec <= 0)
                     throw new ArgumentOutOfRangeException();
                 this.reqWattsPerSec = reqWattsPerSec;
+                if (reqSkill <= 0)
+                    throw new ArgumentOutOfRangeException();
+                this.reqSkill = reqSkill;
             }
 
             public override Industry MakeIndustry(NodeState state)
@@ -57,26 +61,39 @@ namespace Game1
             return answer;
         }
 
-        public override void StartProduction()
+        public override Industry Update()
         {
-            base.StartProduction();
-
-            if (!CanStartProduction)
-                return;
-
-            if (production.Empty && state.storedRes >= parameters.demand)
+            if (CanStartProduction && production.Empty && state.storedRes >= parameters.demand)
             {
                 state.storedRes -= parameters.demand;
                 production.Enqueue(newResAmounts: parameters.supply);
             }
-        }
 
-        public override Industry FinishProduction()
-        {
             state.waitingRes += production.DoneResAmounts();
 
-            return base.FinishProduction();
+            return base.Update();
         }
+
+        //public override void StartProduction()
+        //{
+        //    base.StartProduction();
+
+        //    if (!CanStartProduction)
+        //        return;
+
+        //    if (production.Empty && state.storedRes >= parameters.demand)
+        //    {
+        //        state.storedRes -= parameters.demand;
+        //        production.Enqueue(newResAmounts: parameters.supply);
+        //    }
+        //}
+
+        //public override Industry FinishProduction()
+        //{
+        //    state.waitingRes += production.DoneResAmounts();
+
+        //    return base.FinishProduction();
+        //}
 
         public override string GetText()
         {

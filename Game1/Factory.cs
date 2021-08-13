@@ -7,24 +7,16 @@ namespace Game1
         public new class Params : Industry.Params
         {
             public readonly ConstULongArray supply, demand;
-            public readonly TimeSpan prodTime;
-            public readonly ulong reqWattsPerSec;
-            public readonly double reqSkill;
+            public readonly TimeSpan prodDuration;
 
-            public Params(string name, ConstULongArray supply, ConstULongArray demand, TimeSpan prodTime, ulong reqWattsPerSec, double reqSkill)
-                : base(industryType: IndustryType.Production, name: name)
+            public Params(string name, double reqSkill, ulong reqWattsPerSec, ConstULongArray supply, ConstULongArray demand, TimeSpan prodDuration)
+                : base(industryType: IndustryType.Production, name: name, reqSkill: reqSkill, reqWattsPerSec: reqWattsPerSec, prodWattsPerSec: 0)
             {
                 this.supply = supply;
                 this.demand = demand;
-                if (prodTime < TimeSpan.Zero)
+                if (prodDuration < TimeSpan.Zero)
                     throw new ArgumentException();
-                this.prodTime = prodTime;
-                if (reqWattsPerSec <= 0)
-                    throw new ArgumentOutOfRangeException();
-                this.reqWattsPerSec = reqWattsPerSec;
-                if (reqSkill <= 0)
-                    throw new ArgumentOutOfRangeException();
-                this.reqSkill = reqSkill;
+                this.prodDuration = prodDuration;
             }
 
             public override Industry MakeIndustry(NodeState state)
@@ -32,13 +24,15 @@ namespace Game1
         }
 
         private readonly Params parameters;
-        private readonly TimedResQueue production;
+        private TimeSpan? prodEndTime;
+        //private readonly TimedResQueue production;
 
         private Factory(Params parameters, NodeState state)
             : base(parameters: parameters, state: state)
         {
             this.parameters = parameters;
-            production = new(duration: parameters.prodTime);
+            prodEndTime = null;
+            //production = new(duration: parameters.prodTime);
         }
 
         public override ULongArray TargetStoredResAmounts()
@@ -48,36 +42,49 @@ namespace Game1
             return new();
         }
 
-        public override ulong ReqWattsPerSec()
-        {
-            if (!production.Empty)
-                return parameters.reqWattsPerSec;
-            return 0;
-        }
-
-        public override ulong ProdWattsPerSec()
-            => 0;
+        protected override bool IsBusy()
+            => prodEndTime.HasValue;
+            //=> !production.Empty;
 
         public override Industry Update()
         {
-            if (CanStartProduction && production.Empty && state.storedRes >= parameters.demand)
+            base.Update();
+
+            if (prodEndTime.HasValue)
+                prodEndTime += (1 - CurSkillPropor) * C.ElapsedGameTime;
+
+            if (CanStartProduction && prodEndTime is null && state.storedRes >= parameters.demand)
             {
                 state.storedRes -= parameters.demand;
-                production.Enqueue(newResAmounts: parameters.supply);
+                prodEndTime = C.TotalGameTime + parameters.prodDuration;
             }
 
-            state.waitingRes += production.DoneResAmounts();
+            if (prodEndTime.HasValue && prodEndTime <= C.TotalGameTime)
+            {
+                state.waitingRes += parameters.supply;
+                prodEndTime = null;
+            }
+
+            //if (CanStartProduction && production.Empty && state.storedRes >= parameters.demand)
+            //{
+            //    state.storedRes -= parameters.demand;
+            //    production.Enqueue(newResAmounts: parameters.supply);
+            //}
+
+            //state.waitingRes += production.DoneResAmounts();
 
             return this;
         }
 
         public override string GetText()
         {
-            string text = $"{parameters.name}\n";
-            if (production.Empty)
+            string text = base.GetText() + $"{parameters.name}\n";
+            //if (production.Empty)
+            if (prodEndTime is null)
                 text += "idle";
             else
-                text += $"producing {production.PeekCompletionProp() * 100: 0.}%";
+                text += $"producing {C.DonePart(endTime: prodEndTime.Value, duration: parameters.prodDuration) * 100: 0.}%";
+                //text += $"producing {production.PeekCompletionProp() * 100: 0.}%";
             if (!CanStartProduction)
                 text += "\nwill not start new";
             return text;

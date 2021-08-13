@@ -8,17 +8,23 @@ namespace Game1
     // TODO:
     // MinAcceptableEnjoyment needs to decrease if person stays unemployed
     // or could make it more similar to when job is vacant for a while
+    //
+    // also need to increse relevant skill when employed
     public class Person
     {
+        public static readonly double reqWattsPerSec;
+
+        static Person()
+            => reqWattsPerSec = .2;
+
         // between 0 and 1
         public readonly ReadOnlyDictionary<IndustryType, double> enjoyments;
         // between 0 and 1
         public readonly ReadOnlyDictionary<IndustryType, double> talents;
         // between 0 and 1
         public readonly Dictionary<IndustryType, double> skills;
-        public double MinAcceptableEnjoyment { get; private set; }
-        public Node Node { get; set; }
-        public Job Job { get; set; }
+        //public double MinAcceptableEnjoyment { get; private set; }
+        public Node Destination { get; private set; }
 
         private Person(Dictionary<IndustryType, double> enjoyments, Dictionary<IndustryType, double> talents, Dictionary<IndustryType, double> skills)
         {
@@ -34,8 +40,7 @@ namespace Game1
                 throw new ArgumentException();
             this.skills = new(skills);
 
-            Node = null;
-            Job = null;
+            Destination = null;
         }
 
         public static Person GenerateNew()
@@ -53,25 +58,19 @@ namespace Game1
             );
 
         // must be between 0 and 1 or double.NegativeInfinity
-        public double EvaluateJob(Job job)
-            => enjoyments[job.industryType];
+        public double EvaluateJob(IJob job)
+            => enjoyments[job.IndustryType];
 
-        public void TakeJob(Job job)
+        public void TakeJob(IJob job, Node jobNode)
         {
             if (EvaluateJob(job: job) is double.NegativeInfinity)
                 throw new ArgumentException();
 
-            //if (Job is not null)
-            //{
-            //    job.node.
-            //}
-            Job = job;
+            Destination = jobNode;
 
             // TODO:
             // travel to new job destination
             // if already had a job, need to inform it about quitting
-
-            throw new NotImplementedException();
         }
     }
 }

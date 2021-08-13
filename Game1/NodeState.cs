@@ -9,7 +9,7 @@ namespace Game1
         public readonly Vector2 position;
         public ULongArray storedRes, waitingRes;
         public readonly ulong maxBatchDemResStored;
-        public readonly List<Person> employedPeople, unemployedPeople, travellingPeople;
+        public readonly List<Person> employees, travelingEmployees, unemployedPeople, travellingPeople;
 
         public NodeState(Vector2 position, ulong maxBatchDemResStored)
         {
@@ -19,7 +19,8 @@ namespace Game1
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             this.maxBatchDemResStored = maxBatchDemResStored;
-            employedPeople = new();
+            employees = new();
+            travelingEmployees = new();
             unemployedPeople = new();
             travellingPeople = new();
         }

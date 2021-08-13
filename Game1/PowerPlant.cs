@@ -1,20 +1,12 @@
-﻿using System;
-
-namespace Game1
+﻿namespace Game1
 {
     public class PowerPlant : Industry
     {
         public new class Params : Industry.Params
         {
-            public readonly ulong prodWattsPerSec;
-
-            public Params(string name, ulong prodWattsPerSec)
-                : base(industryType: IndustryType.PowerPlant, name: name)
-            {
-                if (prodWattsPerSec <= 0)
-                    throw new ArgumentOutOfRangeException();
-                this.prodWattsPerSec = prodWattsPerSec;
-            }
+            public Params(string name, double reqSkill, ulong prodWattsPerSec)
+                : base(industryType: IndustryType.PowerPlant, name: name, reqSkill: reqSkill, reqWattsPerSec: 0, prodWattsPerSec: prodWattsPerSec)
+            { }
 
             public override Industry MakeIndustry(NodeState state)
                 => new PowerPlant(parameters: this, state: state);
@@ -31,17 +23,11 @@ namespace Game1
         public override ULongArray TargetStoredResAmounts()
             => new();
 
-        public override ulong ReqWattsPerSec()
-            => 0;
-
-        public override ulong ProdWattsPerSec()
-            => parameters.prodWattsPerSec;
-
-        public override Industry Update()
-            => this;
+        protected override bool IsBusy()
+            => true;
 
         public override string GetText()
-            => parameters.name;
+            => base.GetText() + parameters.name;
     }
 }
 

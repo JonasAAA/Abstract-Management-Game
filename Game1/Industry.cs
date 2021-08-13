@@ -1,23 +1,33 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
+﻿using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace Game1
 {
-    public abstract class Industry
+    public abstract class Industry : IJob
     {
         // all fields and properties in this and derived classes must have unchangeable state
         public abstract class Params
         {
             public readonly IndustryType industryType;
             public readonly string name;
+            public readonly double reqSkill;
+            public readonly double reqWattsPerSec, prodWattsPerSec;
             
-            public Params(IndustryType industryType, string name)
+            public Params(IndustryType industryType, string name, double reqSkill, double reqWattsPerSec, double prodWattsPerSec)
             {
                 this.industryType = industryType;
                 this.name = name;
+                if (reqSkill <= 0)
+                    throw new ArgumentOutOfRangeException();
+                this.reqSkill = reqSkill;
+                if (reqWattsPerSec < 0)
+                    throw new ArgumentOutOfRangeException();
+                this.reqWattsPerSec = reqWattsPerSec;
+                if (prodWattsPerSec < 0)
+                    throw new ArgumentOutOfRangeException();
+                this.prodWattsPerSec = prodWattsPerSec;
             }
 
             public abstract Industry MakeIndustry(NodeState state);
@@ -35,78 +45,87 @@ namespace Game1
                 new
                 (
                     name: "factory costruction",
+                    reqSkill: 10,
+                    reqWattsPerSec: 100,
                     industrParams: new Factory.Params
                     (
                         name: "factory0_lvl1",
+                        reqSkill: 10,
+                        reqWattsPerSec: 10,
                         supply: new()
                         {
                             [0] = 10,
                         },
                         demand: new(),
-                        prodTime: TimeSpan.FromSeconds(value: 2),
-                        reqWattsPerSec: 10,
-                        reqSkill: 10
+                        prodDuration: TimeSpan.FromSeconds(value: 2)
                     ),
                     duration: TimeSpan.FromSeconds(5),
-                    cost: new(),
-                    reqWattsPerSec: 100
+                    cost: new()
                 ),
                 new
                 (
                     name: "factory costruction",
+                    reqSkill: 10,
+                    reqWattsPerSec: 100,
                     industrParams: new Factory.Params
                     (
                         name: "factory1_lvl1",
+                        reqSkill: 10,
+                        reqWattsPerSec: 10,
                         supply: new()
                         {
                             [1] = 10,
                         },
                         demand: new(),
-                        prodTime: TimeSpan.FromSeconds(value: 2),
-                        reqWattsPerSec: 10,
-                        reqSkill: 10
+                        prodDuration: TimeSpan.FromSeconds(value: 2)
                     ),
                     duration: TimeSpan.FromSeconds(5),
-                    cost: new(),
-                    reqWattsPerSec: 100
+                    cost: new()
                 ),
                 new
                 (
                     name: "factory costruction",
+                    reqSkill: 10,
+                    reqWattsPerSec: 100,
                     industrParams: new Factory.Params
                     (
                         name: "factory2_lvl1",
+                        reqSkill: 10,
+                        reqWattsPerSec: 10,
                         supply: new()
                         {
                             [2] = 10,
                         },
                         demand: new(),
-                        prodTime: TimeSpan.FromSeconds(value: 2),
-                        reqWattsPerSec: 10,
-                        reqSkill: 10
+                        prodDuration: TimeSpan.FromSeconds(value: 2)
                     ),
                     duration: TimeSpan.FromSeconds(5),
-                    cost: new(),
-                    reqWattsPerSec: 100
+                    cost: new()
                 ),
                 new
                 (
-                    name: "factory costruction",
+                    name: "power plant costruction",
+                    reqSkill: 100,
+                    reqWattsPerSec: 100,
                     industrParams: new PowerPlant.Params
                     (
                         name: "power_plant_lvl1",
+                        reqSkill: 100,
                         prodWattsPerSec: 1000
                     ),
                     duration: TimeSpan.FromSeconds(5),
-                    cost: new(),
-                    reqWattsPerSec: 100
+                    cost: new()
                 ),
                 new
                 (
                     name: "factory costruction",
+                    reqSkill: 10,
+                    reqWattsPerSec: 100,
                     industrParams: new Factory.Params
                     (
                         name: "factory0_lvl2",
+                        reqSkill: 10,
+                        reqWattsPerSec: 10,
                         supply: new()
                         {
                             [0] = 100,
@@ -115,23 +134,25 @@ namespace Game1
                         {
                             [1] = 50,
                         },
-                        prodTime: TimeSpan.FromSeconds(value: 2),
-                        reqWattsPerSec: 10,
-                        reqSkill: 10
+                        prodDuration: TimeSpan.FromSeconds(value: 2)
                     ),
                     duration: TimeSpan.FromSeconds(5),
                     cost: new()
                     {
                         [1] = 20,
-                    },
-                    reqWattsPerSec: 100
+                    }
                 ),
             });
         }
 
-        protected readonly NodeState state;
+        public IndustryType IndustryType
+            => parameters.industryType;
+        //public TimeSpan SearchStart { get; private set; }
 
+        protected readonly NodeState state;
         protected bool CanStartProduction { get; private set; }
+        protected double CurSkillPropor { get; private set; }
+
         private readonly Params parameters;
         private readonly KeyButton togglePauseButton;
         
@@ -145,13 +166,45 @@ namespace Game1
                 key: Keys.P,
                 action: () => CanStartProduction = !CanStartProduction
             );
+            CurSkillPropor = 0;
+            //SearchStart = C.TotalGameTime;
+        }
+
+        private double HiredSkill()
+            => state.employees.Concat(state.travelingEmployees).Sum(person => person.skills[parameters.industryType]);
+
+        // must be between 0 and 1 or double.NegativeInfinity
+        public double OpenSpace()
+        {
+            double hiredSkill = HiredSkill();
+            if (hiredSkill >= parameters.reqSkill)
+                return double.NegativeInfinity;
+            return 1 - hiredSkill / parameters.reqSkill;
+        }
+
+        public void Hire(Person person)
+        {
+            state.travelingEmployees.Add(person);
+            //SearchStart = C.TotalGameTime;
         }
 
         public abstract ULongArray TargetStoredResAmounts();
 
-        public abstract ulong ReqWattsPerSec();
+        protected abstract bool IsBusy();
 
-        public abstract ulong ProdWattsPerSec();
+        public double ReqWattsPerSec()
+            => IsBusy() switch
+            {
+                true => parameters.reqWattsPerSec * CurSkillPropor,
+                false => 0
+            };
+
+        public double ProdWattsPerSec()
+            => IsBusy() switch
+            {
+                true => parameters.prodWattsPerSec * CurSkillPropor,
+                false => 0
+            };
 
         public void ActiveUpdate()
         {
@@ -169,25 +222,14 @@ namespace Game1
             //}
         }
 
-        public abstract Industry Update();
-
-        public abstract string GetText();
-        
-        public void Draw()
+        public virtual Industry Update()
         {
-            C.SpriteBatch.DrawString
-            (
-                spriteFont: C.Content.Load<SpriteFont>("font"),
-                text: GetText(),
-                position: state.position,
-                color: Color.Black,
-                rotation: 0,
-                origin: Vector2.Zero,
-                scale: .15f,
-                effects: SpriteEffects.None,
-                layerDepth: 0
-            );
+            CurSkillPropor = Math.Min(1, state.employees.Sum(person => person.skills[parameters.industryType]) / parameters.reqSkill);
+            return this;
         }
+
+        public virtual string GetText()
+            => $"have {CurSkillPropor * 100:0.}% skill\n";
     }
 }
 

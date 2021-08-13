@@ -15,6 +15,7 @@ namespace Game1
         public static ContentManager Content { get; private set; }
         public static SpriteBatch SpriteBatch { get; private set; }
         public static TimeSpan TotalGameTime { get; private set; }
+        public static TimeSpan ElapsedGameTime { get; private set; }
         public static Camera Camera { get; private set; }
 
         public static readonly double minPosDouble;
@@ -37,7 +38,10 @@ namespace Game1
         }
 
         public static void Update(TimeSpan elapsed)
-            => TotalGameTime += elapsed;
+        {
+            ElapsedGameTime = elapsed;
+            TotalGameTime += ElapsedGameTime;
+        }
 
         public static double Random(double min, double max)
             => min + random.NextDouble() * (max - min);
@@ -64,7 +68,7 @@ namespace Game1
         }
 
         public static bool IsInSuitableRange(double value)
-            => value >= 0 && value <= 1;
+            => value is >= 0 and <= 1;
 
         public static bool IsSuitable(double value)
             => value is double.NegativeInfinity || IsInSuitableRange(value: value);

@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
@@ -13,7 +14,8 @@ namespace Game1
         public Vector2 Position
             => state.position;
         public readonly float radius;
-        public Job Job { get; private set; }
+        public IJob Job
+            => industry;
         public IEnumerable<Person> UnemployedPeople
             => state.unemployedPeople;
 
@@ -26,7 +28,7 @@ namespace Game1
         private ULongArray curWaitingRes;
         private readonly ReadOnlyCollection<KeyButton> constrKeyButtons;
 
-        public Node(NodeState state, Image image)
+        public Node(NodeState state, Image image, int startPersonCount = 0)
         {
             this.state = state;
             radius = image.Width * .5f;
@@ -42,6 +44,8 @@ namespace Game1
             (
                 list: (from key in constrKeys select new KeyButton(key: key)).ToArray()
             );
+            for (int i = 0; i < startPersonCount; i++)
+                state.unemployedPeople.Add(Person.GenerateNew());
         }
 
         public void AddLink(Link link)
@@ -62,14 +66,31 @@ namespace Game1
         public void AddRes(ConstULongArray resAmounts)
             => state.waitingRes += resAmounts;
 
-        public ulong ReqWattsPerSec()
-            => industry switch
+        public void AddPerson(Person person)
+        {
+            if (person.Destination == this)
+            {
+                if (state.travelingEmployees.Contains(person))
+                {
+                    state.travelingEmployees.Remove(person);
+                    state.employees.Add(person);
+                }
+                else
+                    state.unemployedPeople.Add(person);
+            }
+            else
+                state.travellingPeople.Add(person);
+        }
+
+        public double ReqWattsPerSec()
+            => (state.employees.Count + state.unemployedPeople.Count + state.travellingPeople.Count) * Person.reqWattsPerSec
+            + industry switch
             {
                 null => 0,
                 not null => industry.ReqWattsPerSec()
             };
 
-        public ulong ProdWattsPerSec()
+        public double ProdWattsPerSec()
             => industry switch
             {
                 null => 0,
@@ -100,6 +121,29 @@ namespace Game1
         {
             if (industry is not null)
                 industry = industry.Update();
+
+            state.unemployedPeople.RemoveAll
+            (
+                match: person =>
+                {
+                    if (person.Destination is not null)
+                    {
+                        if (person.Destination == this)
+                        {
+                            if (state.travelingEmployees.Contains(person))
+                            {
+                                state.travelingEmployees.Remove(person);
+                                state.employees.Add(person);
+                                return true;
+                            }
+                            return false;
+                        }
+                        person.Destination.AddPerson(person);
+                        return true;
+                    }
+                    return false;
+                }
+            );
 
             curWaitingRes += state.storedRes;
             state.storedRes = new();
@@ -147,8 +191,25 @@ namespace Game1
             else
                 image.Color = Color.White;
             image.Draw(Position);
+
+            string text = "";
             if (industry is not null)
-                industry.Draw();
+                text += industry.GetText();
+            text += $"\nemployed {state.employees.Count}\nunemployed {state.unemployedPeople.Count}\ntravelling {state.travellingPeople.Count}";
+
+            C.SpriteBatch.DrawString
+            (
+                spriteFont: C.Content.Load<SpriteFont>("font"),
+                text: text,
+                position: state.position,
+                color: Color.Black,
+                rotation: 0,
+                origin: Vector2.Zero,
+                scale: .15f,
+                effects: SpriteEffects.None,
+                layerDepth: 0
+            );
+            
         }
     }
 }

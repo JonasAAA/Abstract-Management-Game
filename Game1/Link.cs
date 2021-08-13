@@ -62,7 +62,6 @@ namespace Game1
             {
                 // temporary
                 for (int i = 0; i < ConstArray.length; i++)
-                //int i = 0;
                 {
                     travel.GetData
                     (

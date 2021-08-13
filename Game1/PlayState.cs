@@ -21,7 +21,8 @@ namespace Game1
                     (
                         imageName: "node",
                         width: 64
-                    )
+                    ),
+                    startPersonCount: 100
                 ),
                 new
                 (
@@ -104,7 +105,7 @@ namespace Game1
                 Graph.AddNode(node);
 
             foreach (var link in links)
-                Graph.AddEdge(link);
+                Graph.AddLink(link);
         }
 
         public void Update(GameTime gameTime)

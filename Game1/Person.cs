@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Game1
@@ -9,13 +10,17 @@ namespace Game1
     // MinAcceptableEnjoyment needs to decrease if person stays unemployed
     // or could make it more similar to when job is vacant for a while
     //
-    // also need to increse relevant skill when employed
+    // unused skills may deteriorate
     public class Person
     {
         public static readonly double reqWattsPerSec;
+        private static readonly double timeSkillCoeff;
 
         static Person()
-            => reqWattsPerSec = .2;
+        {
+            reqWattsPerSec = .2;
+            timeSkillCoeff = .1;
+        }
 
         // between 0 and 1
         public readonly ReadOnlyDictionary<IndustryType, double> enjoyments;
@@ -58,12 +63,12 @@ namespace Game1
             );
 
         // must be between 0 and 1 or double.NegativeInfinity
-        public double EvaluateJob(IJob job)
+        public double JobScore(IJob job)
             => enjoyments[job.IndustryType];
 
         public void TakeJob(IJob job, Node jobNode)
         {
-            if (EvaluateJob(job: job) is double.NegativeInfinity)
+            if (JobScore(job: job) is double.NegativeInfinity)
                 throw new ArgumentException();
 
             Destination = jobNode;
@@ -71,6 +76,18 @@ namespace Game1
             // TODO:
             // travel to new job destination
             // if already had a job, need to inform it about quitting
+        }
+
+        public void Fire()
+        {
+            Destination = null;
+        }
+
+        public void Work(IndustryType industryType)
+        {
+            Debug.Assert(C.IsInSuitableRange(value: skills[industryType]));
+            skills[industryType] = 1 - (1 - skills[industryType]) * Math.Pow(1 - talents[industryType], C.ElapsedGameTime.TotalSeconds * timeSkillCoeff);
+            Debug.Assert(C.IsInSuitableRange(value: skills[industryType]));
         }
     }
 }

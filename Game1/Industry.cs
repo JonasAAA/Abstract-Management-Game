@@ -1,6 +1,9 @@
 ﻿using Microsoft.Xna.Framework.Input;
+using Priority_Queue;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 
 namespace Game1
@@ -35,9 +38,12 @@ namespace Game1
 
         public static readonly uint TypeCount;
         public static readonly ReadOnlyCollection<Construction.Params> constrBuildingParams;
+        private static readonly double vacDespCoeff;
 
         static Industry()
         {
+            vacDespCoeff = .1;
+
             TypeCount = (uint)Enum.GetValues<IndustryType>().Length;
 
             constrBuildingParams = new(list: new Construction.Params[]
@@ -105,12 +111,12 @@ namespace Game1
                 new
                 (
                     name: "power plant costruction",
-                    reqSkill: 100,
+                    reqSkill: 30,
                     reqWattsPerSec: 100,
                     industrParams: new PowerPlant.Params
                     (
                         name: "power_plant_lvl1",
-                        reqSkill: 100,
+                        reqSkill: 20,
                         prodWattsPerSec: 1000
                     ),
                     duration: TimeSpan.FromSeconds(5),
@@ -147,7 +153,6 @@ namespace Game1
 
         public IndustryType IndustryType
             => parameters.industryType;
-        //public TimeSpan SearchStart { get; private set; }
 
         protected readonly NodeState state;
         protected bool CanStartProduction { get; private set; }
@@ -155,6 +160,7 @@ namespace Game1
 
         private readonly Params parameters;
         private readonly KeyButton togglePauseButton;
+        private double vacancyScore;
         
         protected Industry(Params parameters, NodeState state)
         {
@@ -167,25 +173,41 @@ namespace Game1
                 action: () => CanStartProduction = !CanStartProduction
             );
             CurSkillPropor = 0;
-            //SearchStart = C.TotalGameTime;
+            vacancyScore = 0;
         }
 
         private double HiredSkill()
-            => state.employees.Concat(state.travelingEmployees).Sum(person => person.skills[parameters.industryType]);
+            => state.employees.Concat(state.travelingEmployees).Sum(person => person.skills[IndustryType]);
 
-        // must be between 0 and 1 or double.NegativeInfinity
-        public double OpenSpace()
+        private double OpenSpace()
         {
             double hiredSkill = HiredSkill();
             if (hiredSkill >= parameters.reqSkill)
                 return double.NegativeInfinity;
-            return 1 - hiredSkill / parameters.reqSkill;
+            double result = 1 - hiredSkill / parameters.reqSkill;
+            Debug.Assert(C.IsInSuitableRange(result));
+            return result;
+        }
+
+        public double Desperation()
+        {
+            Debug.Assert(vacancyScore is >= 0 or double.NegativeInfinity);
+            if (vacancyScore is double.NegativeInfinity)
+                return double.NegativeInfinity;
+            return Math.Tanh(vacancyScore * vacDespCoeff);
         }
 
         public void Hire(Person person)
         {
+            double oldOpenSpace = OpenSpace();
+            if (oldOpenSpace is double.NegativeInfinity)
+                throw new Exception();
             state.travelingEmployees.Add(person);
-            //SearchStart = C.TotalGameTime;
+            double curOpenSpace = OpenSpace();
+            if (curOpenSpace is double.NegativeInfinity)
+                vacancyScore = double.NegativeInfinity;
+            else
+                vacancyScore *= curOpenSpace / oldOpenSpace;
         }
 
         public abstract ULongArray TargetStoredResAmounts();
@@ -224,12 +246,47 @@ namespace Game1
 
         public virtual Industry Update()
         {
-            CurSkillPropor = Math.Min(1, state.employees.Sum(person => person.skills[parameters.industryType]) / parameters.reqSkill);
+            if (IsBusy())
+                state.employees.ForEach(person => person.Work(industryType: IndustryType));
+
+            double totalHiredSkill = HiredSkill();
+            if (totalHiredSkill >= parameters.reqSkill)
+            {
+                SimplePriorityQueue<Person, double> allEmployees = new();
+                foreach (var person in state.employees.Concat(state.travelingEmployees))
+                    allEmployees.Enqueue
+                    (
+                        item: person,
+                        priority: JobMatching.CurrentEmploymentScore(job: this, person: person)
+                    );
+
+                HashSet<Person> firedPeople = new();
+                while (allEmployees.Count > 0 && totalHiredSkill - allEmployees.First.skills[IndustryType] >= parameters.reqSkill)
+                {
+                    totalHiredSkill -= allEmployees.First.skills[IndustryType];
+                    firedPeople.Add(allEmployees.Dequeue());
+                }
+
+                state.FireAllMatching(person => firedPeople.Contains(person));
+            }
+
+            double openSpace = OpenSpace();
+            if (openSpace is double.NegativeInfinity)
+                vacancyScore = double.NegativeInfinity;
+            else
+            {
+                if (vacancyScore is double.NegativeInfinity)
+                    vacancyScore = 0;
+                vacancyScore += openSpace * C.ElapsedGameTime.TotalSeconds;
+            }
+
+
+            CurSkillPropor = Math.Min(1, state.employees.Sum(person => person.skills[IndustryType]) / parameters.reqSkill);
             return this;
         }
 
         public virtual string GetText()
-            => $"have {CurSkillPropor * 100:0.}% skill\n";
+            => $"have {state.employees.Sum(person => person.skills[IndustryType]) / parameters.reqSkill * 100:0.}% skill\ndesperation {(Desperation() is double.NegativeInfinity ? 0 : Desperation() * 100):0.}%\n";
     }
 }
 

@@ -24,5 +24,43 @@ namespace Game1
             unemployedPeople = new();
             travellingPeople = new();
         }
+
+        public void Fire(Person person)
+        {
+            if (employees.Remove(person))
+                unemployedPeople.Add(person);
+            else
+                travelingEmployees.Remove(person);
+            person.Fire();
+        }
+
+        public void FireAllMatching(Func<Person, bool> match)
+        {
+            employees.RemoveAll
+            (
+                person =>
+                {
+                    if (match(person))
+                    {
+                        person.Fire();
+                        unemployedPeople.Add(person);
+                        return true;
+                    }
+                    return false;
+                }
+            );
+            travelingEmployees.RemoveAll
+            (
+                person =>
+                {
+                    if (match(person))
+                    {
+                        person.Fire();
+                        return true;
+                    }
+                    return false;
+                }
+            );
+        }
     }
 }

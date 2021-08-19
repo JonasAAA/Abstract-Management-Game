@@ -25,14 +25,12 @@ namespace Game1
 
         private readonly Params parameters;
         private TimeSpan? prodEndTime;
-        //private readonly TimedResQueue production;
 
         private Factory(Params parameters, NodeState state)
             : base(parameters: parameters, state: state)
         {
             this.parameters = parameters;
             prodEndTime = null;
-            //production = new(duration: parameters.prodTime);
         }
 
         public override ULongArray TargetStoredResAmounts()
@@ -44,7 +42,6 @@ namespace Game1
 
         protected override bool IsBusy()
             => prodEndTime.HasValue;
-            //=> !production.Empty;
 
         public override Industry Update()
         {
@@ -65,26 +62,16 @@ namespace Game1
                 prodEndTime = null;
             }
 
-            //if (CanStartProduction && production.Empty && state.storedRes >= parameters.demand)
-            //{
-            //    state.storedRes -= parameters.demand;
-            //    production.Enqueue(newResAmounts: parameters.supply);
-            //}
-
-            //state.waitingRes += production.DoneResAmounts();
-
             return this;
         }
 
         public override string GetText()
         {
             string text = base.GetText() + $"{parameters.name}\n";
-            //if (production.Empty)
             if (prodEndTime is null)
                 text += "idle";
             else
                 text += $"producing {C.DonePart(endTime: prodEndTime.Value, duration: parameters.prodDuration) * 100: 0.}%";
-                //text += $"producing {production.PeekCompletionProp() * 100: 0.}%";
             if (!CanStartProduction)
                 text += "\nwill not start new";
             return text;

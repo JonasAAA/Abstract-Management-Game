@@ -160,7 +160,8 @@ namespace Game1
 
         private readonly Params parameters;
         private readonly KeyButton togglePauseButton;
-        private double vacancyScore;
+        // must be >= 0
+        private double avgVacancyDuration;
         
         protected Industry(Params parameters, NodeState state)
         {
@@ -173,7 +174,7 @@ namespace Game1
                 action: () => CanStartProduction = !CanStartProduction
             );
             CurSkillPropor = 0;
-            vacancyScore = 0;
+            avgVacancyDuration = 0;
         }
 
         private double HiredSkill()
@@ -191,23 +192,25 @@ namespace Game1
 
         public double Desperation()
         {
-            Debug.Assert(vacancyScore is >= 0 or double.NegativeInfinity);
-            if (vacancyScore is double.NegativeInfinity)
+            Debug.Assert(avgVacancyDuration >= 0);
+            double openSpace = OpenSpace();
+            if (avgVacancyDuration is double.NegativeInfinity || openSpace is double.NegativeInfinity)
                 return double.NegativeInfinity;
-            return Math.Tanh(vacancyScore * vacDespCoeff);
+            return Math.Tanh(avgVacancyDuration * openSpace * vacDespCoeff);
         }
 
         public void Hire(Person person)
+            => state.travelingEmployees.Add(person);
+
+        public void LetGo(Person person)
         {
             double oldOpenSpace = OpenSpace();
-            if (oldOpenSpace is double.NegativeInfinity)
-                throw new Exception();
-            state.travelingEmployees.Add(person);
+            state.Fire(person: person);
             double curOpenSpace = OpenSpace();
-            if (curOpenSpace is double.NegativeInfinity)
-                vacancyScore = double.NegativeInfinity;
+            if (oldOpenSpace is double.NegativeInfinity)
+                avgVacancyDuration = 0;
             else
-                vacancyScore *= curOpenSpace / oldOpenSpace;
+                avgVacancyDuration *= oldOpenSpace / curOpenSpace;
         }
 
         public abstract ULongArray TargetStoredResAmounts();
@@ -229,20 +232,7 @@ namespace Game1
             };
 
         public void ActiveUpdate()
-        {
-            togglePauseButton.Update();
-            //if (upgrade is not null)
-            //    return;
-            //foreach (var upgrade in parameters.upgrades)
-            //{
-            //    upgrade.keyButton.Update();
-            //    if (upgrade.keyButton.Click)
-            //    {
-            //        this.upgrade = upgrade;
-            //        CanStartProduction = false;
-            //    }
-            //}
-        }
+            => togglePauseButton.Update();
 
         public virtual Industry Update()
         {
@@ -272,14 +262,9 @@ namespace Game1
 
             double openSpace = OpenSpace();
             if (openSpace is double.NegativeInfinity)
-                vacancyScore = double.NegativeInfinity;
+                avgVacancyDuration = 0;
             else
-            {
-                if (vacancyScore is double.NegativeInfinity)
-                    vacancyScore = 0;
-                vacancyScore += openSpace * C.ElapsedGameTime.TotalSeconds;
-            }
-
+                avgVacancyDuration += C.ElapsedGameTime.TotalSeconds;
 
             CurSkillPropor = Math.Min(1, state.employees.Sum(person => person.skills[IndustryType]) / parameters.reqSkill);
             return this;

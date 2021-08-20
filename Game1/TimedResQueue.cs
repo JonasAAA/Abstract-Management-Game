@@ -7,7 +7,7 @@ namespace Game1
 {
     public class TimedResQueue
     {
-        private readonly TimeSpan duration;
+        public readonly TimeSpan duration;
         private readonly Queue<TimeSpan> endTimes;
         private readonly Queue<ConstULongArray> resAmounts;
         private ConstULongArray totalResAmounts;

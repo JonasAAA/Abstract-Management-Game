@@ -8,13 +8,15 @@ namespace Game1
     {
         public PlayState()
         {
+            float radius = 300;
+
             List<Node> nodes = new()
             {
                 new
                 (
                     state: new
                     (
-                        position: new(300, 300),
+                        position: C.Direction(rotation: 0) * radius,
                         maxBatchDemResStored: 2
                     ),
                     image: new
@@ -28,7 +30,7 @@ namespace Game1
                 (
                     state: new
                     (
-                        position: new(-500, 300),
+                        position: C.Direction(rotation: MathHelper.Pi / 3) * radius,
                         maxBatchDemResStored: 2
                     ),
                     image: new
@@ -41,7 +43,7 @@ namespace Game1
                 (
                     state: new
                     (
-                        position: new(0, -200),
+                        position: C.Direction(rotation: MathHelper.Pi * 2 / 3) * radius,
                         maxBatchDemResStored: 2
                     ),
                     image: new
@@ -54,7 +56,33 @@ namespace Game1
                 (
                     state: new
                     (
-                        position: new(500, 0),
+                        position: C.Direction(rotation: MathHelper.Pi) * radius,
+                        maxBatchDemResStored: 2
+                    ),
+                    image: new
+                    (
+                        imageName: "node",
+                        width: 64
+                    )
+                ),
+                new
+                (
+                    state: new
+                    (
+                        position: C.Direction(rotation: MathHelper.Pi * 4 / 3) * radius,
+                        maxBatchDemResStored: 2
+                    ),
+                    image: new
+                    (
+                        imageName: "node",
+                        width: 64
+                    )
+                ),
+                new
+                (
+                    state: new
+                    (
+                        position: C.Direction(rotation: MathHelper.Pi * 5 / 3) * radius,
                         maxBatchDemResStored: 2
                     ),
                     image: new
@@ -71,41 +99,53 @@ namespace Game1
                 (
                     node1: nodes[0],
                     node2: nodes[1],
-                    travelTime: TimeSpan.FromSeconds(15),
+                    travelTime: TimeSpan.FromSeconds(3),
                     minSafeDist: 100,
                     reqWattsPerKgPerSec: 1
                 ),
                 new
                 (
-                    node1: nodes[0],
+                    node1: nodes[1],
                     node2: nodes[2],
-                    travelTime: TimeSpan.FromSeconds(5),
+                    travelTime: TimeSpan.FromSeconds(3),
                     minSafeDist: 100,
                     reqWattsPerKgPerSec: 1
                 ),
                 new
                 (
                     node1: nodes[2],
-                    node2: nodes[1],
-                    travelTime: TimeSpan.FromSeconds(5),
+                    node2: nodes[3],
+                    travelTime: TimeSpan.FromSeconds(3),
                     minSafeDist: 100,
                     reqWattsPerKgPerSec: 1
                 ),
                 new
                 (
-                    node1: nodes[0],
-                    node2: nodes[3],
+                    node1: nodes[3],
+                    node2: nodes[4],
+                    travelTime: TimeSpan.FromSeconds(3),
+                    minSafeDist: 100,
+                    reqWattsPerKgPerSec: 1
+                ),
+                new
+                (
+                    node1: nodes[4],
+                    node2: nodes[5],
+                    travelTime: TimeSpan.FromSeconds(3),
+                    minSafeDist: 100,
+                    reqWattsPerKgPerSec: 1
+                ),
+                new
+                (
+                    node1: nodes[5],
+                    node2: nodes[0],
                     travelTime: TimeSpan.FromSeconds(3),
                     minSafeDist: 100,
                     reqWattsPerKgPerSec: 1
                 ),
             };
 
-            foreach (var node in nodes)
-                Graph.AddNode(node);
-
-            foreach (var link in links)
-                Graph.AddLink(link);
+            Graph.Initialize(nodes: nodes, links: links);
         }
 
         public void Update(GameTime gameTime)
@@ -118,10 +158,13 @@ namespace Game1
         public void Draw()
         {
             C.Camera.BeginDraw();
-
             Graph.Draw();
-
             C.Camera.EndDraw();
+
+
+            C.SpriteBatch.Begin();
+            Graph.DrawHUD();
+            C.SpriteBatch.End();
         }
     }
 }

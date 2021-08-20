@@ -7,13 +7,9 @@ using System.Linq;
 
 namespace Game1
 {
-    // TODO:
-    // if place stays vacant, it should decrease it standards
-    //
-    // when could fire someone due to having more skill then needed, need to do so
     public static class JobMatching
     {
-        private static readonly double enjoymentCoeff, talentCoeff, skillCoeff, desperationCoeff, /*jobOpenSpaceCoeff, */distCoeff, minAcceptableScore;
+        private static readonly double enjoymentCoeff, talentCoeff, skillCoeff, desperationCoeff, distCoeff, minAcceptableScore;
 
         static JobMatching()
         {
@@ -22,7 +18,6 @@ namespace Game1
             skillCoeff = .2;
             distCoeff = .1;
             desperationCoeff = .4;
-            //jobOpenSpaceCoeff = .1;
 
             minAcceptableScore = .4;
         }
@@ -98,14 +93,6 @@ namespace Game1
             => enjoymentCoeff * person.JobScore(job: job)
             + talentCoeff * person.talents[job.IndustryType]
             + skillCoeff * person.skills[job.IndustryType];
-
-        //// must be between 0 and 1
-        //private static double VacancyDuration(TimeSpan startTime)
-        //{
-        //    if (startTime > C.TotalGameTime)
-        //        throw new ArgumentOutOfRangeException();
-        //    return 1 - Math.Tanh((C.TotalGameTime - startTime).TotalSeconds);
-        //}
 
         // must be between 0 and 1 or double.NegativeInfinity
         // should later be changed to graph distance (either time or electricity cost)

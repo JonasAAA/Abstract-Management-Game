@@ -1,8 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Priority_Queue;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
@@ -10,109 +10,15 @@ namespace Game1
 {
     public static class Graph
     {
-        //// TODO:
-        //// if place stays vacant, it should decrease it standards
-        ////
-        //// when could fire someone due to having more skill then needed, need to do so
-        //private static class JobMatching
-        //{
-        //    private static readonly double enjoymentCoeff, talentCoeff, skillCoeff, /*vacancyDurationCoeff, */jobOpenSpaceCoeff, distCoeff, minAcceptableScore;
-
-        //    static JobMatching()
-        //    {
-        //        enjoymentCoeff = .2;
-        //        talentCoeff = .2;
-        //        skillCoeff = .2;
-        //        distCoeff = .2;
-        //        //vacancyDurationCoeff = .1;
-        //        jobOpenSpaceCoeff = .2;
-        //        minAcceptableScore = .5;
-        //    }
-
-        //    private record PersonNode(Person Person, Node Node);
-        //    private record JobNode(IJob Job, Node Node);
-
-        //    // later should take as parameters list of employed people looking for job and list of filled jobs looking to change employee
-        //    public static void Match()
-        //    {
-        //        HashSet<JobNode> vacantJobs =
-        //            (from node in nodes
-        //            where node.Job is not null && node.Job.OpenSpace() is not double.NegativeInfinity
-        //            select new JobNode(Job: node.Job, Node: node)).ToHashSet();
-        //        HashSet<PersonNode> unemployedPeople =
-        //            (from node in nodes
-        //            from person in node.UnemployedPeople
-        //            select new PersonNode(Person: person, Node: node)).ToHashSet();
-
-        //        // prioritizes pairs with high score
-        //        SimplePriorityQueue<(JobNode jobNode, PersonNode personNode), double> pairings = new((x, y) => y.CompareTo(x));
-        //        foreach (var jobNode in vacantJobs)
-        //            foreach (var personNode in unemployedPeople)
-        //            {
-        //                double score = Score(jobNode: jobNode, personNode: personNode);
-        //                Debug.Assert(C.IsSuitable(value: score));
-        //                if (score >= minAcceptableScore)
-        //                    pairings.Enqueue(item: (jobNode, personNode), priority: score);
-        //            }
-
-        //        while (pairings.Count > 0)
-        //        {
-        //            (JobNode jobNode, PersonNode personNode) = pairings.Dequeue();
-
-        //            jobNode.Job.Hire(person: personNode.Person);
-        //            personNode.Person.TakeJob(job: jobNode.Job, jobNode: jobNode.Node);
-
-        //            if (jobNode.Job.OpenSpace() is double.NegativeInfinity)
-        //                vacantJobs.Remove(jobNode);
-        //            unemployedPeople.Remove(personNode);
-
-        //            foreach (var otherPersonNode in unemployedPeople)
-        //                pairings.TryRemove(item: (jobNode, otherPersonNode));
-        //            foreach (var otherJobNode in vacantJobs)
-        //                pairings.TryRemove(item: (otherJobNode, personNode));
-
-        //            if (vacantJobs.Contains(jobNode))
-        //            {
-        //                foreach (var otherPersonNode in unemployedPeople)
-        //                {
-        //                    double score = Score(jobNode: jobNode, personNode: otherPersonNode);
-        //                    Debug.Assert(C.IsSuitable(value: score));
-        //                    if (score >= minAcceptableScore)
-        //                        pairings.Enqueue(item: (jobNode, otherPersonNode), priority: score);
-        //                }
-        //            }
-        //        }
-        //    }
-
-        //    // each parameter must be between 0 and 1 or double.NegativeInfinity
-        //    // larger means this pair is more likely to work
-        //    // must be between 0 and 1 or double.NegativeInfinity
-        //    private static double Score(JobNode jobNode, PersonNode personNode)
-        //        => enjoymentCoeff * personNode.Person.EvaluateJob(job: jobNode.Job)
-        //        + talentCoeff * personNode.Person.talents[jobNode.Job.IndustryType]
-        //        + skillCoeff * personNode.Person.skills[jobNode.Job.IndustryType]
-        //        //+ vacancyDurationCoeff * VacancyDuration(startTime: jobNode.Job.SearchStart)
-        //        + jobOpenSpaceCoeff * jobNode.Job.OpenSpace()
-        //        + distCoeff * Distance(node1: jobNode.Node, node2: personNode.Node);
-
-        //    //// must be between 0 and 1
-        //    //private static double VacancyDuration(TimeSpan startTime)
-        //    //{
-        //    //    if (startTime > C.TotalGameTime)
-        //    //        throw new ArgumentOutOfRangeException();
-        //    //    return 1 - Math.Tanh((C.TotalGameTime - startTime).TotalSeconds);
-        //    //}
-
-        //    // must be between 0 and 1 or double.NegativeInfinity
-        //    // should later be changed to graph distance (either time or electricity cost)
-        //    private static double Distance(Node node1, Node node2)
-        //        => 1 - Math.Tanh(Vector2.Distance(node1.Position, node2.Position) / 100);
-        //}
-
         public static IEnumerable<Node> Nodes
             => nodes;
         public static IEnumerable<Link> Links
             => links;
+        public static ReadOnlyDictionary<(Node, Node), double> ElectrDists { get; private set; }
+        /// <summary>
+        /// if both key nodes are the same, value is null
+        /// </summary>
+        public static ReadOnlyDictionary<(Node, Node), Node> ElectrNexts { get; private set; }
 
         private static readonly List<Node> nodes;
         private static readonly List<Link> links;
@@ -133,7 +39,17 @@ namespace Game1
             prodWattsPerSec = ambientWattsPerSec;
         }
 
-        public static void AddNode(Node node)
+        public static void Initialize(List<Node> nodes, List<Link> links)
+        {
+            foreach (var node in nodes)
+                AddNode(node);
+            foreach (var link in links)
+                AddLink(link);
+
+            FindShortestPaths();
+        }
+
+        private static void AddNode(Node node)
         {
             if (nodeSet.Contains(node))
                 throw new ArgumentException();
@@ -141,7 +57,7 @@ namespace Game1
             nodes.Add(node);
         }
 
-        public static void AddLink(Link link)
+        private static void AddLink(Link link)
         {
             if (linkSet.Contains(link))
                 throw new ArgumentException();
@@ -150,6 +66,64 @@ namespace Game1
 
             link.node1.AddLink(link: link);
             link.node2.AddLink(link: link);
+        }
+
+        // currently uses Floyd-Warshall,
+        // Dijkstra would be more efficient
+        private static void FindShortestPaths()
+        {
+            double[,] distsArray = new double[nodes.Count, nodes.Count];
+            int[,] nextsArray = new int[nodes.Count, nodes.Count];
+
+            for (int i = 0; i < nodes.Count; i++)
+                for (int j = 0; j < nodes.Count; j++)
+                {
+                    distsArray[i, j] = double.PositiveInfinity;
+                    nextsArray[i, j] = -1;
+                }
+
+            for (int i = 0; i < nodes.Count; i++)
+                distsArray[i, i] = 0;
+
+            foreach (var link in links)
+            {
+                int i = nodes.IndexOf(link.node1), j = nodes.IndexOf(link.node2);
+                Debug.Assert(i >= 0 && j >= 0);
+                distsArray[i, j] = link.WattsPerKg;
+                distsArray[j, i] = distsArray[i, j];
+                nextsArray[i, j] = j;
+                nextsArray[j, i] = i;
+            }
+
+            for (int k = 0; k < nodes.Count; k++)
+                for (int i = 0; i < nodes.Count; i++)
+                    for (int j = 0; j < nodes.Count; j++)
+                        if (i != k && distsArray[i, j] > distsArray[i, k] + distsArray[k, j])
+                        {
+                            distsArray[i, j] = distsArray[i, k] + distsArray[k, j];
+                            nextsArray[i, j] = nextsArray[i, k];
+                            Debug.Assert(nextsArray[i, j] is not -1);
+                        }
+
+            Dictionary<(Node, Node), double> distsDict = new();
+            Dictionary<(Node, Node), Node> nextsDict = new();
+            for (int i = 0; i < nodes.Count; i++)
+                for (int j = 0; j < nodes.Count; j++)
+                {
+                    distsDict.Add
+                    (
+                        key: (nodes[i], nodes[j]),
+                        value: distsArray[i, j]
+                    );
+                    nextsDict.Add
+                    (
+                        key: (nodes[i], nodes[j]),
+                        value: nextsArray[i, j] is -1 ? null : nodes[nextsArray[i, j]]
+                    );
+                }
+
+            ElectrDists = new(distsDict);
+            ElectrNexts = new(nextsDict);
         }
 
         public static void Update(GameTime gameTime)
@@ -203,12 +177,15 @@ namespace Game1
 
             foreach (var node in nodes)
                 node.Draw(active: node == activeElement);
+        }
 
+        public static void DrawHUD()
+        {
             C.SpriteBatch.DrawString
             (
                 spriteFont: C.Content.Load<SpriteFont>("font"),
-                text: $"required: {reqWattsPerSec}\nproduced: {prodWattsPerSec}",
-                position: new Vector2(-500, -500),
+                text: $"required: {reqWattsPerSec:0.##}\nproduced: {prodWattsPerSec:0.##}",
+                position: new Vector2(10, 10),
                 color: Color.Black,
                 rotation: 0,
                 origin: Vector2.Zero,

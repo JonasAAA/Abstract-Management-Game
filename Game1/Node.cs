@@ -27,6 +27,7 @@ namespace Game1
         private Industry industry;
         private ULongArray curWaitingRes;
         private readonly ReadOnlyCollection<KeyButton> constrKeyButtons;
+        private string text;
 
         public Node(NodeState state, Image image, int startPersonCount = 0)
         {
@@ -46,6 +47,8 @@ namespace Game1
             );
             for (int i = 0; i < startPersonCount; i++)
                 state.unemployedPeople.Add(Person.GenerateNew());
+
+            text = "";
         }
 
         public void AddLink(Link link)
@@ -59,6 +62,9 @@ namespace Game1
             }
             links.Add(link);
         }
+
+        public void AddText(string text)
+            => this.text += text;
 
         public bool Contains(Vector2 position)
             => Vector2.Distance(this.Position, position) <= radius;
@@ -115,6 +121,9 @@ namespace Game1
             }
             else
                 industry.ActiveUpdate();
+
+            foreach (var node in Graph.Nodes)
+                node.AddText(text: $"distance {Graph.ElectrDists[(this, node)]:0.##} \n");
         }
 
         public void StartUpdate()
@@ -192,7 +201,7 @@ namespace Game1
                 image.Color = Color.White;
             image.Draw(Position);
 
-            string text = "";
+            //string text = "";
             if (industry is not null)
                 text += industry.GetText();
             text += $"\nemployed {state.employees.Count}\nunemployed {state.unemployedPeople.Count}\ntravelling {state.travellingPeople.Count}";
@@ -209,7 +218,7 @@ namespace Game1
                 effects: SpriteEffects.None,
                 layerDepth: 0
             );
-            
+            text = "";
         }
     }
 }

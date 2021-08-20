@@ -11,15 +11,17 @@ namespace Game1
         private class DirLink
         {
             public readonly Node begin, end;
+            public double WattsPerKg
+                => travel.duration.TotalSeconds * reqWattsPerKgPerSec;
 
             private readonly TimedResQueue travel;
             private readonly TimeSpan minSafeTime;
             private TimeSpan minNextStartTime;
             private ConstULongArray waitingRes, curWaitingRes;
-            private readonly ulong reqWattsPerKgPerSec;
+            private readonly double reqWattsPerKgPerSec;
             private readonly Texture2D diskTexture;
 
-            public DirLink(Node begin, Node end, TimeSpan travelTime, double minSafeDist, ulong reqWattsPerKgPerSec)
+            public DirLink(Node begin, Node end, TimeSpan travelTime, double minSafeDist, double reqWattsPerKgPerSec)
             {
                 this.begin = begin;
                 this.end = end;
@@ -35,7 +37,7 @@ namespace Game1
                 diskTexture = C.Content.Load<Texture2D>("big disk");
             }
 
-            public ulong ReqWattsPerSec()
+            public double ReqWattsPerSec()
                 => travel.TotalWeight() * reqWattsPerKgPerSec;
 
             public void AddRes(ConstULongArray resAmounts)
@@ -94,6 +96,9 @@ namespace Game1
         }
 
         public readonly Node node1, node2;
+        public double WattsPerKg
+            => link1To2.WattsPerKg;
+
         private readonly DirLink link1To2, link2To1;
 
         public Link(Node node1, Node node2, TimeSpan travelTime, double minSafeDist, ulong reqWattsPerKgPerSec)
@@ -136,7 +141,7 @@ namespace Game1
             throw new ArgumentException();
         }
 
-        public ulong ReqWattsPerSec()
+        public double ReqWattsPerSec()
             => link1To2.ReqWattsPerSec() + link2To1.ReqWattsPerSec();
 
         public void ActiveUpdate()

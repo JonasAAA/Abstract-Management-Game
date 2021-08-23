@@ -58,7 +58,8 @@ namespace Game1
 
             if (prodEndTime.HasValue && prodEndTime <= C.TotalGameTime)
             {
-                state.waitingRes += parameters.supply;
+                state.waitingTravelPacket.Add(resAmounts: parameters.supply);
+                //state.waitingRes += parameters.supply;
                 prodEndTime = null;
             }
 

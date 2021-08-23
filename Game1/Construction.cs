@@ -2,6 +2,10 @@
 
 namespace Game1
 {
+    /// <summary>
+    /// TODO:
+    /// desperation should decrease with increasing completion percentage
+    /// </summary>
     public class Construction : Industry
     {
         public new class Params : Industry.Params
@@ -57,8 +61,8 @@ namespace Game1
             {
                 state.unemployedPeople.AddRange(state.employees);
                 state.employees.Clear();
-                if (state.travelingEmployees.Count is not 0)
-                    throw new Exception();
+                foreach (var person in state.travelingEmployees)
+                    person.StopTravelling();
                 state.travelingEmployees.Clear();
                 return parameters.industrParams.MakeIndustry(state: state);
             }

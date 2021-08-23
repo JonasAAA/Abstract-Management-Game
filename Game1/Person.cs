@@ -6,11 +6,15 @@ using System.Linq;
 
 namespace Game1
 {
-    // TODO:
-    // MinAcceptableEnjoyment needs to decrease if person stays unemployed
-    // or could make it more similar to when job is vacant for a while
-    //
-    // unused skills may deteriorate
+    /// <summary>
+    /// TODO:
+    /// implement happiness calculation and reproduction
+    ///
+    /// may have separate fire method when can put more there
+    /// 
+    /// unused skills may deteriorate
+    /// </summary>
+
     public class Person
     {
         public static readonly double reqWattsPerSec;
@@ -30,8 +34,9 @@ namespace Game1
         public readonly Dictionary<IndustryType, double> skills;
         //public double MinAcceptableEnjoyment { get; private set; }
         public Node Destination { get; private set; }
+        public readonly ulong weight;
 
-        private Person(Dictionary<IndustryType, double> enjoyments, Dictionary<IndustryType, double> talents, Dictionary<IndustryType, double> skills)
+        private Person(Dictionary<IndustryType, double> enjoyments, Dictionary<IndustryType, double> talents, Dictionary<IndustryType, double> skills, ulong weight)
         {
             if (!enjoyments.Values.All(C.IsInSuitableRange))
                 throw new ArgumentException();
@@ -46,6 +51,7 @@ namespace Game1
             this.skills = new(skills);
 
             Destination = null;
+            this.weight = weight;
         }
 
         public static Person GenerateNew()
@@ -59,13 +65,19 @@ namespace Game1
                     .ToDictionary(a => a.indType, a => a.value),
                 skills: Enum.GetValues<IndustryType>()
                     .Select(indType => (indType, value: C.Random(min: 0.0, max: 1.0)))
-                    .ToDictionary(a => a.indType, a => a.value)
+                    .ToDictionary(a => a.indType, a => a.value),
+                weight: 10
             );
 
         // must be between 0 and 1 or double.NegativeInfinity
         public double JobScore(IJob job)
             => enjoyments[job.IndustryType];
 
+        /// <summary>
+        /// TODO:
+        /// travel to new job destination
+        /// if already had a job, need to inform it about quitting
+        /// </summary>
         public void TakeJob(IJob job, Node jobNode)
         {
             if (JobScore(job: job) is double.NegativeInfinity)
@@ -78,10 +90,8 @@ namespace Game1
             // if already had a job, need to inform it about quitting
         }
 
-        public void Fire()
-        {
-            Destination = null;
-        }
+        public void StopTravelling()
+            =>Destination = null;
 
         public void Work(IndustryType industryType)
         {

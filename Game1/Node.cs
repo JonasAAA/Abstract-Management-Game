@@ -25,7 +25,8 @@ namespace Game1
         // resToLinksSplitters[i][j] - resource i to link j
         private readonly MyArray<ProporSplitter> resToLinksSplitters;
         private Industry industry;
-        private ULongArray curWaitingRes;
+        private TravelPacket curWaitingTravelPacket;
+        //private ULongArray curWaitingRes;
         private readonly ReadOnlyCollection<KeyButton> constrKeyButtons;
         private string text;
 
@@ -39,7 +40,8 @@ namespace Game1
             for (int i = 0; i < ConstArray.length; i++)
                 resToLinksSplitters[i] = new ProporSplitter();
             industry = null;
-            curWaitingRes = new();
+            curWaitingTravelPacket = new();
+            //curWaitingRes = new();
             Keys[] constrKeys = new Keys[] { Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9 };
             constrKeyButtons = new
             (
@@ -69,27 +71,40 @@ namespace Game1
         public bool Contains(Vector2 position)
             => Vector2.Distance(this.Position, position) <= radius;
 
-        public void AddRes(ConstULongArray resAmounts)
-            => state.waitingRes += resAmounts;
-
-        public void AddPerson(Person person)
+        public void AddTravelPacket(TravelPacket travelPacket)
         {
-            if (person.Destination == this)
-            {
-                if (state.travelingEmployees.Contains(person))
-                {
-                    state.travelingEmployees.Remove(person);
-                    state.employees.Add(person);
-                }
-                else
-                    state.unemployedPeople.Add(person);
-            }
-            else
-                state.travellingPeople.Add(person);
+            state.waitingTravelPacket.Add(travelPacket: travelPacket);
+            //state.waitingRes += travelPacket.resAmounts;
         }
 
+        //public void AddRes(ConstULongArray resAmounts)
+        //    => state.waitingRes += resAmounts;
+
+        //public void AddPerson(Person person)
+        //{
+        //    if (person.Destination == this)
+        //    {
+        //        if (state.travelingEmployees.Contains(person))
+        //        {
+        //            state.travelingEmployees.Remove(person);
+        //            state.employees.Add(person);
+        //        }
+        //        else
+        //            state.unemployedPeople.Add(person);
+        //    }
+        //    else
+        //        state.waitingTravelPacket.Add(person: person);
+        //        //state.travellingPeople.Add(person);
+        //}
+
         public double ReqWattsPerSec()
-            => (state.employees.Count + state.unemployedPeople.Count + state.travellingPeople.Count) * Person.reqWattsPerSec
+            //=> (state.employees.Count + state.unemployedPeople.Count + state.travellingPeople.Count) * Person.reqWattsPerSec
+            //+ industry switch
+            //{
+            //    null => 0,
+            //    not null => industry.ReqWattsPerSec()
+            //};
+            => (state.employees.Count + state.unemployedPeople.Count + state.waitingTravelPacket.NumPeople) * Person.reqWattsPerSec
             + industry switch
             {
                 null => 0,
@@ -128,6 +143,9 @@ namespace Game1
 
         public void StartUpdate()
         {
+            // employees with jobs should not want to travel anywhere
+            Debug.Assert(state.employees.All(person => person.Destination is null));
+
             if (industry is not null)
                 industry = industry.Update();
 
@@ -137,58 +155,124 @@ namespace Game1
                 {
                     if (person.Destination is not null)
                     {
-                        if (person.Destination == this)
-                        {
-                            if (state.travelingEmployees.Contains(person))
-                            {
-                                state.travelingEmployees.Remove(person);
-                                state.employees.Add(person);
-                                return true;
-                            }
-                            return false;
-                        }
-                        person.Destination.AddPerson(person);
+                        state.waitingTravelPacket.Add(person: person);
+                        //if (person.Destination == this)
+                        //{
+                        //    if (state.travelingEmployees.Contains(person))
+                        //    {
+                        //        state.travelingEmployees.Remove(person);
+                        //        state.employees.Add(person);
+                        //        return true;
+                        //    }
+                        //    return false;
+                        //}
+                        //person.Destination.AddPerson(person);
                         return true;
                     }
                     return false;
                 }
             );
 
-            curWaitingRes += state.storedRes;
+            Dictionary<Link, TravelPacket> splitTravelPackets = new
+            (
+                collection: from link in links select KeyValuePair.Create(link, new TravelPacket())
+            );
+
+            // store resources which need storing
+            curWaitingTravelPacket.Add(resAmounts: state.storedRes);
             state.storedRes = new();
 
             state.storedRes = industry switch
             {
                 null => new(),
-                not null => curWaitingRes.Min(industry.TargetStoredResAmounts())
+                not null => curWaitingTravelPacket.ResAmounts.Min(industry.TargetStoredResAmounts())
             };
-            curWaitingRes -= state.storedRes;
-
-            // maybe I should just send one resource at a time rather then pack them to ULongArray
-            ULongArray[] resSplitAmounts = new ULongArray[links.Count];
-            for (int i = 0; i < resSplitAmounts.Length; i++)
-                resSplitAmounts[i] = new();
-
+            curWaitingTravelPacket.Remove(resAmounts: state.storedRes);
+            
+            // split the remaining resources
             for (int j = 0; j < ConstArray.length; j++)
             {
-                if (!resToLinksSplitters[j].CanSplit(amount: curWaitingRes[j]))
+                if (!resToLinksSplitters[j].CanSplit(amount: curWaitingTravelPacket.ResAmounts[j]))
                     throw new NotImplementedException();
-                ulong[] split = resToLinksSplitters[j].Split(amount: curWaitingRes[j]);
-                Debug.Assert(split.Length == resSplitAmounts.Length);
-                for (int i = 0; i < resSplitAmounts.Length; i++)
-                    resSplitAmounts[i][j] = split[i];
+                ulong[] split = resToLinksSplitters[j].Split(amount: curWaitingTravelPacket.ResAmounts[j]);
+                Debug.Assert(split.Length == links.Count);
+                for (int i = 0; i < links.Count; i++)
+                    splitTravelPackets[links[i]].Add(resInd: j, resAmount: split[i]);
             }
 
-            for (int i = 0; i < links.Count; i++)
-                links[i].AddRes(start: this, resAmounts: resSplitAmounts[i]);
+            // take appropriate people and split the rest
+            foreach (var person in curWaitingTravelPacket.People)
+            {
+                if (person.Destination is null)
+                {
+                    state.unemployedPeople.Add(person);
+                    continue;
+                }
 
-            curWaitingRes = new();
+                if (person.Destination == this)
+                {
+                    if (state.travelingEmployees.Contains(person))
+                    {
+                        person.StopTravelling();
+                        state.travelingEmployees.Remove(person);
+                        state.employees.Add(person);
+                        continue;
+                    }
+                    state.unemployedPeople.Add(person);
+                    throw new Exception("Why were they travelling here is particular then?");
+                    continue;
+                }
+
+                Link firstLink = Graph.ElectrFirstLinks[(this, person.Destination)];
+                splitTravelPackets[firstLink].Add(person);
+            }
+
+            curWaitingTravelPacket = new();
+
+            foreach (var (link, travelPacket) in splitTravelPackets)
+                link.AddTravelPacket
+                (
+                    start: this,
+                    travelPacket: travelPacket
+                );
+
+            //curWaitingRes += state.storedRes;
+            //state.storedRes = new();
+
+            //state.storedRes = industry switch
+            //{
+            //    null => new(),
+            //    not null => curWaitingRes.Min(industry.TargetStoredResAmounts())
+            //};
+            //curWaitingRes -= state.storedRes;
+
+            //// maybe I should just send one resource at a time rather then pack them to ULongArray
+            //ULongArray[] resSplitAmounts = new ULongArray[links.Count];
+            //for (int i = 0; i < resSplitAmounts.Length; i++)
+            //    resSplitAmounts[i] = new();
+
+            //for (int j = 0; j < ConstArray.length; j++)
+            //{
+            //    if (!resToLinksSplitters[j].CanSplit(amount: curWaitingRes[j]))
+            //        throw new NotImplementedException();
+            //    ulong[] split = resToLinksSplitters[j].Split(amount: curWaitingRes[j]);
+            //    Debug.Assert(split.Length == resSplitAmounts.Length);
+            //    for (int i = 0; i < resSplitAmounts.Length; i++)
+            //        resSplitAmounts[i][j] = split[i];
+            //}
+
+            //for (int i = 0; i < links.Count; i++)
+            //    links[i].AddRes(start: this, resAmounts: resSplitAmounts[i]);
+
+            //curWaitingRes = new();
         }
 
         public void EndUpdate()
         {
-            curWaitingRes += state.waitingRes;
-            state.waitingRes = new();
+            curWaitingTravelPacket.Add(travelPacket: state.waitingTravelPacket);
+            state.waitingTravelPacket = new();
+            //curWaitingRes += state.waitingRes;
+            //state.waitingRes = new();
         }
 
         public void Draw(bool active)
@@ -204,7 +288,8 @@ namespace Game1
             //string text = "";
             if (industry is not null)
                 text += industry.GetText();
-            text += $"\nemployed {state.employees.Count}\nunemployed {state.unemployedPeople.Count}\ntravelling {state.travellingPeople.Count}";
+            text += $"\nemployed {state.employees.Count}\nunemployed {state.unemployedPeople.Count}\ntravelling {state.waitingTravelPacket.NumPeople}";
+            //text += $"\nemployed {state.employees.Count}\nunemployed {state.unemployedPeople.Count}\ntravelling {state.travellingPeople.Count}";
 
             C.SpriteBatch.DrawString
             (

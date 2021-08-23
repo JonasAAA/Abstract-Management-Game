@@ -18,7 +18,7 @@ namespace Game1
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        public static ReadOnlyDictionary<(Node, Node), Node> ElectrNexts { get; private set; }
+        public static ReadOnlyDictionary<(Node, Node), Link> ElectrFirstLinks { get; private set; }
 
         private static readonly List<Node> nodes;
         private static readonly List<Link> links;
@@ -68,18 +68,18 @@ namespace Game1
             link.node2.AddLink(link: link);
         }
 
-        // currently uses Floyd-Warshall,
+        // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
         private static void FindShortestPaths()
         {
             double[,] distsArray = new double[nodes.Count, nodes.Count];
-            int[,] nextsArray = new int[nodes.Count, nodes.Count];
+            Link[,] firstLinksArray = new Link[nodes.Count, nodes.Count];
 
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)
                 {
                     distsArray[i, j] = double.PositiveInfinity;
-                    nextsArray[i, j] = -1;
+                    firstLinksArray[i, j] = null;
                 }
 
             for (int i = 0; i < nodes.Count; i++)
@@ -91,8 +91,8 @@ namespace Game1
                 Debug.Assert(i >= 0 && j >= 0);
                 distsArray[i, j] = link.WattsPerKg;
                 distsArray[j, i] = distsArray[i, j];
-                nextsArray[i, j] = j;
-                nextsArray[j, i] = i;
+                firstLinksArray[i, j] = link;
+                firstLinksArray[j, i] = link;
             }
 
             for (int k = 0; k < nodes.Count; k++)
@@ -101,12 +101,12 @@ namespace Game1
                         if (i != k && distsArray[i, j] > distsArray[i, k] + distsArray[k, j])
                         {
                             distsArray[i, j] = distsArray[i, k] + distsArray[k, j];
-                            nextsArray[i, j] = nextsArray[i, k];
-                            Debug.Assert(nextsArray[i, j] is not -1);
+                            firstLinksArray[i, j] = firstLinksArray[i, k];
+                            Debug.Assert(firstLinksArray[i, j] is not null);
                         }
 
             Dictionary<(Node, Node), double> distsDict = new();
-            Dictionary<(Node, Node), Node> nextsDict = new();
+            Dictionary<(Node, Node), Link> firstLinksDict = new();
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)
                 {
@@ -115,15 +115,15 @@ namespace Game1
                         key: (nodes[i], nodes[j]),
                         value: distsArray[i, j]
                     );
-                    nextsDict.Add
+                    firstLinksDict.Add
                     (
                         key: (nodes[i], nodes[j]),
-                        value: nextsArray[i, j] is -1 ? null : nodes[nextsArray[i, j]]
+                        value: firstLinksArray[i, j]
                     );
                 }
 
             ElectrDists = new(distsDict);
-            ElectrNexts = new(nextsDict);
+            ElectrFirstLinks = new(firstLinksDict);
         }
 
         public static void Update(GameTime gameTime)

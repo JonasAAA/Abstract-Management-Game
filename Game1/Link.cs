@@ -14,10 +14,10 @@ namespace Game1
             public double WattsPerKg
                 => travel.duration.TotalSeconds * reqWattsPerKgPerSec;
 
-            private readonly TimedResQueue travel;
+            private readonly TimedTravelPacketQueue travel;
             private readonly TimeSpan minSafeTime;
             private TimeSpan minNextStartTime;
-            private ConstULongArray waitingRes, curWaitingRes;
+            private TravelPacket waitingTravelPacket, curWaitingTravelPacket;
             private readonly double reqWattsPerKgPerSec;
             private readonly Texture2D diskTexture;
 
@@ -31,67 +31,100 @@ namespace Game1
                     throw new ArgumentOutOfRangeException();
                 minSafeTime = travelTime * (minSafeDist / Vector2.Distance(begin.Position, end.Position));
                 minNextStartTime = TimeSpan.MinValue;
-                waitingRes = new();
-                curWaitingRes = new();
+                waitingTravelPacket = new();
+                curWaitingTravelPacket = new();
                 this.reqWattsPerKgPerSec = reqWattsPerKgPerSec;
                 diskTexture = C.Content.Load<Texture2D>("big disk");
             }
 
             public double ReqWattsPerSec()
-                => travel.TotalWeight() * reqWattsPerKgPerSec;
+                => travel.TotalWeight * reqWattsPerKgPerSec;
 
-            public void AddRes(ConstULongArray resAmounts)
-                => waitingRes += resAmounts;
+            public void AddTravelPacket(TravelPacket travelPacket)
+                => waitingTravelPacket.Add(travelPacket: travelPacket);
 
             public void StartUpdate()
             {
-                if (!curWaitingRes.IsEmpty() && minNextStartTime <= C.TotalGameTime)
+                if (!curWaitingTravelPacket.Empty && minNextStartTime <= C.TotalGameTime)
                 {
-                    travel.Enqueue(newResAmounts: curWaitingRes);
+                    travel.Enqueue(travelPacket: curWaitingTravelPacket);
                     minNextStartTime = C.TotalGameTime + minSafeTime;
-                    curWaitingRes = new();
+                    curWaitingTravelPacket = new();
                 }
-                end.AddRes(resAmounts: travel.DoneResAmounts());
+                end.AddTravelPacket(travelPacket: travel.DoneTravelPacket());
             }
 
             public void EndUpdate()
             {
-                curWaitingRes += waitingRes;
-                waitingRes = new();
+                curWaitingTravelPacket.Add(travelPacket: waitingTravelPacket);
+                waitingTravelPacket = new();
             }
 
             public void DrawTravelingRes()
             {
-                // temporary
-                for (int i = 0; i < ConstArray.length; i++)
+                foreach (var (complProp, resAmounts, numPeople) in travel.GetData())
                 {
-                    travel.GetData
+                    // temporary
+                    Vector2 travelDir = end.Position - begin.Position;
+                    travelDir.Normalize();
+                    Vector2 orthToTravelDir = new(travelDir.Y, -travelDir.X);
+                    C.SpriteBatch.Draw
                     (
-                        resInd: i,
-                        completionProps: out List<double> completionProps,
-                        resAmounts: out List<ulong> resAmounts
+                        texture: diskTexture,
+                        position: begin.Position + (float)complProp * (end.Position - begin.Position) + orthToTravelDir * -10,
+                        sourceRectangle: null,
+                        color: Color.Black,
+                        rotation: 0,
+                        origin: new Vector2(diskTexture.Width * .5f, diskTexture.Height * .5f),
+                        scale: (float)Math.Sqrt(numPeople) * 2 / diskTexture.Width,
+                        effects: SpriteEffects.None,
+                        layerDepth: 0
                     );
-
-                    foreach (var (completionProp, resAmount) in completionProps.Zip(resAmounts))
-                    {
-                        // temporary
-                        Vector2 travelDir = end.Position - begin.Position;
-                        travelDir.Normalize();
-                        Vector2 orthToTravelDir = new(travelDir.Y, -travelDir.X);
+                    for (int i = 0; i < Resource.Count; i++)
                         C.SpriteBatch.Draw
                         (
                             texture: diskTexture,
-                            position: begin.Position + (float)completionProp * (end.Position - begin.Position) + orthToTravelDir * i * 10,
+                            position: begin.Position + (float)complProp * (end.Position - begin.Position) + orthToTravelDir * i * 10,
                             sourceRectangle: null,
                             color: C.ResColors[i],
                             rotation: 0,
-                            origin: new(diskTexture.Width * .5f, diskTexture.Height * .5f),
-                            scale: (float)Math.Sqrt(resAmount) * 2 / diskTexture.Width,
+                            origin: new Vector2(diskTexture.Width * .5f, diskTexture.Height * .5f),
+                            scale: (float)Math.Sqrt(resAmounts[i]) * 2 / diskTexture.Width,
                             effects: SpriteEffects.None,
                             layerDepth: 0
                         );
-                    }
                 }
+
+                //// temporary
+                //for (int i = 0; i < ConstArray.length; i++)
+                //{
+                //    travel.GetData
+                //    (
+                //        resInd: i,
+                //        completionProps: out List<double> completionProps,
+                //        resAmounts: out List<ulong> resAmounts
+                //    );
+
+                //    foreach (var (completionProp, resAmount) in completionProps.Zip(resAmounts))
+                //    {
+                //        // temporary
+                //        Vector2 travelDir = end.Position - begin.Position;
+                //        travelDir.Normalize();
+                //        Vector2 orthToTravelDir = new(travelDir.Y, -travelDir.X);
+                //        C.SpriteBatch.Draw
+                //        (
+                //            texture: diskTexture,
+                //            position: begin.Position + (float)completionProp * (end.Position - begin.Position) + orthToTravelDir * i * 10,
+                //            sourceRectangle: null,
+                //            color: C.ResColors[i],
+                //            rotation: 0,
+                //            origin: new(diskTexture.Width * .5f, diskTexture.Height * .5f),
+                //            scale: (float)Math.Sqrt(resAmount) * 2 / diskTexture.Width,
+                //            effects: SpriteEffects.None,
+                //            layerDepth: 0
+                //        );
+                //    }
+                //}
             }
         }
 
@@ -126,20 +159,35 @@ namespace Game1
         public bool Contains(Vector2 position)
             => false;
 
-        public void AddRes(Node start, ConstULongArray resAmounts)
+        public void AddTravelPacket(Node start, TravelPacket travelPacket)
         {
             if (start == node1)
             {
-                link1To2.AddRes(resAmounts: resAmounts);
+                link1To2.AddTravelPacket(travelPacket: travelPacket);
                 return;
             }
             if (start == node2)
             {
-                link2To1.AddRes(resAmounts: resAmounts);
+                link2To1.AddTravelPacket(travelPacket: travelPacket);
                 return;
             }
             throw new ArgumentException();
         }
+
+        //public void AddRes(Node start, ConstULongArray resAmounts)
+        //{
+        //    if (start == node1)
+        //    {
+        //        link1To2.AddRes(resAmounts: resAmounts);
+        //        return;
+        //    }
+        //    if (start == node2)
+        //    {
+        //        link2To1.AddRes(resAmounts: resAmounts);
+        //        return;
+        //    }
+        //    throw new ArgumentException();
+        //}
 
         public double ReqWattsPerSec()
             => link1To2.ReqWattsPerSec() + link2To1.ReqWattsPerSec();

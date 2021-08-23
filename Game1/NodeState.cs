@@ -7,22 +7,24 @@ namespace Game1
     public class NodeState
     {
         public readonly Vector2 position;
-        public ULongArray storedRes, waitingRes;
+        public ULongArray storedRes/*, waitingRes*/;
         public readonly ulong maxBatchDemResStored;
-        public readonly List<Person> employees, travelingEmployees, unemployedPeople, travellingPeople;
+        public readonly List<Person> employees, travelingEmployees, unemployedPeople/*, travellingPeople*/;
+        public TravelPacket waitingTravelPacket { get; set; }
 
         public NodeState(Vector2 position, ulong maxBatchDemResStored)
         {
             this.position = position;
             storedRes = new();
-            waitingRes = new();
+            //waitingRes = new();
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             this.maxBatchDemResStored = maxBatchDemResStored;
             employees = new();
             travelingEmployees = new();
             unemployedPeople = new();
-            travellingPeople = new();
+            waitingTravelPacket = new();
+            //travellingPeople = new();
         }
 
         public void Fire(Person person)
@@ -31,7 +33,7 @@ namespace Game1
                 unemployedPeople.Add(person);
             else
                 travelingEmployees.Remove(person);
-            person.Fire();
+            person.StopTravelling();
         }
 
         public void FireAllMatching(Func<Person, bool> match)
@@ -42,7 +44,7 @@ namespace Game1
                 {
                     if (match(person))
                     {
-                        person.Fire();
+                        person.StopTravelling();
                         unemployedPeople.Add(person);
                         return true;
                     }
@@ -55,7 +57,7 @@ namespace Game1
                 {
                     if (match(person))
                     {
-                        person.Fire();
+                        person.StopTravelling();
                         return true;
                     }
                     return false;

@@ -94,37 +94,6 @@ namespace Game1
                             layerDepth: 0
                         );
                 }
-
-                //// temporary
-                //for (int i = 0; i < ConstArray.length; i++)
-                //{
-                //    travel.GetData
-                //    (
-                //        resInd: i,
-                //        completionProps: out List<double> completionProps,
-                //        resAmounts: out List<ulong> resAmounts
-                //    );
-
-                //    foreach (var (completionProp, resAmount) in completionProps.Zip(resAmounts))
-                //    {
-                //        // temporary
-                //        Vector2 travelDir = end.Position - begin.Position;
-                //        travelDir.Normalize();
-                //        Vector2 orthToTravelDir = new(travelDir.Y, -travelDir.X);
-                //        C.SpriteBatch.Draw
-                //        (
-                //            texture: diskTexture,
-                //            position: begin.Position + (float)completionProp * (end.Position - begin.Position) + orthToTravelDir * i * 10,
-                //            sourceRectangle: null,
-                //            color: C.ResColors[i],
-                //            rotation: 0,
-                //            origin: new(diskTexture.Width * .5f, diskTexture.Height * .5f),
-                //            scale: (float)Math.Sqrt(resAmount) * 2 / diskTexture.Width,
-                //            effects: SpriteEffects.None,
-                //            layerDepth: 0
-                //        );
-                //    }
-                //}
             }
         }
 
@@ -173,21 +142,6 @@ namespace Game1
             }
             throw new ArgumentException();
         }
-
-        //public void AddRes(Node start, ConstULongArray resAmounts)
-        //{
-        //    if (start == node1)
-        //    {
-        //        link1To2.AddRes(resAmounts: resAmounts);
-        //        return;
-        //    }
-        //    if (start == node2)
-        //    {
-        //        link2To1.AddRes(resAmounts: resAmounts);
-        //        return;
-        //    }
-        //    throw new ArgumentException();
-        //}
 
         public double ReqWattsPerSec()
             => link1To2.ReqWattsPerSec() + link2To1.ReqWattsPerSec();

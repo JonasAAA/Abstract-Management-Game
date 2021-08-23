@@ -22,11 +22,9 @@ namespace Game1
         private readonly NodeState state;
         private readonly Image image;
         private readonly List<Link> links;
-        // resToLinksSplitters[i][j] - resource i to link j
         private readonly MyArray<ProporSplitter> resToLinksSplitters;
         private Industry industry;
         private TravelPacket curWaitingTravelPacket;
-        //private ULongArray curWaitingRes;
         private readonly ReadOnlyCollection<KeyButton> constrKeyButtons;
         private string text;
 
@@ -41,7 +39,6 @@ namespace Game1
                 resToLinksSplitters[i] = new ProporSplitter();
             industry = null;
             curWaitingTravelPacket = new();
-            //curWaitingRes = new();
             Keys[] constrKeys = new Keys[] { Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9 };
             constrKeyButtons = new
             (
@@ -72,38 +69,9 @@ namespace Game1
             => Vector2.Distance(this.Position, position) <= radius;
 
         public void AddTravelPacket(TravelPacket travelPacket)
-        {
-            state.waitingTravelPacket.Add(travelPacket: travelPacket);
-            //state.waitingRes += travelPacket.resAmounts;
-        }
-
-        //public void AddRes(ConstULongArray resAmounts)
-        //    => state.waitingRes += resAmounts;
-
-        //public void AddPerson(Person person)
-        //{
-        //    if (person.Destination == this)
-        //    {
-        //        if (state.travelingEmployees.Contains(person))
-        //        {
-        //            state.travelingEmployees.Remove(person);
-        //            state.employees.Add(person);
-        //        }
-        //        else
-        //            state.unemployedPeople.Add(person);
-        //    }
-        //    else
-        //        state.waitingTravelPacket.Add(person: person);
-        //        //state.travellingPeople.Add(person);
-        //}
+            => state.waitingTravelPacket.Add(travelPacket: travelPacket);
 
         public double ReqWattsPerSec()
-            //=> (state.employees.Count + state.unemployedPeople.Count + state.travellingPeople.Count) * Person.reqWattsPerSec
-            //+ industry switch
-            //{
-            //    null => 0,
-            //    not null => industry.ReqWattsPerSec()
-            //};
             => (state.employees.Count + state.unemployedPeople.Count + state.waitingTravelPacket.NumPeople) * Person.reqWattsPerSec
             + industry switch
             {
@@ -156,17 +124,6 @@ namespace Game1
                     if (person.Destination is not null)
                     {
                         state.waitingTravelPacket.Add(person: person);
-                        //if (person.Destination == this)
-                        //{
-                        //    if (state.travelingEmployees.Contains(person))
-                        //    {
-                        //        state.travelingEmployees.Remove(person);
-                        //        state.employees.Add(person);
-                        //        return true;
-                        //    }
-                        //    return false;
-                        //}
-                        //person.Destination.AddPerson(person);
                         return true;
                     }
                     return false;
@@ -235,44 +192,12 @@ namespace Game1
                     start: this,
                     travelPacket: travelPacket
                 );
-
-            //curWaitingRes += state.storedRes;
-            //state.storedRes = new();
-
-            //state.storedRes = industry switch
-            //{
-            //    null => new(),
-            //    not null => curWaitingRes.Min(industry.TargetStoredResAmounts())
-            //};
-            //curWaitingRes -= state.storedRes;
-
-            //// maybe I should just send one resource at a time rather then pack them to ULongArray
-            //ULongArray[] resSplitAmounts = new ULongArray[links.Count];
-            //for (int i = 0; i < resSplitAmounts.Length; i++)
-            //    resSplitAmounts[i] = new();
-
-            //for (int j = 0; j < ConstArray.length; j++)
-            //{
-            //    if (!resToLinksSplitters[j].CanSplit(amount: curWaitingRes[j]))
-            //        throw new NotImplementedException();
-            //    ulong[] split = resToLinksSplitters[j].Split(amount: curWaitingRes[j]);
-            //    Debug.Assert(split.Length == resSplitAmounts.Length);
-            //    for (int i = 0; i < resSplitAmounts.Length; i++)
-            //        resSplitAmounts[i][j] = split[i];
-            //}
-
-            //for (int i = 0; i < links.Count; i++)
-            //    links[i].AddRes(start: this, resAmounts: resSplitAmounts[i]);
-
-            //curWaitingRes = new();
         }
 
         public void EndUpdate()
         {
             curWaitingTravelPacket.Add(travelPacket: state.waitingTravelPacket);
             state.waitingTravelPacket = new();
-            //curWaitingRes += state.waitingRes;
-            //state.waitingRes = new();
         }
 
         public void Draw(bool active)
@@ -285,11 +210,9 @@ namespace Game1
                 image.Color = Color.White;
             image.Draw(Position);
 
-            //string text = "";
             if (industry is not null)
                 text += industry.GetText();
             text += $"\nemployed {state.employees.Count}\nunemployed {state.unemployedPeople.Count}\ntravelling {state.waitingTravelPacket.NumPeople}";
-            //text += $"\nemployed {state.employees.Count}\nunemployed {state.unemployedPeople.Count}\ntravelling {state.travellingPeople.Count}";
 
             C.SpriteBatch.DrawString
             (

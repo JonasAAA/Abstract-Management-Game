@@ -131,10 +131,6 @@ namespace Game1
             reqWattsPerSec = nodes.Sum(node => node.ReqWattsPerSec()) + links.Sum(link => link.ReqWattsPerSec());
             prodWattsPerSec = ambientWattsPerSec + nodes.Sum(node => node.ProdWattsPerSec());
 
-            //double electrPropor = Math.Min(1, prodWattsPerSec / reqWattsPerSec);
-            //Debug.Assert(electrPropor is >= 0 and <= 1);
-
-            //throw new NotImplementedException();
             if (reqWattsPerSec > prodWattsPerSec)
                 C.Update(elapsed: gameTime.ElapsedGameTime * prodWattsPerSec / reqWattsPerSec);
             else

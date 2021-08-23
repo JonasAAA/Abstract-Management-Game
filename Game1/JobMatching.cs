@@ -25,7 +25,6 @@ namespace Game1
         private record PersonNode(Person Person, Node Node);
         private record JobNode(IJob Job, Node Node);
 
-        // later should take as parameters list of employed people looking for job and list of filled jobs looking to change employee
         public static void Match()
         {
             HashSet<JobNode> vacantJobs =
@@ -85,8 +84,6 @@ namespace Game1
             + talentCoeff * personNode.Person.talents[jobNode.Job.IndustryType]
             + skillCoeff * personNode.Person.skills[jobNode.Job.IndustryType]
             + desperationCoeff * jobNode.Job.Desperation()
-            //+ vacancyDurationCoeff * VacancyDuration(startTime: jobNode.Job.SearchStart)
-            //+ jobOpenSpaceCoeff * jobNode.Job.OpenSpace()
             + distCoeff * Distance(node1: jobNode.Node, node2: personNode.Node);
 
         public static double CurrentEmploymentScore(IJob job, Person person)

@@ -23,8 +23,6 @@ namespace Game1
 
         static C()
         {
-            //ScreenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            //ScreenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             minPosDouble = 1e-6;
             random = new();
         }

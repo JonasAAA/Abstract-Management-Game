@@ -63,40 +63,6 @@ namespace Game1
             }
         }
 
-        // could have a version of this without taking resInd
-        //public void GetData(int resInd, out List<double> completionProps, out List<ulong> resAmounts)
-        //{
-        //    completionProps = new();
-        //    resAmounts = new();
-
-        //    Debug.Assert(endTimeQueue.Count == travelPacketQueue.Count);
-
-        //    foreach (var (endTime, travelPacket) in endTimeQueue.Zip(travelPacketQueue))
-        //    {
-        //        if (travelPacket.ResAmounts[resInd] is 0)
-        //            continue;
-        //        completionProps.Add(C.DonePart(endTime: endTime, duration: duration));
-        //        resAmounts.Add(travelPacket.ResAmounts[resInd]);
-        //    }
-
-        //    Debug.Assert(completionProps.Count == resAmounts.Count);
-
-        //    //completionProps = new();
-        //    //resAmounts = new();
-
-        //    //Debug.Assert(endTimes.Count == this.resAmounts.Count);
-
-        //    //foreach (var (endTime, resAmount) in endTimes.Zip(this.resAmounts))
-        //    //{
-        //    //    if (resAmount[resInd] is 0)
-        //    //        continue;
-        //    //    completionProps.Add(C.DonePart(endTime: endTime, duration: duration));
-        //    //    resAmounts.Add(resAmount[resInd]);
-        //    //}
-
-        //    //Debug.Assert(completionProps.Count == resAmounts.Count);
-        //}
-
         public double PeekCompletionProp()
         {
             if (Empty)

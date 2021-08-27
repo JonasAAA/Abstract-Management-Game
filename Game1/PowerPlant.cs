@@ -4,7 +4,7 @@
     {
         public new class Params : Industry.Params
         {
-            public Params(string name, double reqSkill, ulong prodWattsPerSec)
+            public Params(string name, double reqSkill, double prodWattsPerSec)
                 : base(industryType: IndustryType.PowerPlant, name: name, reqSkill: reqSkill, reqWattsPerSec: 0, prodWattsPerSec: prodWattsPerSec)
             { }
 

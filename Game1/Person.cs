@@ -8,16 +8,12 @@ namespace Game1
 {
     /// <summary>
     /// TODO:
-    /// implement happiness calculation and reproduction
-    ///
     /// may have separate fire method when can put more there
-    /// 
-    /// unused skills may deteriorate
     /// </summary>
 
     public class Person
     {
-        public static readonly double reqWattsPerSec;
+        public static double reqWattsPerSec { get; }
         private static readonly double timeSkillCoeff;
 
         static Person()
@@ -75,7 +71,6 @@ namespace Game1
 
         /// <summary>
         /// TODO:
-        /// travel to new job destination
         /// if already had a job, need to inform it about quitting
         /// </summary>
         public void TakeJob(IJob job, Node jobNode)
@@ -86,7 +81,6 @@ namespace Game1
             Destination = jobNode;
 
             // TODO:
-            // travel to new job destination
             // if already had a job, need to inform it about quitting
         }
 

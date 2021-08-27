@@ -17,7 +17,7 @@ namespace Game1
             public readonly string name;
             public readonly double reqSkill;
             public readonly double reqWattsPerSec, prodWattsPerSec;
-            
+
             public Params(IndustryType industryType, string name, double reqSkill, double reqWattsPerSec, double prodWattsPerSec)
             {
                 this.industryType = industryType;
@@ -28,7 +28,7 @@ namespace Game1
                 if (reqWattsPerSec < 0)
                     throw new ArgumentOutOfRangeException();
                 this.reqWattsPerSec = reqWattsPerSec;
-                if (prodWattsPerSec < 0)
+                if (prodWattsPerSec < 0 || (industryType is not IndustryType.PowerPlant && prodWattsPerSec > 0))
                     throw new ArgumentOutOfRangeException();
                 this.prodWattsPerSec = prodWattsPerSec;
             }
@@ -223,6 +223,13 @@ namespace Game1
                 true => parameters.reqWattsPerSec * CurSkillPropor,
                 false => 0
             };
+
+        //each node and link may have their own internal clock based on how much electricity they get
+        //so e.g. power plant clock will tick at the same rate as normal clock
+        //this clock would influence when products are produced/transported, how much skill people get for working one frame, how quickly buildings deteriorate etc.
+        //but then what about unemployed people in power plant tile?
+        //also, people could be unhappy about getting not enough electricity
+        //(or else player could just take all unemplyed people to one node and shut them down by giving no electricity)
 
         public double ProdWattsPerSec()
             => IsBusy() switch

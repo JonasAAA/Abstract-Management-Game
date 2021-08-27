@@ -72,7 +72,7 @@ namespace Game1
             => state.waitingTravelPacket.Add(travelPacket: travelPacket);
 
         public double ReqWattsPerSec()
-            => (state.employees.Count + state.unemployedPeople.Count + state.waitingTravelPacket.NumPeople) * Person.reqWattsPerSec
+            => (state.unemployedPeople.Count + state.waitingTravelPacket.NumPeople) * Person.reqWattsPerSec
             + industry switch
             {
                 null => 0,
@@ -106,13 +106,16 @@ namespace Game1
                 industry.ActiveUpdate();
 
             foreach (var node in Graph.Nodes)
-                node.AddText(text: $"distance {Graph.ElectrDists[(this, node)]:0.##} \n");
+                node.AddText(text: $"personal distance {Graph.PersonDists[(this, node)]:0.##}\nresource distance {Graph.ResDists[(this, node)]:0.##}\n");
         }
 
         public void StartUpdate()
         {
             // employees with jobs should not want to travel anywhere
             Debug.Assert(state.employees.All(person => person.Destination is null));
+
+            // employees with jobs already traveled here, so should not want to travel here again
+            Debug.Assert(state.employees.All(person => person.Destination != this));
 
             if (industry is not null)
                 industry = industry.Update();
@@ -180,7 +183,7 @@ namespace Game1
                     continue;
                 }
 
-                Link firstLink = Graph.ElectrFirstLinks[(this, person.Destination)];
+                Link firstLink = Graph.PersonFirstLinks[(this, person.Destination)];
                 splitTravelPackets[firstLink].Add(person);
             }
 

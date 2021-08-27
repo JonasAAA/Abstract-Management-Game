@@ -14,11 +14,13 @@ namespace Game1
             => nodes;
         public static IEnumerable<Link> Links
             => links;
-        public static ReadOnlyDictionary<(Node, Node), double> ElectrDists { get; private set; }
+        public static ReadOnlyDictionary<(Node, Node), double> PersonDists { get; private set; }
+        public static ReadOnlyDictionary<(Node, Node), double> ResDists { get; private set; }
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        public static ReadOnlyDictionary<(Node, Node), Link> ElectrFirstLinks { get; private set; }
+        public static ReadOnlyDictionary<(Node, Node), Link> PersonFirstLinks { get; private set; }
+        public static ReadOnlyDictionary<(Node, Node), Link> ResFirstLinks { get; private set; }
 
         private static readonly List<Node> nodes;
         private static readonly List<Link> links;
@@ -26,6 +28,7 @@ namespace Game1
         private static readonly HashSet<Link> linkSet;
         private static readonly ulong ambientWattsPerSec = 100;
         private static IUIElement activeElement;
+        private static readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
         private static double reqWattsPerSec, prodWattsPerSec;
 
         static Graph()
@@ -37,6 +40,10 @@ namespace Game1
             activeElement = null;
             reqWattsPerSec = 0;
             prodWattsPerSec = ambientWattsPerSec;
+            persDistTimeCoeff = .5;
+            persDistElectrCoeff = .5;
+            resDistTimeCoeff = 0;
+            resDistElectrCoeff = 1;
         }
 
         public static void Initialize(List<Node> nodes, List<Link> links)
@@ -46,7 +53,8 @@ namespace Game1
             foreach (var link in links)
                 AddLink(link);
 
-            FindShortestPaths();
+            (PersonDists, PersonFirstLinks) = FindShortestPaths(distTimeCoeff: persDistTimeCoeff, distElectrCoeff: persDistElectrCoeff);
+            (ResDists, ResFirstLinks) = FindShortestPaths(distTimeCoeff: resDistTimeCoeff, distElectrCoeff: resDistElectrCoeff);
         }
 
         private static void AddNode(Node node)
@@ -70,8 +78,13 @@ namespace Game1
 
         // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
-        private static void FindShortestPaths()
+        private static (ReadOnlyDictionary<(Node, Node), double> dists, ReadOnlyDictionary<(Node, Node), Link> firstLinks) FindShortestPaths(double distTimeCoeff, double distElectrCoeff)
         {
+            if (distTimeCoeff < 0)
+                throw new ArgumentOutOfRangeException();
+            if (distElectrCoeff < 0)
+                throw new ArgumentOutOfRangeException();
+
             double[,] distsArray = new double[nodes.Count, nodes.Count];
             Link[,] firstLinksArray = new Link[nodes.Count, nodes.Count];
 
@@ -89,7 +102,7 @@ namespace Game1
             {
                 int i = nodes.IndexOf(link.node1), j = nodes.IndexOf(link.node2);
                 Debug.Assert(i >= 0 && j >= 0);
-                distsArray[i, j] = link.WattsPerKg;
+                distsArray[i, j] = distTimeCoeff * link.TravelTime.TotalSeconds + distElectrCoeff * link.WattsPerKg;
                 distsArray[j, i] = distsArray[i, j];
                 firstLinksArray[i, j] = link;
                 firstLinksArray[j, i] = link;
@@ -122,8 +135,7 @@ namespace Game1
                     );
                 }
 
-            ElectrDists = new(distsDict);
-            ElectrFirstLinks = new(firstLinksDict);
+            return (dists: new(distsDict), firstLinks: new(firstLinksDict));
         }
 
         public static void Update(GameTime gameTime)
@@ -131,10 +143,7 @@ namespace Game1
             reqWattsPerSec = nodes.Sum(node => node.ReqWattsPerSec()) + links.Sum(link => link.ReqWattsPerSec());
             prodWattsPerSec = ambientWattsPerSec + nodes.Sum(node => node.ProdWattsPerSec());
 
-            if (reqWattsPerSec > prodWattsPerSec)
-                C.Update(elapsed: gameTime.ElapsedGameTime * prodWattsPerSec / reqWattsPerSec);
-            else
-                C.Update(elapsed: gameTime.ElapsedGameTime);
+            C.Update(elapsed: gameTime.ElapsedGameTime, energyProp: Math.Min(1, prodWattsPerSec / reqWattsPerSec));
 
             links.ForEach(link => link.StartUpdate());
 

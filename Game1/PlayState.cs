@@ -99,17 +99,17 @@ namespace Game1
                 (
                     node1: nodes[0],
                     node2: nodes[1],
-                    travelTime: TimeSpan.FromSeconds(3),
+                    travelTime: TimeSpan.FromSeconds(1),
                     minSafeDist: 100,
-                    reqWattsPerKgPerSec: 1
+                    reqWattsPerKgPerSec: .6
                 ),
                 new
                 (
                     node1: nodes[1],
                     node2: nodes[2],
-                    travelTime: TimeSpan.FromSeconds(3),
+                    travelTime: TimeSpan.FromSeconds(2),
                     minSafeDist: 100,
-                    reqWattsPerKgPerSec: 1
+                    reqWattsPerKgPerSec: .5
                 ),
                 new
                 (
@@ -117,31 +117,31 @@ namespace Game1
                     node2: nodes[3],
                     travelTime: TimeSpan.FromSeconds(3),
                     minSafeDist: 100,
-                    reqWattsPerKgPerSec: 1
+                    reqWattsPerKgPerSec: .4
                 ),
                 new
                 (
                     node1: nodes[3],
                     node2: nodes[4],
-                    travelTime: TimeSpan.FromSeconds(3),
+                    travelTime: TimeSpan.FromSeconds(4),
                     minSafeDist: 100,
-                    reqWattsPerKgPerSec: 1
+                    reqWattsPerKgPerSec: .3
                 ),
                 new
                 (
                     node1: nodes[4],
                     node2: nodes[5],
-                    travelTime: TimeSpan.FromSeconds(3),
+                    travelTime: TimeSpan.FromSeconds(5),
                     minSafeDist: 100,
-                    reqWattsPerKgPerSec: 1
+                    reqWattsPerKgPerSec: .2
                 ),
                 new
                 (
                     node1: nodes[5],
                     node2: nodes[0],
-                    travelTime: TimeSpan.FromSeconds(3),
+                    travelTime: TimeSpan.FromSeconds(6),
                     minSafeDist: 100,
-                    reqWattsPerKgPerSec: 1
+                    reqWattsPerKgPerSec: .1
                 ),
             };
 

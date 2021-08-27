@@ -16,6 +16,8 @@ namespace Game1
         public static SpriteBatch SpriteBatch { get; private set; }
         public static TimeSpan TotalGameTime { get; private set; }
         public static TimeSpan ElapsedGameTime { get; private set; }
+        public static TimeSpan TotalGameTimeForPowerPlants { get; private set; }
+        public static TimeSpan ElapsedGameTimeForPowerPlants { get; private set; }
         public static Camera Camera { get; private set; }
 
         public static readonly double minPosDouble;
@@ -35,10 +37,16 @@ namespace Game1
             ResColors = resColors;
         }
 
-        public static void Update(TimeSpan elapsed)
+        public static void Update(TimeSpan elapsed, double energyProp)
         {
-            ElapsedGameTime = elapsed;
+            if (!IsInSuitableRange(value: energyProp))
+                throw new ArgumentOutOfRangeException();
+
+            ElapsedGameTime = elapsed * energyProp;
             TotalGameTime += ElapsedGameTime;
+
+            ElapsedGameTimeForPowerPlants = elapsed;
+            TotalGameTimeForPowerPlants += ElapsedGameTimeForPowerPlants;
         }
 
         public static double Random(double min, double max)

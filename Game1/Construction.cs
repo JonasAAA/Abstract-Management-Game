@@ -2,10 +2,6 @@
 
 namespace Game1
 {
-    /// <summary>
-    /// TODO:
-    /// desperation should decrease with increasing completion percentage
-    /// </summary>
     public class Construction : Industry
     {
         public new class Params : Industry.Params

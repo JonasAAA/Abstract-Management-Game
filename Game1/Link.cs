@@ -1,8 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Game1
 {
@@ -13,6 +11,8 @@ namespace Game1
             public readonly Node begin, end;
             public double WattsPerKg
                 => travel.duration.TotalSeconds * reqWattsPerKgPerSec;
+            public TimeSpan TravelTime
+                => travel.duration;
 
             private readonly TimedTravelPacketQueue travel;
             private readonly TimeSpan minSafeTime;
@@ -33,6 +33,8 @@ namespace Game1
                 minNextStartTime = TimeSpan.MinValue;
                 waitingTravelPacket = new();
                 curWaitingTravelPacket = new();
+                if (reqWattsPerKgPerSec <= 0)
+                    throw new ArgumentOutOfRangeException();
                 this.reqWattsPerKgPerSec = reqWattsPerKgPerSec;
                 diskTexture = C.Content.Load<Texture2D>("big disk");
             }
@@ -101,9 +103,12 @@ namespace Game1
         public double WattsPerKg
             => link1To2.WattsPerKg;
 
+        public TimeSpan TravelTime
+            => link1To2.TravelTime;
+
         private readonly DirLink link1To2, link2To1;
 
-        public Link(Node node1, Node node2, TimeSpan travelTime, double minSafeDist, ulong reqWattsPerKgPerSec)
+        public Link(Node node1, Node node2, TimeSpan travelTime, double minSafeDist, double reqWattsPerKgPerSec)
         {
             if (node1 == node2)
                 throw new ArgumentException();
@@ -115,7 +120,7 @@ namespace Game1
             link2To1 = new(begin: node2, end: node1, travelTime: travelTime, minSafeDist: minSafeDist, reqWattsPerKgPerSec: reqWattsPerKgPerSec);
         }
 
-        public Node Other(Node node)
+        public Node OtherNode(Node node)
         {
             if (!Contains(node))
                 throw new ArgumentException();

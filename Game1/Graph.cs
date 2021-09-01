@@ -134,18 +134,13 @@ namespace Game1
             return (dists: new(distsDict), firstLinks: new(firstLinksDict));
         }
 
-        public static void Update(GameTime gameTime)
+        public static void Update(TimeSpan elapsed)
         {
             ElectricityDistributor.DistributeElectr();
 
-            //reqWattsPerSec = nodes.Sum(node => node.ReqWattsPerSec()) + links.Sum(link => link.ReqWattsPerSec());
-            //prodWattsPerSec = ambientWattsPerSec + nodes.Sum(node => node.ProdWattsPerSec());
+            links.ForEach(link => link.StartUpdate(elapsed: elapsed));
 
-            //C.Update(elapsed: gameTime.ElapsedGameTime, energyProp: Math.Min(1, prodWattsPerSec / reqWattsPerSec));
-
-            links.ForEach(link => link.StartUpdate(elapsed: gameTime.ElapsedGameTime));
-
-            nodes.ForEach(node => node.StartUpdate(elapsed: gameTime.ElapsedGameTime));
+            nodes.ForEach(node => node.StartUpdate(elapsed: elapsed));
 
             links.ForEach(link => link.EndUpdate());
 

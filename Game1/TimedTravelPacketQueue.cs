@@ -75,13 +75,6 @@ namespace Game1
             }
         }
 
-        //public double PeekCompletionProp()
-        //{
-        //    if (Empty)
-        //        throw new InvalidOperationException();
-        //    return C.DonePart(timeLeft: endTimeQueue.Peek() - currentTime, duration: duration);
-        //}
-
         public double LastCompletionProp()
         {
             if (Empty)
@@ -89,79 +82,4 @@ namespace Game1
             return C.DonePart(timeLeft: lastEndTime - currentTime, duration: duration);
         }
     }
-
-    //public class TimedTravelPacketQueue
-    //{
-    //    public ulong TotalWeight { get; private set; }
-    //    public readonly TimeSpan duration;
-    //    private readonly Queue<TimeSpan> endTimeQueue;
-    //    private readonly Queue<TravelPacket> travelPacketQueue;
-
-    //    public bool Empty
-    //        => endTimeQueue.Count is 0;
-
-    //    public TimedTravelPacketQueue(TimeSpan duration)
-    //    {
-    //        if (duration < TimeSpan.Zero)
-    //            throw new ArgumentException();
-    //        this.duration = duration;
-
-    //        endTimeQueue = new();
-    //        travelPacketQueue = new();
-    //        TotalWeight = 0;
-    //    }
-
-    //    public void Enqueue(TravelPacket travelPacket)
-    //    {
-    //        throw new NotImplementedException();
-    //        //if (travelPacket.Empty)
-    //        //    return;
-    //        //endTimeQueue.Enqueue(C.TotalGameTime + duration);
-    //        //travelPacketQueue.Enqueue(travelPacket);
-    //        //TotalWeight += travelPacket.TotalWeight;
-    //    }
-
-    //    public TravelPacket DoneTravelPacket()
-    //    {
-    //        throw new NotImplementedException();
-    //        //TravelPacket doneTravelPacket = new();
-    //        //while (endTimeQueue.Count > 0 && endTimeQueue.Peek() < C.TotalGameTime)
-    //        //{
-    //        //    doneTravelPacket.Add(travelPacket: travelPacketQueue.Dequeue());
-    //        //    endTimeQueue.Dequeue();
-    //        //}
-    //        //TotalWeight -= doneTravelPacket.TotalWeight;
-    //        //return doneTravelPacket;
-    //    }
-
-    //    public IEnumerable<(double complProp, ConstULongArray resAmounts, int numPeople)> GetData()
-    //    {
-    //        throw new NotImplementedException();
-    //        //Debug.Assert(endTimeQueue.Count == travelPacketQueue.Count);
-
-    //        //foreach (var (endTime, travelPacket) in endTimeQueue.Zip(travelPacketQueue))
-    //        //{
-    //        //    Debug.Assert(!travelPacket.Empty);
-    //        //    yield return
-    //        //    (
-    //        //        complProp: C.DonePart(endTime: endTime, duration: duration),
-    //        //        resAmounts: travelPacket.ResAmounts,
-    //        //        numPeople: travelPacket.NumPeople
-    //        //    );
-    //        //}
-    //    }
-
-    //    public double PeekCompletionProp()
-    //    {
-    //        throw new NotImplementedException();
-    //        //if (Empty)
-    //        //    throw new InvalidOperationException();
-    //        //return C.DonePart(endTime: endTimeQueue.Peek(), duration: duration);
-    //    }
-
-    //    public double PeekDistance()
-    //    {
-    //        throw new NotImplementedException();
-    //    }
-    //}
 }

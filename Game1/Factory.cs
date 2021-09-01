@@ -67,11 +67,11 @@ namespace Game1
         {
             string text = base.GetText() + $"{parameters.name}\n";
             if (IsBusy())
-                text += $"producing {C.DonePart(timeLeft: prodTimeLeft, duration: parameters.prodDuration) * 100: 0.}%";
+                text += $"producing {C.DonePart(timeLeft: prodTimeLeft, duration: parameters.prodDuration) * 100: 0.}%\n";
             else
-                text += "idle";
+                text += "idle\n";
             if (!CanStartProduction)
-                text += "\nwill not start new";
+                text += "will not start new\n";
             return text;
         }
     }

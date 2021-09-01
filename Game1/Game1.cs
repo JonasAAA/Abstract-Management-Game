@@ -58,7 +58,7 @@ namespace Game1
 
             MyMouse.Update();
 
-            playState.Update(gameTime: gameTime);
+            playState.Update(elapsed: gameTime.ElapsedGameTime);
 
             base.Update(gameTime);
         }

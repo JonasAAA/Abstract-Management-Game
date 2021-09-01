@@ -43,7 +43,7 @@ namespace Game1
         }
 
         public override string GetText()
-            => base.GetText() + parameters.name;
+            => base.GetText() + parameters.name + "\n";
 
         public double ProdWattsPerSec()
             => IsBusy() switch

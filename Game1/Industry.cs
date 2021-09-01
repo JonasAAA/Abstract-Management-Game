@@ -8,10 +8,6 @@ using System.Linq;
 
 namespace Game1
 {
-    /// <summary>
-    /// TODO:
-    /// deal with the fact that industry and it's personnel may get different proportions of electricity
-    /// </summary>
     public abstract class Industry : IEmployer, IElectrConsumer, IJob
     {
         // all fields and properties in this and derived classes must have unchangeable state
@@ -177,6 +173,7 @@ namespace Game1
         // must be >= 0
         private TimeSpan avgVacancyDuration;
         private double curUnboundedSkillPropor, electrPropor;
+        private readonly HashSet<Person> employeesHere, allEmployees;
 
         protected Industry(Params parameters, NodeState state)
         {
@@ -193,11 +190,23 @@ namespace Game1
             avgVacancyDuration = TimeSpan.Zero;
             electrPropor = 0;
 
+            employeesHere = new();
+            allEmployees = new();
+
             ElectricityDistributor.AddElectrConsumer(electrConsumer: this);
         }
 
+        public bool IfEmploys(Person person)
+            => allEmployees.Contains(person);
+
+        public void Take(Person person)
+        {
+            if (!IfEmploys(person: person) || !employeesHere.Add(person))
+                throw new InvalidOperationException();
+        }
+
         private double HiredSkill()
-            => state.employees.Concat(state.travelingEmployees).Sum(person => person.skills[IndustryType]);
+            => allEmployees.Sum(person => person.skills[IndustryType]);
 
         private double OpenSpace()
         {
@@ -219,8 +228,7 @@ namespace Game1
         }
 
         public void Hire(Person person)
-            => state.travelingEmployees.Add(person);
-
+            => allEmployees.Add(person);
         public IJob CreateJob()
             => this;
 
@@ -233,12 +241,18 @@ namespace Game1
 
         public Industry Update(TimeSpan elapsed)
         {
+            // employees with jobs should not want to travel anywhere
+            Debug.Assert(employeesHere.All(person => person.Destination is null));
+
+            // employees with jobs already traveled here, so should not want to travel here again
+            Debug.Assert(employeesHere.All(person => (person.Destination is null || person.Destination.Position != state.position)));
+
             if (elapsed < TimeSpan.Zero)
                 throw new ArgumentOutOfRangeException();
 
             if (IsBusy())
             {
-                foreach (var person in state.employees)
+                foreach (var person in employeesHere)
                     person.UpdateWorking
                     (
                         elapsed: elapsed,
@@ -251,22 +265,23 @@ namespace Game1
             {
                 double oldOpenSpace = OpenSpace();
 
-                SimplePriorityQueue<Person, double> allEmployees = new();
-                foreach (var person in state.employees.Concat(state.travelingEmployees))
-                    allEmployees.Enqueue
+                SimplePriorityQueue<Person, double> allEmployeesPriorQueue = new();
+                foreach (var person in allEmployees)
+                    allEmployeesPriorQueue.Enqueue
                     (
                         item: person,
                         priority: JobMatching.CurrentEmploymentScore(employer: this, person: person)
                     );
 
-                HashSet<Person> firedPeople = new();
-                while (allEmployees.Count > 0 && totalHiredSkill - allEmployees.First.skills[IndustryType] >= parameters.reqSkill)
+                while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill - allEmployeesPriorQueue.First.skills[IndustryType] >= parameters.reqSkill)
                 {
-                    totalHiredSkill -= allEmployees.First.skills[IndustryType];
-                    firedPeople.Add(allEmployees.Dequeue());
+                    totalHiredSkill -= allEmployeesPriorQueue.First.skills[IndustryType];
+                    var person = allEmployeesPriorQueue.Dequeue();
+                    person.Fire();
+                    allEmployees.Remove(person);
+                    if (employeesHere.Remove(person))
+                        state.unemployedPeople.Add(person);
                 }
-
-                state.FireAllMatching(person => firedPeople.Contains(person));
 
                 double curOpenSpace = OpenSpace();
                 if (oldOpenSpace is double.NegativeInfinity)
@@ -287,7 +302,7 @@ namespace Game1
                 workingPropor: electrPropor * CurSkillPropor
             );
 
-            curUnboundedSkillPropor = state.employees.Sum(person => person.skills[IndustryType]) / parameters.reqSkill;
+            curUnboundedSkillPropor = employeesHere.Sum(person => person.skills[IndustryType]) / parameters.reqSkill;
             CurSkillPropor = Math.Min(1, curUnboundedSkillPropor);
 
             return result;
@@ -297,12 +312,16 @@ namespace Game1
 
         public virtual void Clear()
         {
-            state.FireAll();
+            foreach (var person in allEmployees)
+                person.Fire();
+            state.unemployedPeople.AddRange(employeesHere);
+            employeesHere.Clear();
+            allEmployees.Clear();
             ElectricityDistributor.RemoveElectrConsumer(electrConsumer: this);
         }
 
         public virtual string GetText()
-            => $"have {state.employees.Sum(person => person.skills[IndustryType]) / parameters.reqSkill * 100:0.}% skill\ndesperation {(Desperation() is double.NegativeInfinity ? 0 : Desperation() * 100):0.}%\n";
+            => $"have {employeesHere.Sum(person => person.skills[IndustryType]) / parameters.reqSkill * 100:0.}% skill\ndesperation {(Desperation() is double.NegativeInfinity ? 0 : Desperation() * 100):0.}%\nemployed {employeesHere.Count}\n";
 
         public double ReqWattsPerSec()
             // this is correct as if more important people get full electricity, this works

@@ -71,21 +71,6 @@ namespace Game1
         public void AddTravelPacket(TravelPacket travelPacket)
             => state.waitingTravelPacket.Add(travelPacket: travelPacket);
 
-        //public double ReqWattsPerSec()
-        //    => (state.unemployedPeople.Count + state.waitingTravelPacket.NumPeople) * Person.reqWattsPerSec
-        //    + industry switch
-        //    {
-        //        null => 0,
-        //        not null => industry.ReqWattsPerSec()
-        //    };
-
-        //public double ProdWattsPerSec()
-        //    => industry switch
-        //    {
-        //        null => 0,
-        //        not null => industry.ProdWattsPerSec()
-        //    };
-
         public void ActiveUpdate()
         {
             if (constrKeyButtons.Count < Industry.constrBuildingParams.Count)
@@ -111,12 +96,6 @@ namespace Game1
 
         public void StartUpdate(TimeSpan elapsed)
         {
-            // employees with jobs should not want to travel anywhere
-            Debug.Assert(state.employees.All(person => person.Destination is null));
-
-            // employees with jobs already traveled here, so should not want to travel here again
-            Debug.Assert(state.employees.All(person => person.Destination != this));
-
             foreach (var person in state.unemployedPeople.Concat(state.waitingTravelPacket.People))
                 person.UpdateNotWorking(elapsed: elapsed);
 
@@ -174,11 +153,10 @@ namespace Game1
 
                 if (person.Destination == this)
                 {
-                    if (state.travelingEmployees.Contains(person))
+                    if (industry.IfEmploys(person: person))
                     {
                         person.StopTravelling();
-                        state.travelingEmployees.Remove(person);
-                        state.employees.Add(person);
+                        industry.Take(person: person);
                         continue;
                     }
                     state.unemployedPeople.Add(person);
@@ -218,7 +196,7 @@ namespace Game1
 
             if (industry is not null)
                 text += industry.GetText();
-            text += $"\nemployed {state.employees.Count}\nunemployed {state.unemployedPeople.Count}\ntravelling {state.waitingTravelPacket.NumPeople}";
+            text += $"unemployed {state.unemployedPeople.Count}\n";
 
             C.SpriteBatch.DrawString
             (

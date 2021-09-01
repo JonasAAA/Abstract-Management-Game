@@ -16,8 +16,6 @@ namespace Game1
 
             private readonly TimedTravelPacketQueue travel;
             private readonly double minSafePropor;
-            //private readonly TimeSpan minSafeTime;
-            //private TimeSpan minNextStartTime;
             private TravelPacket waitingTravelPacket, curWaitingTravelPacket;
             private readonly double reqWattsPerKgPerSec;
             private readonly Texture2D diskTexture;
@@ -32,8 +30,6 @@ namespace Game1
                 minSafePropor = minSafeDist / Vector2.Distance(begin.Position, end.Position);
                 if (!C.IsInSuitableRange(value: minSafePropor))
                     throw new ArgumentOutOfRangeException();
-                //minSafeTime = travelTime * (minSafeDist / Vector2.Distance(begin.Position, end.Position));
-                //minNextStartTime = TimeSpan.MinValue;
                 waitingTravelPacket = new();
                 curWaitingTravelPacket = new();
                 if (reqWattsPerKgPerSec <= 0)
@@ -53,12 +49,6 @@ namespace Game1
 
             public void StartUpdate(TimeSpan elapsed)
             {
-                //if (!curWaitingTravelPacket.Empty && minNextStartTime <= C.TotalGameTime)
-                //{
-                //    travel.Enqueue(travelPacket: curWaitingTravelPacket);
-                //    minNextStartTime = C.TotalGameTime + minSafeTime;
-                //    curWaitingTravelPacket = new();
-                //}
                 travel.Update(elapsed: elapsed, electrPropor: electrPropor);
                 if (!curWaitingTravelPacket.Empty && (travel.Empty || travel.LastCompletionProp() >= minSafePropor))
                 {

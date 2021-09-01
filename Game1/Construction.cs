@@ -63,9 +63,9 @@ namespace Game1
         {
             string text = base.GetText();
             if (IsBusy())
-                text += $"constructing {C.DonePart(timeLeft: constrTimeLeft, duration: parameters.duration) * 100: 0.}%";
+                text += $"constructing {C.DonePart(timeLeft: constrTimeLeft, duration: parameters.duration) * 100: 0.}%\n";
             else
-                text += "waiting to start costruction";
+                text += "waiting to start costruction\n";
             return text;
         }
     }

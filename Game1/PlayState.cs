@@ -148,11 +148,11 @@ namespace Game1
             Graph.Initialize(nodes: nodes, links: links);
         }
 
-        public void Update(GameTime gameTime)
+        public void Update(TimeSpan elapsed)
         {
             C.Camera.Update();
 
-            Graph.Update(gameTime: gameTime);
+            Graph.Update(elapsed: elapsed);
         }
 
         public void Draw()

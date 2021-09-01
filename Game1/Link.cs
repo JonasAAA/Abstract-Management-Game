@@ -6,7 +6,7 @@ namespace Game1
 {
     public class Link : IUIElement
     {
-        private class DirLink
+        private class DirLink : IElectrConsumer
         {
             public readonly Node begin, end;
             public double WattsPerKg
@@ -15,11 +15,13 @@ namespace Game1
                 => travel.duration;
 
             private readonly TimedTravelPacketQueue travel;
-            private readonly TimeSpan minSafeTime;
-            private TimeSpan minNextStartTime;
+            private readonly double minSafePropor;
+            //private readonly TimeSpan minSafeTime;
+            //private TimeSpan minNextStartTime;
             private TravelPacket waitingTravelPacket, curWaitingTravelPacket;
             private readonly double reqWattsPerKgPerSec;
             private readonly Texture2D diskTexture;
+            private double electrPropor;
 
             public DirLink(Node begin, Node end, TimeSpan travelTime, double minSafeDist, double reqWattsPerKgPerSec)
             {
@@ -27,16 +29,20 @@ namespace Game1
                 this.end = end;
 
                 travel = new(duration: travelTime);
-                if (minSafeDist < 0 || minSafeDist > Vector2.Distance(begin.Position, end.Position))
+                minSafePropor = minSafeDist / Vector2.Distance(begin.Position, end.Position);
+                if (!C.IsInSuitableRange(value: minSafePropor))
                     throw new ArgumentOutOfRangeException();
-                minSafeTime = travelTime * (minSafeDist / Vector2.Distance(begin.Position, end.Position));
-                minNextStartTime = TimeSpan.MinValue;
+                //minSafeTime = travelTime * (minSafeDist / Vector2.Distance(begin.Position, end.Position));
+                //minNextStartTime = TimeSpan.MinValue;
                 waitingTravelPacket = new();
                 curWaitingTravelPacket = new();
                 if (reqWattsPerKgPerSec <= 0)
                     throw new ArgumentOutOfRangeException();
                 this.reqWattsPerKgPerSec = reqWattsPerKgPerSec;
                 diskTexture = C.Content.Load<Texture2D>("big disk");
+                electrPropor = 0;
+
+                ElectricityDistributor.AddElectrConsumer(electrConsumer: this);
             }
 
             public double ReqWattsPerSec()
@@ -45,12 +51,18 @@ namespace Game1
             public void AddTravelPacket(TravelPacket travelPacket)
                 => waitingTravelPacket.Add(travelPacket: travelPacket);
 
-            public void StartUpdate()
+            public void StartUpdate(TimeSpan elapsed)
             {
-                if (!curWaitingTravelPacket.Empty && minNextStartTime <= C.TotalGameTime)
+                //if (!curWaitingTravelPacket.Empty && minNextStartTime <= C.TotalGameTime)
+                //{
+                //    travel.Enqueue(travelPacket: curWaitingTravelPacket);
+                //    minNextStartTime = C.TotalGameTime + minSafeTime;
+                //    curWaitingTravelPacket = new();
+                //}
+                travel.Update(elapsed: elapsed, electrPropor: electrPropor);
+                if (!curWaitingTravelPacket.Empty && (travel.Empty || travel.LastCompletionProp() >= minSafePropor))
                 {
                     travel.Enqueue(travelPacket: curWaitingTravelPacket);
-                    minNextStartTime = C.TotalGameTime + minSafeTime;
                     curWaitingTravelPacket = new();
                 }
                 end.AddTravelPacket(travelPacket: travel.DoneTravelPacket());
@@ -97,7 +109,18 @@ namespace Game1
                         );
                 }
             }
+
+            public ulong ElectrPriority
+                => electrPriority;
+
+            public void ConsumeElectr(double electrPropor)
+                => this.electrPropor = electrPropor;
         }
+
+        private static ulong electrPriority;
+
+        static Link()
+            => electrPriority = 10;
 
         public readonly Node node1, node2;
         public double WattsPerKg
@@ -154,10 +177,10 @@ namespace Game1
         public void ActiveUpdate()
         { }
 
-        public void StartUpdate()
+        public void StartUpdate(TimeSpan elapsed)
         {
-            link1To2.StartUpdate();
-            link2To1.StartUpdate();
+            link1To2.StartUpdate(elapsed: elapsed);
+            link2To1.StartUpdate(elapsed: elapsed);
         }
 
         public void EndUpdate()

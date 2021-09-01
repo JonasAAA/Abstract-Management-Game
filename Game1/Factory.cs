@@ -9,8 +9,8 @@ namespace Game1
             public readonly ConstULongArray supply, demand;
             public readonly TimeSpan prodDuration;
 
-            public Params(string name, double reqSkill, ulong reqWattsPerSec, ConstULongArray supply, ConstULongArray demand, TimeSpan prodDuration)
-                : base(industryType: IndustryType.Production, name: name, reqSkill: reqSkill, reqWattsPerSec: reqWattsPerSec, prodWattsPerSec: 0)
+            public Params(string name, ulong electrPriority, double reqSkill, ulong reqWattsPerSec, ConstULongArray supply, ConstULongArray demand, TimeSpan prodDuration)
+                : base(industryType: IndustryType.Production, name: name, electrPriority: electrPriority, reqSkill: reqSkill, reqWattsPerSec: reqWattsPerSec)
             {
                 this.supply = supply;
                 this.demand = demand;
@@ -24,13 +24,13 @@ namespace Game1
         }
 
         private readonly Params parameters;
-        private TimeSpan? prodEndTime;
+        private TimeSpan prodTimeLeft;
 
         private Factory(Params parameters, NodeState state)
             : base(parameters: parameters, state: state)
         {
             this.parameters = parameters;
-            prodEndTime = null;
+            prodTimeLeft = TimeSpan.MaxValue;
         }
 
         public override ULongArray TargetStoredResAmounts()
@@ -41,25 +41,23 @@ namespace Game1
         }
 
         protected override bool IsBusy()
-            => prodEndTime.HasValue;
+            => prodTimeLeft < TimeSpan.MaxValue;
 
-        public override Industry Update()
+        protected override Industry Update(TimeSpan elapsed, double workingPropor)
         {
-            base.Update();
+            if (IsBusy())
+                prodTimeLeft -= workingPropor * elapsed;
 
-            if (prodEndTime.HasValue)
-                prodEndTime += (1 - CurSkillPropor) * C.ElapsedGameTime;
-
-            if (CanStartProduction && prodEndTime is null && state.storedRes >= parameters.demand)
+            if (CanStartProduction && !IsBusy() && state.storedRes >= parameters.demand)
             {
                 state.storedRes -= parameters.demand;
-                prodEndTime = C.TotalGameTime + parameters.prodDuration;
+                prodTimeLeft = parameters.prodDuration;
             }
 
-            if (prodEndTime.HasValue && prodEndTime <= C.TotalGameTime)
+            if (prodTimeLeft <= TimeSpan.Zero)
             {
                 state.waitingTravelPacket.Add(resAmounts: parameters.supply);
-                prodEndTime = null;
+                prodTimeLeft = TimeSpan.MaxValue;
             }
 
             return this;
@@ -68,10 +66,10 @@ namespace Game1
         public override string GetText()
         {
             string text = base.GetText() + $"{parameters.name}\n";
-            if (prodEndTime is null)
-                text += "idle";
+            if (IsBusy())
+                text += $"producing {C.DonePart(timeLeft: prodTimeLeft, duration: parameters.prodDuration) * 100: 0.}%";
             else
-                text += $"producing {C.DonePart(endTime: prodEndTime.Value, duration: parameters.prodDuration) * 100: 0.}%";
+                text += "idle";
             if (!CanStartProduction)
                 text += "\nwill not start new";
             return text;

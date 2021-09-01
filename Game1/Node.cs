@@ -14,7 +14,7 @@ namespace Game1
         public Vector2 Position
             => state.position;
         public readonly float radius;
-        public IJob Job
+        public IEmployer Employer
             => industry;
         public IEnumerable<Person> UnemployedPeople
             => state.unemployedPeople;
@@ -71,20 +71,20 @@ namespace Game1
         public void AddTravelPacket(TravelPacket travelPacket)
             => state.waitingTravelPacket.Add(travelPacket: travelPacket);
 
-        public double ReqWattsPerSec()
-            => (state.unemployedPeople.Count + state.waitingTravelPacket.NumPeople) * Person.reqWattsPerSec
-            + industry switch
-            {
-                null => 0,
-                not null => industry.ReqWattsPerSec()
-            };
+        //public double ReqWattsPerSec()
+        //    => (state.unemployedPeople.Count + state.waitingTravelPacket.NumPeople) * Person.reqWattsPerSec
+        //    + industry switch
+        //    {
+        //        null => 0,
+        //        not null => industry.ReqWattsPerSec()
+        //    };
 
-        public double ProdWattsPerSec()
-            => industry switch
-            {
-                null => 0,
-                not null => industry.ProdWattsPerSec()
-            };
+        //public double ProdWattsPerSec()
+        //    => industry switch
+        //    {
+        //        null => 0,
+        //        not null => industry.ProdWattsPerSec()
+        //    };
 
         public void ActiveUpdate()
         {
@@ -109,7 +109,7 @@ namespace Game1
                 node.AddText(text: $"personal distance {Graph.PersonDists[(this, node)]:0.##}\nresource distance {Graph.ResDists[(this, node)]:0.##}\n");
         }
 
-        public void StartUpdate()
+        public void StartUpdate(TimeSpan elapsed)
         {
             // employees with jobs should not want to travel anywhere
             Debug.Assert(state.employees.All(person => person.Destination is null));
@@ -117,8 +117,11 @@ namespace Game1
             // employees with jobs already traveled here, so should not want to travel here again
             Debug.Assert(state.employees.All(person => person.Destination != this));
 
+            foreach (var person in state.unemployedPeople.Concat(state.waitingTravelPacket.People))
+                person.UpdateNotWorking(elapsed: elapsed);
+
             if (industry is not null)
-                industry = industry.Update();
+                industry = industry.Update(elapsed: elapsed);
 
             state.unemployedPeople.RemoveAll
             (

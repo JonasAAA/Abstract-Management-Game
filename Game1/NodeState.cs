@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Game1
 {
@@ -31,7 +32,7 @@ namespace Game1
                 unemployedPeople.Add(person);
             else
                 travelingEmployees.Remove(person);
-            person.StopTravelling();
+            person.Fire();
         }
 
         public void FireAllMatching(Func<Person, bool> match)
@@ -42,7 +43,7 @@ namespace Game1
                 {
                     if (match(person))
                     {
-                        person.StopTravelling();
+                        person.Fire();
                         unemployedPeople.Add(person);
                         return true;
                     }
@@ -55,12 +56,21 @@ namespace Game1
                 {
                     if (match(person))
                     {
-                        person.StopTravelling();
+                        person.Fire();
                         return true;
                     }
                     return false;
                 }
             );
+        }
+
+        public void FireAll()
+        {
+            foreach (var person in employees.Concat(travelingEmployees))
+                person.Fire();
+            unemployedPeople.AddRange(employees);
+            employees.Clear();
+            travelingEmployees.Clear();
         }
     }
 }

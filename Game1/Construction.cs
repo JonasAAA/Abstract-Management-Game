@@ -10,11 +10,11 @@ namespace Game1
             public readonly TimeSpan duration;
             public readonly ConstULongArray cost;
 
-            public Params(string name, double reqSkill, ulong reqWattsPerSec, Industry.Params industrParams, TimeSpan duration, ConstULongArray cost)
-                : base(industryType: IndustryType.Construction, name: name, reqSkill: reqSkill, reqWattsPerSec: reqWattsPerSec, prodWattsPerSec: 0)
+            public Params(string name, ulong electrPriority, double reqSkill, ulong reqWattsPerSec, Industry.Params industrParams, TimeSpan duration, ConstULongArray cost)
+                : base(industryType: IndustryType.Construction, name: name, electrPriority: electrPriority, reqSkill: reqSkill, reqWattsPerSec: reqWattsPerSec)
             {
                 this.industrParams = industrParams;
-                if (duration < TimeSpan.Zero)
+                if (duration < TimeSpan.Zero || duration == TimeSpan.MaxValue)
                     throw new ArgumentException();
                 this.duration = duration;
                 this.cost = cost;
@@ -25,51 +25,48 @@ namespace Game1
         }
 
         private readonly Params parameters;
-        private TimeSpan? constrEndTime;
+        private TimeSpan constrTimeLeft;
 
         private Construction(Params parameters, NodeState state)
             : base(parameters: parameters, state: state)
         {
             this.parameters = parameters;
-            constrEndTime = null;
+            constrTimeLeft = TimeSpan.MaxValue;
         }
 
         public override ULongArray TargetStoredResAmounts()
             => parameters.cost.ToULongArray();
 
         protected override bool IsBusy()
-            => constrEndTime.HasValue;
+            => constrTimeLeft < TimeSpan.MaxValue;
 
-        public override Industry Update()
+        protected override Industry Update(TimeSpan elapsed, double workingPropor)
         {
-            base.Update();
+            if (IsBusy())
+                constrTimeLeft -= workingPropor * elapsed;
 
-            if (constrEndTime.HasValue)
-                constrEndTime += (1 - CurSkillPropor) * C.ElapsedGameTime;
-
-            if (constrEndTime is null && state.storedRes >= parameters.cost)
+            if (!IsBusy() && state.storedRes >= parameters.cost)
             {
                 state.storedRes -= parameters.cost;
-                constrEndTime = C.TotalGameTime + parameters.duration;
+                constrTimeLeft = parameters.duration;
             }
 
-            if (constrEndTime.HasValue && constrEndTime <= C.TotalGameTime)
+            if (constrTimeLeft <= TimeSpan.Zero)
             {
-                state.unemployedPeople.AddRange(state.employees);
-                state.employees.Clear();
-                foreach (var person in state.travelingEmployees)
-                    person.StopTravelling();
-                state.travelingEmployees.Clear();
+                Clear();
                 return parameters.industrParams.MakeIndustry(state: state);
             }
             return this;
         }
 
         public override string GetText()
-            => base.GetText() + constrEndTime switch
-            {
-                null => "waiting to start costruction",
-                not null => $"constructing {C.DonePart(endTime: constrEndTime.Value, duration: parameters.duration) * 100: 0.}%"
-            };
+        {
+            string text = base.GetText();
+            if (IsBusy())
+                text += $"constructing {C.DonePart(timeLeft: constrTimeLeft, duration: parameters.duration) * 100: 0.}%";
+            else
+                text += "waiting to start costruction";
+            return text;
+        }
     }
 }

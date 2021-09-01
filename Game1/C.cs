@@ -14,10 +14,10 @@ namespace Game1
         public static ConstArray<Color> ResColors { get; private set; }
         public static ContentManager Content { get; private set; }
         public static SpriteBatch SpriteBatch { get; private set; }
-        public static TimeSpan TotalGameTime { get; private set; }
-        public static TimeSpan ElapsedGameTime { get; private set; }
-        public static TimeSpan TotalGameTimeForPowerPlants { get; private set; }
-        public static TimeSpan ElapsedGameTimeForPowerPlants { get; private set; }
+        //public static TimeSpan TotalGameTime { get; private set; }
+        //public static TimeSpan ElapsedGameTime { get; private set; }
+        //public static TimeSpan TotalGameTimeForPowerPlants { get; private set; }
+        //public static TimeSpan ElapsedGameTimeForPowerPlants { get; private set; }
         public static Camera Camera { get; private set; }
 
         public static readonly double minPosDouble;
@@ -37,17 +37,17 @@ namespace Game1
             ResColors = resColors;
         }
 
-        public static void Update(TimeSpan elapsed, double energyProp)
-        {
-            if (!IsInSuitableRange(value: energyProp))
-                throw new ArgumentOutOfRangeException();
+        //public static void Update(TimeSpan elapsed, double energyProp)
+        //{
+        //    if (!IsInSuitableRange(value: energyProp))
+        //        throw new ArgumentOutOfRangeException();
 
-            ElapsedGameTime = elapsed * energyProp;
-            TotalGameTime += ElapsedGameTime;
+        //    ElapsedGameTime = elapsed * energyProp;
+        //    TotalGameTime += ElapsedGameTime;
 
-            ElapsedGameTimeForPowerPlants = elapsed;
-            TotalGameTimeForPowerPlants += ElapsedGameTimeForPowerPlants;
-        }
+        //    ElapsedGameTimeForPowerPlants = elapsed;
+        //    TotalGameTimeForPowerPlants += ElapsedGameTimeForPowerPlants;
+        //}
 
         public static double Random(double min, double max)
             => min + random.NextDouble() * (max - min);
@@ -64,13 +64,13 @@ namespace Game1
         public static bool IsTiny(double value)
             => Math.Abs(value) < minPosDouble;
 
-        public static double DonePart(TimeSpan endTime, TimeSpan duration)
+        public static double DonePart(TimeSpan timeLeft, TimeSpan duration)
         {
             if (duration <= TimeSpan.Zero)
                 throw new ArgumentOutOfRangeException();
-            if (TotalGameTime + duration < endTime)
+            if (timeLeft > duration)
                 throw new ArgumentException();
-            return Math.Min(1 - (endTime - TotalGameTime) / duration, 1);
+            return Math.Min(1, 1 - timeLeft / duration);
         }
 
         public static bool IsInSuitableRange(double value)

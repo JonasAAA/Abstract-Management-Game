@@ -8,17 +8,28 @@ namespace Game1
 {
     /// <summary>
     /// TODO:
-    /// may have separate fire method when can put more there
+    /// person must be unhappy when don't get enough electricity
     /// </summary>
 
-    public class Person
+    public class Person : IElectrConsumer
     {
-        public static double reqWattsPerSec { get; }
+        private static readonly ReadOnlyDictionary<IndustryType, bool> mimicIndustryElectrPriority;
+        /// <summary>
+        /// MUST always be the same for all people
+        /// as the way industry deals with required electricity requires that
+        /// </summary>
+        public static readonly ulong defaultElectrPriority;
         private static readonly double timeSkillCoeff;
 
         static Person()
         {
-            reqWattsPerSec = .2;
+            Dictionary<IndustryType, bool> mimicIndustryElectrPriority = new();
+            foreach (var industryType in Enum.GetValues<IndustryType>())
+                mimicIndustryElectrPriority[industryType] = false;
+            mimicIndustryElectrPriority[IndustryType.PowerPlant] = true;
+            Person.mimicIndustryElectrPriority = new(mimicIndustryElectrPriority);
+
+            defaultElectrPriority = 100;
             timeSkillCoeff = .1;
         }
 
@@ -30,9 +41,12 @@ namespace Game1
         public readonly Dictionary<IndustryType, double> skills;
         //public double MinAcceptableEnjoyment { get; private set; }
         public Node Destination { get; private set; }
+        private IJob job;
+        public double ElectrPropor { get; private set; }
         public readonly ulong weight;
+        public readonly double reqWattsPerSec;
 
-        private Person(Dictionary<IndustryType, double> enjoyments, Dictionary<IndustryType, double> talents, Dictionary<IndustryType, double> skills, ulong weight)
+        private Person(Dictionary<IndustryType, double> enjoyments, Dictionary<IndustryType, double> talents, Dictionary<IndustryType, double> skills, ulong weight, double reqWattsPerSec)
         {
             if (!enjoyments.Values.All(C.IsInSuitableRange))
                 throw new ArgumentException();
@@ -47,7 +61,16 @@ namespace Game1
             this.skills = new(skills);
 
             Destination = null;
+            job = null;
             this.weight = weight;
+
+            if (reqWattsPerSec <= 0)
+                throw new ArgumentOutOfRangeException();
+            this.reqWattsPerSec = reqWattsPerSec;
+
+            ElectrPropor = 0;
+
+            ElectricityDistributor.AddElectrConsumer(electrConsumer: this);
         }
 
         public static Person GenerateNew()
@@ -62,36 +85,69 @@ namespace Game1
                 skills: Enum.GetValues<IndustryType>()
                     .Select(indType => (indType, value: C.Random(min: 0.0, max: 1.0)))
                     .ToDictionary(a => a.indType, a => a.value),
-                weight: 10
+                weight: 10,
+                reqWattsPerSec: .2
             );
 
         // must be between 0 and 1 or double.NegativeInfinity
-        public double JobScore(IJob job)
-            => enjoyments[job.IndustryType];
+        public double EmployerScore(IEmployer employer)
+            => enjoyments[employer.IndustryType];
 
         /// <summary>
         /// TODO:
-        /// if already had a job, need to inform it about quitting
+        /// if already had a employer, need to inform it about quitting
         /// </summary>
-        public void TakeJob(IJob job, Node jobNode)
+        public void TakeJob(IJob job, Node employerNode)
         {
-            if (JobScore(job: job) is double.NegativeInfinity)
-                throw new ArgumentException();
-
-            Destination = jobNode;
+            this.job = job;
+            Destination = employerNode;
 
             // TODO:
-            // if already had a job, need to inform it about quitting
+            // if already had a employer, need to inform it about quitting
+        }
+
+        public void Fire()
+        {
+            job = null;
+            StopTravelling();
         }
 
         public void StopTravelling()
-            =>Destination = null;
+            => Destination = null;
 
-        public void Work(IndustryType industryType)
+        public void UpdateNotWorking(TimeSpan elapsed)
         {
-            Debug.Assert(C.IsInSuitableRange(value: skills[industryType]));
-            skills[industryType] = 1 - (1 - skills[industryType]) * Math.Pow(1 - talents[industryType], C.ElapsedGameTime.TotalSeconds * timeSkillCoeff);
-            Debug.Assert(C.IsInSuitableRange(value: skills[industryType]));
+            if (job is not null && Destination is null)
+                throw new InvalidOperationException();
+
+            // skills may decrease here
+            // person may go on vacation, etc.
         }
+
+        public void UpdateWorking(TimeSpan elapsed, double workingPropor)
+        {
+            if (!C.IsInSuitableRange(value: workingPropor))
+                throw new ArgumentOutOfRangeException();
+
+            Debug.Assert(C.IsInSuitableRange(value: skills[job.IndustryType]));
+            skills[job.IndustryType] = 1 - (1 - skills[job.IndustryType]) * Math.Pow(1 - talents[job.IndustryType], elapsed.TotalSeconds * workingPropor * timeSkillCoeff);
+            Debug.Assert(C.IsInSuitableRange(value: skills[job.IndustryType]));
+        }
+
+        public ulong ElectrPriority
+            => job switch
+            {
+                null => defaultElectrPriority,
+                // if person has higher priority then job,
+                // then job most likely will can't work at full capacity
+                // so will not use all the available electricity
+                not null => Math.Min(defaultElectrPriority, job.ElectrPriority)
+            };
+
+        public double ReqWattsPerSec()
+            => reqWattsPerSec;
+
+        public void ConsumeElectr(double electrPropor)
+            => ElectrPropor = electrPropor;
     }
 }

@@ -26,10 +26,8 @@ namespace Game1
         private static readonly List<Link> links;
         private static readonly HashSet<Node> nodeSet;
         private static readonly HashSet<Link> linkSet;
-        private static readonly ulong ambientWattsPerSec = 100;
         private static IUIElement activeElement;
         private static readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
-        private static double reqWattsPerSec, prodWattsPerSec;
 
         static Graph()
         {
@@ -38,8 +36,6 @@ namespace Game1
             nodeSet = new();
             linkSet = new();
             activeElement = null;
-            reqWattsPerSec = 0;
-            prodWattsPerSec = ambientWattsPerSec;
             persDistTimeCoeff = .5;
             persDistElectrCoeff = .5;
             resDistTimeCoeff = 0;
@@ -140,14 +136,16 @@ namespace Game1
 
         public static void Update(GameTime gameTime)
         {
-            reqWattsPerSec = nodes.Sum(node => node.ReqWattsPerSec()) + links.Sum(link => link.ReqWattsPerSec());
-            prodWattsPerSec = ambientWattsPerSec + nodes.Sum(node => node.ProdWattsPerSec());
+            ElectricityDistributor.DistributeElectr();
 
-            C.Update(elapsed: gameTime.ElapsedGameTime, energyProp: Math.Min(1, prodWattsPerSec / reqWattsPerSec));
+            //reqWattsPerSec = nodes.Sum(node => node.ReqWattsPerSec()) + links.Sum(link => link.ReqWattsPerSec());
+            //prodWattsPerSec = ambientWattsPerSec + nodes.Sum(node => node.ProdWattsPerSec());
 
-            links.ForEach(link => link.StartUpdate());
+            //C.Update(elapsed: gameTime.ElapsedGameTime, energyProp: Math.Min(1, prodWattsPerSec / reqWattsPerSec));
 
-            nodes.ForEach(node => node.StartUpdate());
+            links.ForEach(link => link.StartUpdate(elapsed: gameTime.ElapsedGameTime));
+
+            nodes.ForEach(node => node.StartUpdate(elapsed: gameTime.ElapsedGameTime));
 
             links.ForEach(link => link.EndUpdate());
 
@@ -185,19 +183,6 @@ namespace Game1
         }
 
         public static void DrawHUD()
-        {
-            C.SpriteBatch.DrawString
-            (
-                spriteFont: C.Content.Load<SpriteFont>("font"),
-                text: $"required: {reqWattsPerSec:0.##}\nproduced: {prodWattsPerSec:0.##}",
-                position: new Vector2(10, 10),
-                color: Color.Black,
-                rotation: 0,
-                origin: Vector2.Zero,
-                scale: .15f,
-                effects: SpriteEffects.None,
-                layerDepth: 0
-            );
-        }
+            => ElectricityDistributor.DrawHUD();
     }
 }

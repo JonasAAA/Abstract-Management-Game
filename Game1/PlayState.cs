@@ -145,7 +145,7 @@ namespace Game1
                 ),
             };
 
-            Graph.Initialize(nodes: nodes, links: links);
+            Graph.Initialize(nodes: nodes, links: links, overlay: Overlay.Res0);
         }
 
         public void Update(TimeSpan elapsed)
@@ -160,7 +160,6 @@ namespace Game1
             C.Camera.BeginDraw();
             Graph.Draw();
             C.Camera.EndDraw();
-
 
             C.SpriteBatch.Begin();
             Graph.DrawHUD();

@@ -1,12 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
+using System.Collections.ObjectModel;
 
 namespace Game1
 {
     public static class C
     {
+        public const Overlay MaxRes = (Overlay)2;
+        public static readonly ReadOnlyCollection<Keys> numericKeys;
         public static uint ScreenWidth
             => (uint)GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
         public static uint ScreenHeight
@@ -23,6 +27,10 @@ namespace Game1
         {
             minPosDouble = 1e-6;
             random = new();
+            numericKeys = new
+            (
+                list: new Keys[] { Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9 }
+            );
         }
 
         public static void Initialize(float scrollSpeed, ContentManager Content, SpriteBatch spriteBatch, ConstArray<Color> resColors)

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -22,10 +21,10 @@ namespace Game1
         private readonly NodeState state;
         private readonly Image image;
         private readonly List<Link> links;
-        private readonly MyArray<ProporSplitter> resToLinksSplitters;
         private Industry industry;
         private readonly ReadOnlyCollection<KeyButton> constrKeyButtons;
         private readonly MyArray<Position> resDestins;
+        private ConstULongArray targetStoredResAmounts;
         private string text;
 
         public Node(NodeState state, Image image, int startPersonCount = 0)
@@ -34,18 +33,15 @@ namespace Game1
             radius = image.Width * .5f;
             this.image = image;
             links = new();
-            resToLinksSplitters = new();
-            for (int i = 0; i < ConstArray.length; i++)
-                resToLinksSplitters[i] = new ProporSplitter();
             industry = null;
-            Keys[] constrKeys = new Keys[] { Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9 };
             constrKeyButtons = new
             (
-                list: (from key in constrKeys select new KeyButton(key: key)).ToArray()
+                list: (from key in C.numericKeys select new KeyButton(key: key)).ToArray()
             );
             for (int i = 0; i < startPersonCount; i++)
                 state.unemployedPeople.Add(Person.GenerateNew());
             resDestins = new(value: null);
+            targetStoredResAmounts = new();
 
             text = "";
         }
@@ -54,11 +50,6 @@ namespace Game1
         {
             if (!link.Contains(this))
                 throw new ArgumentException();
-            foreach (var resToLinksSplitter in resToLinksSplitters)
-            {
-                resToLinksSplitter.InsertVar(index: links.Count);
-                resToLinksSplitter.Proportions = new(Enumerable.Repeat(element: 1.0, count: (int)resToLinksSplitter.Count).ToList());
-            }
             links.Add(link);
         }
 
@@ -79,6 +70,13 @@ namespace Game1
 
         public void ActiveUpdate()
         {
+            if (Graph.Overlay <= C.MaxRes && MyMouse.RightClick)
+            {
+                Node destinationNode = Graph.HoveringNode();
+                if (destinationNode is not null)
+                    resDestins[(int)Graph.Overlay] = destinationNode.Position;
+            }
+
             if (constrKeyButtons.Count < Industry.constrBuildingParams.Count)
                 throw new Exception();
             if (industry is null)
@@ -102,6 +100,12 @@ namespace Game1
 
         public void Update(TimeSpan elapsed)
         {
+            targetStoredResAmounts = industry switch
+            {
+                null => new(),
+                not null => industry.TargetStoredResAmounts()
+            };
+
             foreach (var person in state.unemployedPeople.Concat(state.waitingPeople))
                 person.UpdateNotWorking(elapsed: elapsed);
 
@@ -112,22 +116,18 @@ namespace Game1
             ULongArray undecidedResAmounts = state.waitingResAmountsPackets.ReturnAndRemove(destination: Position) + state.storedRes;
             state.storedRes = new();
 
-            state.storedRes = industry switch
-            {
-                null => new(),
-                not null => undecidedResAmounts.Min(industry.TargetStoredResAmounts())
-            };
+            state.storedRes = undecidedResAmounts.Min(ulongArray: targetStoredResAmounts);
             undecidedResAmounts -= state.storedRes;
 
             for (int resInd = 0; resInd < Resource.Count; resInd++)
             {
-                Debug.Assert(resDestins[resInd] != Position);
+                //Debug.Assert(resDestins[resInd] != Position);
 
                 if (undecidedResAmounts[resInd] is 0)
                     continue;
 
                 Position destination = resDestins[resInd];
-                if (destination is null)
+                if (destination is null || destination == Position)
                     state.storedRes[resInd] += undecidedResAmounts[resInd];
                 else
                     state.waitingResAmountsPackets.Add
@@ -200,9 +200,18 @@ namespace Game1
                 image.Color = Color.White;
             image.Draw(position: Position.ToVector2());
 
+            text = "";
             if (industry is not null)
                 text += industry.GetText();
-            text += $"unemployed {state.unemployedPeople.Count}\nstored total res weight {state.storedRes.TotalWeight()}";
+
+            text += Graph.Overlay switch
+            {
+                <= C.MaxRes => state.storedRes[(int)Graph.Overlay] >= targetStoredResAmounts[(int)Graph.Overlay] ?
+                    $"have {state.storedRes[(int)Graph.Overlay]} extra resources" : $"have {(double)state.storedRes[(int)Graph.Overlay] / targetStoredResAmounts[(int)Graph.Overlay] * 100:0.}% of target stored resources",
+                Overlay.AllRes => $"stored total res weight {state.storedRes.TotalWeight()}",
+                Overlay.People => $"unemployed {state.unemployedPeople.Count}\n",
+                _ => throw new Exception(),
+            };
 
             C.SpriteBatch.DrawString
             (
@@ -217,6 +226,18 @@ namespace Game1
                 layerDepth: 0
             );
             text = "";
+
+            if (Graph.Overlay <= C.MaxRes)
+            {
+                Position destination = resDestins[(int)Graph.Overlay];
+                if (destination is not null && destination != Position)
+                    ArrowDrawer.DrawArrow
+                    (
+                        start: Position,
+                        end: destination,
+                        color: Color.Red * .5f
+                    );
+            }
         }
     }
 }

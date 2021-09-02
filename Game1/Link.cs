@@ -72,39 +72,38 @@ namespace Game1
 
             public void DrawTravelingRes()
             {
-                foreach (var (complProp, resAmounts, numPeople) in timedPacketQueue.GetData())
-                {
-                    // temporary
-                    Vector2 beginPos = begin.Position.ToVector2(),
-                        endPos = end.Position.ToVector2(),
-                        travelDir = endPos - beginPos;
-                    travelDir.Normalize();
-                    Vector2 orthToTravelDir = new(travelDir.Y, -travelDir.X);
-                    C.SpriteBatch.Draw
+                // temporary
+                Vector2 beginPos = begin.Position.ToVector2(),
+                    endPos = end.Position.ToVector2();
+
+                void DrawDisk(double complProp, double size)
+                    => C.SpriteBatch.Draw
                     (
                         texture: diskTexture,
-                        position: beginPos + (float)complProp * (endPos - beginPos) + orthToTravelDir * -10,
+                        position: beginPos + (float)complProp * (endPos - beginPos),
                         sourceRectangle: null,
                         color: Color.Black,
                         rotation: 0,
                         origin: new Vector2(diskTexture.Width * .5f, diskTexture.Height * .5f),
-                        scale: (float)Math.Sqrt(numPeople) * 2 / diskTexture.Width,
+                        scale: (float)Math.Sqrt(size) * 2 / diskTexture.Width,
                         effects: SpriteEffects.None,
                         layerDepth: 0
                     );
-                    for (int i = 0; i < Resource.Count; i++)
-                        C.SpriteBatch.Draw
-                        (
-                            texture: diskTexture,
-                            position: beginPos + (float)complProp * (endPos - beginPos) + orthToTravelDir * i * 10,
-                            sourceRectangle: null,
-                            color: C.ResColors[i],
-                            rotation: 0,
-                            origin: new Vector2(diskTexture.Width * .5f, diskTexture.Height * .5f),
-                            scale: (float)Math.Sqrt(resAmounts[i]) * 2 / diskTexture.Width,
-                            effects: SpriteEffects.None,
-                            layerDepth: 0
-                        );
+
+                switch (Graph.Overlay)
+                {
+                    case <= C.MaxRes:
+                        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
+                            DrawDisk(complProp: complProp, size: resAmounts[(int)Graph.Overlay]);
+                        break;
+                    case Overlay.AllRes:
+                        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
+                            DrawDisk(complProp: complProp, size: resAmounts.TotalWeight());
+                        break;
+                    case Overlay.People:
+                        foreach (var (complProp, _, numPeople) in timedPacketQueue.GetData())
+                            DrawDisk(complProp: complProp, size: numPeople);
+                        break;
                 }
             }
 

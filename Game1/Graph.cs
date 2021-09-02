@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -8,6 +10,7 @@ namespace Game1
 {
     public static class Graph
     {
+        public static Overlay Overlay { get; private set; }
         public static IEnumerable<Node> Nodes
             => nodes;
         public static IEnumerable<Link> Links
@@ -26,6 +29,7 @@ namespace Game1
         private static readonly HashSet<Link> linkSet;
         private static IUIElement activeElement;
         private static readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
+        private static KeyButton[] overlayKeyButtons;
 
         static Graph()
         {
@@ -34,13 +38,13 @@ namespace Game1
             nodeSet = new();
             linkSet = new();
             activeElement = null;
-            persDistTimeCoeff = .5;
-            persDistElectrCoeff = .5;
+            persDistTimeCoeff = 1;
+            persDistElectrCoeff = 0;
             resDistTimeCoeff = 0;
             resDistElectrCoeff = 1;
         }
 
-        public static void Initialize(List<Node> nodes, List<Link> links)
+        public static void Initialize(List<Node> nodes, List<Link> links, Overlay overlay)
         {
             foreach (var node in nodes)
                 AddNode(node);
@@ -49,6 +53,21 @@ namespace Game1
 
             (PersonDists, PersonFirstLinks) = FindShortestPaths(distTimeCoeff: persDistTimeCoeff, distElectrCoeff: persDistElectrCoeff);
             (ResDists, ResFirstLinks) = FindShortestPaths(distTimeCoeff: resDistTimeCoeff, distElectrCoeff: resDistElectrCoeff);
+
+            Overlay = overlay;
+
+            overlayKeyButtons = new KeyButton[Enum.GetValues<Overlay>().Length];
+            Debug.Assert(overlayKeyButtons.Length <= C.numericKeys.Count);
+            for (int i = 0; i < overlayKeyButtons.Length; i++)
+            {
+                // hack for lambda expression to work correctly
+                int overlayInd = i;
+                overlayKeyButtons[i] = new
+                (
+                    key: C.numericKeys[overlayInd],
+                    action: () => Overlay = (Overlay)overlayInd
+                );
+            }
         }
 
         private static void AddNode(Node node)
@@ -132,6 +151,20 @@ namespace Game1
             return (dists: new(distsDict), firstLinks: new(firstLinksDict));
         }
 
+        /// <returns> returns null if not hovering above a node </returns>
+        public static Node HoveringNode()
+        {
+            Node result = null;
+            foreach (var node in nodes)
+                if (node.Contains(position: MyMouse.Position))
+                {
+                    result = node;
+                    break;
+                }
+
+            return result;
+        }
+
         public static void Update(TimeSpan elapsed)
         {
             ElectricityDistributor.DistributeElectr();
@@ -140,11 +173,6 @@ namespace Game1
 
             nodes.ForEach(node => node.Update(elapsed: elapsed));
             
-            if (MyMouse.RightClick)
-            {
-                activeElement = null;
-                return;
-            }
             if (MyMouse.LeftClick)
             {
                 activeElement = null;
@@ -156,7 +184,12 @@ namespace Game1
                     }
             }
 
-            if (activeElement is not null)
+            if (activeElement is null)
+            {
+                foreach (var keyButton in overlayKeyButtons)
+                    keyButton.Update();
+            }
+            else
                 activeElement.ActiveUpdate();
 
             JobMatching.Match();
@@ -172,6 +205,20 @@ namespace Game1
         }
 
         public static void DrawHUD()
-            => ElectricityDistributor.DrawHUD();
+        {
+            C.SpriteBatch.DrawString
+            (
+                spriteFont: C.Content.Load<SpriteFont>("font"),
+                text: $"overlay {Overlay}",
+                position: new Vector2(10, 100),
+                color: Color.Black,
+                rotation: 0,
+                origin: Vector2.Zero,
+                scale: .15f,
+                effects: SpriteEffects.None,
+                layerDepth: 0
+            );
+            ElectricityDistributor.DrawHUD();
+        }
     }
 }

@@ -229,6 +229,7 @@ namespace Game1
 
         public void Hire(Person person)
             => allEmployees.Add(person);
+
         public IJob CreateJob()
             => this;
 
@@ -321,7 +322,13 @@ namespace Game1
         }
 
         public virtual string GetText()
-            => $"have {employeesHere.Sum(person => person.skills[IndustryType]) / parameters.reqSkill * 100:0.}% skill\ndesperation {(Desperation() is double.NegativeInfinity ? 0 : Desperation() * 100):0.}%\nemployed {employeesHere.Count}\n";
+            => Graph.Overlay switch
+            {
+                <= C.MaxRes => "",
+                Overlay.AllRes => "",
+                Overlay.People => $"have {employeesHere.Sum(person => person.skills[IndustryType]) / parameters.reqSkill * 100:0.}% skill\ndesperation {(Desperation() is double.NegativeInfinity ? 0 : Desperation() * 100):0.}%\nemployed {employeesHere.Count}\n",
+                _ => throw new Exception(),
+            };
 
         public double ReqWattsPerSec()
             // this is correct as if more important people get full electricity, this works

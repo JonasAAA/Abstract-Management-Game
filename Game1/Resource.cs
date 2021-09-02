@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 
 namespace Game1
 {
@@ -21,15 +22,18 @@ namespace Game1
                 ),
                 new
                 (
-                    id: 0,
+                    id: 1,
                     weight: 2
                 ),
                 new
                 (
-                    id: 0,
+                    id: 2,
                     weight: 10
                 ),
             });
+
+            Debug.Assert((int)C.MaxRes == Count - 1);
+            Debug.Assert(Count + 2 == Enum.GetValues<Overlay>().Length);
         }
 
         public readonly int id;

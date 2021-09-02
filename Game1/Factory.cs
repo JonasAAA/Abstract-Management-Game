@@ -56,7 +56,7 @@ namespace Game1
 
             if (prodTimeLeft <= TimeSpan.Zero)
             {
-                state.waitingTravelPacket.Add(resAmounts: parameters.supply);
+                state.waitingResAmountsPackets.Add(destination: state.position, resAmounts: parameters.supply);
                 prodTimeLeft = TimeSpan.MaxValue;
             }
 

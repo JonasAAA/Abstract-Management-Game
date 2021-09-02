@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
 
 namespace Game1
 {
@@ -10,13 +11,14 @@ namespace Game1
         {
             public readonly Node begin, end;
             public double WattsPerKg
-                => travel.duration.TotalSeconds * reqWattsPerKgPerSec;
+                => timedPacketQueue.duration.TotalSeconds * reqWattsPerKgPerSec;
             public TimeSpan TravelTime
-                => travel.duration;
+                => timedPacketQueue.duration;
 
-            private readonly TimedTravelPacketQueue travel;
+            private readonly TimedPacketQueue timedPacketQueue;
             private readonly double minSafePropor;
-            private TravelPacket waitingTravelPacket, curWaitingTravelPacket;
+            private ResAmountsPacketsByDestin waitingResAmountsPackets;
+            private List<Person> waitingPeople;
             private readonly double reqWattsPerKgPerSec;
             private readonly Texture2D diskTexture;
             private double electrPropor;
@@ -26,12 +28,12 @@ namespace Game1
                 this.begin = begin;
                 this.end = end;
 
-                travel = new(duration: travelTime);
-                minSafePropor = minSafeDist / Vector2.Distance(begin.Position, end.Position);
+                timedPacketQueue = new(duration: travelTime);
+                minSafePropor = minSafeDist / begin.Position.DistanceTo(position: end.Position);
                 if (!C.IsInSuitableRange(value: minSafePropor))
                     throw new ArgumentOutOfRangeException();
-                waitingTravelPacket = new();
-                curWaitingTravelPacket = new();
+                waitingResAmountsPackets = new();
+                waitingPeople = new();
                 if (reqWattsPerKgPerSec <= 0)
                     throw new ArgumentOutOfRangeException();
                 this.reqWattsPerKgPerSec = reqWattsPerKgPerSec;
@@ -42,40 +44,46 @@ namespace Game1
             }
 
             public double ReqWattsPerSec()
-                => travel.TotalWeight * reqWattsPerKgPerSec;
+                => timedPacketQueue.TotalWeight * reqWattsPerKgPerSec;
 
-            public void AddTravelPacket(TravelPacket travelPacket)
-                => waitingTravelPacket.Add(travelPacket: travelPacket);
+            public void Add(ResAmountsPacket resAmountsPacket)
+                => waitingResAmountsPackets.Add(resAmountsPacket: resAmountsPacket);
 
-            public void StartUpdate(TimeSpan elapsed)
+            public void Add(IEnumerable<Person> people)
+                => waitingPeople.AddRange(people);
+
+            public void Add(Person person)
+                => waitingPeople.Add(person);
+
+            public void Update(TimeSpan elapsed)
             {
-                travel.Update(elapsed: elapsed, electrPropor: electrPropor);
-                if (!curWaitingTravelPacket.Empty && (travel.Empty || travel.LastCompletionProp() >= minSafePropor))
+                timedPacketQueue.Update(elapsed: elapsed, electrPropor: electrPropor);
+                if ((!waitingResAmountsPackets.Empty || waitingPeople.Count > 0)
+                    && (timedPacketQueue.Empty || timedPacketQueue.LastCompletionProp() >= minSafePropor))
                 {
-                    travel.Enqueue(travelPacket: curWaitingTravelPacket);
-                    curWaitingTravelPacket = new();
+                    timedPacketQueue.Enqueue(resAmountsPackets: waitingResAmountsPackets, people: waitingPeople);
+                    waitingResAmountsPackets = new();
+                    waitingPeople = new();
                 }
-                end.AddTravelPacket(travelPacket: travel.DoneTravelPacket());
-            }
-
-            public void EndUpdate()
-            {
-                curWaitingTravelPacket.Add(travelPacket: waitingTravelPacket);
-                waitingTravelPacket = new();
+                var (resAmountsPackets, people) = timedPacketQueue.DonePackets();
+                end.Add(resAmountsPackets: resAmountsPackets);
+                end.Add(people: people);
             }
 
             public void DrawTravelingRes()
             {
-                foreach (var (complProp, resAmounts, numPeople) in travel.GetData())
+                foreach (var (complProp, resAmounts, numPeople) in timedPacketQueue.GetData())
                 {
                     // temporary
-                    Vector2 travelDir = end.Position - begin.Position;
+                    Vector2 beginPos = begin.Position.ToVector2(),
+                        endPos = end.Position.ToVector2(),
+                        travelDir = endPos - beginPos;
                     travelDir.Normalize();
                     Vector2 orthToTravelDir = new(travelDir.Y, -travelDir.X);
                     C.SpriteBatch.Draw
                     (
                         texture: diskTexture,
-                        position: begin.Position + (float)complProp * (end.Position - begin.Position) + orthToTravelDir * -10,
+                        position: beginPos + (float)complProp * (endPos - beginPos) + orthToTravelDir * -10,
                         sourceRectangle: null,
                         color: Color.Black,
                         rotation: 0,
@@ -88,7 +96,7 @@ namespace Game1
                         C.SpriteBatch.Draw
                         (
                             texture: diskTexture,
-                            position: begin.Position + (float)complProp * (end.Position - begin.Position) + orthToTravelDir * i * 10,
+                            position: beginPos + (float)complProp * (endPos - beginPos) + orthToTravelDir * i * 10,
                             sourceRectangle: null,
                             color: C.ResColors[i],
                             rotation: 0,
@@ -107,7 +115,7 @@ namespace Game1
                 => this.electrPropor = electrPropor;
         }
 
-        private static ulong electrPriority;
+        private static readonly ulong electrPriority;
 
         static Link()
             => electrPriority = 10;
@@ -146,20 +154,23 @@ namespace Game1
         public bool Contains(Vector2 position)
             => false;
 
-        public void AddTravelPacket(Node start, TravelPacket travelPacket)
+        private DirLink GetDirLink(Node start)
         {
             if (start == node1)
-            {
-                link1To2.AddTravelPacket(travelPacket: travelPacket);
-                return;
-            }
+                return link1To2;
             if (start == node2)
-            {
-                link2To1.AddTravelPacket(travelPacket: travelPacket);
-                return;
-            }
+                return link2To1;
             throw new ArgumentException();
         }
+
+        public void Add(Node start, ResAmountsPacket resAmountsPacket)
+            => GetDirLink(start: start).Add(resAmountsPacket: resAmountsPacket);
+
+        public void Add(Node start, IEnumerable<Person> people)
+            => GetDirLink(start: start).Add(people: people);
+
+        public void Add(Node start, Person person)
+            => GetDirLink(start: start).Add(person: person);
 
         public double ReqWattsPerSec()
             => link1To2.ReqWattsPerSec() + link2To1.ReqWattsPerSec();
@@ -167,31 +178,27 @@ namespace Game1
         public void ActiveUpdate()
         { }
 
-        public void StartUpdate(TimeSpan elapsed)
+        public void Update(TimeSpan elapsed)
         {
-            link1To2.StartUpdate(elapsed: elapsed);
-            link2To1.StartUpdate(elapsed: elapsed);
-        }
-
-        public void EndUpdate()
-        {
-            link1To2.EndUpdate();
-            link2To1.EndUpdate();
+            link1To2.Update(elapsed: elapsed);
+            link2To1.Update(elapsed: elapsed);
         }
 
         public void Draw(bool active)
         {
-            Texture2D pixel = C.Content.Load<Texture2D>(assetName: "pixel");
             // temporary
+            Vector2 pos1 = node1.Position.ToVector2(),
+                pos2 = node2.Position.ToVector2();
+            Texture2D pixel = C.Content.Load<Texture2D>(assetName: "pixel");
             C.SpriteBatch.Draw
             (
                 texture: pixel,
-                position: (node1.Position + node2.Position) / 2,
+                position: (pos1 + pos2) / 2,
                 sourceRectangle: null,
                 color: active ? Color.Yellow : Color.Green,
-                rotation: C.Rotation(vector: node1.Position - node2.Position),
+                rotation: C.Rotation(vector: pos1 - pos2),
                 origin: new Vector2(.5f, .5f),
-                scale: new Vector2(Vector2.Distance(node1.Position, node2.Position), 10),
+                scale: new Vector2(Vector2.Distance(pos1, pos2), 10),
                 effects: SpriteEffects.None,
                 layerDepth: 0
             );

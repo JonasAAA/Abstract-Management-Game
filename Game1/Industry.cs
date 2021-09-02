@@ -245,7 +245,7 @@ namespace Game1
             Debug.Assert(employeesHere.All(person => person.Destination is null));
 
             // employees with jobs already traveled here, so should not want to travel here again
-            Debug.Assert(employeesHere.All(person => (person.Destination is null || person.Destination.Position != state.position)));
+            Debug.Assert(employeesHere.All(person => (person.Destination is null || person.Destination != state.position)));
 
             if (elapsed < TimeSpan.Zero)
                 throw new ArgumentOutOfRangeException();

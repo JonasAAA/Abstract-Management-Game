@@ -6,13 +6,14 @@ namespace Game1
 {
     public class NodeState
     {
-        public readonly Vector2 position;
+        public readonly Position position;
         public ULongArray storedRes;
         public readonly ulong maxBatchDemResStored;
         public List<Person> unemployedPeople;
-        public TravelPacket waitingTravelPacket;
+        public ResAmountsPacketsByDestin waitingResAmountsPackets;
+        public List<Person> waitingPeople;
 
-        public NodeState(Vector2 position, ulong maxBatchDemResStored)
+        public NodeState(Position position, ulong maxBatchDemResStored)
         {
             this.position = position;
             storedRes = new();
@@ -20,7 +21,8 @@ namespace Game1
                 throw new ArgumentOutOfRangeException();
             this.maxBatchDemResStored = maxBatchDemResStored;
             unemployedPeople = new();
-            waitingTravelPacket = new();
+            waitingResAmountsPackets = new();
+            waitingPeople = new();
         }
     }
 }

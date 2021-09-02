@@ -11,7 +11,7 @@ namespace Game1
 {
     public class Node : IUIElement
     {
-        public Vector2 Position
+        public Position Position
             => state.position;
         public readonly float radius;
         public IEmployer Employer
@@ -24,8 +24,8 @@ namespace Game1
         private readonly List<Link> links;
         private readonly MyArray<ProporSplitter> resToLinksSplitters;
         private Industry industry;
-        private TravelPacket curWaitingTravelPacket;
         private readonly ReadOnlyCollection<KeyButton> constrKeyButtons;
+        private readonly MyArray<Position> resDestins;
         private string text;
 
         public Node(NodeState state, Image image, int startPersonCount = 0)
@@ -38,7 +38,6 @@ namespace Game1
             for (int i = 0; i < ConstArray.length; i++)
                 resToLinksSplitters[i] = new ProporSplitter();
             industry = null;
-            curWaitingTravelPacket = new();
             Keys[] constrKeys = new Keys[] { Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9 };
             constrKeyButtons = new
             (
@@ -46,6 +45,7 @@ namespace Game1
             );
             for (int i = 0; i < startPersonCount; i++)
                 state.unemployedPeople.Add(Person.GenerateNew());
+            resDestins = new(value: null);
 
             text = "";
         }
@@ -66,10 +66,16 @@ namespace Game1
             => this.text += text;
 
         public bool Contains(Vector2 position)
-            => Vector2.Distance(this.Position, position) <= radius;
+            => Vector2.Distance(Position.ToVector2(), position) <= radius;
 
-        public void AddTravelPacket(TravelPacket travelPacket)
-            => state.waitingTravelPacket.Add(travelPacket: travelPacket);
+        public void Add(ResAmountsPacketsByDestin resAmountsPackets)
+            => state.waitingResAmountsPackets.Add(resAmountsPackets: resAmountsPackets);
+
+        public void Add(IEnumerable<Person> people)
+            => state.waitingPeople.AddRange(people);
+
+        public void Add(Person person)
+            => state.waitingPeople.Add(person);
 
         public void ActiveUpdate()
         {
@@ -91,59 +97,74 @@ namespace Game1
                 industry.ActiveUpdate();
 
             foreach (var node in Graph.Nodes)
-                node.AddText(text: $"personal distance {Graph.PersonDists[(this, node)]:0.##}\nresource distance {Graph.ResDists[(this, node)]:0.##}\n");
+                node.AddText(text: $"personal distance {Graph.PersonDists[(Position, node.Position)]:0.##}\nresource distance {Graph.ResDists[(Position, node.Position)]:0.##}\n");
         }
 
-        public void StartUpdate(TimeSpan elapsed)
+        public void Update(TimeSpan elapsed)
         {
-            foreach (var person in state.unemployedPeople.Concat(state.waitingTravelPacket.People))
+            foreach (var person in state.unemployedPeople.Concat(state.waitingPeople))
                 person.UpdateNotWorking(elapsed: elapsed);
 
             if (industry is not null)
                 industry = industry.Update(elapsed: elapsed);
 
+            // deal with resources
+            ULongArray undecidedResAmounts = state.waitingResAmountsPackets.ReturnAndRemove(destination: Position) + state.storedRes;
+            state.storedRes = new();
+
+            state.storedRes = industry switch
+            {
+                null => new(),
+                not null => undecidedResAmounts.Min(industry.TargetStoredResAmounts())
+            };
+            undecidedResAmounts -= state.storedRes;
+
+            for (int resInd = 0; resInd < Resource.Count; resInd++)
+            {
+                Debug.Assert(resDestins[resInd] != Position);
+
+                if (undecidedResAmounts[resInd] is 0)
+                    continue;
+
+                Position destination = resDestins[resInd];
+                if (destination is null)
+                    state.storedRes[resInd] += undecidedResAmounts[resInd];
+                else
+                    state.waitingResAmountsPackets.Add
+                    (
+                        destination: destination,
+                        resInd: resInd,
+                        resAmount: undecidedResAmounts[resInd]
+                    );
+                undecidedResAmounts[resInd] = 0;
+            }
+
+            foreach (var resAmountsPacket in state.waitingResAmountsPackets.DeconstructAndClear())
+            {
+                Position destination = resAmountsPacket.destination;
+                Debug.Assert(destination is not null && destination != Position);
+
+                Graph.ResFirstLinks[(Position, destination)].Add(start: this, resAmountsPacket: resAmountsPacket);
+            }
+
+            state.waitingResAmountsPackets = new();
+
+            // deal with people
             state.unemployedPeople.RemoveAll
             (
                 match: person =>
                 {
                     if (person.Destination is not null)
                     {
-                        state.waitingTravelPacket.Add(person: person);
+                        state.waitingPeople.Add(person);
                         return true;
                     }
                     return false;
                 }
             );
 
-            Dictionary<Link, TravelPacket> splitTravelPackets = new
-            (
-                collection: from link in links select KeyValuePair.Create(link, new TravelPacket())
-            );
-
-            // store resources which need storing
-            curWaitingTravelPacket.Add(resAmounts: state.storedRes);
-            state.storedRes = new();
-
-            state.storedRes = industry switch
-            {
-                null => new(),
-                not null => curWaitingTravelPacket.ResAmounts.Min(industry.TargetStoredResAmounts())
-            };
-            curWaitingTravelPacket.Remove(resAmounts: state.storedRes);
-            
-            // split the remaining resources
-            for (int j = 0; j < ConstArray.length; j++)
-            {
-                if (!resToLinksSplitters[j].CanSplit(amount: curWaitingTravelPacket.ResAmounts[j]))
-                    throw new NotImplementedException();
-                ulong[] split = resToLinksSplitters[j].Split(amount: curWaitingTravelPacket.ResAmounts[j]);
-                Debug.Assert(split.Length == links.Count);
-                for (int i = 0; i < links.Count; i++)
-                    splitTravelPackets[links[i]].Add(resInd: j, resAmount: split[i]);
-            }
-
             // take appropriate people and split the rest
-            foreach (var person in curWaitingTravelPacket.People)
+            foreach (var person in state.waitingPeople)
             {
                 if (person.Destination is null)
                 {
@@ -151,7 +172,7 @@ namespace Game1
                     continue;
                 }
 
-                if (person.Destination == this)
+                if (person.Destination == Position)
                 {
                     if (industry.IfEmploys(person: person))
                     {
@@ -164,24 +185,9 @@ namespace Game1
                     continue;
                 }
 
-                Link firstLink = Graph.PersonFirstLinks[(this, person.Destination)];
-                splitTravelPackets[firstLink].Add(person);
+                Graph.PersonFirstLinks[(Position, person.Destination)].Add(start: this, person: person);
             }
-
-            curWaitingTravelPacket = new();
-
-            foreach (var (link, travelPacket) in splitTravelPackets)
-                link.AddTravelPacket
-                (
-                    start: this,
-                    travelPacket: travelPacket
-                );
-        }
-
-        public void EndUpdate()
-        {
-            curWaitingTravelPacket.Add(travelPacket: state.waitingTravelPacket);
-            state.waitingTravelPacket = new();
+            state.waitingPeople = new();
         }
 
         public void Draw(bool active)
@@ -192,17 +198,17 @@ namespace Game1
                 image.Color = Color.Yellow;
             else
                 image.Color = Color.White;
-            image.Draw(Position);
+            image.Draw(position: Position.ToVector2());
 
             if (industry is not null)
                 text += industry.GetText();
-            text += $"unemployed {state.unemployedPeople.Count}\n";
+            text += $"unemployed {state.unemployedPeople.Count}\nstored total res weight {state.storedRes.TotalWeight()}";
 
             C.SpriteBatch.DrawString
             (
                 spriteFont: C.Content.Load<SpriteFont>("font"),
                 text: text,
-                position: state.position,
+                position: state.position.ToVector2(),
                 color: Color.Black,
                 rotation: 0,
                 origin: Vector2.Zero,

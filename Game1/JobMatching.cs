@@ -27,55 +27,55 @@ namespace Game1
             minAcceptableScore = .4;
         }
 
-        private record PersonNode(Person Person, Node Node);
-        private record EmployerNode(IEmployer Employer, Node Node);
+        private record PersonAndPos(Person Person, Position Pos);
+        private record EmployerAndPos(IEmployer Employer, Position Pos);
 
         public static void Match()
         {
-            HashSet<EmployerNode> vacantEmployers =
+            HashSet<EmployerAndPos> vacantEmployers =
                 (from node in Graph.Nodes
                  where node.Employer is not null && node.Employer.Desperation() is not double.NegativeInfinity
-                 select new EmployerNode(Employer: node.Employer, Node: node)).ToHashSet();
-            HashSet<PersonNode> unemployedPeople =
+                 select new EmployerAndPos(Employer: node.Employer, Pos: node.Position)).ToHashSet();
+            HashSet<PersonAndPos> unemployedPeople =
                 (from node in Graph.Nodes
                  from person in node.UnemployedPeople
-                 select new PersonNode(Person: person, Node: node)).ToHashSet();
+                 select new PersonAndPos(Person: person, Pos: node.Position)).ToHashSet();
 
             // prioritizes pairs with high score
-            SimplePriorityQueue<(EmployerNode employerNode, PersonNode personNode), double> pairings = new((x, y) => y.CompareTo(x));
-            foreach (var employerNode in vacantEmployers)
-                foreach (var personNode in unemployedPeople)
+            SimplePriorityQueue<(EmployerAndPos employerPos, PersonAndPos personPos), double> pairings = new((x, y) => y.CompareTo(x));
+            foreach (var employerPos in vacantEmployers)
+                foreach (var personPos in unemployedPeople)
                 {
-                    double score = NewEmploymentScore(employerNode: employerNode, personNode: personNode);
+                    double score = NewEmploymentScore(employerPos: employerPos, personPos: personPos);
                     Debug.Assert(C.IsSuitable(value: score));
                     if (score >= minAcceptableScore)
-                        pairings.Enqueue(item: (employerNode, personNode), priority: score);
+                        pairings.Enqueue(item: (employerPos, personPos), priority: score);
                 }
 
             while (pairings.Count > 0)
             {
-                (EmployerNode employerNode, PersonNode personNode) = pairings.Dequeue();
+                (EmployerAndPos employerPos, PersonAndPos personPos) = pairings.Dequeue();
 
-                employerNode.Employer.Hire(person: personNode.Person);
-                personNode.Person.TakeJob(job: employerNode.Employer.CreateJob(), employerNode: employerNode.Node);
+                employerPos.Employer.Hire(person: personPos.Person);
+                personPos.Person.TakeJob(job: employerPos.Employer.CreateJob(), employerPos: employerPos.Pos);
 
-                if (employerNode.Employer.Desperation() is double.NegativeInfinity)
-                    vacantEmployers.Remove(employerNode);
-                unemployedPeople.Remove(personNode);
+                if (employerPos.Employer.Desperation() is double.NegativeInfinity)
+                    vacantEmployers.Remove(employerPos);
+                unemployedPeople.Remove(personPos);
 
-                foreach (var otherPersonNode in unemployedPeople)
-                    pairings.TryRemove(item: (employerNode, otherPersonNode));
-                foreach (var otherEmployerNode in vacantEmployers)
-                    pairings.TryRemove(item: (otherEmployerNode, personNode));
+                foreach (var otherPersonPos in unemployedPeople)
+                    pairings.TryRemove(item: (employerPos, otherPersonPos));
+                foreach (var otherEmployerPos in vacantEmployers)
+                    pairings.TryRemove(item: (otherEmployerPos, personPos));
 
-                if (vacantEmployers.Contains(employerNode))
+                if (vacantEmployers.Contains(employerPos))
                 {
-                    foreach (var otherPersonNode in unemployedPeople)
+                    foreach (var otherPersonPos in unemployedPeople)
                     {
-                        double score = NewEmploymentScore(employerNode: employerNode, personNode: otherPersonNode);
+                        double score = NewEmploymentScore(employerPos: employerPos, personPos: otherPersonPos);
                         Debug.Assert(C.IsSuitable(value: score));
                         if (score >= minAcceptableScore)
-                            pairings.Enqueue(item: (employerNode, otherPersonNode), priority: score);
+                            pairings.Enqueue(item: (employerPos, otherPersonPos), priority: score);
                     }
                 }
             }
@@ -84,12 +84,12 @@ namespace Game1
         // each parameter must be between 0 and 1 or double.NegativeInfinity
         // larger means this pair is more likely to work
         // must be between 0 and 1 or double.NegativeInfinity
-        private static double NewEmploymentScore(EmployerNode employerNode, PersonNode personNode)
-            => enjoymentCoeff * personNode.Person.EmployerScore(employer: employerNode.Employer)
-            + talentCoeff * personNode.Person.talents[employerNode.Employer.IndustryType]
-            + skillCoeff * personNode.Person.skills[employerNode.Employer.IndustryType]
-            + desperationCoeff * employerNode.Employer.Desperation()
-            + distCoeff * Distance(node1: employerNode.Node, node2: personNode.Node);
+        private static double NewEmploymentScore(EmployerAndPos employerPos, PersonAndPos personPos)
+            => enjoymentCoeff * personPos.Person.EmployerScore(employer: employerPos.Employer)
+            + talentCoeff * personPos.Person.talents[employerPos.Employer.IndustryType]
+            + skillCoeff * personPos.Person.skills[employerPos.Employer.IndustryType]
+            + desperationCoeff * employerPos.Employer.Desperation()
+            + distCoeff * Distance(pos1: employerPos.Pos, pos2: personPos.Pos);
 
         public static double CurrentEmploymentScore(IEmployer employer, Person person)
             => enjoymentCoeff * person.EmployerScore(employer: employer)
@@ -98,7 +98,7 @@ namespace Game1
 
         // must be between 0 and 1 or double.NegativeInfinity
         // should later be changed to graph distance (either time or electricity cost)
-        private static double Distance(Node node1, Node node2)
-            => 1 - Math.Tanh(Vector2.Distance(node1.Position, node2.Position) / 100);
+        private static double Distance(Position pos1, Position pos2)
+            => 1 - Math.Tanh(pos1.DistanceTo(position: pos2) / 100);
     }
 }

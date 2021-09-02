@@ -16,7 +16,7 @@ namespace Game1
                 (
                     state: new
                     (
-                        position: C.Direction(rotation: 0) * radius,
+                        position: new(position: C.Direction(rotation: 0) * radius),
                         maxBatchDemResStored: 2
                     ),
                     image: new
@@ -30,7 +30,7 @@ namespace Game1
                 (
                     state: new
                     (
-                        position: C.Direction(rotation: MathHelper.Pi / 3) * radius,
+                        position: new(position: C.Direction(rotation: MathHelper.Pi / 3) * radius),
                         maxBatchDemResStored: 2
                     ),
                     image: new
@@ -43,7 +43,7 @@ namespace Game1
                 (
                     state: new
                     (
-                        position: C.Direction(rotation: MathHelper.Pi * 2 / 3) * radius,
+                        position: new(position: C.Direction(rotation: MathHelper.Pi * 2 / 3) * radius),
                         maxBatchDemResStored: 2
                     ),
                     image: new
@@ -56,7 +56,7 @@ namespace Game1
                 (
                     state: new
                     (
-                        position: C.Direction(rotation: MathHelper.Pi) * radius,
+                        position: new(position: C.Direction(rotation: MathHelper.Pi) * radius),
                         maxBatchDemResStored: 2
                     ),
                     image: new
@@ -69,7 +69,7 @@ namespace Game1
                 (
                     state: new
                     (
-                        position: C.Direction(rotation: MathHelper.Pi * 4 / 3) * radius,
+                        position: new(position: C.Direction(rotation: MathHelper.Pi * 4 / 3) * radius),
                         maxBatchDemResStored: 2
                     ),
                     image: new
@@ -82,7 +82,7 @@ namespace Game1
                 (
                     state: new
                     (
-                        position: C.Direction(rotation: MathHelper.Pi * 5 / 3) * radius,
+                        position: new(position: C.Direction(rotation: MathHelper.Pi * 5 / 3) * radius),
                         maxBatchDemResStored: 2
                     ),
                     image: new

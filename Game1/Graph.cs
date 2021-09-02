@@ -1,6 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -14,13 +12,13 @@ namespace Game1
             => nodes;
         public static IEnumerable<Link> Links
             => links;
-        public static ReadOnlyDictionary<(Node, Node), double> PersonDists { get; private set; }
-        public static ReadOnlyDictionary<(Node, Node), double> ResDists { get; private set; }
+        public static ReadOnlyDictionary<(Position, Position), double> PersonDists { get; private set; }
+        public static ReadOnlyDictionary<(Position, Position), double> ResDists { get; private set; }
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        public static ReadOnlyDictionary<(Node, Node), Link> PersonFirstLinks { get; private set; }
-        public static ReadOnlyDictionary<(Node, Node), Link> ResFirstLinks { get; private set; }
+        public static ReadOnlyDictionary<(Position, Position), Link> PersonFirstLinks { get; private set; }
+        public static ReadOnlyDictionary<(Position, Position), Link> ResFirstLinks { get; private set; }
 
         private static readonly List<Node> nodes;
         private static readonly List<Link> links;
@@ -74,7 +72,7 @@ namespace Game1
 
         // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
-        private static (ReadOnlyDictionary<(Node, Node), double> dists, ReadOnlyDictionary<(Node, Node), Link> firstLinks) FindShortestPaths(double distTimeCoeff, double distElectrCoeff)
+        private static (ReadOnlyDictionary<(Position, Position), double> dists, ReadOnlyDictionary<(Position, Position), Link> firstLinks) FindShortestPaths(double distTimeCoeff, double distElectrCoeff)
         {
             if (distTimeCoeff < 0)
                 throw new ArgumentOutOfRangeException();
@@ -114,19 +112,19 @@ namespace Game1
                             Debug.Assert(firstLinksArray[i, j] is not null);
                         }
 
-            Dictionary<(Node, Node), double> distsDict = new();
-            Dictionary<(Node, Node), Link> firstLinksDict = new();
+            Dictionary<(Position, Position), double> distsDict = new();
+            Dictionary<(Position, Position), Link> firstLinksDict = new();
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)
                 {
                     distsDict.Add
                     (
-                        key: (nodes[i], nodes[j]),
+                        key: (nodes[i].Position, nodes[j].Position),
                         value: distsArray[i, j]
                     );
                     firstLinksDict.Add
                     (
-                        key: (nodes[i], nodes[j]),
+                        key: (nodes[i].Position, nodes[j].Position),
                         value: firstLinksArray[i, j]
                     );
                 }
@@ -138,14 +136,10 @@ namespace Game1
         {
             ElectricityDistributor.DistributeElectr();
 
-            links.ForEach(link => link.StartUpdate(elapsed: elapsed));
+            links.ForEach(link => link.Update(elapsed: elapsed));
 
-            nodes.ForEach(node => node.StartUpdate(elapsed: elapsed));
-
-            links.ForEach(link => link.EndUpdate());
-
-            nodes.ForEach(node => node.EndUpdate());
-
+            nodes.ForEach(node => node.Update(elapsed: elapsed));
+            
             if (MyMouse.RightClick)
             {
                 activeElement = null;

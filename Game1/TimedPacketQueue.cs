@@ -5,19 +5,19 @@ using System.Linq;
 
 namespace Game1
 {
-    public class TimedTravelPacketQueue
+    public class TimedPacketQueue
     {
         public ulong TotalWeight { get; private set; }
         public readonly TimeSpan duration;
 
         private TimeSpan currentTime, lastEndTime;
         private readonly Queue<TimeSpan> endTimeQueue;
-        private readonly Queue<TravelPacket> travelPacketQueue;
+        private readonly Queue<(ResAmountsPacketsByDestin, List<Person>)> packetsQueue;
 
         public bool Empty
             => endTimeQueue.Count is 0;
 
-        public TimedTravelPacketQueue(TimeSpan duration)
+        public TimedPacketQueue(TimeSpan duration)
         {
             if (duration < TimeSpan.Zero)
                 throw new ArgumentException();
@@ -26,7 +26,7 @@ namespace Game1
             lastEndTime = TimeSpan.MinValue;
 
             endTimeQueue = new();
-            travelPacketQueue = new();
+            packetsQueue = new();
             TotalWeight = 0;
         }
 
@@ -37,40 +37,44 @@ namespace Game1
             currentTime += elapsed * electrPropor;
         }
 
-        public void Enqueue(TravelPacket travelPacket)
+        public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, List<Person> people)
         {
-            if (travelPacket.Empty)
+            if (resAmountsPackets.Empty && people.Count is 0)
                 return;
             lastEndTime = currentTime + duration;
             endTimeQueue.Enqueue(lastEndTime);
-            travelPacketQueue.Enqueue(travelPacket);
-            TotalWeight += travelPacket.TotalWeight;
+            packetsQueue.Enqueue((resAmountsPackets, people));
+            TotalWeight += resAmountsPackets.TotalWeight + people.TotalWeight();
         }
 
-        public TravelPacket DoneTravelPacket()
+        public (ResAmountsPacketsByDestin resAmountsPackets, List<Person> people) DonePackets()
         {
-            TravelPacket doneTravelPacket = new();
+            ResAmountsPacketsByDestin doneResAmountsPackets = new();
+            List<Person> donePeople = new();
+
             while (endTimeQueue.Count > 0 && endTimeQueue.Peek() < currentTime)
             {
-                doneTravelPacket.Add(travelPacket: travelPacketQueue.Dequeue());
+                var (resAmountsPackets, people) = packetsQueue.Dequeue();
+                doneResAmountsPackets.Add(resAmountsPackets);
+                donePeople.AddRange(people);
                 endTimeQueue.Dequeue();
             }
-            TotalWeight -= doneTravelPacket.TotalWeight;
-            return doneTravelPacket;
+            TotalWeight -= doneResAmountsPackets.TotalWeight + donePeople.TotalWeight();
+            return (doneResAmountsPackets, donePeople);
         }
 
         public IEnumerable<(double complProp, ConstULongArray resAmounts, int numPeople)> GetData()
         {
-            Debug.Assert(endTimeQueue.Count == travelPacketQueue.Count);
+            Debug.Assert(endTimeQueue.Count == packetsQueue.Count);
 
-            foreach (var (endTime, travelPacket) in endTimeQueue.Zip(travelPacketQueue))
+            foreach (var (endTime, (resAmountsPackets, people)) in endTimeQueue.Zip(packetsQueue))
             {
-                Debug.Assert(!travelPacket.Empty);
+                Debug.Assert(!resAmountsPackets.Empty || people.Count > 0);
                 yield return
                 (
                     complProp: C.DonePart(timeLeft: endTime - currentTime, duration: duration),
-                    resAmounts: travelPacket.ResAmounts,
-                    numPeople: travelPacket.NumPeople
+                    resAmounts: resAmountsPackets.ResAmounts,
+                    numPeople: people.Count
                 );
             }
         }

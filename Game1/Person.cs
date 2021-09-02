@@ -13,7 +13,6 @@ namespace Game1
 
     public class Person : IElectrConsumer
     {
-        private static readonly ReadOnlyDictionary<IndustryType, bool> mimicIndustryElectrPriority;
         /// <summary>
         /// MUST always be the same for all people
         /// as the way industry deals with required electricity requires that
@@ -23,12 +22,6 @@ namespace Game1
 
         static Person()
         {
-            Dictionary<IndustryType, bool> mimicIndustryElectrPriority = new();
-            foreach (var industryType in Enum.GetValues<IndustryType>())
-                mimicIndustryElectrPriority[industryType] = false;
-            mimicIndustryElectrPriority[IndustryType.PowerPlant] = true;
-            Person.mimicIndustryElectrPriority = new(mimicIndustryElectrPriority);
-
             defaultElectrPriority = 100;
             timeSkillCoeff = .1;
         }
@@ -40,7 +33,7 @@ namespace Game1
         // between 0 and 1
         public readonly Dictionary<IndustryType, double> skills;
         //public double MinAcceptableEnjoyment { get; private set; }
-        public Node Destination { get; private set; }
+        public Position Destination { get; private set; }
         private IJob job;
         public double ElectrPropor { get; private set; }
         public readonly ulong weight;
@@ -96,11 +89,12 @@ namespace Game1
         /// <summary>
         /// TODO:
         /// if already had a employer, need to inform it about quitting
+        /// person may have event it calls when changes jobs, interested parties subscribe to it
         /// </summary>
-        public void TakeJob(IJob job, Node employerNode)
+        public void TakeJob(IJob job, Position employerPos)
         {
             this.job = job;
-            Destination = employerNode;
+            Destination = employerPos;
 
             // TODO:
             // if already had a employer, need to inform it about quitting

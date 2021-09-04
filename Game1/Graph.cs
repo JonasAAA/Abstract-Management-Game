@@ -17,6 +17,8 @@ namespace Game1
             => links;
         public static ReadOnlyDictionary<(Position, Position), double> PersonDists { get; private set; }
         public static ReadOnlyDictionary<(Position, Position), double> ResDists { get; private set; }
+        public static TimeSpan MaxLinkTravelTime { get; private set; }
+        public static double MaxLinkWattsPerKg { get; private set; }
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
@@ -44,12 +46,15 @@ namespace Game1
             resDistElectrCoeff = 1;
         }
 
-        public static void Initialize(List<Node> nodes, List<Link> links, Overlay overlay)
+        public static void Initialize(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
         {
             foreach (var node in nodes)
                 AddNode(node);
             foreach (var link in links)
                 AddLink(link);
+
+            MaxLinkTravelTime = Graph.links.Max(link => link.TravelTime);
+            MaxLinkWattsPerKg = Graph.links.Max(link => link.WattsPerKg);
 
             (PersonDists, PersonFirstLinks) = FindShortestPaths(distTimeCoeff: persDistTimeCoeff, distElectrCoeff: persDistElectrCoeff);
             (ResDists, ResFirstLinks) = FindShortestPaths(distTimeCoeff: resDistTimeCoeff, distElectrCoeff: resDistElectrCoeff);
@@ -184,12 +189,10 @@ namespace Game1
                     }
             }
 
-            if (activeElement is null)
-            {
-                foreach (var keyButton in overlayKeyButtons)
-                    keyButton.Update();
-            }
-            else
+            foreach (var keyButton in overlayKeyButtons)
+                keyButton.Update();
+
+            if (activeElement is not null)
                 activeElement.ActiveUpdate();
 
             JobMatching.Match();

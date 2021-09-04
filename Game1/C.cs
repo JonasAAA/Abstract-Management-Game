@@ -10,7 +10,7 @@ namespace Game1
     public static class C
     {
         public const Overlay MaxRes = (Overlay)2;
-        public static readonly ReadOnlyCollection<Keys> numericKeys;
+        public static readonly ReadOnlyCollection<Keys> numericKeys, firstLetterKeys;
         public static uint ScreenWidth
             => (uint)GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
         public static uint ScreenHeight
@@ -30,6 +30,10 @@ namespace Game1
             numericKeys = new
             (
                 list: new Keys[] { Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9 }
+            );
+            firstLetterKeys = new
+            (
+                list: new Keys[] { Keys.Q, Keys.W, Keys.E, Keys.R, Keys.T, Keys.Y, Keys.U, Keys.I }
             );
         }
 

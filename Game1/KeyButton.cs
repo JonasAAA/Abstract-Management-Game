@@ -6,6 +6,7 @@ namespace Game1
     public class KeyButton
     {
         public bool Click { get; private set; }
+        public bool Hold { get; private set; }
         private readonly Keys key;
         private readonly Action action;
         private bool prev;
@@ -16,6 +17,7 @@ namespace Game1
             this.action = action;
             prev = false;
             Click = false;
+            Hold = false;
         }
 
         public void Update()
@@ -29,6 +31,8 @@ namespace Game1
             }
             else
                 Click = false;
+
+            Hold = cur && prev;
             prev = cur;
         }
     }

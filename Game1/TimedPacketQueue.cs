@@ -19,7 +19,7 @@ namespace Game1
 
         public TimedPacketQueue(TimeSpan duration)
         {
-            if (duration < TimeSpan.Zero)
+            if (duration <= TimeSpan.Zero)
                 throw new ArgumentException();
             this.duration = duration;
             currentTime = TimeSpan.Zero;

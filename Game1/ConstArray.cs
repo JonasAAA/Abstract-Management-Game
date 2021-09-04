@@ -41,7 +41,7 @@ namespace Game1
 
     public class ConstArray
     {
-        public static readonly uint length;
+        public static readonly int length;
 
         static ConstArray()
             => length = Resource.Count;

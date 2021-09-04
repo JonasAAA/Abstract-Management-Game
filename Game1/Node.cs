@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,8 +24,10 @@ namespace Game1
         private readonly List<Link> links;
         private Industry industry;
         private readonly ReadOnlyCollection<KeyButton> constrKeyButtons;
-        private readonly MyArray<Position> resDestins;
+        //private readonly MyArray<Position> resDestins;
+        private readonly MyArray<ProporSplitter<Position>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
+        private KeyButton incrDestinImp, decrDestinImp;
         private string text;
 
         public Node(NodeState state, Image image, int startPersonCount = 0)
@@ -36,13 +39,19 @@ namespace Game1
             industry = null;
             constrKeyButtons = new
             (
-                list: (from key in C.numericKeys select new KeyButton(key: key)).ToArray()
+                list: (from key in C.firstLetterKeys select new KeyButton(key: key)).ToArray()
             );
             for (int i = 0; i < startPersonCount; i++)
                 state.unemployedPeople.Add(Person.GenerateNew());
-            resDestins = new(value: null);
+            //resDestins = new(value: null);
+            resSplittersToDestins = new
+            (
+                values: from ind in Enumerable.Range(0, Resource.Count)
+                        select new ProporSplitter<Position>()
+            );
             targetStoredResAmounts = new();
-
+            incrDestinImp = new(key: Keys.LeftShift);
+            decrDestinImp = new(key: Keys.LeftControl);
             text = "";
         }
 
@@ -70,12 +79,37 @@ namespace Game1
 
         public void ActiveUpdate()
         {
-            if (Graph.Overlay <= C.MaxRes && MyMouse.RightClick)
+            incrDestinImp.Update();
+            decrDestinImp.Update();
+            if (Graph.Overlay <= C.MaxRes && MyMouse.RightHold)
             {
                 Node destinationNode = Graph.HoveringNode();
-                if (destinationNode is not null)
-                    resDestins[(int)Graph.Overlay] = destinationNode.Position;
+                if (destinationNode is not null && destinationNode != this)
+                {
+                    Position destination = destinationNode.Position;
+                    int resInd = (int)Graph.Overlay;
+                    
+                    if (incrDestinImp.Click)
+                        resSplittersToDestins[resInd].AddToProp
+                        (
+                            key: destination,
+                            add: 1
+                        );
+
+                    if (decrDestinImp.Click)
+                        resSplittersToDestins[resInd].AddToProp
+                        (
+                            key: destination,
+                            add: -1
+                        );
+                }
             }
+            //if (Graph.Overlay <= C.MaxRes && MyMouse.RightClick)
+            //{
+            //    Node destinationNode = Graph.HoveringNode();
+            //    if (destinationNode is not null)
+            //        resDestins[(int)Graph.Overlay] = destinationNode.Position;
+            //}
 
             if (constrKeyButtons.Count < Industry.constrBuildingParams.Count)
                 throw new Exception();
@@ -126,17 +160,33 @@ namespace Game1
                 if (undecidedResAmounts[resInd] is 0)
                     continue;
 
-                Position destination = resDestins[resInd];
-                if (destination is null || destination == Position)
+                var resSplitter = resSplittersToDestins[resInd];
+                if (resSplitter.Empty)
                     state.storedRes[resInd] += undecidedResAmounts[resInd];
                 else
-                    state.waitingResAmountsPackets.Add
-                    (
-                        destination: destination,
-                        resInd: resInd,
-                        resAmount: undecidedResAmounts[resInd]
-                    );
+                {
+                    var splitResAmounts = resSplitter.Split(amount: undecidedResAmounts[resInd]);
+                    foreach (var (destination, resAmount) in splitResAmounts)
+                        state.waitingResAmountsPackets.Add
+                        (
+                            destination: destination,
+                            resInd: resInd,
+                            resAmount: resAmount
+                        );
+                }
                 undecidedResAmounts[resInd] = 0;
+
+                //Position destination = resDestins[resInd];
+                //if (destination is null || destination == Position)
+                //    state.storedRes[resInd] += undecidedResAmounts[resInd];
+                //else
+                //    state.waitingResAmountsPackets.Add
+                //    (
+                //        destination: destination,
+                //        resInd: resInd,
+                //        resAmount: undecidedResAmounts[resInd]
+                //    );
+                //undecidedResAmounts[resInd] = 0;
             }
 
             foreach (var resAmountsPacket in state.waitingResAmountsPackets.DeconstructAndClear())
@@ -229,14 +279,28 @@ namespace Game1
 
             if (Graph.Overlay <= C.MaxRes)
             {
-                Position destination = resDestins[(int)Graph.Overlay];
-                if (destination is not null && destination != Position)
+                var proportions = resSplittersToDestins[(int)Graph.Overlay].Proportions;
+                double propSum = proportions.Values.Sum();
+                foreach (var (destination, proportion) in proportions)
+                {
+                    Debug.Assert(destination is not null && destination != Position
+                        && !C.IsTiny(proportion) && proportion > 0);
+
                     ArrowDrawer.DrawArrow
                     (
                         start: Position,
                         end: destination,
-                        color: Color.Red * .5f
+                        color: Color.Red * (float)(proportion / propSum)
                     );
+                }
+                //Position destination = resDestins[(int)Graph.Overlay];
+                //if (destination is not null && destination != Position)
+                //    ArrowDrawer.DrawArrow
+                //    (
+                //        start: Position,
+                //        end: destination,
+                //        color: Color.Red * .5f
+                //    );
             }
         }
     }

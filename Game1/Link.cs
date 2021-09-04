@@ -23,7 +23,7 @@ namespace Game1
             private readonly Texture2D diskTexture;
             private double electrPropor;
 
-            public DirLink(Node begin, Node end, TimeSpan travelTime, double minSafeDist, double reqWattsPerKgPerSec)
+            public DirLink(Node begin, Node end, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
             {
                 this.begin = begin;
                 this.end = end;
@@ -34,9 +34,9 @@ namespace Game1
                     throw new ArgumentOutOfRangeException();
                 waitingResAmountsPackets = new();
                 waitingPeople = new();
-                if (reqWattsPerKgPerSec <= 0)
+                if (wattsPerKg <= 0)
                     throw new ArgumentOutOfRangeException();
-                this.reqWattsPerKgPerSec = reqWattsPerKgPerSec;
+                reqWattsPerKgPerSec = wattsPerKg / travelTime.TotalSeconds;
                 diskTexture = C.Content.Load<Texture2D>("big disk");
                 electrPropor = 0;
 
@@ -122,13 +122,12 @@ namespace Game1
         public readonly Node node1, node2;
         public double WattsPerKg
             => link1To2.WattsPerKg;
-
         public TimeSpan TravelTime
             => link1To2.TravelTime;
 
         private readonly DirLink link1To2, link2To1;
 
-        public Link(Node node1, Node node2, TimeSpan travelTime, double minSafeDist, double reqWattsPerKgPerSec)
+        public Link(Node node1, Node node2, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
         {
             if (node1 == node2)
                 throw new ArgumentException();
@@ -136,8 +135,8 @@ namespace Game1
             this.node1 = node1;
             this.node2 = node2;
             
-            link1To2 = new(begin: node1, end: node2, travelTime: travelTime, minSafeDist: minSafeDist, reqWattsPerKgPerSec: reqWattsPerKgPerSec);
-            link2To1 = new(begin: node2, end: node1, travelTime: travelTime, minSafeDist: minSafeDist, reqWattsPerKgPerSec: reqWattsPerKgPerSec);
+            link1To2 = new(begin: node1, end: node2, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
+            link2To1 = new(begin: node2, end: node1, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
         }
 
         public Node OtherNode(Node node)
@@ -189,12 +188,22 @@ namespace Game1
             Vector2 pos1 = node1.Position.ToVector2(),
                 pos2 = node2.Position.ToVector2();
             Texture2D pixel = C.Content.Load<Texture2D>(assetName: "pixel");
+            Color color = Color.Lerp
+            (
+                value1: Color.White,
+                value2: Color.Green,
+                amount: Graph.Overlay switch
+                {
+                    Overlay.People => (float)(TravelTime / Graph.MaxLinkTravelTime),
+                    _ => (float)(WattsPerKg / Graph.MaxLinkWattsPerKg)
+                }
+            );
             C.SpriteBatch.Draw
             (
                 texture: pixel,
                 position: (pos1 + pos2) / 2,
                 sourceRectangle: null,
-                color: active ? Color.Yellow : Color.Green,
+                color: color,
                 rotation: C.Rotation(vector: pos1 - pos2),
                 origin: new Vector2(.5f, .5f),
                 scale: new Vector2(Vector2.Distance(pos1, pos2), 10),

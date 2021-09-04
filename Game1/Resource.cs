@@ -7,8 +7,8 @@ namespace Game1
 {
     public class Resource
     {
-        public static uint Count
-            => (uint)all.Count;
+        public static int Count
+            => all.Count;
         public static readonly ReadOnlyCollection<Resource> all;
 
         static Resource()

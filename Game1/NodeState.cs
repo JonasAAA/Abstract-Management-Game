@@ -24,5 +24,12 @@ namespace Game1
             waitingResAmountsPackets = new();
             waitingPeople = new();
         }
+
+        //public ResAmountsPacketsByDestin ReturnAndRemoveWaitingResAmountsPackets()
+        //{
+        //    var result = waitingResAmountsPackets;
+        //    waitingResAmountsPackets = new();
+        //    return result;
+        //}
     }
 }

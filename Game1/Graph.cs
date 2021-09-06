@@ -177,6 +177,13 @@ namespace Game1
             links.ForEach(link => link.Update(elapsed: elapsed));
 
             nodes.ForEach(node => node.Update(elapsed: elapsed));
+
+            nodes.ForEach(node => node.StartSplitRes());
+
+            for (int resInd = 0; resInd < Resource.Count; resInd++)
+                SplitRes(resInd: resInd);
+
+            nodes.ForEach(node => node.EndSplitRes());
             
             if (MyMouse.LeftClick)
             {
@@ -196,6 +203,120 @@ namespace Game1
                 activeElement.ActiveUpdate();
 
             JobMatching.Match();
+        }
+
+        private class BetterNode
+        {
+            private static int resInd;
+
+            public static void Init(int resInd)
+                => BetterNode.resInd = resInd;
+
+            public readonly Node node;
+            public readonly List<BetterNode> allDestins, nodesIn, nodesOut;
+            public uint unvisitedDestinsCount;
+            public bool isSplitAleady;
+
+            public BetterNode(Node node)
+            {
+                this.node = node;
+                nodesIn = new();
+                nodesOut = new();
+                unvisitedDestinsCount = 0;
+                isSplitAleady = false;
+            }
+
+            public ulong MaxExtraRes()
+                => unvisitedDestinsCount switch
+                {
+                    0 => ulong.MaxValue,
+                    > 0 => DFS().maxExtraRes
+                };
+
+            private (ulong maxExtraRes, ulong subgraphUserTargetStoredRes) DFS()
+            {
+                if (unvisitedDestinsCount is not 0)
+                    throw new InvalidOperationException();
+
+                ulong maxExtraResFromNodesOut = 0,
+                    userTargetStoredResFromNodesOut = 0;
+
+                foreach (var betterNode in nodesOut)
+                {
+                    var (curMaxExtraRes, curSubgraphUserTargetStoredRes) = betterNode.DFS();
+                    maxExtraResFromNodesOut += curMaxExtraRes;
+                    userTargetStoredResFromNodesOut += curSubgraphUserTargetStoredRes;
+                }
+
+                ulong subgraphUserTargetStoredRes = node.TargetStoredResAmount(resInd: resInd) + userTargetStoredResFromNodesOut,
+                    targetStoredRes = node.Store(resInd: resInd) switch
+                    {
+                        true => subgraphUserTargetStoredRes,
+                        false => node.TargetStoredResAmount(resInd: resInd)
+                    };
+
+                return
+                (
+                    maxExtraRes: (maxExtraResFromNodesOut + targetStoredRes >= node.TotalQueuedRes(resInd: resInd)) switch
+                    {
+                        true => maxExtraResFromNodesOut + targetStoredRes - node.TotalQueuedRes(resInd: resInd),
+                        false => 0
+                    },
+                    subgraphUserTargetStoredRes: subgraphUserTargetStoredRes
+                );
+            }
+        }
+
+        public static void SplitRes(int resInd)
+        {
+            BetterNode.Init(resInd: resInd);
+            Dictionary<Node, BetterNode> betterNodes = nodes.ToDictionary
+            (
+                keySelector: node => node,
+                elementSelector: node => new BetterNode(node: node)
+            );
+
+            foreach (var betterNode in betterNodes.Values)
+                foreach (var resDestin in betterNode.node.ResDestins(resInd: resInd))
+                {
+                    var betterNodeDestin = betterNodes[resDestin];
+
+                    betterNode.unvisitedDestinsCount++;
+                    betterNode.nodesOut.Add(betterNodeDestin);
+                    betterNodeDestin.nodesIn.Add(betterNode);
+                }
+
+            Queue<BetterNode> leafs = new
+            (
+                collection: from betterNode in betterNodes.Values
+                            where betterNode.unvisitedDestinsCount is 0
+                            select betterNode
+            );
+
+            ulong MaxExtraRes(Node node)
+                => betterNodes[node].MaxExtraRes();
+
+            while (leafs.Count > 0)
+            {
+                // could choose random leaf instead of this
+                BetterNode leaf = leafs.Dequeue();
+                leaf.node.SplitRes(resInd: resInd, maxExtraRes: MaxExtraRes);
+
+                foreach (var betterNode in leaf.nodesIn)
+                {
+                    betterNode.unvisitedDestinsCount--;
+                    if (betterNode.unvisitedDestinsCount is 0)
+                        leafs.Enqueue(betterNode);
+                }
+                leaf.isSplitAleady = true;
+            }
+
+            foreach (var betterNode in betterNodes.Values)
+                if (!betterNode.isSplitAleady)
+                {
+                    betterNode.node.SplitRes(resInd: resInd, maxExtraRes: MaxExtraRes);
+                    betterNode.isSplitAleady = true;
+                }
         }
 
         public static void Draw()

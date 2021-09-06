@@ -9,6 +9,8 @@ namespace Game1
     {
         public bool Empty
             => Count is 0;
+        public IEnumerable<TKey> Keys
+            => proportions.Keys;
         public IReadOnlyDictionary<TKey, double> Proportions
         {
             get => proportions;
@@ -42,8 +44,7 @@ namespace Game1
 
         private Dictionary<TKey, double> proportions;
         private Dictionary<TKey, double> necAdds;
-        private IEnumerable<TKey> Keys
-            => proportions.Keys;
+        
         private int Count
             => proportions.Count;
 

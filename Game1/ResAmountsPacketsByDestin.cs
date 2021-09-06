@@ -70,6 +70,13 @@ namespace Game1
             return resAmountsPacket.ResAmounts.ToULongArray();
         }
 
+        public ULongArray ResToDestinAmounts(Position destination)
+            => resAmountsPacketsByDestin.ContainsKey(destination) switch
+            {
+                true => resAmountsPacketsByDestin[destination].ResAmounts.ToULongArray(),
+                false => new()
+            };
+
         public IEnumerable<ResAmountsPacket> DeconstructAndClear()
         {
             var result = resAmountsPacketsByDestin.Values;

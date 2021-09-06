@@ -66,8 +66,8 @@ namespace Game1
                     waitingPeople = new();
                 }
                 var (resAmountsPackets, people) = timedPacketQueue.DonePackets();
-                end.Add(resAmountsPackets: resAmountsPackets);
-                end.Add(people: people);
+                end.Arrive(resAmountsPackets: resAmountsPackets);
+                end.Arrive(people: people);
             }
 
             public void DrawTravelingRes()

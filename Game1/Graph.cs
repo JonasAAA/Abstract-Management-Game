@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -32,6 +33,8 @@ namespace Game1
         private static IUIElement activeElement;
         private static readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
         private static KeyButton[] overlayKeyButtons;
+        private static KeyButton pauseKey;
+        private static bool paused;
 
         static Graph()
         {
@@ -73,6 +76,13 @@ namespace Game1
                     action: () => Overlay = (Overlay)overlayInd
                 );
             }
+
+            pauseKey = new
+            (
+                key: Keys.Space,
+                action: () => paused = !paused
+            );
+            paused = false;
         }
 
         private static void AddNode(Node node)
@@ -172,6 +182,11 @@ namespace Game1
 
         public static void Update(TimeSpan elapsed)
         {
+            pauseKey.Update();
+
+            if (paused)
+                elapsed = TimeSpan.Zero;
+
             ElectricityDistributor.DistributeElectr();
 
             links.ForEach(link => link.Update(elapsed: elapsed));
@@ -213,7 +228,7 @@ namespace Game1
                 => BetterNode.resInd = resInd;
 
             public readonly Node node;
-            public readonly List<BetterNode> allDestins, nodesIn, nodesOut;
+            public readonly List<BetterNode> nodesIn, nodesOut;
             public uint unvisitedDestinsCount;
             public bool isSplitAleady;
 
@@ -229,8 +244,8 @@ namespace Game1
             public ulong MaxExtraRes()
                 => unvisitedDestinsCount switch
                 {
-                    0 => ulong.MaxValue,
-                    > 0 => DFS().maxExtraRes
+                    0 => DFS().maxExtraRes,
+                    > 0 => ulong.MaxValue
                 };
 
             private (ulong maxExtraRes, ulong subgraphUserTargetStoredRes) DFS()
@@ -267,6 +282,10 @@ namespace Game1
             }
         }
 
+        /// <summary>
+        /// TODO:
+        /// choose random leafs
+        /// </summary>
         public static void SplitRes(int resInd)
         {
             BetterNode.Init(resInd: resInd);
@@ -298,9 +317,9 @@ namespace Game1
 
             while (leafs.Count > 0)
             {
-                // could choose random leaf instead of this
+                // want to choose random leaf instead of this
                 BetterNode leaf = leafs.Dequeue();
-                leaf.node.SplitRes(resInd: resInd, maxExtraRes: MaxExtraRes);
+                leaf.node.SplitRes(resInd: resInd, maxExtraResFunc: MaxExtraRes);
 
                 foreach (var betterNode in leaf.nodesIn)
                 {
@@ -314,7 +333,7 @@ namespace Game1
             foreach (var betterNode in betterNodes.Values)
                 if (!betterNode.isSplitAleady)
                 {
-                    betterNode.node.SplitRes(resInd: resInd, maxExtraRes: MaxExtraRes);
+                    betterNode.node.SplitRes(resInd: resInd, maxExtraResFunc: MaxExtraRes);
                     betterNode.isSplitAleady = true;
                 }
         }

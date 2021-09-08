@@ -35,7 +35,11 @@ namespace Game1
         }
 
         public override ULongArray TargetStoredResAmounts()
-            => parameters.cost.ToULongArray();
+            => IsBusy() switch
+            {
+                true => new(),
+                false => parameters.cost.ToULongArray(),
+            };
 
         protected override bool IsBusy()
             => constrTimeLeft < TimeSpan.MaxValue;

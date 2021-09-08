@@ -45,11 +45,5 @@ namespace Game1
             resAmounts[resInd] += resAmount;
             TotalWeight += Resource.all[resInd].weight * resAmount;
         }
-
-        //public void Deconstruct(out Position destination, out ConstULongArray resAmounts)
-        //{
-        //    destination = this.destination;
-        //    resAmounts = this.resAmounts;
-        //}
     }
 }

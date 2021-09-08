@@ -21,11 +21,13 @@ namespace Game1
         public static Camera Camera { get; private set; }
 
         public static readonly double minPosDouble;
+        public static readonly decimal minPosDecimal;
         private static readonly Random random;
 
         static C()
         {
-            minPosDouble = 1e-6;
+            minPosDecimal = 1e-6m;
+            minPosDouble = (double)minPosDecimal;
             random = new();
             numericKeys = new
             (
@@ -59,6 +61,10 @@ namespace Game1
 
         public static bool IsTiny(double value)
             => Math.Abs(value) < minPosDouble;
+
+        public static bool IsTiny(decimal value)
+            => Math.Abs(value) < minPosDecimal;
+
 
         public static double DonePart(TimeSpan timeLeft, TimeSpan duration)
         {

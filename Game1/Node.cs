@@ -24,7 +24,6 @@ namespace Game1
         private readonly List<Link> links;
         private Industry industry;
         private readonly ReadOnlyCollection<KeyButton> constrKeyButtons;
-        //private readonly MyArray<Position> resDestins;
         private readonly MyArray<ProporSplitter<Node>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
         private readonly KeyButton incrDestinImp, decrDestinImp, storeSwitch;
@@ -45,7 +44,6 @@ namespace Game1
             );
             for (int i = 0; i < startPersonCount; i++)
                 state.unemployedPeople.Add(Person.GenerateNew());
-            //resDestins = new(value: null);
             resSplittersToDestins = new
             (
                 values: from ind in Enumerable.Range(0, Resource.Count)
@@ -115,21 +113,19 @@ namespace Game1
                 if (storeSwitch.Click)
                     store[resInd] = !store[resInd];
 
-                if (MyMouse.RightHold)
+                if (MyMouse.RightClick)
                 {
                     Node destinationNode = Graph.HoveringNode();
                     if (destinationNode is not null && destinationNode != this)
                     {
-                        //Position destination = destinationNode.Position;
-
-                        if (incrDestinImp.Click)
+                        if (incrDestinImp.Hold)
                             resSplittersToDestins[resInd].AddToProp
                             (
                                 key: destinationNode,
                                 add: 1
                             );
 
-                        if (decrDestinImp.Click)
+                        if (decrDestinImp.Hold)
                             resSplittersToDestins[resInd].AddToProp
                             (
                                 key: destinationNode,
@@ -138,12 +134,6 @@ namespace Game1
                     }
                 }
             }
-            //if (Graph.Overlay <= C.MaxRes && MyMouse.RightClick)
-            //{
-            //    Node destinationNode = Graph.HoveringNode();
-            //    if (destinationNode is not null)
-            //        resDestins[(int)Graph.Overlay] = destinationNode.Position;
-            //}
 
             if (constrKeyButtons.Count < Industry.constrBuildingParams.Count)
                 throw new Exception();
@@ -234,12 +224,8 @@ namespace Game1
         /// <summary>
         /// MUST call StartSplitRes first
         /// </summary>
-        public void SplitRes(int resInd, Func<Node, ulong> maxExtraRes)
+        public void SplitRes(int resInd, Func<Node, ulong> maxExtraResFunc)
         {
-            // use maxExtraRes
-            throw new NotImplementedException();
-            //Debug.Assert(resDestins[resInd] != Position);
-
             if (undecidedResAmounts[resInd] is 0)
                 return;
 
@@ -248,7 +234,8 @@ namespace Game1
                 state.storedRes[resInd] += undecidedResAmounts[resInd];
             else
             {
-                var splitResAmounts = resSplitter.Split(amount: undecidedResAmounts[resInd]);
+                var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResAmounts[resInd], maxAmountsFunc: maxExtraResFunc);
+                state.storedRes[resInd] += unsplitResAmount;
                 foreach (var (destinationNode, resAmount) in splitResAmounts)
                 {
                     state.waitingResAmountsPackets.Add
@@ -262,18 +249,6 @@ namespace Game1
             }
 
             undecidedResAmounts[resInd] = 0;
-
-            //Position destination = resDestins[resInd];
-            //if (destination is null || destination == Position)
-            //    state.storedRes[resInd] += undecidedResAmounts[resInd];
-            //else
-            //    state.waitingResAmountsPackets.Add
-            //    (
-            //        destination: destination,
-            //        resInd: resInd,
-            //        resAmount: undecidedResAmounts[resInd]
-            //    );
-            //undecidedResAmounts[resInd] = 0;
         }
 
         /// <summary>
@@ -309,7 +284,7 @@ namespace Game1
             text += Graph.Overlay switch
             {
                 <= C.MaxRes => $"store {store[(int)Graph.Overlay]}\n" + (state.storedRes[(int)Graph.Overlay] >= targetStoredResAmounts[(int)Graph.Overlay] ?
-                    $"have {state.storedRes[(int)Graph.Overlay]} extra resources" : $"have {(double)state.storedRes[(int)Graph.Overlay] / targetStoredResAmounts[(int)Graph.Overlay] * 100:0.}% of target stored resources\n"),
+                    $"have {state.storedRes[(int)Graph.Overlay] - targetStoredResAmounts[(int)Graph.Overlay]} extra resources" : $"have {(double)state.storedRes[(int)Graph.Overlay] / targetStoredResAmounts[(int)Graph.Overlay] * 100:0.}% of target stored resources\n"),
                 Overlay.AllRes => $"stored total res weight {state.storedRes.TotalWeight()}",
                 Overlay.People => $"unemployed {state.unemployedPeople.Count}\n",
                 _ => throw new Exception(),
@@ -332,7 +307,7 @@ namespace Game1
             if (Graph.Overlay <= C.MaxRes)
             {
                 var proportions = resSplittersToDestins[(int)Graph.Overlay].Proportions;
-                double propSum = proportions.Values.Sum();
+                decimal propSum = proportions.Values.Sum();
                 foreach (var (destinationNode, proportion) in proportions)
                 {
                     Debug.Assert(destinationNode is not null && destinationNode != this
@@ -345,14 +320,6 @@ namespace Game1
                         color: Color.Red * (float)(proportion / propSum)
                     );
                 }
-                //Position destination = resDestins[(int)Graph.Overlay];
-                //if (destination is not null && destination != Position)
-                //    ArrowDrawer.DrawArrow
-                //    (
-                //        start: Position,
-                //        end: destination,
-                //        color: Color.Red * .5f
-                //    );
             }
         }
     }

@@ -20,5 +20,8 @@ namespace Game1
 
         public static ulong TotalWeight(this IEnumerable<Person> people)
             => people.Sum(person => person.weight);
+
+        public static IEnumerable<T> Clone<T>(this IEnumerable<T> source)
+            => source.ToArray();
     }
 }

@@ -7,44 +7,107 @@ namespace Game1
 {
     public class ProporSplitter<TKey>
     {
+        /// <summary>
+        /// TODO:
+        /// deal with potential numeric instability
+        /// </summary>
+        private class NecAdds
+        {
+            private readonly HashSet<TKey> keys;
+            private Dictionary<TKey, decimal> necNotLockedAdds;
+            private decimal sum;
+
+            public NecAdds()
+            {
+                keys = new();
+                necNotLockedAdds = new();
+                sum = 0;
+            }
+
+            public void LockAtZero(TKey key)
+            {
+                if (!necNotLockedAdds.ContainsKey(key))
+                    return;
+                
+                sum -= necNotLockedAdds[key];
+                necNotLockedAdds.Remove(key);
+            }
+
+            public void UnlockAll()
+            {
+                necNotLockedAdds = keys.ToDictionary
+                (
+                    keySelector: key => key,
+                    elementSelector: key => this[key]
+                );
+                sum = necNotLockedAdds.Values.Sum();
+            }
+
+            public void SetNotLocked(Dictionary<TKey, decimal> necAdds)
+            {
+                if (necAdds.Count != necNotLockedAdds.Count)
+                    throw new ArgumentException();
+
+                // this also checks if keys are the same
+                foreach (var key in necAdds.Keys)
+                    necNotLockedAdds[key] = necAdds[key];
+
+                sum = necNotLockedAdds.Values.Sum();
+                Recallibrate();
+            }
+
+            public decimal this[TKey key]
+                => necNotLockedAdds.ContainsKey(key) switch
+                {
+                    true => necNotLockedAdds[key] - sum / necNotLockedAdds.Count,
+                    false => 0
+                };
+
+            /// <summary>
+            /// O(n)
+            /// </summary>
+            public void Add(TKey key)
+            {
+                Recallibrate();
+                keys.Add(key);
+                necNotLockedAdds.Add(key: key, value: 0);
+            }
+
+            public void Remove(TKey key)
+            {
+                keys.Remove(key);
+                sum -= necNotLockedAdds[key];
+                necNotLockedAdds.Remove(key);
+            }
+
+            private void Recallibrate()
+            {
+                decimal oldSum = sum;
+                sum = necNotLockedAdds.Values.Sum();
+                Debug.Assert(C.IsTiny(sum - oldSum));
+
+                necNotLockedAdds = necNotLockedAdds.Keys.ToDictionary
+                (
+                    keySelector: key => key,
+                    elementSelector: key => this[key]
+                );
+                sum = necNotLockedAdds.Values.Sum();
+
+                Debug.Assert(C.IsTiny(sum));
+                Debug.Assert(necNotLockedAdds.Count is 0 || necNotLockedAdds.Values.Max() - necNotLockedAdds.Values.Min() < 1);
+            }
+        }
+
         public bool Empty
             => Count is 0;
         public IEnumerable<TKey> Keys
             => proportions.Keys;
-        public IReadOnlyDictionary<TKey, double> Proportions
-        {
-            get => proportions;
-            //set
-            //{
-            //    if (value.Count != Count || value.Values.Any(a => a < 0))
-            //        throw new ArgumentException();
-            //    proportions = new(value);
-            //    necAdds = Keys.ToDictionary
-            //    (
-            //        keySelector: key => key,
-            //        elementSelector: key => .0
-            //    );
-            //    //double propSum = value.Values.Sum();
-            //    //if (propSum is 0)
-            //    //    proportions = new(value);
-            //    //else
-            //    //    proportions = value.ToDictionary
-            //    //    (
-            //    //        keySelector: a => a.Key,
-            //    //        elementSelector: a => a.Value / propSum
-            //    //    );
+        public IReadOnlyDictionary<TKey, decimal> Proportions
+            => proportions;
 
-            //    //necAdds = value.Keys.ToDictionary
-            //    //(
-            //    //    keySelector: key => key,
-            //    //    elementSelector: key => .0
-            //    //);
-            //}
-        }
+        private Dictionary<TKey, decimal> proportions;
+        private readonly NecAdds necAdds;
 
-        private Dictionary<TKey, double> proportions;
-        private Dictionary<TKey, double> necAdds;
-        
         private int Count
             => proportions.Count;
 
@@ -57,27 +120,20 @@ namespace Game1
         private bool ContainsKey(TKey key)
             => proportions.ContainsKey(key);
 
-        private void AddKey(TKey key, double prop)
+        private void AddKey(TKey key, decimal prop)
         {
             proportions.Add(key, prop);
-            necAdds.Add(key, 0);
+            necAdds.Add(key: key);
         }
 
         private void Remove(TKey key)
         {
             proportions.Remove(key);
-            necAdds.Remove(key);
-
-            double necAddsSum = necAdds.Values.Sum();
-            necAdds = necAdds.ToDictionary
-            (
-                keySelector: a => a.Key,
-                elementSelector: a => a.Value - necAddsSum / Count
-            );
+            necAdds.Remove(key: key);
         }
 
         /// <returns> true if successful </returns>
-        public bool AddToProp(TKey key, double add)
+        public bool AddToProp(TKey key, decimal add)
         {
             if (!ContainsKey(key: key))
                 AddKey(key: key, prop: 0);
@@ -95,151 +151,86 @@ namespace Game1
             return true;
         }
 
-        public Dictionary<TKey, ulong> Split(ulong amount)
+        public (Dictionary<TKey, ulong> splitAmounts, ulong unsplitAmount) Split(ulong amount, Func<TKey, ulong> maxAmountsFunc)
         {
             if (Empty)
                 throw new InvalidOperationException();
-            //if (!CanSplit(amount: amount))
-            //    throw new ArgumentException();
 
             if (amount is 0)
-                return Keys.ToDictionary
+                return
                 (
-                    keySelector: key => key,
-                    elementSelector: key => (ulong)0
+                    splitAmounts: MakeDictionary(func: key => (ulong)0),
+                    unsplitAmount: 0
                 );
 
-            double propSum = proportions.Values.Sum();
-            Dictionary<TKey, double> propsWithUnitSum = proportions.ToDictionary
-            (
-                keySelector: a => a.Key,
-                elementSelector: a => a.Value / propSum
-            );
+            Dictionary<TKey, ulong> maxAmounts = MakeDictionary(func: key => maxAmountsFunc(key)),
+                splitAmounts = new();
+            HashSet<TKey> unusedKeys = new(Keys);
+            decimal unusedPropSum = proportions.Values.Sum();
 
-            Debug.Assert(C.IsTiny(value: propsWithUnitSum.Values.Sum() - 1));
-
-            Dictionary<TKey, ulong> answer = new();
-            Dictionary<TKey, double> perfect = new();
-            ulong unusedAmount = amount;
-            foreach (var key in Keys)
+            while (true)
             {
-                perfect.Add(key, amount * propsWithUnitSum[key] + necAdds[key]);
-                answer.Add(key, (ulong)perfect[key]);
-                necAdds[key] = perfect[key] - answer[key];
-                unusedAmount -= answer[key];
+                bool didSomething = false;
+                foreach (var key in unusedKeys.Clone())
+                    if ((ulong)(amount * proportions[key] / unusedPropSum + necAdds[key]) >= maxAmounts[key])
+                    {
+                        //could turn this into a function
+                        necAdds.LockAtZero(key: key);
+                        unusedKeys.Remove(key);
+                        unusedPropSum -= proportions[key];
+                        splitAmounts.Add(key, maxAmounts[key]);
+                        amount -= maxAmounts[key];
+
+                        didSomething = true;
+                    }
+
+                if (!didSomething)
+                    break;
             }
 
-            var priorityKeys = Keys.OrderByDescending(key => necAdds[key]);
+            Dictionary<TKey, decimal> perfect = new();
+            ulong splitAmount = amount;
+            foreach (var key in unusedKeys)
+            {
+                perfect.Add(key, splitAmount * proportions[key] / unusedPropSum + necAdds[key]);
+                splitAmounts.Add(key, (ulong)perfect[key]);
+                amount -= splitAmounts[key];
+            }
+
+            Dictionary<TKey, decimal> tempNecAdds = MakeDictionary
+            (
+                keys: unusedKeys,
+                func: key => perfect[key] - splitAmounts[key]
+            );
+
+            var priorityKeys = unusedKeys.OrderByDescending(key => tempNecAdds[key]);
             foreach (var key in priorityKeys)
             {
-                if (unusedAmount is 0)
+                if (amount is 0)
                     break;
-                answer[key]++;
-                necAdds[key]--;
-                unusedAmount--;
+                splitAmounts[key]++;
+                tempNecAdds[key]--;
+                amount--;
             }
 
-            double necAddsSum = necAdds.Values.Sum();
-            Debug.Assert(C.IsTiny(necAddsSum));
-            necAdds = necAdds.ToDictionary
+            necAdds.SetNotLocked(necAdds: tempNecAdds);
+            necAdds.UnlockAll();
+
+            foreach (var key in Keys)
+                Debug.Assert(splitAmounts[key] <= maxAmounts[key]);
+
+            return
             (
-                keySelector: a => a.Key,
-                elementSelector: a => a.Value - necAddsSum / Count
+                splitAmounts: splitAmounts,
+                unsplitAmount: amount
             );
-
-            Debug.Assert(unusedAmount is 0);
-            Debug.Assert(answer.Values.Sum() == amount);
-            Debug.Assert(C.IsTiny(value: necAdds.Values.Sum()));
-
-            return answer;
         }
+
+        private Dictionary<TKey, TValue> MakeDictionary<TValue>(Func<TKey, TValue> func, IEnumerable<TKey> keys = null)
+            => (keys ?? Keys).ToDictionary
+            (
+                keySelector: key => key,
+                elementSelector: key => func(key)
+            );
     }
 }
-
-
-//namespace Game1
-//{
-//    public class ProporSplitter
-//    {
-//        public int Count
-//            => proportions.Count;
-
-//        public ReadOnlyCollection<double> Proportions
-//        {
-//            get => proportions;
-//            set
-//            {
-//                if (value.Count != Count || value.Any(a => a < 0))
-//                    throw new ArgumentException();
-//                double propSum = value.Sum();
-//                if (propSum is 0)
-//                    proportions = value;
-//                else
-//                    proportions = new((from a in value select a / propSum).ToArray());
-//                necAdds = new(collection: new double[Count]);
-//            }
-//        }
-
-//        private ReadOnlyCollection<double> proportions;
-//        private List<double> necAdds;
-
-//        public ProporSplitter()
-//        {
-//            proportions = new(list: Array.Empty<double>());
-//            necAdds = new();
-//        }
-
-//        public void InsertVar(int index)
-//        {
-//            var tempProportions = proportions.ToList();
-//            tempProportions.Insert(index: index, item: 0);
-//            proportions = tempProportions.AsReadOnly();
-//            necAdds.Insert(index: index, item: 0);
-//        }
-
-//        public bool CanSplit(ulong amount)
-//            => amount is 0 || proportions.Sum() is not 0;
-
-//        public ulong[] Split(ulong amount)
-//        {
-//            if (!CanSplit(amount: amount))
-//                throw new Exception();
-
-//            if (amount is 0)
-//                return new ulong[Count];
-
-//            Debug.Assert(C.IsTiny(value: Proportions.Sum() - 1));
-
-//            var answer = new ulong[Count];
-//            var perfect = new double[Count];
-//            ulong unusedAmount = amount;
-//            for (int i = 0; i < Count; i++)
-//            {
-//                perfect[i] = amount * proportions[i] + necAdds[i];
-//                answer[i] = (ulong)perfect[i];
-//                necAdds[i] = perfect[i] - answer[i];
-//                unusedAmount -= answer[i];
-//            }
-
-//            var priorityInds = Enumerable.Range(start: 0, count: Count).OrderByDescending(a => necAdds[a]);
-//            foreach (int ind in priorityInds)
-//            {
-//                if (unusedAmount is 0)
-//                    break;
-//                answer[ind]++;
-//                necAdds[ind]--;
-//                unusedAmount--;
-//            }
-
-//            double necAddsSum = necAdds.Sum();
-//            Debug.Assert(C.IsTiny(necAddsSum));
-//            necAdds = necAdds.Select(a => a - necAddsSum / Count).ToList();
-
-//            Debug.Assert(unusedAmount is 0);
-//            Debug.Assert(answer.Sum() == amount);
-//            Debug.Assert(C.IsTiny(value: necAdds.Sum()));
-
-//            return answer;
-//        }
-//    }
-//}

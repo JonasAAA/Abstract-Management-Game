@@ -12,7 +12,7 @@ namespace TestProject
         public void Negative_proportion_is_invalid()
         {
             // arrange
-            ProporSplitter splitter = new();
+            ProporSplitter<int> splitter = new();
             ReadOnlyCollection<double> proportions = new(new double[] { -1, 2 });
 
             // act and assert

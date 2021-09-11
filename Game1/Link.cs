@@ -29,7 +29,7 @@ namespace Game1
                 this.end = end;
 
                 timedPacketQueue = new(duration: travelTime);
-                minSafePropor = minSafeDist / begin.Position.DistanceTo(position: end.Position);
+                minSafePropor = minSafeDist / Vector2.Distance(begin.Position, end.Position);
                 if (!C.IsInSuitableRange(value: minSafePropor))
                     throw new ArgumentOutOfRangeException();
                 waitingResAmountsPackets = new();
@@ -73,14 +73,11 @@ namespace Game1
             public void DrawTravelingRes()
             {
                 // temporary
-                Vector2 beginPos = begin.Position.ToVector2(),
-                    endPos = end.Position.ToVector2();
-
                 void DrawDisk(double complProp, double size)
                     => C.SpriteBatch.Draw
                     (
                         texture: diskTexture,
-                        position: beginPos + (float)complProp * (endPos - beginPos),
+                        position: begin.Position + (float)complProp * (end.Position - begin.Position),
                         sourceRectangle: null,
                         color: Color.Black,
                         rotation: 0,
@@ -185,8 +182,6 @@ namespace Game1
         public void Draw(bool active)
         {
             // temporary
-            Vector2 pos1 = node1.Position.ToVector2(),
-                pos2 = node2.Position.ToVector2();
             Texture2D pixel = C.Content.Load<Texture2D>(assetName: "pixel");
             Color color = Color.Lerp
             (
@@ -201,12 +196,12 @@ namespace Game1
             C.SpriteBatch.Draw
             (
                 texture: pixel,
-                position: (pos1 + pos2) / 2,
+                position: (node1.Position + node2.Position) / 2,
                 sourceRectangle: null,
                 color: color,
-                rotation: C.Rotation(vector: pos1 - pos2),
+                rotation: C.Rotation(vector: node1.Position - node2.Position),
                 origin: new Vector2(.5f, .5f),
-                scale: new Vector2(Vector2.Distance(pos1, pos2), 10),
+                scale: new Vector2(Vector2.Distance(node1.Position, node2.Position), 10),
                 effects: SpriteEffects.None,
                 layerDepth: 0
             );

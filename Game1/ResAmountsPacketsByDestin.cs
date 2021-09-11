@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 
 namespace Game1
@@ -10,7 +11,7 @@ namespace Game1
         public bool Empty
             => TotalWeight is 0;
 
-        private Dictionary<Position, ResAmountsPacket> resAmountsPacketsByDestin;
+        private Dictionary<Vector2, ResAmountsPacket> resAmountsPacketsByDestin;
 
         public ResAmountsPacketsByDestin()
         {
@@ -37,29 +38,23 @@ namespace Game1
             TotalWeight += resAmountsPacket.TotalWeight;
         }
 
-        public void Add(Position destination, ConstULongArray resAmounts)
+        public void Add(Vector2 destination, ConstULongArray resAmounts)
         {
-            if (destination is null)
-                throw new ArgumentNullException();
-
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
             resAmountsPacketsByDestin[destination].Add(resAmounts: resAmounts);
             TotalWeight += resAmounts.TotalWeight();
         }
 
-        public void Add(Position destination, int resInd, ulong resAmount)
+        public void Add(Vector2 destination, int resInd, ulong resAmount)
         {
-            if (destination is null)
-                throw new ArgumentNullException();
-
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
             resAmountsPacketsByDestin[destination].Add(resInd: resInd, resAmount: resAmount);
             TotalWeight += Resource.all[resInd].weight * resAmount;
         }
 
-        public ULongArray ReturnAndRemove(Position destination)
+        public ULongArray ReturnAndRemove(Vector2 destination)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 return new();
@@ -70,7 +65,7 @@ namespace Game1
             return resAmountsPacket.ResAmounts.ToULongArray();
         }
 
-        public ULongArray ResToDestinAmounts(Position destination)
+        public ULongArray ResToDestinAmounts(Vector2 destination)
             => resAmountsPacketsByDestin.ContainsKey(destination) switch
             {
                 true => resAmountsPacketsByDestin[destination].ResAmounts.ToULongArray(),

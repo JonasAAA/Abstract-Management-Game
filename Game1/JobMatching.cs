@@ -1,4 +1,5 @@
-﻿using Priority_Queue;
+﻿using Microsoft.Xna.Framework;
+using Priority_Queue;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,8 +27,8 @@ namespace Game1
             minAcceptableScore = .4;
         }
 
-        private record PersonAndPos(Person Person, Position Pos);
-        private record EmployerAndPos(IEmployer Employer, Position Pos);
+        private record PersonAndPos(Person Person, Vector2 Pos);
+        private record EmployerAndPos(IEmployer Employer, Vector2 Pos);
 
         public static void Match()
         {
@@ -97,7 +98,7 @@ namespace Game1
 
         // must be between 0 and 1 or double.NegativeInfinity
         // should later be changed to graph distance (either time or electricity cost)
-        private static double Distance(Position pos1, Position pos2)
-            => 1 - Math.Tanh(pos1.DistanceTo(position: pos2) / 100);
+        private static double Distance(Vector2 pos1, Vector2 pos2)
+            => 1 - Math.Tanh(Vector2.Distance(pos1, pos2) / 100);
     }
 }

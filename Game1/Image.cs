@@ -14,7 +14,7 @@ namespace Game1
         public Image(string imageName, float? width = null, float? height = null)
         {
             texture = C.Content.Load<Texture2D>(assetName: imageName);
-            origin = new(x: texture.Width * .5f, y: texture.Height * .5f);
+            origin = new(texture.Width * .5f, texture.Height * .5f);
             scale = new(1);
             if (width.HasValue)
             {
@@ -32,8 +32,7 @@ namespace Game1
         }
 
         public void Draw(Vector2 position, float rotation = 0)
-        {
-            C.SpriteBatch.Draw
+            => C.SpriteBatch.Draw
             (
                 texture: texture,
                 position: position,
@@ -45,6 +44,5 @@ namespace Game1
                 effects: SpriteEffects.None,
                 layerDepth: 0
             );
-        }
     }
 }

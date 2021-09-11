@@ -1,10 +1,11 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 
 namespace Game1
 {
     public class ResAmountsPacket
     {
-        public readonly Position destination;
+        public readonly Vector2 destination;
         public ConstULongArray ResAmounts
             => resAmounts;
         public ulong TotalWeight { get; private set; }
@@ -13,14 +14,12 @@ namespace Game1
 
         private ULongArray resAmounts;
 
-        public ResAmountsPacket(Position destination)
+        public ResAmountsPacket(Vector2 destination)
             : this(destination: destination, resAmounts: new())
         { }
 
-        public ResAmountsPacket(Position destination, ConstULongArray resAmounts)
+        public ResAmountsPacket(Vector2 destination, ConstULongArray resAmounts)
         {
-            if (destination is null)
-                throw new ArgumentNullException();
             this.destination = destination;
             this.resAmounts = resAmounts.ToULongArray();
             TotalWeight = resAmounts.TotalWeight();

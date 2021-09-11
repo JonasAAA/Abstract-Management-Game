@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Game1.UI;
+using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -65,11 +67,62 @@ namespace Game1
                 links: links,
                 overlay: Overlay.Res0
             );
+
+            UIPanel horizPanel = new UIHorizPanel();
+
+            horizPanel.AddChild
+            (
+                child: new UIRectangle
+                (
+                    width: 200,
+                    height: 100,
+                    color: Color.Yellow
+                )
+            );
+
+            horizPanel.AddChild
+            (
+                child: new UIRectangle
+                (
+                    width: 150,
+                    height: 150,
+                    color: Color.Blue
+                )
+            );
+
+            UIPanel panel = new UIVertPanel();
+            panel.AddChild
+            (
+                child: new UIRectangle
+                (
+                    width: 100,
+                    height: 200,
+                    color: Color.Green
+                )
+            );
+
+            panel.AddChild
+            (
+                child: new UIRectangle
+                (
+                    width: 150,
+                    height: 150,
+                    color: Color.Red
+                )
+            );
+
+            panel.AddChild(child: horizPanel);
+
+            panel.TopLeftCorner = Vector2.Zero;
+
+            ActiveUI.Add(UIElement: panel);
         }
 
         public void Update(TimeSpan elapsed)
         {
             C.Camera.Update();
+
+            ActiveUI.Update();
 
             Graph.Update(elapsed: elapsed);
         }
@@ -82,6 +135,7 @@ namespace Game1
 
             C.SpriteBatch.Begin();
             Graph.DrawHUD();
+            ActiveUI.DrawHUD();
             C.SpriteBatch.End();
         }
     }

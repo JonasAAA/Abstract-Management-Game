@@ -6,14 +6,14 @@ namespace Game1
 {
     public class NodeState
     {
-        public readonly Position position;
+        public readonly Vector2 position;
         public ULongArray storedRes;
         public readonly ulong maxBatchDemResStored;
         public List<Person> unemployedPeople;
         public ResAmountsPacketsByDestin waitingResAmountsPackets;
         public List<Person> waitingPeople;
 
-        public NodeState(Position position, ulong maxBatchDemResStored)
+        public NodeState(Vector2 position, ulong maxBatchDemResStored)
         {
             this.position = position;
             storedRes = new();

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -33,7 +34,7 @@ namespace Game1
         // between 0 and 1
         public readonly Dictionary<IndustryType, double> skills;
         //public double MinAcceptableEnjoyment { get; private set; }
-        public Position Destination { get; private set; }
+        public Vector2? Destination { get; private set; }
         private IJob job;
         public double ElectrPropor { get; private set; }
         public readonly ulong weight;
@@ -91,7 +92,7 @@ namespace Game1
         /// if already had a employer, need to inform it about quitting
         /// person may have event it calls when changes jobs, interested parties subscribe to it
         /// </summary>
-        public void TakeJob(IJob job, Position employerPos)
+        public void TakeJob(IJob job, Vector2 employerPos)
         {
             this.job = job;
             Destination = employerPos;

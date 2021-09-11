@@ -16,15 +16,15 @@ namespace Game1
             => nodes;
         public static IEnumerable<Link> Links
             => links;
-        public static ReadOnlyDictionary<(Position, Position), double> PersonDists { get; private set; }
-        public static ReadOnlyDictionary<(Position, Position), double> ResDists { get; private set; }
+        public static ReadOnlyDictionary<(Vector2, Vector2), double> PersonDists { get; private set; }
+        public static ReadOnlyDictionary<(Vector2, Vector2), double> ResDists { get; private set; }
         public static TimeSpan MaxLinkTravelTime { get; private set; }
         public static double MaxLinkWattsPerKg { get; private set; }
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        public static ReadOnlyDictionary<(Position, Position), Link> PersonFirstLinks { get; private set; }
-        public static ReadOnlyDictionary<(Position, Position), Link> ResFirstLinks { get; private set; }
+        public static ReadOnlyDictionary<(Vector2, Vector2), Link> PersonFirstLinks { get; private set; }
+        public static ReadOnlyDictionary<(Vector2, Vector2), Link> ResFirstLinks { get; private set; }
 
         private static readonly List<Node> nodes;
         private static readonly List<Link> links;
@@ -106,7 +106,7 @@ namespace Game1
 
         // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
-        private static (ReadOnlyDictionary<(Position, Position), double> dists, ReadOnlyDictionary<(Position, Position), Link> firstLinks) FindShortestPaths(double distTimeCoeff, double distElectrCoeff)
+        private static (ReadOnlyDictionary<(Vector2, Vector2), double> dists, ReadOnlyDictionary<(Vector2, Vector2), Link> firstLinks) FindShortestPaths(double distTimeCoeff, double distElectrCoeff)
         {
             if (distTimeCoeff < 0)
                 throw new ArgumentOutOfRangeException();
@@ -146,8 +146,8 @@ namespace Game1
                             Debug.Assert(firstLinksArray[i, j] is not null);
                         }
 
-            Dictionary<(Position, Position), double> distsDict = new();
-            Dictionary<(Position, Position), Link> firstLinksDict = new();
+            Dictionary<(Vector2, Vector2), double> distsDict = new();
+            Dictionary<(Vector2, Vector2), Link> firstLinksDict = new();
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)
                 {

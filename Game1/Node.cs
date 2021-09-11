@@ -11,7 +11,7 @@ namespace Game1
 {
     public class Node : IUIElement
     {
-        public Position Position
+        public Vector2 Position
             => state.position;
         public readonly float radius;
         public IEmployer Employer
@@ -70,7 +70,7 @@ namespace Game1
             => this.text += text;
 
         public bool Contains(Vector2 position)
-            => Vector2.Distance(Position.ToVector2(), position) <= radius;
+            => Vector2.Distance(Position, position) <= radius;
 
         public void Arrive(ResAmountsPacketsByDestin resAmountsPackets)
         {
@@ -200,7 +200,7 @@ namespace Game1
                     continue;
                 }
 
-                Graph.PersonFirstLinks[(Position, person.Destination)].Add(start: this, person: person);
+                Graph.PersonFirstLinks[(Position, person.Destination.Value)].Add(start: this, person: person);
             }
             state.waitingPeople = new();
         }
@@ -260,8 +260,8 @@ namespace Game1
 
             foreach (var resAmountsPacket in state.waitingResAmountsPackets.DeconstructAndClear())
             {
-                Position destination = resAmountsPacket.destination;
-                Debug.Assert(destination is not null && destination != Position);
+                Vector2 destination = resAmountsPacket.destination;
+                Debug.Assert(destination != Position);
 
                 Graph.ResFirstLinks[(Position, destination)].Add(start: this, resAmountsPacket: resAmountsPacket);
             }
@@ -275,7 +275,7 @@ namespace Game1
                 image.Color = Color.Yellow;
             else
                 image.Color = Color.White;
-            image.Draw(position: Position.ToVector2());
+            image.Draw(position: Position);
 
             text = "";
             if (industry is not null)
@@ -294,7 +294,7 @@ namespace Game1
             (
                 spriteFont: C.Content.Load<SpriteFont>("font"),
                 text: text,
-                position: state.position.ToVector2(),
+                position: state.position,
                 color: Color.Black,
                 rotation: 0,
                 origin: Vector2.Zero,

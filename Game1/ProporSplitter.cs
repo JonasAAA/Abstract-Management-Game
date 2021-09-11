@@ -105,7 +105,7 @@ namespace Game1
         public IReadOnlyDictionary<TKey, decimal> Proportions
             => proportions;
 
-        private Dictionary<TKey, decimal> proportions;
+        private readonly Dictionary<TKey, decimal> proportions;
         private readonly NecAdds necAdds;
 
         private int Count

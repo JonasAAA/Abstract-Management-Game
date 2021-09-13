@@ -33,11 +33,11 @@ namespace Game1
         public static void Match()
         {
             HashSet<EmployerAndPos> vacantEmployers =
-                (from node in Graph.Nodes
+                (from node in Graph.World.Nodes
                  where node.Employer is not null && node.Employer.Desperation() is not double.NegativeInfinity
                  select new EmployerAndPos(Employer: node.Employer, Pos: node.Position)).ToHashSet();
             HashSet<PersonAndPos> unemployedPeople =
-                (from node in Graph.Nodes
+                (from node in Graph.World.Nodes
                  from person in node.UnemployedPeople
                  select new PersonAndPos(Person: person, Pos: node.Position)).ToHashSet();
 

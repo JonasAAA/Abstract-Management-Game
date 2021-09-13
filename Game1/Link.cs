@@ -1,11 +1,12 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.UI;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 
 namespace Game1
 {
-    public class Link : IUIElement
+    public class Link : UIElement
     {
         private class DirLink : IElectrConsumer
         {
@@ -87,11 +88,11 @@ namespace Game1
                         layerDepth: 0
                     );
 
-                switch (Graph.Overlay)
+                switch (Graph.World.Overlay)
                 {
                     case <= C.MaxRes:
                         foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmounts[(int)Graph.Overlay]);
+                            DrawDisk(complProp: complProp, size: resAmounts[(int)Graph.World.Overlay]);
                         break;
                     case Overlay.AllRes:
                         foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
@@ -146,7 +147,7 @@ namespace Game1
         public bool Contains(Node node)
             => node == node1 || node == node2;
 
-        public bool Contains(Vector2 position)
+        public override bool Contains(Vector2 mousePos)
             => false;
 
         private DirLink GetDirLink(Node start)
@@ -170,8 +171,20 @@ namespace Game1
         public double ReqWattsPerSec()
             => link1To2.ReqWattsPerSec() + link2To1.ReqWattsPerSec();
 
+        public void Activate()
+        {
+            throw new NotImplementedException();
+        }
+
         public void ActiveUpdate()
-        { }
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Deactivate()
+        {
+            throw new NotImplementedException();
+        }
 
         public void Update(TimeSpan elapsed)
         {
@@ -179,7 +192,7 @@ namespace Game1
             link2To1.Update(elapsed: elapsed);
         }
 
-        public void Draw(bool active)
+        public override void Draw()
         {
             // temporary
             Texture2D pixel = C.Content.Load<Texture2D>(assetName: "pixel");
@@ -187,10 +200,10 @@ namespace Game1
             (
                 value1: Color.White,
                 value2: Color.Green,
-                amount: Graph.Overlay switch
+                amount: Graph.World.Overlay switch
                 {
-                    Overlay.People => (float)(TravelTime / Graph.MaxLinkTravelTime),
-                    _ => (float)(WattsPerKg / Graph.MaxLinkWattsPerKg)
+                    Overlay.People => (float)(TravelTime / Graph.World.MaxLinkTravelTime),
+                    _ => (float)(WattsPerKg / Graph.World.MaxLinkWattsPerKg)
                 }
             );
             C.SpriteBatch.Draw
@@ -208,6 +221,8 @@ namespace Game1
 
             link1To2.DrawTravelingRes();
             link2To1.DrawTravelingRes();
+
+            base.Draw();
         }
 
         public override int GetHashCode()

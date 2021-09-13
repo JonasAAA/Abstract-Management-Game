@@ -1,15 +1,15 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.UI;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 
 namespace Game1
 {
-    public class Node : IUIElement
+    public class Node : UIElement
     {
         public Vector2 Position
             => state.position;
@@ -23,12 +23,13 @@ namespace Game1
         private readonly Image image;
         private readonly List<Link> links;
         private Industry industry;
-        private readonly ReadOnlyCollection<KeyButton> constrKeyButtons;
+        private readonly UIRectPanel UIPanel;
         private readonly MyArray<ProporSplitter<Node>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
         private readonly KeyButton incrDestinImp, decrDestinImp, storeSwitch;
         private readonly MyArray<bool> store;
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
+        private bool active;
         private string text;
 
         public Node(NodeState state, Image image, int startPersonCount = 0)
@@ -36,12 +37,33 @@ namespace Game1
             this.state = state;
             radius = image.Width * .5f;
             this.image = image;
+            image.Color = Color.White;
             links = new();
             industry = null;
-            constrKeyButtons = new
-            (
-                list: (from key in C.firstLetterKeys select new KeyButton(key: key)).ToArray()
-            );
+            UIPanel = new UIRectVertPanel()
+            {
+                TopLeftCorner = new Vector2(C.ScreenWidth - 300, 0)
+            };
+            for (int i = 0; i < Industry.constrBuildingParams.Count; i++)
+            {
+                // hack to make lambda expression work as expected
+                int paramInd = i;
+                UIPanel.AddChild
+                (
+                    child: new Button
+                    (
+                        width: 200,
+                        height: 20,
+                        action: () =>
+                        {
+                            industry = Industry.constrBuildingParams[paramInd].MakeIndustry(state: state);
+                            ActiveUI.Remove(UIElement: UIPanel);
+                        },
+                        activeColor: Color.Yellow,
+                        passiveColor: Color.White
+                    )
+                );
+            }
             for (int i = 0; i < startPersonCount; i++)
                 state.unemployedPeople.Add(Person.GenerateNew());
             resSplittersToDestins = new
@@ -56,6 +78,7 @@ namespace Game1
             store = new(value: false);
             undecidedResAmounts = new();
             resTravelHereAmounts = new();
+            active = false;
             text = "";
         }
 
@@ -69,8 +92,8 @@ namespace Game1
         public void AddText(string text)
             => this.text += text;
 
-        public bool Contains(Vector2 position)
-            => Vector2.Distance(Position, position) <= radius;
+        public override bool Contains(Vector2 mousePos)
+            => Vector2.Distance(Position, mousePos) <= radius;
 
         public void Arrive(ResAmountsPacketsByDestin resAmountsPackets)
         {
@@ -102,20 +125,32 @@ namespace Game1
         public ulong StoredResAmount(int resInd)
             => state.storedRes[resInd];
 
-        public void ActiveUpdate()
+        public override void OnClick()
+        {
+            base.OnClick();
+            if (active)
+                return;
+            
+            image.Color = Color.Yellow;
+            if (industry is null)
+                ActiveUI.Add(UIElement: UIPanel, world: false);
+            active = true;
+        }
+
+        private void ActiveUpdate()
         {
             incrDestinImp.Update();
             decrDestinImp.Update();
             storeSwitch.Update();
-            if (Graph.Overlay <= C.MaxRes)
+            if (Graph.World.Overlay <= C.MaxRes)
             {
-                int resInd = (int)Graph.Overlay;
+                int resInd = (int)Graph.World.Overlay;
                 if (storeSwitch.Click)
                     store[resInd] = !store[resInd];
 
                 if (MyMouse.RightClick)
                 {
-                    Node destinationNode = Graph.HoveringNode();
+                    Node destinationNode = Graph.World.HoveringNode();
                     if (destinationNode is not null && destinationNode != this)
                     {
                         if (incrDestinImp.Hold)
@@ -135,29 +170,25 @@ namespace Game1
                 }
             }
 
-            if (constrKeyButtons.Count < Industry.constrBuildingParams.Count)
-                throw new Exception();
-            if (industry is null)
-            {
-                for (int i = 0; i < Industry.constrBuildingParams.Count; i++)
-                {
-                    constrKeyButtons[i].Update();
-                    if (constrKeyButtons[i].Click)
-                    {
-                        industry = Industry.constrBuildingParams[i].MakeIndustry(state: state);
-                        break;
-                    }
-                }
-            }
-            else
-                industry.ActiveUpdate();
+            industry?.ActiveUpdate();
 
-            foreach (var node in Graph.Nodes)
-                node.AddText(text: $"personal distance {Graph.PersonDists[(Position, node.Position)]:0.##}\nresource distance {Graph.ResDists[(Position, node.Position)]:0.##}\n");
+            foreach (var node in Graph.World.Nodes)
+                node.AddText(text: $"personal distance {Graph.World.PersonDists[(Position, node.Position)]:0.##}\nresource distance {Graph.World.ResDists[(Position, node.Position)]:0.##}\n");
+        }
+
+        public override void OnMouseDownWorldNotMe()
+        {
+            base.OnMouseDownWorldNotMe();
+            image.Color = Color.White;
+            ActiveUI.Remove(UIElement: UIPanel);
+            active = false;
         }
 
         public void Update(TimeSpan elapsed)
         {
+            if (active)
+                ActiveUpdate();
+
             foreach (var person in state.unemployedPeople.Concat(state.waitingPeople))
                 person.UpdateNotWorking(elapsed: elapsed);
 
@@ -200,7 +231,7 @@ namespace Game1
                     continue;
                 }
 
-                Graph.PersonFirstLinks[(Position, person.Destination.Value)].Add(start: this, person: person);
+                Graph.World.PersonFirstLinks[(Position, person.Destination.Value)].Add(start: this, person: person);
             }
             state.waitingPeople = new();
         }
@@ -263,28 +294,24 @@ namespace Game1
                 Vector2 destination = resAmountsPacket.destination;
                 Debug.Assert(destination != Position);
 
-                Graph.ResFirstLinks[(Position, destination)].Add(start: this, resAmountsPacket: resAmountsPacket);
+                Graph.World.ResFirstLinks[(Position, destination)].Add(start: this, resAmountsPacket: resAmountsPacket);
             }
         }
 
-        public void Draw(bool active)
+        public override void Draw()
         {
             //Draw amount of resources in storage
             //or write percentage of required res
-            if (active)
-                image.Color = Color.Yellow;
-            else
-                image.Color = Color.White;
             image.Draw(position: Position);
 
             text = "";
             if (industry is not null)
                 text += industry.GetText();
 
-            text += Graph.Overlay switch
+            text += Graph.World.Overlay switch
             {
-                <= C.MaxRes => $"store {store[(int)Graph.Overlay]}\n" + (state.storedRes[(int)Graph.Overlay] >= targetStoredResAmounts[(int)Graph.Overlay] ?
-                    $"have {state.storedRes[(int)Graph.Overlay] - targetStoredResAmounts[(int)Graph.Overlay]} extra resources" : $"have {(double)state.storedRes[(int)Graph.Overlay] / targetStoredResAmounts[(int)Graph.Overlay] * 100:0.}% of target stored resources\n"),
+                <= C.MaxRes => $"store {store[(int)Graph.World.Overlay]}\n" + (state.storedRes[(int)Graph.World.Overlay] >= targetStoredResAmounts[(int)Graph.World.Overlay] ?
+                    $"have {state.storedRes[(int)Graph.World.Overlay] - targetStoredResAmounts[(int)Graph.World.Overlay]} extra resources" : $"have {(double)state.storedRes[(int)Graph.World.Overlay] / targetStoredResAmounts[(int)Graph.World.Overlay] * 100:0.}% of target stored resources\n"),
                 Overlay.AllRes => $"stored total res weight {state.storedRes.TotalWeight()}",
                 Overlay.People => $"unemployed {state.unemployedPeople.Count}\n",
                 _ => throw new Exception(),
@@ -304,9 +331,9 @@ namespace Game1
             );
             text = "";
 
-            if (Graph.Overlay <= C.MaxRes)
+            if (Graph.World.Overlay <= C.MaxRes)
             {
-                var proportions = resSplittersToDestins[(int)Graph.Overlay].Proportions;
+                var proportions = resSplittersToDestins[(int)Graph.World.Overlay].Proportions;
                 decimal propSum = proportions.Values.Sum();
                 foreach (var (destinationNode, proportion) in proportions)
                 {
@@ -321,6 +348,8 @@ namespace Game1
                     );
                 }
             }
+
+            base.Draw();
         }
     }
 }

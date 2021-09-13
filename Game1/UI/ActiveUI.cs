@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -7,53 +8,120 @@ namespace Game1.UI
 {
     public static class ActiveUI
     {
-        private static List<UIElement> activeUIElements;
+        public static int Count
+            => activeUIElements.Count;
+
+        private static readonly List<UIElement> activeUIElements;
+        private static readonly HashSet<UIElement> worldUIElements, HUDUIElements;
         private static bool leftDown, prevLeftDown;
-        private static UIElement halfClicked;
+        private static UIElement halfClicked, contMouse, activeWorldElement;
 
         static ActiveUI()
         {
             activeUIElements = new();
+            worldUIElements = new();
+            HUDUIElements = new();
             leftDown = new();
             prevLeftDown = new();
             halfClicked = null;
+            contMouse = null;
+            activeWorldElement = null;
         }
 
-        public static void Add(UIElement UIElement)
-            => activeUIElements.Add(UIElement);
+        public static void Add(UIElement UIElement, bool world)
+        {
+            activeUIElements.Add(UIElement);
+            if (world)
+            {
+                if (HUDUIElements.Count is not 0)
+                    throw new ArgumentException();
+                if (!worldUIElements.Add(UIElement))
+                    throw new ArgumentException();
+            }
+            else
+            {
+                if (!HUDUIElements.Add(UIElement))
+                    throw new ArgumentException();
+            }
+        }
+
+        public static bool Remove(UIElement UIElement)
+        {
+            worldUIElements.Remove(UIElement);
+            HUDUIElements.Remove(UIElement);
+            return activeUIElements.Remove(UIElement);
+        }
 
         public static void Update()
         {
+            UIElement prevContMouse = contMouse;
+
             MouseState mouseState = Mouse.GetState();
             prevLeftDown = leftDown;
             leftDown = mouseState.LeftButton == ButtonState.Pressed;
-            Vector2 mouseScreenPos = mouseState.Position.ToVector2();
+            Vector2 mouseScreenPos = mouseState.Position.ToVector2(),
+                mouseWorldPos = C.Camera.Position(screenPos: mouseScreenPos);
+
+            contMouse = null;
+            bool? contMouseWorld = null;
+            foreach (var UIElement in Enumerable.Reverse(activeUIElements))
+            {
+                Vector2 mousePos = worldUIElements.Contains(UIElement) switch
+                {
+                    true => mouseWorldPos,
+                    false => mouseScreenPos
+                };
+
+                if (UIElement.Contains(mousePos: mousePos))
+                {
+                    contMouse = UIElement.CatchUIElement(mousePos: mousePos);
+                    if (contMouse is null)
+                        throw new Exception();
+                    contMouseWorld = worldUIElements.Contains(UIElement);
+                    break;
+                }
+            }
+
+            if (contMouse != prevContMouse)
+            {
+                prevContMouse?.OnMouseLeave();
+                contMouse?.OnMouseEnter();
+            }
 
             if (leftDown && !prevLeftDown)
             {
-                foreach (var UIElement in Enumerable.Reverse(activeUIElements))
-                    if (UIElement.Contains(mousePos: mouseScreenPos))
-                    {
-                        halfClicked = UIElement.CatchUIElement(mousePos: mouseScreenPos);
-                        break;
-                    }
+                halfClicked = contMouse;
+                if (contMouseWorld.HasValue && contMouseWorld.Value && halfClicked != activeWorldElement)
+                {
+                    activeWorldElement?.OnMouseDownWorldNotMe();
+                    activeWorldElement = null;
+                }
             }
 
             if (!leftDown && prevLeftDown)
             {
-                UIElement otherHalfClicked = null;
-                foreach (var UIElement in Enumerable.Reverse(activeUIElements))
-                    if (UIElement.Contains(mousePos: mouseScreenPos))
-                    {
-                        otherHalfClicked = UIElement.CatchUIElement(mousePos: mouseScreenPos);
-                        break;
-                    }
+                UIElement otherHalfClicked = contMouse;
                 if (halfClicked == otherHalfClicked)
-                    otherHalfClicked.OnClick();
+                {
+                    otherHalfClicked?.OnClick();
+                    if (contMouseWorld.HasValue && contMouseWorld.Value)
+                        activeWorldElement = otherHalfClicked;
+                }
+
+                halfClicked = null;
             }
         }
 
+        public static void Draw()
+        {
+            foreach (var UIElement in worldUIElements)
+                UIElement.Draw();
+        }
+
         public static void DrawHUD()
-            => activeUIElements.ForEach(UIElement => UIElement.Draw());
+        {
+            foreach (var UIElement in HUDUIElements)
+                UIElement.Draw();
+        }
     }
 }

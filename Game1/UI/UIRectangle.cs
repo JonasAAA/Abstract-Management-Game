@@ -2,7 +2,7 @@
 
 namespace Game1.UI
 {
-    public class UIRectangle : UIElement
+    public class UIRectangle : UIRectElement
     {
         private readonly Image pixelImage;
 
@@ -17,6 +17,7 @@ namespace Game1.UI
 
         public override void OnClick()
         {
+            base.OnClick();
             pixelImage.Color = new
             (
                 r: (float)C.Random(min: 0, max: 1),
@@ -26,6 +27,9 @@ namespace Game1.UI
         }
 
         public override void Draw()
-            => pixelImage.Draw(position: TopLeftCorner + new Vector2(Width, Height) * .5f);
+        {
+            pixelImage.Draw(position: TopLeftCorner + new Vector2(Width, Height) * .5f);
+            base.Draw();
+        }
     }
 }

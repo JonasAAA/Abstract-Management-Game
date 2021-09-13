@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.UI;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -9,55 +10,68 @@ using System.Linq;
 
 namespace Game1
 {
-    public static class Graph
+    public class Graph : UIElement
     {
-        public static Overlay Overlay { get; private set; }
-        public static IEnumerable<Node> Nodes
+        public static Graph World { get; private set; }
+
+        public static void InitializeWorld(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
+        {
+            if (World is not null)
+                throw new InvalidOperationException();
+
+            World = new Graph(nodes: nodes, links: links, overlay: overlay);
+
+            if (ActiveUI.Count is not 0)
+                throw new Exception();
+
+            ActiveUI.Add(UIElement: World, world: true);
+        }
+
+        public Overlay Overlay { get; private set; }
+        public IEnumerable<Node> Nodes
             => nodes;
-        public static IEnumerable<Link> Links
+        public IEnumerable<Link> Links
             => links;
-        public static ReadOnlyDictionary<(Vector2, Vector2), double> PersonDists { get; private set; }
-        public static ReadOnlyDictionary<(Vector2, Vector2), double> ResDists { get; private set; }
-        public static TimeSpan MaxLinkTravelTime { get; private set; }
-        public static double MaxLinkWattsPerKg { get; private set; }
+        public ReadOnlyDictionary<(Vector2, Vector2), double> PersonDists { get; private set; }
+        public ReadOnlyDictionary<(Vector2, Vector2), double> ResDists { get; private set; }
+        public TimeSpan MaxLinkTravelTime { get; private set; }
+        public double MaxLinkWattsPerKg { get; private set; }
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        public static ReadOnlyDictionary<(Vector2, Vector2), Link> PersonFirstLinks { get; private set; }
-        public static ReadOnlyDictionary<(Vector2, Vector2), Link> ResFirstLinks { get; private set; }
+        public ReadOnlyDictionary<(Vector2, Vector2), Link> PersonFirstLinks { get; private set; }
+        public ReadOnlyDictionary<(Vector2, Vector2), Link> ResFirstLinks { get; private set; }
 
-        private static readonly List<Node> nodes;
-        private static readonly List<Link> links;
-        private static readonly HashSet<Node> nodeSet;
-        private static readonly HashSet<Link> linkSet;
-        private static IUIElement activeElement;
-        private static readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
-        private static KeyButton[] overlayKeyButtons;
-        private static KeyButton pauseKey;
-        private static bool paused;
+        protected override IEnumerable<UIElement> Children
+            => links.Cast<UIElement>().Concat(nodes);
 
-        static Graph()
+        private readonly List<Node> nodes;
+        private readonly List<Link> links;
+        private readonly HashSet<Node> nodeSet;
+        private readonly HashSet<Link> linkSet;
+        private readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
+        private KeyButton[] overlayKeyButtons;
+        private KeyButton pauseKey;
+        private bool paused;
+
+        private Graph(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
         {
-            nodes = new();
-            links = new();
+            this.nodes = new();
+            this.links = new();
             nodeSet = new();
             linkSet = new();
-            activeElement = null;
             persDistTimeCoeff = 1;
             persDistElectrCoeff = 0;
             resDistTimeCoeff = 0;
             resDistElectrCoeff = 1;
-        }
 
-        public static void Initialize(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
-        {
             foreach (var node in nodes)
                 AddNode(node);
             foreach (var link in links)
                 AddLink(link);
 
-            MaxLinkTravelTime = Graph.links.Max(link => link.TravelTime);
-            MaxLinkWattsPerKg = Graph.links.Max(link => link.WattsPerKg);
+            MaxLinkTravelTime = this.links.Max(link => link.TravelTime);
+            MaxLinkWattsPerKg = this.links.Max(link => link.WattsPerKg);
 
             (PersonDists, PersonFirstLinks) = FindShortestPaths(distTimeCoeff: persDistTimeCoeff, distElectrCoeff: persDistElectrCoeff);
             (ResDists, ResFirstLinks) = FindShortestPaths(distTimeCoeff: resDistTimeCoeff, distElectrCoeff: resDistElectrCoeff);
@@ -85,7 +99,10 @@ namespace Game1
             paused = false;
         }
 
-        private static void AddNode(Node node)
+        public override bool Contains(Vector2 mousePos)
+            => true;
+
+        private void AddNode(Node node)
         {
             if (nodeSet.Contains(node))
                 throw new ArgumentException();
@@ -93,7 +110,7 @@ namespace Game1
             nodes.Add(node);
         }
 
-        private static void AddLink(Link link)
+        private void AddLink(Link link)
         {
             if (linkSet.Contains(link))
                 throw new ArgumentException();
@@ -106,7 +123,7 @@ namespace Game1
 
         // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
-        private static (ReadOnlyDictionary<(Vector2, Vector2), double> dists, ReadOnlyDictionary<(Vector2, Vector2), Link> firstLinks) FindShortestPaths(double distTimeCoeff, double distElectrCoeff)
+        private (ReadOnlyDictionary<(Vector2, Vector2), double> dists, ReadOnlyDictionary<(Vector2, Vector2), Link> firstLinks) FindShortestPaths(double distTimeCoeff, double distElectrCoeff)
         {
             if (distTimeCoeff < 0)
                 throw new ArgumentOutOfRangeException();
@@ -167,11 +184,11 @@ namespace Game1
         }
 
         /// <returns> returns null if not hovering above a node </returns>
-        public static Node HoveringNode()
+        public Node HoveringNode()
         {
             Node result = null;
             foreach (var node in nodes)
-                if (node.Contains(position: MyMouse.Position))
+                if (node.Contains(mousePos: MyMouse.Position))
                 {
                     result = node;
                     break;
@@ -180,8 +197,10 @@ namespace Game1
             return result;
         }
 
-        public static void Update(TimeSpan elapsed)
+        public void Update(TimeSpan elapsed)
         {
+            //prevActiveElement = activeElement;
+
             pauseKey.Update();
 
             if (paused)
@@ -199,23 +218,6 @@ namespace Game1
                 SplitRes(resInd: resInd);
 
             nodes.ForEach(node => node.EndSplitRes());
-            
-            if (MyMouse.LeftClick)
-            {
-                activeElement = null;
-                foreach (var element in nodes.Cast<IUIElement>().Concat(links))
-                    if (element.Contains(position: MyMouse.Position))
-                    {
-                        activeElement = element;
-                        break;
-                    }
-            }
-
-            foreach (var keyButton in overlayKeyButtons)
-                keyButton.Update();
-
-            if (activeElement is not null)
-                activeElement.ActiveUpdate();
 
             JobMatching.Match();
         }
@@ -286,7 +288,7 @@ namespace Game1
         /// TODO:
         /// choose random leafs
         /// </summary>
-        public static void SplitRes(int resInd)
+        public void SplitRes(int resInd)
         {
             BetterNode.Init(resInd: resInd);
             Dictionary<Node, BetterNode> betterNodes = nodes.ToDictionary
@@ -338,16 +340,7 @@ namespace Game1
                 }
         }
 
-        public static void Draw()
-        {
-            foreach (var link in links)
-                link.Draw(active: ReferenceEquals(link, activeElement));
-
-            foreach (var node in nodes)
-                node.Draw(active: node == activeElement);
-        }
-
-        public static void DrawHUD()
+        public void DrawHUD()
         {
             C.SpriteBatch.DrawString
             (

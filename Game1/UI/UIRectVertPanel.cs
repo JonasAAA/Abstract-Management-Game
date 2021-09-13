@@ -3,7 +3,7 @@ using System.Linq;
 
 namespace Game1.UI
 {
-    public class UIHorizPanel : UIPanel
+    public class UIRectVertPanel : UIRectPanel
     {
         public override Vector2 TopLeftCorner
         {
@@ -12,27 +12,30 @@ namespace Game1.UI
             {
                 base.TopLeftCorner = value;
 
-                float curWidthSum = 0;
+                float curHeightSum = 0;
                 foreach (var child in children)
                 {
-                    child.TopLeftCorner = TopLeftCorner + new Vector2(curWidthSum, 0);
-                    curWidthSum += child.Width;
+                    child.TopLeftCorner = TopLeftCorner + new Vector2(0, curHeightSum);
+                    curHeightSum += child.Height;
                 }
             }
         }
+
+        protected override void SetNewChildCoords(UIRectElement child)
+            => child.TopLeftCorner = TopLeftCorner + new Vector2(0, Height);
 
         protected override void RecalcDimensions()
         {
             Width = children switch
             {
                 null => 0,
-                not null => children.Sum(child => child.Width)
+                not null => children.Max(child => child.Width)
             };
 
             Height = children switch
             {
                 null => 0,
-                not null => children.Max(child => child.Height)
+                not null => children.Sum(child => child.Height)
             };
         }
     }

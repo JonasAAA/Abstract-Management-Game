@@ -1,6 +1,5 @@
 ﻿using Game1.UI;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
@@ -20,7 +19,8 @@ namespace Game1
             => state.unemployedPeople;
         
         private readonly NodeState state;
-        private readonly Image image;
+        private readonly Shape shape;
+        private readonly TextBox textBox;
         private readonly List<Link> links;
         private Industry industry;
         private readonly UIRectPanel UIPanel;
@@ -30,33 +30,37 @@ namespace Game1
         private readonly MyArray<bool> store;
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
         private bool active;
-        private string text;
 
-        public Node(NodeState state, Image image, int startPersonCount = 0)
+        public Node(NodeState state, Shape shape, int startPersonCount = 0)
         {
             this.state = state;
-            radius = image.Width * .5f;
-            this.image = image;
-            image.Color = Color.White;
+            this.shape = shape;
+            textBox = new(letterHeight: 20);
+            shape.CenterChanged += () => textBox.Shape.Center = shape.Center;
+            shape.Center = Position;
+            shape.CenterChanged += () => throw new InvalidOperationException();
+            shape.Color = Color.White;
             links = new();
             industry = null;
-            UIPanel = new UIRectVertPanel()
-            {
-                TopLeftCorner = new Vector2(C.ScreenWidth - 300, 0)
-            };
+            UIPanel = new UIRectVertPanel(color: Color.White);
+            UIPanel.Shape.TopLeftCorner = new Vector2(C.ScreenWidth - 300, 0);
             for (int i = 0; i < Industry.constrBuildingParams.Count; i++)
             {
-                // hack to make lambda expression work as expected
-                int paramInd = i;
+                var parameters = Industry.constrBuildingParams[i];
                 UIPanel.AddChild
                 (
-                    child: new Button
+                    child: new Button<MyRectangle>
                     (
-                        width: 200,
-                        height: 20,
+                        shape: new MyRectangle
+                        (
+                            width: 200,
+                            height: 20
+                        ),
+                        letterHeight: 20,
+                        text: "build " + parameters.industrParams.name,
                         action: () =>
                         {
-                            industry = Industry.constrBuildingParams[paramInd].MakeIndustry(state: state);
+                            industry = parameters.MakeIndustry(state: state);
                             ActiveUI.Remove(UIElement: UIPanel);
                         },
                         activeColor: Color.Yellow,
@@ -79,7 +83,16 @@ namespace Game1
             undecidedResAmounts = new();
             resTravelHereAmounts = new();
             active = false;
-            text = "";
+
+            textBox.Text = "";
+        }
+
+        protected override Shape GetShape()
+            => shape;
+
+        protected override IEnumerable<UIElement> GetChildren()
+        {
+            yield return textBox;
         }
 
         public void AddLink(Link link)
@@ -90,10 +103,7 @@ namespace Game1
         }
 
         public void AddText(string text)
-            => this.text += text;
-
-        public override bool Contains(Vector2 mousePos)
-            => Vector2.Distance(Position, mousePos) <= radius;
+            => textBox.Text += text;
 
         public void Arrive(ResAmountsPacketsByDestin resAmountsPackets)
         {
@@ -130,8 +140,8 @@ namespace Game1
             base.OnClick();
             if (active)
                 return;
-            
-            image.Color = Color.Yellow;
+
+            shape.Color = Color.Yellow;
             if (industry is null)
                 ActiveUI.Add(UIElement: UIPanel, world: false);
             active = true;
@@ -179,7 +189,7 @@ namespace Game1
         public override void OnMouseDownWorldNotMe()
         {
             base.OnMouseDownWorldNotMe();
-            image.Color = Color.White;
+            shape.Color = Color.White;
             ActiveUI.Remove(UIElement: UIPanel);
             active = false;
         }
@@ -296,19 +306,13 @@ namespace Game1
 
                 Graph.World.ResFirstLinks[(Position, destination)].Add(start: this, resAmountsPacket: resAmountsPacket);
             }
-        }
 
-        public override void Draw()
-        {
-            //Draw amount of resources in storage
-            //or write percentage of required res
-            image.Draw(position: Position);
-
-            text = "";
+            // update text
+            textBox.Text = "";
             if (industry is not null)
-                text += industry.GetText();
+                textBox.Text += industry.GetText();
 
-            text += Graph.World.Overlay switch
+            textBox.Text += Graph.World.Overlay switch
             {
                 <= C.MaxRes => $"store {store[(int)Graph.World.Overlay]}\n" + (state.storedRes[(int)Graph.World.Overlay] >= targetStoredResAmounts[(int)Graph.World.Overlay] ?
                     $"have {state.storedRes[(int)Graph.World.Overlay] - targetStoredResAmounts[(int)Graph.World.Overlay]} extra resources" : $"have {(double)state.storedRes[(int)Graph.World.Overlay] / targetStoredResAmounts[(int)Graph.World.Overlay] * 100:0.}% of target stored resources\n"),
@@ -316,20 +320,14 @@ namespace Game1
                 Overlay.People => $"unemployed {state.unemployedPeople.Count}\n",
                 _ => throw new Exception(),
             };
+        }
 
-            C.SpriteBatch.DrawString
-            (
-                spriteFont: C.Content.Load<SpriteFont>("font"),
-                text: text,
-                position: state.position,
-                color: Color.Black,
-                rotation: 0,
-                origin: Vector2.Zero,
-                scale: .15f,
-                effects: SpriteEffects.None,
-                layerDepth: 0
-            );
-            text = "";
+        public override void Draw()
+        {
+            //Draw amount of resources in storage
+            //or write percentage of required res
+
+            base.Draw();
 
             if (Graph.World.Overlay <= C.MaxRes)
             {
@@ -348,8 +346,6 @@ namespace Game1
                     );
                 }
             }
-
-            base.Draw();
         }
     }
 }

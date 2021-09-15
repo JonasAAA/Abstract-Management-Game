@@ -20,10 +20,9 @@ namespace Game1
                             position: new((i - (width - 1) * .5f) * dist, (j - (height - 1) * .5f) * dist),
                             maxBatchDemResStored: 2
                         ),
-                        image: new
+                        shape: new Disk
                         (
-                            imageName: "node",
-                            width: 64
+                            radius: 32
                         ),
                         startPersonCount: 5
                     );

@@ -5,38 +5,43 @@ namespace Game1.UI
 {
     public class UIRectVertPanel : UIRectPanel
     {
-        public override Vector2 TopLeftCorner
-        {
-            get => base.TopLeftCorner;
-            set
+        public UIRectVertPanel(Color color)
+            : base(color: color)
+            => Shape.CenterChanged += () =>
             {
-                base.TopLeftCorner = value;
-
                 float curHeightSum = 0;
                 foreach (var child in children)
                 {
-                    child.TopLeftCorner = TopLeftCorner + new Vector2(0, curHeightSum);
-                    curHeightSum += child.Height;
+                    child.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(0, curHeightSum);
+                    curHeightSum += child.Shape.Height;
                 }
-            }
-        }
+            };
 
-        protected override void SetNewChildCoords(UIRectElement child)
-            => child.TopLeftCorner = TopLeftCorner + new Vector2(0, Height);
+        protected override void SetNewChildCoords(UIElement<MyRectangle> child)
+            => child.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(0, Shape.Height);
 
-        protected override void RecalcDimensions()
+        protected override void RecalcWidth()
         {
-            Width = children switch
-            {
-                null => 0,
-                not null => children.Max(child => child.Width)
-            };
-
-            Height = children switch
-            {
-                null => 0,
-                not null => children.Sum(child => child.Height)
-            };
+            Shape.SetWidth
+            (
+                width: children switch
+                {
+                    null => 0,
+                    not null => children.Max(child => child.Shape.Width)
+                },
+                horizOrigin: MyRectangle.HorizOrigin.Left
+            );
         }
+
+        protected override void RecalcHeight()
+            => Shape.SetHeight
+            (
+                height: children switch
+                {
+                    null => 0,
+                    not null => children.Sum(child => child.Shape.Height)
+                },
+                vertOrigin: MyRectangle.VertOrigin.Top
+            );
     }
 }

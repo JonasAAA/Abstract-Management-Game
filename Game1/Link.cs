@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Game1
 {
-    public class Link : UIElement
+    public class Link : UIElement<EmptyShape>
     {
         private class DirLink : IElectrConsumer
         {
@@ -126,6 +126,7 @@ namespace Game1
         private readonly DirLink link1To2, link2To1;
 
         public Link(Node node1, Node node2, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
+            : base(shape: new EmptyShape())
         {
             if (node1 == node2)
                 throw new ArgumentException();
@@ -147,9 +148,6 @@ namespace Game1
         public bool Contains(Node node)
             => node == node1 || node == node2;
 
-        public override bool Contains(Vector2 mousePos)
-            => false;
-
         private DirLink GetDirLink(Node start)
         {
             if (start == node1)
@@ -170,21 +168,6 @@ namespace Game1
 
         public double ReqWattsPerSec()
             => link1To2.ReqWattsPerSec() + link2To1.ReqWattsPerSec();
-
-        public void Activate()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void ActiveUpdate()
-        {
-            throw new NotImplementedException();
-        }
-
-        public void Deactivate()
-        {
-            throw new NotImplementedException();
-        }
 
         public void Update(TimeSpan elapsed)
         {

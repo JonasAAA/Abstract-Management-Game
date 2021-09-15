@@ -5,23 +5,44 @@ using System.Linq;
 
 namespace Game1.UI
 {
+    public abstract class UIElement<TShape> : UIElement
+        where TShape : Shape
+    {
+        public readonly TShape Shape;
+
+        public UIElement(TShape shape)
+            => this.Shape = shape;
+
+        protected override Shape GetShape()
+            => Shape;
+    }
+
     public abstract class UIElement
     {
-        protected virtual IEnumerable<UIElement> Children
+        protected abstract Shape GetShape();
+
+        protected virtual IEnumerable<UIElement> GetChildren()
             => Enumerable.Empty<UIElement>();
 
-        public abstract bool Contains(Vector2 mousePos);
+        public bool Contains(Vector2 position)
+            => GetShape().Contains(position: position);
 
         public virtual UIElement CatchUIElement(Vector2 mousePos)
         {
-            if (!Contains(mousePos: mousePos))
+            if (!Contains(position: mousePos))
                 return null;
 
-            foreach (var child in Children.Reverse())
-                if (child.Contains(mousePos: mousePos))
-                    return child.CatchUIElement(mousePos: mousePos);
-
-            return this;
+            foreach (var child in GetChildren().Reverse())
+            {
+                var childCatchingUIElement = child.CatchUIElement(mousePos: mousePos);
+                if (childCatchingUIElement is not null)
+                    return childCatchingUIElement;
+            }
+            return GetShape().Transparent switch
+            {
+                true => null,
+                false => this
+            };
         }
 
         public virtual void OnMouseEnter()
@@ -38,7 +59,8 @@ namespace Game1.UI
 
         public virtual void Draw()
         {
-            foreach (var child in Children)
+            GetShape().Draw();
+            foreach (var child in GetChildren())
                 child.Draw();
         }
 

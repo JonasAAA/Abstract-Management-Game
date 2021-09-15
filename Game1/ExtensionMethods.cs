@@ -14,6 +14,7 @@ namespace Game1
             return sum;
         }
 
+        
         // could be optimized a la https://stackoverflow.com/questions/11030109/aggregate-vs-sum-performance-in-linq
         public static ulong Sum<T>(this IEnumerable<T> source, Func<T, ulong> selector)
             => source.Select(selector).Sum();

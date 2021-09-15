@@ -1,27 +1,36 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.Xna.Framework;
+using System.Collections.Generic;
 
 namespace Game1.UI
 {
-    public abstract class UIRectPanel : UIRectElement
+    public abstract class UIRectPanel : UIElement<MyRectangle>
     {
-        protected override IEnumerable<UIElement> Children
+        protected readonly List<UIElement<MyRectangle>> children;
+
+        protected UIRectPanel(Color color)
+            : base(shape: new())
+        {
+            Shape.Color = color;
+            children = new();
+        }
+
+        protected override IEnumerable<UIElement> GetChildren()
             => children;
 
-        protected readonly List<UIRectElement> children;
-
-        protected UIRectPanel()
-            => children = new();
-
-        public void AddChild(UIRectElement child)
+        public void AddChild(UIElement<MyRectangle> child)
         {
             SetNewChildCoords(child: child);
             children.Add(child);
-            child.DimensionsChanged += RecalcDimensions;
-            RecalcDimensions();
+            child.Shape.WidthChanged += RecalcWidth;
+            child.Shape.HeightChanged += RecalcHeight;
+            RecalcWidth();
+            RecalcHeight();
         }
 
-        protected abstract void SetNewChildCoords(UIRectElement child);
+        protected abstract void SetNewChildCoords(UIElement<MyRectangle> child);
 
-        protected abstract void RecalcDimensions();
+        protected abstract void RecalcWidth();
+
+        protected abstract void RecalcHeight();
     }
 }

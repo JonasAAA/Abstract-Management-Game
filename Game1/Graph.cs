@@ -12,6 +12,18 @@ namespace Game1
 {
     public class Graph : UIElement
     {
+        private class EndlessRect : Shape
+        {
+            public EndlessRect()
+                => Color = Color.Transparent;
+
+            public override bool Contains(Vector2 position)
+                => true;
+
+            public override void Draw()
+            { }
+        }
+
         public static Graph World { get; private set; }
 
         public static void InitializeWorld(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
@@ -41,9 +53,7 @@ namespace Game1
         /// </summary>
         public ReadOnlyDictionary<(Vector2, Vector2), Link> PersonFirstLinks { get; private set; }
         public ReadOnlyDictionary<(Vector2, Vector2), Link> ResFirstLinks { get; private set; }
-
-        protected override IEnumerable<UIElement> Children
-            => links.Cast<UIElement>().Concat(nodes);
+        private readonly EndlessRect background;
 
         private readonly List<Node> nodes;
         private readonly List<Link> links;
@@ -97,10 +107,15 @@ namespace Game1
                 action: () => paused = !paused
             );
             paused = false;
+
+            background = new();
         }
 
-        public override bool Contains(Vector2 mousePos)
-            => true;
+        protected override Shape GetShape()
+            => background;
+
+        protected override IEnumerable<UIElement> GetChildren()
+            => links.Cast<UIElement>().Concat(nodes);
 
         private void AddNode(Node node)
         {
@@ -188,7 +203,7 @@ namespace Game1
         {
             Node result = null;
             foreach (var node in nodes)
-                if (node.Contains(mousePos: MyMouse.Position))
+                if (node.Contains(position: MyMouse.Position))
                 {
                     result = node;
                     break;
@@ -199,8 +214,6 @@ namespace Game1
 
         public void Update(TimeSpan elapsed)
         {
-            //prevActiveElement = activeElement;
-
             pauseKey.Update();
 
             if (paused)

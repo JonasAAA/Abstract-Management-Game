@@ -1,30 +1,39 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using System.Collections.Generic;
 
 namespace Game1.UI
 {
-    public class Button : UIRectElement
+    public class Button<TShape> : UIElement<TShape>
+        where TShape : Shape
     {
         private readonly Action action;
         private readonly Color activeColor, passiveColor;
-        private readonly Image pixelImage;   
+        private readonly TextBox textBox;
 
-        public Button(float width, float height, Action action, Color activeColor, Color passiveColor)
-            : base(width, height)
+        public Button(TShape shape, float letterHeight, string text, Action action, Color activeColor, Color passiveColor)
+            : base(shape: shape)
         {
             this.action = action;
             this.activeColor = activeColor;
             this.passiveColor = passiveColor;
-            pixelImage = new(imageName: "pixel", width: width, height: height)
+            Shape.Color = passiveColor;
+            textBox = new(letterHeight: letterHeight)
             {
-                Color = passiveColor
+                Text = text
             };
+            Shape.CenterChanged += () => textBox.Shape.Center = Shape.Center;
+        }
+
+        protected override IEnumerable<UIElement> GetChildren()
+        { 
+            yield return textBox;
         }
 
         public override void OnMouseEnter()
         {
             base.OnMouseEnter();
-            pixelImage.Color = activeColor;
+            Shape.Color = activeColor;
         }
 
         public override void OnClick()
@@ -36,13 +45,7 @@ namespace Game1.UI
         public override void OnMouseLeave()
         {
             base.OnMouseLeave();
-            pixelImage.Color = passiveColor;
-        }
-
-        public override void Draw()
-        {
-            pixelImage.Draw(position: TopLeftCorner + new Vector2(Width, Height) * .5f);
-            base.Draw();
+            Shape.Color = passiveColor;
         }
     }
 }

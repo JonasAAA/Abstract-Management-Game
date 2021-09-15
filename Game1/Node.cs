@@ -43,7 +43,7 @@ namespace Game1
             links = new();
             industry = null;
             UIPanel = new UIRectVertPanel(color: Color.White);
-            UIPanel.Shape.TopLeftCorner = new Vector2(C.ScreenWidth - 300, 0);
+            UIPanel.Shape.TopLeftCorner = new Vector2((float)C.ScreenWidth - 300, 0);
             for (int i = 0; i < Industry.constrBuildingParams.Count; i++)
             {
                 var parameters = Industry.constrBuildingParams[i];

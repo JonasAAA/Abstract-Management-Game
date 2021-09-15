@@ -60,8 +60,8 @@ namespace Game1
         private readonly HashSet<Node> nodeSet;
         private readonly HashSet<Link> linkSet;
         private readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
-        private KeyButton[] overlayKeyButtons;
-        private KeyButton pauseKey;
+        private readonly KeyButton[] overlayKeyButtons;
+        private readonly KeyButton pauseKey;
         private bool paused;
 
         private Graph(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
@@ -203,7 +203,7 @@ namespace Game1
         {
             Node result = null;
             foreach (var node in nodes)
-                if (node.Contains(position: MyMouse.Position))
+                if (node.Contains(position: MyMouse.WorldPos))
                 {
                     result = node;
                     break;

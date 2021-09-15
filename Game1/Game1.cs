@@ -1,8 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System;
-using System.Collections.Generic;
 
 namespace Game1
 {
@@ -27,8 +25,8 @@ namespace Game1
 
         protected override void Initialize()
         {
-            graphics.PreferredBackBufferWidth = (int)C.ScreenWidth;
-            graphics.PreferredBackBufferHeight = (int)C.ScreenHeight;
+            graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             //graphics.IsFullScreen = true;
             graphics.ApplyChanges();
 
@@ -39,9 +37,10 @@ namespace Game1
         {
             C.Initialize
             (
-                scrollSpeed: 1,
                 Content: Content,
+                GraphicsDevice: GraphicsDevice,
                 spriteBatch: new(GraphicsDevice),
+                scrollSpeed: 1,
                 resColors: new()
                 {
                     [0] = Color.Yellow,

@@ -9,16 +9,20 @@ namespace Game1
 {
     public static class C
     {
+        public const int standardScreenHeight = 1080;
+        public static double ScreenWidth
+            => (double)GraphicsDevice.Viewport.Width * standardScreenHeight / GraphicsDevice.Viewport.Height;
+        public static double ScreenHeight
+            => standardScreenHeight;
+
         public const Overlay MaxRes = (Overlay)2;
         public static readonly ReadOnlyCollection<Keys> numericKeys, firstLetterKeys;
-        public static uint ScreenWidth
-            => (uint)GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-        public static uint ScreenHeight
-            => (uint)GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
         public static ConstArray<Color> ResColors { get; private set; }
         public static ContentManager Content { get; private set; }
+        public static GraphicsDevice GraphicsDevice { get; private set; }
         public static SpriteBatch SpriteBatch { get; private set; }
-        public static Camera Camera { get; private set; }
+        public static WorldCamera WorldCamera { get; private set; }
+        public static HUDCamera HUDCamera { get; private set; }
 
         public static readonly double minPosDouble;
         public static readonly decimal minPosDecimal;
@@ -39,11 +43,13 @@ namespace Game1
             );
         }
 
-        public static void Initialize(float scrollSpeed, ContentManager Content, SpriteBatch spriteBatch, ConstArray<Color> resColors)
+        public static void Initialize(ContentManager Content, GraphicsDevice GraphicsDevice, SpriteBatch spriteBatch, float scrollSpeed, ConstArray<Color> resColors)
         {
-            Camera = new(scrollSpeed);
             C.Content = Content;
+            C.GraphicsDevice = GraphicsDevice;
             SpriteBatch = spriteBatch;
+            WorldCamera = new(scrollSpeed);
+            HUDCamera = new();
             ResColors = resColors;
         }
 
@@ -64,7 +70,6 @@ namespace Game1
 
         public static bool IsTiny(decimal value)
             => Math.Abs(value) < minPosDecimal;
-
 
         public static double DonePart(TimeSpan timeLeft, TimeSpan duration)
         {

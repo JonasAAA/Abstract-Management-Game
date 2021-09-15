@@ -8,6 +8,7 @@ namespace Game1.UI
 {
     public static class ActiveUI
     {
+        public static bool MouseAboveHUD { get; private set; }
         public static int Count
             => activeUIElements.Count;
 
@@ -26,6 +27,7 @@ namespace Game1.UI
             halfClicked = null;
             contMouse = null;
             activeWorldElement = null;
+            MouseAboveHUD = true;
         }
 
         public static void Add(UIElement UIElement, bool world)
@@ -60,16 +62,17 @@ namespace Game1.UI
             prevLeftDown = leftDown;
             leftDown = mouseState.LeftButton == ButtonState.Pressed;
             Vector2 mouseScreenPos = mouseState.Position.ToVector2(),
-                mouseWorldPos = C.Camera.Position(screenPos: mouseScreenPos);
+                mouseWorldPos = C.WorldCamera.WorldPos(screenPos: mouseScreenPos),
+                mouseHUDPos = C.HUDCamera.HUDPos(screenPos: mouseScreenPos);
 
             contMouse = null;
-            bool? contMouseHUD = null;
+            MouseAboveHUD = false;
             foreach (var UIElement in Enumerable.Reverse(activeUIElements))
             {
                 Vector2 mousePos = worldUIElements.Contains(UIElement) switch
                 {
                     true => mouseWorldPos,
-                    false => mouseScreenPos
+                    false => mouseHUDPos
                 };
 
                 UIElement catchingUIElement = UIElement.CatchUIElement(mousePos: mousePos);
@@ -77,7 +80,7 @@ namespace Game1.UI
                 if (catchingUIElement is not null)
                 {
                     contMouse = catchingUIElement;
-                    contMouseHUD = HUDUIElements.Contains(UIElement);
+                    MouseAboveHUD = HUDUIElements.Contains(UIElement);
                     break;
                 }
             }
@@ -91,7 +94,7 @@ namespace Game1.UI
             if (leftDown && !prevLeftDown)
             {
                 halfClicked = contMouse;
-                if (contMouseHUD.HasValue && !contMouseHUD.Value && halfClicked != activeWorldElement)
+                if (!MouseAboveHUD && halfClicked != activeWorldElement)
                 {
                     activeWorldElement?.OnMouseDownWorldNotMe();
                     activeWorldElement = null;
@@ -104,7 +107,7 @@ namespace Game1.UI
                 if (halfClicked == otherHalfClicked)
                 {
                     otherHalfClicked?.OnClick();
-                    if (contMouseHUD.HasValue && !contMouseHUD.Value)
+                    if (!MouseAboveHUD)
                         activeWorldElement = otherHalfClicked;
                 }
 
@@ -114,14 +117,15 @@ namespace Game1.UI
 
         public static void Draw()
         {
+            C.WorldCamera.BeginDraw();
             foreach (var UIElement in worldUIElements)
                 UIElement.Draw();
-        }
+            C.WorldCamera.EndDraw();
 
-        public static void DrawHUD()
-        {
+            C.HUDCamera.BeginDraw();
             foreach (var UIElement in HUDUIElements)
                 UIElement.Draw();
+            C.HUDCamera.EndDraw();
         }
     }
 }

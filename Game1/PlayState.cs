@@ -1,4 +1,5 @@
 ﻿using Game1.UI;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -17,7 +18,7 @@ namespace Game1
                     (
                         state: new
                         (
-                            position: new((i - (width - 1) * .5f) * dist, (j - (height - 1) * .5f) * dist),
+                            position: new Vector2(i - (width - 1) * .5f, j - (height - 1) * .5f) * dist,
                             maxBatchDemResStored: 2
                         ),
                         shape: new Disk
@@ -69,7 +70,7 @@ namespace Game1
 
         public void Update(TimeSpan elapsed)
         {
-            C.Camera.Update();
+            C.WorldCamera.Update(canScroll: !ActiveUI.MouseAboveHUD);
 
             ActiveUI.Update();
 
@@ -77,14 +78,6 @@ namespace Game1
         }
 
         public void Draw()
-        {
-            C.Camera.BeginDraw();
-            ActiveUI.Draw();
-            C.Camera.EndDraw();
-
-            C.SpriteBatch.Begin();
-            ActiveUI.DrawHUD();
-            C.SpriteBatch.End();
-        }
+            => ActiveUI.Draw();
     }
 }

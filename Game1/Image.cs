@@ -32,17 +32,14 @@ namespace Game1
         }
 
         public void Draw(Vector2 position, float rotation = 0)
-            => C.SpriteBatch.Draw
+            => C.Draw
             (
                 texture: texture,
                 position: position,
-                sourceRectangle: null,
                 color: Color,
                 rotation: rotation,
                 origin: origin,
-                scale: scale,
-                effects: SpriteEffects.None,
-                layerDepth: 0
+                scale: scale
             );
     }
 }

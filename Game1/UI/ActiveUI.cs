@@ -30,21 +30,33 @@ namespace Game1.UI
             MouseAboveHUD = true;
         }
 
-        public static void Add(UIElement UIElement, bool world)
+        public static void AddWorldElement(UIElement UIElement)
         {
             activeUIElements.Add(UIElement);
-            if (world)
-            {
-                if (HUDUIElements.Count is not 0)
-                    throw new ArgumentException();
-                if (!worldUIElements.Add(UIElement))
-                    throw new ArgumentException();
-            }
-            else
-            {
-                if (!HUDUIElements.Add(UIElement))
-                    throw new ArgumentException();
-            }
+            if (HUDUIElements.Count is not 0)
+                throw new ArgumentException();
+            if (!worldUIElements.Add(UIElement))
+                throw new ArgumentException();
+        }
+
+        public static void AddHUDElement(UIElement<MyRectangle> UIElement, HorizPos horizPos, VertPos vertPos)
+        {
+            Vector2 HUDCenter = new((float)(C.ScreenWidth * .5), (float)(C.ScreenHeight * .5));
+            void SetUIElementPosition()
+                => UIElement.Shape.SetPosition
+                (
+                    position: HUDCenter + new Vector2((int)horizPos * HUDCenter.X, (int)vertPos * HUDCenter.Y),
+                    horizOrigin: horizPos,
+                    vertOrigin: vertPos
+                );
+
+            SetUIElementPosition();
+            UIElement.Shape.WidthChanged += SetUIElementPosition;
+            UIElement.Shape.HeightChanged += SetUIElementPosition;
+
+            activeUIElements.Add(UIElement);
+            if (!HUDUIElements.Add(UIElement))
+                throw new ArgumentException();
         }
 
         public static bool Remove(UIElement UIElement)

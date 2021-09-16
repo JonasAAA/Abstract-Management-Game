@@ -15,16 +15,8 @@ namespace Game1.UI
                 {
                     text = value;
                     Vector2 textDims = font.MeasureString(text) * scale;
-                    Shape.SetWidth
-                    (
-                        width: textDims.X,
-                        horizOrigin: MyRectangle.HorizOrigin.Middle
-                    );
-                    Shape.SetHeight
-                    (
-                        height: textDims.Y,
-                        vertOrigin: MyRectangle.VertOrigin.Middle
-                    );
+                    Shape.Width = textDims.X;
+                    Shape.Height = textDims.Y;
                 }
             }
         }
@@ -46,17 +38,14 @@ namespace Game1.UI
         public override void Draw()
         {
             base.Draw();
-            C.SpriteBatch.DrawString
+            C.DrawString
             (
                 spriteFont: font,
                 text: text,
                 position: Shape.TopLeftCorner,
                 color: TextColor,
-                rotation: 0,
                 origin: Vector2.Zero,
-                scale: scale,
-                effects: SpriteEffects.None,
-                layerDepth: 0
+                scale: scale
             );
         }
     }

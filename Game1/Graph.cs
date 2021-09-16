@@ -26,17 +26,12 @@ namespace Game1
 
         public static Graph World { get; private set; }
 
-        public static void InitializeWorld(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
+        public static void InitializeWorld(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay, float letterHeight)
         {
             if (World is not null)
                 throw new InvalidOperationException();
 
-            World = new Graph(nodes: nodes, links: links, overlay: overlay);
-
-            if (ActiveUI.Count is not 0)
-                throw new Exception();
-
-            ActiveUI.Add(UIElement: World, world: true);
+            World = new Graph(nodes: nodes, links: links, overlay: overlay, letterHeight);
         }
 
         public Overlay Overlay { get; private set; }
@@ -62,9 +57,10 @@ namespace Game1
         private readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
         private readonly KeyButton[] overlayKeyButtons;
         private readonly KeyButton pauseKey;
+        private readonly TextBox globalTextBox;
         private bool paused;
 
-        private Graph(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
+        private Graph(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay, float letterHeight)
         {
             this.nodes = new();
             this.links = new();
@@ -109,6 +105,21 @@ namespace Game1
             paused = false;
 
             background = new();
+            
+            if (ActiveUI.Count is not 0)
+                throw new Exception();
+
+            ActiveUI.AddWorldElement(UIElement: this);
+
+            globalTextBox = new(letterHeight: letterHeight);
+            globalTextBox.Shape.MinWidth = 250;
+            globalTextBox.Shape.Color = Color.White;
+            ActiveUI.AddHUDElement
+            (
+                UIElement: globalTextBox,
+                horizPos: HorizPos.Left,
+                vertPos: VertPos.Top
+            );
         }
 
         protected override Shape GetShape()
@@ -233,6 +244,8 @@ namespace Game1
             nodes.ForEach(node => node.EndSplitRes());
 
             JobMatching.Match();
+
+            globalTextBox.Text = $"overlay {Overlay}\n" + ElectricityDistributor.Summary();
         }
 
         private class BetterNode
@@ -351,23 +364,6 @@ namespace Game1
                     betterNode.node.SplitRes(resInd: resInd, maxExtraResFunc: MaxExtraRes);
                     betterNode.isSplitAleady = true;
                 }
-        }
-
-        public void DrawHUD()
-        {
-            C.SpriteBatch.DrawString
-            (
-                spriteFont: C.Content.Load<SpriteFont>("font"),
-                text: $"overlay {Overlay}",
-                position: new Vector2(10, 100),
-                color: Color.Black,
-                rotation: 0,
-                origin: Vector2.Zero,
-                scale: .15f,
-                effects: SpriteEffects.None,
-                layerDepth: 0
-            );
-            ElectricityDistributor.DrawHUD();
         }
     }
 }

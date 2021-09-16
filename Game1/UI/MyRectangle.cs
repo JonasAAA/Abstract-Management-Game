@@ -6,34 +6,143 @@ namespace Game1.UI
 {
     public class MyRectangle : Shape
     {
-        public enum VertOrigin
+        private static class OutlineDrawer
         {
-            Top = -1,
-            Middle = 0,
-            Bottom = 1
+            private static readonly Texture2D pixelTexture;
+
+            static OutlineDrawer()
+                => pixelTexture = C.Content.Load<Texture2D>("pixel");
+            
+            /// <param name="toLeft">is start top, end is bottom</param>
+            public static void Draw(Vector2 Start, Vector2 End, Color Color, bool toLeft = false)
+            {
+                Vector2 direction = End - Start;
+                direction.Normalize();
+                Vector2 origin = toLeft switch
+                {
+                    true => new Vector2(.5f, 1),
+                    false => new Vector2(.5f, 0)
+                };
+                C.Draw
+                (
+                    texture: pixelTexture,
+                    position: (Start + End) / 2,
+                    color: Color,
+                    rotation: C.Rotation(vector: direction),
+                    origin: origin,
+                    scale: new Vector2(Vector2.Distance(Start, End), outlineWidth)
+                );
+            }
         }
 
-        public enum HorizOrigin
+        public static readonly float outlineWidth;
+
+        static MyRectangle()
+            => outlineWidth = 0;
+
+        public float Width
         {
-            Left = -1,
-            Middle = 0,
-            Right = 1
+            get => width;
+            set
+            {
+                value = Math.Max(value, minWidth);
+                if (width != value)
+                {
+                    width = value;
+                    WidthChanged?.Invoke();
+                }
+            }
+        }
+        public float Height
+        {
+            get => height;
+            set
+            {
+                value = Math.Max(value, minHeight);
+                if (height != value)
+                {
+                    height = value;
+                    HeightChanged?.Invoke();
+                }
+            }
+        }
+        public float MinWidth
+        {
+            get => minWidth;
+            set
+            {
+                minWidth = value;
+                if (width < minWidth)
+                    width = minWidth;
+            }
+        }
+        public float MinHeight
+        {
+            get => minHeight;
+            set
+            {
+                minHeight = value;
+                if (height < minHeight)
+                    height = minHeight;
+            }
         }
 
-        public float Width { get; private set; }
-        public float Height { get; private set; }
+        private float width, height, minWidth, minHeight;
+
         public Vector2 TopLeftCorner
         {
             get => GetPosition
             (
-                horizOrigin: HorizOrigin.Left,
-                vertOrigin: VertOrigin.Top
+                horizOrigin: HorizPos.Left,
+                vertOrigin: VertPos.Top
             );
             set => SetPosition
             (
                 position: value,
-                horizOrigin: HorizOrigin.Left,
-                vertOrigin: VertOrigin.Top
+                horizOrigin: HorizPos.Left,
+                vertOrigin: VertPos.Top
+            );
+        }
+        public Vector2 TopRightCorner
+        {
+            get => GetPosition
+            (
+                horizOrigin: HorizPos.Right,
+                vertOrigin: VertPos.Top
+            );
+            set => SetPosition
+            (
+                position: value,
+                horizOrigin: HorizPos.Right,
+                vertOrigin: VertPos.Top
+            );
+        }
+        public Vector2 BottomLeftCorner
+        {
+            get => GetPosition
+            (
+                horizOrigin: HorizPos.Left,
+                vertOrigin: VertPos.Bottom
+            );
+            set => SetPosition
+            (
+                position: value,
+                horizOrigin: HorizPos.Left,
+                vertOrigin: VertPos.Bottom
+            );
+        }
+        public Vector2 BottomRightCorner
+        {
+            get => GetPosition
+            (
+                horizOrigin: HorizPos.Right,
+                vertOrigin: VertPos.Bottom
+            );
+            set => SetPosition
+            (
+                position: value,
+                horizOrigin: HorizPos.Right,
+                vertOrigin: VertPos.Bottom
             );
         }
 
@@ -42,54 +151,29 @@ namespace Game1.UI
         private readonly Texture2D pixelTexture;
 
         public MyRectangle()
-            : this(width: 0, height: 0)
+            : this(width: 2 * outlineWidth, height: 2 * outlineWidth)
         { }
 
         public MyRectangle(float width, float height)
         {
-            Width = width;
-            Height = height;
+            if (width < 2 * outlineWidth)
+                throw new ArgumentOutOfRangeException();
+            this.width = width;
+
+            if (height < 2 * outlineWidth)
+                throw new ArgumentOutOfRangeException();
+            this.height = height;
+
             pixelTexture = C.Content.Load<Texture2D>("pixel");
+
+            MinWidth = 0;
+            MinHeight = 0;
         }
 
-        public void SetWidth(float width, HorizOrigin horizOrigin)
-        {
-            float x = GetX(horizOrigin: horizOrigin);
-            if (Width != width)
-            {
-                Width = width;
-                WidthChanged?.Invoke();
-            }
-            SetX(x: x, horizOrigin: horizOrigin);
-        }
+        public Vector2 GetPosition(HorizPos horizOrigin, VertPos vertOrigin)
+            => new(Center.X + (int)horizOrigin * Width * .5f, Center.Y + (int)vertOrigin * Height * .5f);
 
-        private float GetX(HorizOrigin horizOrigin)
-            => Center.X + (int)horizOrigin * Width * .5f;
-
-        private void SetX(float x, HorizOrigin horizOrigin)
-            => Center = new Vector2(x - (int)horizOrigin * Width * .5f, Center.Y);
-
-        public void SetHeight(float height, VertOrigin vertOrigin)
-        {
-            float y = GetY(vertOrigin: vertOrigin);
-            if (Height != height)
-            {
-                Height = height;
-                HeightChanged?.Invoke();
-            }
-            SetY(y: y, vertOrigin: vertOrigin);
-        }
-
-        private float GetY(VertOrigin vertOrigin)
-            => Center.Y + (int)vertOrigin * Height * .5f;
-
-        private void SetY(float y, VertOrigin vertOrigin)
-            => Center = new Vector2(Center.X, y - (int)vertOrigin * Height * .5f);
-
-        private Vector2 GetPosition(HorizOrigin horizOrigin, VertOrigin vertOrigin)
-            => new(GetX(horizOrigin: horizOrigin), GetY(vertOrigin: vertOrigin));
-
-        private Vector2 SetPosition(Vector2 position, HorizOrigin horizOrigin, VertOrigin vertOrigin)
+        public void SetPosition(Vector2 position, HorizPos horizOrigin, VertPos vertOrigin)
             => Center = new Vector2(position.X - (int)horizOrigin * Width * .5f, position.Y - (int)vertOrigin * Height * .5f);
 
         public override bool Contains(Vector2 position)
@@ -100,19 +184,48 @@ namespace Game1.UI
 
         public override void Draw()
         {
-            if (!Transparent)
-                C.SpriteBatch.Draw
-                (
-                    texture: pixelTexture,
-                    position: TopLeftCorner,
-                    sourceRectangle: null,
-                    color: Color,
-                    rotation: 0,
-                    origin: Vector2.Zero,
-                    scale: new Vector2(Width, Height),
-                    effects: SpriteEffects.None,
-                    layerDepth: 0
-                );
+            if (Transparent)
+                return;
+            
+            C.Draw
+            (
+                texture: pixelTexture,
+                position: TopLeftCorner,
+                color: Color,
+                rotation: 0,
+                origin: Vector2.Zero,
+                scale: new Vector2(Width, Height)
+            );
+
+            Color outlineColor = Color.Black;//Color.Lerp(Color.Red, Color, amount: .9f);
+
+            OutlineDrawer.Draw
+            (
+                Start: TopLeftCorner,
+                End: TopRightCorner,
+                Color: outlineColor
+            );
+
+            OutlineDrawer.Draw
+            (
+                Start: TopRightCorner,
+                End: BottomRightCorner,
+                Color: outlineColor
+            );
+
+            OutlineDrawer.Draw
+            (
+                Start: BottomRightCorner,
+                End: BottomLeftCorner,
+                Color: outlineColor
+            );
+
+            OutlineDrawer.Draw
+            (
+                Start: BottomLeftCorner,
+                End: TopLeftCorner,
+                Color: outlineColor
+            );
         }
     }
 }

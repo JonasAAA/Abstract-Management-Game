@@ -80,20 +80,7 @@ namespace Game1
             }
         }
 
-        public static void DrawHUD()
-        {
-            C.SpriteBatch.DrawString
-            (
-                spriteFont: C.Content.Load<SpriteFont>("font"),
-                text: $"required: {totReqWattsPerSec:0.##}\nproduced: {totProdWattsPerSec:0.##}",
-                position: new Vector2(10, 10),
-                color: Color.Black,
-                rotation: 0,
-                origin: Vector2.Zero,
-                scale: .15f,
-                effects: SpriteEffects.None,
-                layerDepth: 0
-            );
-        }
+        public static string Summary()
+            => $"required electricity: {totReqWattsPerSec:0.##}\nproduced electricity: {totProdWattsPerSec:0.##}\n";
     }
 }

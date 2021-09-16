@@ -40,17 +40,14 @@ namespace Game1.UI
         public override void Draw()
         {
             if (!Transparent)
-                C.SpriteBatch.Draw
+                C.Draw
                 (
                     texture: diskTexture,
                     position: Center,
-                    sourceRectangle: null,
                     color: Color,
                     rotation: 0,
                     origin: new Vector2(diskTexture.Width, diskTexture.Height) * .5f,
-                    scale: 2 * radius / diskTexture.Width,
-                    effects: SpriteEffects.None,
-                    layerDepth: 0
+                    scale: 2 * radius / diskTexture.Width
                 );
         }
     }

@@ -10,6 +10,7 @@ namespace Game1
     {
         public PlayState()
         {
+            const float letterHeight = 20;
             const int width = 8, height = 5, dist = 200;
             Node[,] nodes = new Node[width, height];
             for (int i = 0; i < width; i++)
@@ -25,6 +26,7 @@ namespace Game1
                         (
                             radius: 32
                         ),
+                        letterHeight: letterHeight,
                         startPersonCount: 5
                     );
 
@@ -64,7 +66,8 @@ namespace Game1
                 nodes: from Node node in nodes
                        select node,
                 links: links,
-                overlay: Overlay.Res0
+                overlay: Overlay.Res0,
+                letterHeight: letterHeight
             );
         }
 

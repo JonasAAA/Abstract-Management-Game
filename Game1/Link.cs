@@ -75,17 +75,14 @@ namespace Game1
             {
                 // temporary
                 void DrawDisk(double complProp, double size)
-                    => C.SpriteBatch.Draw
+                    => C.Draw
                     (
                         texture: diskTexture,
                         position: begin.Position + (float)complProp * (end.Position - begin.Position),
-                        sourceRectangle: null,
                         color: Color.Black,
                         rotation: 0,
                         origin: new Vector2(diskTexture.Width * .5f, diskTexture.Height * .5f),
-                        scale: (float)Math.Sqrt(size) * 2 / diskTexture.Width,
-                        effects: SpriteEffects.None,
-                        layerDepth: 0
+                        scale: (float)Math.Sqrt(size) * 2 / diskTexture.Width
                     );
 
                 switch (Graph.World.Overlay)
@@ -189,17 +186,14 @@ namespace Game1
                     _ => (float)(WattsPerKg / Graph.World.MaxLinkWattsPerKg)
                 }
             );
-            C.SpriteBatch.Draw
+            C.Draw
             (
                 texture: pixel,
                 position: (node1.Position + node2.Position) / 2,
-                sourceRectangle: null,
                 color: color,
                 rotation: C.Rotation(vector: node1.Position - node2.Position),
                 origin: new Vector2(.5f, .5f),
-                scale: new Vector2(Vector2.Distance(node1.Position, node2.Position), 10),
-                effects: SpriteEffects.None,
-                layerDepth: 0
+                scale: new Vector2(Vector2.Distance(node1.Position, node2.Position), 10)
             );
 
             link1To2.DrawTravelingRes();

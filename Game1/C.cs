@@ -85,5 +85,47 @@ namespace Game1
 
         public static bool IsSuitable(double value)
             => value is double.NegativeInfinity || IsInSuitableRange(value: value);
+
+        public static void Draw(Texture2D texture, Vector2 position, Color color, float rotation, Vector2 origin, float scale)
+            => SpriteBatch.Draw
+            (
+                texture: texture,
+                position: position,
+                sourceRectangle: null,
+                color: color,
+                rotation: rotation,
+                origin: origin,
+                scale: scale,
+                effects: SpriteEffects.None,
+                layerDepth: 0
+            );
+
+        public static void Draw(Texture2D texture, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale)
+            => SpriteBatch.Draw
+            (
+                texture: texture,
+                position: position,
+                sourceRectangle: null,
+                color: color,
+                rotation: rotation,
+                origin: origin,
+                scale: scale,
+                effects: SpriteEffects.None,
+                layerDepth: 0
+            );
+
+        public static void DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color, Vector2 origin, float scale)
+            => SpriteBatch.DrawString
+            (
+                spriteFont: spriteFont,
+                text: text,
+                position: position,
+                color: color,
+                rotation: 0,
+                origin: origin,
+                scale: scale,
+                effects: SpriteEffects.None,
+                layerDepth: 0
+            );
     }
 }

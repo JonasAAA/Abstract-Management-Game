@@ -3,43 +3,38 @@ using System.Linq;
 
 namespace Game1.UI
 {
-    public class UIRectHorizPanel : UIRectPanel
+    public class UIRectHorizPanel<TChild> : UIRectPanel<TChild>
+        where TChild : UIElement<MyRectangle>
     {
         public UIRectHorizPanel(Color color)
             : base(color: color)
-            => Shape.CenterChanged += () =>
-            {
-                float curWidthSum = 0;
-                foreach (var child in children)
-                {
-                    child.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(curWidthSum, 0);
-                    curWidthSum += child.Shape.Width;
-                }
-            };
+        { }
 
-        protected override void SetNewChildCoords(UIElement<MyRectangle> child)
-            => child.Shape.TopLeftCorner = new Vector2(Shape.Width, 0);
+        protected override void SetNewChildCoords(TChild child)
+            => child.Shape.TopLeftCorner = new Vector2(Shape.Width - MyRectangle.outlineWidth, MyRectangle.outlineWidth);
+
+        protected override void RecalcChildrenPos()
+        {
+            float curWidthSum = 0;
+            foreach (var child in children)
+            {
+                child.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(curWidthSum + MyRectangle.outlineWidth, MyRectangle.outlineWidth);
+                curWidthSum += child.Shape.Width;
+            }
+        }
 
         protected override void RecalcWidth()
-            => Shape.SetWidth
-            (
-                width: children switch
-                {
-                    null => 0,
-                    not null => children.Sum(child => child.Shape.Width)
-                },
-                horizOrigin: MyRectangle.HorizOrigin.Left
-            );
+            => Shape.Width = 2 * MyRectangle.outlineWidth + children.Count switch
+            {
+                0 => 0,
+                not 0 => children.Sum(child => child.Shape.Width)
+            };
 
         protected override void RecalcHeight()
-            => Shape.SetHeight
-            (
-                height: children switch
-                {
-                    null => 0,
-                    not null => children.Max(child => child.Shape.Height)
-                },
-                vertOrigin: MyRectangle.VertOrigin.Top
-            );
+            => Shape.Height = 2 * MyRectangle.outlineWidth + children.Count switch
+            {
+                0 => 0,
+                not 0 => children.Max(child => child.Shape.Height)
+            };
     }
 }

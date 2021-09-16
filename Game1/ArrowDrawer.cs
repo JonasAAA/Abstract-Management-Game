@@ -19,17 +19,14 @@ namespace Game1
             if (pixel is null)
                 throw new Exception();
 
-            C.SpriteBatch.Draw
+            C.Draw
             (
                 texture: pixel,
                 position: (start + end) / 2,
-                sourceRectangle: null,
                 color: color,
                 rotation: C.Rotation(vector: start - end),
                 origin: new Vector2(.5f, .5f),
-                scale: new Vector2(Vector2.Distance(start, end), 10),
-                effects: SpriteEffects.None,
-                layerDepth: 0
+                scale: new Vector2(Vector2.Distance(start, end), 10)
             );
         }
     }

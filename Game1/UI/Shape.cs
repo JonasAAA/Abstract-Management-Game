@@ -7,7 +7,7 @@ namespace Game1.UI
     {
         public bool Transparent
             => Color.A is 0;
-        public Color Color { protected get; set; }
+        public Color Color { get; set; }
         public Vector2 Center
         {
             get => center;

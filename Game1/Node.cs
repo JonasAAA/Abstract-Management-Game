@@ -23,7 +23,7 @@ namespace Game1
         private readonly TextBox textBox;
         private readonly List<Link> links;
         private Industry industry;
-        private readonly UIRectPanel UIPanel;
+        private readonly UIRectPanel<UIElement<MyRectangle>> UIPanel;
         private readonly MyArray<ProporSplitter<Node>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
         private readonly KeyButton incrDestinImp, decrDestinImp, storeSwitch;
@@ -31,42 +31,39 @@ namespace Game1
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
         private bool active;
 
-        public Node(NodeState state, Shape shape, int startPersonCount = 0)
+        public Node(NodeState state, Shape shape, float letterHeight, int startPersonCount = 0)
         {
             this.state = state;
             this.shape = shape;
-            textBox = new(letterHeight: 20);
+            textBox = new(letterHeight: letterHeight);
             shape.CenterChanged += () => textBox.Shape.Center = shape.Center;
             shape.Center = Position;
             shape.CenterChanged += () => throw new InvalidOperationException();
             shape.Color = Color.White;
             links = new();
             industry = null;
-            UIPanel = new UIRectVertPanel(color: Color.White);
-            UIPanel.Shape.TopLeftCorner = new Vector2((float)C.ScreenWidth - 300, 0);
+            UIPanel = new UIRectVertPanel<UIElement<MyRectangle>>(color: Color.White);
             for (int i = 0; i < Industry.constrBuildingParams.Count; i++)
             {
                 var parameters = Industry.constrBuildingParams[i];
-                UIPanel.AddChild
+                Button<MyRectangle> button = new
                 (
-                    child: new Button<MyRectangle>
+                    shape: new MyRectangle
                     (
-                        shape: new MyRectangle
-                        (
-                            width: 200,
-                            height: 20
-                        ),
-                        letterHeight: 20,
-                        text: "build " + parameters.industrParams.name,
-                        action: () =>
-                        {
-                            industry = parameters.MakeIndustry(state: state);
-                            ActiveUI.Remove(UIElement: UIPanel);
-                        },
-                        activeColor: Color.Yellow,
-                        passiveColor: Color.White
-                    )
+                        width: 200,
+                        height: 20
+                    ),
+                    letterHeight: letterHeight,
+                    text: "build " + parameters.industrParams.name,
+                    activeColor: Color.Yellow,
+                    passiveColor: Color.White
                 );
+                button.Click += () =>
+                {
+                    industry = parameters.MakeIndustry(state: state);
+                    ActiveUI.Remove(UIElement: UIPanel);
+                };
+                UIPanel.AddChild(child: button);
             }
             for (int i = 0; i < startPersonCount; i++)
                 state.unemployedPeople.Add(Person.GenerateNew());
@@ -143,7 +140,12 @@ namespace Game1
 
             shape.Color = Color.Yellow;
             if (industry is null)
-                ActiveUI.Add(UIElement: UIPanel, world: false);
+                ActiveUI.AddHUDElement
+                (
+                    UIElement: UIPanel,
+                    horizPos: HorizPos.Right,
+                    vertPos: VertPos.Top
+                );
             active = true;
         }
 

@@ -8,10 +8,10 @@ namespace Game1.UI
     public abstract class UIElement<TShape> : UIElement
         where TShape : Shape
     {
-        public readonly TShape Shape;
+        public virtual TShape Shape { get; }
 
         public UIElement(TShape shape)
-            => this.Shape = shape;
+            => Shape = shape;
 
         protected override Shape GetShape()
             => Shape;

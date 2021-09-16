@@ -3,45 +3,38 @@ using System.Linq;
 
 namespace Game1.UI
 {
-    public class UIRectVertPanel : UIRectPanel
+    public class UIRectVertPanel<TChild> : UIRectPanel<TChild>
+        where TChild : UIElement<MyRectangle>
     {
         public UIRectVertPanel(Color color)
             : base(color: color)
-            => Shape.CenterChanged += () =>
-            {
-                float curHeightSum = 0;
-                foreach (var child in children)
-                {
-                    child.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(0, curHeightSum);
-                    curHeightSum += child.Shape.Height;
-                }
-            };
+        { }       
 
-        protected override void SetNewChildCoords(UIElement<MyRectangle> child)
-            => child.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(0, Shape.Height);
+        protected override void SetNewChildCoords(TChild child)
+            => child.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(MyRectangle.outlineWidth, Shape.Height - MyRectangle.outlineWidth);
 
-        protected override void RecalcWidth()
+        protected override void RecalcChildrenPos()
         {
-            Shape.SetWidth
-            (
-                width: children switch
-                {
-                    null => 0,
-                    not null => children.Max(child => child.Shape.Width)
-                },
-                horizOrigin: MyRectangle.HorizOrigin.Left
-            );
+            float curHeightSum = 0;
+            foreach (var child in children)
+            {
+                child.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(MyRectangle.outlineWidth, curHeightSum + MyRectangle.outlineWidth);
+                curHeightSum += child.Shape.Height;
+            }
         }
 
+        protected override void RecalcWidth()
+            => Shape.Width = 2 * MyRectangle.outlineWidth + children.Count switch
+            {
+                0 => 0,
+                not 0 => children.Max(child => child.Shape.Width)
+            };
+
         protected override void RecalcHeight()
-            => Shape.SetHeight
-            (
-                height: children switch
-                {
-                    null => 0,
-                    not null => children.Sum(child => child.Shape.Height)
-                },
-                vertOrigin: MyRectangle.VertOrigin.Top
-            );
+            => Shape.Height = 2 * MyRectangle.outlineWidth + children.Count switch
+            {
+                0 => 0,
+                not 0 => children.Sum(child => child.Shape.Height)
+            };
     }
 }

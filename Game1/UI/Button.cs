@@ -7,22 +7,21 @@ namespace Game1.UI
     public class Button<TShape> : UIElement<TShape>
         where TShape : Shape
     {
-        private readonly Action action;
+        public event Action Click;
         private readonly Color activeColor, passiveColor;
         private readonly TextBox textBox;
 
-        public Button(TShape shape, float letterHeight, string text, Action action, Color activeColor, Color passiveColor)
+        public Button(TShape shape, float letterHeight, string text, Color activeColor, Color passiveColor)
             : base(shape: shape)
         {
-            this.action = action;
             this.activeColor = activeColor;
             this.passiveColor = passiveColor;
-            Shape.Color = passiveColor;
+            base.Shape.Color = passiveColor;
             textBox = new(letterHeight: letterHeight)
             {
                 Text = text
             };
-            Shape.CenterChanged += () => textBox.Shape.Center = Shape.Center;
+            base.Shape.CenterChanged += () => textBox.Shape.Center = base.Shape.Center;
         }
 
         protected override IEnumerable<UIElement> GetChildren()
@@ -39,7 +38,7 @@ namespace Game1.UI
         public override void OnClick()
         {
             base.OnClick();
-            action();
+            Click?.Invoke();
         }
 
         public override void OnMouseLeave()

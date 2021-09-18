@@ -7,13 +7,14 @@ namespace Game1.UI
     public class Button<TShape> : UIElement<TShape>
         where TShape : Shape
     {
-        public event Action Click;
         private readonly Color activeColor, passiveColor;
         private readonly TextBox textBox;
+        private readonly Action action;
 
-        public Button(TShape shape, float letterHeight, string text, Color activeColor, Color passiveColor)
+        public Button(TShape shape, Action action, float letterHeight, string text, Color activeColor, Color passiveColor)
             : base(shape: shape)
         {
+            this.action = action;
             this.activeColor = activeColor;
             this.passiveColor = passiveColor;
             base.Shape.Color = passiveColor;
@@ -38,7 +39,7 @@ namespace Game1.UI
         public override void OnClick()
         {
             base.OnClick();
-            Click?.Invoke();
+            action?.Invoke();
         }
 
         public override void OnMouseLeave()

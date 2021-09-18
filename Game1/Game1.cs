@@ -16,6 +16,8 @@ namespace Game1
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
 
+            Window.IsBorderless = true;
+
             exitButton = new KeyButton
             (
                 key: Keys.Escape,

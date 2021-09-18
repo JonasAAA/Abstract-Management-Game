@@ -1,7 +1,5 @@
 ﻿using Game1.UI;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -55,8 +53,6 @@ namespace Game1
         private readonly HashSet<Node> nodeSet;
         private readonly HashSet<Link> linkSet;
         private readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
-        private readonly KeyButton[] overlayKeyButtons;
-        private readonly KeyButton pauseKey;
         private readonly TextBox globalTextBox;
         private bool paused;
 
@@ -84,24 +80,6 @@ namespace Game1
 
             Overlay = overlay;
 
-            overlayKeyButtons = new KeyButton[Enum.GetValues<Overlay>().Length];
-            Debug.Assert(overlayKeyButtons.Length <= C.numericKeys.Count);
-            for (int i = 0; i < overlayKeyButtons.Length; i++)
-            {
-                // hack for lambda expression to work correctly
-                int overlayInd = i;
-                overlayKeyButtons[i] = new
-                (
-                    key: C.numericKeys[overlayInd],
-                    action: () => Overlay = (Overlay)overlayInd
-                );
-            }
-
-            pauseKey = new
-            (
-                key: Keys.Space,
-                action: () => paused = !paused
-            );
             paused = false;
 
             background = new();
@@ -118,6 +96,56 @@ namespace Game1
             (
                 UIElement: globalTextBox,
                 horizPos: HorizPos.Left,
+                vertPos: VertPos.Top
+            );
+
+            ToggleButton<MyRectangle> pauseButton = new
+            (
+                shape: new
+                (
+                    width: 60,
+                    height: 60
+                ),
+                letterHeight: letterHeight,
+                on: false,
+                text: "Toggle\nPause",
+                mouseOnColor: Color.Yellow,
+                selectedColor: Color.White,
+                deselectedColor: Color.Gray
+            );
+
+            pauseButton.OnChanged += () => paused = pauseButton.On;
+
+            ActiveUI.AddHUDElement
+            (
+                UIElement: pauseButton,
+                horizPos: HorizPos.Right,
+                vertPos: VertPos.Bottom
+            );
+
+            MultipleChoicePanel overlayChoicePanel = new
+            (
+                horizontal: true,
+                choiceWidth: 100,
+                choiceHeight: 30,
+                letterHeight: letterHeight,
+                selectedColor: Color.White,
+                mouseOnColor: Color.Yellow,//Color.Lerp(Color.White, Color.Gray, .5f),
+                deselectedColor: Color.Gray,
+                backgroundColor: Color.White
+            );
+
+            foreach (var posOverlay in Enum.GetValues<Overlay>())
+                overlayChoicePanel.AddChoice
+                (
+                    choiceText: posOverlay.ToString(),
+                    select: () => Overlay = posOverlay
+                );
+
+            ActiveUI.AddHUDElement
+            (
+                UIElement: overlayChoicePanel,
+                horizPos: HorizPos.Middle,
                 vertPos: VertPos.Top
             );
         }
@@ -225,8 +253,6 @@ namespace Game1
 
         public void Update(TimeSpan elapsed)
         {
-            pauseKey.Update();
-
             if (paused)
                 elapsed = TimeSpan.Zero;
 

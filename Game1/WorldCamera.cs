@@ -13,7 +13,7 @@ namespace Game1
         {
             this.scrollSpeed = scrollSpeed;
             scale = 1;
-            boundWidth = 30;
+            boundWidth = 10;
             worldCenter = new(0, 0);
             screenCenter = new((float)(C.ScreenWidth * .5), (float)(C.ScreenHeight * .5));
             Update(canScroll: false);
@@ -39,7 +39,7 @@ namespace Game1
                     worldCenter.Y += scrollSpeed;
             }
 
-            worldToScreen = Matrix.CreateTranslation(xPosition: -worldCenter.X, yPosition: -worldCenter.Y, zPosition: 0) *
+            worldToScreen = Matrix.CreateTranslation(xPosition: -worldCenter.X * (float)screenScale, yPosition: -worldCenter.Y * (float)screenScale, zPosition: 0) *
                 Matrix.CreateScale((float)scale) *
                 Matrix.CreateTranslation(xPosition: screenCenter.X, yPosition: screenCenter.Y, zPosition: 0) *
                 Matrix.CreateScale((float)screenScale);

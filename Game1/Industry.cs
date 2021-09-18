@@ -169,7 +169,6 @@ namespace Game1
         protected double CurSkillPropor { get; private set; }
 
         private readonly Params parameters;
-        private readonly KeyButton togglePauseButton;
         // must be >= 0
         private TimeSpan avgVacancyDuration;
         private double curUnboundedSkillPropor, electrPropor;
@@ -180,11 +179,6 @@ namespace Game1
             this.parameters = parameters;
             this.state = state;
             CanStartProduction = true;
-            togglePauseButton = new
-            (
-                key: Keys.P,
-                action: () => CanStartProduction = !CanStartProduction
-            );
             CurSkillPropor = 0;
             curUnboundedSkillPropor = 0;
             avgVacancyDuration = TimeSpan.Zero;
@@ -236,9 +230,6 @@ namespace Game1
         public abstract ULongArray TargetStoredResAmounts();
 
         protected abstract bool IsBusy();
-
-        public void ActiveUpdate()
-            => togglePauseButton.Update();
 
         public Industry Update(TimeSpan elapsed)
         {

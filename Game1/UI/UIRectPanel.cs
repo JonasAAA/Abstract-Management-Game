@@ -1,13 +1,14 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Collections;
 using System.Collections.Generic;
 
 namespace Game1.UI
 {
-    public abstract class UIRectPanel<TChild> : UIElement<MyRectangle>
+    public abstract class UIRectPanel<TChild> : UIElement<MyRectangle>, IEnumerable<TChild>
         where TChild : UIElement<MyRectangle>
     {
-        public bool Empty
-            => children.Count is 0;
+        public int Count
+            => children.Count;
 
         protected readonly List<TChild> children;
 
@@ -41,5 +42,11 @@ namespace Game1.UI
         protected abstract void RecalcWidth();
 
         protected abstract void RecalcHeight();
+
+        public IEnumerator<TChild> GetEnumerator()
+            => children.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 }

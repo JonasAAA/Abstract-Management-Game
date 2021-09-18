@@ -14,7 +14,7 @@ namespace Game1.UI
                 if (text != value)
                 {
                     text = value;
-                    Vector2 textDims = font.MeasureString(text) * scale;
+                    Vector2 textDims = font.MeasureString(text.Trim()) * scale;
                     Shape.Width = textDims.X;
                     Shape.Height = textDims.Y;
                 }
@@ -41,9 +41,13 @@ namespace Game1.UI
             C.DrawString
             (
                 spriteFont: font,
-                text: text,
+                text: text.Trim(),
                 position: Shape.TopLeftCorner,
-                color: TextColor,
+                color: Enabled switch
+                {
+                    true => TextColor,
+                    false => TextColor * .5f
+                },
                 origin: Vector2.Zero,
                 scale: scale
             );

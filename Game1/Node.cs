@@ -23,10 +23,12 @@ namespace Game1
         private readonly TextBox textBox;
         private readonly List<Link> links;
         private Industry industry;
-        private readonly UIRectPanel<UIElement<MyRectangle>> UIPanel;
+        private readonly UIHorizTabPanel<UIElement<MyRectangle>> UITabPanel;
+        private readonly UIRectPanel<Button<MyRectangle>> buildButtonPannel;
+        private readonly UIRectPanel<UIElement<MyRectangle>> actionPanel;
         private readonly MyArray<ProporSplitter<Node>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
-        private readonly KeyButton incrDestinImp, decrDestinImp, storeSwitch;
+        private readonly KeyButton incrDestinImp, decrDestinImp;//, storeSwitch;
         private readonly MyArray<bool> store;
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
         private bool active;
@@ -42,29 +44,77 @@ namespace Game1
             shape.Color = Color.White;
             links = new();
             industry = null;
-            UIPanel = new UIRectVertPanel<UIElement<MyRectangle>>(color: Color.White);
+
+            UITabPanel = new
+            (
+                tabLabelWidth: 100,
+                tabLabelHeight: 30,
+                letterHeight: letterHeight,
+                color: Color.White,
+                inactiveTabLabelColor: Color.Gray
+            );
+
+            buildButtonPannel = new UIRectVertPanel<Button<MyRectangle>>(color: Color.White);
+            UITabPanel.AddTab
+            (
+                tabLabelText: "build",
+                tab: buildButtonPannel
+            );
             for (int i = 0; i < Industry.constrBuildingParams.Count; i++)
             {
                 var parameters = Industry.constrBuildingParams[i];
-                Button<MyRectangle> button = new
+                buildButtonPannel.AddChild
                 (
-                    shape: new MyRectangle
+                    child: new Button<MyRectangle>
                     (
-                        width: 200,
-                        height: 20
+                        shape: new MyRectangle
+                        (
+                            width: 200,
+                            height: 20
+                        ),
+                        action: () =>
+                        {
+                            industry = parameters.MakeIndustry(state: state);
+                            buildButtonPannel.Enabled = false;
+                        },
+                        letterHeight: letterHeight,
+                        text: "build " + parameters.industrParams.name,
+                        activeColor: Color.Yellow,
+                        passiveColor: Color.White
+                    )
+                );
+            }
+
+            actionPanel = new UIRectVertPanel<UIElement<MyRectangle>>(color: Color.White);
+            UITabPanel.AddTab
+            (
+                tabLabelText: "action",
+                tab: actionPanel
+            );
+
+            actionPanel.AddChild
+            (
+                child: new Button<MyRectangle>
+                (
+                    shape: new
+                    (
+                        width: 60,
+                        height: 60
                     ),
+                    action: () =>
+                    {
+                        if (Graph.World.Overlay > C.MaxRes)
+                            return;
+                        int resInd = (int)Graph.World.Overlay;
+                        store[resInd] = !store[resInd];
+                    },
                     letterHeight: letterHeight,
-                    text: "build " + parameters.industrParams.name,
+                    text: "store\nswitch",
                     activeColor: Color.Yellow,
                     passiveColor: Color.White
-                );
-                button.Click += () =>
-                {
-                    industry = parameters.MakeIndustry(state: state);
-                    ActiveUI.Remove(UIElement: UIPanel);
-                };
-                UIPanel.AddChild(child: button);
-            }
+                )
+            );
+
             for (int i = 0; i < startPersonCount; i++)
                 state.unemployedPeople.Add(Person.GenerateNew());
             resSplittersToDestins = new
@@ -75,7 +125,6 @@ namespace Game1
             targetStoredResAmounts = new();
             incrDestinImp = new(key: Keys.LeftShift);
             decrDestinImp = new(key: Keys.LeftControl);
-            storeSwitch = new(key: Keys.S);
             store = new(value: false);
             undecidedResAmounts = new();
             resTravelHereAmounts = new();
@@ -139,13 +188,12 @@ namespace Game1
                 return;
 
             shape.Color = Color.Yellow;
-            if (industry is null)
-                ActiveUI.AddHUDElement
-                (
-                    UIElement: UIPanel,
-                    horizPos: HorizPos.Right,
-                    vertPos: VertPos.Top
-                );
+            ActiveUI.AddHUDElement
+            (
+                UIElement: UITabPanel,
+                horizPos: HorizPos.Right,
+                vertPos: VertPos.Top
+            );
             active = true;
         }
 
@@ -153,12 +201,9 @@ namespace Game1
         {
             incrDestinImp.Update();
             decrDestinImp.Update();
-            storeSwitch.Update();
             if (Graph.World.Overlay <= C.MaxRes)
             {
                 int resInd = (int)Graph.World.Overlay;
-                if (storeSwitch.Click)
-                    store[resInd] = !store[resInd];
 
                 if (MyMouse.RightClick)
                 {
@@ -182,8 +227,6 @@ namespace Game1
                 }
             }
 
-            industry?.ActiveUpdate();
-
             foreach (var node in Graph.World.Nodes)
                 node.AddText(text: $"personal distance {Graph.World.PersonDists[(Position, node.Position)]:0.##}\nresource distance {Graph.World.ResDists[(Position, node.Position)]:0.##}\n");
         }
@@ -192,7 +235,7 @@ namespace Game1
         {
             base.OnMouseDownWorldNotMe();
             shape.Color = Color.White;
-            ActiveUI.Remove(UIElement: UIPanel);
+            ActiveUI.Remove(UIElement: UITabPanel);
             active = false;
         }
 

@@ -19,6 +19,28 @@ namespace Game1.UI
 
     public abstract class UIElement
     {
+        public bool Enabled
+        {
+            get => enabled;
+            set
+            {
+                if (enabled != value)
+                {
+                    enabled = value;
+                    foreach (var child in GetChildren())
+                        child.Enabled = value;
+                    EnabledChanged?.Invoke();
+                }
+            }
+        }
+
+        public event Action EnabledChanged;
+
+        private bool enabled;
+
+        protected UIElement()
+            => enabled = true;
+
         protected abstract Shape GetShape();
 
         protected virtual IEnumerable<UIElement> GetChildren()

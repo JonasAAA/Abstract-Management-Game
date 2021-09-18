@@ -6,11 +6,12 @@ using System.Linq;
 
 namespace Game1.UI
 {
-    public class UIHorizTabPanel : UIElement<MyRectangle>
+    public class UIHorizTabPanel<TTab> : UIElement<MyRectangle>
+        where TTab : UIElement<MyRectangle>
     {
         private readonly MultipleChoicePanel tabChoicePanel;
-        private readonly List<UIElement<MyRectangle>> tabs;
-        private UIElement<MyRectangle> activeTab;
+        private readonly List<TTab> tabs;
+        private TTab activeTab;
 
         public UIHorizTabPanel(float tabLabelWidth, float tabLabelHeight, float letterHeight, Color color, Color inactiveTabLabelColor)
             : base(shape: new())
@@ -25,17 +26,17 @@ namespace Game1.UI
                 choiceHeight: tabLabelHeight,
                 letterHeight: letterHeight,
                 selectedColor: color,
-                mouseOnColor: Color.Lerp(color, inactiveTabLabelColor, .5f),
-                inactiveColor: inactiveTabLabelColor,
+                mouseOnColor: Color.Yellow,//Color.Lerp(color, inactiveTabLabelColor, .5f),
+                deselectedColor: inactiveTabLabelColor,
                 backgroundColor: inactiveTabLabelColor
             );
             tabs = new();
             activeTab = null;
         }
 
-        public void AddTab(string tabLabelText, UIElement<MyRectangle> tab)
+        public void AddTab(string tabLabelText, TTab tab)
         {
-            tabChoicePanel.AddChoice
+            var choice = tabChoicePanel.AddChoice
             (
                 choiceText: tabLabelText,
                 select: () => activeTab = tab
@@ -46,6 +47,8 @@ namespace Game1.UI
             tab.Shape.HeightChanged += RecalcHeight;
 
             tabs.Add(tab);
+
+            tab.EnabledChanged += () => choice.Enabled = tab.Enabled;
 
             RecalcWidth();
             RecalcHeight();

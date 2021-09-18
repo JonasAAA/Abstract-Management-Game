@@ -6,83 +6,21 @@ namespace Game1.UI
 {
     public class MultipleChoicePanel : UIElement<MyRectangle>
     {
-        private class Choice : UIElement<MyRectangle>
-        {
-            public event Action Select;
-
-            private bool selected;
-            private readonly Color selectedColor, mouseOnColor, inactiveColor;
-            private readonly TextBox textBox;
-
-            public Choice(float width, float height, float letterHeight, Color selectedColor, Color mouseOnColor, Color inactiveColor, bool selected, string text)
-                : base(shape: new(width: width, height: height))
-            {
-                this.selected = selected;
-                Shape.Color = selected switch
-                {
-                    true => selectedColor,
-                    false => inactiveColor
-                };
-                this.selectedColor = selectedColor;
-                this.mouseOnColor = mouseOnColor;
-                this.inactiveColor = inactiveColor;
-
-                textBox = new(letterHeight: letterHeight)
-                {
-                    Text = text
-                };
-                Shape.CenterChanged += () => textBox.Shape.Center = Shape.Center;
-            }
-
-            protected override IEnumerable<UIElement> GetChildren()
-            {
-                yield return textBox;
-            }
-
-            public override void OnClick()
-            {
-                base.OnClick();
-                selected = true;
-                Shape.Color = selectedColor;
-                Select?.Invoke();
-            }
-
-            public void Deselect()
-            {
-                selected = false;
-                Shape.Color = inactiveColor;
-            }
-
-            public override void OnMouseEnter()
-            {
-                base.OnMouseEnter();
-                if (!selected)
-                    Shape.Color = mouseOnColor;
-            }
-
-            public override void OnMouseLeave()
-            {
-                base.OnMouseLeave();
-                if (!selected)
-                    Shape.Color = inactiveColor;
-            }
-        }
-
         public override MyRectangle Shape
             => choicePanel.Shape;
 
-        private readonly UIRectPanel<Choice> choicePanel;
+        private readonly UIRectPanel<ToggleButton<MyRectangle>> choicePanel;
         private readonly float choiceWidth, choiceHeight, letterHeight;
-        private readonly Color selectedColor, mouseOnColor, inactiveColor;
-        private Choice selectedChoice;
+        private readonly Color selectedColor, mouseOnColor, deselectedColor;
+        private ToggleButton<MyRectangle> selectedChoice;
 
-        public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, float letterHeight, Color selectedColor, Color mouseOnColor, Color inactiveColor, Color backgroundColor)
+        public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, float letterHeight, Color selectedColor, Color mouseOnColor, Color deselectedColor, Color backgroundColor)
             : base(shape: new())
         {
             if (horizontal)
-                choicePanel = new UIRectHorizPanel<Choice>(color: backgroundColor);
+                choicePanel = new UIRectHorizPanel<ToggleButton<MyRectangle>>(color: backgroundColor);
             else
-                choicePanel = new UIRectVertPanel<Choice>(color: backgroundColor);
+                choicePanel = new UIRectVertPanel<ToggleButton<MyRectangle>>(color: backgroundColor);
             Shape.Color = backgroundColor;
 
             this.choiceWidth = choiceWidth;
@@ -90,7 +28,7 @@ namespace Game1.UI
             this.letterHeight = letterHeight;
             this.selectedColor = selectedColor;
             this.mouseOnColor = mouseOnColor;
-            this.inactiveColor = inactiveColor;
+            this.deselectedColor = deselectedColor;
             selectedChoice = null;
         }
 
@@ -99,35 +37,56 @@ namespace Game1.UI
             yield return choicePanel;
         }
         
-        public void AddChoice(string choiceText, Action select)
+        public ToggleButton<MyRectangle> AddChoice(string choiceText, Action select)
         {
-            Choice choice = new
+            ToggleButton<MyRectangle> choice = new
             (
-                width: choiceWidth,
-                height: choiceHeight,
+                shape: new
+                (
+                    width: choiceWidth,
+                    height: choiceHeight
+                ),
                 letterHeight: letterHeight,
-                selectedColor: selectedColor,
+                on: choicePanel.Count is 0,
+                text: choiceText,
                 mouseOnColor: mouseOnColor,
-                inactiveColor: inactiveColor,
-                selected: choicePanel.Empty,
-                text: choiceText
+                selectedColor: selectedColor,
+                deselectedColor: deselectedColor
             );
 
-            if (choicePanel.Empty)
+            if (choicePanel.Count is 0)
             {
                 selectedChoice = choice;
                 select();
             }
 
-            choice.Select += () =>
+            choice.OnChanged += () =>
             {
-                selectedChoice?.Deselect();
+                if (!choice.On)
+                    return;
+                
+                selectedChoice.On = false;
                 selectedChoice = choice;
+                select();
             };
 
-            choice.Select += select;
+            choice.EnabledChanged += () =>
+            {
+                if (choice.Enabled || !choice.On)
+                    return;
+                
+                foreach (var choice in choicePanel)
+                    if (choice.Enabled)
+                    {
+                        choice.On = true;
+                        return;
+                    }
+                throw new Exception("enabled choice doesn't exist");
+            };
 
             choicePanel.AddChild(child: choice);
+
+            return choice;
         }
     }
 }

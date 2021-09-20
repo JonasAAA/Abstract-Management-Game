@@ -6,17 +6,23 @@ using System.Linq;
 
 namespace Game1.UI
 {
-    public class UIHorizTabPanel<TTab> : UIElement<MyRectangle>
-        where TTab : UIElement<MyRectangle>
+    public class UIHorizTabPanel<TTab> : IUIElement<MyRectangle>
+        where TTab : class, IUIElement<MyRectangle>
     {
+        public MyRectangle Shape { get; }
+        public Field<bool> Enabled { get; }
+
         private readonly MultipleChoicePanel tabChoicePanel;
         private readonly List<TTab> tabs;
         private TTab activeTab;
 
         public UIHorizTabPanel(float tabLabelWidth, float tabLabelHeight, float letterHeight, Color color, Color inactiveTabLabelColor)
-            : base(shape: new())
         {
-            Shape.Color = color;
+            Shape = new()
+            {
+                Color = color
+            };
+            Enabled = new(value: true);
             Shape.CenterChanged += RecalcChildrenPos;
 
             tabChoicePanel = new
@@ -26,7 +32,7 @@ namespace Game1.UI
                 choiceHeight: tabLabelHeight,
                 letterHeight: letterHeight,
                 selectedColor: color,
-                mouseOnColor: Color.Yellow,//Color.Lerp(color, inactiveTabLabelColor, .5f),
+                mouseOnColor: Color.Yellow,
                 deselectedColor: inactiveTabLabelColor,
                 backgroundColor: inactiveTabLabelColor
             );
@@ -48,7 +54,7 @@ namespace Game1.UI
 
             tabs.Add(tab);
 
-            tab.EnabledChanged += () => choice.Enabled = tab.Enabled;
+            tab.Enabled.Changed += () => choice.Enabled.Set(tab.Enabled);
 
             RecalcWidth();
             RecalcHeight();
@@ -89,14 +95,14 @@ namespace Game1.UI
                 tab.Shape.Height = tabHeight;
         }
 
-        protected override IEnumerable<UIElement> GetChildren()
+        IEnumerable<IUIElement> IUIElement.GetChildren()
             => throw new InvalidOperationException();
 
-        public override UIElement CatchUIElement(Vector2 mousePos)
+        IUIElement IUIElement.CatchUIElement(Vector2 mousePos)
         {
-            if (!Contains(position: mousePos))
+            if (!Shape.Contains(position: mousePos))
                 return null;
-            var catchingUIElement = tabChoicePanel.CatchUIElement(mousePos: mousePos);
+            var catchingUIElement = ((IUIElement)tabChoicePanel).CatchUIElement(mousePos: mousePos);
             if (catchingUIElement is not null)
                 return catchingUIElement;
 
@@ -109,10 +115,10 @@ namespace Game1.UI
             return activeTab.CatchUIElement(mousePos: mousePos) ?? this;
         }
 
-        public override void Draw()
+        void IUIElement.Draw()
         {
             Shape.Draw();
-            tabChoicePanel.Draw();
+            ((IUIElement)tabChoicePanel).Draw();
             activeTab?.Draw();
         }
     }

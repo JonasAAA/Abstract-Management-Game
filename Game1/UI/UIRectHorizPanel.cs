@@ -4,7 +4,7 @@ using System.Linq;
 namespace Game1.UI
 {
     public class UIRectHorizPanel<TChild> : UIRectPanel<TChild>
-        where TChild : UIElement<MyRectangle>
+        where TChild : IUIElement<NearRectangle>
     {
         public UIRectHorizPanel(Color color)
             : base(color: color)

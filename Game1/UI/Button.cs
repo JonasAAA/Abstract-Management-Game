@@ -4,47 +4,51 @@ using System.Collections.Generic;
 
 namespace Game1.UI
 {
-    public class Button<TShape> : UIElement<TShape>
+    public class Button<TShape> : IUIElement<TShape>
         where TShape : Shape
     {
+        public TShape Shape { get; }
+        public Field<bool> Enabled { get; }
+
         private readonly Color activeColor, passiveColor;
         private readonly TextBox textBox;
         private readonly Action action;
 
         public Button(TShape shape, Action action, float letterHeight, string text, Color activeColor, Color passiveColor)
-            : base(shape: shape)
         {
+            Shape = shape;
+            Enabled = new(value: true);
             this.action = action;
             this.activeColor = activeColor;
             this.passiveColor = passiveColor;
-            base.Shape.Color = passiveColor;
+            Shape.Color = passiveColor;
             textBox = new(letterHeight: letterHeight)
             {
                 Text = text
             };
-            base.Shape.CenterChanged += () => textBox.Shape.Center = base.Shape.Center;
+            Shape.CenterChanged += () => textBox.Shape.Center = Shape.Center;
         }
 
-        protected override IEnumerable<UIElement> GetChildren()
+        IEnumerable<IUIElement> IUIElement.GetChildren()
         { 
             yield return textBox;
         }
 
-        public override void OnMouseEnter()
+        public void OnMouseEnter()
         {
-            base.OnMouseEnter();
+            //base.OnMouseEnter();
             Shape.Color = activeColor;
         }
 
-        public override void OnClick()
+        public void OnClick()
         {
-            base.OnClick();
+            //base.OnClick();
             action?.Invoke();
         }
 
-        public override void OnMouseLeave()
+        public void OnMouseLeave()
         {
-            base.OnMouseLeave();
+            //base.OnMouseLeave();
             Shape.Color = passiveColor;
         }
     }

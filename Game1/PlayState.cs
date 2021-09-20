@@ -22,9 +22,10 @@ namespace Game1
                             position: new Vector2(i - (width - 1) * .5f, j - (height - 1) * .5f) * dist,
                             maxBatchDemResStored: 2
                         ),
-                        shape: new Disk
+                        shape: new Ellipse
                         (
-                            radius: 32
+                            width: 64,
+                            height: 64
                         ),
                         letterHeight: letterHeight,
                         startPersonCount: 5

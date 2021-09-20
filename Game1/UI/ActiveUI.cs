@@ -12,10 +12,10 @@ namespace Game1.UI
         public static int Count
             => activeUIElements.Count;
 
-        private static readonly List<UIElement> activeUIElements;
-        private static readonly HashSet<UIElement> worldUIElements, HUDUIElements;
+        private static readonly List<IUIElement> activeUIElements;
+        private static readonly HashSet<IUIElement> worldUIElements, HUDUIElements;
         private static bool leftDown, prevLeftDown;
-        private static UIElement halfClicked, contMouse, activeWorldElement;
+        private static IUIElement halfClicked, contMouse, activeWorldElement;
 
         static ActiveUI()
         {
@@ -30,7 +30,7 @@ namespace Game1.UI
             MouseAboveHUD = true;
         }
 
-        public static void AddWorldElement(UIElement UIElement)
+        public static void AddWorldElement(IUIElement UIElement)
         {
             activeUIElements.Add(UIElement);
             if (HUDUIElements.Count is not 0)
@@ -39,7 +39,7 @@ namespace Game1.UI
                 throw new ArgumentException();
         }
 
-        public static void AddHUDElement(UIElement<MyRectangle> UIElement, HorizPos horizPos, VertPos vertPos)
+        public static void AddHUDElement(IUIElement<MyRectangle> UIElement, HorizPos horizPos, VertPos vertPos)
         {
             Vector2 HUDCenter = new((float)(C.ScreenWidth * .5), (float)(C.ScreenHeight * .5));
             void SetUIElementPosition()
@@ -59,7 +59,7 @@ namespace Game1.UI
                 throw new ArgumentException();
         }
 
-        public static bool Remove(UIElement UIElement)
+        public static bool Remove(IUIElement UIElement)
         {
             worldUIElements.Remove(UIElement);
             HUDUIElements.Remove(UIElement);
@@ -68,7 +68,7 @@ namespace Game1.UI
 
         public static void Update()
         {
-            UIElement prevContMouse = contMouse;
+            IUIElement prevContMouse = contMouse;
 
             MouseState mouseState = Mouse.GetState();
             prevLeftDown = leftDown;
@@ -87,7 +87,7 @@ namespace Game1.UI
                     false => mouseHUDPos
                 };
 
-                UIElement catchingUIElement = UIElement.CatchUIElement(mousePos: mousePos);
+                IUIElement catchingUIElement = UIElement.CatchUIElement(mousePos: mousePos);
 
                 if (catchingUIElement is not null)
                 {
@@ -117,7 +117,7 @@ namespace Game1.UI
 
             if (!leftDown && prevLeftDown)
             {
-                UIElement otherHalfClicked = contMouse;
+                IUIElement otherHalfClicked = contMouse;
                 if (halfClicked == otherHalfClicked)
                 {
                     if (otherHalfClicked is not null && otherHalfClicked.Enabled)

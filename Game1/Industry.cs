@@ -216,7 +216,7 @@ namespace Game1
         {
             Debug.Assert(avgVacancyDuration >= TimeSpan.Zero);
             double openSpace = OpenSpace();
-            if (/*avgVacancyDuration is double.NegativeInfinity || */openSpace is double.NegativeInfinity)
+            if (openSpace is double.NegativeInfinity)
                 return double.NegativeInfinity;
             return Math.Tanh(avgVacancyDuration.TotalSeconds * openSpace * vacDespCoeff);
         }

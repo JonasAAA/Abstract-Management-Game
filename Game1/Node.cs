@@ -8,8 +8,10 @@ using System.Linq;
 
 namespace Game1
 {
-    public class Node : UIElement
+    public class Node : IUIElement
     {
+        public Field<bool> Enabled { get; }
+
         public Vector2 Position
             => state.position;
         public readonly float radius;
@@ -17,24 +19,24 @@ namespace Game1
             => industry;
         public IEnumerable<Person> UnemployedPeople
             => state.unemployedPeople;
-        
+
         private readonly NodeState state;
-        private readonly Shape shape;
+        private readonly NearRectangle shape;
         private readonly TextBox textBox;
         private readonly List<Link> links;
         private Industry industry;
-        private readonly UIHorizTabPanel<UIElement<MyRectangle>> UITabPanel;
-        private readonly UIRectPanel<Button<MyRectangle>> buildButtonPannel;
-        private readonly UIRectPanel<UIElement<MyRectangle>> actionPanel;
+        private readonly UIHorizTabPanel<IUIElement<MyRectangle>> UITabPanel;
+        private readonly UIRectPanel<IUIElement<NearRectangle>> buildButtonPannel, actionPanel;
         private readonly MyArray<ProporSplitter<Node>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
-        private readonly KeyButton incrDestinImp, decrDestinImp;//, storeSwitch;
+        private readonly KeyButton incrDestinImp, decrDestinImp;
         private readonly MyArray<bool> store;
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
         private bool active;
 
-        public Node(NodeState state, Shape shape, float letterHeight, int startPersonCount = 0)
+        public Node(NodeState state, NearRectangle shape, float letterHeight, int startPersonCount = 0)
         {
+            Enabled = new(value: true);
             this.state = state;
             this.shape = shape;
             textBox = new(letterHeight: letterHeight);
@@ -54,7 +56,7 @@ namespace Game1
                 inactiveTabLabelColor: Color.Gray
             );
 
-            buildButtonPannel = new UIRectVertPanel<Button<MyRectangle>>(color: Color.White);
+            buildButtonPannel = new UIRectVertPanel<IUIElement<NearRectangle>>(color: Color.White);
             UITabPanel.AddTab
             (
                 tabLabelText: "build",
@@ -65,9 +67,9 @@ namespace Game1
                 var parameters = Industry.constrBuildingParams[i];
                 buildButtonPannel.AddChild
                 (
-                    child: new Button<MyRectangle>
+                    child: new Button<Ellipse>
                     (
-                        shape: new MyRectangle
+                        shape: new
                         (
                             width: 200,
                             height: 20
@@ -75,7 +77,7 @@ namespace Game1
                         action: () =>
                         {
                             industry = parameters.MakeIndustry(state: state);
-                            buildButtonPannel.Enabled = false;
+                            buildButtonPannel.Enabled.Set(value: false);
                         },
                         letterHeight: letterHeight,
                         text: "build " + parameters.industrParams.name,
@@ -85,7 +87,7 @@ namespace Game1
                 );
             }
 
-            actionPanel = new UIRectVertPanel<UIElement<MyRectangle>>(color: Color.White);
+            actionPanel = new UIRectVertPanel<IUIElement<NearRectangle>>(color: Color.White);
             UITabPanel.AddTab
             (
                 tabLabelText: "action",
@@ -133,10 +135,10 @@ namespace Game1
             textBox.Text = "";
         }
 
-        protected override Shape GetShape()
+        Shape IUIElement.GetShape()
             => shape;
 
-        protected override IEnumerable<UIElement> GetChildren()
+        IEnumerable<IUIElement> IUIElement.GetChildren()
         {
             yield return textBox;
         }
@@ -181,9 +183,9 @@ namespace Game1
         public ulong StoredResAmount(int resInd)
             => state.storedRes[resInd];
 
-        public override void OnClick()
+        public void OnClick()
         {
-            base.OnClick();
+            //base.OnClick();
             if (active)
                 return;
 
@@ -231,9 +233,9 @@ namespace Game1
                 node.AddText(text: $"personal distance {Graph.World.PersonDists[(Position, node.Position)]:0.##}\nresource distance {Graph.World.ResDists[(Position, node.Position)]:0.##}\n");
         }
 
-        public override void OnMouseDownWorldNotMe()
+        public void OnMouseDownWorldNotMe()
         {
-            base.OnMouseDownWorldNotMe();
+            //base.OnMouseDownWorldNotMe();
             shape.Color = Color.White;
             ActiveUI.Remove(UIElement: UITabPanel);
             active = false;
@@ -367,12 +369,13 @@ namespace Game1
             };
         }
 
-        public override void Draw()
+        void IUIElement.Draw()
         {
             //Draw amount of resources in storage
             //or write percentage of required res
 
-            base.Draw();
+            IUIElement.DefaultDraw(UIElement: this);
+            //base.Draw();
 
             if (Graph.World.Overlay <= C.MaxRes)
             {

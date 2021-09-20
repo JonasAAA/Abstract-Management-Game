@@ -4,9 +4,13 @@ using System.Collections.Generic;
 
 namespace Game1.UI
 {
-    public class ToggleButton<TShape> : UIElement<TShape>
-        where TShape : Shape
+    public class ToggleButton<TShape> : IUIElement<TShape>
+        where TShape : NearRectangle
     {
+        public TShape Shape { get; }
+
+        public Field<bool> Enabled { get; }
+
         public bool On
         {
             get => on;
@@ -28,8 +32,9 @@ namespace Game1.UI
         private readonly TextBox textBox;
 
         public ToggleButton(TShape shape, float letterHeight, bool on, string text, Color mouseOnColor, Color selectedColor, Color deselectedColor)
-            : base(shape: shape)
         {
+            Shape = shape;
+            Enabled = new(value: true);
             this.on = on;
             this.mouseOnColor = mouseOnColor;
             this.selectedColor = selectedColor;
@@ -43,28 +48,28 @@ namespace Game1.UI
             Shape.CenterChanged += () => textBox.Shape.Center = Shape.Center;
         }
 
-        protected override IEnumerable<UIElement> GetChildren()
+        IEnumerable<IUIElement> IUIElement.GetChildren()
         {
             yield return textBox;
         }
 
-        public override void OnClick()
+        public void OnClick()
         {
-            base.OnClick();
+            //base.OnClick();
             On = !On;
             Shape.Color = Color.Lerp(mouseOnColor, GetColor(), .5f);
         }
 
-        public override void OnMouseEnter()
+        public void OnMouseEnter()
         {
-            base.OnMouseEnter();
+            //base.OnMouseEnter();
 
             Shape.Color = Color.Lerp(mouseOnColor, GetColor(), .5f);
         }
 
-        public override void OnMouseLeave()
+        public void OnMouseLeave()
         {
-            base.OnMouseLeave();
+            //base.OnMouseLeave();
 
             Shape.Color = GetColor();
         }

@@ -3,8 +3,12 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Game1.UI
 {
-    public class TextBox : UIElement<MyRectangle>
+    public class TextBox : IUIElement<MyRectangle>
     {
+        public MyRectangle Shape { get; }
+
+        public Field<bool> Enabled { get; }
+
         public Color TextColor { private get; set; }
         public string Text
         {
@@ -26,24 +30,28 @@ namespace Game1.UI
         private readonly float scale;
 
         public TextBox(float letterHeight)
-            : base(shape: new MyRectangle())
         {
-            Shape.Color = Color.Transparent;
+            Shape = new()
+            {
+                Color = Color.Transparent
+            };
+            Enabled = new(value: true);
             font = C.Content.Load<SpriteFont>("font");
             scale = letterHeight / font.MeasureString("F").Y;
             TextColor = Color.Black;
             Text = "";
         }
 
-        public override void Draw()
+        void IUIElement.Draw()
         {
-            base.Draw();
+            IUIElement.DefaultDraw(UIElement: this);
+            //base.Draw();
             C.DrawString
             (
                 spriteFont: font,
                 text: text.Trim(),
                 position: Shape.TopLeftCorner,
-                color: Enabled switch
+                color: (bool)Enabled switch
                 {
                     true => TextColor,
                     false => TextColor * .5f

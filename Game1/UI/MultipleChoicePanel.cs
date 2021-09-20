@@ -4,10 +4,12 @@ using System.Collections.Generic;
 
 namespace Game1.UI
 {
-    public class MultipleChoicePanel : UIElement<MyRectangle>
+    public class MultipleChoicePanel : IUIElement<MyRectangle>
     {
-        public override MyRectangle Shape
+        public MyRectangle Shape
             => choicePanel.Shape;
+
+        public Field<bool> Enabled { get; }
 
         private readonly UIRectPanel<ToggleButton<MyRectangle>> choicePanel;
         private readonly float choiceWidth, choiceHeight, letterHeight;
@@ -15,13 +17,14 @@ namespace Game1.UI
         private ToggleButton<MyRectangle> selectedChoice;
 
         public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, float letterHeight, Color selectedColor, Color mouseOnColor, Color deselectedColor, Color backgroundColor)
-            : base(shape: new())
         {
             if (horizontal)
                 choicePanel = new UIRectHorizPanel<ToggleButton<MyRectangle>>(color: backgroundColor);
             else
                 choicePanel = new UIRectVertPanel<ToggleButton<MyRectangle>>(color: backgroundColor);
             Shape.Color = backgroundColor;
+
+            Enabled = new(value: true);
 
             this.choiceWidth = choiceWidth;
             this.choiceHeight = choiceHeight;
@@ -32,7 +35,7 @@ namespace Game1.UI
             selectedChoice = null;
         }
 
-        protected override IEnumerable<UIElement> GetChildren()
+        IEnumerable<IUIElement> IUIElement.GetChildren()
         {
             yield return choicePanel;
         }
@@ -70,7 +73,7 @@ namespace Game1.UI
                 select();
             };
 
-            choice.EnabledChanged += () =>
+            choice.Enabled.Changed += () =>
             {
                 if (choice.Enabled || !choice.On)
                     return;

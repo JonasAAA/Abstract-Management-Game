@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Game1
 {
-    public class Link : UIElement<EmptyShape>
+    public class Link : IUIElement
     {
         private class DirLink : IElectrConsumer
         {
@@ -114,17 +114,21 @@ namespace Game1
         static Link()
             => electrPriority = 10;
 
+        public Field<bool> Enabled { get; }
+
         public readonly Node node1, node2;
         public double WattsPerKg
             => link1To2.WattsPerKg;
         public TimeSpan TravelTime
             => link1To2.TravelTime;
 
+        private readonly Shape shape;
         private readonly DirLink link1To2, link2To1;
 
         public Link(Node node1, Node node2, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
-            : base(shape: new EmptyShape())
         {
+            shape = new EmptyShape();
+            Enabled = new(value: true);
             if (node1 == node2)
                 throw new ArgumentException();
 
@@ -134,6 +138,9 @@ namespace Game1
             link1To2 = new(begin: node1, end: node2, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
             link2To1 = new(begin: node2, end: node1, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
         }
+
+        Shape IUIElement.GetShape()
+            => shape;
 
         public Node OtherNode(Node node)
         {
@@ -172,8 +179,10 @@ namespace Game1
             link2To1.Update(elapsed: elapsed);
         }
 
-        public override void Draw()
+        void IUIElement.Draw()
         {
+            IUIElement.DefaultDraw(UIElement: this);
+
             // temporary
             Texture2D pixel = C.Content.Load<Texture2D>(assetName: "pixel");
             Color color = Color.Lerp
@@ -199,7 +208,7 @@ namespace Game1
             link1To2.DrawTravelingRes();
             link2To1.DrawTravelingRes();
 
-            base.Draw();
+            //base.Draw();
         }
 
         public override int GetHashCode()
@@ -219,5 +228,7 @@ namespace Game1
 
             return false;
         }
+
+        
     }
 }

@@ -8,12 +8,15 @@ using System.Linq;
 
 namespace Game1
 {
-    public class Graph : UIElement
+    public class Graph : IUIElement
     {
-        private class EndlessRect : Shape
+        private class EndlessRect : NearRectangle
         {
             public EndlessRect()
-                => Color = Color.Transparent;
+                : base(width: 0, height: 0)
+            {
+                Color = Color.Transparent;
+            }
 
             public override bool Contains(Vector2 position)
                 => true;
@@ -31,7 +34,7 @@ namespace Game1
 
             World = new Graph(nodes: nodes, links: links, overlay: overlay, letterHeight);
         }
-
+        public Field<bool> Enabled { get; }
         public Overlay Overlay { get; private set; }
         public IEnumerable<Node> Nodes
             => nodes;
@@ -46,6 +49,7 @@ namespace Game1
         /// </summary>
         public ReadOnlyDictionary<(Vector2, Vector2), Link> PersonFirstLinks { get; private set; }
         public ReadOnlyDictionary<(Vector2, Vector2), Link> ResFirstLinks { get; private set; }
+
         private readonly EndlessRect background;
 
         private readonly List<Node> nodes;
@@ -58,6 +62,7 @@ namespace Game1
 
         private Graph(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay, float letterHeight)
         {
+            Enabled = new(value: true);
             this.nodes = new();
             this.links = new();
             nodeSet = new();
@@ -130,7 +135,7 @@ namespace Game1
                 choiceHeight: 30,
                 letterHeight: letterHeight,
                 selectedColor: Color.White,
-                mouseOnColor: Color.Yellow,//Color.Lerp(Color.White, Color.Gray, .5f),
+                mouseOnColor: Color.Yellow,
                 deselectedColor: Color.Gray,
                 backgroundColor: Color.White
             );
@@ -150,11 +155,11 @@ namespace Game1
             );
         }
 
-        protected override Shape GetShape()
+        Shape IUIElement.GetShape()
             => background;
 
-        protected override IEnumerable<UIElement> GetChildren()
-            => links.Cast<UIElement>().Concat(nodes);
+        IEnumerable<IUIElement> IUIElement.GetChildren()
+            => links.Cast<IUIElement>().Concat(nodes);
 
         private void AddNode(Node node)
         {
@@ -242,7 +247,7 @@ namespace Game1
         {
             Node result = null;
             foreach (var node in nodes)
-                if (node.Contains(position: MyMouse.WorldPos))
+                if (((IUIElement)node).Contains(position: MyMouse.WorldPos))
                 {
                     result = node;
                     break;

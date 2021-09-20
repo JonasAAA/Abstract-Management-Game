@@ -6,8 +6,9 @@ namespace Game1.UI
     public abstract class Shape
     {
         public bool Transparent
-            => Color.A is 0;
+           => Color.A is 0;
         public Color Color { get; set; }
+
         public Vector2 Center
         {
             get => center;

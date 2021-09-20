@@ -4,7 +4,7 @@ using System;
 
 namespace Game1.UI
 {
-    public class MyRectangle : Shape
+    public class MyRectangle : NearRectangle
     {
         private static class OutlineDrawer
         {
@@ -40,114 +40,6 @@ namespace Game1.UI
         static MyRectangle()
             => outlineWidth = 0;
 
-        public float Width
-        {
-            get => width;
-            set
-            {
-                value = Math.Max(value, minWidth);
-                if (width != value)
-                {
-                    width = value;
-                    WidthChanged?.Invoke();
-                }
-            }
-        }
-        public float Height
-        {
-            get => height;
-            set
-            {
-                value = Math.Max(value, minHeight);
-                if (height != value)
-                {
-                    height = value;
-                    HeightChanged?.Invoke();
-                }
-            }
-        }
-        public float MinWidth
-        {
-            get => minWidth;
-            set
-            {
-                minWidth = value;
-                if (width < minWidth)
-                    width = minWidth;
-            }
-        }
-        public float MinHeight
-        {
-            get => minHeight;
-            set
-            {
-                minHeight = value;
-                if (height < minHeight)
-                    height = minHeight;
-            }
-        }
-
-        private float width, height, minWidth, minHeight;
-
-        public Vector2 TopLeftCorner
-        {
-            get => GetPosition
-            (
-                horizOrigin: HorizPos.Left,
-                vertOrigin: VertPos.Top
-            );
-            set => SetPosition
-            (
-                position: value,
-                horizOrigin: HorizPos.Left,
-                vertOrigin: VertPos.Top
-            );
-        }
-        public Vector2 TopRightCorner
-        {
-            get => GetPosition
-            (
-                horizOrigin: HorizPos.Right,
-                vertOrigin: VertPos.Top
-            );
-            set => SetPosition
-            (
-                position: value,
-                horizOrigin: HorizPos.Right,
-                vertOrigin: VertPos.Top
-            );
-        }
-        public Vector2 BottomLeftCorner
-        {
-            get => GetPosition
-            (
-                horizOrigin: HorizPos.Left,
-                vertOrigin: VertPos.Bottom
-            );
-            set => SetPosition
-            (
-                position: value,
-                horizOrigin: HorizPos.Left,
-                vertOrigin: VertPos.Bottom
-            );
-        }
-        public Vector2 BottomRightCorner
-        {
-            get => GetPosition
-            (
-                horizOrigin: HorizPos.Right,
-                vertOrigin: VertPos.Bottom
-            );
-            set => SetPosition
-            (
-                position: value,
-                horizOrigin: HorizPos.Right,
-                vertOrigin: VertPos.Bottom
-            );
-        }
-
-        public event Action WidthChanged, HeightChanged;
-
         private readonly Texture2D pixelTexture;
 
         public MyRectangle()
@@ -155,26 +47,13 @@ namespace Game1.UI
         { }
 
         public MyRectangle(float width, float height)
+            : base(width: width, height: height)
         {
-            if (width < 2 * outlineWidth)
-                throw new ArgumentOutOfRangeException();
-            this.width = width;
-
-            if (height < 2 * outlineWidth)
-                throw new ArgumentOutOfRangeException();
-            this.height = height;
+            MinWidth = 2 * outlineWidth;
+            MinHeight = 2 * outlineWidth;
 
             pixelTexture = C.Content.Load<Texture2D>("pixel");
-
-            MinWidth = 0;
-            MinHeight = 0;
         }
-
-        public Vector2 GetPosition(HorizPos horizOrigin, VertPos vertOrigin)
-            => new(Center.X + (int)horizOrigin * Width * .5f, Center.Y + (int)vertOrigin * Height * .5f);
-
-        public void SetPosition(Vector2 position, HorizPos horizOrigin, VertPos vertOrigin)
-            => Center = new Vector2(position.X - (int)horizOrigin * Width * .5f, position.Y - (int)vertOrigin * Height * .5f);
 
         public override bool Contains(Vector2 position)
         {
@@ -197,7 +76,7 @@ namespace Game1.UI
                 scale: new Vector2(Width, Height)
             );
 
-            Color outlineColor = Color.Black;//Color.Lerp(Color.Red, Color, amount: .9f);
+            Color outlineColor = Color.Black;
 
             OutlineDrawer.Draw
             (

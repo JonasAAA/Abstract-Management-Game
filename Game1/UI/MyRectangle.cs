@@ -61,16 +61,19 @@ namespace Game1.UI
             return Math.Abs(relPos.X) < Width * .5f && Math.Abs(relPos.Y) < Height * .5f;
         }
 
-        public override void Draw()
+        protected override void Draw(Color color)
         {
-            if (Transparent)
+            //if (Transparent)
+            //    return;
+
+            if (C.Transparent(color: color))
                 return;
-            
+
             C.Draw
             (
                 texture: pixelTexture,
                 position: TopLeftCorner,
-                color: Color,
+                color: color,
                 rotation: 0,
                 origin: Vector2.Zero,
                 scale: new Vector2(Width, Height)

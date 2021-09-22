@@ -6,9 +6,8 @@ namespace Game1.UI
     public abstract class Shape
     {
         public bool Transparent
-           => Color.A is 0;
+           => C.Transparent(color: Color);
         public Color Color { get; set; }
-
         public Vector2 Center
         {
             get => center;
@@ -31,6 +30,15 @@ namespace Game1.UI
 
         public abstract bool Contains(Vector2 position);
 
-        public abstract void Draw();
+        protected abstract void Draw(Color color);
+
+        public void Draw()
+            => Draw(color: Color);
+
+        public void Draw(Color otherColor, float otherColorProp)
+            => Draw
+            (
+                color: Color.Lerp(Color, otherColor, amount: otherColorProp)
+            );
     }
 }

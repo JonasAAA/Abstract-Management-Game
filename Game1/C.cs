@@ -86,6 +86,9 @@ namespace Game1
         public static bool IsSuitable(double value)
             => value is double.NegativeInfinity || IsInSuitableRange(value: value);
 
+        public static bool Transparent(Color color)
+            => color.A is 0;
+
         public static void Draw(Texture2D texture, Vector2 position, Color color, float rotation, Vector2 origin, float scale)
             => SpriteBatch.Draw
             (

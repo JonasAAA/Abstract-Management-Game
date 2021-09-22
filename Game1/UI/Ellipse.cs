@@ -21,15 +21,16 @@ namespace Game1.UI
             return propX * propX + propY * propY < 1;
         }
 
-        public override void Draw()
+        protected override void Draw(Color color)
         {
-            if (Transparent)
+            //if (Transparent)
+            if (C.Transparent(color: color))
                 return;
             C.Draw
             (
                 texture: diskTexture,
                 position: Center,
-                color: Color,
+                color: color,
                 rotation: 0,
                 origin: new Vector2(diskTexture.Width, diskTexture.Height) * .5f,
                 scale: new Vector2(Width / diskTexture.Width, Height / diskTexture.Height)

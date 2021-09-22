@@ -6,23 +6,18 @@ using System.Linq;
 
 namespace Game1.UI
 {
-    public class UIHorizTabPanel<TTab> : IUIElement<MyRectangle>
+    public class UIHorizTabPanel<TTab> : UIElement<MyRectangle>
         where TTab : class, IUIElement<MyRectangle>
     {
-        public MyRectangle Shape { get; }
-        public Field<bool> Enabled { get; }
-
         private readonly MultipleChoicePanel tabChoicePanel;
-        private readonly List<TTab> tabs;
+        private readonly Dictionary<string, TTab> tabs;
+        private readonly Dictionary<string, Action> tabEnabledActions;
         private TTab activeTab;
 
         public UIHorizTabPanel(float tabLabelWidth, float tabLabelHeight, float letterHeight, Color color, Color inactiveTabLabelColor)
+            : base(shape: new())
         {
-            Shape = new()
-            {
-                Color = color
-            };
-            Enabled = new(value: true);
+            Shape.Color = color;
             Shape.CenterChanged += RecalcChildrenPos;
 
             tabChoicePanel = new
@@ -32,11 +27,11 @@ namespace Game1.UI
                 choiceHeight: tabLabelHeight,
                 letterHeight: letterHeight,
                 selectedColor: color,
-                mouseOnColor: Color.Yellow,
                 deselectedColor: inactiveTabLabelColor,
                 backgroundColor: inactiveTabLabelColor
             );
             tabs = new();
+            tabEnabledActions = new();
             activeTab = null;
         }
 
@@ -52,18 +47,50 @@ namespace Game1.UI
             tab.Shape.WidthChanged += RecalcWidth;
             tab.Shape.HeightChanged += RecalcHeight;
 
-            tabs.Add(tab);
+            tabs.Add(tabLabelText, tab);
 
-            tab.Enabled.Changed += () => choice.Enabled.Set(tab.Enabled);
+            tabEnabledActions[tabLabelText] = () => choice.Enabled = tab.Enabled;
+
+            tab.EnabledChanged += tabEnabledActions[tabLabelText];
 
             RecalcWidth();
             RecalcHeight();
+        }
+        
+        public void ReplaceTab(string tabLabelText, TTab tab)
+        {
+            tabs[tabLabelText].Shape.WidthChanged -= RecalcWidth;
+            tabs[tabLabelText].Shape.HeightChanged -= RecalcHeight;
+            tabs[tabLabelText].EnabledChanged -= tabEnabledActions[tabLabelText];
+
+            if (activeTab == tabs[tabLabelText])
+                activeTab = tab;
+            tabs[tabLabelText] = tab;
+
+            tabEnabledActions[tabLabelText] = () => tabChoicePanel.GetChoice(choiceText: tabLabelText).Enabled = tab.Enabled;
+
+            tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(MyRectangle.outlineWidth) + new Vector2(0, tabChoicePanel.Shape.Height);
+            tab.Shape.WidthChanged += RecalcWidth;
+            tab.Shape.HeightChanged += RecalcHeight;
+            tab.EnabledChanged += tabEnabledActions[tabLabelText];
+
+            tabChoicePanel.ReplaceChoiceAction
+            (
+                choiceText: tabLabelText,
+                newSelect: () => activeTab = tab
+            );
+
+            RecalcWidth();
+            RecalcHeight();
+
+            //tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(MyRectangle.outlineWidth) + new Vector2(0, tabChoicePanel.Shape.Height);
+            //RecalcChildrenPos();
         }
 
         private void RecalcChildrenPos()
         {
             tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(MyRectangle.outlineWidth);
-            foreach (var tab in tabs)
+            foreach (var tab in tabs.Values)
                 tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(MyRectangle.outlineWidth) + new Vector2(0, tabChoicePanel.Shape.Height);
         }
 
@@ -72,14 +99,16 @@ namespace Game1.UI
             float innerWidth = Math.Max(tabChoicePanel.Shape.Width, tabs.Count switch
             {
                 0 => 0,
-                not 0 => tabs.Max(tab => tab.Shape.Width)
+                not 0 => tabs.Values.Max(tab => tab.Shape.Width)
             });
 
             Shape.Width = 2 * MyRectangle.outlineWidth + innerWidth;
 
             tabChoicePanel.Shape.MinWidth = innerWidth;
-            foreach (var tab in tabs)
+            foreach (var tab in tabs.Values)
                 tab.Shape.MinWidth = innerWidth;
+
+            RecalcChildrenPos();
         }
 
         private void RecalcHeight()
@@ -87,22 +116,24 @@ namespace Game1.UI
             float tabHeight = tabs.Count switch
             {
                 0 => 0,
-                not 0 => tabs.Max(tab => tab.Shape.Height)
+                not 0 => tabs.Values.Max(tab => tab.Shape.Height)
             };
 
             Shape.Height = 2 * MyRectangle.outlineWidth + tabChoicePanel.Shape.Height + tabHeight;
-            foreach (var tab in tabs)
+            foreach (var tab in tabs.Values)
                 tab.Shape.Height = tabHeight;
+
+            RecalcChildrenPos();
         }
 
-        IEnumerable<IUIElement> IUIElement.GetChildren()
+        protected override IEnumerable<IUIElement> GetChildren()
             => throw new InvalidOperationException();
 
-        IUIElement IUIElement.CatchUIElement(Vector2 mousePos)
+        public override IUIElement CatchUIElement(Vector2 mousePos)
         {
             if (!Shape.Contains(position: mousePos))
                 return null;
-            var catchingUIElement = ((IUIElement)tabChoicePanel).CatchUIElement(mousePos: mousePos);
+            var catchingUIElement = tabChoicePanel.CatchUIElement(mousePos: mousePos);
             if (catchingUIElement is not null)
                 return catchingUIElement;
 
@@ -115,10 +146,10 @@ namespace Game1.UI
             return activeTab.CatchUIElement(mousePos: mousePos) ?? this;
         }
 
-        void IUIElement.Draw()
+        public override void Draw()
         {
             Shape.Draw();
-            ((IUIElement)tabChoicePanel).Draw();
+            tabChoicePanel.Draw();
             activeTab?.Draw();
         }
     }

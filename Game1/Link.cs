@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 namespace Game1
 {
-    public class Link : IUIElement
+    public class Link : UIElement
     {
         private class DirLink : IElectrConsumer
         {
@@ -85,11 +85,11 @@ namespace Game1
                         scale: (float)Math.Sqrt(size) * 2 / diskTexture.Width
                     );
 
-                switch (Graph.World.Overlay)
+                switch (Graph.Overlay)
                 {
                     case <= C.MaxRes:
                         foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmounts[(int)Graph.World.Overlay]);
+                            DrawDisk(complProp: complProp, size: resAmounts[(int)Graph.Overlay]);
                         break;
                     case Overlay.AllRes:
                         foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
@@ -114,8 +114,6 @@ namespace Game1
         static Link()
             => electrPriority = 10;
 
-        public Field<bool> Enabled { get; }
-
         public readonly Node node1, node2;
         public double WattsPerKg
             => link1To2.WattsPerKg;
@@ -128,7 +126,6 @@ namespace Game1
         public Link(Node node1, Node node2, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
         {
             shape = new EmptyShape();
-            Enabled = new(value: true);
             if (node1 == node2)
                 throw new ArgumentException();
 
@@ -139,7 +136,7 @@ namespace Game1
             link2To1 = new(begin: node2, end: node1, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
         }
 
-        Shape IUIElement.GetShape()
+        protected override Shape GetShape()
             => shape;
 
         public Node OtherNode(Node node)
@@ -179,17 +176,15 @@ namespace Game1
             link2To1.Update(elapsed: elapsed);
         }
 
-        void IUIElement.Draw()
+        public override void Draw()
         {
-            IUIElement.DefaultDraw(UIElement: this);
-
             // temporary
             Texture2D pixel = C.Content.Load<Texture2D>(assetName: "pixel");
             Color color = Color.Lerp
             (
                 value1: Color.White,
                 value2: Color.Green,
-                amount: Graph.World.Overlay switch
+                amount: Graph.Overlay switch
                 {
                     Overlay.People => (float)(TravelTime / Graph.World.MaxLinkTravelTime),
                     _ => (float)(WattsPerKg / Graph.World.MaxLinkWattsPerKg)
@@ -208,7 +203,7 @@ namespace Game1
             link1To2.DrawTravelingRes();
             link2To1.DrawTravelingRes();
 
-            //base.Draw();
+            base.Draw();
         }
 
         public override int GetHashCode()

@@ -8,10 +8,8 @@ using System.Linq;
 
 namespace Game1
 {
-    public class Node : IUIElement
+    public class Node : UIElement
     {
-        public Field<bool> Enabled { get; }
-
         public Vector2 Position
             => state.position;
         public readonly float radius;
@@ -19,6 +17,8 @@ namespace Game1
             => industry;
         public IEnumerable<Person> UnemployedPeople
             => state.unemployedPeople;
+        public override bool CanBeClicked
+            => true;
 
         private readonly NodeState state;
         private readonly NearRectangle shape;
@@ -26,7 +26,9 @@ namespace Game1
         private readonly List<Link> links;
         private Industry industry;
         private readonly UIHorizTabPanel<IUIElement<MyRectangle>> UITabPanel;
-        private readonly UIRectPanel<IUIElement<NearRectangle>> buildButtonPannel, actionPanel;
+        private readonly UIRectPanel<IUIElement<NearRectangle>> buildButtonPannel;
+        private readonly Dictionary<Overlay, UIRectPanel<IUIElement<NearRectangle>>> overlayTabPanels;
+        private readonly string overlayTabLabel;
         private readonly MyArray<ProporSplitter<Node>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
         private readonly KeyButton incrDestinImp, decrDestinImp;
@@ -36,7 +38,6 @@ namespace Game1
 
         public Node(NodeState state, NearRectangle shape, float letterHeight, int startPersonCount = 0)
         {
-            Enabled = new(value: true);
             this.state = state;
             this.shape = shape;
             textBox = new(letterHeight: letterHeight);
@@ -46,6 +47,23 @@ namespace Game1
             shape.Color = Color.White;
             links = new();
             industry = null;
+
+            for (int i = 0; i < startPersonCount; i++)
+                state.unemployedPeople.Add(Person.GenerateNew());
+            resSplittersToDestins = new
+            (
+                values: from ind in Enumerable.Range(0, Resource.Count)
+                        select new ProporSplitter<Node>()
+            );
+            targetStoredResAmounts = new();
+            incrDestinImp = new(key: Keys.LeftShift);
+            decrDestinImp = new(key: Keys.LeftControl);
+            store = new(value: false);
+            undecidedResAmounts = new();
+            resTravelHereAmounts = new();
+            active = false;
+
+            textBox.Text = "";
 
             UITabPanel = new
             (
@@ -73,72 +91,90 @@ namespace Game1
                         (
                             width: 200,
                             height: 20
-                        ),
+                        )
+                        {
+                            Color = Color.White
+                        },
                         action: () =>
                         {
                             industry = parameters.MakeIndustry(state: state);
-                            buildButtonPannel.Enabled.Set(value: false);
+                            buildButtonPannel.Enabled = false;
                         },
                         letterHeight: letterHeight,
-                        text: "build " + parameters.industrParams.name,
-                        activeColor: Color.Yellow,
-                        passiveColor: Color.White
+                        text: "build " + parameters.industrParams.name
                     )
                 );
             }
 
-            actionPanel = new UIRectVertPanel<IUIElement<NearRectangle>>(color: Color.White);
-            UITabPanel.AddTab
-            (
-                tabLabelText: "action",
-                tab: actionPanel
-            );
+            overlayTabLabel = "overlay tab";
+            overlayTabPanels = new();
 
-            actionPanel.AddChild
-            (
-                child: new Button<MyRectangle>
+            foreach (var overlay in Enum.GetValues<Overlay>())
+                overlayTabPanels[overlay] = new UIRectVertPanel<IUIElement<NearRectangle>>(color: Color.Black);
+            for (int resInd = 0; resInd <= (int)C.MaxRes; resInd++)
+            {
+                var storeToggle = new ToggleButton<MyRectangle>
                 (
                     shape: new
                     (
                         width: 60,
                         height: 60
                     ),
-                    action: () =>
-                    {
-                        if (Graph.World.Overlay > C.MaxRes)
-                            return;
-                        int resInd = (int)Graph.World.Overlay;
-                        store[resInd] = !store[resInd];
-                    },
                     letterHeight: letterHeight,
                     text: "store\nswitch",
-                    activeColor: Color.Yellow,
-                    passiveColor: Color.White
-                )
-            );
-
-            for (int i = 0; i < startPersonCount; i++)
-                state.unemployedPeople.Add(Person.GenerateNew());
-            resSplittersToDestins = new
+                    on: store[resInd],
+                    selectedColor: Color.White,
+                    deselectedColor: Color.Gray
+                );
+                // hack to make lambda expression work correctly
+                int curResInd = resInd;
+                storeToggle.OnChanged += () => store[curResInd] = storeToggle.On;
+                overlayTabPanels[(Overlay)resInd].AddChild(child: storeToggle);
+            }
+            //overlayTabPanels = new UIRectVertPanel<IUIElement<NearRectangle>>(color: Color.White);
+            UITabPanel.AddTab
             (
-                values: from ind in Enumerable.Range(0, Resource.Count)
-                        select new ProporSplitter<Node>()
+                tabLabelText: overlayTabLabel, //"action",
+                tab: overlayTabPanels[Graph.Overlay]
+                //tab: overlayTabPanels
             );
-            targetStoredResAmounts = new();
-            incrDestinImp = new(key: Keys.LeftShift);
-            decrDestinImp = new(key: Keys.LeftControl);
-            store = new(value: false);
-            undecidedResAmounts = new();
-            resTravelHereAmounts = new();
-            active = false;
 
-            textBox.Text = "";
+            Graph.OverlayChanged += ()
+                => UITabPanel.ReplaceTab
+                (
+                    tabLabelText: overlayTabLabel,
+                    tab: overlayTabPanels[Graph.Overlay]
+                );
+
+            //overlayTabPanels.AddChild
+            //(
+            //    child: new Button<MyRectangle>
+            //    (
+            //        shape: new
+            //        (
+            //            width: 60,
+            //            height: 60
+            //        )
+            //        {
+            //            Color = Color.White
+            //        },
+            //        action: () =>
+            //        {
+            //            if (Graph.World.Overlay > C.MaxRes)
+            //                return;
+            //            int resInd = (int)Graph.World.Overlay;
+            //            store[resInd] = !store[resInd];
+            //        },
+            //        letterHeight: letterHeight,
+            //        text: "store\nswitch"
+            //    )
+            //);
         }
 
-        Shape IUIElement.GetShape()
+        protected override Shape GetShape()
             => shape;
 
-        IEnumerable<IUIElement> IUIElement.GetChildren()
+        protected override IEnumerable<IUIElement> GetChildren()
         {
             yield return textBox;
         }
@@ -183,9 +219,9 @@ namespace Game1
         public ulong StoredResAmount(int resInd)
             => state.storedRes[resInd];
 
-        public void OnClick()
+        public override void OnClick()
         {
-            //base.OnClick();
+            base.OnClick();
             if (active)
                 return;
 
@@ -203,9 +239,9 @@ namespace Game1
         {
             incrDestinImp.Update();
             decrDestinImp.Update();
-            if (Graph.World.Overlay <= C.MaxRes)
+            if (Graph.Overlay <= C.MaxRes)
             {
-                int resInd = (int)Graph.World.Overlay;
+                int resInd = (int)Graph.Overlay;
 
                 if (MyMouse.RightClick)
                 {
@@ -233,9 +269,9 @@ namespace Game1
                 node.AddText(text: $"personal distance {Graph.World.PersonDists[(Position, node.Position)]:0.##}\nresource distance {Graph.World.ResDists[(Position, node.Position)]:0.##}\n");
         }
 
-        public void OnMouseDownWorldNotMe()
+        public override  void OnMouseDownWorldNotMe()
         {
-            //base.OnMouseDownWorldNotMe();
+            base.OnMouseDownWorldNotMe();
             shape.Color = Color.White;
             ActiveUI.Remove(UIElement: UITabPanel);
             active = false;
@@ -359,27 +395,26 @@ namespace Game1
             if (industry is not null)
                 textBox.Text += industry.GetText();
 
-            textBox.Text += Graph.World.Overlay switch
+            textBox.Text += Graph.Overlay switch
             {
-                <= C.MaxRes => $"store {store[(int)Graph.World.Overlay]}\n" + (state.storedRes[(int)Graph.World.Overlay] >= targetStoredResAmounts[(int)Graph.World.Overlay] ?
-                    $"have {state.storedRes[(int)Graph.World.Overlay] - targetStoredResAmounts[(int)Graph.World.Overlay]} extra resources" : $"have {(double)state.storedRes[(int)Graph.World.Overlay] / targetStoredResAmounts[(int)Graph.World.Overlay] * 100:0.}% of target stored resources\n"),
+                <= C.MaxRes => $"store {store[(int)Graph.Overlay]}\n" + (state.storedRes[(int)Graph.Overlay] >= targetStoredResAmounts[(int)Graph.Overlay] ?
+                    $"have {state.storedRes[(int)Graph.Overlay] - targetStoredResAmounts[(int)Graph.Overlay]} extra resources" : $"have {(double)state.storedRes[(int)Graph.Overlay] / targetStoredResAmounts[(int)Graph.Overlay] * 100:0.}% of target stored resources\n"),
                 Overlay.AllRes => $"stored total res weight {state.storedRes.TotalWeight()}",
                 Overlay.People => $"unemployed {state.unemployedPeople.Count}\n",
                 _ => throw new Exception(),
             };
         }
 
-        void IUIElement.Draw()
+        public override void Draw()
         {
             //Draw amount of resources in storage
             //or write percentage of required res
 
-            IUIElement.DefaultDraw(UIElement: this);
-            //base.Draw();
+            base.Draw();
 
-            if (Graph.World.Overlay <= C.MaxRes)
+            if (Graph.Overlay <= C.MaxRes)
             {
-                var proportions = resSplittersToDestins[(int)Graph.World.Overlay].Proportions;
+                var proportions = resSplittersToDestins[(int)Graph.Overlay].Proportions;
                 decimal propSum = proportions.Values.Sum();
                 foreach (var (destinationNode, proportion) in proportions)
                 {

@@ -1,27 +1,21 @@
-﻿using Microsoft.Xna.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Game1.UI
 {
-    public class Button<TShape> : IUIElement<TShape>
+    public class Button<TShape> : UIElement<TShape>
         where TShape : Shape
     {
-        public TShape Shape { get; }
-        public Field<bool> Enabled { get; }
+        public override bool CanBeClicked
+            => true;
 
-        private readonly Color activeColor, passiveColor;
-        private readonly TextBox textBox;
+        protected readonly TextBox textBox;
         private readonly Action action;
 
-        public Button(TShape shape, Action action, float letterHeight, string text, Color activeColor, Color passiveColor)
+        public Button(TShape shape, Action action, float letterHeight, string text)
+            : base(shape: shape)
         {
-            Shape = shape;
-            Enabled = new(value: true);
             this.action = action;
-            this.activeColor = activeColor;
-            this.passiveColor = passiveColor;
-            Shape.Color = passiveColor;
             textBox = new(letterHeight: letterHeight)
             {
                 Text = text
@@ -29,27 +23,15 @@ namespace Game1.UI
             Shape.CenterChanged += () => textBox.Shape.Center = Shape.Center;
         }
 
-        IEnumerable<IUIElement> IUIElement.GetChildren()
+        protected override IEnumerable<IUIElement> GetChildren()
         { 
             yield return textBox;
         }
 
-        public void OnMouseEnter()
+        public override void OnClick()
         {
-            //base.OnMouseEnter();
-            Shape.Color = activeColor;
-        }
-
-        public void OnClick()
-        {
-            //base.OnClick();
+            base.OnClick();
             action?.Invoke();
-        }
-
-        public void OnMouseLeave()
-        {
-            //base.OnMouseLeave();
-            Shape.Color = passiveColor;
         }
     }
 }

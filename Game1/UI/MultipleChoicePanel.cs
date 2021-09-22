@@ -4,45 +4,43 @@ using System.Collections.Generic;
 
 namespace Game1.UI
 {
-    public class MultipleChoicePanel : IUIElement<MyRectangle>
+    public class MultipleChoicePanel : UIElement<MyRectangle>
     {
-        public MyRectangle Shape
-            => choicePanel.Shape;
-
-        public Field<bool> Enabled { get; }
-
-        private readonly UIRectPanel<ToggleButton<MyRectangle>> choicePanel;
+        private readonly UIRectPanel<SelectButton<MyRectangle>> choicePanel;
+        private readonly Dictionary<string, SelectButton<MyRectangle>> choices;
+        private readonly Dictionary<string, Action> choiceActions;
         private readonly float choiceWidth, choiceHeight, letterHeight;
-        private readonly Color selectedColor, mouseOnColor, deselectedColor;
-        private ToggleButton<MyRectangle> selectedChoice;
+        private readonly Color selectedColor, deselectedColor;
+        private SelectButton<MyRectangle> selectedChoice;
 
-        public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, float letterHeight, Color selectedColor, Color mouseOnColor, Color deselectedColor, Color backgroundColor)
+        public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, float letterHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
         {
             if (horizontal)
-                choicePanel = new UIRectHorizPanel<ToggleButton<MyRectangle>>(color: backgroundColor);
+                choicePanel = new UIRectHorizPanel<SelectButton<MyRectangle>>(color: backgroundColor);
             else
-                choicePanel = new UIRectVertPanel<ToggleButton<MyRectangle>>(color: backgroundColor);
+                choicePanel = new UIRectVertPanel<SelectButton<MyRectangle>>(color: backgroundColor);
+            Shape = choicePanel.Shape;
             Shape.Color = backgroundColor;
 
-            Enabled = new(value: true);
+            choices = new();
+            choiceActions = new();
 
             this.choiceWidth = choiceWidth;
             this.choiceHeight = choiceHeight;
             this.letterHeight = letterHeight;
             this.selectedColor = selectedColor;
-            this.mouseOnColor = mouseOnColor;
             this.deselectedColor = deselectedColor;
             selectedChoice = null;
         }
 
-        IEnumerable<IUIElement> IUIElement.GetChildren()
+        protected override IEnumerable<IUIElement> GetChildren()
         {
             yield return choicePanel;
         }
         
-        public ToggleButton<MyRectangle> AddChoice(string choiceText, Action select)
+        public SelectButton<MyRectangle> AddChoice(string choiceText, Action select)
         {
-            ToggleButton<MyRectangle> choice = new
+            SelectButton<MyRectangle> choice = new
             (
                 shape: new
                 (
@@ -52,7 +50,6 @@ namespace Game1.UI
                 letterHeight: letterHeight,
                 on: choicePanel.Count is 0,
                 text: choiceText,
-                mouseOnColor: mouseOnColor,
                 selectedColor: selectedColor,
                 deselectedColor: deselectedColor
             );
@@ -63,17 +60,19 @@ namespace Game1.UI
                 select();
             }
 
-            choice.OnChanged += () =>
+            void choiceAction()
             {
                 if (!choice.On)
                     return;
-                
+
                 selectedChoice.On = false;
                 selectedChoice = choice;
                 select();
-            };
+            }
 
-            choice.Enabled.Changed += () =>
+            choice.OnChanged += choiceAction;
+
+            choice.EnabledChanged += () =>
             {
                 if (choice.Enabled || !choice.On)
                     return;
@@ -88,8 +87,35 @@ namespace Game1.UI
             };
 
             choicePanel.AddChild(child: choice);
+            choices.Add(choiceText, choice);
+            choiceActions.Add(choiceText, choiceAction);
 
             return choice;
         }
+    
+        public void ReplaceChoiceAction(string choiceText, Action newSelect)
+        {
+            var choice = choices[choiceText];
+            choice.OnChanged -= choiceActions[choiceText];
+
+            if (selectedChoice == choice)
+                newSelect();
+
+            void choiceAction()
+            {
+                if (!choice.On)
+                    return;
+
+                selectedChoice.On = false;
+                selectedChoice = choice;
+                newSelect();
+            }
+
+            choice.OnChanged += choiceAction;
+            choiceActions[choiceText] = choiceAction;
+        }
+
+        public SelectButton<MyRectangle> GetChoice(string choiceText)
+            => choices[choiceText];
     }
 }

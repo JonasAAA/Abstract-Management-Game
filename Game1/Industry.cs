@@ -313,7 +313,7 @@ namespace Game1
         }
 
         public virtual string GetText()
-            => Graph.World.Overlay switch
+            => Graph.Overlay switch
             {
                 <= C.MaxRes => "",
                 Overlay.AllRes => "",

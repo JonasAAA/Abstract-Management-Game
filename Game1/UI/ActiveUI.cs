@@ -100,9 +100,9 @@ namespace Game1.UI
             if (contMouse != prevContMouse)
             {
                 if (prevContMouse is not null && prevContMouse.Enabled)
-                    prevContMouse.OnMouseLeave();
+                    prevContMouse.MouseOn = false;
                 if (contMouse is not null && contMouse.Enabled)
-                    contMouse.OnMouseEnter();
+                    contMouse.MouseOn = true;
             }
 
             if (leftDown && !prevLeftDown)
@@ -120,7 +120,7 @@ namespace Game1.UI
                 IUIElement otherHalfClicked = contMouse;
                 if (halfClicked == otherHalfClicked)
                 {
-                    if (otherHalfClicked is not null && otherHalfClicked.Enabled)
+                    if (otherHalfClicked is not null && otherHalfClicked.Enabled && otherHalfClicked.CanBeClicked)
                         otherHalfClicked.OnClick();
                     if (!MouseAboveHUD)
                         activeWorldElement = otherHalfClicked;

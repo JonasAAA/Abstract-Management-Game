@@ -134,9 +134,9 @@ namespace Game1.UI
         }
 
         public Vector2 GetPosition(HorizPos horizOrigin, VertPos vertOrigin)
-            => new(Center.X + (int)horizOrigin * Width * .5f, Center.Y + (int)vertOrigin * Height * .5f);
+            => Center + new Vector2((int)horizOrigin * Width, (int)vertOrigin * Height) * .5f;
 
         public void SetPosition(Vector2 position, HorizPos horizOrigin, VertPos vertOrigin)
-            => Center = new Vector2(position.X - (int)horizOrigin * Width * .5f, position.Y - (int)vertOrigin * Height * .5f);
+            => Center = position - new Vector2((int)horizOrigin * Width, (int)vertOrigin * Height) * .5f;
     }
 }

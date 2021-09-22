@@ -11,7 +11,7 @@ namespace Game1.UI
         public override bool Contains(Vector2 position)
             => false;
 
-        public override void Draw()
+        protected override void Draw(Color color)
         { }
     }
 }

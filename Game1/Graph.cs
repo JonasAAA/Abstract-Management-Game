@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace Game1
 {
-    public class Graph : IUIElement
+    public class Graph : UIElement
     {
         private class EndlessRect : NearRectangle
         {
@@ -21,9 +21,13 @@ namespace Game1
             public override bool Contains(Vector2 position)
                 => true;
 
-            public override void Draw()
+            protected override void Draw(Color color)
             { }
         }
+
+        public static Overlay Overlay { get; private set; }
+
+        public static event Action OverlayChanged;
 
         public static Graph World { get; private set; }
 
@@ -34,8 +38,7 @@ namespace Game1
 
             World = new Graph(nodes: nodes, links: links, overlay: overlay, letterHeight);
         }
-        public Field<bool> Enabled { get; }
-        public Overlay Overlay { get; private set; }
+
         public IEnumerable<Node> Nodes
             => nodes;
         public IEnumerable<Link> Links
@@ -62,7 +65,6 @@ namespace Game1
 
         private Graph(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay, float letterHeight)
         {
-            Enabled = new(value: true);
             this.nodes = new();
             this.links = new();
             nodeSet = new();
@@ -114,7 +116,6 @@ namespace Game1
                 letterHeight: letterHeight,
                 on: false,
                 text: "Toggle\nPause",
-                mouseOnColor: Color.Yellow,
                 selectedColor: Color.White,
                 deselectedColor: Color.Gray
             );
@@ -135,7 +136,6 @@ namespace Game1
                 choiceHeight: 30,
                 letterHeight: letterHeight,
                 selectedColor: Color.White,
-                mouseOnColor: Color.Yellow,
                 deselectedColor: Color.Gray,
                 backgroundColor: Color.White
             );
@@ -144,7 +144,13 @@ namespace Game1
                 overlayChoicePanel.AddChoice
                 (
                     choiceText: posOverlay.ToString(),
-                    select: () => Overlay = posOverlay
+                    select: () =>
+                    {
+                        if (Overlay == posOverlay)
+                            return;
+                        Overlay = posOverlay;
+                        OverlayChanged?.Invoke();
+                    }
                 );
 
             ActiveUI.AddHUDElement
@@ -155,10 +161,10 @@ namespace Game1
             );
         }
 
-        Shape IUIElement.GetShape()
+        protected override Shape GetShape()
             => background;
 
-        IEnumerable<IUIElement> IUIElement.GetChildren()
+        protected override IEnumerable<IUIElement> GetChildren()
             => links.Cast<IUIElement>().Concat(nodes);
 
         private void AddNode(Node node)

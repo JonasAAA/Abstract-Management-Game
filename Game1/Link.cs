@@ -120,12 +120,11 @@ namespace Game1
         public TimeSpan TravelTime
             => link1To2.TravelTime;
 
-        private readonly Shape shape;
         private readonly DirLink link1To2, link2To1;
 
         public Link(Node node1, Node node2, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
+            : base(shape: new EmptyShape())
         {
-            shape = new EmptyShape();
             if (node1 == node2)
                 throw new ArgumentException();
 
@@ -135,9 +134,6 @@ namespace Game1
             link1To2 = new(begin: node1, end: node2, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
             link2To1 = new(begin: node2, end: node1, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
         }
-
-        protected override Shape GetShape()
-            => shape;
 
         public Node OtherNode(Node node)
         {

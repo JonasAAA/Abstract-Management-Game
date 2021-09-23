@@ -31,7 +31,8 @@ namespace Game1
         static C()
         {
             minPosDecimal = 1e-6m;
-            minPosDouble = (double)minPosDecimal;
+            //minPosDouble = (double)minPosDecimal;
+            minPosDouble = .0001;
             random = new();
             numericKeys = new
             (

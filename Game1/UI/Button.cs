@@ -20,12 +20,13 @@ namespace Game1.UI
             {
                 Text = text
             };
-            Shape.CenterChanged += () => textBox.Shape.Center = Shape.Center;
+            AddChild(child: textBox);
         }
 
-        protected override IEnumerable<IUIElement> GetChildren()
-        { 
-            yield return textBox;
+        protected override void PartOfRecalcSizeAndPos()
+        {
+            base.PartOfRecalcSizeAndPos();
+            textBox.Shape.Center = Shape.Center;
         }
 
         public override void OnClick()

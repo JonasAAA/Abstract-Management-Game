@@ -53,8 +53,6 @@ namespace Game1
         public ReadOnlyDictionary<(Vector2, Vector2), Link> PersonFirstLinks { get; private set; }
         public ReadOnlyDictionary<(Vector2, Vector2), Link> ResFirstLinks { get; private set; }
 
-        private readonly EndlessRect background;
-
         private readonly List<Node> nodes;
         private readonly List<Link> links;
         private readonly HashSet<Node> nodeSet;
@@ -64,6 +62,7 @@ namespace Game1
         private bool paused;
 
         private Graph(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay, float letterHeight)
+            : base(shape: new EndlessRect())
         {
             this.nodes = new();
             this.links = new();
@@ -88,8 +87,6 @@ namespace Game1
             Overlay = overlay;
 
             paused = false;
-
-            background = new();
             
             if (ActiveUI.Count is not 0)
                 throw new Exception();
@@ -161,18 +158,13 @@ namespace Game1
             );
         }
 
-        protected override Shape GetShape()
-            => background;
-
-        protected override IEnumerable<IUIElement> GetChildren()
-            => links.Cast<IUIElement>().Concat(nodes);
-
         private void AddNode(Node node)
         {
             if (nodeSet.Contains(node))
                 throw new ArgumentException();
             nodeSet.Add(node);
             nodes.Add(node);
+            AddChild(child: node, layer: 1);
         }
 
         private void AddLink(Link link)
@@ -184,6 +176,7 @@ namespace Game1
 
             link.node1.AddLink(link: link);
             link.node2.AddLink(link: link);
+            AddChild(child: link, layer: 0);
         }
 
         // currently uses Floyd-Warshall;

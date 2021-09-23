@@ -14,14 +14,14 @@ namespace Game1.UI
         private SelectButton<MyRectangle> selectedChoice;
 
         public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, float letterHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
+            : base(shape: new MyRectangle())
         {
             if (horizontal)
                 choicePanel = new UIRectHorizPanel<SelectButton<MyRectangle>>(color: backgroundColor);
             else
                 choicePanel = new UIRectVertPanel<SelectButton<MyRectangle>>(color: backgroundColor);
-            Shape = choicePanel.Shape;
+            
             Shape.Color = backgroundColor;
-
             choices = new();
             choiceActions = new();
 
@@ -31,13 +31,19 @@ namespace Game1.UI
             this.selectedColor = selectedColor;
             this.deselectedColor = deselectedColor;
             selectedChoice = null;
+
+            AddChild(child: choicePanel);
         }
 
-        protected override IEnumerable<IUIElement> GetChildren()
+        protected override void PartOfRecalcSizeAndPos()
         {
-            yield return choicePanel;
+            base.PartOfRecalcSizeAndPos();
+
+            Shape.Width = choicePanel.Shape.Width;
+            Shape.Height = choicePanel.Shape.Height;
+            choicePanel.Shape.Center = Shape.Center;
         }
-        
+
         public SelectButton<MyRectangle> AddChoice(string choiceText, Action select)
         {
             SelectButton<MyRectangle> choice = new
@@ -86,9 +92,9 @@ namespace Game1.UI
                 throw new Exception("enabled choice doesn't exist");
             };
 
-            choicePanel.AddChild(child: choice);
             choices.Add(choiceText, choice);
             choiceActions.Add(choiceText, choiceAction);
+            choicePanel.AddChild(child: choice);
 
             return choice;
         }

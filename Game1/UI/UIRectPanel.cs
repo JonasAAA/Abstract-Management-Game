@@ -16,32 +16,14 @@ namespace Game1.UI
             : base(shape: new())
         {
             Shape.Color = color;
-            Shape.CenterChanged += RecalcChildrenPos;
             children = new();
         }
 
-        protected override IEnumerable<IUIElement> GetChildren()
-            => (IEnumerable<IUIElement>)children;
-
         public void AddChild(TChild child)
         {
-            SetNewChildCoords(child: child);
             children.Add(child);
-            child.Shape.WidthChanged += RecalcWidth;
-            child.Shape.WidthChanged += RecalcChildrenPos;
-            child.Shape.HeightChanged += RecalcHeight;
-            child.Shape.HeightChanged += RecalcChildrenPos;
-            RecalcWidth();
-            RecalcHeight();
+            base.AddChild(child: child);
         }
-
-        protected abstract void SetNewChildCoords(TChild child);
-
-        protected abstract void RecalcChildrenPos();
-
-        protected abstract void RecalcWidth();
-
-        protected abstract void RecalcHeight();
 
         public IEnumerator<TChild> GetEnumerator()
             => children.GetEnumerator();

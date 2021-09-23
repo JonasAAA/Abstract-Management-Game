@@ -63,9 +63,6 @@ namespace Game1.UI
 
         protected override void Draw(Color color)
         {
-            //if (Transparent)
-            //    return;
-
             if (C.Transparent(color: color))
                 return;
 

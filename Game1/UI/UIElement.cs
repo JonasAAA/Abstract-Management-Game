@@ -8,17 +8,11 @@ namespace Game1.UI
     public abstract class UIElement<TShape> : UIElement, IUIElement<TShape>
         where TShape : Shape
     {
-        public TShape Shape { get; protected init; }
-
-        protected UIElement()
-            : this(shape: null)
-        { }
+        public TShape Shape { get; }
 
         protected UIElement(TShape shape)
+            : base(shape: shape)
             => Shape = shape;
-
-        protected override Shape GetShape()
-            => Shape;
     }
 
     public abstract class UIElement : IUIElement
@@ -67,41 +61,92 @@ namespace Game1.UI
         public virtual bool CanBeClicked
             => false;
 
-        public event Action EnabledChanged, HasDisabledAncestorChanged, MouseOnChanged;
-
-        private bool enabled, hasDisabledAncestor, mouseOn;
-
-        protected UIElement()
+        public event Action SizeOrPosChanged
         {
+            add => shape.SizeOrPosChanged += value;
+            remove => shape.SizeOrPosChanged -= value;
+        }
+
+        public event Action EnabledChanged, HasDisabledAncestorChanged,MouseOnChanged;
+
+        private readonly Shape shape;
+        private bool enabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
+        private readonly SortedDictionary<int, List<IUIElement>> layerToChildren;
+        private readonly Dictionary<IUIElement, int> childToLayer;
+        private IEnumerable<IUIElement> Children
+            => from childrenLayer in layerToChildren.Values
+               from child in childrenLayer
+               select child;
+
+        protected UIElement(Shape shape)
+        {
+            this.shape = shape;
+            SizeOrPosChanged += RecalcSizeAndPos;
             enabled = true;
             MouseOn = false;
             hasDisabledAncestor = false;
+            inRecalcSizeAndPos = false;
+            layerToChildren = new();
+            childToLayer = new();
         }
 
-        protected abstract Shape GetShape();
+        protected void AddChild(IUIElement child, int layer = 0)
+        {
+            child.SizeOrPosChanged += RecalcSizeAndPos;
+            if (!layerToChildren.ContainsKey(layer))
+                layerToChildren[layer] = new();
+            layerToChildren[layer].Add(child);
+            childToLayer.Add(child, layer);
+            RecalcSizeAndPos();
+        }
 
-        protected virtual IEnumerable<IUIElement> GetChildren()
-            => Enumerable.Empty<IUIElement>();
+        protected void RemoveChild(IUIElement child)
+        {
+            int layer = childToLayer[child];
+            child.SizeOrPosChanged -= RecalcSizeAndPos;
+            if (!layerToChildren[layer].Remove(child) || !childToLayer.Remove(child))
+                throw new ArgumentException();
+            RecalcSizeAndPos();
+        }
 
         public bool Contains(Vector2 position)
-            => GetShape().Contains(position: position);
+            => shape.Contains(position: position);
 
         public virtual IUIElement CatchUIElement(Vector2 mousePos)
         {
             if (!Contains(position: mousePos))
                 return null;
 
-            foreach (var child in GetChildren().Reverse())
+            foreach (var child in Enumerable.Reverse(Children))
             {
                 var childCatchingUIElement = child.CatchUIElement(mousePos: mousePos);
                 if (childCatchingUIElement is not null)
                     return childCatchingUIElement;
             }
-            return GetShape().Transparent switch
+            return shape.Transparent switch
             {
                 true => null,
                 false => this
             };
+        }
+
+        public void RecalcSizeAndPos()
+        {
+            if (inRecalcSizeAndPos)
+                return;
+            inRecalcSizeAndPos = true;
+
+            PartOfRecalcSizeAndPos();
+            foreach (var child in Children)
+                child.RecalcSizeAndPos();
+
+            inRecalcSizeAndPos = false;
+        }
+
+        protected virtual void PartOfRecalcSizeAndPos()
+        {
+            if (!inRecalcSizeAndPos)
+                throw new InvalidOperationException();
         }
 
         public virtual void OnClick()
@@ -115,7 +160,7 @@ namespace Game1.UI
 
         public virtual void Draw()
         {
-            GetShape().Draw
+            shape.Draw
             (
                 otherColor: IUIElement.mouseOnColor,
                 otherColorProp: (CanBeClicked && MouseOn) switch
@@ -124,7 +169,7 @@ namespace Game1.UI
                     false => 0
                 }
             );
-            foreach (var child in GetChildren())
+            foreach (var child in Children)
                 child.Draw();
         }
 
@@ -132,12 +177,12 @@ namespace Game1.UI
         {
             if (!enabled || hasDisabledAncestor)
             {
-                foreach (var child in GetChildren())
+                foreach (var child in Children)
                     child.HasDisabledAncestor = true;
             }
             else
             {
-                foreach (var child in GetChildren())
+                foreach (var child in Children)
                     child.HasDisabledAncestor = false;
             }
         }

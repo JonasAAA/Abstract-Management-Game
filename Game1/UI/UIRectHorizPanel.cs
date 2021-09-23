@@ -10,11 +10,22 @@ namespace Game1.UI
             : base(color: color)
         { }
 
-        protected override void SetNewChildCoords(TChild child)
-            => child.Shape.TopLeftCorner = new Vector2(Shape.Width - MyRectangle.outlineWidth, MyRectangle.outlineWidth);
-
-        protected override void RecalcChildrenPos()
+        protected override void PartOfRecalcSizeAndPos()
         {
+            base.PartOfRecalcSizeAndPos();
+
+            Shape.Width = 2 * MyRectangle.outlineWidth + children.Count switch
+            {
+                0 => 0,
+                not 0 => children.Sum(child => child.Shape.Width)
+            };
+
+            Shape.Height = 2 * MyRectangle.outlineWidth + children.Count switch
+            {
+                0 => 0,
+                not 0 => children.Max(child => child.Shape.Height)
+            };
+
             float curWidthSum = 0;
             foreach (var child in children)
             {
@@ -22,19 +33,5 @@ namespace Game1.UI
                 curWidthSum += child.Shape.Width;
             }
         }
-
-        protected override void RecalcWidth()
-            => Shape.Width = 2 * MyRectangle.outlineWidth + children.Count switch
-            {
-                0 => 0,
-                not 0 => children.Sum(child => child.Shape.Width)
-            };
-
-        protected override void RecalcHeight()
-            => Shape.Height = 2 * MyRectangle.outlineWidth + children.Count switch
-            {
-                0 => 0,
-                not 0 => children.Max(child => child.Shape.Height)
-            };
     }
 }

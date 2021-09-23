@@ -21,7 +21,7 @@ namespace Game1
             => true;
 
         private readonly NodeState state;
-        private readonly NearRectangle shape;
+        private readonly Shape shape;
         private readonly TextBox textBox;
         private readonly List<Link> links;
         private Industry industry;
@@ -36,14 +36,19 @@ namespace Game1
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
         private bool active;
 
-        public Node(NodeState state, NearRectangle shape, float letterHeight, int startPersonCount = 0)
+        public Node(NodeState state, Shape shape, float letterHeight, int startPersonCount = 0)
+            : base(shape: shape)
         {
             this.state = state;
             this.shape = shape;
             textBox = new(letterHeight: letterHeight);
-            shape.CenterChanged += () => textBox.Shape.Center = shape.Center;
             shape.Center = Position;
-            shape.CenterChanged += () => throw new InvalidOperationException();
+            textBox.Shape.Center = Position;
+            SizeOrPosChanged += () =>
+            {
+                if (shape.Center != Position)
+                    throw new Exception();
+            };
             shape.Color = Color.White;
             links = new();
             industry = null;
@@ -64,6 +69,7 @@ namespace Game1
             active = false;
 
             textBox.Text = "";
+            AddChild(child: textBox);
 
             UITabPanel = new
             (
@@ -131,12 +137,10 @@ namespace Game1
                 storeToggle.OnChanged += () => store[curResInd] = storeToggle.On;
                 overlayTabPanels[(Overlay)resInd].AddChild(child: storeToggle);
             }
-            //overlayTabPanels = new UIRectVertPanel<IUIElement<NearRectangle>>(color: Color.White);
             UITabPanel.AddTab
             (
-                tabLabelText: overlayTabLabel, //"action",
+                tabLabelText: overlayTabLabel,
                 tab: overlayTabPanels[Graph.Overlay]
-                //tab: overlayTabPanels
             );
 
             Graph.OverlayChanged += ()
@@ -145,38 +149,6 @@ namespace Game1
                     tabLabelText: overlayTabLabel,
                     tab: overlayTabPanels[Graph.Overlay]
                 );
-
-            //overlayTabPanels.AddChild
-            //(
-            //    child: new Button<MyRectangle>
-            //    (
-            //        shape: new
-            //        (
-            //            width: 60,
-            //            height: 60
-            //        )
-            //        {
-            //            Color = Color.White
-            //        },
-            //        action: () =>
-            //        {
-            //            if (Graph.World.Overlay > C.MaxRes)
-            //                return;
-            //            int resInd = (int)Graph.World.Overlay;
-            //            store[resInd] = !store[resInd];
-            //        },
-            //        letterHeight: letterHeight,
-            //        text: "store\nswitch"
-            //    )
-            //);
-        }
-
-        protected override Shape GetShape()
-            => shape;
-
-        protected override IEnumerable<IUIElement> GetChildren()
-        {
-            yield return textBox;
         }
 
         public void AddLink(Link link)

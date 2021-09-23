@@ -39,7 +39,7 @@ namespace Game1.UI
                 throw new ArgumentException();
         }
 
-        public static void AddHUDElement(IUIElement<MyRectangle> UIElement, HorizPos horizPos, VertPos vertPos)
+        public static void AddHUDElement(IUIElement<NearRectangle> UIElement, HorizPos horizPos, VertPos vertPos)
         {
             Vector2 HUDCenter = new((float)(C.ScreenWidth * .5), (float)(C.ScreenHeight * .5));
             void SetUIElementPosition()
@@ -51,8 +51,7 @@ namespace Game1.UI
                 );
 
             SetUIElementPosition();
-            UIElement.Shape.WidthChanged += SetUIElementPosition;
-            UIElement.Shape.HeightChanged += SetUIElementPosition;
+            UIElement.Shape.SizeOrPosChanged += SetUIElementPosition;
 
             activeUIElements.Add(UIElement);
             if (!HUDUIElements.Add(UIElement))

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using System.Linq;
 
 namespace Game1.UI
 {
@@ -13,22 +14,40 @@ namespace Game1.UI
             get => center;
             set
             {
-                if (center != value)
+                if (!C.IsTiny(value: Vector2.Distance(center, value)))
                 {
                     center = value;
-                    CenterChanged?.Invoke();
+                    RaiseSizeOrPosChanged();
                 }
             }
         }
 
-        public event Action CenterChanged;
+        public event Action SizeOrPosChanged
+        {
+            add
+            {
+                if (sizeOrPosChanged is not null && sizeOrPosChanged.GetInvocationList().Contains(value))
+                    throw new InvalidOperationException();
+                sizeOrPosChanged -= value;
+                sizeOrPosChanged += value;
+            }
+            remove
+            {
+                sizeOrPosChanged -= value;
+            }
+        }
 
         private Vector2 center;
+
+        private event Action sizeOrPosChanged;
 
         protected Shape()
             => Color = Color.Transparent;
 
         public abstract bool Contains(Vector2 position);
+
+        protected void RaiseSizeOrPosChanged()
+            => sizeOrPosChanged?.Invoke();
 
         protected abstract void Draw(Color color);
 

@@ -69,10 +69,10 @@ namespace Game1.UI
                 if (value < 0)
                     throw new ArgumentOutOfRangeException();
                 value = Math.Max(value, minWidth);
-                if (width != value)
+                if (!C.IsTiny(value: width - value))
                 {
                     width = value;
-                    WidthChanged?.Invoke();
+                    RaiseSizeOrPosChanged();
                 }
             }
         }
@@ -84,10 +84,10 @@ namespace Game1.UI
                 if (value < 0)
                     throw new ArgumentOutOfRangeException();
                 value = Math.Max(value, minHeight);
-                if (height != value)
+                if (!C.IsTiny(value: height - value))
                 {
                     height = value;
-                    HeightChanged?.Invoke();
+                    RaiseSizeOrPosChanged();
                 }
             }
         }
@@ -115,8 +115,6 @@ namespace Game1.UI
                     height = minHeight;
             }
         }
-
-        public event Action WidthChanged, HeightChanged;
 
         private float width, height, minWidth, minHeight;
 

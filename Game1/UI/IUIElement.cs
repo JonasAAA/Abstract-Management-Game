@@ -24,11 +24,13 @@ namespace Game1.UI
 
         public bool CanBeClicked { get; }
 
-        public event Action EnabledChanged, HasDisabledAncestorChanged, MouseOnChanged;
+        public event Action SizeOrPosChanged, EnabledChanged, HasDisabledAncestorChanged, MouseOnChanged;
 
         public bool Contains(Vector2 position);
 
         public IUIElement CatchUIElement(Vector2 mousePos);
+
+        public void RecalcSizeAndPos();
 
         public virtual void OnClick()
         { }

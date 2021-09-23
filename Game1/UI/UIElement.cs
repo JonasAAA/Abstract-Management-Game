@@ -5,29 +5,34 @@ using System.Linq;
 
 namespace Game1.UI
 {
-    public abstract class UIElement<TShape> : UIElement, IUIElement<TShape>
+    public class UIElement<TShape> : UIElement, IUIElement<TShape>
         where TShape : Shape
     {
         public TShape Shape { get; }
 
-        protected UIElement(TShape shape)
+        public UIElement(TShape shape)
             : base(shape: shape)
             => Shape = shape;
     }
 
-    public abstract class UIElement : IUIElement
+    public class UIElement : IUIElement
     {
         public bool Enabled
+            => personallyEnabled && !hasDisabledAncestor;
+
+        public bool PersonallyEnabled
         {
-            get => enabled;
+            get => personallyEnabled;
             set
             {
-                if (enabled == value)
+                if (personallyEnabled == value)
                     return;
-                
-                enabled = value;
+
+                bool oldEnabled = Enabled;
+                personallyEnabled = value;
                 SetHasDisabledParentOfChildren();
-                EnabledChanged?.Invoke();
+                if (oldEnabled != Enabled)
+                    EnabledChanged?.Invoke();
             }
         }
 
@@ -39,9 +44,12 @@ namespace Game1.UI
                 if (hasDisabledAncestor == value)
                     return;
 
+                bool oldEnabled = Enabled;
                 hasDisabledAncestor = value;
                 SetHasDisabledParentOfChildren();
-                HasDisabledAncestorChanged?.Invoke();
+                //HasDisabledAncestorChanged?.Invoke();
+                if (oldEnabled != Enabled)
+                    EnabledChanged?.Invoke();
             }
         }
 
@@ -67,10 +75,10 @@ namespace Game1.UI
             remove => shape.SizeOrPosChanged -= value;
         }
 
-        public event Action EnabledChanged, HasDisabledAncestorChanged,MouseOnChanged;
+        public event Action EnabledChanged, /*HasDisabledAncestorChanged,*/ MouseOnChanged;
 
         private readonly Shape shape;
-        private bool enabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
+        private bool personallyEnabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
         private readonly SortedDictionary<int, List<IUIElement>> layerToChildren;
         private readonly Dictionary<IUIElement, int> childToLayer;
         private IEnumerable<IUIElement> Children
@@ -78,11 +86,11 @@ namespace Game1.UI
                from child in childrenLayer
                select child;
 
-        protected UIElement(Shape shape)
+        public UIElement(Shape shape)
         {
             this.shape = shape;
             SizeOrPosChanged += RecalcSizeAndPos;
-            enabled = true;
+            personallyEnabled = true;
             MouseOn = false;
             hasDisabledAncestor = false;
             inRecalcSizeAndPos = false;
@@ -175,15 +183,15 @@ namespace Game1.UI
 
         private void SetHasDisabledParentOfChildren()
         {
-            if (!enabled || hasDisabledAncestor)
+            if (Enabled)
             {
                 foreach (var child in Children)
-                    child.HasDisabledAncestor = true;
+                    child.HasDisabledAncestor = false;
             }
             else
             {
                 foreach (var child in Children)
-                    child.HasDisabledAncestor = false;
+                    child.HasDisabledAncestor = true;
             }
         }
     }

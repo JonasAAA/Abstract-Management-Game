@@ -43,7 +43,7 @@ namespace Game1.UI
                 spriteFont: font,
                 text: text.Trim(),
                 position: Shape.TopLeftCorner,
-                color: (Enabled && !HasDisabledAncestor) switch
+                color: (PersonallyEnabled && !HasDisabledAncestor) switch
                 {
                     true => TextColor,
                     false => TextColor * .5f

@@ -76,7 +76,7 @@ namespace Game1.UI
 
             tabs.Add(tabLabelText, tab);
 
-            tabEnabledActions[tabLabelText] = () => choice.Enabled = tab.Enabled;
+            tabEnabledActions[tabLabelText] = () => choice.PersonallyEnabled = tab.Enabled;
 
             tab.EnabledChanged += tabEnabledActions[tabLabelText];
 
@@ -92,7 +92,7 @@ namespace Game1.UI
                 activeTab = tab;
             tabs[tabLabelText] = tab;
             
-            tabEnabledActions[tabLabelText] = () => tabChoicePanel.GetChoice(choiceText: tabLabelText).Enabled = tab.Enabled;
+            tabEnabledActions[tabLabelText] = () => tabChoicePanel.GetChoice(choiceText: tabLabelText).PersonallyEnabled = tab.Enabled;
 
             tab.EnabledChanged += tabEnabledActions[tabLabelText];
 

@@ -25,10 +25,6 @@ namespace Game1
         private readonly TextBox textBox;
         private readonly List<Link> links;
         private Industry industry;
-        private readonly UIHorizTabPanel<IUIElement<MyRectangle>> UITabPanel;
-        private readonly UIRectPanel<IUIElement<NearRectangle>> buildButtonPannel;
-        private readonly Dictionary<Overlay, UIRectPanel<IUIElement<NearRectangle>>> overlayTabPanels;
-        private readonly string overlayTabLabel;
         private readonly MyArray<ProporSplitter<Node>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
         private readonly KeyButton incrDestinImp, decrDestinImp;
@@ -36,7 +32,15 @@ namespace Game1
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
         private bool active;
 
-        public Node(NodeState state, Shape shape, float letterHeight, int startPersonCount = 0)
+        private readonly UIHorizTabPanel<IUIElement<MyRectangle>> UITabPanel;
+        private readonly UIRectPanel<IUIElement<NearRectangle>> buildButtonPannel;
+        private readonly Dictionary<Overlay, UIRectPanel<IUIElement<NearRectangle>>> overlayTabPanels;
+        private readonly string overlayTabLabel;
+        private readonly Dictionary<Overlay, UITransparentPanel<IUIElement<Arrow>>> resDistribArrows;
+        private readonly int resDistribArrowsUILayer;
+        private readonly float resDestinArrowWidth;
+
+        public Node(NodeState state, Shape shape, float letterHeight, float resDestinArrowWidth, int startPersonCount = 0)
             : base(shape: shape)
         {
             this.state = state;
@@ -104,7 +108,7 @@ namespace Game1
                         action: () =>
                         {
                             industry = parameters.MakeIndustry(state: state);
-                            buildButtonPannel.Enabled = false;
+                            buildButtonPannel.PersonallyEnabled = false;
                         },
                         letterHeight: letterHeight,
                         text: "build " + parameters.industrParams.name
@@ -136,6 +140,20 @@ namespace Game1
                 int curResInd = resInd;
                 storeToggle.OnChanged += () => store[curResInd] = storeToggle.On;
                 overlayTabPanels[(Overlay)resInd].AddChild(child: storeToggle);
+
+                overlayTabPanels[(Overlay)resInd].AddChild
+                (
+                    child: new Button<MyRectangle>
+                    (
+                        shape: new(width: 100, height: 50)
+                        {
+                            Color = Color.White
+                        },
+                        action: () => ActiveUI.ArrowDrawingModeOn = true,
+                        letterHeight: letterHeight,
+                        text: "add resource\ndestination"
+                    )
+                );
             }
             UITabPanel.AddTab
             (
@@ -143,13 +161,40 @@ namespace Game1
                 tab: overlayTabPanels[Graph.Overlay]
             );
 
-            Graph.OverlayChanged += ()
-                => UITabPanel.ReplaceTab
+            resDistribArrowsUILayer = 1;
+            resDistribArrows = new();
+            foreach (var overlay in Enum.GetValues<Overlay>())
+                resDistribArrows[overlay] = new UITransparentPanel<IUIElement<Arrow>>();
+            this.resDestinArrowWidth = resDestinArrowWidth;
+
+            //if (active)
+            //Graph.World.AddUIElement(UIElement: resDistribArrows[Graph.Overlay], layer: resDistribArrowsUILayer);
+
+            Graph.OverlayChanged += oldOverlay =>
+            {
+                UITabPanel.ReplaceTab
                 (
                     tabLabelText: overlayTabLabel,
                     tab: overlayTabPanels[Graph.Overlay]
                 );
+
+                //if (active)
+                //{
+                Graph.World.RemoveUIElement
+                (
+                    UIElement: resDistribArrows[oldOverlay]
+                );
+                Graph.World.AddUIElement
+                (
+                    UIElement: resDistribArrows[Graph.Overlay],
+                    layer: resDistribArrowsUILayer
+                );
+                //}
+            };
         }
+
+        public void Init()
+            => Graph.World.AddUIElement(UIElement: resDistribArrows[Graph.Overlay], layer: resDistribArrowsUILayer);
 
         public void AddLink(Link link)
         {
@@ -197,6 +242,9 @@ namespace Game1
             if (active)
                 return;
 
+            if (ActiveUI.ArrowDrawingModeOn)
+                return;
+
             shape.Color = Color.Yellow;
             ActiveUI.AddHUDElement
             (
@@ -204,6 +252,11 @@ namespace Game1
                 horizPos: HorizPos.Right,
                 vertPos: VertPos.Top
             );
+            //Graph.World.AddUIElement
+            //(
+            //    UIElement: resDistribArrows[Graph.Overlay],
+            //    layer: resDistribArrowsUILayer
+            //);
             active = true;
         }
 
@@ -221,11 +274,24 @@ namespace Game1
                     if (destinationNode is not null && destinationNode != this)
                     {
                         if (incrDestinImp.Hold)
+                        {
+                            if (!resSplittersToDestins[resInd].Proportions.ContainsKey(destinationNode))
+                                resDistribArrows[(Overlay)resInd].AddChild
+                                (
+                                    child: new UIElement<Arrow>
+                                    (
+                                        shape: new Arrow(startPos: Position, endPos: destinationNode.Position, width: 10)
+                                        {
+                                            Color = Color.Red
+                                        }
+                                    )
+                                );
                             resSplittersToDestins[resInd].AddToProp
                             (
                                 key: destinationNode,
                                 add: 1
                             );
+                        }
 
                         if (decrDestinImp.Hold)
                             resSplittersToDestins[resInd].AddToProp
@@ -241,11 +307,42 @@ namespace Game1
                 node.AddText(text: $"personal distance {Graph.World.PersonDists[(Position, node.Position)]:0.##}\nresource distance {Graph.World.ResDists[(Position, node.Position)]:0.##}\n");
         }
 
-        public override  void OnMouseDownWorldNotMe()
+        public void AddResDestin(Node destinationNode)
+        {
+            if (!active || !ActiveUI.ArrowDrawingModeOn)
+                throw new InvalidOperationException();
+
+            int resInd = (int)Graph.Overlay;
+            if (!resSplittersToDestins[resInd].Proportions.ContainsKey(destinationNode))
+            {
+                resDistribArrows[(Overlay)resInd].AddChild
+                (
+                    child: new UIElement<Arrow>
+                    (
+                        shape: new Arrow(startPos: Position, endPos: destinationNode.Position, width: resDestinArrowWidth)
+                        {
+                            Color = Color.Red * .5f
+                        }
+                    )
+                );
+
+                resSplittersToDestins[resInd].AddToProp
+                (
+                    key: destinationNode,
+                    add: 1
+                );
+            }
+        }
+
+        public override void OnMouseDownWorldNotMe()
         {
             base.OnMouseDownWorldNotMe();
             shape.Color = Color.White;
             ActiveUI.Remove(UIElement: UITabPanel);
+            //Graph.World.RemoveUIElement
+            //(
+            //    UIElement: resDistribArrows[Graph.Overlay]
+            //);
             active = false;
         }
 
@@ -384,23 +481,26 @@ namespace Game1
 
             base.Draw();
 
-            if (Graph.Overlay <= C.MaxRes)
-            {
-                var proportions = resSplittersToDestins[(int)Graph.Overlay].Proportions;
-                decimal propSum = proportions.Values.Sum();
-                foreach (var (destinationNode, proportion) in proportions)
-                {
-                    Debug.Assert(destinationNode is not null && destinationNode != this
-                        && !C.IsTiny(proportion) && proportion > 0);
+            if (active && ActiveUI.ArrowDrawingModeOn)
+                Arrow.DrawArrow(startPos: Position, endPos: MyMouse.WorldPos, width: resDestinArrowWidth, color: Color.Red * .25f);
 
-                    ArrowDrawer.DrawArrow
-                    (
-                        start: Position,
-                        end: destinationNode.Position,
-                        color: Color.Red * (float)(proportion / propSum)
-                    );
-                }
-            }
+            //if (Graph.Overlay <= C.MaxRes)
+            //{
+            //    var proportions = resSplittersToDestins[(int)Graph.Overlay].Proportions;
+            //    decimal propSum = proportions.Values.Sum();
+            //    foreach (var (destinationNode, proportion) in proportions)
+            //    {
+            //        Debug.Assert(destinationNode is not null && destinationNode != this
+            //            && !C.IsTiny(proportion) && proportion > 0);
+
+            //        ArrowDrawer.DrawArrow
+            //        (
+            //            start: Position,
+            //            end: destinationNode.Position,
+            //            color: Color.Red * (float)(proportion / propSum)
+            //        );
+            //    }
+            //}
         }
     }
 }

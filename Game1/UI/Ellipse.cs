@@ -22,10 +22,7 @@ namespace Game1.UI
         }
 
         protected override void Draw(Color color)
-        {
-            if (C.Transparent(color: color))
-                return;
-            C.Draw
+            => C.Draw
             (
                 texture: diskTexture,
                 position: Center,
@@ -34,6 +31,5 @@ namespace Game1.UI
                 origin: new Vector2(diskTexture.Width, diskTexture.Height) * .5f,
                 scale: new Vector2(Width / diskTexture.Width, Height / diskTexture.Height)
             );
-        }
     }
 }

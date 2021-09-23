@@ -10,24 +10,11 @@ namespace Game1
 {
     public class Graph : UIElement
     {
-        private class EndlessRect : NearRectangle
-        {
-            public EndlessRect()
-                : base(width: 0, height: 0)
-            {
-                Color = Color.Transparent;
-            }
-
-            public override bool Contains(Vector2 position)
-                => true;
-
-            protected override void Draw(Color color)
-            { }
-        }
+        public delegate void OverlayChangedEventHandler(Overlay oldOverlay);
 
         public static Overlay Overlay { get; private set; }
 
-        public static event Action OverlayChanged;
+        public static event OverlayChangedEventHandler OverlayChanged;
 
         public static Graph World { get; private set; }
 
@@ -37,6 +24,8 @@ namespace Game1
                 throw new InvalidOperationException();
 
             World = new Graph(nodes: nodes, links: links, overlay: overlay, letterHeight);
+            foreach (var node in nodes)
+                node.Init();
         }
 
         public IEnumerable<Node> Nodes
@@ -62,7 +51,7 @@ namespace Game1
         private bool paused;
 
         private Graph(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay, float letterHeight)
-            : base(shape: new EndlessRect())
+            : base(shape: new InfinitePlane())
         {
             this.nodes = new();
             this.links = new();
@@ -145,8 +134,9 @@ namespace Game1
                     {
                         if (Overlay == posOverlay)
                             return;
+                        Overlay oldOverlay = Overlay;
                         Overlay = posOverlay;
-                        OverlayChanged?.Invoke();
+                        OverlayChanged?.Invoke(oldOverlay: oldOverlay);
                     }
                 );
 
@@ -164,7 +154,7 @@ namespace Game1
                 throw new ArgumentException();
             nodeSet.Add(node);
             nodes.Add(node);
-            AddChild(child: node, layer: 1);
+            AddChild(child: node, layer: 10);
         }
 
         private void AddLink(Link link)
@@ -240,6 +230,12 @@ namespace Game1
 
             return (dists: new(distsDict), firstLinks: new(firstLinksDict));
         }
+
+        public void AddUIElement(IUIElement UIElement, int layer)
+            => AddChild(child: UIElement, layer: layer);
+
+        public void RemoveUIElement(IUIElement UIElement)
+            => RemoveChild(child: UIElement);
 
         /// <returns> returns null if not hovering above a node </returns>
         public Node HoveringNode()

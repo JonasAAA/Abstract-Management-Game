@@ -52,12 +52,16 @@ namespace Game1.UI
         protected abstract void Draw(Color color);
 
         public void Draw()
-            => Draw(color: Color);
+        {
+            if (!C.Transparent(color: Color))
+                Draw(color: Color);
+        }
 
         public void Draw(Color otherColor, float otherColorProp)
-            => Draw
-            (
-                color: Color.Lerp(Color, otherColor, amount: otherColorProp)
-            );
+        {
+            Color color = Color.Lerp(Color, otherColor, amount: otherColorProp);
+            if (!C.Transparent(color: color))
+                Draw(color: color);
+        }
     }
 }

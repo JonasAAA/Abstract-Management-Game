@@ -12,6 +12,37 @@ namespace Game1.UI
         public static int Count
             => activeUIElements.Count;
 
+        public static bool ArrowDrawingModeOn
+        {
+            get => arrowDrawingModeOn;
+            set
+            {
+                if (arrowDrawingModeOn == value)
+                    return;
+
+                arrowDrawingModeOn = value;
+                if (arrowDrawingModeOn)
+                {
+                    if (Graph.Overlay > C.MaxRes)
+                        throw new Exception();
+                    if (activeWorldElement is not Node)
+                        throw new Exception();
+                    foreach (var UIElement in activeUIElements)
+                        UIElement.HasDisabledAncestor = true;
+                    foreach (var node in Graph.World.Nodes)
+                        node.HasDisabledAncestor = false;
+                }
+                else
+                {
+                    foreach (var UIElement in activeUIElements)
+                        UIElement.HasDisabledAncestor = false;
+                }
+
+                //throw new NotImplementedException();
+            }
+        }
+
+        private static bool arrowDrawingModeOn;
         private static readonly List<IUIElement> activeUIElements;
         private static readonly HashSet<IUIElement> worldUIElements, HUDUIElements;
         private static bool leftDown, prevLeftDown;
@@ -19,6 +50,7 @@ namespace Game1.UI
 
         static ActiveUI()
         {
+            arrowDrawingModeOn = false;
             activeUIElements = new();
             worldUIElements = new();
             HUDUIElements = new();
@@ -107,23 +139,64 @@ namespace Game1.UI
             if (leftDown && !prevLeftDown)
             {
                 halfClicked = contMouse;
-                if (!MouseAboveHUD && halfClicked != activeWorldElement)
-                {
-                    activeWorldElement?.OnMouseDownWorldNotMe();
-                    activeWorldElement = null;
-                }
+                //if (ArrowDrawingModeOn)
+                //{
+                //    if (MouseAboveHUD || halfClicked == activeWorldElement || halfClicked is not Node)
+                //        ArrowDrawingModeOn = false;
+                //}
+                //else
+                //{
+                //    if (!MouseAboveHUD && halfClicked != activeWorldElement)
+                //    {
+                //        activeWorldElement?.OnMouseDownWorldNotMe();
+                //        activeWorldElement = null;
+                //    }
+                //}
             }
 
             if (!leftDown && prevLeftDown)
             {
                 IUIElement otherHalfClicked = contMouse;
-                if (halfClicked == otherHalfClicked)
+                if (ArrowDrawingModeOn)
                 {
-                    if (otherHalfClicked is not null && otherHalfClicked.Enabled && otherHalfClicked.CanBeClicked)
-                        otherHalfClicked.OnClick();
-                    if (!MouseAboveHUD)
-                        activeWorldElement = otherHalfClicked;
+                    if (halfClicked == otherHalfClicked && otherHalfClicked != activeWorldElement && otherHalfClicked is Node destinationNode)
+                        ((Node)activeWorldElement).AddResDestin(destinationNode: destinationNode);
+                    ArrowDrawingModeOn = false;
                 }
+                else
+                {
+                    if (!MouseAboveHUD && (halfClicked != activeWorldElement || otherHalfClicked != activeWorldElement))
+                    {
+                        activeWorldElement?.OnMouseDownWorldNotMe();
+                        activeWorldElement = null;
+                    }
+                    if (halfClicked == otherHalfClicked)
+                    {
+                        if (otherHalfClicked is not null && otherHalfClicked.Enabled && otherHalfClicked.CanBeClicked)
+                            otherHalfClicked.OnClick();
+
+                        if (!MouseAboveHUD)
+                            activeWorldElement = otherHalfClicked;
+                    }
+                }
+                //if (halfClicked == otherHalfClicked)
+                //{
+                //    if (ArrowDrawingModeOn)
+                //    {
+                //        if (otherHalfClicked is Node destinationNode)
+                //            ((Node)activeWorldElement).AddResDestin(destinationNode: destinationNode);
+                //        ArrowDrawingModeOn = false;
+                //    }
+                //    else
+                //    {
+                //        if (!MouseAboveHUD)
+                //            activeWorldElement = otherHalfClicked;
+                //    }
+                //    if (otherHalfClicked is not null && otherHalfClicked.Enabled && otherHalfClicked.CanBeClicked)
+                //        otherHalfClicked.OnClick();
+                //}
+                //else
+                //    ArrowDrawingModeOn = false;
 
                 halfClicked = null;
             }

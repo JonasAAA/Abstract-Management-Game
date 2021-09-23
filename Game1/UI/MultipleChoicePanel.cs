@@ -80,11 +80,11 @@ namespace Game1.UI
 
             choice.EnabledChanged += () =>
             {
-                if (choice.Enabled || !choice.On)
+                if (choice.PersonallyEnabled || !choice.On)
                     return;
                 
                 foreach (var choice in choicePanel)
-                    if (choice.Enabled)
+                    if (choice.PersonallyEnabled)
                     {
                         choice.On = true;
                         return;

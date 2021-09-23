@@ -16,15 +16,17 @@ namespace Game1.UI
         static IUIElement()
             => mouseOnColor = Color.Yellow;
 
-        public bool Enabled { get; set; }
+        public bool Enabled { get; }
 
-        public bool HasDisabledAncestor { get; set; }
+        public bool PersonallyEnabled { set; }
+
+        public bool HasDisabledAncestor { set; }
 
         public bool MouseOn { get; set; }
 
         public bool CanBeClicked { get; }
 
-        public event Action SizeOrPosChanged, EnabledChanged, HasDisabledAncestorChanged, MouseOnChanged;
+        public event Action SizeOrPosChanged, EnabledChanged, /*HasDisabledAncestorChanged,*/ MouseOnChanged;
 
         public bool Contains(Vector2 position);
 

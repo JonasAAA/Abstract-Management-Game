@@ -16,9 +16,6 @@ namespace Game1
             if (start == end)
                 throw new ArgumentException();
 
-            if (pixel is null)
-                throw new Exception();
-
             C.Draw
             (
                 texture: pixel,

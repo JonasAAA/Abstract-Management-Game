@@ -28,6 +28,7 @@ namespace Game1
                             height: 64
                         ),
                         letterHeight: letterHeight,
+                        resDestinArrowWidth: 64,
                         startPersonCount: 5
                     );
 

@@ -47,7 +47,6 @@ namespace Game1.UI
                 bool oldEnabled = Enabled;
                 hasDisabledAncestor = value;
                 SetHasDisabledParentOfChildren();
-                //HasDisabledAncestorChanged?.Invoke();
                 if (oldEnabled != Enabled)
                     EnabledChanged?.Invoke();
             }
@@ -75,7 +74,7 @@ namespace Game1.UI
             remove => shape.SizeOrPosChanged -= value;
         }
 
-        public event Action EnabledChanged, /*HasDisabledAncestorChanged,*/ MouseOnChanged;
+        public event Action EnabledChanged, MouseOnChanged;
 
         private readonly Shape shape;
         private bool personallyEnabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;

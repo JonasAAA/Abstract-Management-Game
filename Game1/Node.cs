@@ -167,9 +167,6 @@ namespace Game1
                 resDistribArrows[overlay] = new UITransparentPanel<IUIElement<Arrow>>();
             this.resDestinArrowWidth = resDestinArrowWidth;
 
-            //if (active)
-            //Graph.World.AddUIElement(UIElement: resDistribArrows[Graph.Overlay], layer: resDistribArrowsUILayer);
-
             Graph.OverlayChanged += oldOverlay =>
             {
                 UITabPanel.ReplaceTab
@@ -178,8 +175,6 @@ namespace Game1
                     tab: overlayTabPanels[Graph.Overlay]
                 );
 
-                //if (active)
-                //{
                 Graph.World.RemoveUIElement
                 (
                     UIElement: resDistribArrows[oldOverlay]
@@ -189,7 +184,6 @@ namespace Game1
                     UIElement: resDistribArrows[Graph.Overlay],
                     layer: resDistribArrowsUILayer
                 );
-                //}
             };
         }
 
@@ -252,11 +246,6 @@ namespace Game1
                 horizPos: HorizPos.Right,
                 vertPos: VertPos.Top
             );
-            //Graph.World.AddUIElement
-            //(
-            //    UIElement: resDistribArrows[Graph.Overlay],
-            //    layer: resDistribArrowsUILayer
-            //);
             active = true;
         }
 
@@ -339,10 +328,6 @@ namespace Game1
             base.OnMouseDownWorldNotMe();
             shape.Color = Color.White;
             ActiveUI.Remove(UIElement: UITabPanel);
-            //Graph.World.RemoveUIElement
-            //(
-            //    UIElement: resDistribArrows[Graph.Overlay]
-            //);
             active = false;
         }
 
@@ -483,24 +468,6 @@ namespace Game1
 
             if (active && ActiveUI.ArrowDrawingModeOn)
                 Arrow.DrawArrow(startPos: Position, endPos: MyMouse.WorldPos, width: resDestinArrowWidth, color: Color.Red * .25f);
-
-            //if (Graph.Overlay <= C.MaxRes)
-            //{
-            //    var proportions = resSplittersToDestins[(int)Graph.Overlay].Proportions;
-            //    decimal propSum = proportions.Values.Sum();
-            //    foreach (var (destinationNode, proportion) in proportions)
-            //    {
-            //        Debug.Assert(destinationNode is not null && destinationNode != this
-            //            && !C.IsTiny(proportion) && proportion > 0);
-
-            //        ArrowDrawer.DrawArrow
-            //        (
-            //            start: Position,
-            //            end: destinationNode.Position,
-            //            color: Color.Red * (float)(proportion / propSum)
-            //        );
-            //    }
-            //}
         }
     }
 }

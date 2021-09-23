@@ -37,8 +37,6 @@ namespace Game1.UI
                     foreach (var UIElement in activeUIElements)
                         UIElement.HasDisabledAncestor = false;
                 }
-
-                //throw new NotImplementedException();
             }
         }
 
@@ -137,22 +135,7 @@ namespace Game1.UI
             }
 
             if (leftDown && !prevLeftDown)
-            {
                 halfClicked = contMouse;
-                //if (ArrowDrawingModeOn)
-                //{
-                //    if (MouseAboveHUD || halfClicked == activeWorldElement || halfClicked is not Node)
-                //        ArrowDrawingModeOn = false;
-                //}
-                //else
-                //{
-                //    if (!MouseAboveHUD && halfClicked != activeWorldElement)
-                //    {
-                //        activeWorldElement?.OnMouseDownWorldNotMe();
-                //        activeWorldElement = null;
-                //    }
-                //}
-            }
 
             if (!leftDown && prevLeftDown)
             {
@@ -179,24 +162,6 @@ namespace Game1.UI
                             activeWorldElement = otherHalfClicked;
                     }
                 }
-                //if (halfClicked == otherHalfClicked)
-                //{
-                //    if (ArrowDrawingModeOn)
-                //    {
-                //        if (otherHalfClicked is Node destinationNode)
-                //            ((Node)activeWorldElement).AddResDestin(destinationNode: destinationNode);
-                //        ArrowDrawingModeOn = false;
-                //    }
-                //    else
-                //    {
-                //        if (!MouseAboveHUD)
-                //            activeWorldElement = otherHalfClicked;
-                //    }
-                //    if (otherHalfClicked is not null && otherHalfClicked.Enabled && otherHalfClicked.CanBeClicked)
-                //        otherHalfClicked.OnClick();
-                //}
-                //else
-                //    ArrowDrawingModeOn = false;
 
                 halfClicked = null;
             }

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Game1.UI
 {
@@ -11,6 +10,10 @@ namespace Game1.UI
 
         protected readonly TextBox textBox;
         private readonly Action action;
+
+        public Button(TShape shape, Action action)
+            : this(shape: shape, action: action, letterHeight: 1, text: "")
+        { }
 
         public Button(TShape shape, Action action, float letterHeight, string text)
             : base(shape: shape)

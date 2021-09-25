@@ -306,12 +306,15 @@ namespace Game1
             {
                 resDistribArrows[(Overlay)resInd].AddChild
                 (
-                    child: new UIElement<Arrow>
+                    child: new Button<Arrow>
                     (
                         shape: new Arrow(startPos: Position, endPos: destinationNode.Position, width: resDestinArrowWidth)
                         {
                             Color = Color.Red * .5f
-                        }
+                        },
+                        action: null,
+                        letterHeight: 20,
+                        text: ""
                     )
                 );
 

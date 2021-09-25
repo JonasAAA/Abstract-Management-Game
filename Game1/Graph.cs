@@ -146,6 +146,20 @@ namespace Game1
                 horizPos: HorizPos.Middle,
                 vertPos: VertPos.Top
             );
+
+            ActiveUI.AddHUDElement
+            (
+                UIElement: new NumIncDecrPanel
+                (
+                    minNum: 1,
+                    number: 1,
+                    letterHeight: letterHeight,
+                    incrDecrButtonHeight: 20,
+                    shapeColor: Color.White
+                ),
+                horizPos: HorizPos.Middle,
+                vertPos: VertPos.Middle
+            );
         }
 
         private void AddNode(Node node)

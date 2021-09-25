@@ -14,12 +14,14 @@ namespace Game1.UI
                 if (text != value)
                 {
                     text = value;
-                    Vector2 textDims = font.MeasureString(text.Trim()) * scale;
+                    Vector2 textDims = MeasureText(text: text);
                     Shape.Width = textDims.X;
                     Shape.Height = textDims.Y;
                 }
             }
         }
+        public Vector2 MeasureText(string text)
+            => font.MeasureString(text.Trim()) * scale;
 
         private string text;
         private readonly SpriteFont font;

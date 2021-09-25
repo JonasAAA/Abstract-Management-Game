@@ -5,6 +5,12 @@ namespace Game1.UI
 {
     public abstract class NearRectangle : Shape
     {
+        // can do:
+        //public abstract class Params
+        //{
+        //    public abstract void Make(float width, float height);
+        //}
+
         public Vector2 TopLeftCorner
         {
             get => GetPosition

@@ -7,6 +7,7 @@ namespace Game1.UI
     public class Arrow : Shape
     {
         private static readonly Texture2D triangleTexture;
+
         static Arrow()
             => triangleTexture = C.Content.Load<Texture2D>("triangle");
 
@@ -34,7 +35,18 @@ namespace Game1.UI
         }
 
         public override bool Contains(Vector2 position)
-            => false;
+        {
+            Vector2 relPos = position - startPos,
+                direction = endPos - startPos;
+            direction.Normalize();
+            Vector2 orthDir = new(-direction.Y, direction.X);
+            float distance = Vector2.Distance(startPos, endPos),
+                dirProp = Vector2.Dot(relPos, direction) / distance,
+                orthDirProp = Math.Abs(Vector2.Dot(relPos, orthDir) / (width * .5f));
+            if (dirProp is < 0 or >= 1 || orthDirProp >= 1)
+                return false;
+            return dirProp + orthDirProp < 1;
+        }
 
         protected override void Draw(Color color)
             => DrawArrow(startPos: startPos, endPos: endPos, width: width, color: color);

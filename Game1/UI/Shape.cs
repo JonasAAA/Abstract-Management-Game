@@ -60,6 +60,7 @@ namespace Game1.UI
         public void Draw(Color otherColor, float otherColorProp)
         {
             Color color = Color.Lerp(Color, otherColor, amount: otherColorProp);
+            color.A = Color.A;
             if (!C.Transparent(color: color))
                 Draw(color: color);
         }

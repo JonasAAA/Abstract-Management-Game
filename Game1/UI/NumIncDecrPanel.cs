@@ -28,14 +28,18 @@ namespace Game1.UI
         private readonly UIRectVertPanel<IUIElement<NearRectangle>> panel;
         private readonly TextBox textBox;
 
-        public NumIncDecrPanel(int minNum, int number, float letterHeight, float incrDecrButtonHeight, Color shapeColor)
+        public NumIncDecrPanel(int minNum, int number, float letterHeight, float incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
             : base(shape: new())
         {
             if (number < minNum)
                 throw new ArgumentException();
             this.minNum = minNum;
             this.number = number;
-            panel = new(color: shapeColor);
+            panel = new
+            (
+                color: shapeColor,
+                childHorizPos: HorizPos.Middle
+            );
             textBox = new(letterHeight: letterHeight);
             textBox.Text = number.ToString();
             float width = textBox.MeasureText(text: "00").X;
@@ -51,7 +55,7 @@ namespace Game1.UI
                         direction: Triangle.Direction.Up
                     )
                     {
-                        Color = Color.Blue
+                        Color = incrDecrButtonColor
                     },
                     action: () => Number++
                 )

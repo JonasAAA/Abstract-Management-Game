@@ -21,7 +21,7 @@ namespace Game1.UI
             }
         }
         public Vector2 MeasureText(string text)
-            => font.MeasureString(text.Trim()) * scale;
+            => font.MeasureString(text) * scale;
 
         private string text;
         private readonly SpriteFont font;
@@ -43,7 +43,7 @@ namespace Game1.UI
             C.DrawString
             (
                 spriteFont: font,
-                text: text.Trim(),
+                text: text,
                 position: Shape.TopLeftCorner,
                 color: (PersonallyEnabled && !HasDisabledAncestor) switch
                 {

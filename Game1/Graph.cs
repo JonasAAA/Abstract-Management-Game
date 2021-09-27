@@ -146,20 +146,6 @@ namespace Game1
                 horizPos: HorizPos.Middle,
                 vertPos: VertPos.Top
             );
-
-            ActiveUI.AddHUDElement
-            (
-                UIElement: new NumIncDecrPanel
-                (
-                    minNum: 1,
-                    number: 1,
-                    letterHeight: letterHeight,
-                    incrDecrButtonHeight: 20,
-                    shapeColor: Color.White
-                ),
-                horizPos: HorizPos.Middle,
-                vertPos: VertPos.Middle
-            );
         }
 
         private void AddNode(Node node)
@@ -282,10 +268,10 @@ namespace Game1
                 SplitRes(resInd: resInd);
 
             nodes.ForEach(node => node.EndSplitRes());
-
+            
             JobMatching.Match();
 
-            globalTextBox.Text = $"overlay {Overlay}\n" + ElectricityDistributor.Summary();
+            globalTextBox.Text = $"overlay {Overlay}\n{ElectricityDistributor.Summary()}".Trim();
         }
 
         private class BetterNode

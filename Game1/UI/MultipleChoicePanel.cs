@@ -16,10 +16,19 @@ namespace Game1.UI
         public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, float letterHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
             : base(shape: new MyRectangle())
         {
-            if (horizontal)
-                choicePanel = new UIRectHorizPanel<SelectButton<MyRectangle>>(color: backgroundColor);
-            else
-                choicePanel = new UIRectVertPanel<SelectButton<MyRectangle>>(color: backgroundColor);
+            choicePanel = horizontal switch
+            {
+                true => new UIRectHorizPanel<SelectButton<MyRectangle>>
+                (
+                    color: backgroundColor,
+                    childVertPos: VertPos.Top
+                ),
+                false => new UIRectVertPanel<SelectButton<MyRectangle>>
+                (
+                    color: backgroundColor,
+                    childHorizPos: HorizPos.Left
+                )
+            };
             
             Shape.Color = backgroundColor;
             choices = new();

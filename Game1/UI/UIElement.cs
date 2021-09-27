@@ -30,7 +30,6 @@ namespace Game1.UI
 
                 bool oldEnabled = Enabled;
                 personallyEnabled = value;
-                SetHasDisabledParentOfChildren();
                 if (oldEnabled != Enabled)
                     EnabledChanged?.Invoke();
             }
@@ -46,7 +45,6 @@ namespace Game1.UI
 
                 bool oldEnabled = Enabled;
                 hasDisabledAncestor = value;
-                SetHasDisabledParentOfChildren();
                 if (oldEnabled != Enabled)
                     EnabledChanged?.Invoke();
             }
@@ -76,7 +74,8 @@ namespace Game1.UI
 
         public event Action EnabledChanged, MouseOnChanged;
 
-        private readonly Shape shape;
+        protected readonly Shape shape;
+        
         private bool personallyEnabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
         private readonly SortedDictionary<int, List<IUIElement>> layerToChildren;
         private readonly Dictionary<IUIElement, int> childToLayer;
@@ -95,6 +94,21 @@ namespace Game1.UI
             inRecalcSizeAndPos = false;
             layerToChildren = new();
             childToLayer = new();
+
+            EnabledChanged += () =>
+            {
+                if (Enabled)
+                {
+                    foreach (var child in Children)
+                        child.HasDisabledAncestor = false;
+                }
+                else
+                {
+                    MouseOn = false;
+                    foreach (var child in Children)
+                        child.HasDisabledAncestor = true;
+                }
+            };
         }
 
         protected void AddChild(IUIElement child, int layer = 0)
@@ -178,20 +192,6 @@ namespace Game1.UI
             );
             foreach (var child in Children)
                 child.Draw();
-        }
-
-        private void SetHasDisabledParentOfChildren()
-        {
-            if (Enabled)
-            {
-                foreach (var child in Children)
-                    child.HasDisabledAncestor = false;
-            }
-            else
-            {
-                foreach (var child in Children)
-                    child.HasDisabledAncestor = true;
-            }
         }
     }
 }

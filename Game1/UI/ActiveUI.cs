@@ -62,6 +62,8 @@ namespace Game1.UI
 
         public static void AddWorldElement(IUIElement UIElement)
         {
+            if (UIElement is null)
+                return;
             activeUIElements.Add(UIElement);
             if (HUDUIElements.Count is not 0)
                 throw new ArgumentException();
@@ -71,6 +73,8 @@ namespace Game1.UI
 
         public static void AddHUDElement(IUIElement<NearRectangle> UIElement, HorizPos horizPos, VertPos vertPos)
         {
+            if (UIElement is null)
+                return;
             Vector2 HUDCenter = new((float)(C.ScreenWidth * .5), (float)(C.ScreenHeight * .5));
             void SetUIElementPosition()
                 => UIElement.Shape.SetPosition
@@ -90,6 +94,8 @@ namespace Game1.UI
 
         public static bool Remove(IUIElement UIElement)
         {
+            if (UIElement is null)
+                return true;
             worldUIElements.Remove(UIElement);
             HUDUIElements.Remove(UIElement);
             return activeUIElements.Remove(UIElement);

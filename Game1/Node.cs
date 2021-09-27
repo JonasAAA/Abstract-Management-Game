@@ -1,6 +1,5 @@
 ﻿using Game1.UI;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,7 +7,7 @@ using System.Linq;
 
 namespace Game1
 {
-    public class Node : UIElement
+    public class Node : WorldUIElement
     {
         public Vector2 Position
             => state.position;
@@ -17,34 +16,29 @@ namespace Game1
             => industry;
         public IEnumerable<Person> UnemployedPeople
             => state.unemployedPeople;
-        public override bool CanBeClicked
-            => true;
 
         private readonly NodeState state;
-        private readonly Shape shape;
         private readonly TextBox textBox;
         private readonly List<Link> links;
         private Industry industry;
         private readonly MyArray<ProporSplitter<Node>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
-        private readonly KeyButton incrDestinImp, decrDestinImp;
         private readonly MyArray<bool> store;
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
-        private bool active;
 
         private readonly UIHorizTabPanel<IUIElement<MyRectangle>> UITabPanel;
         private readonly UIRectPanel<IUIElement<NearRectangle>> buildButtonPannel;
         private readonly Dictionary<Overlay, UIRectPanel<IUIElement<NearRectangle>>> overlayTabPanels;
         private readonly string overlayTabLabel;
-        private readonly Dictionary<Overlay, UITransparentPanel<IUIElement<Arrow>>> resDistribArrows;
+        private readonly Dictionary<Overlay, UITransparentPanel<ResDestinArrow>> resDistribArrows;
         private readonly int resDistribArrowsUILayer;
-        private readonly float resDestinArrowWidth;
+        private readonly float letterHeight, resDestinArrowWidth;
 
-        public Node(NodeState state, Shape shape, float letterHeight, float resDestinArrowWidth, int startPersonCount = 0)
-            : base(shape: shape)
+        public Node(NodeState state, Shape shape, Color activeColor, Color inactiveColor, float letterHeight, float resDestinArrowWidth, int startPersonCount = 0)
+            : base(shape: shape, active: false, activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             this.state = state;
-            this.shape = shape;
+            this.letterHeight = letterHeight;
             textBox = new(letterHeight: letterHeight);
             shape.Center = Position;
             textBox.Shape.Center = Position;
@@ -53,7 +47,6 @@ namespace Game1
                 if (shape.Center != Position)
                     throw new Exception();
             };
-            shape.Color = Color.White;
             links = new();
             industry = null;
 
@@ -65,12 +58,9 @@ namespace Game1
                         select new ProporSplitter<Node>()
             );
             targetStoredResAmounts = new();
-            incrDestinImp = new(key: Keys.LeftShift);
-            decrDestinImp = new(key: Keys.LeftControl);
             store = new(value: false);
             undecidedResAmounts = new();
             resTravelHereAmounts = new();
-            active = false;
 
             textBox.Text = "";
             AddChild(child: textBox);
@@ -84,7 +74,11 @@ namespace Game1
                 inactiveTabLabelColor: Color.Gray
             );
 
-            buildButtonPannel = new UIRectVertPanel<IUIElement<NearRectangle>>(color: Color.White);
+            buildButtonPannel = new UIRectVertPanel<IUIElement<NearRectangle>>
+            (
+                color: Color.White,
+                childHorizPos: HorizPos.Left
+            );
             UITabPanel.AddTab
             (
                 tabLabelText: "build",
@@ -120,7 +114,11 @@ namespace Game1
             overlayTabPanels = new();
 
             foreach (var overlay in Enum.GetValues<Overlay>())
-                overlayTabPanels[overlay] = new UIRectVertPanel<IUIElement<NearRectangle>>(color: Color.Black);
+                overlayTabPanels[overlay] = new UIRectVertPanel<IUIElement<NearRectangle>>
+                (
+                    color: Color.Black,
+                    childHorizPos: HorizPos.Left
+                );
             for (int resInd = 0; resInd <= (int)C.MaxRes; resInd++)
             {
                 var storeToggle = new ToggleButton<MyRectangle>
@@ -161,10 +159,16 @@ namespace Game1
                 tab: overlayTabPanels[Graph.Overlay]
             );
 
+            SetPopup
+            (
+                UIElement: UITabPanel,
+                overlays: Enum.GetValues<Overlay>()
+            );
+
             resDistribArrowsUILayer = 1;
             resDistribArrows = new();
             foreach (var overlay in Enum.GetValues<Overlay>())
-                resDistribArrows[overlay] = new UITransparentPanel<IUIElement<Arrow>>();
+                resDistribArrows[overlay] = new UITransparentPanel<ResDestinArrow>();
             this.resDestinArrowWidth = resDestinArrowWidth;
 
             Graph.OverlayChanged += oldOverlay =>
@@ -196,9 +200,6 @@ namespace Game1
                 throw new ArgumentException();
             links.Add(link);
         }
-
-        public void AddText(string text)
-            => textBox.Text += text;
 
         public void Arrive(ResAmountsPacketsByDestin resAmountsPackets)
         {
@@ -232,113 +233,69 @@ namespace Game1
 
         public override void OnClick()
         {
-            base.OnClick();
-            if (active)
-                return;
-
             if (ActiveUI.ArrowDrawingModeOn)
                 return;
-
-            shape.Color = Color.Yellow;
-            ActiveUI.AddHUDElement
-            (
-                UIElement: UITabPanel,
-                horizPos: HorizPos.Right,
-                vertPos: VertPos.Top
-            );
-            active = true;
-        }
-
-        private void ActiveUpdate()
-        {
-            incrDestinImp.Update();
-            decrDestinImp.Update();
-            if (Graph.Overlay <= C.MaxRes)
-            {
-                int resInd = (int)Graph.Overlay;
-
-                if (MyMouse.RightClick)
-                {
-                    Node destinationNode = Graph.World.HoveringNode();
-                    if (destinationNode is not null && destinationNode != this)
-                    {
-                        if (incrDestinImp.Hold)
-                        {
-                            if (!resSplittersToDestins[resInd].Proportions.ContainsKey(destinationNode))
-                                resDistribArrows[(Overlay)resInd].AddChild
-                                (
-                                    child: new UIElement<Arrow>
-                                    (
-                                        shape: new Arrow(startPos: Position, endPos: destinationNode.Position, width: 10)
-                                        {
-                                            Color = Color.Red
-                                        }
-                                    )
-                                );
-                            resSplittersToDestins[resInd].AddToProp
-                            (
-                                key: destinationNode,
-                                add: 1
-                            );
-                        }
-
-                        if (decrDestinImp.Hold)
-                            resSplittersToDestins[resInd].AddToProp
-                            (
-                                key: destinationNode,
-                                add: -1
-                            );
-                    }
-                }
-            }
-
-            foreach (var node in Graph.World.Nodes)
-                node.AddText(text: $"personal distance {Graph.World.PersonDists[(Position, node.Position)]:0.##}\nresource distance {Graph.World.ResDists[(Position, node.Position)]:0.##}\n");
+            base.OnClick();
         }
 
         public void AddResDestin(Node destinationNode)
         {
-            if (!active || !ActiveUI.ArrowDrawingModeOn)
+            if (!Active || !ActiveUI.ArrowDrawingModeOn)
                 throw new InvalidOperationException();
 
             int resInd = (int)Graph.Overlay;
             if (!resSplittersToDestins[resInd].Proportions.ContainsKey(destinationNode))
             {
-                resDistribArrows[(Overlay)resInd].AddChild
-                (
-                    child: new Button<Arrow>
-                    (
-                        shape: new Arrow(startPos: Position, endPos: destinationNode.Position, width: resDestinArrowWidth)
-                        {
-                            Color = Color.Red * .5f
-                        },
-                        action: null,
-                        letterHeight: 20,
-                        text: ""
-                    )
-                );
+                void SetTotalImportance()
+                {
+                    int totalImportance = resDistribArrows[(Overlay)resInd].Sum(resDestinArrow => resDestinArrow.Importance);
+                    foreach (var resDestinArrow in resDistribArrows[(Overlay)resInd])
+                        resDestinArrow.TotalImportance = totalImportance;
+                }
 
-                resSplittersToDestins[resInd].AddToProp
+                ResDestinArrow resDestinArrow = new
+                (
+                    shape: new Arrow(startPos: Position, endPos: destinationNode.Position, width: resDestinArrowWidth),
+                    active: false,
+                    defaultActiveColor: Color.Lerp(Color.Yellow, Color.Red, .5f),
+                    defaultInactiveColor: Color.Red * .5f,
+                    popupHorizPos: HorizPos.Right,
+                    popupVertPos: VertPos.Top,
+                    letterHeight: letterHeight,
+                    minImportance: 1,
+                    importance: 1,
+                    resInd: resInd
+                );
+                resDestinArrow.ImportanceChanged += () =>
+                {
+                    resSplittersToDestins[resInd].SetProp
+                    (
+                        key: destinationNode,
+                        value: resDestinArrow.Importance
+                    );
+
+                    SetTotalImportance();
+                };
+
+                resDistribArrows[(Overlay)resInd].AddChild(child: resDestinArrow);
+                resSplittersToDestins[resInd].SetProp
                 (
                     key: destinationNode,
-                    add: 1
+                    value: 1
                 );
+                SetTotalImportance();
             }
         }
 
         public override void OnMouseDownWorldNotMe()
         {
+            if (ActiveUI.ArrowDrawingModeOn)
+                return;
             base.OnMouseDownWorldNotMe();
-            shape.Color = Color.White;
-            ActiveUI.Remove(UIElement: UITabPanel);
-            active = false;
         }
 
         public void Update(TimeSpan elapsed)
         {
-            if (active)
-                ActiveUpdate();
-
             foreach (var person in state.unemployedPeople.Concat(state.waitingPeople))
                 person.UpdateNotWorking(elapsed: elapsed);
 
@@ -469,7 +426,7 @@ namespace Game1
 
             base.Draw();
 
-            if (active && ActiveUI.ArrowDrawingModeOn)
+            if (Active && ActiveUI.ArrowDrawingModeOn)
                 Arrow.DrawArrow(startPos: Position, endPos: MyMouse.WorldPos, width: resDestinArrowWidth, color: Color.Red * .25f);
         }
     }

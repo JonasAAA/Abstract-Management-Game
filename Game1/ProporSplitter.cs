@@ -151,6 +151,18 @@ namespace Game1
             return true;
         }
 
+        public void SetProp(TKey key, decimal value)
+        {
+            if (value < 0)
+                throw new ArgumentOutOfRangeException();
+            if (ContainsKey(key: key))
+                proportions[key] = value;
+            else
+                AddKey(key: key, prop: value);
+            if (C.IsTiny(value: proportions[key]))
+                Remove(key: key);
+        }
+
         public (Dictionary<TKey, ulong> splitAmounts, ulong unsplitAmount) Split(ulong amount, Func<TKey, ulong> maxAmountsFunc)
         {
             if (Empty)

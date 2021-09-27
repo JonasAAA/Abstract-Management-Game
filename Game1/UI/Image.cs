@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Game1.UI
 {
-    public class Image : NearRectangle //UIElement<MyRectangle>
+    public class Image : NearRectangle
     {
         public enum Rotation
         {
@@ -20,7 +20,6 @@ namespace Game1.UI
 
         public Image(bool isRectangle, string imageName, float? width = null, float? height = null, Rotation rotation = Rotation.None)
             : base(width: 0, height: 0)
-            //: base(shape: new())
         {
             texture = C.Content.Load<Texture2D>(assetName: imageName);
             origin = new(texture.Width * .5f, texture.Height * .5f);
@@ -37,12 +36,8 @@ namespace Game1.UI
                 if (!width.HasValue)
                     scale.X = scale.Y;
             }
-            //Shape.Color = Color.White;
 
-            //Shape.Width = texture.Width * scale.X;
-            //Shape.Height = texture.Height * scale.Y;
             Color = Color.White;
-
             Width = texture.Width * scale.X;
             Height = texture.Height * scale.Y;
             this.rotation = (int)rotation * MathHelper.PiOver2;
@@ -74,16 +69,5 @@ namespace Game1.UI
                 origin: origin,
                 scale: scale
             );
-
-        //public override void Draw()
-        //    => C.Draw
-        //    (
-        //        texture: texture,
-        //        position: Shape.Center,
-        //        color: Shape.Color,
-        //        rotation: rotation,
-        //        origin: origin,
-        //        scale: scale
-        //    );
     }
 }

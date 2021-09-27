@@ -6,9 +6,13 @@ namespace Game1.UI
     public class UIRectVertPanel<TChild> : UIRectPanel<TChild>
         where TChild : IUIElement<NearRectangle>
     {
-        public UIRectVertPanel(Color color)
+        private readonly HorizPos childHorizPos;
+
+        public UIRectVertPanel(Color color, HorizPos childHorizPos)
             : base(color: color)
-        { }
+        {
+            this.childHorizPos = childHorizPos;
+        }
 
         protected override void PartOfRecalcSizeAndPos()
         {
@@ -29,7 +33,13 @@ namespace Game1.UI
             float curHeightSum = 0;
             foreach (var child in children)
             {
-                child.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(MyRectangle.outlineWidth, curHeightSum + MyRectangle.outlineWidth);
+                child.Shape.SetPosition
+                (
+                    position: Shape.GetPosition(horizOrigin: childHorizPos, vertOrigin: VertPos.Top)
+                        + new Vector2(-(int)childHorizPos * MyRectangle.outlineWidth, curHeightSum + MyRectangle.outlineWidth),
+                    horizOrigin: childHorizPos,
+                    vertOrigin: VertPos.Top
+                );
                 curHeightSum += child.Shape.Height;
             }
         }

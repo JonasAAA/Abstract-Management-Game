@@ -27,6 +27,8 @@ namespace Game1
                             width: 64,
                             height: 64
                         ),
+                        activeColor: Color.White,
+                        inactiveColor: Color.Gray,
                         letterHeight: letterHeight,
                         resDestinArrowWidth: 64,
                         startPersonCount: 5

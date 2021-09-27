@@ -58,7 +58,7 @@ namespace Game1.UI
                 if (popup[oldOverlay] == popup[Graph.Overlay])
                     return;
 
-                ActiveUI.Remove(UIElement: popup[oldOverlay]);
+                ActiveUI.RemoveUIElement(UIElement: popup[oldOverlay]);
                 ActiveUI.AddHUDElement
                 (
                     UIElement: popup[Graph.Overlay],
@@ -101,11 +101,14 @@ namespace Game1.UI
 
             Active = false;
             SetShapeColor();
-            ActiveUI.Remove
+            ActiveUI.RemoveUIElement
             (
                 UIElement: popup[Graph.Overlay]
             );
         }
+
+        protected void OnDelete()
+            => ActiveUI.RemoveUIElement(UIElement: popup[Graph.Overlay]);
 
         private void SetShapeColor()
             => shape.Color = Active switch

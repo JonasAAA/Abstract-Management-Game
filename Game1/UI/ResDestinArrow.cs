@@ -20,12 +20,17 @@ namespace Game1.UI
             }
         }
 
+        public Vector2 EndPos
+            => shape.endPos;
+
         public event Action ImportanceChanged
         {
             add => importanceIncDecrPanel.NumberChanged += value;
             remove => importanceIncDecrPanel.NumberChanged -= value;
         }
+        public event Action Delete;
 
+        private new readonly Arrow shape;
         private int totalImportance;
         private readonly Color defaultActiveColor, defaultInactiveColor;
         private readonly UIRectPanel<IUIElement<NearRectangle>> popup;
@@ -35,6 +40,7 @@ namespace Game1.UI
         public ResDestinArrow(Arrow shape, bool active, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int importance, float letterHeight, int resInd)
             : base(shape: shape, active: active, activeColor: defaultActiveColor, inactiveColor: defaultInactiveColor, popupHorizPos: popupHorizPos, popupVertPos: popupVertPos)
         {
+            this.shape = shape;
             this.defaultActiveColor = defaultActiveColor;
             this.defaultInactiveColor = defaultInactiveColor;
             if (resInd is < 0 or > (int)C.MaxRes)
@@ -44,6 +50,8 @@ namespace Game1.UI
                 color: Color.White,
                 childHorizPos: HorizPos.Left
             );
+            SetPopup(UIElement: popup, overlay: (Overlay)resInd);
+
             UIRectHorizPanel<IUIElement<NearRectangle>> line1 = new
             (
                 color: Color.White,
@@ -71,7 +79,25 @@ namespace Game1.UI
             line2 = new(letterHeight: letterHeight);
             popup.AddChild(child: line2);
 
-            SetPopup(UIElement: popup, overlay: (Overlay)resInd);
+            Button<MyRectangle> deleteButton = new
+            (
+                shape: new
+                (
+                    width: 70,
+                    height: 30
+                )
+                {
+                    Color = Color.Red
+                },
+                action: () =>
+                {
+                    OnDelete();
+                    Delete?.Invoke();
+                },
+                letterHeight: letterHeight,
+                text: "delete"
+            );
+            popup.AddChild(deleteButton);
         }
     }
 }

@@ -43,7 +43,7 @@ namespace Game1.UI
             textBox = new(letterHeight: letterHeight);
             textBox.Text = number.ToString();
             float width = textBox.MeasureText(text: "00").X;
-            textBox.Shape.Width = width;
+            textBox.Shape.MinWidth = width;
             panel.AddChild
             (
                 child: new Button<Triangle>

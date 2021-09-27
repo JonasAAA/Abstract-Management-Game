@@ -117,7 +117,7 @@ namespace Game1
             necAdds = new();
         }
 
-        private bool ContainsKey(TKey key)
+        public bool ContainsKey(TKey key)
             => proportions.ContainsKey(key);
 
         private void AddKey(TKey key, decimal prop)
@@ -126,7 +126,7 @@ namespace Game1
             necAdds.Add(key: key);
         }
 
-        private void Remove(TKey key)
+        public void RemoveKey(TKey key)
         {
             proportions.Remove(key);
             necAdds.Remove(key: key);
@@ -140,12 +140,12 @@ namespace Game1
             proportions[key] += add;
             if (C.IsTiny(value: proportions[key]))
             {
-                Remove(key: key);
+                RemoveKey(key: key);
                 return true;
             }
             if (proportions[key] < 0)
             {
-                Remove(key: key);
+                RemoveKey(key: key);
                 return false;
             }
             return true;
@@ -155,12 +155,17 @@ namespace Game1
         {
             if (value < 0)
                 throw new ArgumentOutOfRangeException();
+
             if (ContainsKey(key: key))
+            {
+                if (C.IsTiny(proportions[key] - value))
+                    return;
                 proportions[key] = value;
+            }
             else
                 AddKey(key: key, prop: value);
             if (C.IsTiny(value: proportions[key]))
-                Remove(key: key);
+                RemoveKey(key: key);
         }
 
         public (Dictionary<TKey, ulong> splitAmounts, ulong unsplitAmount) Split(ulong amount, Func<TKey, ulong> maxAmountsFunc)

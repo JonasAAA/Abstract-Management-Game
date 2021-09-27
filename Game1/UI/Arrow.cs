@@ -22,7 +22,7 @@ namespace Game1.UI
                 scale: new Vector2(Vector2.Distance(startPos, endPos) / triangleTexture.Width, width / triangleTexture.Height)
             );
 
-        private readonly Vector2 startPos, endPos;
+        public readonly Vector2 startPos, endPos;
         private readonly float width;
 
         public Arrow(Vector2 startPos, Vector2 endPos, float width)

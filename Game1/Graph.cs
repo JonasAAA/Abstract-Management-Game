@@ -41,6 +41,7 @@ namespace Game1
         /// </summary>
         public ReadOnlyDictionary<(Vector2, Vector2), Link> PersonFirstLinks { get; private set; }
         public ReadOnlyDictionary<(Vector2, Vector2), Link> ResFirstLinks { get; private set; }
+        public ReadOnlyDictionary<Vector2, Node> PosToNode { get; private set; }
 
         private readonly List<Node> nodes;
         private readonly List<Link> links;
@@ -72,6 +73,13 @@ namespace Game1
 
             (PersonDists, PersonFirstLinks) = FindShortestPaths(distTimeCoeff: persDistTimeCoeff, distElectrCoeff: persDistElectrCoeff);
             (ResDists, ResFirstLinks) = FindShortestPaths(distTimeCoeff: resDistTimeCoeff, distElectrCoeff: resDistElectrCoeff);
+            PosToNode = new
+            (
+                dictionary: nodes.ToDictionary
+                (
+                    keySelector: nodes => nodes.Position
+                )
+            );
 
             Overlay = overlay;
 
@@ -237,20 +245,6 @@ namespace Game1
         public void RemoveUIElement(IUIElement UIElement)
             => RemoveChild(child: UIElement);
 
-        /// <returns> returns null if not hovering above a node </returns>
-        public Node HoveringNode()
-        {
-            Node result = null;
-            foreach (var node in nodes)
-                if (((IUIElement)node).Contains(position: MyMouse.WorldPos))
-                {
-                    result = node;
-                    break;
-                }
-
-            return result;
-        }
-
         public void Update(TimeSpan elapsed)
         {
             if (paused)
@@ -271,7 +265,7 @@ namespace Game1
             
             JobMatching.Match();
 
-            globalTextBox.Text = $"overlay {Overlay}\n{ElectricityDistributor.Summary()}".Trim();
+            globalTextBox.Text = ElectricityDistributor.Summary().Trim();
         }
 
         private class BetterNode
@@ -343,9 +337,9 @@ namespace Game1
         public void SplitRes(int resInd)
         {
             BetterNode.Init(resInd: resInd);
-            Dictionary<Node, BetterNode> betterNodes = nodes.ToDictionary
+            Dictionary<Vector2, BetterNode> betterNodes = nodes.ToDictionary
             (
-                keySelector: node => node,
+                keySelector: node => node.Position,
                 elementSelector: node => new BetterNode(node: node)
             );
 
@@ -366,8 +360,8 @@ namespace Game1
                             select betterNode
             );
 
-            ulong MaxExtraRes(Node node)
-                => betterNodes[node].MaxExtraRes();
+            ulong MaxExtraRes(Vector2 position)
+                => betterNodes[position].MaxExtraRes();
 
             while (leafs.Count > 0)
             {

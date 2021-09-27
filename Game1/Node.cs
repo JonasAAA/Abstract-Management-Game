@@ -21,7 +21,7 @@ namespace Game1
         private readonly TextBox textBox;
         private readonly List<Link> links;
         private Industry industry;
-        private readonly MyArray<ProporSplitter<Node>> resSplittersToDestins;
+        private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
         private readonly MyArray<bool> store;
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
@@ -55,7 +55,7 @@ namespace Game1
             resSplittersToDestins = new
             (
                 values: from ind in Enumerable.Range(0, Resource.Count)
-                        select new ProporSplitter<Node>()
+                        select new ProporSplitter<Vector2>()
             );
             targetStoredResAmounts = new();
             store = new(value: false);
@@ -222,7 +222,7 @@ namespace Game1
         public bool Store(int resInd)
             => store[resInd];
 
-        public IEnumerable<Node> ResDestins(int resInd)
+        public IEnumerable<Vector2> ResDestins(int resInd)
             => resSplittersToDestins[resInd].Keys;
 
         public ulong TargetStoredResAmount(int resInd)
@@ -238,53 +238,59 @@ namespace Game1
             base.OnClick();
         }
 
-        public void AddResDestin(Node destinationNode)
+        public bool CanHaveDestin(Vector2 destination)
         {
             if (!Active || !ActiveUI.ArrowDrawingModeOn)
                 throw new InvalidOperationException();
 
-            int resInd = (int)Graph.Overlay;
-            if (!resSplittersToDestins[resInd].Proportions.ContainsKey(destinationNode))
-            {
-                void SetTotalImportance()
-                {
-                    int totalImportance = resDistribArrows[(Overlay)resInd].Sum(resDestinArrow => resDestinArrow.Importance);
-                    foreach (var resDestinArrow in resDistribArrows[(Overlay)resInd])
-                        resDestinArrow.TotalImportance = totalImportance;
-                }
+            return !resSplittersToDestins[(int)Graph.Overlay].ContainsKey(destination);
+        }
 
-                ResDestinArrow resDestinArrow = new
-                (
-                    shape: new Arrow(startPos: Position, endPos: destinationNode.Position, width: resDestinArrowWidth),
-                    active: false,
-                    defaultActiveColor: Color.Lerp(Color.Yellow, Color.Red, .5f),
-                    defaultInactiveColor: Color.Red * .5f,
-                    popupHorizPos: HorizPos.Right,
-                    popupVertPos: VertPos.Top,
-                    letterHeight: letterHeight,
-                    minImportance: 1,
-                    importance: 1,
-                    resInd: resInd
-                );
-                resDestinArrow.ImportanceChanged += () =>
-                {
+        public void AddResDestin(Vector2 destination)
+        {
+            if (!CanHaveDestin(destination: destination))
+                throw new ArgumentException();
+
+            // to make lambda expressions work correctly
+            Overlay overlay = Graph.Overlay;
+            int resInd = (int)overlay;
+
+            void SyncSplittersWithArrows()
+            {
+                foreach (var resDestinArrow in resDistribArrows[overlay])
                     resSplittersToDestins[resInd].SetProp
                     (
-                        key: destinationNode,
+                        key: resDestinArrow.EndPos,
                         value: resDestinArrow.Importance
                     );
-
-                    SetTotalImportance();
-                };
-
-                resDistribArrows[(Overlay)resInd].AddChild(child: resDestinArrow);
-                resSplittersToDestins[resInd].SetProp
-                (
-                    key: destinationNode,
-                    value: 1
-                );
-                SetTotalImportance();
+                int totalImportance = resDistribArrows[overlay].Sum(resDestinArrow => resDestinArrow.Importance);
+                foreach (var resDestinArrow in resDistribArrows[overlay])
+                    resDestinArrow.TotalImportance = totalImportance;
             }
+
+            ResDestinArrow resDestinArrow = new
+            (
+                shape: new Arrow(startPos: Position, endPos: destination, width: resDestinArrowWidth),
+                active: false,
+                defaultActiveColor: Color.Lerp(Color.Yellow, Color.Red, .5f),
+                defaultInactiveColor: Color.Red * .5f,
+                popupHorizPos: HorizPos.Right,
+                popupVertPos: VertPos.Top,
+                letterHeight: letterHeight,
+                minImportance: 1,
+                importance: 1,
+                resInd: resInd
+            );
+            resDestinArrow.ImportanceChanged += SyncSplittersWithArrows;
+            resDestinArrow.Delete += () =>
+            {
+                resDistribArrows[overlay].RemoveChild(child: resDestinArrow);
+                resSplittersToDestins[resInd].RemoveKey(key: destination);
+                SyncSplittersWithArrows();
+            };
+
+            resDistribArrows[overlay].AddChild(child: resDestinArrow);
+            SyncSplittersWithArrows();
         }
 
         public override void OnMouseDownWorldNotMe()
@@ -362,7 +368,7 @@ namespace Game1
         /// <summary>
         /// MUST call StartSplitRes first
         /// </summary>
-        public void SplitRes(int resInd, Func<Node, ulong> maxExtraResFunc)
+        public void SplitRes(int resInd, Func<Vector2, ulong> maxExtraResFunc)
         {
             if (undecidedResAmounts[resInd] is 0)
                 return;
@@ -374,15 +380,15 @@ namespace Game1
             {
                 var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResAmounts[resInd], maxAmountsFunc: maxExtraResFunc);
                 state.storedRes[resInd] += unsplitResAmount;
-                foreach (var (destinationNode, resAmount) in splitResAmounts)
+                foreach (var (destination, resAmount) in splitResAmounts)
                 {
                     state.waitingResAmountsPackets.Add
                     (
-                        destination: destinationNode.Position,
+                        destination: destination,
                         resInd: resInd,
                         resAmount: resAmount
                     );
-                    destinationNode.AddResTravelHere(resInd: resInd, resAmount: resAmount);
+                    Graph.World.PosToNode[destination].AddResTravelHere(resInd: resInd, resAmount: resAmount);
                 }
             }
 
@@ -409,14 +415,32 @@ namespace Game1
             if (industry is not null)
                 textBox.Text += industry.GetText();
 
-            textBox.Text += Graph.Overlay switch
+            switch (Graph.Overlay)
             {
-                <= C.MaxRes => $"store {store[(int)Graph.Overlay]}\n" + (state.storedRes[(int)Graph.Overlay] >= targetStoredResAmounts[(int)Graph.Overlay] ?
-                    $"have {state.storedRes[(int)Graph.Overlay] - targetStoredResAmounts[(int)Graph.Overlay]} extra resources" : $"have {(double)state.storedRes[(int)Graph.Overlay] / targetStoredResAmounts[(int)Graph.Overlay] * 100:0.}% of target stored resources\n"),
-                Overlay.AllRes => $"stored total res weight {state.storedRes.TotalWeight()}",
-                Overlay.People => $"unemployed {state.unemployedPeople.Count}\n",
-                _ => throw new Exception(),
+                case <= C.MaxRes:
+                    int resInd = (int)Graph.Overlay;
+                    if (store[resInd])
+                        textBox.Text += "store\n";
+                    if (state.storedRes[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
+                        textBox.Text += (state.storedRes[resInd] >= targetStoredResAmounts[resInd]) switch
+                        {
+                            true => $"have {state.storedRes[resInd] - targetStoredResAmounts[resInd]} extra resources",
+                            false => $"have {(double)state.storedRes[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
+                        };
+                    break;
+                case Overlay.AllRes:
+                    ulong totalStoredWeight = state.storedRes.TotalWeight();
+                    if (totalStoredWeight > 0)
+                        textBox.Text += $"stored total res weight {totalStoredWeight}";
+                    break;
+                case Overlay.People:
+                    textBox.Text += $"unemployed {state.unemployedPeople.Count}\n";
+                    break;
+                default:
+                    throw new Exception();
             };
+
+            textBox.Text = textBox.Text.Trim();
         }
 
         public override void Draw()

@@ -21,6 +21,12 @@ namespace Game1.UI
             base.AddChild(child: child, layer: layer);
         }
 
+        public void RemoveChild(TChild child)
+        {
+            children.Remove(child);
+            base.RemoveChild(child: child);
+        }
+
         public IEnumerator<TChild> GetEnumerator()
             => children.GetEnumerator();
 

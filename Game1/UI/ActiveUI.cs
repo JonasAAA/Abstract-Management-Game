@@ -25,12 +25,16 @@ namespace Game1.UI
                 {
                     if (Graph.Overlay > C.MaxRes)
                         throw new Exception();
-                    if (activeWorldElement is not Node)
-                        throw new Exception();
                     foreach (var UIElement in activeUIElements)
                         UIElement.HasDisabledAncestor = true;
-                    foreach (var node in Graph.World.Nodes)
-                        node.HasDisabledAncestor = false;
+                    if (activeWorldElement is Node activeNode)
+                    {
+                        foreach (var node in Graph.World.Nodes)
+                            if (activeNode.CanHaveDestin(destination: node.Position))
+                                node.HasDisabledAncestor = false;
+                    }
+                    else
+                        throw new Exception();
                 }
                 else
                 {
@@ -92,7 +96,7 @@ namespace Game1.UI
                 throw new ArgumentException();
         }
 
-        public static bool Remove(IUIElement UIElement)
+        public static bool RemoveUIElement(IUIElement UIElement)
         {
             if (UIElement is null)
                 return true;
@@ -148,8 +152,8 @@ namespace Game1.UI
                 IUIElement otherHalfClicked = contMouse;
                 if (ArrowDrawingModeOn)
                 {
-                    if (halfClicked == otherHalfClicked && otherHalfClicked != activeWorldElement && otherHalfClicked is Node destinationNode)
-                        ((Node)activeWorldElement).AddResDestin(destinationNode: destinationNode);
+                    if (halfClicked == otherHalfClicked && otherHalfClicked != activeWorldElement && otherHalfClicked.Enabled && otherHalfClicked is Node destinationNode)
+                        ((Node)activeWorldElement).AddResDestin(destination: destinationNode.Position);
                     ArrowDrawingModeOn = false;
                 }
                 else

@@ -9,7 +9,15 @@ namespace Game1
             public readonly double prodWattsPerSec;
 
             public Params(string name, double reqSkill, double prodWattsPerSec)
-                : base(industryType: IndustryType.PowerPlant, electrPriority: 0, name: name, reqSkill: reqSkill, reqWattsPerSec: 0)
+                : base
+                (
+                      industryType: IndustryType.PowerPlant,
+                      electrPriority: 0,
+                      name: name,
+                      reqSkill: reqSkill,
+                      reqWattsPerSec: 0,
+                      explanation: $"requires {reqSkill} skill\nproduces {prodWattsPerSec} W/s"
+                )
             {
                 if (prodWattsPerSec <= 0)
                     throw new ArgumentOutOfRangeException();

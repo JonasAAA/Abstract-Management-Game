@@ -49,6 +49,9 @@ namespace Game1.UI
         private static readonly HashSet<IUIElement> worldUIElements, HUDUIElements;
         private static bool leftDown, prevLeftDown;
         private static IUIElement halfClicked, contMouse, activeWorldElement;
+        private static readonly TimeSpan minDurationToGetExplanation;
+        private static TimeSpan hoverDuration;
+        private static readonly TextBox explanationTextBox;
 
         static ActiveUI()
         {
@@ -62,6 +65,10 @@ namespace Game1.UI
             contMouse = null;
             activeWorldElement = null;
             MouseAboveHUD = true;
+            minDurationToGetExplanation = TimeSpan.FromSeconds(.5);
+            hoverDuration = TimeSpan.Zero;
+            explanationTextBox = new();
+            explanationTextBox.Shape.Color = Color.LightPink;
         }
 
         public static void AddWorldElement(IUIElement UIElement)
@@ -105,7 +112,7 @@ namespace Game1.UI
             return activeUIElements.Remove(UIElement);
         }
 
-        public static void Update()
+        public static void Update(TimeSpan elapsed)
         {
             IUIElement prevContMouse = contMouse;
 
@@ -136,8 +143,26 @@ namespace Game1.UI
                 }
             }
 
-            if (contMouse != prevContMouse)
+            if (contMouse == prevContMouse)
             {
+                hoverDuration += elapsed;
+                if (contMouse is not null && contMouse.Enabled && hoverDuration >= minDurationToGetExplanation && explanationTextBox.Text is null)
+                {
+                    explanationTextBox.Text = contMouse.Explanation;
+                    explanationTextBox.Shape.TopLeftCorner = mouseHUDPos;
+                    explanationTextBox.Shape.ClampPosition
+                    (
+                        left: 0,
+                        right: (float)C.ScreenWidth,
+                        top: 0,
+                        bottom: (float)C.ScreenHeight
+                    );
+                }
+            }
+            else
+            {
+                hoverDuration = TimeSpan.Zero;
+                explanationTextBox.Text = null;
                 if (prevContMouse is not null && prevContMouse.Enabled)
                     prevContMouse.MouseOn = false;
                 if (contMouse is not null && contMouse.Enabled)
@@ -187,6 +212,7 @@ namespace Game1.UI
             C.HUDCamera.BeginDraw();
             foreach (var UIElement in HUDUIElements)
                 UIElement.Draw();
+            explanationTextBox.Draw();
             C.HUDCamera.EndDraw();
         }
     }

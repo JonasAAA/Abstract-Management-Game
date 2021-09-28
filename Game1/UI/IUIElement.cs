@@ -26,6 +26,8 @@ namespace Game1.UI
 
         public bool CanBeClicked { get; }
 
+        public string Explanation { get; }
+
         public event Action SizeOrPosChanged, EnabledChanged, MouseOnChanged;
 
         public bool Contains(Vector2 position);

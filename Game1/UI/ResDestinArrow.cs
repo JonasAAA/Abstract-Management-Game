@@ -37,7 +37,7 @@ namespace Game1.UI
         private readonly NumIncDecrPanel importanceIncDecrPanel;
         private readonly TextBox line2;
 
-        public ResDestinArrow(Arrow shape, bool active, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int importance, float letterHeight, int resInd)
+        public ResDestinArrow(Arrow shape, bool active, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int importance, int resInd)
             : base(shape: shape, active: active, activeColor: defaultActiveColor, inactiveColor: defaultInactiveColor, popupHorizPos: popupHorizPos, popupVertPos: popupVertPos)
         {
             this.shape = shape;
@@ -60,7 +60,7 @@ namespace Game1.UI
             popup.AddChild(child: line1);
             line1.AddChild
             (
-                child: new TextBox(letterHeight: letterHeight)
+                child: new TextBox()
                 {
                     Text = "importance "
                 }
@@ -69,14 +69,13 @@ namespace Game1.UI
             (
                 minNum: minImportance,
                 number: importance,
-                letterHeight: letterHeight,
                 incrDecrButtonHeight: 20,
                 shapeColor: Color.White,
                 incrDecrButtonColor: Color.Blue
             );
             line1.AddChild(child: importanceIncDecrPanel);
 
-            line2 = new(letterHeight: letterHeight);
+            line2 = new();
             popup.AddChild(child: line2);
 
             Button<MyRectangle> deleteButton = new
@@ -94,7 +93,6 @@ namespace Game1.UI
                     OnDelete();
                     Delete?.Invoke();
                 },
-                letterHeight: letterHeight,
                 text: "delete"
             );
             popup.AddChild(deleteButton);

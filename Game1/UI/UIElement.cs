@@ -10,13 +10,17 @@ namespace Game1.UI
     {
         public TShape Shape { get; }
 
-        public UIElement(TShape shape)
-            : base(shape: shape)
-            => Shape = shape;
+        public UIElement(TShape shape, string explanation = defaultExplanation)
+            : base(shape: shape, explanation: explanation)
+        {
+            Shape = shape;
+        }
     }
 
     public class UIElement : IUIElement
     {
+        protected const string defaultExplanation = "Explanation missing!";
+
         public bool Enabled
             => personallyEnabled && !hasDisabledAncestor;
 
@@ -66,6 +70,8 @@ namespace Game1.UI
         public virtual bool CanBeClicked
             => false;
 
+        public string Explanation { get; }
+
         public event Action SizeOrPosChanged
         {
             add => shape.SizeOrPosChanged += value;
@@ -84,9 +90,10 @@ namespace Game1.UI
                from child in childrenLayer
                select child;
 
-        public UIElement(Shape shape)
+        public UIElement(Shape shape, string explanation = defaultExplanation)
         {
             this.shape = shape;
+            Explanation = explanation;
             SizeOrPosChanged += RecalcSizeAndPos;
             personallyEnabled = true;
             MouseOn = false;

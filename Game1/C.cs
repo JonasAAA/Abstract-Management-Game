@@ -16,6 +16,7 @@ namespace Game1
             => standardScreenHeight;
 
         public const Overlay MaxRes = (Overlay)2;
+        public const float letterHeight = 20;
         public static readonly ReadOnlyCollection<Keys> numericKeys, firstLetterKeys;
         public static ConstArray<Color> ResColors { get; private set; }
         public static ContentManager Content { get; private set; }

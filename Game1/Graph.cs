@@ -18,12 +18,12 @@ namespace Game1
 
         public static Graph World { get; private set; }
 
-        public static void InitializeWorld(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay, float letterHeight)
+        public static void InitializeWorld(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
         {
             if (World is not null)
                 throw new InvalidOperationException();
 
-            World = new Graph(nodes: nodes, links: links, overlay: overlay, letterHeight);
+            World = new Graph(nodes: nodes, links: links, overlay: overlay);
             foreach (var node in nodes)
                 node.Init();
         }
@@ -51,7 +51,7 @@ namespace Game1
         private readonly TextBox globalTextBox;
         private bool paused;
 
-        private Graph(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay, float letterHeight)
+        private Graph(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
             : base(shape: new InfinitePlane())
         {
             this.nodes = new();
@@ -90,7 +90,7 @@ namespace Game1
 
             ActiveUI.AddWorldElement(UIElement: this);
 
-            globalTextBox = new(letterHeight: letterHeight);
+            globalTextBox = new();
             globalTextBox.Shape.MinWidth = 250;
             globalTextBox.Shape.Color = Color.White;
             ActiveUI.AddHUDElement
@@ -107,7 +107,6 @@ namespace Game1
                     width: 60,
                     height: 60
                 ),
-                letterHeight: letterHeight,
                 on: false,
                 text: "Toggle\nPause",
                 selectedColor: Color.White,
@@ -128,7 +127,6 @@ namespace Game1
                 horizontal: true,
                 choiceWidth: 100,
                 choiceHeight: 30,
-                letterHeight: letterHeight,
                 selectedColor: Color.White,
                 deselectedColor: Color.Gray,
                 backgroundColor: Color.White

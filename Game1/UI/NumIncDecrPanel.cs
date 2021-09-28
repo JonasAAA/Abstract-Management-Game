@@ -28,7 +28,7 @@ namespace Game1.UI
         private readonly UIRectVertPanel<IUIElement<NearRectangle>> panel;
         private readonly TextBox textBox;
 
-        public NumIncDecrPanel(int minNum, int number, float letterHeight, float incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
+        public NumIncDecrPanel(int minNum, int number, float incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
             : base(shape: new())
         {
             if (number < minNum)
@@ -40,7 +40,7 @@ namespace Game1.UI
                 color: shapeColor,
                 childHorizPos: HorizPos.Middle
             );
-            textBox = new(letterHeight: letterHeight);
+            textBox = new();
             textBox.Text = number.ToString();
             float width = textBox.MeasureText(text: "00").X;
             textBox.Shape.MinWidth = width;

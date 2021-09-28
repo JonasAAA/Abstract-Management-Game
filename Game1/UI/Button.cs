@@ -11,15 +11,11 @@ namespace Game1.UI
         protected readonly TextBox textBox;
         private readonly Action action;
 
-        public Button(TShape shape, Action action)
-            : this(shape: shape, action: action, letterHeight: 1, text: "")
-        { }
-
-        public Button(TShape shape, Action action, float letterHeight, string text)
-            : base(shape: shape)
+        public Button(TShape shape, string explanation = defaultExplanation, Action action = null, string text = null)
+            : base(shape: shape, explanation)
         {
             this.action = action;
-            textBox = new(letterHeight: letterHeight)
+            textBox = new()
             {
                 Text = text
             };

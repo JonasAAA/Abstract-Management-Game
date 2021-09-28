@@ -10,7 +10,15 @@ namespace Game1
             public readonly TimeSpan prodDuration;
 
             public Params(string name, ulong electrPriority, double reqSkill, ulong reqWattsPerSec, ConstULongArray supply, ConstULongArray demand, TimeSpan prodDuration)
-                : base(industryType: IndustryType.Production, name: name, electrPriority: electrPriority, reqSkill: reqSkill, reqWattsPerSec: reqWattsPerSec)
+                : base
+                (
+                    industryType: IndustryType.Production,
+                    name: name,
+                    electrPriority: electrPriority,
+                    reqSkill: reqSkill,
+                    reqWattsPerSec: reqWattsPerSec,
+                    explanation: $"requires {reqSkill} skill\nrequires {reqWattsPerSec} W/s\nsupply {supply}\ndemand {demand}"
+                )
             {
                 this.supply = supply;
                 this.demand = demand;

@@ -29,8 +29,8 @@ namespace Game1.UI
         private bool on;
         private readonly Color selectedColor, deselectedColor;
 
-        protected OnOffButton(TShape shape, float letterHeight, string text, bool on, Color selectedColor, Color deselectedColor)
-            : base(shape: shape, action: null, letterHeight: letterHeight, text: text)
+        protected OnOffButton(TShape shape, string text, bool on, Color selectedColor, Color deselectedColor)
+            : base(shape: shape, action: null, text: text)
         {
             this.on = on;
             this.selectedColor = selectedColor;

@@ -1,5 +1,4 @@
-﻿using Microsoft.Xna.Framework.Input;
-using Priority_Queue;
+﻿using Priority_Queue;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -17,8 +16,9 @@ namespace Game1
             public readonly string name;
             public readonly ulong electrPriority;
             public readonly double reqSkill, reqWattsPerSec;
+            public readonly string explanation;
 
-            public Params(IndustryType industryType, string name, ulong electrPriority, double reqSkill, double reqWattsPerSec)
+            public Params(IndustryType industryType, string name, ulong electrPriority, double reqSkill, double reqWattsPerSec, string explanation)
             {
                 this.industryType = industryType;
                 this.name = name;
@@ -32,6 +32,7 @@ namespace Game1
                 if (reqWattsPerSec < 0)
                     throw new ArgumentOutOfRangeException();
                 this.reqWattsPerSec = reqWattsPerSec;
+                this.explanation = explanation;
             }
 
             public abstract Industry MakeIndustry(NodeState state);
@@ -156,6 +157,7 @@ namespace Game1
                     cost: new()
                     {
                         [1] = 20,
+                        [2] = 10
                     }
                 ),
             });

@@ -142,5 +142,22 @@ namespace Game1.UI
 
         public void SetPosition(Vector2 position, HorizPos horizOrigin, VertPos vertOrigin)
             => Center = position - new Vector2((int)horizOrigin * Width, (int)vertOrigin * Height) * .5f;
+
+        public void ClampPosition(float left, float right, float top, float bottom)
+            => Center = new Vector2
+            (
+                x: Math.Clamp
+                (
+                    value: Center.X,
+                    min: left + Width * .5f,
+                    max: right - Width * .5f
+                ),
+                y: Math.Clamp
+                (
+                    value: Center.Y,
+                    min: top + Height * .5f,
+                    max: bottom - Height * .5f
+                )
+            );
     }
 }

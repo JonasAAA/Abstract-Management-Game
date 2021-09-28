@@ -14,7 +14,11 @@ namespace Game1.UI
                 if (text != value)
                 {
                     text = value;
-                    Vector2 textDims = MeasureText(text: text);
+                    Vector2 textDims = text switch
+                    {
+                        null => Vector2.Zero,
+                        not null => MeasureText(text: text),
+                    };
                     Shape.Width = textDims.X;
                     Shape.Height = textDims.Y;
                 }
@@ -27,18 +31,20 @@ namespace Game1.UI
         private readonly SpriteFont font;
         private readonly float scale;
 
-        public TextBox(float letterHeight)
+        public TextBox()
             : base(shape: new())
         {
             Shape.Color = Color.Transparent;
             font = C.Content.Load<SpriteFont>("font");
-            scale = letterHeight / font.MeasureString("F").Y;
+            scale = C.letterHeight / font.MeasureString("F").Y;
             TextColor = Color.Black;
-            Text = "";
+            Text = null;
         }
 
         public override void Draw()
         {
+            if (Text is null)
+                return;
             base.Draw();
             C.DrawString
             (

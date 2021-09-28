@@ -30,6 +30,17 @@ namespace Game1
         public ulong TotalWeight()
             => Enumerable.Range(start: 0, count: (int)length).Sum(i => Resource.all[i].weight * array[i]);
 
+        public override string ToString()
+        {
+            if (TotalWeight() is 0)
+                return "None";
+            string result = "";
+            for (int resInd = 0; resInd < Resource.Count; resInd++)
+                if (array[resInd] > 0)
+                    result += $"res{resInd}: {array[resInd]}, ";
+            return result.Trim(' ', ',');
+        }
+
         public static ULongArray operator +(ConstULongArray ulongArray1, ConstULongArray ulongArray2)
             => new(ulongArray1.Zip(ulongArray2, (a, b) => a + b));
 

@@ -11,7 +11,15 @@ namespace Game1
             public readonly ConstULongArray cost;
 
             public Params(string name, ulong electrPriority, double reqSkill, ulong reqWattsPerSec, Industry.Params industrParams, TimeSpan duration, ConstULongArray cost)
-                : base(industryType: IndustryType.Construction, name: name, electrPriority: electrPriority, reqSkill: reqSkill, reqWattsPerSec: reqWattsPerSec)
+                : base
+                (
+                    industryType: IndustryType.Construction,
+                    name: name,
+                    electrPriority: electrPriority,
+                    reqSkill: reqSkill,
+                    reqWattsPerSec: reqWattsPerSec,
+                    explanation: $"construction stats:\nrequires {reqWattsPerSec} W/s\nduration {duration.TotalSeconds:0.}s\ncost {cost}\n\nbuilding stats:\n{industrParams.explanation}"
+                )
             {
                 this.industrParams = industrParams;
                 if (duration < TimeSpan.Zero || duration == TimeSpan.MaxValue)

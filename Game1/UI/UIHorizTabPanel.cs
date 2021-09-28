@@ -14,7 +14,7 @@ namespace Game1.UI
         private readonly Dictionary<string, Action> tabEnabledActions;
         private TTab activeTab;
 
-        public UIHorizTabPanel(float tabLabelWidth, float tabLabelHeight, float letterHeight, Color color, Color inactiveTabLabelColor)
+        public UIHorizTabPanel(float tabLabelWidth, float tabLabelHeight, Color color, Color inactiveTabLabelColor)
             : base(shape: new())
         {
             Shape.Color = color;
@@ -24,7 +24,6 @@ namespace Game1.UI
                 horizontal: true,
                 choiceWidth: tabLabelWidth,
                 choiceHeight: tabLabelHeight,
-                letterHeight: letterHeight,
                 selectedColor: color,
                 deselectedColor: inactiveTabLabelColor,
                 backgroundColor: inactiveTabLabelColor

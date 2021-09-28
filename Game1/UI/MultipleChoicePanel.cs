@@ -9,11 +9,11 @@ namespace Game1.UI
         private readonly UIRectPanel<SelectButton<MyRectangle>> choicePanel;
         private readonly Dictionary<string, SelectButton<MyRectangle>> choices;
         private readonly Dictionary<string, Action> choiceActions;
-        private readonly float choiceWidth, choiceHeight, letterHeight;
+        private readonly float choiceWidth, choiceHeight;
         private readonly Color selectedColor, deselectedColor;
         private SelectButton<MyRectangle> selectedChoice;
 
-        public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, float letterHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
+        public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
             : base(shape: new MyRectangle())
         {
             choicePanel = horizontal switch
@@ -36,7 +36,6 @@ namespace Game1.UI
 
             this.choiceWidth = choiceWidth;
             this.choiceHeight = choiceHeight;
-            this.letterHeight = letterHeight;
             this.selectedColor = selectedColor;
             this.deselectedColor = deselectedColor;
             selectedChoice = null;
@@ -62,7 +61,6 @@ namespace Game1.UI
                     width: choiceWidth,
                     height: choiceHeight
                 ),
-                letterHeight: letterHeight,
                 on: choicePanel.Count is 0,
                 text: choiceText,
                 selectedColor: selectedColor,

@@ -10,7 +10,6 @@ namespace Game1
     {
         public PlayState()
         {
-            const float letterHeight = 20;
             const int width = 8, height = 5, dist = 200;
             Node[,] nodes = new Node[width, height];
             for (int i = 0; i < width; i++)
@@ -29,7 +28,6 @@ namespace Game1
                         ),
                         activeColor: Color.White,
                         inactiveColor: Color.Gray,
-                        letterHeight: letterHeight,
                         resDestinArrowWidth: 64,
                         startPersonCount: 5
                     );
@@ -70,8 +68,7 @@ namespace Game1
                 nodes: from Node node in nodes
                        select node,
                 links: links,
-                overlay: Overlay.Res0,
-                letterHeight: letterHeight
+                overlay: Overlay.Res0
             );
         }
 
@@ -79,7 +76,7 @@ namespace Game1
         {
             C.WorldCamera.Update(canScroll: !ActiveUI.MouseAboveHUD);
 
-            ActiveUI.Update();
+            ActiveUI.Update(elapsed: elapsed);
 
             Graph.World.Update(elapsed: elapsed);
         }

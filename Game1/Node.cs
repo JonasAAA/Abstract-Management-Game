@@ -27,19 +27,19 @@ namespace Game1
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
 
         private readonly UIHorizTabPanel<IUIElement<MyRectangle>> UITabPanel;
-        private readonly UIRectPanel<IUIElement<NearRectangle>> buildButtonPannel;
+        private readonly UIRectPanel<IUIElement<NearRectangle>> infoPanel, buildButtonPannel;
         private readonly Dictionary<Overlay, UIRectPanel<IUIElement<NearRectangle>>> overlayTabPanels;
+        private readonly TextBox infoTextBox;
         private readonly string overlayTabLabel;
         private readonly Dictionary<Overlay, UITransparentPanel<ResDestinArrow>> resDistribArrows;
         private readonly int resDistribArrowsUILayer;
-        private readonly float letterHeight, resDestinArrowWidth;
+        private readonly float resDestinArrowWidth;
 
-        public Node(NodeState state, Shape shape, Color activeColor, Color inactiveColor, float letterHeight, float resDestinArrowWidth, int startPersonCount = 0)
+        public Node(NodeState state, Shape shape, Color activeColor, Color inactiveColor, float resDestinArrowWidth, int startPersonCount = 0)
             : base(shape: shape, active: false, activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             this.state = state;
-            this.letterHeight = letterHeight;
-            textBox = new(letterHeight: letterHeight);
+            textBox = new();
             shape.Center = Position;
             textBox.Shape.Center = Position;
             SizeOrPosChanged += () =>
@@ -69,9 +69,24 @@ namespace Game1
             (
                 tabLabelWidth: 100,
                 tabLabelHeight: 30,
-                letterHeight: letterHeight,
                 color: Color.White,
                 inactiveTabLabelColor: Color.Gray
+            );
+
+            infoPanel = new UIRectVertPanel<IUIElement<NearRectangle>>
+            (
+                color: Color.White,
+                childHorizPos: HorizPos.Left
+            );
+            UITabPanel.AddTab
+            (
+                tabLabelText: "info",
+                tab: infoPanel
+            );
+            infoTextBox = new();
+            infoPanel.AddChild
+            (
+                child: infoTextBox
             );
 
             buildButtonPannel = new UIRectVertPanel<IUIElement<NearRectangle>>
@@ -99,12 +114,12 @@ namespace Game1
                         {
                             Color = Color.White
                         },
+                        explanation: parameters.explanation,
                         action: () =>
                         {
                             industry = parameters.MakeIndustry(state: state);
                             buildButtonPannel.PersonallyEnabled = false;
                         },
-                        letterHeight: letterHeight,
                         text: "build " + parameters.industrParams.name
                     )
                 );
@@ -128,7 +143,6 @@ namespace Game1
                         width: 60,
                         height: 60
                     ),
-                    letterHeight: letterHeight,
                     text: "store\nswitch",
                     on: store[resInd],
                     selectedColor: Color.White,
@@ -148,7 +162,6 @@ namespace Game1
                             Color = Color.White
                         },
                         action: () => ActiveUI.ArrowDrawingModeOn = true,
-                        letterHeight: letterHeight,
                         text: "add resource\ndestination"
                     )
                 );
@@ -276,7 +289,6 @@ namespace Game1
                 defaultInactiveColor: Color.Red * .5f,
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top,
-                letterHeight: letterHeight,
                 minImportance: 1,
                 importance: 1,
                 resInd: resInd
@@ -409,6 +421,8 @@ namespace Game1
 
                 Graph.World.ResFirstLinks[(Position, destination)].Add(start: this, resAmountsPacket: resAmountsPacket);
             }
+
+            infoTextBox.Text = $"stores {state.storedRes}\ntarget {targetStoredResAmounts}";
 
             // update text
             textBox.Text = "";

@@ -84,10 +84,7 @@ namespace Game1
                 tab: infoPanel
             );
             infoTextBox = new();
-            infoPanel.AddChild
-            (
-                child: infoTextBox
-            );
+            infoPanel.AddChild(child: infoTextBox);
 
             buildButtonPannel = new UIRectVertPanel<IUIElement<NearRectangle>>
             (
@@ -115,11 +112,7 @@ namespace Game1
                             Color = Color.White
                         },
                         explanation: parameters.explanation,
-                        action: () =>
-                        {
-                            industry = parameters.MakeIndustry(state: state);
-                            buildButtonPannel.PersonallyEnabled = false;
-                        },
+                        action: () => SetIndustry(newIndustry: parameters.MakeIndustry(state: state)),
                         text: "build " + parameters.industrParams.name
                     )
                 );
@@ -157,12 +150,12 @@ namespace Game1
                 (
                     child: new Button<MyRectangle>
                     (
-                        shape: new(width: 100, height: 50)
+                        shape: new(width: 150, height: 50)
                         {
                             Color = Color.White
                         },
                         action: () => ActiveUI.ArrowDrawingModeOn = true,
-                        text: "add resource\ndestination"
+                        text: $"add resource {resInd}\ndestination"
                     )
                 );
             }
@@ -312,13 +305,30 @@ namespace Game1
             base.OnMouseDownWorldNotMe();
         }
 
+        private void SetIndustry(Industry newIndustry)
+        {
+            if (industry == newIndustry)
+                return;
+
+            infoPanel.RemoveChild(child: industry?.UIElement);
+            industry = newIndustry;
+            if (industry is null)
+                buildButtonPannel.PersonallyEnabled = true;
+            else
+            {
+                buildButtonPannel.PersonallyEnabled = false;
+                infoPanel.AddChild(child: industry.UIElement);
+            }
+        }
+
         public void Update(TimeSpan elapsed)
         {
             foreach (var person in state.unemployedPeople.Concat(state.waitingPeople))
                 person.UpdateNotWorking(elapsed: elapsed);
 
+            Industry prevIndustry = industry;
             if (industry is not null)
-                industry = industry.Update(elapsed: elapsed);
+                SetIndustry(newIndustry: industry.Update(elapsed: elapsed));
 
             // deal with people
             state.unemployedPeople.RemoveAll

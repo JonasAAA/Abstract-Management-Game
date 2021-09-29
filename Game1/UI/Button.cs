@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 
 namespace Game1.UI
 {
@@ -20,6 +21,13 @@ namespace Game1.UI
                 Text = text
             };
             AddChild(child: textBox);
+        }
+
+        public override IUIElement CatchUIElement(Vector2 mousePos)
+        {
+            if (shape.Transparent)
+                throw new InvalidOperationException();
+            return base.CatchUIElement(mousePos);
         }
 
         protected override void PartOfRecalcSizeAndPos()

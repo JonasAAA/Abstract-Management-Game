@@ -21,8 +21,20 @@ namespace Game1.UI
 
         public void AddChild(TChild child)
         {
+            if (child is null)
+                return;
+
             children.Add(child);
             base.AddChild(child: child);
+        }
+
+        public void RemoveChild(TChild child)
+        {
+            if (child is null)
+                return;
+
+            children.Remove(child);
+            base.RemoveChild(child: child);
         }
 
         public IEnumerator<TChild> GetEnumerator()

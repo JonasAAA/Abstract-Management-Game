@@ -1,4 +1,6 @@
-﻿using Priority_Queue;
+﻿using Game1.UI;
+using Microsoft.Xna.Framework;
+using Priority_Queue;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -166,6 +168,10 @@ namespace Game1
         public IndustryType IndustryType
             => parameters.industryType;
 
+        public readonly IUIElement<NearRectangle> UIElement;
+        protected readonly UIRectPanel<IUIElement<NearRectangle>> UIPanel;
+        protected readonly TextBox textBox;
+
         protected readonly NodeState state;
         protected bool CanStartProduction { get; private set; }
         protected double CurSkillPropor { get; private set; }
@@ -175,11 +181,14 @@ namespace Game1
         private TimeSpan avgVacancyDuration;
         private double curUnboundedSkillPropor, electrPropor;
         private readonly HashSet<Person> employeesHere, allEmployees;
-
-        protected Industry(Params parameters, NodeState state)
+        private bool deleted;
+        
+        protected Industry(Params parameters, NodeState state, UIRectPanel<IUIElement<NearRectangle>> UIPanel)
         {
             this.parameters = parameters;
             this.state = state;
+            UIElement = UIPanel;
+            this.UIPanel = UIPanel;
             CanStartProduction = true;
             CurSkillPropor = 0;
             curUnboundedSkillPropor = 0;
@@ -188,8 +197,29 @@ namespace Game1
 
             employeesHere = new();
             allEmployees = new();
+            deleted = false;
 
             ElectricityDistributor.AddElectrConsumer(electrConsumer: this);
+
+            textBox = new();
+            UIPanel.AddChild(child: textBox);
+            UIPanel.AddChild
+            (
+                child: new Button<MyRectangle>
+                (
+                    shape: new
+                    (
+                        width: 60,
+                        height: 30
+                    )
+                    {
+                        Color = Color.Red
+                    },
+                    explanation: "deletes this industry",
+                    action: () => deleted = true,
+                    text: "delete"
+                )
+            );
         }
 
         public bool IfEmploys(Person person)
@@ -243,6 +273,12 @@ namespace Game1
 
             if (elapsed < TimeSpan.Zero)
                 throw new ArgumentOutOfRangeException();
+
+            if (deleted)
+            {
+                Delete();
+                return null;
+            }
 
             if (IsBusy())
             {
@@ -304,7 +340,10 @@ namespace Game1
 
         protected abstract Industry Update(TimeSpan elapsed, double workingPropor);
 
-        public virtual void Clear()
+        protected virtual void Delete()
+            => Clear();
+
+        protected virtual void Clear()
         {
             foreach (var person in allEmployees)
                 person.Fire();

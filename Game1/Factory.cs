@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Game1.UI;
+using Microsoft.Xna.Framework;
+using System;
 
 namespace Game1
 {
@@ -35,7 +37,12 @@ namespace Game1
         private TimeSpan prodTimeLeft;
 
         private Factory(Params parameters, NodeState state)
-            : base(parameters: parameters, state: state)
+            : base
+            (
+                parameters: parameters,
+                state: state,
+                UIPanel: new UIRectVertPanel<IUIElement<NearRectangle>>(color: Color.White, childHorizPos: HorizPos.Left)
+            )
         {
             this.parameters = parameters;
             prodTimeLeft = TimeSpan.MaxValue;
@@ -67,6 +74,8 @@ namespace Game1
                 state.waitingResAmountsPackets.Add(destination: state.position, resAmounts: parameters.supply);
                 prodTimeLeft = TimeSpan.MaxValue;
             }
+
+            textBox.Text = GetText();
 
             return this;
         }

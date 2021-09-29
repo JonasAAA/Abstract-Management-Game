@@ -53,6 +53,9 @@ namespace Game1
         public static ULongArray operator *(ConstULongArray ulongArray, ulong value)
             => value * ulongArray;
 
+        public static ULongArray operator /(ConstULongArray ulongArray, ulong value)
+            => new(from a in ulongArray select a / value);
+
         /// <returns> some elements can be None </returns>
         public static MyArray<double> operator /(ConstULongArray ulongArray1, ConstULongArray ulongArray2)
             => new(ulongArray1.Zip(ulongArray2, (a, b) => (double)a / b));

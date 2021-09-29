@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Game1.UI;
+using Microsoft.Xna.Framework;
+using System;
 
 namespace Game1
 {
@@ -36,7 +38,12 @@ namespace Game1
         private TimeSpan constrTimeLeft;
 
         private Construction(Params parameters, NodeState state)
-            : base(parameters: parameters, state: state)
+            : base
+            (
+                parameters: parameters,
+                state: state,
+                UIPanel: new UIRectVertPanel<IUIElement<NearRectangle>>(color: Color.White, childHorizPos: HorizPos.Left)
+            )
         {
             this.parameters = parameters;
             constrTimeLeft = TimeSpan.MaxValue;
@@ -69,6 +76,17 @@ namespace Game1
                 return parameters.industrParams.MakeIndustry(state: state);
             }
             return this;
+        }
+
+        protected override void Delete()
+        {
+            base.Delete();
+
+            state.storedRes += IsBusy() switch
+            {
+                true => parameters.cost / 2,
+                false => parameters.cost
+            };
         }
 
         public override string GetText()

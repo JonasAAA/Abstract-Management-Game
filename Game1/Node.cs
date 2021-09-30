@@ -200,6 +200,17 @@ namespace Game1
         public void Init()
             => Graph.World.AddUIElement(UIElement: resDistribArrows[Graph.Overlay], layer: resDistribArrowsUILayer);
 
+        public IEnumerable<Person> ChildWantingPeople()
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<Vector2> NeighbPositions()
+        {
+            foreach (var link in links)
+                yield return link.OtherNode(node: this).Position;
+        }
+
         public void AddLink(Link link)
         {
             if (!link.Contains(this))

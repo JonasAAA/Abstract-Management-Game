@@ -5,6 +5,6 @@
         Construction,
         Production,
         PowerPlant,
-        Research,
+        Reproduction,
     }
 }

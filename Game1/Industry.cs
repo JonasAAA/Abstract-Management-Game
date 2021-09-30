@@ -40,7 +40,7 @@ namespace Game1
             public abstract Industry MakeIndustry(NodeState state);
         }
 
-        public static readonly uint TypeCount;
+        public static readonly int TypeCount;
         public static readonly ReadOnlyCollection<Construction.Params> constrBuildingParams;
         private static readonly double vacDespCoeff;
 
@@ -48,7 +48,7 @@ namespace Game1
         {
             vacDespCoeff = .1;
 
-            TypeCount = (uint)Enum.GetValues<IndustryType>().Length;
+            TypeCount = Enum.GetValues<IndustryType>().Length;
 
             constrBuildingParams = new(list: new Construction.Params[]
             {

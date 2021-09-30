@@ -24,5 +24,8 @@ namespace Game1
 
         public static IEnumerable<T> Clone<T>(this IEnumerable<T> source)
             => source.ToArray();
+
+        public static TSource ArgMaxOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
+            => (from value in source select (selector(value), value)).DefaultIfEmpty().Max().value;
     }
 }

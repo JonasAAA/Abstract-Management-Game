@@ -14,7 +14,6 @@ namespace Game1
             return sum;
         }
 
-        
         // could be optimized a la https://stackoverflow.com/questions/11030109/aggregate-vs-sum-performance-in-linq
         public static ulong Sum<T>(this IEnumerable<T> source, Func<T, ulong> selector)
             => source.Select(selector).Sum();
@@ -27,9 +26,8 @@ namespace Game1
 
         public static TSource ArgMaxOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
             => source.OrderBy(value => selector(value)).LastOrDefault();
-            //=> (from value in source select (selector(value), value)).DefaultIfEmpty().Max().value;
 
         public static TSource ArgMinOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
-            => (from value in source select (selector(value), value)).DefaultIfEmpty().Min().value;
+            => source.OrderBy(value => selector(value)).FirstOrDefault();
     }
 }

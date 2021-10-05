@@ -17,7 +17,6 @@ namespace Game1.Industries
                       electrPriority: 0,
                       name: name,
                       reqSkill: reqSkill,
-                      //reqWattsPerSec: 0,
                       explanation: $"requires {reqSkill} skill\nproduces {prodWattsPerSec} W/s"
                 )
             {
@@ -56,12 +55,6 @@ namespace Game1.Industries
                 throw new Exception();
             return this;
         }
-
-        //protected override void Delete()
-        //{
-        //    base.Delete();
-        //    ElectricityDistributor.RemoveElectrProducer(electrProducer: this);
-        //}
 
         public override string GetText()
             => base.GetText() + parameters.name + "\n";

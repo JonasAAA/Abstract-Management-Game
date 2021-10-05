@@ -20,7 +20,6 @@ namespace Game1.Industries
                     name: name,
                     electrPriority: electrPriority,
                     reqSkill: reqSkill,
-                    //reqWattsPerSec: reqWattsPerSec,
                     explanation: $"construction stats:\nrequires {reqWattsPerSec} W/s\nduration {duration.TotalSeconds:0.}s\ncost {cost}\n\nbuilding stats:\n{industrParams.explanation}"
                 )
             {

@@ -44,10 +44,6 @@ namespace Game1
         public Vector2 Position
             => state.position;
         public readonly float radius;
-        //public IEmployer1 Employer
-        //    => industry;
-        //public IEnumerable<Person> UnemployedPeople
-        //    => state.unemployedPeople;
 
         private readonly NodeState state;
         private readonly TextBox textBox;
@@ -88,20 +84,6 @@ namespace Game1
                 personLeft: person => state.waitingPeople.Add(person)
             );
 
-            //for (int i = 0; i < startPersonCount; i++)
-            //    state.unemployedPeople.Add(Person.GenerateNew());
-            //for (int i = 0; i < startPersonCount; i++)
-            //{
-            //    Person person = Person.GenerateNew(defaultActivityCenter: unemploymentCenter);
-            //    unemploymentCenter.QueuePerson(person: person);
-            //    unemploymentCenter.TakePerson(person: person);
-            //    Graph.World.AddPerson(person: person);
-
-            //    // add new person and set their activityCenter
-            //    //throw new NotImplementedException();
-            //    //state.people.Add(Person.GenerateNew());
-            //    //Graph.World.AddPerson(person: state.people[^1]);
-            //}
             resSplittersToDestins = new
             (
                 values: from ind in Enumerable.Range(0, Resource.Count)
@@ -251,31 +233,13 @@ namespace Game1
         {
             for (int i = 0; i < startPersonCount; i++)
             {
-                Person person = Person.GenerateNew(/*defaultActivityCenter: unemploymentCenter*/);
+                Person person = Person.GenerateNew();
                 state.waitingPeople.Add(person);
-                //unemploymentCenter.QueuePerson(person: person);
-                //unemploymentCenter.TakePerson(person: person);
                 Graph.World.AddPerson(person: person);
-
-                // add new person and set their activityCenter
-                //throw new NotImplementedException();
-                //state.people.Add(Person.GenerateNew());
-                //Graph.World.AddPerson(person: state.people[^1]);
             }
 
             Graph.World.AddUIElement(UIElement: resDistribArrows[Graph.Overlay], layer: resDistribArrowsUILayer);
         }
-
-        //public IEnumerable<Person> ChildWantingPeople()
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        //public IEnumerable<Vector2> NeighbPositions()
-        //{
-        //    foreach (var link in links)
-        //        yield return link.OtherNode(node: this).Position;
-        //}
 
         public void AddLink(Link link)
         {
@@ -420,81 +384,6 @@ namespace Game1
                     Graph.World.PersonFirstLinks[(Position, activityCenterPosition)].Add(start: this, person: person);
                 state.waitingPeople.Remove(person);
             }
-
-
-
-
-
-
-
-
-
-            //// check if deals with people correctly
-            //throw new NotImplementedException();
-
-            ////foreach (var person in state.unemployedPeople.Concat(state.waitingPeople))
-            ////    person.UpdateNotWorking(elapsed: elapsed);
-
-            //Industry prevIndustry = industry;
-            //if (industry is not null)
-            //    SetIndustry(newIndustry: industry.Update(elapsed: elapsed));
-
-            //// deal with people
-            ////state.people.RemoveAll
-            ////(
-            ////    match: person =>
-            ////    {
-            ////        if (person.Destination is not null)
-            ////        {
-            ////            state.waitingPeople.Add(person);
-            ////            // change activityCenter
-            ////            throw new NotImplementedException();
-            ////            return true;
-            ////        }
-            ////        return false;
-            ////    }
-            ////);
-            ////state.unemployedPeople.RemoveAll
-            ////(
-            ////    match: person =>
-            ////    {
-            ////        if (person.Destination is not null)
-            ////        {
-            ////            state.waitingPeople.Add(person);
-            ////            return true;
-            ////        }
-            ////        return false;
-            ////    }
-            ////);
-
-
-            //// deal with people
-            //throw new NotImplementedException();
-            //// take appropriate people and split the rest
-            ////foreach (var person in state.waitingPeople)
-            ////{
-            ////    if (person.Destination is null)
-            ////    {
-            ////        state.unemployedPeople.Add(person);
-            ////        continue;
-            ////    }
-
-            ////    if (person.Destination == Position)
-            ////    {
-            ////        if (industry.IfNeeds(person: person))
-            ////        {
-            ////            person.StopTravelling();
-            ////            industry.Take(person: person);
-            ////            continue;
-            ////        }
-            ////        state.unemployedPeople.Add(person);
-            ////        throw new Exception("Why were they travelling here is particular then?");
-            ////        continue;
-            ////    }
-
-            ////    Graph.World.PersonFirstLinks[(Position, person.Destination.Value)].Add(start: this, person: person);
-            ////}
-            ////state.waitingPeople = new();
         }
 
         public void UpdatePeople(TimeSpan elapsed)
@@ -596,7 +485,6 @@ namespace Game1
                     break;
                 case Overlay.People:
                     textBox.Text += unemploymentCenter.GetText();
-                    //textBox.Text += $"unemployed {state.unemployedPeople.Count}\n";
                     break;
                 default:
                     throw new Exception();
@@ -607,9 +495,6 @@ namespace Game1
 
         public override void Draw()
         {
-            //Draw amount of resources in storage
-            //or write percentage of required res
-
             base.Draw();
 
             if (Active && ActiveUI.ArrowDrawingModeOn)

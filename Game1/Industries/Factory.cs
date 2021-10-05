@@ -19,7 +19,6 @@ namespace Game1.Industries
                     name: name,
                     electrPriority: electrPriority,
                     reqSkill: reqSkill,
-                    //reqWattsPerSec: reqWattsPerSec,
                     explanation: $"requires {reqSkill} skill\nrequires {reqWattsPerSec} W/s\nsupply {supply}\ndemand {demand}"
                 )
             {

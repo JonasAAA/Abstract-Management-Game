@@ -2,6 +2,9 @@
 
 namespace Game1
 {
+    /// <summary>
+    /// MUST call ActivityManager.AddActivityCenter() for each instance
+    /// </summary>
     public interface IActivityCenter : IPersonFacingActivityCenter
     {
         public static void UpdatePersonDefault(Person person, TimeSpan elapsed)

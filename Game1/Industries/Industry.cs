@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace Game1.Industries
 {
-    public abstract class Industry : IElectrConsumer //, IEmployer, IJob
+    public abstract class Industry : IElectrConsumer
     {
         // all fields and properties in this and derived classes must have unchangeable state
         public abstract class Params
@@ -17,10 +17,10 @@ namespace Game1.Industries
             public readonly IndustryType industryType;
             public readonly string name;
             public readonly ulong electrPriority;
-            public readonly double reqSkill/*, reqWattsPerSec*/;
+            public readonly double reqSkill;
             public readonly string explanation;
 
-            public Params(IndustryType industryType, string name, ulong electrPriority, double reqSkill, /*double reqWattsPerSec, */string explanation)
+            public Params(IndustryType industryType, string name, ulong electrPriority, double reqSkill, string explanation)
             {
                 this.industryType = industryType;
                 this.name = name;
@@ -31,9 +31,6 @@ namespace Game1.Industries
                 if (reqSkill <= 0)
                     throw new ArgumentOutOfRangeException();
                 this.reqSkill = reqSkill;
-                //if (reqWattsPerSec < 0)
-                //    throw new ArgumentOutOfRangeException();
-                //this.reqWattsPerSec = reqWattsPerSec;
                 this.explanation = explanation;
             }
 
@@ -42,8 +39,6 @@ namespace Game1.Industries
 
         private class Employer : ActivityCenter
         {
-            //explicitly implement as many functions as possible to reduce clutter
-            //also can reorganize order and names of functions
             private static readonly double enjoymentCoeff, talentCoeff, skillCoeff, desperationCoeff, distCoeff, minAcceptableScore, personTimeSkillCoeff;
 
             static Employer()
@@ -58,9 +53,6 @@ namespace Game1.Industries
 
                 personTimeSkillCoeff = .1;
             }
-
-            //public IndustryType IndustryType
-            //    => parameters.industryType;
 
             public double CurSkillPropor { get; private set; }
 
@@ -331,10 +323,7 @@ namespace Game1.Industries
         }
 
         public IEnumerable<Person> PeopleHere
-            //=> employeesHere;
             => employer.PeopleHere;
-        //public IndustryType IndustryType
-        //    => parameters.industryType;
 
         public readonly IUIElement<NearRectangle> UIElement;
         protected readonly UIRectPanel<IUIElement<NearRectangle>> UIPanel;
@@ -344,14 +333,10 @@ namespace Game1.Industries
         protected bool CanStartProduction { get; private set; }
         protected double CurSkillPropor
             => employer.CurSkillPropor;
-        //protected double CurSkillPropor { get; private set; }
 
         private readonly Params parameters;
         private readonly Employer employer;
-        // must be >= 0
-        //private TimeSpan avgVacancyDuration;
-        private double /*curUnboundedSkillPropor, */electrPropor;
-        //private readonly MyHashSet<Person> employeesHere, allEmployees;
+        private double electrPropor;
         private bool deleted;
         
         protected Industry(Params parameters, NodeState state, UIRectPanel<IUIElement<NearRectangle>> UIPanel)
@@ -370,13 +355,8 @@ namespace Game1.Industries
             );
 
             CanStartProduction = true;
-            //CurSkillPropor = 0;
-            //curUnboundedSkillPropor = 0;
-            //avgVacancyDuration = TimeSpan.Zero;
             electrPropor = 0;
 
-            //employeesHere = new();
-            //allEmployees = new();
             deleted = false;
 
             ElectricityDistributor.AddElectrConsumer(electrConsumer: this);
@@ -401,16 +381,6 @@ namespace Game1.Industries
                 )
             );
         }
-
-        //public virtual bool IfNeeds(Person person)
-        //    => allEmployees.Contains(person);
-
-        //public virtual void Take(Person person)
-        //{
-        //    if (!IfNeeds(person: person))
-        //        throw new InvalidOperationException();
-        //    employeesHere.Add(person);
-        //}
         
         public abstract ULongArray TargetStoredResAmounts();
 
@@ -418,12 +388,6 @@ namespace Game1.Industries
 
         public Industry Update(TimeSpan elapsed)
         {
-            //// employees with jobs should not want to travel anywhere
-            //Debug.Assert(employeesHere.All(person => person.Destination is null));
-
-            //// employees with jobs already traveled here, so should not want to travel here again
-            //Debug.Assert(employeesHere.All(person => (person.Destination is null || person.Destination != state.position)));
-
             if (elapsed < TimeSpan.Zero)
                 throw new ArgumentOutOfRangeException();
 
@@ -434,54 +398,6 @@ namespace Game1.Industries
             }
 
             employer.StartUpdate(elapsed: elapsed);
-
-            ////if (IsBusy())
-            ////{
-            ////    foreach (var person in employeesHere)
-            ////        person.UpdateWorking
-            ////        (
-            ////            elapsed: elapsed,
-            ////            workingPropor: electrPropor / Math.Max(1, curUnboundedSkillPropor)
-            ////        );
-            ////}
-
-            //double totalHiredSkill = HiredSkill();
-            //if (totalHiredSkill >= parameters.reqSkill)
-            //{
-            //    // if can, fire the forst person
-            //    throw new NotImplementedException();
-            //    //double oldOpenSpace = OpenSpace();
-
-            //    //SimplePriorityQueue<Person, double> allEmployeesPriorQueue = new();
-            //    //foreach (var person in allEmployees)
-            //    //    allEmployeesPriorQueue.Enqueue
-            //    //    (
-            //    //        item: person,
-            //    //        priority: JobMatching.CurrentEmploymentScore(employer: this, person: person)
-            //    //    );
-
-            //    //while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill - allEmployeesPriorQueue.First.skills[IndustryType] >= parameters.reqSkill)
-            //    //{
-            //    //    totalHiredSkill -= allEmployeesPriorQueue.First.skills[IndustryType];
-            //    //    var person = allEmployeesPriorQueue.Dequeue();
-            //    //    person.Fire();
-            //    //    allEmployees.Remove(person);
-            //    //    if (employeesHere.Remove(person))
-            //    //        state.unemployedPeople.Add(person);
-            //    //}
-
-            //    //double curOpenSpace = OpenSpace();
-            //    //if (oldOpenSpace is double.NegativeInfinity)
-            //    //    avgVacancyDuration = TimeSpan.Zero;
-            //    //else
-            //    //    avgVacancyDuration *= oldOpenSpace / curOpenSpace;
-            //}
-
-            //double openSpace = OpenSpace();
-            //if (openSpace is double.NegativeInfinity)
-            //    avgVacancyDuration = TimeSpan.Zero;
-            //else
-            //    avgVacancyDuration += elapsed;
 
             var result = Update
             (
@@ -501,14 +417,8 @@ namespace Game1.Industries
 
         protected virtual void Delete()
         {
-            //foreach (var person in allEmployees)
-            //    person.Fire();
-            //state.unemployedPeople.AddRange(employeesHere);
-            //employeesHere.Clear();
-            //allEmployees.Clear();
             employer.Delete();
             Deleted?.Invoke();
-            //ElectricityDistributor.RemoveElectrConsumer(electrConsumer: this);
         }
 
         public virtual string GetText()
@@ -522,49 +432,12 @@ namespace Game1.Industries
 
         public abstract double ReqWattsPerSec();
 
-        //public double ReqWattsPerSec()
-        //    // this is correct as if more important people get full electricity, this works
-        //    // and if they don't, then the industry will get 0 electricity anyway
-        //    => IsBusy() switch
-        //    {
-        //        true => parameters.reqWattsPerSec * CurSkillPropor,
-        //        false => 0
-        //    };
-
         public ulong ElectrPriority
             => IsBusy() switch
             {
                 true => parameters.electrPriority,
                 false => ulong.MaxValue
             };
-
-        //private double HiredSkill()
-        //    => allEmployees.Sum(person => person.skills[IndustryType]);
-
-        //private double OpenSpace()
-        //{
-        //    double hiredSkill = HiredSkill();
-        //    if (hiredSkill >= parameters.reqSkill)
-        //        return double.NegativeInfinity;
-        //    double result = 1 - hiredSkill / parameters.reqSkill;
-        //    Debug.Assert(C.IsInSuitableRange(result));
-        //    return result;
-        //}
-
-        //double IEmployer.Desperation()
-        //{
-        //    Debug.Assert(avgVacancyDuration >= TimeSpan.Zero);
-        //    double openSpace = OpenSpace();
-        //    if (openSpace is double.NegativeInfinity)
-        //        return double.NegativeInfinity;
-        //    return Math.Tanh(avgVacancyDuration.TotalSeconds * openSpace * vacDespCoeff);
-        //}
-
-        //void IEmployer.Hire(Person person)
-        //    => allEmployees.Add(person);
-
-        //IJob IEmployer.CreateJob()
-        //    => this;
 
         void IElectrConsumer.ConsumeElectr(double electrPropor)
         {
@@ -573,14 +446,5 @@ namespace Game1.Industries
             this.electrPropor = electrPropor;
             employer.SetElectrPropor(electrPropor: electrPropor);
         }
-
-        //void IJob.TempLeave(Person person)
-        //{
-        //    if (!allEmployees.Contains(person))
-        //        throw new ArgumentException();
-
-        //    if (employeesHere.Remove(person))
-        //        state.waitingPeople.Add(person);
-        //}
     }
 }

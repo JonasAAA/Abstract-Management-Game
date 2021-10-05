@@ -8,8 +8,6 @@ namespace Game1
         public readonly Vector2 position;
         public ULongArray storedRes;
         public readonly ulong maxBatchDemResStored;
-        //public readonly List<Person> people;
-        //public List<Person> unemployedPeople;
         public ResAmountsPacketsByDestin waitingResAmountsPackets;
         public readonly MyHashSet<Person> waitingPeople;
 
@@ -20,8 +18,6 @@ namespace Game1
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             this.maxBatchDemResStored = maxBatchDemResStored;
-            //unemployedPeople = new();
-            //people = new();
             waitingResAmountsPackets = new();
             waitingPeople = new();
         }

@@ -270,14 +270,6 @@ namespace Game1
 
             ActivityManager.ManageActivities();
 
-            //foreach (var person in people)
-            //    person.Update();
-
-            //what to do when person finds a job and a partner in the same frame?
-            //JobMatching.Match();
-
-            //PeopleReproduction.Match();
-
             globalTextBox.Text = ElectricityDistributor.Summary().Trim();
         }
 

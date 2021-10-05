@@ -2,12 +2,13 @@
 using Microsoft.Xna.Framework;
 using System;
 
-namespace Game1
+namespace Game1.Industries
 {
     public class Factory : Industry
     {
         public new class Params : Industry.Params
         {
+            public readonly double reqWattsPerSec;
             public readonly ConstULongArray supply, demand;
             public readonly TimeSpan prodDuration;
 
@@ -18,10 +19,13 @@ namespace Game1
                     name: name,
                     electrPriority: electrPriority,
                     reqSkill: reqSkill,
-                    reqWattsPerSec: reqWattsPerSec,
+                    //reqWattsPerSec: reqWattsPerSec,
                     explanation: $"requires {reqSkill} skill\nrequires {reqWattsPerSec} W/s\nsupply {supply}\ndemand {demand}"
                 )
             {
+                if (reqWattsPerSec <= 0)
+                    throw new ArgumentOutOfRangeException();
+                this.reqWattsPerSec = reqWattsPerSec;
                 this.supply = supply;
                 this.demand = demand;
                 if (prodDuration < TimeSpan.Zero)
@@ -91,5 +95,14 @@ namespace Game1
                 text += "will not start new\n";
             return text;
         }
+
+        public override double ReqWattsPerSec()
+            // this is correct as if more important people get full electricity, this works
+            // and if they don't, then the industry will get 0 electricity anyway
+            => IsBusy() switch
+            {
+                true => parameters.reqWattsPerSec * CurSkillPropor,
+                false => 0
+            };
     }
 }

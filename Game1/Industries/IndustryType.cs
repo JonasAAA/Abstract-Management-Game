@@ -1,4 +1,4 @@
-﻿namespace Game1
+﻿namespace Game1.Industries
 {
     public enum IndustryType
     {

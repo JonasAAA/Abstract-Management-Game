@@ -177,7 +177,7 @@ namespace Game1.UI
                 IUIElement otherHalfClicked = contMouse;
                 if (ArrowDrawingModeOn)
                 {
-                    if (halfClicked == otherHalfClicked && otherHalfClicked != activeWorldElement && otherHalfClicked.Enabled && otherHalfClicked is Node destinationNode)
+                    if (otherHalfClicked is not null && halfClicked == otherHalfClicked && otherHalfClicked != activeWorldElement && otherHalfClicked.Enabled && otherHalfClicked is Node destinationNode)
                         ((Node)activeWorldElement).AddResDestin(destination: destinationNode.Position);
                     ArrowDrawingModeOn = false;
                 }

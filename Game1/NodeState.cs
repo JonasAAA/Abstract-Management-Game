@@ -1,6 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
-using System.Collections.Generic;
 
 namespace Game1
 {
@@ -9,9 +8,10 @@ namespace Game1
         public readonly Vector2 position;
         public ULongArray storedRes;
         public readonly ulong maxBatchDemResStored;
-        public List<Person> unemployedPeople;
+        //public readonly List<Person> people;
+        //public List<Person> unemployedPeople;
         public ResAmountsPacketsByDestin waitingResAmountsPackets;
-        public List<Person> waitingPeople;
+        public readonly MyHashSet<Person> waitingPeople;
 
         public NodeState(Vector2 position, ulong maxBatchDemResStored)
         {
@@ -20,7 +20,8 @@ namespace Game1
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             this.maxBatchDemResStored = maxBatchDemResStored;
-            unemployedPeople = new();
+            //unemployedPeople = new();
+            //people = new();
             waitingResAmountsPackets = new();
             waitingPeople = new();
         }

@@ -1,4 +1,5 @@
-﻿using Game1.UI;
+﻿using Game1.Industries;
+using Game1.UI;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -9,18 +10,50 @@ namespace Game1
 {
     public class Node : WorldUIElement
     {
+        private class UnemploymentCenter : ActivityCenter
+        {
+            public UnemploymentCenter(Vector2 position, Action<Person> personLeft)
+                : base(position: position, electrPriority: ulong.MaxValue, personLeft: personLeft)
+            { }
+
+            public override bool IsFull()
+                => false;
+
+            public override double PersonScoreOfThis(Person person)
+                => Person.momentumCoeff * (IsPersonHere(person: person) ? 1 : 0) 
+                + (.7 * C.Random(min: 0, max: 1) + .3 * DistanceToHere(person: person)) * (1 - Person.momentumCoeff);
+
+            public override bool IsPersonSuitable(Person person)
+            {
+                // may disallow far travel
+                return true;
+            }
+
+            public override void UpdatePerson(Person person, TimeSpan elapsed)
+            {
+                if (!IsPersonHere(person: person))
+                    throw new ArgumentException();
+                // TODO calculate happiness
+                // may decrease person's skills
+            }
+
+            public string GetText()
+                => $"unemployed {peopleHere.Count}\ntravel to be unemployed\nhere {allPeople.Count - peopleHere.Count}\n";
+        }
+
         public Vector2 Position
             => state.position;
         public readonly float radius;
-        public IEmployer Employer
-            => industry;
-        public IEnumerable<Person> UnemployedPeople
-            => state.unemployedPeople;
+        //public IEmployer1 Employer
+        //    => industry;
+        //public IEnumerable<Person> UnemployedPeople
+        //    => state.unemployedPeople;
 
         private readonly NodeState state;
         private readonly TextBox textBox;
         private readonly List<Link> links;
         private Industry industry;
+        private readonly UnemploymentCenter unemploymentCenter;
         private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
         private readonly MyArray<bool> store;
@@ -35,7 +68,7 @@ namespace Game1
         private readonly int resDistribArrowsUILayer;
         private readonly float resDestinArrowWidth;
 
-        public Node(NodeState state, Shape shape, Color activeColor, Color inactiveColor, float resDestinArrowWidth, int startPersonCount = 0)
+        public Node(NodeState state, Shape shape, Color activeColor, Color inactiveColor, float resDestinArrowWidth)
             : base(shape: shape, active: false, activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             this.state = state;
@@ -49,9 +82,26 @@ namespace Game1
             };
             links = new();
             industry = null;
+            unemploymentCenter = new
+            (
+                position: state.position,
+                personLeft: person => state.waitingPeople.Add(person)
+            );
 
-            for (int i = 0; i < startPersonCount; i++)
-                state.unemployedPeople.Add(Person.GenerateNew());
+            //for (int i = 0; i < startPersonCount; i++)
+            //    state.unemployedPeople.Add(Person.GenerateNew());
+            //for (int i = 0; i < startPersonCount; i++)
+            //{
+            //    Person person = Person.GenerateNew(defaultActivityCenter: unemploymentCenter);
+            //    unemploymentCenter.QueuePerson(person: person);
+            //    unemploymentCenter.TakePerson(person: person);
+            //    Graph.World.AddPerson(person: person);
+
+            //    // add new person and set their activityCenter
+            //    //throw new NotImplementedException();
+            //    //state.people.Add(Person.GenerateNew());
+            //    //Graph.World.AddPerson(person: state.people[^1]);
+            //}
             resSplittersToDestins = new
             (
                 values: from ind in Enumerable.Range(0, Resource.Count)
@@ -197,19 +247,35 @@ namespace Game1
             };
         }
 
-        public void Init()
-            => Graph.World.AddUIElement(UIElement: resDistribArrows[Graph.Overlay], layer: resDistribArrowsUILayer);
-
-        public IEnumerable<Person> ChildWantingPeople()
+        public void Init(int startPersonCount = 0)
         {
-            throw new NotImplementedException();
+            for (int i = 0; i < startPersonCount; i++)
+            {
+                Person person = Person.GenerateNew(/*defaultActivityCenter: unemploymentCenter*/);
+                state.waitingPeople.Add(person);
+                //unemploymentCenter.QueuePerson(person: person);
+                //unemploymentCenter.TakePerson(person: person);
+                Graph.World.AddPerson(person: person);
+
+                // add new person and set their activityCenter
+                //throw new NotImplementedException();
+                //state.people.Add(Person.GenerateNew());
+                //Graph.World.AddPerson(person: state.people[^1]);
+            }
+
+            Graph.World.AddUIElement(UIElement: resDistribArrows[Graph.Overlay], layer: resDistribArrowsUILayer);
         }
 
-        public IEnumerable<Vector2> NeighbPositions()
-        {
-            foreach (var link in links)
-                yield return link.OtherNode(node: this).Position;
-        }
+        //public IEnumerable<Person> ChildWantingPeople()
+        //{
+        //    throw new NotImplementedException();
+        //}
+
+        //public IEnumerable<Vector2> NeighbPositions()
+        //{
+        //    foreach (var link in links)
+        //        yield return link.OtherNode(node: this).Position;
+        //}
 
         public void AddLink(Link link)
         {
@@ -225,7 +291,11 @@ namespace Game1
         }
 
         public void Arrive(IEnumerable<Person> people)
-            => state.waitingPeople.AddRange(people);
+        {
+            if (people.Count() is 0)
+                return;
+            state.waitingPeople.UnionWith(people);
+        }
 
         public void Arrive(Person person)
             => state.waitingPeople.Add(person);
@@ -236,7 +306,7 @@ namespace Game1
         public ulong TotalQueuedRes(int resInd)
             => state.storedRes[resInd] + resTravelHereAmounts[resInd];
 
-        public bool Store(int resInd)
+        public bool IfStore(int resInd)
             => store[resInd];
 
         public IEnumerable<Vector2> ResDestins(int resInd)
@@ -334,52 +404,108 @@ namespace Game1
 
         public void Update(TimeSpan elapsed)
         {
-            foreach (var person in state.unemployedPeople.Concat(state.waitingPeople))
-                person.UpdateNotWorking(elapsed: elapsed);
-
-            Industry prevIndustry = industry;
             if (industry is not null)
                 SetIndustry(newIndustry: industry.Update(elapsed: elapsed));
 
             // deal with people
-            state.unemployedPeople.RemoveAll
-            (
-                match: person =>
-                {
-                    if (person.Destination is not null)
-                    {
-                        state.waitingPeople.Add(person);
-                        return true;
-                    }
-                    return false;
-                }
-            );
-
-            // take appropriate people and split the rest
-            foreach (var person in state.waitingPeople)
+            foreach (var person in state.waitingPeople.Clone())
             {
-                if (person.Destination is null)
-                {
-                    state.unemployedPeople.Add(person);
+                if (person.ActivityCenterPosition is null)
                     continue;
-                }
 
-                if (person.Destination == Position)
-                {
-                    if (industry.IfEmploys(person: person))
-                    {
-                        person.StopTravelling();
-                        industry.Take(person: person);
-                        continue;
-                    }
-                    state.unemployedPeople.Add(person);
-                    throw new Exception("Why were they travelling here is particular then?");
-                    continue;
-                }
-
-                Graph.World.PersonFirstLinks[(Position, person.Destination.Value)].Add(start: this, person: person);
+                var activityCenterPosition = person.ActivityCenterPosition.Value;
+                if (activityCenterPosition == Position)
+                    person.Arrived();
+                else
+                    Graph.World.PersonFirstLinks[(Position, activityCenterPosition)].Add(start: this, person: person);
+                state.waitingPeople.Remove(person);
             }
-            state.waitingPeople = new();
+
+
+
+
+
+
+
+
+
+            //// check if deals with people correctly
+            //throw new NotImplementedException();
+
+            ////foreach (var person in state.unemployedPeople.Concat(state.waitingPeople))
+            ////    person.UpdateNotWorking(elapsed: elapsed);
+
+            //Industry prevIndustry = industry;
+            //if (industry is not null)
+            //    SetIndustry(newIndustry: industry.Update(elapsed: elapsed));
+
+            //// deal with people
+            ////state.people.RemoveAll
+            ////(
+            ////    match: person =>
+            ////    {
+            ////        if (person.Destination is not null)
+            ////        {
+            ////            state.waitingPeople.Add(person);
+            ////            // change activityCenter
+            ////            throw new NotImplementedException();
+            ////            return true;
+            ////        }
+            ////        return false;
+            ////    }
+            ////);
+            ////state.unemployedPeople.RemoveAll
+            ////(
+            ////    match: person =>
+            ////    {
+            ////        if (person.Destination is not null)
+            ////        {
+            ////            state.waitingPeople.Add(person);
+            ////            return true;
+            ////        }
+            ////        return false;
+            ////    }
+            ////);
+
+
+            //// deal with people
+            //throw new NotImplementedException();
+            //// take appropriate people and split the rest
+            ////foreach (var person in state.waitingPeople)
+            ////{
+            ////    if (person.Destination is null)
+            ////    {
+            ////        state.unemployedPeople.Add(person);
+            ////        continue;
+            ////    }
+
+            ////    if (person.Destination == Position)
+            ////    {
+            ////        if (industry.IfNeeds(person: person))
+            ////        {
+            ////            person.StopTravelling();
+            ////            industry.Take(person: person);
+            ////            continue;
+            ////        }
+            ////        state.unemployedPeople.Add(person);
+            ////        throw new Exception("Why were they travelling here is particular then?");
+            ////        continue;
+            ////    }
+
+            ////    Graph.World.PersonFirstLinks[(Position, person.Destination.Value)].Add(start: this, person: person);
+            ////}
+            ////state.waitingPeople = new();
+        }
+
+        public void UpdatePeople(TimeSpan elapsed)
+        {
+            var peopleInIndustry = industry switch
+            {
+                null => Enumerable.Empty<Person>(),
+                not null => industry.PeopleHere
+            };
+            foreach (var person in state.waitingPeople.Concat(unemploymentCenter.PeopleHere).Concat(peopleInIndustry))
+                person.Update(elapsed: elapsed, closestNodePos: Position);
         }
 
         public void StartSplitRes()
@@ -469,7 +595,8 @@ namespace Game1
                         textBox.Text += $"stored total res weight {totalStoredWeight}";
                     break;
                 case Overlay.People:
-                    textBox.Text += $"unemployed {state.unemployedPeople.Count}\n";
+                    textBox.Text += unemploymentCenter.GetText();
+                    //textBox.Text += $"unemployed {state.unemployedPeople.Count}\n";
                     break;
                 default:
                     throw new Exception();

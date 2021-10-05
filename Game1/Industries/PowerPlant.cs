@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework;
 using System;
 
-namespace Game1
+namespace Game1.Industries
 {
     public class PowerPlant : Industry, IElectrProducer
     {
@@ -17,7 +17,7 @@ namespace Game1
                       electrPriority: 0,
                       name: name,
                       reqSkill: reqSkill,
-                      reqWattsPerSec: 0,
+                      //reqWattsPerSec: 0,
                       explanation: $"requires {reqSkill} skill\nproduces {prodWattsPerSec} W/s"
                 )
             {
@@ -57,10 +57,19 @@ namespace Game1
             return this;
         }
 
+        //protected override void Delete()
+        //{
+        //    base.Delete();
+        //    ElectricityDistributor.RemoveElectrProducer(electrProducer: this);
+        //}
+
         public override string GetText()
             => base.GetText() + parameters.name + "\n";
 
-        public double ProdWattsPerSec()
+        public override double ReqWattsPerSec()
+            => 0;
+
+        double IElectrProducer.ProdWattsPerSec()
             => IsBusy() switch
             {
                 true => parameters.prodWattsPerSec * CurSkillPropor,

@@ -28,8 +28,7 @@ namespace Game1
                         ),
                         activeColor: Color.White,
                         inactiveColor: Color.Gray,
-                        resDestinArrowWidth: 64,
-                        startPersonCount: 5
+                        resDestinArrowWidth: 64
                     );
 
             const int minSafeDist = 100;

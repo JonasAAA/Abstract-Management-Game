@@ -25,18 +25,16 @@ namespace Game1
         {
             if (!electrProducers.Add(electrProducer))
                 throw new ArgumentException();
+
+            electrProducer.Deleted += () => electrProducers.Remove(electrProducer);
         }
 
         public static void AddElectrConsumer(IElectrConsumer electrConsumer)
         {
             if (!electrConsumers.Add(electrConsumer))
                 throw new ArgumentException();
-        }
 
-        public static void RemoveElectrConsumer(IElectrConsumer electrConsumer)
-        {
-            if (!electrConsumers.Remove(electrConsumer))
-                throw new ArgumentException();
+            electrConsumer.Deleted += () => electrConsumers.Remove(electrConsumer);
         }
 
         public static void DistributeElectr()

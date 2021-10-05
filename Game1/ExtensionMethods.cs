@@ -26,6 +26,10 @@ namespace Game1
             => source.ToArray();
 
         public static TSource ArgMaxOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
-            => (from value in source select (selector(value), value)).DefaultIfEmpty().Max().value;
+            => source.OrderBy(value => selector(value)).LastOrDefault();
+            //=> (from value in source select (selector(value), value)).DefaultIfEmpty().Max().value;
+
+        public static TSource ArgMinOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
+            => (from value in source select (selector(value), value)).DefaultIfEmpty().Min().value;
     }
 }

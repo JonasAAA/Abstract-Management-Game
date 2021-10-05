@@ -2,12 +2,13 @@
 using Microsoft.Xna.Framework;
 using System;
 
-namespace Game1
+namespace Game1.Industries
 {
     public class Construction : Industry
     {
         public new class Params : Industry.Params
         {
+            public readonly double reqWattsPerSec;
             public readonly Industry.Params industrParams;
             public readonly TimeSpan duration;
             public readonly ConstULongArray cost;
@@ -19,10 +20,13 @@ namespace Game1
                     name: name,
                     electrPriority: electrPriority,
                     reqSkill: reqSkill,
-                    reqWattsPerSec: reqWattsPerSec,
+                    //reqWattsPerSec: reqWattsPerSec,
                     explanation: $"construction stats:\nrequires {reqWattsPerSec} W/s\nduration {duration.TotalSeconds:0.}s\ncost {cost}\n\nbuilding stats:\n{industrParams.explanation}"
                 )
             {
+                if (reqWattsPerSec <= 0)
+                    throw new ArgumentOutOfRangeException();
+                this.reqWattsPerSec = reqWattsPerSec;
                 this.industrParams = industrParams;
                 if (duration < TimeSpan.Zero || duration == TimeSpan.MaxValue)
                     throw new ArgumentException();
@@ -72,15 +76,15 @@ namespace Game1
 
             if (constrTimeLeft <= TimeSpan.Zero)
             {
-                Clear();
+                Delete();
                 return parameters.industrParams.MakeIndustry(state: state);
             }
             return this;
         }
 
-        protected override void Delete()
+        protected override void PlayerDelete()
         {
-            base.Delete();
+            base.PlayerDelete();
 
             state.storedRes += IsBusy() switch
             {
@@ -98,5 +102,14 @@ namespace Game1
                 text += "waiting to start costruction\n";
             return text;
         }
+
+        public override double ReqWattsPerSec()
+            // this is correct as if more important people get full electricity, this works
+            // and if they don't, then the industry will get 0 electricity anyway
+            => IsBusy() switch
+            {
+                true => parameters.reqWattsPerSec * CurSkillPropor,
+                false => 0
+            };
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Game1
 {
@@ -10,6 +11,11 @@ namespace Game1
     {
         private class DirLink : IElectrConsumer
         {
+            /// <summary>
+            /// CURRENTLY UNUSED
+            /// </summary>
+            public event Action Deleted;
+
             public readonly Node begin, end;
             public double WattsPerKg
                 => timedPacketQueue.duration.TotalSeconds * reqWattsPerKgPerSec;
@@ -19,7 +25,7 @@ namespace Game1
             private readonly TimedPacketQueue timedPacketQueue;
             private readonly double minSafePropor;
             private ResAmountsPacketsByDestin waitingResAmountsPackets;
-            private List<Person> waitingPeople;
+            private readonly MyHashSet<Person> waitingPeople;
             private readonly double reqWattsPerKgPerSec;
             private readonly Texture2D diskTexture;
             private double electrPropor;
@@ -44,14 +50,11 @@ namespace Game1
                 ElectricityDistributor.AddElectrConsumer(electrConsumer: this);
             }
 
-            public double ReqWattsPerSec()
-                => timedPacketQueue.TotalWeight * reqWattsPerKgPerSec;
-
             public void Add(ResAmountsPacket resAmountsPacket)
                 => waitingResAmountsPackets.Add(resAmountsPacket: resAmountsPacket);
 
             public void Add(IEnumerable<Person> people)
-                => waitingPeople.AddRange(people);
+                => waitingPeople.UnionWith(people);
 
             public void Add(Person person)
                 => waitingPeople.Add(person);
@@ -60,15 +63,21 @@ namespace Game1
             {
                 timedPacketQueue.Update(elapsed: elapsed, electrPropor: electrPropor);
                 if ((!waitingResAmountsPackets.Empty || waitingPeople.Count > 0)
-                    && (timedPacketQueue.Empty || timedPacketQueue.LastCompletionProp() >= minSafePropor))
+                    && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionProp() >= minSafePropor))
                 {
                     timedPacketQueue.Enqueue(resAmountsPackets: waitingResAmountsPackets, people: waitingPeople);
                     waitingResAmountsPackets = new();
-                    waitingPeople = new();
+                    waitingPeople.Clear();
                 }
-                var (resAmountsPackets, people) = timedPacketQueue.DonePackets();
+                var (resAmountsPackets, people) = timedPacketQueue.DonePacketsAndPeople();
                 end.Arrive(resAmountsPackets: resAmountsPackets);
                 end.Arrive(people: people);
+            }
+
+            public void UpdatePeople(TimeSpan elapsed)
+            {
+                foreach (var person in waitingPeople.Concat(timedPacketQueue.People))
+                    person.Update(elapsed: elapsed, closestNodePos: end.Position);
             }
 
             public void DrawTravelingRes()
@@ -88,24 +97,27 @@ namespace Game1
                 switch (Graph.Overlay)
                 {
                     case <= C.MaxRes:
-                        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmounts[(int)Graph.Overlay]);
+                        foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
+                            DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts[(int)Graph.Overlay]);
                         break;
                     case Overlay.AllRes:
-                        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmounts.TotalWeight());
+                        foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
+                            DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts.TotalWeight());
                         break;
                     case Overlay.People:
-                        foreach (var (complProp, _, numPeople) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: numPeople);
+                        foreach (var (complProp, (_, people)) in timedPacketQueue.GetData())
+                            DrawDisk(complProp: complProp, size: people.Count());
                         break;
                 }
             }
 
-            public ulong ElectrPriority
+            double IElectrConsumer.ReqWattsPerSec()
+                => timedPacketQueue.TotalWeight * reqWattsPerKgPerSec;
+
+            ulong IElectrConsumer.ElectrPriority
                 => electrPriority;
 
-            public void ConsumeElectr(double electrPropor)
+            void IElectrConsumer.ConsumeElectr(double electrPropor)
                 => this.electrPropor = electrPropor;
         }
 
@@ -163,13 +175,16 @@ namespace Game1
         public void Add(Node start, Person person)
             => GetDirLink(start: start).Add(person: person);
 
-        public double ReqWattsPerSec()
-            => link1To2.ReqWattsPerSec() + link2To1.ReqWattsPerSec();
-
         public void Update(TimeSpan elapsed)
         {
             link1To2.Update(elapsed: elapsed);
             link2To1.Update(elapsed: elapsed);
+        }
+
+        public void UpdatePeople(TimeSpan elapsed)
+        {
+            link1To2.UpdatePeople(elapsed: elapsed);
+            link2To1.UpdatePeople(elapsed: elapsed);
         }
 
         public override void Draw()
@@ -219,7 +234,5 @@ namespace Game1
 
             return false;
         }
-
-        
     }
 }

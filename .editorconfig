@@ -2,3 +2,6 @@
 
 # CA2208: Instantiate argument exceptions correctly
 dotnet_diagnostic.CA2208.severity = silent
+
+# IDE0037: Use inferred member name
+dotnet_diagnostic.IDE0037.severity = silent

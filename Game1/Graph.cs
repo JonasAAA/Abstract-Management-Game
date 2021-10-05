@@ -25,7 +25,7 @@ namespace Game1
 
             World = new Graph(nodes: nodes, links: links, overlay: overlay);
             foreach (var node in nodes)
-                node.Init();
+                node.Init(startPersonCount: 5);
         }
 
         public IEnumerable<Node> Nodes
@@ -47,6 +47,7 @@ namespace Game1
         private readonly List<Link> links;
         private readonly HashSet<Node> nodeSet;
         private readonly HashSet<Link> linkSet;
+        private readonly MyHashSet<Person> people;
         private readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
         private readonly TextBox globalTextBox;
         private bool paused;
@@ -58,6 +59,7 @@ namespace Game1
             this.links = new();
             nodeSet = new();
             linkSet = new();
+            people = new();
             persDistTimeCoeff = 1;
             persDistElectrCoeff = 0;
             resDistTimeCoeff = 0;
@@ -237,6 +239,9 @@ namespace Game1
             return (dists: new(distsDict), firstLinks: new(firstLinksDict));
         }
 
+        public void AddPerson(Person person)
+            => people.Add(person);
+
         public void AddUIElement(IUIElement UIElement, int layer)
             => AddChild(child: UIElement, layer: layer);
 
@@ -251,8 +256,10 @@ namespace Game1
             ElectricityDistributor.DistributeElectr();
 
             links.ForEach(link => link.Update(elapsed: elapsed));
-
             nodes.ForEach(node => node.Update(elapsed: elapsed));
+
+            links.ForEach(link => link.UpdatePeople(elapsed: elapsed));
+            nodes.ForEach(node => node.UpdatePeople(elapsed: elapsed));
 
             nodes.ForEach(node => node.StartSplitRes());
 
@@ -260,25 +267,33 @@ namespace Game1
                 SplitRes(resInd: resInd);
 
             nodes.ForEach(node => node.EndSplitRes());
-            
-            JobMatching.Match();
+
+            ActivityManager.ManageActivities();
+
+            //foreach (var person in people)
+            //    person.Update();
+
+            //what to do when person finds a job and a partner in the same frame?
+            //JobMatching.Match();
+
+            //PeopleReproduction.Match();
 
             globalTextBox.Text = ElectricityDistributor.Summary().Trim();
         }
 
-        private class BetterNode
+        private class NodeInfo
         {
             private static int resInd;
 
             public static void Init(int resInd)
-                => BetterNode.resInd = resInd;
+                => NodeInfo.resInd = resInd;
 
             public readonly Node node;
-            public readonly List<BetterNode> nodesIn, nodesOut;
+            public readonly List<NodeInfo> nodesIn, nodesOut;
             public uint unvisitedDestinsCount;
             public bool isSplitAleady;
 
-            public BetterNode(Node node)
+            public NodeInfo(Node node)
             {
                 this.node = node;
                 nodesIn = new();
@@ -302,15 +317,15 @@ namespace Game1
                 ulong maxExtraResFromNodesOut = 0,
                     userTargetStoredResFromNodesOut = 0;
 
-                foreach (var betterNode in nodesOut)
+                foreach (var nodeInfo in nodesOut)
                 {
-                    var (curMaxExtraRes, curSubgraphUserTargetStoredRes) = betterNode.DFS();
+                    var (curMaxExtraRes, curSubgraphUserTargetStoredRes) = nodeInfo.DFS();
                     maxExtraResFromNodesOut += curMaxExtraRes;
                     userTargetStoredResFromNodesOut += curSubgraphUserTargetStoredRes;
                 }
 
                 ulong subgraphUserTargetStoredRes = node.TargetStoredResAmount(resInd: resInd) + userTargetStoredResFromNodesOut,
-                    targetStoredRes = node.Store(resInd: resInd) switch
+                    targetStoredRes = node.IfStore(resInd: resInd) switch
                     {
                         true => subgraphUserTargetStoredRes,
                         false => node.TargetStoredResAmount(resInd: resInd)
@@ -334,54 +349,59 @@ namespace Game1
         /// </summary>
         public void SplitRes(int resInd)
         {
-            BetterNode.Init(resInd: resInd);
-            Dictionary<Vector2, BetterNode> betterNodes = nodes.ToDictionary
+            NodeInfo.Init(resInd: resInd);
+            Dictionary<Vector2, NodeInfo> nodeInfos = nodes.ToDictionary
             (
                 keySelector: node => node.Position,
-                elementSelector: node => new BetterNode(node: node)
+                elementSelector: node => new NodeInfo(node: node)
             );
 
-            foreach (var betterNode in betterNodes.Values)
-                foreach (var resDestin in betterNode.node.ResDestins(resInd: resInd))
+            foreach (var nodeInfo in nodeInfos.Values)
+                foreach (var resDestin in nodeInfo.node.ResDestins(resInd: resInd))
                 {
-                    var betterNodeDestin = betterNodes[resDestin];
+                    var nodeInfoDestin = nodeInfos[resDestin];
 
-                    betterNode.unvisitedDestinsCount++;
-                    betterNode.nodesOut.Add(betterNodeDestin);
-                    betterNodeDestin.nodesIn.Add(betterNode);
+                    nodeInfo.unvisitedDestinsCount++;
+                    nodeInfo.nodesOut.Add(nodeInfoDestin);
+                    nodeInfoDestin.nodesIn.Add(nodeInfo);
                 }
 
-            Queue<BetterNode> leafs = new
+            Queue<NodeInfo> leafs = new
             (
-                collection: from betterNode in betterNodes.Values
-                            where betterNode.unvisitedDestinsCount is 0
-                            select betterNode
+                collection: from nodeInfo in nodeInfos.Values
+                            where nodeInfo.unvisitedDestinsCount is 0
+                            select nodeInfo
             );
 
             ulong MaxExtraRes(Vector2 position)
-                => betterNodes[position].MaxExtraRes();
+                => nodeInfos[position].MaxExtraRes();
 
             while (leafs.Count > 0)
             {
                 // want to choose random leaf instead of this
-                BetterNode leaf = leafs.Dequeue();
+                NodeInfo leaf = leafs.Dequeue();
                 leaf.node.SplitRes(resInd: resInd, maxExtraResFunc: MaxExtraRes);
 
-                foreach (var betterNode in leaf.nodesIn)
+                foreach (var nodeInfo in leaf.nodesIn)
                 {
-                    betterNode.unvisitedDestinsCount--;
-                    if (betterNode.unvisitedDestinsCount is 0)
-                        leafs.Enqueue(betterNode);
+                    nodeInfo.unvisitedDestinsCount--;
+                    if (nodeInfo.unvisitedDestinsCount is 0)
+                        leafs.Enqueue(nodeInfo);
                 }
                 leaf.isSplitAleady = true;
             }
 
-            foreach (var betterNode in betterNodes.Values)
-                if (!betterNode.isSplitAleady)
+            foreach (var nodeInfo in nodeInfos.Values)
+                if (!nodeInfo.isSplitAleady)
                 {
-                    betterNode.node.SplitRes(resInd: resInd, maxExtraResFunc: MaxExtraRes);
-                    betterNode.isSplitAleady = true;
+                    nodeInfo.node.SplitRes(resInd: resInd, maxExtraResFunc: MaxExtraRes);
+                    nodeInfo.isSplitAleady = true;
                 }
         }
+
+        public IEnumerable<Person> GetActivitySeekingPeople()
+            => from person in people
+               where person.IfSeeksNewActivity()
+               select person;
     }
 }

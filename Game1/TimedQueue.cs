@@ -11,7 +11,7 @@ namespace Game1
             => endTimeQueue.Count;
         public readonly TimeSpan duration;
 
-        private TimeSpan currentTime, lastEndTime;
+        private TimeSpan currentLocalTime, lastEndTime;
         private readonly Queue<TimeSpan> endTimeQueue;
         private readonly Queue<T> queue;
 
@@ -20,30 +20,30 @@ namespace Game1
             if (duration <= TimeSpan.Zero)
                 throw new ArgumentException();
             this.duration = duration;
-            currentTime = TimeSpan.Zero;
+            currentLocalTime = TimeSpan.Zero;
             lastEndTime = TimeSpan.MinValue;
 
             endTimeQueue = new();
             queue = new();
         }
 
-        public void Update(TimeSpan elapsed, double electrPropor)
+        public void Update(double workingPropor)
         {
-            if (!C.IsInSuitableRange(value: electrPropor))
+            if (!C.IsInSuitableRange(value: workingPropor))
                 throw new ArgumentOutOfRangeException();
-            currentTime += elapsed * electrPropor;
+            currentLocalTime += Graph.Elapsed * workingPropor;
         }
 
         public virtual void Enqueue(T element)
         {
-            lastEndTime = currentTime + duration;
+            lastEndTime = currentLocalTime + duration;
             endTimeQueue.Enqueue(lastEndTime);
             queue.Enqueue(element);
         }
 
         public virtual IEnumerable<T> DoneElements()
         {
-            while (endTimeQueue.Count > 0 && endTimeQueue.Peek() < currentTime)
+            while (endTimeQueue.Count > 0 && endTimeQueue.Peek() < currentLocalTime)
             {
                 endTimeQueue.Dequeue();
                 yield return queue.Dequeue();
@@ -57,7 +57,7 @@ namespace Game1
             foreach (var (endTime, element) in endTimeQueue.Zip(queue))
                 yield return
                 (
-                    complProp: C.DonePart(timeLeft: endTime - currentTime, duration: duration),
+                    complProp: C.DonePart(timeLeft: endTime - currentLocalTime, duration: duration),
                     element: element
                 );
         }
@@ -66,7 +66,7 @@ namespace Game1
         {
             if (Count is 0)
                 throw new InvalidOperationException();
-            return C.DonePart(timeLeft: lastEndTime - currentTime, duration: duration);
+            return C.DonePart(timeLeft: lastEndTime - currentLocalTime, duration: duration);
         }
     }
 }

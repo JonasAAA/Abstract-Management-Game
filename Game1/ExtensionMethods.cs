@@ -29,5 +29,12 @@ namespace Game1
 
         public static TSource ArgMinOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
             => source.OrderBy(value => selector(value)).FirstOrDefault();
+
+        public static Dictionary<TKey, double> ClampValues<TKey>(this IReadOnlyDictionary<TKey, double> dictionary, double min, double max)
+            => dictionary.ToDictionary
+            (
+                keySelector: a => a.Key,
+                elementSelector: a => Math.Clamp(a.Value, min, max)
+            );
     }
 }

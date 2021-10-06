@@ -61,10 +61,10 @@ namespace Game1.Industries
         protected override bool IsBusy()
             => prodTimeLeft < TimeSpan.MaxValue;
 
-        protected override Industry Update(TimeSpan elapsed, double workingPropor)
+        protected override Industry Update(double workingPropor)
         {
             if (IsBusy())
-                prodTimeLeft -= workingPropor * elapsed;
+                prodTimeLeft -= workingPropor * Graph.Elapsed;
 
             if (CanStartProduction && !IsBusy() && state.storedRes >= parameters.demand)
             {
@@ -77,8 +77,6 @@ namespace Game1.Industries
                 state.waitingResAmountsPackets.Add(destination: state.position, resAmounts: parameters.supply);
                 prodTimeLeft = TimeSpan.MaxValue;
             }
-
-            textBox.Text = GetText();
 
             return this;
         }

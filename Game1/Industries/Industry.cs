@@ -62,7 +62,7 @@ namespace Game1.Industries
             private double curUnboundedSkillPropor, workingPropor;
 
             public Employer(Vector2 position, ulong electrPriority, Action<Person> personLeft, Params parameters)
-                : base(position: position, electrPriority: electrPriority, personLeft: personLeft)
+                : base(activityType: ActivityType.Working, position: position, electrPriority: electrPriority, personLeft: personLeft)
             {
                 this.parameters = parameters;
 
@@ -72,11 +72,8 @@ namespace Game1.Industries
                 workingPropor = 0;
             }
 
-            public void StartUpdate(TimeSpan elapsed)
+            public void StartUpdate()
             {
-                if (elapsed < TimeSpan.Zero)
-                    throw new ArgumentOutOfRangeException();
-
                 double totalHiredSkill = HiredSkill();
                 if (totalHiredSkill >= parameters.reqSkill)
                 {
@@ -93,8 +90,8 @@ namespace Game1.Industries
 
                     while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill - allEmployeesPriorQueue.First.skills[parameters.industryType] >= parameters.reqSkill)
                     {
-                        totalHiredSkill -= allEmployeesPriorQueue.First.skills[parameters.industryType];
                         var person = allEmployeesPriorQueue.Dequeue();
+                        totalHiredSkill -= person.skills[parameters.industryType];
                         RemovePerson(person: person);
                     }
 
@@ -103,13 +100,15 @@ namespace Game1.Industries
                         avgVacancyDuration = TimeSpan.Zero;
                     else
                         avgVacancyDuration *= oldOpenSpace / curOpenSpace;
+
+                    Debug.Assert(HiredSkill() >= parameters.reqSkill);
                 }
 
                 double openSpace = OpenSpace();
                 if (openSpace is double.NegativeInfinity)
                     avgVacancyDuration = TimeSpan.Zero;
                 else
-                    avgVacancyDuration += elapsed;
+                    avgVacancyDuration += Graph.Elapsed;
             }
 
             public void EndUpdate()
@@ -133,15 +132,18 @@ namespace Game1.Industries
                 return NewEmploymentScore(person: person) >= minAcceptableScore;
             }
 
-            public override void UpdatePerson(Person person, TimeSpan elapsed)
+            public override void UpdatePerson(Person person)
             {
                 if (!C.IsInSuitableRange(value: workingPropor))
                     throw new ArgumentOutOfRangeException();
 
                 Debug.Assert(C.IsInSuitableRange(value: person.skills[parameters.industryType]));
-                person.skills[parameters.industryType] = 1 - (1 - person.skills[parameters.industryType]) * Math.Pow(1 - person.talents[parameters.industryType], elapsed.TotalSeconds * workingPropor * personTimeSkillCoeff);
+                person.skills[parameters.industryType] = 1 - (1 - person.skills[parameters.industryType]) * Math.Pow(1 - person.talents[parameters.industryType], Graph.Elapsed.TotalSeconds * workingPropor * personTimeSkillCoeff);
                 Debug.Assert(C.IsInSuitableRange(value: person.skills[parameters.industryType]));
             }
+
+            public override bool CanPersonLeave(Person person)
+                => true;
 
             public void SetElectrPropor(double electrPropor)
             {
@@ -319,6 +321,28 @@ namespace Game1.Industries
                         [2] = 10
                     }
                 ),
+                new
+                (
+                    name: "reprod. ind. constr.",
+                    electrPriority: 10,
+                    reqSkill: 5,
+                    reqWattsPerSec: 200,
+                    industrParams: new ReprodIndustry.Params
+                    (
+                        name: "reprod. ind.",
+                        electrPriority: 11,
+                        reqSkill: 10,
+                        reqWattsPerSecPerChild: 10,
+                        maxCouples: 10,
+                        resPerChild: new()
+                        {
+                            [0] = 10,
+                        },
+                        birthDuration: TimeSpan.FromSeconds(1)
+                    ),
+                    duration: TimeSpan.FromSeconds(20),
+                    cost: new()
+                ),
             });
         }
 
@@ -327,13 +351,13 @@ namespace Game1.Industries
 
         public readonly IUIElement<NearRectangle> UIElement;
         protected readonly UIRectPanel<IUIElement<NearRectangle>> UIPanel;
-        protected readonly TextBox textBox;
+        private readonly TextBox textBox;
 
         protected readonly NodeState state;
         protected bool CanStartProduction { get; private set; }
         protected double CurSkillPropor
             => employer.CurSkillPropor;
-
+        
         private readonly Params parameters;
         private readonly Employer employer;
         private double electrPropor;
@@ -350,7 +374,7 @@ namespace Game1.Industries
             (
                 position: state.position,
                 electrPriority: parameters.electrPriority,
-                personLeft: person => state.waitingPeople.Add(person),
+                personLeft: PersonLeft,
                 parameters: parameters
             );
 
@@ -386,31 +410,26 @@ namespace Game1.Industries
 
         protected abstract bool IsBusy();
 
-        public Industry Update(TimeSpan elapsed)
+        public Industry Update()
         {
-            if (elapsed < TimeSpan.Zero)
-                throw new ArgumentOutOfRangeException();
-
             if (deleted)
             {
                 PlayerDelete();
                 return null;
             }
 
-            employer.StartUpdate(elapsed: elapsed);
+            employer.StartUpdate();
 
-            var result = Update
-            (
-                elapsed: elapsed,
-                workingPropor: electrPropor * CurSkillPropor
-            );
+            var result = Update(workingPropor: electrPropor * CurSkillPropor);
 
             employer.EndUpdate();
+
+            textBox.Text = GetText();
 
             return result;
         }
 
-        protected abstract Industry Update(TimeSpan elapsed, double workingPropor);
+        protected abstract Industry Update(double workingPropor);
 
         protected virtual void PlayerDelete()
             => Delete();
@@ -438,6 +457,9 @@ namespace Game1.Industries
                 true => parameters.electrPriority,
                 false => ulong.MaxValue
             };
+
+        protected void PersonLeft(Person person)
+            => state.waitingPeople.Add(person);
 
         void IElectrConsumer.ConsumeElectr(double electrPropor)
         {

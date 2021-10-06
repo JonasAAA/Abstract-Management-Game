@@ -1,10 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
-using System;
 
 namespace Game1
 {
     public interface IPersonFacingActivityCenter
     {
+        public ActivityType ActivityType { get; }
+
         public Vector2 Position { get; }
 
         public ulong ElectrPriority { get; }
@@ -20,8 +21,10 @@ namespace Game1
 
         public void TakePerson(Person person);
 
-        public void UpdatePerson(Person person, TimeSpan elapsed);
+        public void UpdatePerson(Person person);
 
+        public bool CanPersonLeave(Person person);
+        
         public void RemovePerson(Person person);
     }
 }

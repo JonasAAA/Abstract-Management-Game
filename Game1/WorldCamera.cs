@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using System;
 
 namespace Game1
 {
@@ -16,7 +17,7 @@ namespace Game1
             boundWidth = 10;
             worldCenter = new(0, 0);
             screenCenter = new((float)(C.ScreenWidth * .5), (float)(C.ScreenHeight * .5));
-            Update(canScroll: false);
+            Update(elapsed: TimeSpan.Zero, canScroll: false);
         }
 
         public Vector2 WorldPos(Vector2 screenPos)
@@ -25,18 +26,19 @@ namespace Game1
         public Vector2 ScreenPos(Vector2 worldPos)
             => Vector2.Transform(position: worldPos, matrix: worldToScreen);
 
-        public void Update(bool canScroll)
+        public void Update(TimeSpan elapsed, bool canScroll)
         {
+            float elapsedSeconds = (float)elapsed.TotalSeconds;
             if (canScroll)
             {
                 if (MyMouse.HUDPos.X <= boundWidth)
-                    worldCenter.X -= scrollSpeed;
+                    worldCenter.X -= scrollSpeed * elapsedSeconds;
                 if (MyMouse.HUDPos.X >= C.ScreenWidth - boundWidth)
-                    worldCenter.X += scrollSpeed;
+                    worldCenter.X += scrollSpeed * elapsedSeconds;
                 if (MyMouse.HUDPos.Y <= boundWidth)
-                    worldCenter.Y -= scrollSpeed;
+                    worldCenter.Y -= scrollSpeed * elapsedSeconds;
                 if (MyMouse.HUDPos.Y >= C.ScreenHeight - boundWidth)
-                    worldCenter.Y += scrollSpeed;
+                    worldCenter.Y += scrollSpeed * elapsedSeconds;
             }
 
             worldToScreen = Matrix.CreateTranslation(xPosition: -worldCenter.X * (float)screenScale, yPosition: -worldCenter.Y * (float)screenScale, zPosition: 0) *

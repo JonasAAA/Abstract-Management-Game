@@ -14,6 +14,10 @@ namespace Game1
 
         public static Overlay Overlay { get; private set; }
 
+        public static TimeSpan CurrentTime { get; private set; }
+
+        public static TimeSpan Elapsed { get; private set; }
+
         public static event OverlayChangedEventHandler OverlayChanged;
 
         public static Graph World { get; private set; }
@@ -47,7 +51,6 @@ namespace Game1
         private readonly List<Link> links;
         private readonly HashSet<Node> nodeSet;
         private readonly HashSet<Link> linkSet;
-        private readonly MyHashSet<Person> people;
         private readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
         private readonly TextBox globalTextBox;
         private bool paused;
@@ -59,7 +62,6 @@ namespace Game1
             this.links = new();
             nodeSet = new();
             linkSet = new();
-            people = new();
             persDistTimeCoeff = 1;
             persDistElectrCoeff = 0;
             resDistTimeCoeff = 0;
@@ -239,9 +241,6 @@ namespace Game1
             return (dists: new(distsDict), firstLinks: new(firstLinksDict));
         }
 
-        public void AddPerson(Person person)
-            => people.Add(person);
-
         public void AddUIElement(IUIElement UIElement, int layer)
             => AddChild(child: UIElement, layer: layer);
 
@@ -250,16 +249,22 @@ namespace Game1
 
         public void Update(TimeSpan elapsed)
         {
+            if (elapsed < TimeSpan.Zero)
+                throw new ArgumentException();
+
             if (paused)
                 elapsed = TimeSpan.Zero;
 
+            Elapsed = elapsed;
+            CurrentTime += Elapsed;
+
             ElectricityDistributor.DistributeElectr();
 
-            links.ForEach(link => link.Update(elapsed: elapsed));
-            nodes.ForEach(node => node.Update(elapsed: elapsed));
+            links.ForEach(link => link.Update());
+            nodes.ForEach(node => node.Update());
 
-            links.ForEach(link => link.UpdatePeople(elapsed: elapsed));
-            nodes.ForEach(node => node.UpdatePeople(elapsed: elapsed));
+            links.ForEach(link => link.UpdatePeople());
+            nodes.ForEach(node => node.UpdatePeople());
 
             nodes.ForEach(node => node.StartSplitRes());
 
@@ -270,7 +275,7 @@ namespace Game1
 
             ActivityManager.ManageActivities();
 
-            globalTextBox.Text = ElectricityDistributor.Summary().Trim();
+            globalTextBox.Text = (ElectricityDistributor.Summary() + $"population {Person.PeopleCount}").Trim();
         }
 
         private class NodeInfo
@@ -390,10 +395,5 @@ namespace Game1
                     nodeInfo.isSplitAleady = true;
                 }
         }
-
-        public IEnumerable<Person> GetActivitySeekingPeople()
-            => from person in people
-               where person.IfSeeksNewActivity()
-               select person;
     }
 }

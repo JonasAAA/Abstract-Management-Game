@@ -14,7 +14,7 @@ namespace Game1
 
         static ElectricityDistributor()
         {
-            ambientWattsPerSec = 100;
+            ambientWattsPerSec = 10000;
             electrProducers = new();
             electrConsumers = new();
             totReqWattsPerSec = 0;

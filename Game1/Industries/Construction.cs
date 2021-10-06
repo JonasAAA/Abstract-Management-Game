@@ -62,10 +62,10 @@ namespace Game1.Industries
         protected override bool IsBusy()
             => constrTimeLeft < TimeSpan.MaxValue;
 
-        protected override Industry Update(TimeSpan elapsed, double workingPropor)
+        protected override Industry Update(double workingPropor)
         {
             if (IsBusy())
-                constrTimeLeft -= workingPropor * elapsed;
+                constrTimeLeft -= workingPropor * Graph.Elapsed;
 
             if (!IsBusy() && state.storedRes >= parameters.cost)
             {

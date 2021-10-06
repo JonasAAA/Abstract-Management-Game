@@ -7,6 +7,8 @@ namespace Game1
 {
     public abstract class ActivityCenter : IActivityCenter
     {
+        public ActivityType ActivityType { get; }
+
         public Vector2 Position { get; }
 
         public ulong ElectrPriority { get; }
@@ -18,10 +20,11 @@ namespace Game1
 
         protected readonly MyHashSet<Person> peopleHere, allPeople;
 
-        private readonly Action<Person> personLeft;
+        protected readonly Action<Person> personLeft;
 
-        protected ActivityCenter(Vector2 position, ulong electrPriority, Action<Person> personLeft)
+        protected ActivityCenter(ActivityType activityType, Vector2 position, ulong electrPriority, Action<Person> personLeft)
         {
+            ActivityType = activityType;
             Position = position;
             ElectrPriority = electrPriority;
             if (personLeft is null)
@@ -42,20 +45,22 @@ namespace Game1
         public void QueuePerson(Person person)
             => allPeople.Add(person);
 
-        public void TakePerson(Person person)
+        public virtual void TakePerson(Person person)
         {
             if (!allPeople.Contains(person))
                 throw new ArgumentException();
             peopleHere.Add(person);
         }
 
-        public abstract void UpdatePerson(Person person, TimeSpan elapsed);
+        public abstract void UpdatePerson(Person person);
 
         public bool IsPersonHere(Person person)
             => peopleHere.Contains(person);
 
         public bool IsPersonQueuedOrHere(Person person)
             => allPeople.Contains(person);
+
+        public abstract bool CanPersonLeave(Person person);
 
         private readonly HashSet<Person> peopleInProcessOfRemoving = new();
         public void RemovePerson(Person person)

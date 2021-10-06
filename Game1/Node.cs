@@ -13,7 +13,7 @@ namespace Game1
         private class UnemploymentCenter : ActivityCenter
         {
             public UnemploymentCenter(Vector2 position, Action<Person> personLeft)
-                : base(position: position, electrPriority: ulong.MaxValue, personLeft: personLeft)
+                : base(activityType: ActivityType.Unemployed, position: position, electrPriority: ulong.MaxValue, personLeft: personLeft)
             { }
 
             public override bool IsFull()
@@ -24,18 +24,21 @@ namespace Game1
                 + (.7 * C.Random(min: 0, max: 1) + .3 * DistanceToHere(person: person)) * (1 - Person.momentumCoeff);
 
             public override bool IsPersonSuitable(Person person)
-            {
                 // may disallow far travel
-                return true;
-            }
+                => true;
 
-            public override void UpdatePerson(Person person, TimeSpan elapsed)
+            public override void UpdatePerson(Person person)
             {
                 if (!IsPersonHere(person: person))
                     throw new ArgumentException();
+
+                IActivityCenter.UpdatePersonDefault(person: person);
                 // TODO calculate happiness
                 // may decrease person's skills
             }
+
+            public override bool CanPersonLeave(Person person)
+                => true;
 
             public string GetText()
                 => $"unemployed {peopleHere.Count}\ntravel to be unemployed\nhere {allPeople.Count - peopleHere.Count}\n";
@@ -233,9 +236,8 @@ namespace Game1
         {
             for (int i = 0; i < startPersonCount; i++)
             {
-                Person person = Person.GenerateNew();
+                Person person = Person.GeneratePerson();
                 state.waitingPeople.Add(person);
-                Graph.World.AddPerson(person: person);
             }
 
             Graph.World.AddUIElement(UIElement: resDistribArrows[Graph.Overlay], layer: resDistribArrowsUILayer);
@@ -366,10 +368,10 @@ namespace Game1
             }
         }
 
-        public void Update(TimeSpan elapsed)
+        public void Update()
         {
             if (industry is not null)
-                SetIndustry(newIndustry: industry.Update(elapsed: elapsed));
+                SetIndustry(newIndustry: industry.Update());
 
             // deal with people
             foreach (var person in state.waitingPeople.Clone())
@@ -386,7 +388,7 @@ namespace Game1
             }
         }
 
-        public void UpdatePeople(TimeSpan elapsed)
+        public void UpdatePeople()
         {
             var peopleInIndustry = industry switch
             {
@@ -394,7 +396,7 @@ namespace Game1
                 not null => industry.PeopleHere
             };
             foreach (var person in state.waitingPeople.Concat(unemploymentCenter.PeopleHere).Concat(peopleInIndustry))
-                person.Update(elapsed: elapsed, closestNodePos: Position);
+                person.Update(closestNodePos: Position);
         }
 
         public void StartSplitRes()

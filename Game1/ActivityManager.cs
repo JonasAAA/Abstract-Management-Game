@@ -31,7 +31,7 @@ namespace Game1
 
             Queue<Person> availablePeople = new
             (
-                collection: Graph.World.GetActivitySeekingPeople()
+                collection: Person.GetActivitySeekingPeople()
                     .OrderBy(person => C.Random(min: 0, max: 1))
             );
 

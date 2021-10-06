@@ -7,7 +7,7 @@ namespace Game1
     /// </summary>
     public interface IActivityCenter : IPersonFacingActivityCenter
     {
-        public static void UpdatePersonDefault(Person person, TimeSpan elapsed)
+        public static void UpdatePersonDefault(Person person)
         {
             // TODO calculate happiness
             // may decrease person's skills

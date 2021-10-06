@@ -73,7 +73,7 @@ namespace Game1
 
         public void Update(TimeSpan elapsed)
         {
-            C.WorldCamera.Update(canScroll: !ActiveUI.MouseAboveHUD);
+            C.WorldCamera.Update(elapsed: elapsed, canScroll: !ActiveUI.MouseAboveHUD);
 
             ActiveUI.Update(elapsed: elapsed);
 

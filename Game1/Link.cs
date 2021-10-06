@@ -59,9 +59,9 @@ namespace Game1
             public void Add(Person person)
                 => waitingPeople.Add(person);
 
-            public void Update(TimeSpan elapsed)
+            public void Update()
             {
-                timedPacketQueue.Update(elapsed: elapsed, electrPropor: electrPropor);
+                timedPacketQueue.Update(workingPropor: electrPropor);
                 if ((!waitingResAmountsPackets.Empty || waitingPeople.Count > 0)
                     && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionProp() >= minSafePropor))
                 {
@@ -74,10 +74,10 @@ namespace Game1
                 end.Arrive(people: people);
             }
 
-            public void UpdatePeople(TimeSpan elapsed)
+            public void UpdatePeople()
             {
                 foreach (var person in waitingPeople.Concat(timedPacketQueue.People))
-                    person.Update(elapsed: elapsed, closestNodePos: end.Position);
+                    person.Update(closestNodePos: end.Position);
             }
 
             public void DrawTravelingRes()
@@ -175,16 +175,16 @@ namespace Game1
         public void Add(Node start, Person person)
             => GetDirLink(start: start).Add(person: person);
 
-        public void Update(TimeSpan elapsed)
+        public void Update()
         {
-            link1To2.Update(elapsed: elapsed);
-            link2To1.Update(elapsed: elapsed);
+            link1To2.Update();
+            link2To1.Update();
         }
 
-        public void UpdatePeople(TimeSpan elapsed)
+        public void UpdatePeople()
         {
-            link1To2.UpdatePeople(elapsed: elapsed);
-            link2To1.UpdatePeople(elapsed: elapsed);
+            link1To2.UpdatePeople();
+            link2To1.UpdatePeople();
         }
 
         public override void Draw()

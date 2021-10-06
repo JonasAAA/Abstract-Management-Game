@@ -49,7 +49,7 @@ namespace Game1.Industries
         protected override bool IsBusy()
             => true;
 
-        protected override Industry Update(TimeSpan elapsed, double workingPropor)
+        protected override Industry Update(double workingPropor)
         {
             if (!C.IsTiny(value: workingPropor - CurSkillPropor))
                 throw new Exception();

@@ -16,7 +16,7 @@ namespace Game1
     {
         public static int PeopleCount
             => people.Count;
-        public static readonly double momentumCoeff, minReqWattsPerSec, maxReqWattsPerSec;
+        public static readonly double momentumCoeff, minReqWattsPerSec, maxReqWattsPerSec, randConrtribToChild, parentContribToChild;
         /// <summary>
         /// MUST always be the same for all people
         /// as the way industry deals with required electricity requires that
@@ -30,6 +30,8 @@ namespace Game1
             momentumCoeff = .2;
             minReqWattsPerSec = .1;
             maxReqWattsPerSec = 1;
+            randConrtribToChild = .1;
+            parentContribToChild = 1 - randConrtribToChild;
             defaultElectrPriority = 100;
             minSeekChangeTime = TimeSpan.FromSeconds(5);
             maxSeekChangeTime = TimeSpan.FromSeconds(30);
@@ -43,61 +45,60 @@ namespace Game1
                 enjoyments: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
-                    elementSelector: indType => C.Random(min: 0.0, max: 1.0)
+                    elementSelector: indType => C.Random(min: 0, max: 1)
                 ),
                 talents: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
-                    elementSelector: indType => C.Random(min: 0.0, max: 1.0)
+                    elementSelector: indType => C.Random(min: 0, max: 1)
                 ),
                 skills: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
-                    elementSelector: indType => C.Random(min: 0.0, max: 1.0)
+                    elementSelector: indType => C.Random(min: 0, max: 1)
                 ),
                 weight: 10,
                 reqWattsPerSec: C.Random(min: minReqWattsPerSec, max: maxReqWattsPerSec),
-                seekChangeTime: minSeekChangeTime +  C.Random(min: 0, max: 1) * (maxSeekChangeTime - minSeekChangeTime)
+                seekChangeTime: C.Random(min: minSeekChangeTime, max: maxSeekChangeTime)
             );
 
         public static Person GenerateChild(Person person1, Person person2)
-            => MakePersonByClamping
+            => new
             (
                 enjoyments: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
-                    elementSelector: indType => (person1.enjoyments[indType] + person2.enjoyments[indType]) * .5 + C.Random(min: -.1, max: .1)
+                    elementSelector: indType
+                        => parentContribToChild * (person1.enjoyments[indType] + person2.enjoyments[indType]) * .5
+                        + randConrtribToChild * C.Random(min: 0, max: 1)
                 ),
                 talents: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
-                    elementSelector: indType => (person1.talents[indType] + person2.talents[indType]) * .5 + C.Random(min: -.1, max: .1)
+                    elementSelector: indType
+                        => parentContribToChild * (person1.talents[indType] + person2.talents[indType]) * .5
+                        + randConrtribToChild * C.Random(min: 0, max: 1)
                 ),
                 skills: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
-                    elementSelector: indType => (person1.skills[indType] + person2.skills[indType]) * .5 + C.Random(min: -.1, max: .1)
+                    elementSelector: indType
+                        => parentContribToChild * (person1.skills[indType] + person2.skills[indType]) * .5
+                        + randConrtribToChild * C.Random(min: 0, max: 1)
                 ),
-                weight: (int)(person1.weight + person2.weight) / 2 + C.RandInt(min: -1, max: 1),
-                reqWattsPerSec: (person1.reqWattsPerSec + person2.reqWattsPerSec) * .5 + C.Random(min: -.1, max: .1),
-                seekChangeTime: (person1.seekChangeTime + person2.seekChangeTime) * .5 + C.Random(-.1, .1) * maxSeekChangeTime
+                weight: 10,
+                reqWattsPerSec:
+                    parentContribToChild * (person1.reqWattsPerSec + person2.reqWattsPerSec) * .5
+                    + randConrtribToChild * C.Random(min: minReqWattsPerSec, max: maxReqWattsPerSec),
+                seekChangeTime:
+                    parentContribToChild * (person1.seekChangeTime + person2.seekChangeTime) * .5
+                    + randConrtribToChild * C.Random(min: minSeekChangeTime, max: maxSeekChangeTime)
             );
 
         public static IEnumerable<Person> GetActivitySeekingPeople()
             => from person in people
                where person.IfSeeksNewActivity()
                select person;
-
-        private static Person MakePersonByClamping(Dictionary<IndustryType, double> enjoyments, Dictionary<IndustryType, double> talents, Dictionary<IndustryType, double> skills, int weight, double reqWattsPerSec, TimeSpan seekChangeTime)
-            => new
-            (
-                enjoyments: enjoyments.ClampValues(min: 0, max: 1),
-                talents: talents.ClampValues(min: 0, max: 1),
-                skills: skills.ClampValues(min: 0, max: 1),
-                weight: (ulong)Math.Max(1, weight),
-                reqWattsPerSec: Math.Clamp(reqWattsPerSec, maxReqWattsPerSec, maxReqWattsPerSec),
-                seekChangeTime: TimeSpan.FromSeconds(Math.Clamp(seekChangeTime.TotalSeconds, minSeekChangeTime.TotalSeconds, maxSeekChangeTime.TotalSeconds))
-            );
 
         // between 0 and 1
         public readonly ReadOnlyDictionary<IndustryType, double> enjoyments;

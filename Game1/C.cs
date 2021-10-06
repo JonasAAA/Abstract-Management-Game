@@ -56,7 +56,18 @@ namespace Game1
         }
 
         public static double Random(double min, double max)
-            => min + random.NextDouble() * (max - min);
+        {
+            if (min > max)
+                throw new ArgumentException();
+            return min + random.NextDouble() * (max - min);
+        }
+
+        public static TimeSpan Random(TimeSpan min, TimeSpan max)
+        {
+            if (min > max)
+                throw new ArgumentException();
+            return min + random.NextDouble() * (max - min);
+        }
 
         /// <param name="min">inclusive minimum</param>
         /// <param name="max">exclusive maximum</param>

@@ -67,8 +67,8 @@ namespace Game1
         private readonly int resDistribArrowsUILayer;
         private readonly float resDestinArrowWidth;
 
-        public Node(NodeState state, Shape shape, Color activeColor, Color inactiveColor, float resDestinArrowWidth)
-            : base(shape: shape, active: false, activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
+        public Node(NodeState state, DiskWithShadow disk, Color activeColor, Color inactiveColor, float resDestinArrowWidth)
+            : base(shape: disk, active: false, activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             this.state = state;
             textBox = new();

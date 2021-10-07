@@ -22,7 +22,7 @@ namespace Game1
                 transformMatrix: GetToScreenTransform()
             );
 
-        protected abstract Matrix GetToScreenTransform();
+        public abstract Matrix GetToScreenTransform();
 
         public void EndDraw()
             => C.SpriteBatch.End();

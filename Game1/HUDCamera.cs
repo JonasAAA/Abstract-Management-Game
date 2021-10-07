@@ -15,7 +15,7 @@ namespace Game1
         public Vector2 HUDPos(Vector2 screenPos)
             => Vector2.Transform(position: screenPos, matrix: screenToHUD);
 
-        protected override Matrix GetToScreenTransform()
+        public override Matrix GetToScreenTransform()
             => HUDToScreen;
     }
 }

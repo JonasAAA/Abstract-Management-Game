@@ -8,8 +8,12 @@ namespace Game1
 {
     public sealed class PlayState
     {
+        private readonly LightSource lightSource;
+
         public PlayState()
         {
+            lightSource = new(position: Vector2.Zero, strength: 2, color: Color.Yellow);
+
             const int width = 8, height = 5, dist = 200;
             Node[,] nodes = new Node[width, height];
             for (int i = 0; i < width; i++)
@@ -21,11 +25,7 @@ namespace Game1
                             position: new Vector2(i - (width - 1) * .5f, j - (height - 1) * .5f) * dist,
                             maxBatchDemResStored: 2
                         ),
-                        shape: new Ellipse
-                        (
-                            width: 64,
-                            height: 64
-                        ),
+                        disk: new DiskWithShadow(radius: 32),
                         activeColor: Color.White,
                         inactiveColor: Color.Gray,
                         resDestinArrowWidth: 64
@@ -77,10 +77,17 @@ namespace Game1
 
             ActiveUI.Update(elapsed: elapsed);
 
+            lightSource.position = MyMouse.WorldPos;
+
             Graph.World.Update(elapsed: elapsed);
+
+            LightManager.Update();
         }
 
         public void Draw()
-            => ActiveUI.Draw();
+        {
+            LightManager.Draw();
+            ActiveUI.Draw();
+        }
     }
 }

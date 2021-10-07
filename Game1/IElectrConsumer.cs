@@ -5,10 +5,8 @@ namespace Game1
     /// <summary>
     /// MUST call ElectricityDistributor.AddElectrConsumer() for each instance
     /// </summary>
-    public interface IElectrConsumer
+    public interface IElectrConsumer : IDeletable
     {
-        public event Action Deleted;
-
         /// <summary>
         /// the lower, the more important
         /// </summary>

@@ -82,9 +82,7 @@ namespace Game1
                 skills: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
-                    elementSelector: indType
-                        => parentContribToChild * (person1.skills[indType] + person2.skills[indType]) * .5
-                        + randConrtribToChild * C.Random(min: 0, max: 1)
+                    elementSelector: indType => 0.0
                 ),
                 weight: 10,
                 reqWattsPerSec:

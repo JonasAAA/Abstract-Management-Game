@@ -8,8 +8,8 @@ namespace Game1
     public static class ElectricityDistributor
     {
         private static readonly double ambientWattsPerSec;
-        private static readonly HashSet<IElectrProducer> electrProducers;
-        private static readonly HashSet<IElectrConsumer> electrConsumers;
+        private static readonly MyHashSet<IElectrProducer> electrProducers;
+        private static readonly MyHashSet<IElectrConsumer> electrConsumers;
         private static double totReqWattsPerSec, totProdWattsPerSec;
 
         static ElectricityDistributor()
@@ -23,17 +23,15 @@ namespace Game1
 
         public static void AddElectrProducer(IElectrProducer electrProducer)
         {
-            if (!electrProducers.Add(electrProducer))
-                throw new ArgumentException();
+            electrProducers.Add(electrProducer);
 
             electrProducer.Deleted += () => electrProducers.Remove(electrProducer);
         }
 
         public static void AddElectrConsumer(IElectrConsumer electrConsumer)
         {
-            if (!electrConsumers.Add(electrConsumer))
-                throw new ArgumentException();
-
+            electrConsumers.Add(electrConsumer);
+            
             electrConsumer.Deleted += () => electrConsumers.Remove(electrConsumer);
         }
 
@@ -43,7 +41,7 @@ namespace Game1
             totReqWattsPerSec = 0;
 
             double remainWattsPerSec = totProdWattsPerSec;
-            SortedDictionary<ulong, HashSet<IElectrConsumer>> electrConsumersSortedDict = new();
+            SortedDictionary<ulong, MyHashSet<IElectrConsumer>> electrConsumersSortedDict = new();
             foreach (var electrConsumer in electrConsumers)
             {
                 ulong priority = electrConsumer.ElectrPriority;

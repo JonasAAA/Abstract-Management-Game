@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 
 namespace Game1
 {
@@ -30,6 +31,12 @@ namespace Game1
             graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             //graphics.IsFullScreen = true;
+
+            static void SetToPreserve(object sender, PreparingDeviceSettingsEventArgs eventargs)
+                => eventargs.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.PreserveContents;
+
+            graphics.PreparingDeviceSettings += new EventHandler<PreparingDeviceSettingsEventArgs>(SetToPreserve);
+
             graphics.ApplyChanges();
 
             base.Initialize();
@@ -50,6 +57,8 @@ namespace Game1
                     [2] = Color.Blue,
                 }
             );
+
+            LightManager.Initialize();
 
             playState = new();
         }

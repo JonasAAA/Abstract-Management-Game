@@ -49,7 +49,7 @@ namespace Game1
             screenToWorld = Matrix.Invert(worldToScreen);
         }
 
-        protected override Matrix GetToScreenTransform()
+        public override Matrix GetToScreenTransform()
             => worldToScreen;
     }
 }

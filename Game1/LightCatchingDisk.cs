@@ -5,24 +5,35 @@ using System.Collections.Generic;
 
 namespace Game1
 {
-    public class DiskWithShadow : Ellipse, IShadowCastingObject
+    public class LightCatchingDisk : Ellipse, ILightCatchingObject
     {
         public readonly float radius;
 
         public event Action Deleted;
 
-        public DiskWithShadow(float radius)
+        private Action<float> usePower;
+
+        public LightCatchingDisk(float radius)
             : base(width: 2 * radius, height: 2 * radius)
         {
+            if (radius <= 0)
+                throw new ArgumentOutOfRangeException();
             this.radius = radius;
 
-            LightManager.AddShadowCastingObject(shadowCastingObject: this);
+            LightManager.AddLightCatchingObject(lightCatchingObject: this);
+        }
+
+        public void Init(Action<float> usePower)
+        {
+            if (usePower is null)
+                throw new ArgumentNullException();
+            this.usePower = usePower;
         }
 
         public void Delete()
             => Deleted?.Invoke();
 
-        public IEnumerable<float> RelAngles(Vector2 lightPos)
+        IEnumerable<float> ILightCatchingObject.RelAngles(Vector2 lightPos)
         {
             float dist = Vector2.Distance(lightPos, Center);
             if (dist <= radius)
@@ -39,7 +50,7 @@ namespace Game1
             yield return (float)Math.Atan2(point2.Y, point2.X);
         }
 
-        public IEnumerable<float> InterPoints(Vector2 lightPos, Vector2 lightDir)
+        IEnumerable<float> ILightCatchingObject.InterPoints(Vector2 lightPos, Vector2 lightDir)
         {
             //float dist = Vector2.Distance(lightPos, position);
             //if (dist <= radius)
@@ -58,5 +69,8 @@ namespace Game1
             yield return -e + h + 1f;
             yield return -e - h + 1f;
         }
+
+        public void UsePower(float power)
+            => usePower(power);
     }
 }

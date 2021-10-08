@@ -8,11 +8,33 @@ namespace Game1
 {
     public sealed class PlayState
     {
-        private readonly LightSource lightSource;
+        //private readonly LightSource lightSource1;
+
+        private readonly Star star;
 
         public PlayState()
         {
-            lightSource = new(position: Vector2.Zero, strength: 2, color: Color.Yellow);
+            //Star lightSource2 = new(radius: 20, power: 10, color: Color.Blue);
+            //lightSource2.Center = Vector2.Zero;
+
+            //Star lightSource3 = new(radius: 20, power: 10, color: Color.Red);
+            //lightSource3.Center = new Vector2(150, 0);
+
+            //Star lightSource4 = new(radius: 20, power: 10, color: new Color(0, 1f, 0));
+            //lightSource4.Center = new Vector2(-150, 0);
+            //lightSource1 = new(position: Vector2.Zero, strength: 1, color: Color.White);
+            //LightSource lightSource2 = new(position: Vector2.Zero, strength: 2, color: Color.White)
+            //{
+            //    position = Vector2.Zero
+            //};
+            //LightSource lightSource3 = new(position: Vector2.Zero, strength: 1, color: Color.Red)
+            //{
+            //    position = new Vector2(200, 100)
+            //};
+            //LightSource lightSource4 = new(position: Vector2.Zero, strength: 1, color: new Color(0f, 1f, 0f))
+            //{
+            //    position = new Vector2(-200, 100)
+            //};
 
             const int width = 8, height = 5, dist = 200;
             Node[,] nodes = new Node[width, height];
@@ -25,7 +47,7 @@ namespace Game1
                             position: new Vector2(i - (width - 1) * .5f, j - (height - 1) * .5f) * dist,
                             maxBatchDemResStored: 2
                         ),
-                        disk: new DiskWithShadow(radius: 32),
+                        radius: 32,
                         activeColor: Color.White,
                         inactiveColor: Color.Gray,
                         resDestinArrowWidth: 64
@@ -69,6 +91,8 @@ namespace Game1
                 links: links,
                 overlay: Overlay.Res0
             );
+
+            star = new(radius: 20, power: 1, color: new Color(1f, .5f, 0));
         }
 
         public void Update(TimeSpan elapsed)
@@ -77,7 +101,8 @@ namespace Game1
 
             ActiveUI.Update(elapsed: elapsed);
 
-            lightSource.position = MyMouse.WorldPos;
+            star.Center = MyMouse.WorldPos;
+            //lightSource1.position = MyMouse.WorldPos;
 
             Graph.World.Update(elapsed: elapsed);
 

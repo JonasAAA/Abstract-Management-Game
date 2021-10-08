@@ -66,12 +66,18 @@ namespace Game1
         private readonly Dictionary<Overlay, UITransparentPanel<ResDestinArrow>> resDistribArrows;
         private readonly int resDistribArrowsUILayer;
         private readonly float resDestinArrowWidth;
+        private string text;
 
-        public Node(NodeState state, DiskWithShadow disk, Color activeColor, Color inactiveColor, float resDestinArrowWidth)
-            : base(shape: disk, active: false, activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
+        public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth)
+            : base(shape: new LightCatchingDisk(radius: radius), active: false, activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             this.state = state;
             textBox = new();
+            text = "";
+            ((LightCatchingDisk)shape).Init
+            (
+                usePower: power => text = $"power {power*100:0.#}%\n"
+            );
             shape.Center = Position;
             textBox.Shape.Center = Position;
             SizeOrPosChanged += () =>
@@ -463,7 +469,7 @@ namespace Game1
             infoTextBox.Text = $"stores {state.storedRes}\ntarget {targetStoredResAmounts}";
 
             // update text
-            textBox.Text = "";
+            textBox.Text = text;
             if (industry is not null)
                 textBox.Text += industry.GetText();
 

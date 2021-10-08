@@ -9,7 +9,7 @@ namespace Game1
     {
         private Vector2 center;
         private List<Vector2> vertices;
-        private VertexPositionColorTexture[] vertPosCol;
+        private VertexPositionColorTexture[] vertPosTex;
         private int[] ind;
 
         private readonly float strength;
@@ -20,7 +20,7 @@ namespace Game1
             : this(strength: strength, color: color, center: Vector2.Zero, vertices: new())
         {
             vertices = new List<Vector2>();
-            vertPosCol = Array.Empty<VertexPositionColorTexture>();
+            vertPosTex = Array.Empty<VertexPositionColorTexture>();
             ind = Array.Empty<int>();
             if (strength <= 0)
                 throw new ArgumentOutOfRangeException();
@@ -36,7 +36,7 @@ namespace Game1
             this.color = color;
             this.center = center;
             this.vertices = vertices;
-            vertPosCol = Array.Empty<VertexPositionColorTexture>();
+            vertPosTex = Array.Empty<VertexPositionColorTexture>();
             ind = Array.Empty<int>();
             Update(center: center, vertices: vertices);
         }
@@ -46,7 +46,7 @@ namespace Game1
             this.center = center;
             this.vertices = vertices;
             int centerInd = vertices.Count;
-            vertPosCol = new VertexPositionColorTexture[centerInd + 1];
+            vertPosTex = new VertexPositionColorTexture[centerInd + 1];
 
             ind = new int[vertices.Count * 3];
             for (int i = 0; i < vertices.Count; i++)
@@ -60,26 +60,27 @@ namespace Game1
 
         public void Draw()
         {
+            Vector2 textureCenter = new(.5f);
             int centerInd = vertices.Count;
-            vertPosCol[centerInd] = new VertexPositionColorTexture(LightManager.Transform(center), color, new Vector2(0.5f, 0.5f));
+            vertPosTex[centerInd] = new VertexPositionColorTexture(LightManager.Transform(pos: center), color, textureCenter);
             for (int i = 0; i < centerInd; i++)
-                vertPosCol[i] = new VertexPositionColorTexture(LightManager.Transform(vertices[i]), color, new Vector2(0.5f, 0.5f) + (vertices[i] - center) / LightManager.maxWidth / strength);
-            if (vertPosCol.Length == 0)
+                vertPosTex[i] = new VertexPositionColorTexture(LightManager.Transform(vertices[i]), color, textureCenter + (vertices[i] - center) / LightManager.maxWidth / strength);
+            if (vertPosTex.Length == 0)
                 return;
 
-            C.GraphicsDevice.RasterizerState = new RasterizerState()
-            {
-                CullMode = CullMode.None
-            };
+            //C.GraphicsDevice.RasterizerState = new RasterizerState()
+            //{
+            //    CullMode = CullMode.None
+            //};
 
-            C.GraphicsDevice.BlendState = BlendState.NonPremultiplied;
+            //C.GraphicsDevice.BlendState = BlendState.NonPremultiplied;
 
             //GraphicsDevice.BlendState = BlendState.AlphaBlend;
 
-            foreach (EffectPass effectPass in LightManager.BasicEffect.CurrentTechnique.Passes)
+            foreach (var effectPass in LightManager.BasicEffect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
-                C.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertPosCol, 0, vertPosCol.Length, ind, 0, ind.Length / 3);
+                C.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertPosTex, 0, vertPosTex.Length, ind, 0, ind.Length / 3);
             }
         }
     }

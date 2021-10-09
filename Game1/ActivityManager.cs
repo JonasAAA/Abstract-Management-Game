@@ -23,16 +23,15 @@ namespace Game1
         {
             HashSet<IActivityCenter> availableActivityCenters = new
             (
-                collection:
-                    from activityCenter in activityCenters
-                    where !activityCenter.IsFull()
-                    select activityCenter
+                from activityCenter in activityCenters
+                where !activityCenter.IsFull()
+                select activityCenter
             );
 
             Queue<Person> availablePeople = new
             (
-                collection: Person.GetActivitySeekingPeople()
-                    .OrderBy(person => C.Random(min: 0, max: 1))
+                Person.GetActivitySeekingPeople()
+                .OrderBy(person => C.Random(min: 0, max: 1))
             );
 
             while (availablePeople.Count > 0)

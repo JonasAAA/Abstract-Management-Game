@@ -46,7 +46,7 @@ namespace Game1.UI
 
         private static bool arrowDrawingModeOn;
         private static readonly List<IUIElement> activeUIElements;
-        private static readonly HashSet<IUIElement> worldUIElements, HUDUIElements;
+        private static readonly HashSet<IUIElement> HUDUIElements;
         private static bool leftDown, prevLeftDown;
         private static IUIElement halfClicked, contMouse, activeWorldElement;
         private static readonly TimeSpan minDurationToGetExplanation;
@@ -57,7 +57,6 @@ namespace Game1.UI
         {
             arrowDrawingModeOn = false;
             activeUIElements = new();
-            worldUIElements = new();
             HUDUIElements = new();
             leftDown = new();
             prevLeftDown = new();
@@ -71,15 +70,14 @@ namespace Game1.UI
             explanationTextBox.Shape.Color = Color.LightPink;
         }
 
-        public static void AddWorldElement(IUIElement UIElement)
+        /// <summary>
+        /// call exatly once after Graph.Initialize()
+        /// </summary>
+        public static void Initialize()
         {
-            if (UIElement is null)
-                return;
-            activeUIElements.Add(UIElement);
-            if (HUDUIElements.Count is not 0)
-                throw new ArgumentException();
-            if (!worldUIElements.Add(UIElement))
-                throw new ArgumentException();
+            if (activeUIElements.Contains(Graph.World))
+                throw new InvalidOperationException();
+            activeUIElements.Add(Graph.World);
         }
 
         public static void AddHUDElement(IUIElement<NearRectangle> UIElement, HorizPos horizPos, VertPos vertPos)
@@ -107,7 +105,6 @@ namespace Game1.UI
         {
             if (UIElement is null)
                 return true;
-            worldUIElements.Remove(UIElement);
             HUDUIElements.Remove(UIElement);
             return activeUIElements.Remove(UIElement);
         }
@@ -127,7 +124,7 @@ namespace Game1.UI
             MouseAboveHUD = false;
             foreach (var UIElement in Enumerable.Reverse(activeUIElements))
             {
-                Vector2 mousePos = worldUIElements.Contains(UIElement) switch
+                Vector2 mousePos = (UIElement == Graph.World) switch
                 {
                     true => mouseWorldPos,
                     false => mouseHUDPos
@@ -204,10 +201,9 @@ namespace Game1.UI
 
         public static void Draw()
         {
-            C.WorldCamera.BeginDraw();
-            foreach (var UIElement in worldUIElements)
-                UIElement.Draw();
-            C.WorldCamera.EndDraw();
+            Graph.World.DrawBeforeLight();
+            LightManager.Draw();
+            Graph.World.DrawAfterLight();
 
             C.HUDCamera.BeginDraw();
             foreach (var UIElement in HUDUIElements)

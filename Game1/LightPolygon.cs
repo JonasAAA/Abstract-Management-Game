@@ -68,15 +68,6 @@ namespace Game1
             if (vertPosTex.Length == 0)
                 return;
 
-            //C.GraphicsDevice.RasterizerState = new RasterizerState()
-            //{
-            //    CullMode = CullMode.None
-            //};
-
-            //C.GraphicsDevice.BlendState = BlendState.NonPremultiplied;
-
-            //GraphicsDevice.BlendState = BlendState.AlphaBlend;
-
             foreach (var effectPass in LightManager.BasicEffect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();

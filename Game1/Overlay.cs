@@ -6,6 +6,7 @@
         Res1 = 1,
         Res2 = 2,
         AllRes,
+        Power,
         People
     }
 }

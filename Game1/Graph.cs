@@ -22,12 +22,12 @@ namespace Game1
 
         public static Graph World { get; private set; }
 
-        public static void InitializeWorld(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
+        public static void InitializeWorld(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
         {
             if (World is not null)
                 throw new InvalidOperationException();
 
-            World = new Graph(nodes: nodes, links: links, overlay: overlay);
+            World = new Graph(stars: stars, nodes: nodes, links: links, overlay: overlay);
             foreach (var node in nodes)
                 node.Init(startPersonCount: 5);
         }
@@ -47,30 +47,30 @@ namespace Game1
         public ReadOnlyDictionary<(Vector2, Vector2), Link> ResFirstLinks { get; private set; }
         public ReadOnlyDictionary<Vector2, Node> PosToNode { get; private set; }
 
+        private readonly List<Star> stars;
         private readonly List<Node> nodes;
         private readonly List<Link> links;
-        private readonly HashSet<Node> nodeSet;
-        private readonly HashSet<Link> linkSet;
         private readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
         private readonly TextBox globalTextBox;
         private bool paused;
 
-        private Graph(IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
+        private Graph(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
             : base(shape: new InfinitePlane())
         {
+            this.stars = new();
             this.nodes = new();
             this.links = new();
-            nodeSet = new();
-            linkSet = new();
             persDistTimeCoeff = 1;
             persDistElectrCoeff = 0;
             resDistTimeCoeff = 0;
             resDistElectrCoeff = 1;
 
+            foreach (var star in stars)
+                AddStar(star: star);
             foreach (var node in nodes)
-                AddNode(node);
+                AddNode(node: node);
             foreach (var link in links)
-                AddLink(link);
+                AddLink(link: link);
 
             MaxLinkTravelTime = this.links.Max(link => link.TravelTime);
             MaxLinkWattsPerKg = this.links.Max(link => link.WattsPerKg);
@@ -88,11 +88,6 @@ namespace Game1
             Overlay = overlay;
 
             paused = false;
-            
-            if (ActiveUI.Count is not 0)
-                throw new Exception();
-
-            ActiveUI.AddWorldElement(UIElement: this);
 
             globalTextBox = new();
             globalTextBox.Shape.MinWidth = 250;
@@ -158,20 +153,26 @@ namespace Game1
             );
         }
 
+        private void AddStar(Star star)
+        {
+            if (stars.Contains(star))
+                throw new ArgumentException();
+            stars.Add(star);
+            AddChild(child: star, layer: LightManager.layer);
+        }
+
         private void AddNode(Node node)
         {
-            if (nodeSet.Contains(node))
+            if (nodes.Contains(node))
                 throw new ArgumentException();
-            nodeSet.Add(node);
             nodes.Add(node);
             AddChild(child: node, layer: 10);
         }
 
         private void AddLink(Link link)
         {
-            if (linkSet.Contains(link))
+            if (links.Contains(link))
                 throw new ArgumentException();
-            linkSet.Add(link);
             links.Add(link);
 
             link.node1.AddLink(link: link);
@@ -241,7 +242,7 @@ namespace Game1
             return (dists: new(distsDict), firstLinks: new(firstLinksDict));
         }
 
-        public void AddUIElement(IUIElement UIElement, int layer)
+        public void AddUIElement(IUIElement UIElement, ulong layer)
             => AddChild(child: UIElement, layer: layer);
 
         public void RemoveUIElement(IUIElement UIElement)
@@ -365,9 +366,9 @@ namespace Game1
 
             Queue<NodeInfo> leafs = new
             (
-                collection: from nodeInfo in nodeInfos.Values
-                            where nodeInfo.unvisitedDestinsCount is 0
-                            select nodeInfo
+                from nodeInfo in nodeInfos.Values
+                where nodeInfo.unvisitedDestinsCount is 0
+                select nodeInfo
             );
 
             ulong MaxExtraRes(Vector2 position)
@@ -395,5 +396,24 @@ namespace Game1
                     nodeInfo.isSplitAleady = true;
                 }
         }
+
+        public void DrawBeforeLight()
+        {
+            C.WorldCamera.BeginDraw();
+            foreach (var child in Children(maxLayer: LightManager.layer - 1))
+                child.Draw();
+            C.WorldCamera.EndDraw();
+        }
+
+        public void DrawAfterLight()
+        {
+            C.WorldCamera.BeginDraw();
+            foreach (var child in Children(minLayer: LightManager.layer + 1))
+                child.Draw();
+            C.WorldCamera.EndDraw();
+        }
+
+        public override void Draw()
+            => throw new InvalidOperationException();
     }
 }

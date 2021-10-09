@@ -8,33 +8,32 @@ namespace Game1
 {
     public sealed class PlayState
     {
-        //private readonly LightSource lightSource1;
-
-        private readonly Star star;
-
         public PlayState()
         {
-            //Star lightSource2 = new(radius: 20, power: 10, color: Color.Blue);
-            //lightSource2.Center = Vector2.Zero;
-
-            //Star lightSource3 = new(radius: 20, power: 10, color: Color.Red);
-            //lightSource3.Center = new Vector2(150, 0);
-
-            //Star lightSource4 = new(radius: 20, power: 10, color: new Color(0, 1f, 0));
-            //lightSource4.Center = new Vector2(-150, 0);
-            //lightSource1 = new(position: Vector2.Zero, strength: 1, color: Color.White);
-            //LightSource lightSource2 = new(position: Vector2.Zero, strength: 2, color: Color.White)
-            //{
-            //    position = Vector2.Zero
-            //};
-            //LightSource lightSource3 = new(position: Vector2.Zero, strength: 1, color: Color.Red)
-            //{
-            //    position = new Vector2(200, 100)
-            //};
-            //LightSource lightSource4 = new(position: Vector2.Zero, strength: 1, color: new Color(0f, 1f, 0f))
-            //{
-            //    position = new Vector2(-200, 100)
-            //};
+            Star[] stars = new Star[]
+            {
+                new
+                (
+                    radius: 20,
+                    center: new Vector2(0, -300),
+                    power: 2,
+                    color: Color.Lerp(Color.White, Color.Red, .3f)
+                ),
+                new
+                (
+                    radius: 10,
+                    center: new Vector2(200, 300),
+                    power: 1,
+                    color: Color.Lerp(Color.White, Color.Blue, .3f)
+                ),
+                new
+                (
+                    radius: 40,
+                    center: new Vector2(-200, 100),
+                    power: 4,
+                    color: Color.Lerp(Color.White, new Color(0f, 1f, 0f), .3f)
+                ),
+            };
 
             const int width = 8, height = 5, dist = 200;
             Node[,] nodes = new Node[width, height];
@@ -86,13 +85,14 @@ namespace Game1
                     );
             Graph.InitializeWorld
             (
+                stars: stars,
                 nodes: from Node node in nodes
                        select node,
                 links: links,
                 overlay: Overlay.Res0
             );
 
-            star = new(radius: 20, power: 1, color: new Color(1f, .5f, 0));
+            ActiveUI.Initialize();
         }
 
         public void Update(TimeSpan elapsed)
@@ -101,12 +101,9 @@ namespace Game1
 
             ActiveUI.Update(elapsed: elapsed);
 
-            star.Center = MyMouse.WorldPos;
-            //lightSource1.position = MyMouse.WorldPos;
+            LightManager.Update();
 
             Graph.World.Update(elapsed: elapsed);
-
-            LightManager.Update();
         }
 
         public void Draw()

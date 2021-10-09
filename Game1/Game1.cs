@@ -49,7 +49,7 @@ namespace Game1
                 Content: Content,
                 GraphicsDevice: GraphicsDevice,
                 spriteBatch: new(GraphicsDevice),
-                scrollSpeed: 1,
+                scrollSpeed: 60,
                 resColors: new()
                 {
                     [0] = Color.Yellow,
@@ -77,7 +77,6 @@ namespace Game1
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Transparent);
-            //GraphicsDevice.Clear(Color.CornflowerBlue);
 
             playState.Draw();
 

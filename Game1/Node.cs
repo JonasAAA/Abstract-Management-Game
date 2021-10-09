@@ -64,21 +64,17 @@ namespace Game1
         private readonly TextBox infoTextBox;
         private readonly string overlayTabLabel;
         private readonly Dictionary<Overlay, UITransparentPanel<ResDestinArrow>> resDistribArrows;
-        private readonly int resDistribArrowsUILayer;
+        private readonly ulong resDistribArrowsUILayer;
         private readonly float resDestinArrowWidth;
-        private string text;
+        private readonly new LightCatchingDisk shape;
 
         public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth)
             : base(shape: new LightCatchingDisk(radius: radius), active: false, activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             this.state = state;
-            textBox = new();
-            text = "";
-            ((LightCatchingDisk)shape).Init
-            (
-                usePower: power => text = $"power {power*100:0.#}%\n"
-            );
+            shape = (LightCatchingDisk)base.shape;
             shape.Center = Position;
+            textBox = new();
             textBox.Shape.Center = Position;
             SizeOrPosChanged += () =>
             {
@@ -165,7 +161,7 @@ namespace Game1
             foreach (var overlay in Enum.GetValues<Overlay>())
                 overlayTabPanels[overlay] = new UIRectVertPanel<IUIElement<NearRectangle>>
                 (
-                    color: Color.Black,
+                    color: Color.White,
                     childHorizPos: HorizPos.Left
                 );
             for (int resInd = 0; resInd <= (int)C.MaxRes; resInd++)
@@ -331,8 +327,8 @@ namespace Game1
             (
                 shape: new Arrow(startPos: Position, endPos: destination, width: resDestinArrowWidth),
                 active: false,
-                defaultActiveColor: Color.Lerp(Color.Yellow, Color.Red, .5f),
-                defaultInactiveColor: Color.Red * .5f,
+                defaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
+                defaultInactiveColor: Color.White * .5f,
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top,
                 minImportance: 1,
@@ -469,7 +465,7 @@ namespace Game1
             infoTextBox.Text = $"stores {state.storedRes}\ntarget {targetStoredResAmounts}";
 
             // update text
-            textBox.Text = text;
+            textBox.Text = $"";
             if (industry is not null)
                 textBox.Text += industry.GetText();
 
@@ -491,6 +487,9 @@ namespace Game1
                     if (totalStoredWeight > 0)
                         textBox.Text += $"stored total res weight {totalStoredWeight}";
                     break;
+                case Overlay.Power:
+                    textBox.Text += $"power {shape.Power:0.##}";
+                    break;
                 case Overlay.People:
                     textBox.Text += unemploymentCenter.GetText();
                     break;
@@ -506,7 +505,13 @@ namespace Game1
             base.Draw();
 
             if (Active && ActiveUI.ArrowDrawingModeOn)
-                Arrow.DrawArrow(startPos: Position, endPos: MyMouse.WorldPos, width: resDestinArrowWidth, color: Color.Red * .25f);
+                Arrow.DrawArrow
+                (
+                    startPos: Position,
+                    endPos: MyMouse.WorldPos,
+                    width: resDestinArrowWidth,
+                    color: Color.White * .25f
+                );
         }
     }
 }

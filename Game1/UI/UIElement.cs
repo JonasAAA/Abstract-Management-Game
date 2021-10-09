@@ -83,13 +83,9 @@ namespace Game1.UI
         protected readonly Shape shape;
         
         private bool personallyEnabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
-        private readonly SortedDictionary<int, List<IUIElement>> layerToChildren;
-        private readonly Dictionary<IUIElement, int> childToLayer;
-        private IEnumerable<IUIElement> Children
-            => from childrenLayer in layerToChildren.Values
-               from child in childrenLayer
-               select child;
-
+        private readonly SortedDictionary<ulong, List<IUIElement>> layerToChildren;
+        private readonly Dictionary<IUIElement, ulong> childToLayer;
+        
         public UIElement(Shape shape, string explanation = defaultExplanation)
         {
             this.shape = shape;
@@ -106,19 +102,28 @@ namespace Game1.UI
             {
                 if (Enabled)
                 {
-                    foreach (var child in Children)
+                    foreach (var child in Children())
                         child.HasDisabledAncestor = false;
                 }
                 else
                 {
                     MouseOn = false;
-                    foreach (var child in Children)
+                    foreach (var child in Children())
                         child.HasDisabledAncestor = true;
                 }
             };
         }
 
-        protected void AddChild(IUIElement child, int layer = 0)
+        protected IEnumerable<IUIElement> Children(ulong minLayer = 0, ulong maxLayer = ulong.MaxValue)
+            => from childrenLayer in layerToChildren
+               where minLayer <= childrenLayer.Key && childrenLayer.Key <= maxLayer
+               from child in childrenLayer.Value
+               select child;
+            //=> from childrenLayer in layerToChildren.Values
+            //   from child in childrenLayer
+            //   select child;
+
+        protected void AddChild(IUIElement child, ulong layer = 0)
         {
             child.SizeOrPosChanged += RecalcSizeAndPos;
             if (!layerToChildren.ContainsKey(layer))
@@ -130,7 +135,7 @@ namespace Game1.UI
 
         protected void RemoveChild(IUIElement child)
         {
-            int layer = childToLayer[child];
+            ulong layer = childToLayer[child];
             child.SizeOrPosChanged -= RecalcSizeAndPos;
             if (!layerToChildren[layer].Remove(child) || !childToLayer.Remove(child))
                 throw new ArgumentException();
@@ -145,7 +150,7 @@ namespace Game1.UI
             if (!Contains(position: mousePos))
                 return null;
 
-            foreach (var child in Enumerable.Reverse(Children))
+            foreach (var child in Children().Reverse())
             {
                 var childCatchingUIElement = child.CatchUIElement(mousePos: mousePos);
                 if (childCatchingUIElement is not null)
@@ -165,7 +170,7 @@ namespace Game1.UI
             inRecalcSizeAndPos = true;
 
             PartOfRecalcSizeAndPos();
-            foreach (var child in Children)
+            foreach (var child in Children())
                 child.RecalcSizeAndPos();
 
             inRecalcSizeAndPos = false;
@@ -197,7 +202,7 @@ namespace Game1.UI
                     false => 0
                 }
             );
-            foreach (var child in Children)
+            foreach (var child in Children())
                 child.Draw();
         }
     }

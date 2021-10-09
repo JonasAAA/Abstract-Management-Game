@@ -10,7 +10,7 @@ namespace Game1
     public static class C
     {
         public const int standardScreenHeight = 1080;
-        public const float standardStarRadius = 100;
+        public const float standardStarRadius = 50;
         public static double ScreenWidth
             => (double)GraphicsDevice.Viewport.Width * standardScreenHeight / GraphicsDevice.Viewport.Height;
         public static double ScreenHeight

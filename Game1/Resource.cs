@@ -33,7 +33,7 @@ namespace Game1
             });
 
             Debug.Assert((int)C.MaxRes == Count - 1);
-            Debug.Assert(Count + 2 == Enum.GetValues<Overlay>().Length);
+            Debug.Assert(Count + 3 == Enum.GetValues<Overlay>().Length);
         }
 
         public readonly int id;

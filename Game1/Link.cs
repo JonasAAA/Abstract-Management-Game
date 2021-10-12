@@ -9,16 +9,16 @@ namespace Game1
 {
     public class Link : UIElement
     {
-        private class DirLink : IElectrConsumer
+        private class DirLink : IEnergyConsumer
         {
             /// <summary>
             /// CURRENTLY UNUSED
             /// </summary>
             public event Action Deleted;
 
-            public readonly Node begin, end;
-            public double WattsPerKg
-                => timedPacketQueue.duration.TotalSeconds * reqWattsPerKgPerSec;
+            public readonly Node startNode, endNode;
+            public double JoulesPerKg
+                => timedPacketQueue.duration.TotalSeconds * reqWattsPerKg;
             public TimeSpan TravelTime
                 => timedPacketQueue.duration;
 
@@ -26,14 +26,14 @@ namespace Game1
             private readonly double minSafePropor;
             private ResAmountsPacketsByDestin waitingResAmountsPackets;
             private readonly MyHashSet<Person> waitingPeople;
-            private readonly double reqWattsPerKgPerSec;
+            private readonly double reqWattsPerKg;
             private readonly Texture2D diskTexture;
-            private double electrPropor;
+            private double energyPropor;
 
             public DirLink(Node begin, Node end, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
             {
-                this.begin = begin;
-                this.end = end;
+                this.startNode = begin;
+                this.endNode = end;
 
                 timedPacketQueue = new(duration: travelTime);
                 minSafePropor = minSafeDist / Vector2.Distance(begin.Position, end.Position);
@@ -43,11 +43,11 @@ namespace Game1
                 waitingPeople = new();
                 if (wattsPerKg <= 0)
                     throw new ArgumentOutOfRangeException();
-                reqWattsPerKgPerSec = wattsPerKg / travelTime.TotalSeconds;
+                reqWattsPerKg = wattsPerKg / travelTime.TotalSeconds;
                 diskTexture = C.Content.Load<Texture2D>("big disk");
-                electrPropor = 0;
+                energyPropor = 0;
 
-                ElectricityDistributor.AddElectrConsumer(electrConsumer: this);
+                EnergyManager.AddEnergyConsumer(energyConsumer: this);
             }
 
             public void Add(ResAmountsPacket resAmountsPacket)
@@ -61,7 +61,7 @@ namespace Game1
 
             public void Update()
             {
-                timedPacketQueue.Update(workingPropor: electrPropor);
+                timedPacketQueue.Update(workingPropor: energyPropor);
                 if ((!waitingResAmountsPackets.Empty || waitingPeople.Count > 0)
                     && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionProp() >= minSafePropor))
                 {
@@ -70,14 +70,14 @@ namespace Game1
                     waitingPeople.Clear();
                 }
                 var (resAmountsPackets, people) = timedPacketQueue.DonePacketsAndPeople();
-                end.Arrive(resAmountsPackets: resAmountsPackets);
-                end.Arrive(people: people);
+                endNode.Arrive(resAmountsPackets: resAmountsPackets);
+                endNode.Arrive(people: people);
             }
 
             public void UpdatePeople()
             {
                 foreach (var person in waitingPeople.Concat(timedPacketQueue.People))
-                    person.Update(closestNodePos: end.Position);
+                    person.Update(prevNodePos: startNode.Position, closestNodePos: endNode.Position);
             }
 
             public void DrawTravelingRes()
@@ -87,7 +87,7 @@ namespace Game1
                     => C.Draw
                     (
                         texture: diskTexture,
-                        position: begin.Position + (float)complProp * (end.Position - begin.Position),
+                        position: startNode.Position + (float)complProp * (endNode.Position - startNode.Position),
                         color: Color.Black,
                         rotation: 0,
                         origin: new Vector2(diskTexture.Width * .5f, diskTexture.Height * .5f),
@@ -111,24 +111,27 @@ namespace Game1
                 }
             }
 
-            double IElectrConsumer.ReqWattsPerSec()
-                => timedPacketQueue.TotalWeight * reqWattsPerKgPerSec;
+            ulong IEnergyConsumer.EnergyPriority
+                => energyPriority;
 
-            ulong IElectrConsumer.ElectrPriority
-                => electrPriority;
+            Vector2 IEnergyConsumer.NodePos
+                => startNode.Position;
 
-            void IElectrConsumer.ConsumeElectr(double electrPropor)
-                => this.electrPropor = electrPropor;
+            double IEnergyConsumer.ReqWatts()
+                => timedPacketQueue.TotalWeight * reqWattsPerKg;
+
+            void IEnergyConsumer.ConsumeEnergy(double energyPropor)
+                => this.energyPropor = energyPropor;
         }
 
-        private static readonly ulong electrPriority;
+        private static readonly ulong energyPriority;
 
         static Link()
-            => electrPriority = 10;
+            => energyPriority = 10;
 
         public readonly Node node1, node2;
-        public double WattsPerKg
-            => link1To2.WattsPerKg;
+        public double JoulesPerKg
+            => link1To2.JoulesPerKg;
         public TimeSpan TravelTime
             => link1To2.TravelTime;
 
@@ -198,7 +201,7 @@ namespace Game1
                 amount: Graph.Overlay switch
                 {
                     Overlay.People => (float)(TravelTime / Graph.World.MaxLinkTravelTime),
-                    _ => (float)(WattsPerKg / Graph.World.MaxLinkWattsPerKg)
+                    _ => (float)(JoulesPerKg / Graph.World.MaxLinkJoulesPerKg)
                 }
             );
             C.Draw

@@ -8,7 +8,7 @@ namespace Game1
 
         public Vector2 Position { get; }
 
-        public ulong ElectrPriority { get; }
+        public ulong EnergyPriority { get; }
 
         /// <summary>
         /// can include some randomness, but repeated measurements should give the same score

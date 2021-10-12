@@ -88,7 +88,7 @@ namespace Game1
         {
             // could return from this method if nothing changed since last call (including all positions)
             foreach (var lightSource in lightSources)
-                lightSource.GivePowerToObjects(lightCatchingObjects: lightCatchingObjects);
+                lightSource.GiveWattsToObjects(lightCatchingObjects: lightCatchingObjects);
         }
 
         public static void Draw()

@@ -11,7 +11,7 @@ namespace Game1
 
         public Vector2 Position { get; }
 
-        public ulong ElectrPriority { get; }
+        public ulong EnergyPriority { get; }
 
         public IEnumerable<Person> PeopleHere
             => peopleHere;
@@ -22,11 +22,11 @@ namespace Game1
 
         protected readonly Action<Person> personLeft;
 
-        protected ActivityCenter(ActivityType activityType, Vector2 position, ulong electrPriority, Action<Person> personLeft)
+        protected ActivityCenter(ActivityType activityType, Vector2 position, ulong energyPriority, Action<Person> personLeft)
         {
             ActivityType = activityType;
             Position = position;
-            ElectrPriority = electrPriority;
+            EnergyPriority = energyPriority;
             if (personLeft is null)
                 throw new ArgumentNullException();
             this.personLeft = personLeft;
@@ -89,7 +89,7 @@ namespace Game1
         }
 
         // must be between 0 and 1 or double.NegativeInfinity
-        // should later be changed to graph distance (either time or electricity cost)
+        // should later be changed to graph distance (either time or energy cost)
         protected double DistanceToHere(Person person)
             => 1 - Math.Tanh(Vector2.Distance(person.ClosestNodePos, Position) / 100);
     }

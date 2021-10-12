@@ -13,7 +13,7 @@ namespace Game1
         private class UnemploymentCenter : ActivityCenter
         {
             public UnemploymentCenter(Vector2 position, Action<Person> personLeft)
-                : base(activityType: ActivityType.Unemployed, position: position, electrPriority: ulong.MaxValue, personLeft: personLeft)
+                : base(activityType: ActivityType.Unemployed, position: position, energyPriority: ulong.MaxValue, personLeft: personLeft)
             { }
 
             public override bool IsFull()
@@ -47,6 +47,14 @@ namespace Game1
         public Vector2 Position
             => state.position;
         public readonly float radius;
+        public double LocallyProducedWatts
+            => shape.Watts;
+            //=> throw new NotImplementedException();
+
+        /// <summary>
+        /// CURRENTLY UNUSED
+        /// </summary>
+        public event Action Deleted;
 
         private readonly NodeState state;
         private readonly TextBox textBox;
@@ -67,6 +75,7 @@ namespace Game1
         private readonly ulong resDistribArrowsUILayer;
         private readonly float resDestinArrowWidth;
         private readonly new LightCatchingDisk shape;
+        private double remainingLocalWatts;
 
         public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth)
             : base(shape: new LightCatchingDisk(radius: radius), active: false, activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
@@ -74,13 +83,7 @@ namespace Game1
             this.state = state;
             shape = (LightCatchingDisk)base.shape;
             shape.Center = Position;
-            textBox = new();
-            textBox.Shape.Center = Position;
-            SizeOrPosChanged += () =>
-            {
-                if (shape.Center != Position)
-                    throw new Exception();
-            };
+            
             links = new();
             industry = null;
             unemploymentCenter = new
@@ -98,8 +101,19 @@ namespace Game1
             store = new(value: false);
             undecidedResAmounts = new();
             resTravelHereAmounts = new();
+            remainingLocalWatts = new();
 
-            textBox.Text = "";
+            textBox = new()
+            {
+                Text = "",
+                TextColor = Color.White
+            };
+            textBox.Shape.Center = Position;
+            SizeOrPosChanged += () =>
+            {
+                if (shape.Center != Position)
+                    throw new Exception();
+            };
             AddChild(child: textBox);
 
             UITabPanel = new
@@ -238,7 +252,7 @@ namespace Game1
         {
             for (int i = 0; i < startPersonCount; i++)
             {
-                Person person = Person.GeneratePerson();
+                Person person = Person.GeneratePerson(nodePos: Position);
                 state.waitingPeople.Add(person);
             }
 
@@ -398,7 +412,7 @@ namespace Game1
                 not null => industry.PeopleHere
             };
             foreach (var person in state.waitingPeople.Concat(unemploymentCenter.PeopleHere).Concat(peopleInIndustry))
-                person.Update(closestNodePos: Position);
+                person.Update(prevNodePos: Position, closestNodePos: Position);
         }
 
         public void StartSplitRes()
@@ -488,7 +502,7 @@ namespace Game1
                         textBox.Text += $"stored total res weight {totalStoredWeight}";
                     break;
                 case Overlay.Power:
-                    textBox.Text += $"power {shape.Power:0.##}";
+                    textBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {shape.Watts - remainingLocalWatts:.##} W is used";
                     break;
                 case Overlay.People:
                     textBox.Text += unemploymentCenter.GetText();
@@ -513,5 +527,8 @@ namespace Game1
                     color: Color.White * .25f
                 );
         }
+        
+        public void SetRemainingLocalWatts(double remainingLocalWatts)
+            => this.remainingLocalWatts = remainingLocalWatts;
     }
 }

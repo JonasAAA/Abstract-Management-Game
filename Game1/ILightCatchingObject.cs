@@ -9,6 +9,6 @@ namespace Game1
 
         public IEnumerable<float> InterPoints(Vector2 lightPos, Vector2 lightDir);
 
-        public void SetPower(Vector2 starPos, double power, double powerPropor);
+        public void SetWatts(Vector2 starPos, double watts, double powerPropor);
     }
 }

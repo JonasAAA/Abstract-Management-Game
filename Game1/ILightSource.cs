@@ -4,7 +4,7 @@ namespace Game1
 {
     public interface ILightSource : IDeletable
     {
-        public void GivePowerToObjects(IEnumerable<ILightCatchingObject> lightCatchingObjects);
+        public void GiveWattsToObjects(IEnumerable<ILightCatchingObject> lightCatchingObjects);
 
         public void Draw();
     }

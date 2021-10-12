@@ -119,9 +119,6 @@ namespace Game1.UI
                where minLayer <= childrenLayer.Key && childrenLayer.Key <= maxLayer
                from child in childrenLayer.Value
                select child;
-            //=> from childrenLayer in layerToChildren.Values
-            //   from child in childrenLayer
-            //   select child;
 
         protected void AddChild(IUIElement child, ulong layer = 0)
         {

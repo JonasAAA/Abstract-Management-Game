@@ -16,21 +16,21 @@ namespace Game1
                 (
                     radius: 20,
                     center: new Vector2(0, -300),
-                    power: 2,
+                    prodWatts: 200,
                     color: Color.Lerp(Color.White, Color.Red, .3f)
                 ),
                 new
                 (
                     radius: 10,
                     center: new Vector2(200, 300),
-                    power: 1,
+                    prodWatts: 100,
                     color: Color.Lerp(Color.White, Color.Blue, .3f)
                 ),
                 new
                 (
                     radius: 40,
                     center: new Vector2(-200, 100),
-                    power: 4,
+                    prodWatts: 400,
                     color: Color.Lerp(Color.White, new Color(0f, 1f, 0f), .3f)
                 ),
             };

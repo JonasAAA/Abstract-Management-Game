@@ -8,20 +8,20 @@ namespace Game1
 {
     public class LightCatchingDisk : Ellipse, ILightCatchingObject
     {
-        public IReadOnlyDictionary<Vector2, double> StarPosToPower
-            => starPosToPower;
+        public IReadOnlyDictionary<Vector2, double> StarPosToWatts
+            => starPosToWatts;
 
         public IReadOnlyDictionary<Vector2, double> StarPosToPowerProp
             => starPosToPowerProp;
 
-        public double Power
-            => starPosToPower.Values.DefaultIfEmpty().Sum();
+        public double Watts
+            => starPosToWatts.Values.DefaultIfEmpty().Sum();
 
         public readonly float radius;
 
         public event Action Deleted;
 
-        private readonly Dictionary<Vector2, double> starPosToPower, starPosToPowerProp;
+        private readonly Dictionary<Vector2, double> starPosToWatts, starPosToPowerProp;
 
         public LightCatchingDisk(float radius)
             : base(width: 2 * radius, height: 2 * radius)
@@ -30,7 +30,7 @@ namespace Game1
                 throw new ArgumentOutOfRangeException();
             this.radius = radius;
 
-            starPosToPower = new();
+            starPosToWatts = new();
             starPosToPowerProp = new();
 
             LightManager.AddLightCatchingObject(lightCatchingObject: this);
@@ -72,14 +72,14 @@ namespace Game1
             yield return -e - h + 1f;
         }
 
-        void ILightCatchingObject.SetPower(Vector2 starPos, double power, double powerPropor)
+        void ILightCatchingObject.SetWatts(Vector2 starPos, double watts, double powerPropor)
         {
-            if (power < 0)
+            if (watts < 0)
                 throw new ArgumentOutOfRangeException();
             if (powerPropor < 0)
                 throw new ArgumentOutOfRangeException();
 
-            starPosToPower[starPos] = power;
+            starPosToWatts[starPos] = watts;
             starPosToPowerProp[starPos] = powerPropor;
         }
     }

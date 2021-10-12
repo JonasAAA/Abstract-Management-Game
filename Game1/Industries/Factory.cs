@@ -8,23 +8,23 @@ namespace Game1.Industries
     {
         public new class Params : Industry.Params
         {
-            public readonly double reqWattsPerSec;
+            public readonly double reqWatts;
             public readonly ConstULongArray supply, demand;
             public readonly TimeSpan prodDuration;
 
-            public Params(string name, ulong electrPriority, double reqSkill, ulong reqWattsPerSec, ConstULongArray supply, ConstULongArray demand, TimeSpan prodDuration)
+            public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, ConstULongArray supply, ConstULongArray demand, TimeSpan prodDuration)
                 : base
                 (
                     industryType: IndustryType.Production,
                     name: name,
-                    electrPriority: electrPriority,
+                    energyPriority: energyPriority,
                     reqSkill: reqSkill,
-                    explanation: $"requires {reqSkill} skill\nrequires {reqWattsPerSec} W/s\nsupply {supply}\ndemand {demand}"
+                    explanation: $"requires {reqSkill} skill\nrequires {reqWatts} W/s\nsupply {supply}\ndemand {demand}"
                 )
             {
-                if (reqWattsPerSec <= 0)
+                if (reqWatts <= 0)
                     throw new ArgumentOutOfRangeException();
-                this.reqWattsPerSec = reqWattsPerSec;
+                this.reqWatts = reqWatts;
                 this.supply = supply;
                 this.demand = demand;
                 if (prodDuration < TimeSpan.Zero)
@@ -93,12 +93,12 @@ namespace Game1.Industries
             return text;
         }
 
-        public override double ReqWattsPerSec()
-            // this is correct as if more important people get full electricity, this works
-            // and if they don't, then the industry will get 0 electricity anyway
+        public override double ReqWatts()
+            // this is correct as if more important people get full energy, this works
+            // and if they don't, then the industry will get 0 energy anyway
             => IsBusy() switch
             {
-                true => parameters.reqWattsPerSec * CurSkillPropor,
+                true => parameters.reqWatts * CurSkillPropor,
                 false => 0
             };
     }

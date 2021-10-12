@@ -4,25 +4,25 @@ using System;
 
 namespace Game1.Industries
 {
-    public class PowerPlant : Industry, IElectrProducer
+    public class PowerPlant : Industry, IEnergyProducer
     {
         public new class Params : Industry.Params
         {
-            public readonly double prodWattsPerSec;
+            public readonly double prodWatts;
 
-            public Params(string name, double reqSkill, double prodWattsPerSec)
+            public Params(string name, double reqSkill, double prodWatts)
                 : base
                 (
                       industryType: IndustryType.PowerPlant,
-                      electrPriority: 0,
+                      energyPriority: 0,
                       name: name,
                       reqSkill: reqSkill,
-                      explanation: $"requires {reqSkill} skill\nproduces {prodWattsPerSec} W/s"
+                      explanation: $"requires {reqSkill} skill\nproduces {prodWatts} W/s"
                 )
             {
-                if (prodWattsPerSec <= 0)
+                if (prodWatts <= 0)
                     throw new ArgumentOutOfRangeException();
-                this.prodWattsPerSec = prodWattsPerSec;
+                this.prodWatts = prodWatts;
             }
 
             public override Industry MakeIndustry(NodeState state)
@@ -40,7 +40,7 @@ namespace Game1.Industries
             )
         {
             this.parameters = parameters;
-            ElectricityDistributor.AddElectrProducer(electrProducer: this);
+            EnergyManager.AddEnergyProducer(energyProducer: this);
         }
 
         public override ULongArray TargetStoredResAmounts()
@@ -59,13 +59,13 @@ namespace Game1.Industries
         public override string GetText()
             => base.GetText() + parameters.name + "\n";
 
-        public override double ReqWattsPerSec()
+        public override double ReqWatts()
             => 0;
 
-        double IElectrProducer.ProdWattsPerSec()
+        double IEnergyProducer.ProdWatts()
             => IsBusy() switch
             {
-                true => parameters.prodWattsPerSec * CurSkillPropor,
+                true => parameters.prodWatts * CurSkillPropor,
                 false => 0
             };
     }

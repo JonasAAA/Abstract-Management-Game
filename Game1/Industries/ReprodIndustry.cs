@@ -9,22 +9,22 @@ namespace Game1.Industries
     {
         public new class Params : Industry.Params
         {
-            public readonly double reqWattsPerSecPerChild;
+            public readonly double reqWattsPerChild;
             public readonly ulong maxCouples;
             public readonly ConstULongArray resPerChild;
             public readonly TimeSpan birthDuration;
 
-            public Params(string name, ulong electrPriority, double reqSkill, ulong reqWattsPerSecPerChild, ulong maxCouples, ConstULongArray resPerChild, TimeSpan birthDuration)
+            public Params(string name, ulong energyPriority, double reqSkill, ulong reqWattsPerChild, ulong maxCouples, ConstULongArray resPerChild, TimeSpan birthDuration)
                 : base
                 (
                     industryType: IndustryType.Reproduction,
                     name: name,
-                    electrPriority: electrPriority,
+                    energyPriority: energyPriority,
                     reqSkill: reqSkill,
-                    explanation: $"requires {reqSkill} skill\nneeds {reqWattsPerSecPerChild} W/s for a child\nsupports no more than {maxCouples} couples\nrequires {resPerChild} resources for a child\nchildbirth takes {birthDuration} s"
+                    explanation: $"requires {reqSkill} skill\nneeds {reqWattsPerChild} W/s for a child\nsupports no more than {maxCouples} couples\nrequires {resPerChild} resources for a child\nchildbirth takes {birthDuration} s"
                 )
             {
-                this.reqWattsPerSecPerChild = reqWattsPerSecPerChild;
+                this.reqWattsPerChild = reqWattsPerChild;
                 this.maxCouples = maxCouples;
                 this.resPerChild = resPerChild;
                 this.birthDuration = birthDuration;
@@ -40,8 +40,8 @@ namespace Game1.Industries
 
             private readonly Params parameters;
 
-            public ReprodCenter(Vector2 position, ulong electrPriority, Action<Person> personLeft, Params parameters)
-                : base(activityType: ActivityType.Reproduction, position, electrPriority, personLeft)
+            public ReprodCenter(Vector2 position, ulong energyPriority, Action<Person> personLeft, Params parameters)
+                : base(activityType: ActivityType.Reproduction, position, energyPriority, personLeft)
             {
                 this.parameters = parameters;
                 unpairedPeople = new();
@@ -92,7 +92,7 @@ namespace Game1.Industries
             reprodCenter = new
             (
                 position: state.position,
-                electrPriority: parameters.electrPriority,
+                energyPriority: parameters.energyPriority,
                 personLeft: PersonLeft,
                 parameters: parameters
             );
@@ -112,7 +112,7 @@ namespace Game1.Industries
 
             foreach (var (person1, person2) in birthQueue.DoneElements())
             {
-                var newPerson = Person.GenerateChild(person1: person1, person2: person2);
+                var newPerson = Person.GenerateChild(nodePos: state.position, person1: person1, person2: person2);
                 PersonLeft(person: newPerson);
 
                 reprodCenter.RemovePerson(person: person1);
@@ -139,8 +139,8 @@ namespace Game1.Industries
             throw new NotImplementedException();
         }
 
-        public override double ReqWattsPerSec()
-            => birthQueue.Count * parameters.reqWattsPerSecPerChild * CurSkillPropor;
+        public override double ReqWatts()
+            => birthQueue.Count * parameters.reqWattsPerChild * CurSkillPropor;
 
         public override string GetText()
         {

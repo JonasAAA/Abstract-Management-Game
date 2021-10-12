@@ -8,24 +8,24 @@ namespace Game1.Industries
     {
         public new class Params : Industry.Params
         {
-            public readonly double reqWattsPerSec;
+            public readonly double reqWatts;
             public readonly Industry.Params industrParams;
             public readonly TimeSpan duration;
             public readonly ConstULongArray cost;
 
-            public Params(string name, ulong electrPriority, double reqSkill, ulong reqWattsPerSec, Industry.Params industrParams, TimeSpan duration, ConstULongArray cost)
+            public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, Industry.Params industrParams, TimeSpan duration, ConstULongArray cost)
                 : base
                 (
                     industryType: IndustryType.Construction,
                     name: name,
-                    electrPriority: electrPriority,
+                    energyPriority: energyPriority,
                     reqSkill: reqSkill,
-                    explanation: $"construction stats:\nrequires {reqWattsPerSec} W/s\nduration {duration.TotalSeconds:0.}s\ncost {cost}\n\nbuilding stats:\n{industrParams.explanation}"
+                    explanation: $"construction stats:\nrequires {reqWatts} W/s\nduration {duration.TotalSeconds:0.}s\ncost {cost}\n\nbuilding stats:\n{industrParams.explanation}"
                 )
             {
-                if (reqWattsPerSec <= 0)
+                if (reqWatts <= 0)
                     throw new ArgumentOutOfRangeException();
-                this.reqWattsPerSec = reqWattsPerSec;
+                this.reqWatts = reqWatts;
                 this.industrParams = industrParams;
                 if (duration < TimeSpan.Zero || duration == TimeSpan.MaxValue)
                     throw new ArgumentException();
@@ -102,12 +102,12 @@ namespace Game1.Industries
             return text;
         }
 
-        public override double ReqWattsPerSec()
-            // this is correct as if more important people get full electricity, this works
-            // and if they don't, then the industry will get 0 electricity anyway
+        public override double ReqWatts()
+            // this is correct as if more important people get full energy, this works
+            // and if they don't, then the industry will get 0 energy anyway
             => IsBusy() switch
             {
-                true => parameters.reqWattsPerSec * CurSkillPropor,
+                true => parameters.reqWatts * CurSkillPropor,
                 false => 0
             };
     }

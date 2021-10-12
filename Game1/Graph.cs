@@ -39,7 +39,7 @@ namespace Game1
         public ReadOnlyDictionary<(Vector2, Vector2), double> PersonDists { get; private set; }
         public ReadOnlyDictionary<(Vector2, Vector2), double> ResDists { get; private set; }
         public TimeSpan MaxLinkTravelTime { get; private set; }
-        public double MaxLinkWattsPerKg { get; private set; }
+        public double MaxLinkJoulesPerKg { get; private set; }
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
@@ -50,7 +50,7 @@ namespace Game1
         private readonly List<Star> stars;
         private readonly List<Node> nodes;
         private readonly List<Link> links;
-        private readonly double persDistTimeCoeff, persDistElectrCoeff, resDistTimeCoeff, resDistElectrCoeff;
+        private readonly double persDistTimeCoeff, persDistEnergyCoeff, resDistTimeCoeff, resDistEnergyCoeff;
         private readonly TextBox globalTextBox;
         private bool paused;
 
@@ -61,9 +61,9 @@ namespace Game1
             this.nodes = new();
             this.links = new();
             persDistTimeCoeff = 1;
-            persDistElectrCoeff = 0;
+            persDistEnergyCoeff = 0;
             resDistTimeCoeff = 0;
-            resDistElectrCoeff = 1;
+            resDistEnergyCoeff = 1;
 
             foreach (var star in stars)
                 AddStar(star: star);
@@ -73,10 +73,10 @@ namespace Game1
                 AddLink(link: link);
 
             MaxLinkTravelTime = this.links.Max(link => link.TravelTime);
-            MaxLinkWattsPerKg = this.links.Max(link => link.WattsPerKg);
+            MaxLinkJoulesPerKg = this.links.Max(link => link.JoulesPerKg);
 
-            (PersonDists, PersonFirstLinks) = FindShortestPaths(distTimeCoeff: persDistTimeCoeff, distElectrCoeff: persDistElectrCoeff);
-            (ResDists, ResFirstLinks) = FindShortestPaths(distTimeCoeff: resDistTimeCoeff, distElectrCoeff: resDistElectrCoeff);
+            (PersonDists, PersonFirstLinks) = FindShortestPaths(distTimeCoeff: persDistTimeCoeff, distEnergyCoeff: persDistEnergyCoeff);
+            (ResDists, ResFirstLinks) = FindShortestPaths(distTimeCoeff: resDistTimeCoeff, distEnergyCoeff: resDistEnergyCoeff);
             PosToNode = new
             (
                 dictionary: nodes.ToDictionary
@@ -182,11 +182,11 @@ namespace Game1
 
         // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
-        private (ReadOnlyDictionary<(Vector2, Vector2), double> dists, ReadOnlyDictionary<(Vector2, Vector2), Link> firstLinks) FindShortestPaths(double distTimeCoeff, double distElectrCoeff)
+        private (ReadOnlyDictionary<(Vector2, Vector2), double> dists, ReadOnlyDictionary<(Vector2, Vector2), Link> firstLinks) FindShortestPaths(double distTimeCoeff, double distEnergyCoeff)
         {
             if (distTimeCoeff < 0)
                 throw new ArgumentOutOfRangeException();
-            if (distElectrCoeff < 0)
+            if (distEnergyCoeff < 0)
                 throw new ArgumentOutOfRangeException();
 
             double[,] distsArray = new double[nodes.Count, nodes.Count];
@@ -206,7 +206,7 @@ namespace Game1
             {
                 int i = nodes.IndexOf(link.node1), j = nodes.IndexOf(link.node2);
                 Debug.Assert(i >= 0 && j >= 0);
-                distsArray[i, j] = distTimeCoeff * link.TravelTime.TotalSeconds + distElectrCoeff * link.WattsPerKg;
+                distsArray[i, j] = distTimeCoeff * link.TravelTime.TotalSeconds + distEnergyCoeff * link.JoulesPerKg;
                 distsArray[j, i] = distsArray[i, j];
                 firstLinksArray[i, j] = link;
                 firstLinksArray[j, i] = link;
@@ -259,7 +259,7 @@ namespace Game1
             Elapsed = elapsed;
             CurrentTime += Elapsed;
 
-            ElectricityDistributor.DistributeElectr();
+            EnergyManager.DistributeEnergy();
 
             links.ForEach(link => link.Update());
             nodes.ForEach(node => node.Update());
@@ -276,7 +276,7 @@ namespace Game1
 
             ActivityManager.ManageActivities();
 
-            globalTextBox.Text = (ElectricityDistributor.Summary() + $"population {Person.PeopleCount}").Trim();
+            globalTextBox.Text = (EnergyManager.Summary() + $"population {Person.PeopleCount}").Trim();
         }
 
         private class NodeInfo
@@ -363,8 +363,10 @@ namespace Game1
                     nodeInfo.nodesOut.Add(nodeInfoDestin);
                     nodeInfoDestin.nodesIn.Add(nodeInfo);
                 }
-
-            Queue<NodeInfo> leafs = new
+            // sinks could use data stucture like from
+            // https://stackoverflow.com/questions/5682218/data-structure-insert-remove-contains-get-random-element-all-at-o1
+            // to support taking random element in O(1)
+            Queue<NodeInfo> sinks = new
             (
                 from nodeInfo in nodeInfos.Values
                 where nodeInfo.unvisitedDestinsCount is 0
@@ -374,19 +376,19 @@ namespace Game1
             ulong MaxExtraRes(Vector2 position)
                 => nodeInfos[position].MaxExtraRes();
 
-            while (leafs.Count > 0)
+            while (sinks.Count > 0)
             {
-                // want to choose random leaf instead of this
-                NodeInfo leaf = leafs.Dequeue();
-                leaf.node.SplitRes(resInd: resInd, maxExtraResFunc: MaxExtraRes);
+                // want to choose random sink instead of this
+                NodeInfo sink = sinks.Dequeue();
+                sink.node.SplitRes(resInd: resInd, maxExtraResFunc: MaxExtraRes);
 
-                foreach (var nodeInfo in leaf.nodesIn)
+                foreach (var nodeInfo in sink.nodesIn)
                 {
                     nodeInfo.unvisitedDestinsCount--;
                     if (nodeInfo.unvisitedDestinsCount is 0)
-                        leafs.Enqueue(nodeInfo);
+                        sinks.Enqueue(nodeInfo);
                 }
-                leaf.isSplitAleady = true;
+                sink.isSplitAleady = true;
             }
 
             foreach (var nodeInfo in nodeInfos.Values)

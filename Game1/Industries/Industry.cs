@@ -9,25 +9,25 @@ using System.Linq;
 
 namespace Game1.Industries
 {
-    public abstract class Industry : IElectrConsumer
+    public abstract class Industry : IEnergyConsumer
     {
         // all fields and properties in this and derived classes must have unchangeable state
         public abstract class Params
         {
             public readonly IndustryType industryType;
             public readonly string name;
-            public readonly ulong electrPriority;
+            public readonly ulong energyPriority;
             public readonly double reqSkill;
             public readonly string explanation;
 
-            public Params(IndustryType industryType, string name, ulong electrPriority, double reqSkill, string explanation)
+            public Params(IndustryType industryType, string name, ulong energyPriority, double reqSkill, string explanation)
             {
                 this.industryType = industryType;
                 this.name = name;
-                if ((industryType is IndustryType.PowerPlant && electrPriority is not 0)
-                    || (industryType is not IndustryType.PowerPlant && electrPriority is 0))
+                if ((industryType is IndustryType.PowerPlant && energyPriority is not 0)
+                    || (industryType is not IndustryType.PowerPlant && energyPriority is 0))
                     throw new ArgumentException();
-                this.electrPriority = electrPriority;
+                this.energyPriority = energyPriority;
                 if (reqSkill <= 0)
                     throw new ArgumentOutOfRangeException();
                 this.reqSkill = reqSkill;
@@ -61,8 +61,8 @@ namespace Game1.Industries
             private TimeSpan avgVacancyDuration;
             private double curUnboundedSkillPropor, workingPropor;
 
-            public Employer(Vector2 position, ulong electrPriority, Action<Person> personLeft, Params parameters)
-                : base(activityType: ActivityType.Working, position: position, electrPriority: electrPriority, personLeft: personLeft)
+            public Employer(Vector2 position, ulong energyPriority, Action<Person> personLeft, Params parameters)
+                : base(activityType: ActivityType.Working, position: position, energyPriority: energyPriority, personLeft: personLeft)
             {
                 this.parameters = parameters;
 
@@ -145,11 +145,11 @@ namespace Game1.Industries
             public override bool CanPersonLeave(Person person)
                 => true;
 
-            public void SetElectrPropor(double electrPropor)
+            public void SetEnergyPropor(double energyPropor)
             {
-                if (!C.IsInSuitableRange(value: electrPropor))
+                if (!C.IsInSuitableRange(value: energyPropor))
                     throw new ArgumentOutOfRangeException();
-                workingPropor = electrPropor / Math.Max(1, curUnboundedSkillPropor);
+                workingPropor = energyPropor / Math.Max(1, curUnboundedSkillPropor);
             }
 
             public string GetText()
@@ -214,15 +214,15 @@ namespace Game1.Industries
                 new
                 (
                     name: "factory costruction",
-                    electrPriority: 10,
+                    energyPriority: 10,
                     reqSkill: 10,
-                    reqWattsPerSec: 100,
+                    reqWatts: 100,
                     industrParams: new Factory.Params
                     (
                         name: "factory0_lvl1",
-                        electrPriority: 20,
+                        energyPriority: 20,
                         reqSkill: 10,
-                        reqWattsPerSec: 10,
+                        reqWatts: 10,
                         supply: new()
                         {
                             [0] = 10,
@@ -236,15 +236,15 @@ namespace Game1.Industries
                 new
                 (
                     name: "factory costruction",
-                    electrPriority: 10,
+                    energyPriority: 10,
                     reqSkill: 10,
-                    reqWattsPerSec: 100,
+                    reqWatts: 100,
                     industrParams: new Factory.Params
                     (
                         name: "factory1_lvl1",
-                        electrPriority: 20,
+                        energyPriority: 20,
                         reqSkill: 10,
-                        reqWattsPerSec: 10,
+                        reqWatts: 10,
                         supply: new()
                         {
                             [1] = 10,
@@ -258,15 +258,15 @@ namespace Game1.Industries
                 new
                 (
                     name: "factory costruction",
-                    electrPriority: 10,
+                    energyPriority: 10,
                     reqSkill: 10,
-                    reqWattsPerSec: 100,
+                    reqWatts: 100,
                     industrParams: new Factory.Params
                     (
                         name: "factory2_lvl1",
-                        electrPriority: 20,
+                        energyPriority: 20,
                         reqSkill: 10,
-                        reqWattsPerSec: 10,
+                        reqWatts: 10,
                         supply: new()
                         {
                             [2] = 10,
@@ -280,14 +280,14 @@ namespace Game1.Industries
                 new
                 (
                     name: "power plant costruction",
-                    electrPriority: 10,
+                    energyPriority: 10,
                     reqSkill: 30,
-                    reqWattsPerSec: 100,
+                    reqWatts: 100,
                     industrParams: new PowerPlant.Params
                     (
                         name: "power_plant_lvl1",
                         reqSkill: 20,
-                        prodWattsPerSec: 1000
+                        prodWatts: 1000
                     ),
                     duration: TimeSpan.FromSeconds(5),
                     cost: new()
@@ -295,15 +295,15 @@ namespace Game1.Industries
                 new
                 (
                     name: "factory costruction",
-                    electrPriority: 10,
+                    energyPriority: 10,
                     reqSkill: 10,
-                    reqWattsPerSec: 100,
+                    reqWatts: 100,
                     industrParams: new Factory.Params
                     (
                         name: "factory0_lvl2",
-                        electrPriority: 20,
+                        energyPriority: 20,
                         reqSkill: 10,
-                        reqWattsPerSec: 10,
+                        reqWatts: 10,
                         supply: new()
                         {
                             [0] = 100,
@@ -324,15 +324,15 @@ namespace Game1.Industries
                 new
                 (
                     name: "reprod. ind. constr.",
-                    electrPriority: 10,
+                    energyPriority: 10,
                     reqSkill: 5,
-                    reqWattsPerSec: 200,
+                    reqWatts: 200,
                     industrParams: new ReprodIndustry.Params
                     (
                         name: "reprod. ind.",
-                        electrPriority: 11,
+                        energyPriority: 11,
                         reqSkill: 10,
-                        reqWattsPerSecPerChild: 10,
+                        reqWattsPerChild: 10,
                         maxCouples: 10,
                         resPerChild: new()
                         {
@@ -345,6 +345,16 @@ namespace Game1.Industries
                 ),
             });
         }
+
+        public ulong EnergyPriority
+            => IsBusy() switch
+            {
+                true => parameters.energyPriority,
+                false => ulong.MaxValue
+            };
+
+        Vector2 IEnergyConsumer.NodePos
+            => state.position;
 
         public IEnumerable<Person> PeopleHere
             => employer.PeopleHere;
@@ -360,7 +370,7 @@ namespace Game1.Industries
         
         private readonly Params parameters;
         private readonly Employer employer;
-        private double electrPropor;
+        private double energyPropor;
         private bool deleted;
         
         protected Industry(Params parameters, NodeState state, UIRectPanel<IUIElement<NearRectangle>> UIPanel)
@@ -373,17 +383,17 @@ namespace Game1.Industries
             employer = new
             (
                 position: state.position,
-                electrPriority: parameters.electrPriority,
+                energyPriority: parameters.energyPriority,
                 personLeft: PersonLeft,
                 parameters: parameters
             );
 
             CanStartProduction = true;
-            electrPropor = 0;
+            energyPropor = 0;
 
             deleted = false;
 
-            ElectricityDistributor.AddElectrConsumer(electrConsumer: this);
+            EnergyManager.AddEnergyConsumer(energyConsumer: this);
 
             textBox = new();
             UIPanel.AddChild(child: textBox);
@@ -420,7 +430,7 @@ namespace Game1.Industries
 
             employer.StartUpdate();
 
-            var result = Update(workingPropor: electrPropor * CurSkillPropor);
+            var result = Update(workingPropor: energyPropor * CurSkillPropor);
 
             employer.EndUpdate();
 
@@ -445,28 +455,22 @@ namespace Game1.Industries
             {
                 <= C.MaxRes => "",
                 Overlay.AllRes => "",
+                Overlay.Power => "",
                 Overlay.People => employer.GetText(),
                 _ => throw new Exception(),
             };
 
-        public abstract double ReqWattsPerSec();
-
-        public ulong ElectrPriority
-            => IsBusy() switch
-            {
-                true => parameters.electrPriority,
-                false => ulong.MaxValue
-            };
+        public abstract double ReqWatts();
 
         protected void PersonLeft(Person person)
             => state.waitingPeople.Add(person);
 
-        void IElectrConsumer.ConsumeElectr(double electrPropor)
+        void IEnergyConsumer.ConsumeEnergy(double energyPropor)
         {
-            if (!C.IsInSuitableRange(value: electrPropor))
+            if (!C.IsInSuitableRange(value: energyPropor))
                 throw new ArgumentOutOfRangeException();
-            this.electrPropor = electrPropor;
-            employer.SetElectrPropor(electrPropor: electrPropor);
+            this.energyPropor = energyPropor;
+            employer.SetEnergyPropor(energyPropor: energyPropor);
         }
     }
 }

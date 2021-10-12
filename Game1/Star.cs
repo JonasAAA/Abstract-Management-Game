@@ -14,15 +14,15 @@ namespace Game1
         /// </summary>
         public event Action Deleted;
 
-        private readonly double power;
+        private readonly double prodWatts;
         private readonly LightPolygon polygon;
         private readonly TextBox popupTextBox;
 
-        public Star(float radius, Vector2 center, double power, Color color)
+        public Star(float radius, Vector2 center, double prodWatts, Color color)
             : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), active: false, activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             shape.Center = center;
-            this.power = power;
+            this.prodWatts = prodWatts;
             polygon = new LightPolygon(strength: radius / C.standardStarRadius, color: color);
 
             //textBox = new();
@@ -48,7 +48,7 @@ namespace Game1
         // the complexity is O(N ^ 2) as each object has O(1) relevant angles
         // and each object checks intersection with all the rays
         // could maybe get the time down to O(N log N) by using modified interval tree
-        void ILightSource.GivePowerToObjects(IEnumerable<ILightCatchingObject> lightCatchingObjects)
+        void ILightSource.GiveWattsToObjects(IEnumerable<ILightCatchingObject> lightCatchingObjects)
         {
             List<float> angles = new();
             foreach (var lightCatchingObject in lightCatchingObjects)
@@ -114,13 +114,13 @@ namespace Game1
                 }
 
             //textBox.Text = $"generates {power} power\n{usedPowerProportion * 100:0.}% of it is used";
-            popupTextBox.Text = $"generates {power} power\n{usedPowerProportion * 100:0.}% of it is used";
+            popupTextBox.Text = $"generates {prodWatts} power\n{usedPowerProportion * 100:0.}% of it is used";
 
             foreach (var lightCatchingObject in lightCatchingObjects)
-                lightCatchingObject.SetPower
+                lightCatchingObject.SetWatts
                 (
                     starPos: shape.Center,
-                    power: powerPropsForObjects[lightCatchingObject] * power,
+                    watts: powerPropsForObjects[lightCatchingObject] * prodWatts,
                     powerPropor: powerPropsForObjects[lightCatchingObject]
                 );
         }

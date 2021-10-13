@@ -4,14 +4,14 @@ using System.Linq;
 
 namespace Game1
 {
-    public static class ActivityManager
+    public class ActivityManager
     {
-        private static readonly HashSet<IActivityCenter> activityCenters;
+        private readonly HashSet<IActivityCenter> activityCenters;
 
-        static ActivityManager()
+        public ActivityManager()
             => activityCenters = new();
 
-        public static void AddActivityCenter(IActivityCenter activityCenter)
+        public void AddActivityCenter(IActivityCenter activityCenter)
         {
             if (!activityCenters.Add(activityCenter))
                 throw new ArgumentException();
@@ -19,7 +19,7 @@ namespace Game1
             activityCenter.Deleted += () => activityCenters.Remove(activityCenter);
         }
 
-        public static void ManageActivities()
+        public void ManageActivities()
         {
             HashSet<IActivityCenter> availableActivityCenters = new
             (

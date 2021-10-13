@@ -39,7 +39,7 @@ namespace Game1.UI
         {
             this.direction = direction;
             rotation = (int)direction * MathHelper.PiOver2;
-            triangleTexture = C.Content.Load<Texture2D>("triangle");
+            triangleTexture = C.ContentManager.Load<Texture2D>("triangle");
             origin = new Vector2(triangleTexture.Width, triangleTexture.Height) * .5f;
             dirVector = C.Direction(rotation: rotation);
             orthDir = new Vector2(-dirVector.Y, dirVector.X);

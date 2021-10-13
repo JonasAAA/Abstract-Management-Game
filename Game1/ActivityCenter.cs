@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -33,7 +34,7 @@ namespace Game1
             peopleHere = new();
             allPeople = new();
 
-            ActivityManager.AddActivityCenter(activityCenter: this);
+            AddActivityCenter(activityCenter: this);
         }
 
         public abstract bool IsFull();

@@ -3,16 +3,17 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using static Game1.WorldManager;
 
 namespace Game1
 {
-    public static class EnergyManager
+    public class EnergyManager
     {
-        private static readonly MyHashSet<IEnergyProducer> energyProducers;
-        private static readonly MyHashSet<IEnergyConsumer> energyConsumers;
-        private static double totReqWatts, totProdWatts, totUsedLocalWatts, totUsedPowerPlantWatts;
+        private readonly MyHashSet<IEnergyProducer> energyProducers;
+        private readonly MyHashSet<IEnergyConsumer> energyConsumers;
+        private double totReqWatts, totProdWatts, totUsedLocalWatts, totUsedPowerPlantWatts;
 
-        static EnergyManager()
+        public EnergyManager()
         {
             energyProducers = new();
             energyConsumers = new();
@@ -22,21 +23,21 @@ namespace Game1
             totUsedPowerPlantWatts = 0;
         }
 
-        public static void AddEnergyProducer(IEnergyProducer energyProducer)
+        public void AddEnergyProducer(IEnergyProducer energyProducer)
         {
             energyProducers.Add(energyProducer);
 
             energyProducer.Deleted += () => energyProducers.Remove(energyProducer);
         }
 
-        public static void AddEnergyConsumer(IEnergyConsumer energyConsumer)
+        public void AddEnergyConsumer(IEnergyConsumer energyConsumer)
         {
             energyConsumers.Add(energyConsumer);
             
             energyConsumer.Deleted += () => energyConsumers.Remove(energyConsumer);
         }
 
-        public static void DistributeEnergy()
+        public void DistributeEnergy(IEnumerable<Vector2> nodePositions, IReadOnlyDictionary<Vector2, Node> posToNode)
         {
             Dictionary<IEnergyConsumer, double> reqWattsByConsumer = energyConsumers.ToDictionary
             (
@@ -56,14 +57,16 @@ namespace Game1
             totUsedPowerPlantWatts = 0;
 
             Dictionary<Vector2, MyHashSet<IEnergyConsumer>> energyConsumersByNode = new();
-            foreach (var node in Graph.World.Nodes)
-                energyConsumersByNode[node.Position] = new();
+            //foreach (var node in CurGraph.Nodes)
+            //    energyConsumersByNode[node.Position] = new();
+            foreach (var nodePos in nodePositions)
+                energyConsumersByNode[nodePos] = new();
             foreach (var energyConsumer in energyConsumers)
                 energyConsumersByNode[energyConsumer.NodePos].Add(energyConsumer);
             
             foreach (var (nodePos, sameNodeEnergyConsumers) in energyConsumersByNode)
             {
-                var node = Graph.World.PosToNode[nodePos];
+                var node = posToNode[nodePos];
                 double availableWatts = DistributePartOfEnergy
                 (
                     energyConsumers: sameNodeEnergyConsumers,
@@ -143,7 +146,7 @@ namespace Game1
             }
         }
 
-        public static string Summary()
+        public string Summary()
             => $"required energy: {totReqWatts:0.##} W\nproduced energy: {totProdWatts:0.##} W\nused local energy {totUsedLocalWatts:0.##} W\nused power plant energy {totUsedPowerPlantWatts:0.##} W\n";
     }
 }

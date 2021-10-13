@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -39,20 +40,20 @@ namespace Game1.Industries
 
         private class Employer : ActivityCenter
         {
-            private static readonly double enjoymentCoeff, talentCoeff, skillCoeff, desperationCoeff, distCoeff, minAcceptableScore, personTimeSkillCoeff;
+            //private static readonly double personJobEnjoymentCoeff, personTalentCoeff, personSkillCoeff, jobDesperationCoeff, PlayerToJobDistCoeff, minAcceptablePersonScore, personTimeSkillCoeff;
 
-            static Employer()
-            {
-                enjoymentCoeff = .2;
-                talentCoeff = .1;
-                skillCoeff = .2;
-                distCoeff = .1;
-                desperationCoeff = .4;
+            //static Employer()
+            //{
+            //    personJobEnjoymentCoeff = .2;
+            //    personTalentCoeff = .1;
+            //    personSkillCoeff = .2;
+            //    PlayerToJobDistCoeff = .1;
+            //    jobDesperationCoeff = .4;
 
-                minAcceptableScore = .4;
+            //    minAcceptablePersonScore = .4;
 
-                personTimeSkillCoeff = .1;
-            }
+            //    personTimeSkillCoeff = .1;
+            //}
 
             public double CurSkillPropor { get; private set; }
 
@@ -108,7 +109,7 @@ namespace Game1.Industries
                 if (openSpace is double.NegativeInfinity)
                     avgVacancyDuration = TimeSpan.Zero;
                 else
-                    avgVacancyDuration += Graph.Elapsed;
+                    avgVacancyDuration += Elapsed;
             }
 
             public void EndUpdate()
@@ -129,7 +130,7 @@ namespace Game1.Industries
                 if (IsPersonQueuedOrHere(person: person))
                     return true;
 
-                return NewEmploymentScore(person: person) >= minAcceptableScore;
+                return NewEmploymentScore(person: person) >= CurWorldConfig.minAcceptablePersonScore;
             }
 
             public override void UpdatePerson(Person person)
@@ -138,7 +139,7 @@ namespace Game1.Industries
                     throw new ArgumentOutOfRangeException();
 
                 Debug.Assert(C.IsInSuitableRange(value: person.skills[parameters.industryType]));
-                person.skills[parameters.industryType] = 1 - (1 - person.skills[parameters.industryType]) * Math.Pow(1 - person.talents[parameters.industryType], Graph.Elapsed.TotalSeconds * workingPropor * personTimeSkillCoeff);
+                person.skills[parameters.industryType] = 1 - (1 - person.skills[parameters.industryType]) * Math.Pow(1 - person.talents[parameters.industryType], Elapsed.TotalSeconds * workingPropor * CurWorldConfig.personTimeSkillCoeff);
                 Debug.Assert(C.IsInSuitableRange(value: person.skills[parameters.industryType]));
             }
 
@@ -181,19 +182,19 @@ namespace Game1.Industries
             // larger means this pair is more likely to work
             // must be between 0 and 1 or double.NegativeInfinity
             private double NewEmploymentScore(Person person)
-                => enjoymentCoeff * PersonScoreOfThis(person: person)
-                + talentCoeff * person.talents[parameters.industryType]
-                + skillCoeff * person.skills[parameters.industryType]
-                + desperationCoeff * Desperation()
-                + distCoeff * DistanceToHere(person: person);
+                => CurWorldConfig.personJobEnjoymentCoeff * PersonScoreOfThis(person: person)
+                + CurWorldConfig.personTalentCoeff * person.talents[parameters.industryType]
+                + CurWorldConfig.personSkillCoeff * person.skills[parameters.industryType]
+                + CurWorldConfig.jobDesperationCoeff * Desperation()
+                + CurWorldConfig.PlayerToJobDistCoeff * DistanceToHere(person: person);
 
             private double CurrentEmploymentScore(Person person)
             {
                 if (!IsPersonQueuedOrHere(person: person))
                     throw new ArgumentException();
-                return enjoymentCoeff * PersonScoreOfThis(person: person)
-                    + talentCoeff * person.talents[parameters.industryType]
-                    + skillCoeff * person.skills[parameters.industryType];
+                return CurWorldConfig.personJobEnjoymentCoeff * PersonScoreOfThis(person: person)
+                    + CurWorldConfig.personTalentCoeff * person.talents[parameters.industryType]
+                    + CurWorldConfig.personSkillCoeff * person.skills[parameters.industryType];
             }
         }
 
@@ -205,6 +206,9 @@ namespace Game1.Industries
 
         static Industry()
         {
+            // figure out a way to make constrBuildingParams array non-static (maybe have IndustryManager class and move all static Industry stuff there)
+            throw new NotImplementedException();
+
             vacDespCoeff = .1;
 
             TypeCount = Enum.GetValues<IndustryType>().Length;
@@ -393,7 +397,7 @@ namespace Game1.Industries
 
             deleted = false;
 
-            EnergyManager.AddEnergyConsumer(energyConsumer: this);
+            AddEnergyConsumer(energyConsumer: this);
 
             textBox = new();
             UIPanel.AddChild(child: textBox);
@@ -451,7 +455,7 @@ namespace Game1.Industries
         }
 
         public virtual string GetText()
-            => Graph.Overlay switch
+            => CurOverlay switch
             {
                 <= C.MaxRes => "",
                 Overlay.AllRes => "",

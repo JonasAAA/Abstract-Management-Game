@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+using static Game1.WorldManager;
+
 namespace Game1
 {
     /// <summary>
@@ -156,7 +158,7 @@ namespace Game1
 
             EnergyPropor = 0;
 
-            EnergyManager.AddEnergyConsumer(energyConsumer: this);
+            AddEnergyConsumer(energyConsumer: this);
 
             if (seekChangeTime < minSeekChangeTime || seekChangeTime > maxSeekChangeTime)
                 throw new ArgumentOutOfRangeException();
@@ -169,7 +171,7 @@ namespace Game1
             );
 
             people.Add(this);
-            //Graph.World.AddPerson(person: this);
+            //CurGraph.AddPerson(person: this);
         }
 
         public void Arrived()
@@ -182,8 +184,8 @@ namespace Game1
             if (activityCenter is not null && activityCenter.IsPersonHere(person: this))
             {
                 activityCenter.UpdatePerson(person: this);
-                lastActivityTimes[activityCenter.ActivityType] = Graph.CurrentTime;
-                timeSinceActivitySearch += Graph.Elapsed;
+                lastActivityTimes[activityCenter.ActivityType] = CurTime;
+                timeSinceActivitySearch += Elapsed;
             }
             else
                 IActivityCenter.UpdatePersonDefault(person: this);

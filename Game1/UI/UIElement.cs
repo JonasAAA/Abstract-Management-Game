@@ -192,7 +192,7 @@ namespace Game1.UI
         {
             shape.Draw
             (
-                otherColor: IUIElement.mouseOnColor,
+                otherColor: ActiveUI.UIConfig.mouseOnColor,
                 otherColorProp: (CanBeClicked && MouseOn) switch
                 {
                     true => .5f,

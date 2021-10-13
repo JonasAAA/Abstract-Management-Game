@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -213,7 +214,7 @@ namespace Game1
             UITabPanel.AddTab
             (
                 tabLabelText: overlayTabLabel,
-                tab: overlayTabPanels[Graph.Overlay]
+                tab: overlayTabPanels[CurOverlay]
             );
 
             SetPopup
@@ -228,21 +229,21 @@ namespace Game1
                 resDistribArrows[overlay] = new UITransparentPanel<ResDestinArrow>();
             this.resDestinArrowWidth = resDestinArrowWidth;
 
-            Graph.OverlayChanged += oldOverlay =>
+            CurOverlayChanged += oldOverlay =>
             {
                 UITabPanel.ReplaceTab
                 (
                     tabLabelText: overlayTabLabel,
-                    tab: overlayTabPanels[Graph.Overlay]
+                    tab: overlayTabPanels[CurOverlay]
                 );
 
-                Graph.World.RemoveUIElement
+                RemoveWorldUIElement
                 (
                     UIElement: resDistribArrows[oldOverlay]
                 );
-                Graph.World.AddUIElement
+                AddWorldUIElement
                 (
-                    UIElement: resDistribArrows[Graph.Overlay],
+                    UIElement: resDistribArrows[CurOverlay],
                     layer: resDistribArrowsUILayer
                 );
             };
@@ -256,7 +257,7 @@ namespace Game1
                 state.waitingPeople.Add(person);
             }
 
-            Graph.World.AddUIElement(UIElement: resDistribArrows[Graph.Overlay], layer: resDistribArrowsUILayer);
+            AddWorldUIElement(UIElement: resDistribArrows[CurOverlay], layer: resDistribArrowsUILayer);
         }
 
         public void AddLink(Link link)
@@ -312,7 +313,7 @@ namespace Game1
             if (!Active || !ActiveUI.ArrowDrawingModeOn)
                 throw new InvalidOperationException();
 
-            return !resSplittersToDestins[(int)Graph.Overlay].ContainsKey(destination);
+            return !resSplittersToDestins[(int)CurOverlay].ContainsKey(destination);
         }
 
         public void AddResDestin(Vector2 destination)
@@ -321,7 +322,7 @@ namespace Game1
                 throw new ArgumentException();
 
             // to make lambda expressions work correctly
-            Overlay overlay = Graph.Overlay;
+            Overlay overlay = CurOverlay;
             int resInd = (int)overlay;
 
             void SyncSplittersWithArrows()
@@ -384,7 +385,7 @@ namespace Game1
             }
         }
 
-        public void Update()
+        public void Update(IReadOnlyDictionary<(Vector2, Vector2), Link> personFirstLinks)
         {
             if (industry is not null)
                 SetIndustry(newIndustry: industry.Update());
@@ -399,7 +400,7 @@ namespace Game1
                 if (activityCenterPosition == Position)
                     person.Arrived();
                 else
-                    Graph.World.PersonFirstLinks[(Position, activityCenterPosition)].Add(start: this, person: person);
+                    personFirstLinks[(Position, activityCenterPosition)].Add(start: this, person: person);
                 state.waitingPeople.Remove(person);
             }
         }
@@ -434,7 +435,7 @@ namespace Game1
         /// <summary>
         /// MUST call StartSplitRes first
         /// </summary>
-        public void SplitRes(int resInd, Func<Vector2, ulong> maxExtraResFunc)
+        public void SplitRes(IReadOnlyDictionary<Vector2, Node> posToNode, int resInd, Func<Vector2, ulong> maxExtraResFunc)
         {
             if (undecidedResAmounts[resInd] is 0)
                 return;
@@ -454,7 +455,7 @@ namespace Game1
                         resInd: resInd,
                         resAmount: resAmount
                     );
-                    Graph.World.PosToNode[destination].AddResTravelHere(resInd: resInd, resAmount: resAmount);
+                    posToNode[destination].AddResTravelHere(resInd: resInd, resAmount: resAmount);
                 }
             }
 
@@ -464,7 +465,7 @@ namespace Game1
         /// <summary>
         /// MUST call SplitRes first
         /// </summary>
-        public void EndSplitRes()
+        public void EndSplitRes(IReadOnlyDictionary<(Vector2, Vector2), Link> resFirstLinks)
         {
             undecidedResAmounts = new();
 
@@ -473,7 +474,7 @@ namespace Game1
                 Vector2 destination = resAmountsPacket.destination;
                 Debug.Assert(destination != Position);
 
-                Graph.World.ResFirstLinks[(Position, destination)].Add(start: this, resAmountsPacket: resAmountsPacket);
+                resFirstLinks[(Position, destination)].Add(start: this, resAmountsPacket: resAmountsPacket);
             }
 
             infoTextBox.Text = $"stores {state.storedRes}\ntarget {targetStoredResAmounts}";
@@ -483,10 +484,10 @@ namespace Game1
             if (industry is not null)
                 textBox.Text += industry.GetText();
 
-            switch (Graph.Overlay)
+            switch (CurOverlay)
             {
                 case <= C.MaxRes:
-                    int resInd = (int)Graph.Overlay;
+                    int resInd = (int)CurOverlay;
                     if (store[resInd])
                         textBox.Text += "store\n";
                     if (state.storedRes[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
@@ -522,7 +523,7 @@ namespace Game1
                 Arrow.DrawArrow
                 (
                     startPos: Position,
-                    endPos: MyMouse.WorldPos,
+                    endPos: MouseWorldPos,
                     width: resDestinArrowWidth,
                     color: Color.White * .25f
                 );

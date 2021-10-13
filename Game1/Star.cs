@@ -1,9 +1,11 @@
 ﻿using Game1.UI;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -23,7 +25,7 @@ namespace Game1
         {
             shape.Center = center;
             this.prodWatts = prodWatts;
-            polygon = new LightPolygon(strength: radius / C.standardStarRadius, color: color);
+            polygon = new LightPolygon(strength: radius / CurWorldConfig.standardStarRadius, color: color);
 
             //textBox = new();
             //textBox.Shape.Center = shape.Center;
@@ -38,7 +40,7 @@ namespace Game1
                 overlays: Enum.GetValues<Overlay>()
             );
 
-            LightManager.AddLightSource(lightSource: this);
+            AddLightSource(lightSource: this);
         }
 
         public void Delete()
@@ -125,7 +127,13 @@ namespace Game1
                 );
         }
 
-        void ILightSource.Draw()
-            => polygon.Draw();
+        void ILightSource.Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
+            => polygon.Draw
+            (
+                worldToScreenTransform: worldToScreenTransform,
+                basicEffect: basicEffect,
+                actualScreenWidth: actualScreenWidth,
+                actualScreenHeight: actualScreenHeight
+            );
     }
 }

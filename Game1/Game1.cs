@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.UI;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -9,7 +10,7 @@ namespace Game1
     {
         private readonly GraphicsDeviceManager graphics;
         private readonly KeyButton exitButton;
-        private PlayState playState;
+        //private PlayState playState;
         
         public Game1()
         {
@@ -46,30 +47,29 @@ namespace Game1
         {
             C.Initialize
             (
-                Content: Content,
-                GraphicsDevice: GraphicsDevice,
-                spriteBatch: new(GraphicsDevice),
-                scrollSpeed: 60,
-                resColors: new()
-                {
-                    [0] = Color.Yellow,
-                    [1] = Color.Red,
-                    [2] = Color.Blue,
-                }
+                contentManager: Content,
+                graphicsDevice: GraphicsDevice,
+                spriteBatch: new(GraphicsDevice)
             );
 
-            LightManager.Initialize();
+            //LightManager.Initialize();
 
-            playState = new();
+            var curGraph = WorldManager.InitializeNew();
+            ActiveUI.Initialize(curGraph: curGraph);
+            //playState = new();
         }
 
         protected override void Update(GameTime gameTime)
         {
             exitButton.Update();
 
-            MyMouse.Update();
+            //MyMouse.Update();
 
-            playState.Update(elapsed: gameTime.ElapsedGameTime);
+            TimeSpan elapsed = gameTime.ElapsedGameTime;
+
+            WorldManager.Current.Update(elapsed: elapsed);
+
+            ActiveUI.Update(elapsed: elapsed);
 
             base.Update(gameTime);
         }
@@ -78,7 +78,9 @@ namespace Game1
         {
             GraphicsDevice.Clear(Color.Transparent);
 
-            playState.Draw();
+            WorldManager.Current.Draw();
+
+            ActiveUI.DrawHUD();
 
             base.Draw(gameTime);
         }

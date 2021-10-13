@@ -9,7 +9,7 @@ namespace Game1.UI
         private static readonly Texture2D triangleTexture;
 
         static Arrow()
-            => triangleTexture = C.Content.Load<Texture2D>("triangle");
+            => triangleTexture = C.ContentManager.Load<Texture2D>("triangle");
 
         public static void DrawArrow(Vector2 startPos, Vector2 endPos, float width, Color color)
             => C.Draw

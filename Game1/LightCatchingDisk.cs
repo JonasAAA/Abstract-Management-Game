@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -33,7 +34,7 @@ namespace Game1
             starPosToWatts = new();
             starPosToPowerProp = new();
 
-            LightManager.AddLightCatchingObject(lightCatchingObject: this);
+            AddLightCatchingObject(lightCatchingObject: this);
         }
 
         public void Delete()

@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -55,7 +56,7 @@ namespace Game1.Industries
                 => true;
 
             public override double PersonScoreOfThis(Person person)
-                => .9 * Math.Tanh((Graph.CurrentTime - person.LastActivityTimes[ActivityType]).TotalSeconds / 100)
+                => .9 * Math.Tanh((CurTime - person.LastActivityTimes[ActivityType]).TotalSeconds / 100)
                 + .1 * DistanceToHere(person: person);
 
             public override void TakePerson(Person person)
@@ -145,7 +146,7 @@ namespace Game1.Industries
         public override string GetText()
         {
             string text = base.GetText() + $"{parameters.name}\n";
-            if (Graph.Overlay is Overlay.People)
+            if (CurOverlay is Overlay.People)
             {
                 text += $"{birthQueue.Count} children are being born\n";
                 text += reprodCenter.GetText();

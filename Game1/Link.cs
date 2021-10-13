@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -44,10 +45,10 @@ namespace Game1
                 if (wattsPerKg <= 0)
                     throw new ArgumentOutOfRangeException();
                 reqWattsPerKg = wattsPerKg / travelTime.TotalSeconds;
-                diskTexture = C.Content.Load<Texture2D>("big disk");
+                diskTexture = C.ContentManager.Load<Texture2D>("big disk");
                 energyPropor = 0;
 
-                EnergyManager.AddEnergyConsumer(energyConsumer: this);
+                AddEnergyConsumer(energyConsumer: this);
             }
 
             public void Add(ResAmountsPacket resAmountsPacket)
@@ -94,11 +95,11 @@ namespace Game1
                         scale: (float)Math.Sqrt(size) * 2 / diskTexture.Width
                     );
 
-                switch (Graph.Overlay)
+                switch (CurOverlay)
                 {
                     case <= C.MaxRes:
                         foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts[(int)Graph.Overlay]);
+                            DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts[(int)CurOverlay]);
                         break;
                     case Overlay.AllRes:
                         foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
@@ -112,7 +113,7 @@ namespace Game1
             }
 
             ulong IEnergyConsumer.EnergyPriority
-                => energyPriority;
+                => CurWorldConfig.linkEnergyPriority;
 
             Vector2 IEnergyConsumer.NodePos
                 => startNode.Position;
@@ -124,10 +125,10 @@ namespace Game1
                 => this.energyPropor = energyPropor;
         }
 
-        private static readonly ulong energyPriority;
+        //private static readonly ulong linkEnergyPriority;
 
-        static Link()
-            => energyPriority = 10;
+        //static Link()
+        //    => linkEnergyPriority = 10;
 
         public readonly Node node1, node2;
         public double JoulesPerKg
@@ -193,15 +194,15 @@ namespace Game1
         public override void Draw()
         {
             // temporary
-            Texture2D pixel = C.Content.Load<Texture2D>(assetName: "pixel");
+            Texture2D pixel = C.ContentManager.Load<Texture2D>(assetName: "pixel");
             Color color = Color.Lerp
             (
                 value1: Color.White,
                 value2: Color.Green,
-                amount: Graph.Overlay switch
+                amount: CurOverlay switch
                 {
-                    Overlay.People => (float)(TravelTime / Graph.World.MaxLinkTravelTime),
-                    _ => (float)(JoulesPerKg / Graph.World.MaxLinkJoulesPerKg)
+                    Overlay.People => (float)(TravelTime / MaxLinkTravelTime),
+                    _ => (float)(JoulesPerKg / MaxLinkJoulesPerKg)
                 }
             );
             C.Draw

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Game1.WorldManager;
 
 namespace Game1.UI
 {
@@ -51,17 +52,17 @@ namespace Game1.UI
                 elementSelector: overlay => (IUIElement<NearRectangle>)null
             );
 
-            Graph.OverlayChanged += oldOverlay =>
+            CurOverlayChanged += oldOverlay =>
             {
                 if (!Active)
                     return;
-                if (popup[oldOverlay] == popup[Graph.Overlay])
+                if (popup[oldOverlay] == popup[CurOverlay])
                     return;
 
                 ActiveUI.RemoveUIElement(UIElement: popup[oldOverlay]);
                 ActiveUI.AddHUDElement
                 (
-                    UIElement: popup[Graph.Overlay],
+                    UIElement: popup[CurOverlay],
                     horizPos: popupHorizPos,
                     vertPos: popupVertPos
                 );
@@ -87,7 +88,7 @@ namespace Game1.UI
             SetShapeColor();
             ActiveUI.AddHUDElement
             (
-                UIElement: popup[Graph.Overlay],
+                UIElement: popup[CurOverlay],
                 horizPos: popupHorizPos,
                 vertPos: popupVertPos
             );
@@ -103,12 +104,12 @@ namespace Game1.UI
             SetShapeColor();
             ActiveUI.RemoveUIElement
             (
-                UIElement: popup[Graph.Overlay]
+                UIElement: popup[CurOverlay]
             );
         }
 
         protected void OnDelete()
-            => ActiveUI.RemoveUIElement(UIElement: popup[Graph.Overlay]);
+            => ActiveUI.RemoveUIElement(UIElement: popup[CurOverlay]);
 
         private void SetShapeColor()
             => shape.Color = Active switch

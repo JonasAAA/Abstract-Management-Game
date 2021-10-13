@@ -13,7 +13,7 @@ namespace Game1
 
         public Image(string imageName, float? width = null, float? height = null)
         {
-            texture = C.Content.Load<Texture2D>(assetName: imageName);
+            texture = C.ContentManager.Load<Texture2D>(assetName: imageName);
             origin = new(texture.Width * .5f, texture.Height * .5f);
             scale = new(1);
             if (width.HasValue)

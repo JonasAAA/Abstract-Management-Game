@@ -10,51 +10,51 @@ namespace Game1
 {
     public class Graph : UIElement
     {
-        public delegate void OverlayChangedEventHandler(Overlay oldOverlay);
+        //public delegate void OverlayChangedEventHandler(Overlay oldOverlay);
 
-        public static Overlay Overlay { get; private set; }
+        //public static Overlay Overlay { get; private set; }
 
-        public static TimeSpan CurrentTime { get; private set; }
+        //public static TimeSpan CurrentTime { get; private set; }
 
-        public static TimeSpan Elapsed { get; private set; }
+        //public static TimeSpan Elapsed { get; private set; }
 
-        public static event OverlayChangedEventHandler OverlayChanged;
+        //public static event OverlayChangedEventHandler OverlayChanged;
 
-        public static Graph World { get; private set; }
+        //public static Graph World { get; private set; }
 
-        public static void InitializeWorld(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
-        {
-            if (World is not null)
-                throw new InvalidOperationException();
+        //public static void InitializeWorld(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
+        //{
+        //    if (World is not null)
+        //        throw new InvalidOperationException();
 
-            World = new Graph(stars: stars, nodes: nodes, links: links, overlay: overlay);
-            foreach (var node in nodes)
-                node.Init(startPersonCount: 5);
-        }
+        //    World = new Graph(stars: stars, nodes: nodes, links: links, overlay: overlay);
+        //    foreach (var node in nodes)
+        //        node.Init(startPersonCount: 5);
+        //}
 
         public IEnumerable<Node> Nodes
             => nodes;
         public IEnumerable<Link> Links
             => links;
-        public ReadOnlyDictionary<(Vector2, Vector2), double> PersonDists { get; private set; }
-        public ReadOnlyDictionary<(Vector2, Vector2), double> ResDists { get; private set; }
+        private ReadOnlyDictionary<(Vector2, Vector2), double> personDists;
+        private ReadOnlyDictionary<(Vector2, Vector2), double> resDists;
         public TimeSpan MaxLinkTravelTime { get; private set; }
         public double MaxLinkJoulesPerKg { get; private set; }
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        public ReadOnlyDictionary<(Vector2, Vector2), Link> PersonFirstLinks { get; private set; }
-        public ReadOnlyDictionary<(Vector2, Vector2), Link> ResFirstLinks { get; private set; }
+        private ReadOnlyDictionary<(Vector2, Vector2), Link> personFirstLinks;
+        private ReadOnlyDictionary<(Vector2, Vector2), Link> resFirstLinks;
         public ReadOnlyDictionary<Vector2, Node> PosToNode { get; private set; }
 
         private readonly List<Star> stars;
         private readonly List<Node> nodes;
         private readonly List<Link> links;
         private readonly double persDistTimeCoeff, persDistEnergyCoeff, resDistTimeCoeff, resDistEnergyCoeff;
-        private readonly TextBox globalTextBox;
-        private bool paused;
+        //private readonly TextBox globalTextBox;
+        //private bool paused;
 
-        private Graph(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
+        public Graph()
             : base(shape: new InfinitePlane())
         {
             this.stars = new();
@@ -65,6 +65,74 @@ namespace Game1
             resDistTimeCoeff = 0;
             resDistEnergyCoeff = 1;
 
+            //paused = false;
+
+            //globalTextBox = new();
+            //globalTextBox.Shape.MinWidth = 250;
+            //globalTextBox.Shape.Color = Color.White;
+            //ActiveUI.AddHUDElement
+            //(
+            //    UIElement: globalTextBox,
+            //    horizPos: HorizPos.Left,
+            //    vertPos: VertPos.Top
+            //);
+
+            //ToggleButton<MyRectangle> pauseButton = new
+            //(
+            //    shape: new
+            //    (
+            //        width: 60,
+            //        height: 60
+            //    ),
+            //    on: false,
+            //    text: "Toggle\nPause",
+            //    selectedColor: Color.White,
+            //    deselectedColor: Color.Gray
+            //);
+
+            //pauseButton.OnChanged += () => paused = pauseButton.On;
+
+            //ActiveUI.AddHUDElement
+            //(
+            //    UIElement: pauseButton,
+            //    horizPos: HorizPos.Right,
+            //    vertPos: VertPos.Bottom
+            //);
+
+            //MultipleChoicePanel overlayChoicePanel = new
+            //(
+            //    horizontal: true,
+            //    choiceWidth: 100,
+            //    choiceHeight: 30,
+            //    selectedColor: Color.White,
+            //    deselectedColor: Color.Gray,
+            //    backgroundColor: Color.White
+            //);
+
+            //foreach (var posOverlay in Enum.GetValues<Overlay>())
+            //    overlayChoicePanel.AddChoice
+            //    (
+            //        choiceText: posOverlay.ToString(),
+            //        select: () =>
+            //        {
+            //            if (Overlay == posOverlay)
+            //                return;
+            //            Overlay oldOverlay = Overlay;
+            //            Overlay = posOverlay;
+            //            OverlayChanged?.Invoke(oldOverlay: oldOverlay);
+            //        }
+            //    );
+
+            //ActiveUI.AddHUDElement
+            //(
+            //    UIElement: overlayChoicePanel,
+            //    horizPos: HorizPos.Middle,
+            //    vertPos: VertPos.Top
+            //);
+        }
+
+        public void Initialize(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links)
+        {
             foreach (var star in stars)
                 AddStar(star: star);
             foreach (var node in nodes)
@@ -75,8 +143,8 @@ namespace Game1
             MaxLinkTravelTime = this.links.Max(link => link.TravelTime);
             MaxLinkJoulesPerKg = this.links.Max(link => link.JoulesPerKg);
 
-            (PersonDists, PersonFirstLinks) = FindShortestPaths(distTimeCoeff: persDistTimeCoeff, distEnergyCoeff: persDistEnergyCoeff);
-            (ResDists, ResFirstLinks) = FindShortestPaths(distTimeCoeff: resDistTimeCoeff, distEnergyCoeff: resDistEnergyCoeff);
+            (personDists, personFirstLinks) = FindShortestPaths(distTimeCoeff: persDistTimeCoeff, distEnergyCoeff: persDistEnergyCoeff);
+            (resDists, resFirstLinks) = FindShortestPaths(distTimeCoeff: resDistTimeCoeff, distEnergyCoeff: resDistEnergyCoeff);
             PosToNode = new
             (
                 dictionary: nodes.ToDictionary
@@ -85,72 +153,8 @@ namespace Game1
                 )
             );
 
-            Overlay = overlay;
-
-            paused = false;
-
-            globalTextBox = new();
-            globalTextBox.Shape.MinWidth = 250;
-            globalTextBox.Shape.Color = Color.White;
-            ActiveUI.AddHUDElement
-            (
-                UIElement: globalTextBox,
-                horizPos: HorizPos.Left,
-                vertPos: VertPos.Top
-            );
-
-            ToggleButton<MyRectangle> pauseButton = new
-            (
-                shape: new
-                (
-                    width: 60,
-                    height: 60
-                ),
-                on: false,
-                text: "Toggle\nPause",
-                selectedColor: Color.White,
-                deselectedColor: Color.Gray
-            );
-
-            pauseButton.OnChanged += () => paused = pauseButton.On;
-
-            ActiveUI.AddHUDElement
-            (
-                UIElement: pauseButton,
-                horizPos: HorizPos.Right,
-                vertPos: VertPos.Bottom
-            );
-
-            MultipleChoicePanel overlayChoicePanel = new
-            (
-                horizontal: true,
-                choiceWidth: 100,
-                choiceHeight: 30,
-                selectedColor: Color.White,
-                deselectedColor: Color.Gray,
-                backgroundColor: Color.White
-            );
-
-            foreach (var posOverlay in Enum.GetValues<Overlay>())
-                overlayChoicePanel.AddChoice
-                (
-                    choiceText: posOverlay.ToString(),
-                    select: () =>
-                    {
-                        if (Overlay == posOverlay)
-                            return;
-                        Overlay oldOverlay = Overlay;
-                        Overlay = posOverlay;
-                        OverlayChanged?.Invoke(oldOverlay: oldOverlay);
-                    }
-                );
-
-            ActiveUI.AddHUDElement
-            (
-                UIElement: overlayChoicePanel,
-                horizPos: HorizPos.Middle,
-                vertPos: VertPos.Top
-            );
+            foreach (var node in this.nodes)
+                node.Init(startPersonCount: 5);
         }
 
         private void AddStar(Star star)
@@ -248,21 +252,22 @@ namespace Game1
         public void RemoveUIElement(IUIElement UIElement)
             => RemoveChild(child: UIElement);
 
-        public void Update(TimeSpan elapsed)
+        public void Update()
         {
-            if (elapsed < TimeSpan.Zero)
-                throw new ArgumentException();
+            //if (elapsed < TimeSpan.Zero)
+            //    throw new ArgumentException();
 
-            if (paused)
-                elapsed = TimeSpan.Zero;
+            //if (paused)
+            //    elapsed = TimeSpan.Zero;
 
-            Elapsed = elapsed;
-            CurrentTime += Elapsed;
+            //Elapsed = elapsed;
+            //CurrentTime += Elapsed;
 
-            EnergyManager.DistributeEnergy();
+            //CurEnergyManager.DistributeEnergy();
 
             links.ForEach(link => link.Update());
-            nodes.ForEach(node => node.Update());
+            foreach (var node in nodes)
+                node.Update(personFirstLinks: personFirstLinks);
 
             links.ForEach(link => link.UpdatePeople());
             nodes.ForEach(node => node.UpdatePeople());
@@ -272,11 +277,12 @@ namespace Game1
             for (int resInd = 0; resInd < Resource.Count; resInd++)
                 SplitRes(resInd: resInd);
 
-            nodes.ForEach(node => node.EndSplitRes());
+            foreach (var node in nodes)
+                node.EndSplitRes(resFirstLinks: resFirstLinks);
 
-            ActivityManager.ManageActivities();
+            //ActivityManager.ManageActivities();
 
-            globalTextBox.Text = (EnergyManager.Summary() + $"population {Person.PeopleCount}").Trim();
+            //globalTextBox.Text = (CurEnergyManager.Summary() + $"population {Person.PeopleCount}").Trim();
         }
 
         private class NodeInfo
@@ -380,7 +386,12 @@ namespace Game1
             {
                 // want to choose random sink instead of this
                 NodeInfo sink = sinks.Dequeue();
-                sink.node.SplitRes(resInd: resInd, maxExtraResFunc: MaxExtraRes);
+                sink.node.SplitRes
+                (
+                    posToNode: PosToNode,
+                    resInd: resInd,
+                    maxExtraResFunc: MaxExtraRes
+                );
 
                 foreach (var nodeInfo in sink.nodesIn)
                 {
@@ -394,25 +405,30 @@ namespace Game1
             foreach (var nodeInfo in nodeInfos.Values)
                 if (!nodeInfo.isSplitAleady)
                 {
-                    nodeInfo.node.SplitRes(resInd: resInd, maxExtraResFunc: MaxExtraRes);
+                    nodeInfo.node.SplitRes
+                    (
+                        posToNode: PosToNode,
+                        resInd: resInd,
+                        maxExtraResFunc: MaxExtraRes
+                    );
                     nodeInfo.isSplitAleady = true;
                 }
         }
 
         public void DrawBeforeLight()
         {
-            C.WorldCamera.BeginDraw();
+            //C.WorldCamera.BeginDraw();
             foreach (var child in Children(maxLayer: LightManager.layer - 1))
                 child.Draw();
-            C.WorldCamera.EndDraw();
+            //C.WorldCamera.EndDraw();
         }
 
         public void DrawAfterLight()
         {
-            C.WorldCamera.BeginDraw();
+            //C.WorldCamera.BeginDraw();
             foreach (var child in Children(minLayer: LightManager.layer + 1))
                 child.Draw();
-            C.WorldCamera.EndDraw();
+            //C.WorldCamera.EndDraw();
         }
 
         public override void Draw()

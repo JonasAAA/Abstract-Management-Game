@@ -49,8 +49,8 @@ namespace Game1.UI
                 not 0 => tabs.Values.Max(tab => tab.Shape.Height)
             };
 
-            Shape.Width = 2 * MyRectangle.outlineWidth + innerWidth;
-            Shape.Height = 2 * MyRectangle.outlineWidth + tabChoicePanel.Shape.Height + tabHeight;
+            Shape.Width = 2 * ActiveUI.UIConfig.rectOutlineWidth + innerWidth;
+            Shape.Height = 2 * ActiveUI.UIConfig.rectOutlineWidth + tabChoicePanel.Shape.Height + tabHeight;
 
             tabChoicePanel.Shape.MinWidth = innerWidth;
             foreach (var tab in tabs.Values)
@@ -60,9 +60,9 @@ namespace Game1.UI
                 tab.Shape.MinHeight = tabHeight;
 
             // recalc children positions
-            tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(MyRectangle.outlineWidth);
+            tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(ActiveUI.UIConfig.rectOutlineWidth);
             foreach (var tab in tabs.Values)
-                tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(MyRectangle.outlineWidth) + new Vector2(0, tabChoicePanel.Shape.Height);
+                tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(ActiveUI.UIConfig.rectOutlineWidth) + new Vector2(0, tabChoicePanel.Shape.Height);
         }
 
         public void AddTab(string tabLabelText, TTab tab)

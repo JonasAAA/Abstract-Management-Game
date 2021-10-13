@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.UI;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Game1
@@ -8,7 +9,7 @@ namespace Game1
         protected readonly double screenScale;
 
         protected Camera()
-            => screenScale = (double)C.GraphicsDevice.Viewport.Height / C.standardScreenHeight;
+            => screenScale = (double)C.GraphicsDevice.Viewport.Height / ActiveUI.UIConfig.standardScreenHeight;
 
         public void BeginDraw()
             => C.SpriteBatch.Begin

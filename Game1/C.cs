@@ -1,29 +1,24 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using System;
-using System.Collections.ObjectModel;
 
 namespace Game1
 {
     public static class C
     {
-        public const int standardScreenHeight = 1080;
-        public const float standardStarRadius = 50;
-        public static double ScreenWidth
-            => (double)GraphicsDevice.Viewport.Width * standardScreenHeight / GraphicsDevice.Viewport.Height;
-        public static double ScreenHeight
-            => standardScreenHeight;
-
+        //public const int standardScreenHeight = 1080;
+        //public const float standardStarRadius = 50;
+        //public static double ScreenWidth
+        //    => (double)GraphicsDevice.Viewport.Width * CurConfig.standardScreenHeight / GraphicsDevice.Viewport.Height;
+        //public static double ScreenHeight
+        //    => standardScreenHeight;
         public const Overlay MaxRes = (Overlay)2;
-        public const float letterHeight = 20;
-        public static readonly ReadOnlyCollection<Keys> numericKeys, firstLetterKeys;
-        public static ConstArray<Color> ResColors { get; private set; }
-        public static ContentManager Content { get; private set; }
+        //public const float letterHeight = 20;
+        public static ContentManager ContentManager { get; private set; }
         public static GraphicsDevice GraphicsDevice { get; private set; }
         public static SpriteBatch SpriteBatch { get; private set; }
-        public static WorldCamera WorldCamera { get; private set; }
+        //public static WorldCamera WorldCamera { get; private set; }
         public static HUDCamera HUDCamera { get; private set; }
 
         public static readonly double minPosDouble;
@@ -36,24 +31,14 @@ namespace Game1
             //minPosDouble = (double)minPosDecimal;
             minPosDouble = .0001;
             random = new();
-            numericKeys = new
-            (
-                list: new Keys[] { Keys.D1, Keys.D2, Keys.D3, Keys.D4, Keys.D5, Keys.D6, Keys.D7, Keys.D8, Keys.D9 }
-            );
-            firstLetterKeys = new
-            (
-                list: new Keys[] { Keys.Q, Keys.W, Keys.E, Keys.R, Keys.T, Keys.Y, Keys.U, Keys.I }
-            );
         }
 
-        public static void Initialize(ContentManager Content, GraphicsDevice GraphicsDevice, SpriteBatch spriteBatch, float scrollSpeed, ConstArray<Color> resColors)
+        public static void Initialize(ContentManager contentManager, GraphicsDevice graphicsDevice, SpriteBatch spriteBatch)
         {
-            C.Content = Content;
-            C.GraphicsDevice = GraphicsDevice;
+            ContentManager = contentManager;
+            GraphicsDevice = graphicsDevice;
             SpriteBatch = spriteBatch;
-            WorldCamera = new(scrollSpeed);
             HUDCamera = new();
-            ResColors = resColors;
         }
 
         public static double Random(double min, double max)

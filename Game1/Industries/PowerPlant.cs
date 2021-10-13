@@ -2,6 +2,8 @@
 using Microsoft.Xna.Framework;
 using System;
 
+using static Game1.WorldManager;
+
 namespace Game1.Industries
 {
     public class PowerPlant : Industry, IEnergyProducer
@@ -40,7 +42,7 @@ namespace Game1.Industries
             )
         {
             this.parameters = parameters;
-            EnergyManager.AddEnergyProducer(energyProducer: this);
+            AddEnergyProducer(energyProducer: this);
         }
 
         public override ULongArray TargetStoredResAmounts()

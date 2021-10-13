@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -31,7 +32,7 @@ namespace Game1
         {
             if (!C.IsInSuitableRange(value: workingPropor))
                 throw new ArgumentOutOfRangeException();
-            currentLocalTime += Graph.Elapsed * workingPropor;
+            currentLocalTime += Elapsed * workingPropor;
         }
 
         public virtual void Enqueue(T element)

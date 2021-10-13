@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.UI;
+using Microsoft.Xna.Framework;
 using System;
 
 namespace Game1
@@ -16,7 +17,7 @@ namespace Game1
             scale = 1;
             boundWidth = 10;
             worldCenter = new(0, 0);
-            screenCenter = new((float)(C.ScreenWidth * .5), (float)(C.ScreenHeight * .5));
+            screenCenter = new((float)(ActiveUI.ScreenWidth * .5), (float)(ActiveUI.ScreenHeight * .5));
             Update(elapsed: TimeSpan.Zero, canScroll: false);
         }
 
@@ -31,13 +32,13 @@ namespace Game1
             float elapsedSeconds = (float)elapsed.TotalSeconds;
             if (canScroll)
             {
-                if (MyMouse.HUDPos.X <= boundWidth)
+                if (ActiveUI.HUDPos.X <= boundWidth)
                     worldCenter.X -= scrollSpeed * elapsedSeconds;
-                if (MyMouse.HUDPos.X >= C.ScreenWidth - boundWidth)
+                if (ActiveUI.HUDPos.X >= ActiveUI.ScreenWidth - boundWidth)
                     worldCenter.X += scrollSpeed * elapsedSeconds;
-                if (MyMouse.HUDPos.Y <= boundWidth)
+                if (ActiveUI.HUDPos.Y <= boundWidth)
                     worldCenter.Y -= scrollSpeed * elapsedSeconds;
-                if (MyMouse.HUDPos.Y >= C.ScreenHeight - boundWidth)
+                if (ActiveUI.HUDPos.Y >= ActiveUI.ScreenHeight - boundWidth)
                     worldCenter.Y += scrollSpeed * elapsedSeconds;
             }
 

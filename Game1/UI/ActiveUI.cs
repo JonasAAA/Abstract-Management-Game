@@ -3,15 +3,20 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Game1.WorldManager;
 
 namespace Game1.UI
 {
     public static class ActiveUI
     {
+        public static readonly UIConfig UIConfig;
+        public static double ScreenWidth
+            => (double)C.GraphicsDevice.Viewport.Width * UIConfig.standardScreenHeight / C.GraphicsDevice.Viewport.Height;
+        public static double ScreenHeight
+            => UIConfig.standardScreenHeight;
         public static bool MouseAboveHUD { get; private set; }
-        public static int Count
-            => activeUIElements.Count;
-
+        //public static int Count
+        //    => activeUIElements.Count;
         public static bool ArrowDrawingModeOn
         {
             get => arrowDrawingModeOn;
@@ -23,13 +28,13 @@ namespace Game1.UI
                 arrowDrawingModeOn = value;
                 if (arrowDrawingModeOn)
                 {
-                    if (Graph.Overlay > C.MaxRes)
+                    if (CurOverlay > C.MaxRes)
                         throw new Exception();
                     foreach (var UIElement in activeUIElements)
                         UIElement.HasDisabledAncestor = true;
                     if (activeWorldElement is Node activeNode)
                     {
-                        foreach (var node in Graph.World.Nodes)
+                        foreach (var node in curGraph.Nodes)
                             if (activeNode.CanHaveDestin(destination: node.Position))
                                 node.HasDisabledAncestor = false;
                     }
@@ -43,6 +48,8 @@ namespace Game1.UI
                 }
             }
         }
+        public static Vector2 HUDPos
+            => C.HUDCamera.HUDPos(screenPos: Mouse.GetState().Position.ToVector2());
 
         private static bool arrowDrawingModeOn;
         private static readonly List<IUIElement> activeUIElements;
@@ -52,9 +59,12 @@ namespace Game1.UI
         private static readonly TimeSpan minDurationToGetExplanation;
         private static TimeSpan hoverDuration;
         private static readonly TextBox explanationTextBox;
+        private static Graph curGraph;
 
         static ActiveUI()
         {
+            UIConfig = new();
+
             arrowDrawingModeOn = false;
             activeUIElements = new();
             HUDUIElements = new();
@@ -71,20 +81,21 @@ namespace Game1.UI
         }
 
         /// <summary>
-        /// call exatly once after Graph.Initialize()
+        /// call exatly once after PlayState.InitializeNew()
         /// </summary>
-        public static void Initialize()
+        public static void Initialize(Graph curGraph)
         {
-            if (activeUIElements.Contains(Graph.World))
+            ActiveUI.curGraph = curGraph;
+            if (activeUIElements.Contains(curGraph))
                 throw new InvalidOperationException();
-            activeUIElements.Add(Graph.World);
+            activeUIElements.Add(curGraph);
         }
 
         public static void AddHUDElement(IUIElement<NearRectangle> UIElement, HorizPos horizPos, VertPos vertPos)
         {
             if (UIElement is null)
                 return;
-            Vector2 HUDCenter = new((float)(C.ScreenWidth * .5), (float)(C.ScreenHeight * .5));
+            Vector2 HUDCenter = new((float)(ScreenWidth * .5), (float)(ScreenHeight * .5));
             void SetUIElementPosition()
                 => UIElement.Shape.SetPosition
                 (
@@ -117,14 +128,14 @@ namespace Game1.UI
             prevLeftDown = leftDown;
             leftDown = mouseState.LeftButton == ButtonState.Pressed;
             Vector2 mouseScreenPos = mouseState.Position.ToVector2(),
-                mouseWorldPos = C.WorldCamera.WorldPos(screenPos: mouseScreenPos),
+                mouseWorldPos = MouseWorldPos,
                 mouseHUDPos = C.HUDCamera.HUDPos(screenPos: mouseScreenPos);
 
             contMouse = null;
             MouseAboveHUD = false;
             foreach (var UIElement in Enumerable.Reverse(activeUIElements))
             {
-                Vector2 mousePos = (UIElement == Graph.World) switch
+                Vector2 mousePos = (UIElement == curGraph) switch
                 {
                     true => mouseWorldPos,
                     false => mouseHUDPos
@@ -150,9 +161,9 @@ namespace Game1.UI
                     explanationTextBox.Shape.ClampPosition
                     (
                         left: 0,
-                        right: (float)C.ScreenWidth,
+                        right: (float)ScreenWidth,
                         top: 0,
-                        bottom: (float)C.ScreenHeight
+                        bottom: (float)ScreenHeight
                     );
                 }
             }
@@ -199,11 +210,11 @@ namespace Game1.UI
             }
         }
 
-        public static void Draw()
+        public static void DrawHUD()
         {
-            Graph.World.DrawBeforeLight();
-            LightManager.Draw();
-            Graph.World.DrawAfterLight();
+            //CurGraph.DrawBeforeLight();
+            //LightManager.Draw();
+            //CurGraph.DrawAfterLight();
 
             C.HUDCamera.BeginDraw();
             foreach (var UIElement in HUDUIElements)

@@ -1,6 +1,7 @@
 ﻿using Game1.UI;
 using Microsoft.Xna.Framework;
 using System;
+using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -64,7 +65,7 @@ namespace Game1.Industries
         protected override Industry Update(double workingPropor)
         {
             if (IsBusy())
-                prodTimeLeft -= workingPropor * Graph.Elapsed;
+                prodTimeLeft -= workingPropor * Elapsed;
 
             if (CanStartProduction && !IsBusy() && state.storedRes >= parameters.demand)
             {

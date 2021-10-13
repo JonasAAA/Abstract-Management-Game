@@ -11,7 +11,7 @@ namespace Game1.UI
             private static readonly Texture2D pixelTexture;
 
             static OutlineDrawer()
-                => pixelTexture = C.Content.Load<Texture2D>("pixel");
+                => pixelTexture = C.ContentManager.Load<Texture2D>("pixel");
             
             /// <param name="toLeft">is start top, end is bottom</param>
             public static void Draw(Vector2 Start, Vector2 End, Color Color, bool toLeft = false)
@@ -30,29 +30,30 @@ namespace Game1.UI
                     color: Color,
                     rotation: C.Rotation(vector: direction),
                     origin: origin,
-                    scale: new Vector2(Vector2.Distance(Start, End), outlineWidth)
+                    scale: new Vector2(Vector2.Distance(Start, End), ActiveUI.UIConfig.rectOutlineWidth)
                 );
             }
         }
 
-        public static readonly float outlineWidth;
+        //this should go to a config file
+        //public static readonly float rectOutlineWidth;
 
-        static MyRectangle()
-            => outlineWidth = 0;
+        //static MyRectangle()
+        //    => rectOutlineWidth = 0;
 
         private readonly Texture2D pixelTexture;
 
         public MyRectangle()
-            : this(width: 2 * outlineWidth, height: 2 * outlineWidth)
+            : this(width: 2 * ActiveUI.UIConfig.rectOutlineWidth, height: 2 * ActiveUI.UIConfig.rectOutlineWidth)
         { }
 
         public MyRectangle(float width, float height)
             : base(width: width, height: height)
         {
-            MinWidth = 2 * outlineWidth;
-            MinHeight = 2 * outlineWidth;
+            MinWidth = 2 * ActiveUI.UIConfig.rectOutlineWidth;
+            MinHeight = 2 * ActiveUI.UIConfig.rectOutlineWidth;
 
-            pixelTexture = C.Content.Load<Texture2D>("pixel");
+            pixelTexture = C.ContentManager.Load<Texture2D>("pixel");
         }
 
         public override bool Contains(Vector2 position)

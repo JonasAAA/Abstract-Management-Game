@@ -58,20 +58,26 @@ namespace Game1
             }
         }
 
-        public void Draw()
+        public void Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
         {
             Vector2 textureCenter = new(.5f);
             int centerInd = vertices.Count;
-            vertPosTex[centerInd] = new VertexPositionColorTexture(LightManager.Transform(pos: center), color, textureCenter);
+            vertPosTex[centerInd] = new VertexPositionColorTexture(Transform(pos: center), color, textureCenter);
             for (int i = 0; i < centerInd; i++)
-                vertPosTex[i] = new VertexPositionColorTexture(LightManager.Transform(vertices[i]), color, textureCenter + (vertices[i] - center) / LightManager.maxWidth / strength);
+                vertPosTex[i] = new VertexPositionColorTexture(Transform(vertices[i]), color, textureCenter + (vertices[i] - center) / LightManager.maxWidth / strength);
             if (vertPosTex.Length == 0)
                 return;
 
-            foreach (var effectPass in LightManager.BasicEffect.CurrentTechnique.Passes)
+            foreach (var effectPass in basicEffect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
                 C.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertPosTex, 0, vertPosTex.Length, ind, 0, ind.Length / 3);
+            }
+
+            Vector3 Transform(Vector2 pos)
+            {
+                Vector2 transPos = Vector2.Transform(pos, worldToScreenTransform);
+                return new Vector3(2 * transPos.X / actualScreenWidth - 1, 1 - 2 * transPos.Y / actualScreenHeight, 0);
             }
         }
     }

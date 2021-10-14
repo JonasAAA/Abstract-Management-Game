@@ -21,7 +21,7 @@ namespace Game1.UI
         public Image(bool isRectangle, string imageName, float? width = null, float? height = null, Rotation rotation = Rotation.None)
             : base(width: 0, height: 0)
         {
-            texture = C.ContentManager.Load<Texture2D>(assetName: imageName);
+            texture = C.LoadTexture(name: imageName);
             origin = new(texture.Width * .5f, texture.Height * .5f);
             scale = new(1);
             if (width.HasValue)

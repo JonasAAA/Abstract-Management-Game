@@ -1,10 +1,19 @@
-﻿namespace Game1
+﻿using System;
+
+namespace Game1
 {
     public class WorldConfig
     {
-        public readonly double personJobEnjoymentCoeff, personTalentCoeff, personSkillCoeff, jobDesperationCoeff, PlayerToJobDistCoeff, minAcceptablePersonScore, personTimeSkillCoeff;
+        public readonly double personJobEnjoymentCoeff, personTalentCoeff, personSkillCoeff, jobDesperationCoeff, PlayerToJobDistCoeff, minAcceptablePersonScore, personTimeSkillCoeff, jobVacDespCoeff;
         public readonly ulong linkEnergyPriority;
-        public readonly float standardStarRadius;
+        public readonly float standardStarRadius, scrollSpeed;
+        public readonly double personMomentumCoeff, personMinReqWatts, personMaxReqWatts, randConrtribToChild, parentContribToChild;
+        /// <summary>
+        /// MUST always be the same for all people
+        /// as the way industry deals with required energy requires that
+        /// </summary>
+        public readonly ulong personDefaultEnergyPriority;
+        public readonly TimeSpan personMinSeekChangeTime, personMaxSeekChangeTime;
 
         public WorldConfig()
         {
@@ -15,8 +24,19 @@
             jobDesperationCoeff = .4;
             minAcceptablePersonScore = .4;
             personTimeSkillCoeff = .1;
+            jobVacDespCoeff = .1;
             linkEnergyPriority = 10;
             standardStarRadius = 50;
+            scrollSpeed = 60;
+
+            personMomentumCoeff = .2;
+            personMinReqWatts = .1;
+            personMaxReqWatts = 1;
+            randConrtribToChild = .1;
+            parentContribToChild = 1 - randConrtribToChild;
+            personDefaultEnergyPriority = 100;
+            personMinSeekChangeTime = TimeSpan.FromSeconds(5);
+            personMaxSeekChangeTime = TimeSpan.FromSeconds(30);
         }
     }
 }

@@ -4,7 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-
 using static Game1.WorldManager;
 
 namespace Game1
@@ -13,34 +12,8 @@ namespace Game1
     /// TODO:
     /// person must be unhappy when don't get enough energy
     /// </summary>
-
     public class Person : IEnergyConsumer
     {
-        public static int PeopleCount
-            => people.Count;
-        public static readonly double momentumCoeff, minReqWatts, maxReqWatts, randConrtribToChild, parentContribToChild;
-        /// <summary>
-        /// MUST always be the same for all people
-        /// as the way industry deals with required energy requires that
-        /// </summary>
-        private static readonly ulong defaultEnergyPriority;
-        private static readonly TimeSpan minSeekChangeTime, maxSeekChangeTime;
-        private static readonly MyHashSet<Person> people;
-
-        static Person()
-        {
-            momentumCoeff = .2;
-            minReqWatts = .1;
-            maxReqWatts = 1;
-            randConrtribToChild = .1;
-            parentContribToChild = 1 - randConrtribToChild;
-            defaultEnergyPriority = 100;
-            minSeekChangeTime = TimeSpan.FromSeconds(5);
-            maxSeekChangeTime = TimeSpan.FromSeconds(30);
-
-            people = new();
-        }
-
         public static Person GeneratePerson(Vector2 nodePos)
             => new
             (
@@ -61,8 +34,8 @@ namespace Game1
                     elementSelector: indType => C.Random(min: 0, max: 1)
                 ),
                 weight: 10,
-                reqWatts: C.Random(min: minReqWatts, max: maxReqWatts),
-                seekChangeTime: C.Random(min: minSeekChangeTime, max: maxSeekChangeTime)
+                reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
+                seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime)
             );
 
         public static Person GenerateChild(Person person1, Person person2, Vector2 nodePos)
@@ -73,15 +46,15 @@ namespace Game1
                 (
                     keySelector: indType => indType,
                     elementSelector: indType
-                        => parentContribToChild * (person1.enjoyments[indType] + person2.enjoyments[indType]) * .5
-                        + randConrtribToChild * C.Random(min: 0, max: 1)
+                        => CurWorldConfig.parentContribToChild * (person1.enjoyments[indType] + person2.enjoyments[indType]) * .5
+                        + CurWorldConfig.randConrtribToChild * C.Random(min: 0, max: 1)
                 ),
                 talents: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
                     elementSelector: indType
-                        => parentContribToChild * (person1.talents[indType] + person2.talents[indType]) * .5
-                        + randConrtribToChild * C.Random(min: 0, max: 1)
+                        => CurWorldConfig.parentContribToChild * (person1.talents[indType] + person2.talents[indType]) * .5
+                        + CurWorldConfig.randConrtribToChild * C.Random(min: 0, max: 1)
                 ),
                 skills: Enum.GetValues<IndustryType>().ToDictionary
                 (
@@ -90,17 +63,12 @@ namespace Game1
                 ),
                 weight: 10,
                 reqWatts:
-                    parentContribToChild * (person1.reqWatts + person2.reqWatts) * .5
-                    + randConrtribToChild * C.Random(min: minReqWatts, max: maxReqWatts),
+                    CurWorldConfig.parentContribToChild * (person1.reqWatts + person2.reqWatts) * .5
+                    + CurWorldConfig.randConrtribToChild * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                 seekChangeTime:
-                    parentContribToChild * (person1.seekChangeTime + person2.seekChangeTime) * .5
-                    + randConrtribToChild * C.Random(min: minSeekChangeTime, max: maxSeekChangeTime)
+                    CurWorldConfig.parentContribToChild * (person1.seekChangeTime + person2.seekChangeTime) * .5
+                    + CurWorldConfig.randConrtribToChild * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime)
             );
-
-        public static IEnumerable<Person> GetActivitySeekingPeople()
-            => from person in people
-               where person.IfSeeksNewActivity()
-               select person;
 
         // between 0 and 1
         public readonly ReadOnlyDictionary<IndustryType, double> enjoyments;
@@ -109,7 +77,6 @@ namespace Game1
         // between 0 and 1
         public readonly Dictionary<IndustryType, double> skills;
         //public double MinAcceptableEnjoyment { get; private set; }
-
         
         public Vector2? ActivityCenterPosition
             => activityCenter?.Position;
@@ -152,15 +119,13 @@ namespace Game1
             activityCenter = null;
             this.weight = weight;
 
-            if (reqWatts < minReqWatts || reqWatts > maxReqWatts)
+            if (reqWatts < CurWorldConfig.personMinReqWatts || reqWatts > CurWorldConfig.personMaxReqWatts)
                 throw new ArgumentOutOfRangeException();
             this.reqWatts = reqWatts;
 
             EnergyPropor = 0;
 
-            AddEnergyConsumer(energyConsumer: this);
-
-            if (seekChangeTime < minSeekChangeTime || seekChangeTime > maxSeekChangeTime)
+            if (seekChangeTime < CurWorldConfig.personMinSeekChangeTime || seekChangeTime > CurWorldConfig.personMaxSeekChangeTime)
                 throw new ArgumentOutOfRangeException();
             this.seekChangeTime = seekChangeTime;
             timeSinceActivitySearch = seekChangeTime;
@@ -170,8 +135,8 @@ namespace Game1
                 elementSelector: activityType => TimeSpan.MinValue / 3
             );
 
-            people.Add(this);
-            //CurGraph.AddPerson(person: this);
+            AddEnergyConsumer(energyConsumer: this);
+            AddPerson(person: this);
         }
 
         public void Arrived()
@@ -229,11 +194,11 @@ namespace Game1
         ulong IEnergyConsumer.EnergyPriority
             => activityCenter switch
             {
-                null => defaultEnergyPriority,
+                null => CurWorldConfig.personDefaultEnergyPriority,
                 // if person has higher priority then activityCenter,
                 // then activityCenter most likely will can't work at full capacity
                 // so will not use all the available energyicity
-                not null => Math.Min(defaultEnergyPriority, activityCenter.EnergyPriority)
+                not null => Math.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority)
             };
 
         Vector2 IEnergyConsumer.NodePos

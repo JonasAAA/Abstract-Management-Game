@@ -1,5 +1,6 @@
 ﻿using Game1.UI;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 
 namespace Game1
@@ -11,7 +12,8 @@ namespace Game1
         private readonly double scale;
         private Vector2 worldCenter, screenCenter;
 
-        public WorldCamera(float scrollSpeed)
+        public WorldCamera(GraphicsDevice graphicsDevice, float scrollSpeed)
+            : base(graphicsDevice: graphicsDevice)
         {
             this.scrollSpeed = scrollSpeed;
             scale = 1;

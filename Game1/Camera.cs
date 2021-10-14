@@ -8,8 +8,8 @@ namespace Game1
     {
         protected readonly double screenScale;
 
-        protected Camera()
-            => screenScale = (double)C.GraphicsDevice.Viewport.Height / ActiveUI.UIConfig.standardScreenHeight;
+        protected Camera(GraphicsDevice graphicsDevice)
+            => screenScale = (double)graphicsDevice.Viewport.Height / ActiveUI.UIConfig.standardScreenHeight;
 
         public void BeginDraw()
             => C.SpriteBatch.Begin

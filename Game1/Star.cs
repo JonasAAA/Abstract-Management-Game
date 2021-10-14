@@ -27,11 +27,6 @@ namespace Game1
             this.prodWatts = prodWatts;
             polygon = new LightPolygon(strength: radius / CurWorldConfig.standardStarRadius, color: color);
 
-            //textBox = new();
-            //textBox.Shape.Center = shape.Center;
-            //shape.SizeOrPosChanged += () => textBox.Shape.Center = shape.Center;
-            //AddChild(child: textBox);
-
             popupTextBox = new();
             popupTextBox.Shape.Color = Color.White;
             SetPopup
@@ -115,7 +110,6 @@ namespace Game1
                     usedPowerProportion += curPowerProportion;
                 }
 
-            //textBox.Text = $"generates {power} power\n{usedPowerProportion * 100:0.}% of it is used";
             popupTextBox.Text = $"generates {prodWatts} power\n{usedPowerProportion * 100:0.}% of it is used";
 
             foreach (var lightCatchingObject in lightCatchingObjects)
@@ -127,9 +121,10 @@ namespace Game1
                 );
         }
 
-        void ILightSource.Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
+        void ILightSource.Draw(GraphicsDevice graphicsDevice, Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
             => polygon.Draw
             (
+                graphicsDevice: graphicsDevice,
                 worldToScreenTransform: worldToScreenTransform,
                 basicEffect: basicEffect,
                 actualScreenWidth: actualScreenWidth,

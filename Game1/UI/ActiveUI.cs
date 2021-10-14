@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
@@ -10,13 +11,10 @@ namespace Game1.UI
     public static class ActiveUI
     {
         public static readonly UIConfig UIConfig;
-        public static double ScreenWidth
-            => (double)C.GraphicsDevice.Viewport.Width * UIConfig.standardScreenHeight / C.GraphicsDevice.Viewport.Height;
+        public static double ScreenWidth { get; private set; }
         public static double ScreenHeight
             => UIConfig.standardScreenHeight;
         public static bool MouseAboveHUD { get; private set; }
-        //public static int Count
-        //    => activeUIElements.Count;
         public static bool ArrowDrawingModeOn
         {
             get => arrowDrawingModeOn;
@@ -28,7 +26,7 @@ namespace Game1.UI
                 arrowDrawingModeOn = value;
                 if (arrowDrawingModeOn)
                 {
-                    if (CurOverlay > C.MaxRes)
+                    if (CurOverlay > MaxRes)
                         throw new Exception();
                     foreach (var UIElement in activeUIElements)
                         UIElement.HasDisabledAncestor = true;
@@ -49,7 +47,7 @@ namespace Game1.UI
             }
         }
         public static Vector2 HUDPos
-            => C.HUDCamera.HUDPos(screenPos: Mouse.GetState().Position.ToVector2());
+            => HUDCamera.HUDPos(screenPos: Mouse.GetState().Position.ToVector2());
 
         private static bool arrowDrawingModeOn;
         private static readonly List<IUIElement> activeUIElements;
@@ -59,6 +57,7 @@ namespace Game1.UI
         private static readonly TimeSpan minDurationToGetExplanation;
         private static TimeSpan hoverDuration;
         private static readonly TextBox explanationTextBox;
+        private static HUDCamera HUDCamera;
         private static Graph curGraph;
 
         static ActiveUI()
@@ -80,10 +79,16 @@ namespace Game1.UI
             explanationTextBox.Shape.Color = Color.LightPink;
         }
 
+        public static void Initialize(GraphicsDevice graphicsDevice)
+        {
+            HUDCamera = new(graphicsDevice: graphicsDevice);
+            ScreenWidth = (double)graphicsDevice.Viewport.Width * UIConfig.standardScreenHeight / graphicsDevice.Viewport.Height;
+        }
+
         /// <summary>
         /// call exatly once after PlayState.InitializeNew()
         /// </summary>
-        public static void Initialize(Graph curGraph)
+        public static void SetCurGraph(Graph curGraph)
         {
             ActiveUI.curGraph = curGraph;
             if (activeUIElements.Contains(curGraph))
@@ -129,7 +134,7 @@ namespace Game1.UI
             leftDown = mouseState.LeftButton == ButtonState.Pressed;
             Vector2 mouseScreenPos = mouseState.Position.ToVector2(),
                 mouseWorldPos = MouseWorldPos,
-                mouseHUDPos = C.HUDCamera.HUDPos(screenPos: mouseScreenPos);
+                mouseHUDPos = HUDCamera.HUDPos(screenPos: mouseScreenPos);
 
             contMouse = null;
             MouseAboveHUD = false;
@@ -212,15 +217,11 @@ namespace Game1.UI
 
         public static void DrawHUD()
         {
-            //CurGraph.DrawBeforeLight();
-            //LightManager.Draw();
-            //CurGraph.DrawAfterLight();
-
-            C.HUDCamera.BeginDraw();
+            HUDCamera.BeginDraw();
             foreach (var UIElement in HUDUIElements)
                 UIElement.Draw();
             explanationTextBox.Draw();
-            C.HUDCamera.EndDraw();
+            HUDCamera.EndDraw();
         }
     }
 }

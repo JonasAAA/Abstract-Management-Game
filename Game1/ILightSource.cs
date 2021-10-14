@@ -8,6 +8,6 @@ namespace Game1
     {
         public void GiveWattsToObjects(IEnumerable<ILightCatchingObject> lightCatchingObjects);
 
-        public void Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight);
+        public void Draw(GraphicsDevice graphicsDevice, Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight);
     }
 }

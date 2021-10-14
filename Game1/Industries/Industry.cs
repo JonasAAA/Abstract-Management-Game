@@ -3,7 +3,6 @@ using Microsoft.Xna.Framework;
 using Priority_Queue;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using static Game1.WorldManager;
@@ -40,21 +39,6 @@ namespace Game1.Industries
 
         private class Employer : ActivityCenter
         {
-            //private static readonly double personJobEnjoymentCoeff, personTalentCoeff, personSkillCoeff, jobDesperationCoeff, PlayerToJobDistCoeff, minAcceptablePersonScore, personTimeSkillCoeff;
-
-            //static Employer()
-            //{
-            //    personJobEnjoymentCoeff = .2;
-            //    personTalentCoeff = .1;
-            //    personSkillCoeff = .2;
-            //    PlayerToJobDistCoeff = .1;
-            //    jobDesperationCoeff = .4;
-
-            //    minAcceptablePersonScore = .4;
-
-            //    personTimeSkillCoeff = .1;
-            //}
-
             public double CurSkillPropor { get; private set; }
 
             private readonly Params parameters;
@@ -122,8 +106,8 @@ namespace Game1.Industries
                 => OpenSpace() is double.NegativeInfinity;
 
             public override double PersonScoreOfThis(Person person)
-                => Person.momentumCoeff * (IsPersonHere(person: person) ? 1 : 0)
-                + (.9 * person.enjoyments[parameters.industryType] + .1 * DistanceToHere(person: person)) * (1 - Person.momentumCoeff);
+                => CurWorldConfig.personMomentumCoeff * (IsPersonHere(person: person) ? 1 : 0)
+                + (.9 * person.enjoyments[parameters.industryType] + .1 * DistanceToHere(person: person)) * (1 - CurWorldConfig.personMomentumCoeff);
 
             public override bool IsPersonSuitable(Person person)
             {
@@ -175,7 +159,7 @@ namespace Game1.Industries
                 double openSpace = OpenSpace();
                 if (openSpace is double.NegativeInfinity)
                     return double.NegativeInfinity;
-                return Math.Tanh(avgVacancyDuration.TotalSeconds * openSpace * vacDespCoeff);
+                return Math.Tanh(avgVacancyDuration.TotalSeconds * openSpace * CurWorldConfig.jobVacDespCoeff);
             }
 
             // each parameter must be between 0 and 1 or double.NegativeInfinity
@@ -199,156 +183,6 @@ namespace Game1.Industries
         }
 
         public event Action Deleted;
-
-        public static readonly int TypeCount;
-        public static readonly ReadOnlyCollection<Construction.Params> constrBuildingParams;
-        private static readonly double vacDespCoeff;
-
-        static Industry()
-        {
-            // figure out a way to make constrBuildingParams array non-static (maybe have IndustryManager class and move all static Industry stuff there)
-            throw new NotImplementedException();
-
-            vacDespCoeff = .1;
-
-            TypeCount = Enum.GetValues<IndustryType>().Length;
-
-            constrBuildingParams = new(list: new Construction.Params[]
-            {
-                new
-                (
-                    name: "factory costruction",
-                    energyPriority: 10,
-                    reqSkill: 10,
-                    reqWatts: 100,
-                    industrParams: new Factory.Params
-                    (
-                        name: "factory0_lvl1",
-                        energyPriority: 20,
-                        reqSkill: 10,
-                        reqWatts: 10,
-                        supply: new()
-                        {
-                            [0] = 10,
-                        },
-                        demand: new(),
-                        prodDuration: TimeSpan.FromSeconds(value: 2)
-                    ),
-                    duration: TimeSpan.FromSeconds(5),
-                    cost: new()
-                ),
-                new
-                (
-                    name: "factory costruction",
-                    energyPriority: 10,
-                    reqSkill: 10,
-                    reqWatts: 100,
-                    industrParams: new Factory.Params
-                    (
-                        name: "factory1_lvl1",
-                        energyPriority: 20,
-                        reqSkill: 10,
-                        reqWatts: 10,
-                        supply: new()
-                        {
-                            [1] = 10,
-                        },
-                        demand: new(),
-                        prodDuration: TimeSpan.FromSeconds(value: 2)
-                    ),
-                    duration: TimeSpan.FromSeconds(5),
-                    cost: new()
-                ),
-                new
-                (
-                    name: "factory costruction",
-                    energyPriority: 10,
-                    reqSkill: 10,
-                    reqWatts: 100,
-                    industrParams: new Factory.Params
-                    (
-                        name: "factory2_lvl1",
-                        energyPriority: 20,
-                        reqSkill: 10,
-                        reqWatts: 10,
-                        supply: new()
-                        {
-                            [2] = 10,
-                        },
-                        demand: new(),
-                        prodDuration: TimeSpan.FromSeconds(value: 2)
-                    ),
-                    duration: TimeSpan.FromSeconds(5),
-                    cost: new()
-                ),
-                new
-                (
-                    name: "power plant costruction",
-                    energyPriority: 10,
-                    reqSkill: 30,
-                    reqWatts: 100,
-                    industrParams: new PowerPlant.Params
-                    (
-                        name: "power_plant_lvl1",
-                        reqSkill: 20,
-                        prodWatts: 1000
-                    ),
-                    duration: TimeSpan.FromSeconds(5),
-                    cost: new()
-                ),
-                new
-                (
-                    name: "factory costruction",
-                    energyPriority: 10,
-                    reqSkill: 10,
-                    reqWatts: 100,
-                    industrParams: new Factory.Params
-                    (
-                        name: "factory0_lvl2",
-                        energyPriority: 20,
-                        reqSkill: 10,
-                        reqWatts: 10,
-                        supply: new()
-                        {
-                            [0] = 100,
-                        },
-                        demand: new()
-                        {
-                            [1] = 50,
-                        },
-                        prodDuration: TimeSpan.FromSeconds(value: 2)
-                    ),
-                    duration: TimeSpan.FromSeconds(5),
-                    cost: new()
-                    {
-                        [1] = 20,
-                        [2] = 10
-                    }
-                ),
-                new
-                (
-                    name: "reprod. ind. constr.",
-                    energyPriority: 10,
-                    reqSkill: 5,
-                    reqWatts: 200,
-                    industrParams: new ReprodIndustry.Params
-                    (
-                        name: "reprod. ind.",
-                        energyPriority: 11,
-                        reqSkill: 10,
-                        reqWattsPerChild: 10,
-                        maxCouples: 10,
-                        resPerChild: new()
-                        {
-                            [0] = 10,
-                        },
-                        birthDuration: TimeSpan.FromSeconds(1)
-                    ),
-                    duration: TimeSpan.FromSeconds(20),
-                    cost: new()
-                ),
-            });
-        }
 
         public ulong EnergyPriority
             => IsBusy() switch
@@ -457,7 +291,7 @@ namespace Game1.Industries
         public virtual string GetText()
             => CurOverlay switch
             {
-                <= C.MaxRes => "",
+                <= MaxRes => "",
                 Overlay.AllRes => "",
                 Overlay.Power => "",
                 Overlay.People => employer.GetText(),

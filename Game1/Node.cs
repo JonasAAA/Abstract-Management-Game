@@ -21,8 +21,8 @@ namespace Game1
                 => false;
 
             public override double PersonScoreOfThis(Person person)
-                => Person.momentumCoeff * (IsPersonHere(person: person) ? 1 : 0) 
-                + (.7 * C.Random(min: 0, max: 1) + .3 * DistanceToHere(person: person)) * (1 - Person.momentumCoeff);
+                => CurWorldConfig.personMomentumCoeff * (IsPersonHere(person: person) ? 1 : 0) 
+                + (.7 * C.Random(min: 0, max: 1) + .3 * DistanceToHere(person: person)) * (1 - CurWorldConfig.personMomentumCoeff);
 
             public override bool IsPersonSuitable(Person person)
                 // may disallow far travel
@@ -50,7 +50,6 @@ namespace Game1
         public readonly float radius;
         public double LocallyProducedWatts
             => shape.Watts;
-            //=> throw new NotImplementedException();
 
         /// <summary>
         /// CURRENTLY UNUSED
@@ -95,7 +94,7 @@ namespace Game1
 
             resSplittersToDestins = new
             (
-                values: from ind in Enumerable.Range(0, Resource.Count)
+                values: from ind in Enumerable.Range(0, CurResConfig.ResCount)
                         select new ProporSplitter<Vector2>()
             );
             targetStoredResAmounts = new();
@@ -148,9 +147,7 @@ namespace Game1
                 tabLabelText: "build",
                 tab: buildButtonPannel
             );
-            for (int i = 0; i < Industry.constrBuildingParams.Count; i++)
-            {
-                var parameters = Industry.constrBuildingParams[i];
+            foreach (var constrParams in CurIndustryConfig.constrBuildingParams)
                 buildButtonPannel.AddChild
                 (
                     child: new Button<Ellipse>
@@ -163,12 +160,11 @@ namespace Game1
                         {
                             Color = Color.White
                         },
-                        explanation: parameters.explanation,
-                        action: () => SetIndustry(newIndustry: parameters.MakeIndustry(state: state)),
-                        text: "build " + parameters.industrParams.name
+                        explanation: constrParams.explanation,
+                        action: () => SetIndustry(newIndustry: constrParams.MakeIndustry(state: state)),
+                        text: "build " + constrParams.industrParams.name
                     )
                 );
-            }
 
             overlayTabLabel = "overlay tab";
             overlayTabPanels = new();
@@ -179,7 +175,7 @@ namespace Game1
                     color: Color.White,
                     childHorizPos: HorizPos.Left
                 );
-            for (int resInd = 0; resInd <= (int)C.MaxRes; resInd++)
+            for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
             {
                 var storeToggle = new ToggleButton<MyRectangle>
                 (
@@ -486,7 +482,7 @@ namespace Game1
 
             switch (CurOverlay)
             {
-                case <= C.MaxRes:
+                case <= MaxRes:
                     int resInd = (int)CurOverlay;
                     if (store[resInd])
                         textBox.Text += "store\n";

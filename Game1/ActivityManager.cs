@@ -19,7 +19,7 @@ namespace Game1
             activityCenter.Deleted += () => activityCenters.Remove(activityCenter);
         }
 
-        public void ManageActivities()
+        public void ManageActivities(IEnumerable<Person> people)
         {
             HashSet<IActivityCenter> availableActivityCenters = new
             (
@@ -30,7 +30,9 @@ namespace Game1
 
             Queue<Person> availablePeople = new
             (
-                Person.GetActivitySeekingPeople()
+                (from person in people
+                 where person.IfSeeksNewActivity()
+                 select person)
                 .OrderBy(person => C.Random(min: 0, max: 1))
             );
 

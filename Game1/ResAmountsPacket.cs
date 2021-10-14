@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -42,7 +43,7 @@ namespace Game1
         public void Add(int resInd, ulong resAmount)
         {
             resAmounts[resInd] += resAmount;
-            TotalWeight += Resource.all[resInd].weight * resAmount;
+            TotalWeight += CurResConfig.resources[resInd].weight * resAmount;
         }
     }
 }

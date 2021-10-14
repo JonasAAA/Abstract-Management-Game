@@ -58,7 +58,7 @@ namespace Game1
             }
         }
 
-        public void Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
+        public void Draw(GraphicsDevice graphicsDevice, Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
         {
             Vector2 textureCenter = new(.5f);
             int centerInd = vertices.Count;
@@ -71,7 +71,7 @@ namespace Game1
             foreach (var effectPass in basicEffect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
-                C.GraphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertPosTex, 0, vertPosTex.Length, ind, 0, ind.Length / 3);
+                graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertPosTex, 0, vertPosTex.Length, ind, 0, ind.Length / 3);
             }
 
             Vector3 Transform(Vector2 pos)

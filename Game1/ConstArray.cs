@@ -10,7 +10,7 @@ namespace Game1
         protected readonly T[] array;
 
         public ConstArray()
-            => array = new T[length];
+            => array = new T[Length];
 
         public ConstArray(T value)
             : this()
@@ -19,7 +19,7 @@ namespace Game1
         public ConstArray(IEnumerable<T> values)
         {
             array = values.ToArray();
-            if (array.Length != length)
+            if (array.Length != Length)
                 throw new ArgumentException();
         }
 
@@ -31,7 +31,7 @@ namespace Game1
 
         public IEnumerator<T> GetEnumerator()
         {
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < Length; i++)
                 yield return array[i];
         }
 
@@ -41,9 +41,9 @@ namespace Game1
 
     public class ConstArray
     {
-        public static readonly int length;
+        public static int Length { get; private set; }
 
-        static ConstArray()
-            => length = Resource.Count;
+        public static void Initialize(int resCount)
+            => Length = resCount;
     }
 }

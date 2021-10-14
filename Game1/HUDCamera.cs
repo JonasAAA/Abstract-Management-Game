@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Game1
 {
@@ -6,7 +7,8 @@ namespace Game1
     {
         private readonly Matrix HUDToScreen, screenToHUD;
 
-        public HUDCamera()
+        public HUDCamera(GraphicsDevice graphicsDevice)
+            : base(graphicsDevice: graphicsDevice)
         {
             HUDToScreen = Matrix.CreateScale(scale: (float)screenScale);
             screenToHUD = Matrix.Invert(HUDToScreen);

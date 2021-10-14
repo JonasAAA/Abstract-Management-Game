@@ -8,38 +8,28 @@ namespace Game1
     public class LightManager
     {
         public const int maxWidth = 2048, layer = 5;
-        //public BasicEffect BasicEffect
-        //    => CurOverlay switch
-        //    {
-        //        Overlay.Power => brightEffect,
-        //        _ => dimEffect
-        //    };
 
         private readonly MyHashSet<ILightCatchingObject> lightCatchingObjects;
         private readonly MyHashSet<ILightSource> lightSources;
         private readonly RenderTarget2D renderTarget;
         private readonly int actualScreenWidth, actualScreenHeight;
-        private BasicEffect brightEffect, dimEffect;
+        private readonly BasicEffect brightEffect, dimEffect;
 
-        public LightManager()
+        public LightManager(GraphicsDevice graphicsDevice, double standardStarRadius)
         {
             lightCatchingObjects = new();
             lightSources = new();
             actualScreenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             actualScreenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-            renderTarget = new(C.GraphicsDevice, actualScreenWidth, actualScreenHeight);
-        }
-
-        public void Initialize()
-        {
+            renderTarget = new(graphicsDevice, actualScreenWidth, actualScreenHeight);
             brightEffect = GetBasicEffect(brightness: 100);
             dimEffect = GetBasicEffect(brightness: 1);
 
-            static BasicEffect GetBasicEffect(double brightness)
+            BasicEffect GetBasicEffect(double brightness)
             {
                 if (brightness <= 0)
                     throw new ArgumentOutOfRangeException();
-                Texture2D texture = new(C.GraphicsDevice, maxWidth, maxWidth);
+                Texture2D texture = new(graphicsDevice, maxWidth, maxWidth);
                 Color[] colorData = new Color[maxWidth * maxWidth];
                 for (int i = 0; i < maxWidth; i++)
                     for (int j = 0; j < maxWidth; j++)
@@ -49,13 +39,13 @@ namespace Game1
                             value1: new Vector2(maxWidth * .5f),
                             value2: new Vector2(i + .5f, j + .5f)
                         );
-                        double a = CurWorldConfig.standardStarRadius + brightness;
+                        double a = standardStarRadius + brightness;
                         float factor = (float)Math.Min(1, a / (brightness + distFromLight));
                         colorData[i * maxWidth + j] = Color.White * factor;
                     }
                 texture.SetData(colorData);
 
-                return new(C.GraphicsDevice)
+                return new(graphicsDevice)
                 {
                     TextureEnabled = true,
                     VertexColorEnabled = true,
@@ -63,50 +53,6 @@ namespace Game1
                 };
             }
         }
-
-        //public void Initialize()
-        //{
-        //    actualScreenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-        //    actualScreenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-        //    renderTarget = new(C.GraphicsDevice, actualScreenWidth, actualScreenHeight);
-
-        //    brightEffect = GetBasicEffect(brightness: 100);
-        //    dimEffect = GetBasicEffect(brightness: 1);
-
-        //    static BasicEffect GetBasicEffect(double brightness)
-        //    {
-        //        if (brightness <= 0)
-        //            throw new ArgumentOutOfRangeException();
-        //        Texture2D texture = new(C.GraphicsDevice, maxWidth, maxWidth);
-        //        Color[] colorData = new Color[maxWidth * maxWidth];
-        //        for (int i = 0; i < maxWidth; i++)
-        //            for (int j = 0; j < maxWidth; j++)
-        //            {
-        //                float distFromLight = Vector2.Distance
-        //                (
-        //                    value1: new Vector2(maxWidth * .5f),
-        //                    value2: new Vector2(i + .5f, j + .5f)
-        //                );
-        //                double a = C.standardStarRadius + brightness;
-        //                float factor = (float)Math.Min(1, a / (brightness + distFromLight));
-        //                colorData[i * maxWidth + j] = Color.White * factor;
-        //            }
-        //        texture.SetData(colorData);
-
-        //        return new(C.GraphicsDevice)
-        //        {
-        //            TextureEnabled = true,
-        //            VertexColorEnabled = true,
-        //            Texture = texture
-        //        };
-        //    }
-        //}
-
-        //public Vector3 Transform(Vector2 pos)
-        //{
-        //    Vector2 transPos = Vector2.Transform(pos, C.WorldCamera.GetToScreenTransform());
-        //    return new Vector3(2 * transPos.X / actualScreenWidth - 1, 1 - 2 * transPos.Y / actualScreenHeight, 0);
-        //}
 
         public void AddLightCatchingObject(ILightCatchingObject lightCatchingObject)
         {
@@ -129,13 +75,13 @@ namespace Game1
                 lightSource.GiveWattsToObjects(lightCatchingObjects: lightCatchingObjects);
         }
 
-        public void Draw(Matrix worldToScreenTransform)
+        public void Draw(GraphicsDevice graphicsDevice, Matrix worldToScreenTransform)
         {
-            C.GraphicsDevice.SetRenderTarget(renderTarget);
-            C.GraphicsDevice.Clear(Color.Transparent);
+            graphicsDevice.SetRenderTarget(renderTarget);
+            graphicsDevice.Clear(Color.Transparent);
 
-            C.GraphicsDevice.BlendState = BlendState.Additive;
-            C.GraphicsDevice.RasterizerState = new RasterizerState()
+            graphicsDevice.BlendState = BlendState.Additive;
+            graphicsDevice.RasterizerState = new RasterizerState()
             {
                 CullMode = CullMode.None
             };
@@ -143,6 +89,7 @@ namespace Game1
             foreach (var lightSource in lightSources)
                 lightSource.Draw
                 (
+                    graphicsDevice: graphicsDevice,
                     worldToScreenTransform: worldToScreenTransform,
                     basicEffect: CurOverlay switch
                     {
@@ -153,7 +100,7 @@ namespace Game1
                     actualScreenHeight: actualScreenHeight
                 );
 
-            C.GraphicsDevice.SetRenderTarget(null);
+            graphicsDevice.SetRenderTarget(null);
 
             C.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
             C.SpriteBatch.Draw(renderTarget, Vector2.Zero, Color.White);

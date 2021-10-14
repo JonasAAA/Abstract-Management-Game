@@ -10,7 +10,7 @@ namespace Game1.UI
         public Ellipse(float width, float height)
             : base(width: width, height: height)
         {
-            diskTexture = C.ContentManager.Load<Texture2D>("big disk");
+            diskTexture = C.LoadTexture(name: "big disk");
         }
 
         public override bool Contains(Vector2 position)

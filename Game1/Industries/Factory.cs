@@ -20,7 +20,7 @@ namespace Game1.Industries
                     name: name,
                     energyPriority: energyPriority,
                     reqSkill: reqSkill,
-                    explanation: $"requires {reqSkill} skill\nrequires {reqWatts} W/s\nsupply {supply}\ndemand {demand}"
+                    explanation: $"requires {reqSkill} skill\nrequires {reqWatts} W\nsupply {supply}\ndemand {demand}"
                 )
             {
                 if (reqWatts <= 0)

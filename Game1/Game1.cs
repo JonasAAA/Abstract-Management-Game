@@ -10,7 +10,6 @@ namespace Game1
     {
         private readonly GraphicsDeviceManager graphics;
         private readonly KeyButton exitButton;
-        //private PlayState playState;
         
         public Game1()
         {
@@ -48,22 +47,17 @@ namespace Game1
             C.Initialize
             (
                 contentManager: Content,
-                graphicsDevice: GraphicsDevice,
                 spriteBatch: new(GraphicsDevice)
             );
 
-            //LightManager.Initialize();
-
-            var curGraph = WorldManager.InitializeNew();
-            ActiveUI.Initialize(curGraph: curGraph);
-            //playState = new();
+            ActiveUI.Initialize(graphicsDevice: GraphicsDevice);
+            var curGraph = WorldManager.InitializeNew(graphicsDevice: GraphicsDevice);
+            ActiveUI.SetCurGraph(curGraph: curGraph);
         }
 
         protected override void Update(GameTime gameTime)
         {
             exitButton.Update();
-
-            //MyMouse.Update();
 
             TimeSpan elapsed = gameTime.ElapsedGameTime;
 
@@ -78,7 +72,7 @@ namespace Game1
         {
             GraphicsDevice.Clear(Color.Transparent);
 
-            WorldManager.Current.Draw();
+            WorldManager.Current.Draw(graphicsDevice: GraphicsDevice);
 
             ActiveUI.DrawHUD();
 

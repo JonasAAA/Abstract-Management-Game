@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -57,8 +56,6 @@ namespace Game1
             totUsedPowerPlantWatts = 0;
 
             Dictionary<Vector2, MyHashSet<IEnergyConsumer>> energyConsumersByNode = new();
-            //foreach (var node in CurGraph.Nodes)
-            //    energyConsumersByNode[node.Position] = new();
             foreach (var nodePos in nodePositions)
                 energyConsumersByNode[nodePos] = new();
             foreach (var energyConsumer in energyConsumers)

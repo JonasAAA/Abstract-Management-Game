@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -50,7 +51,7 @@ namespace Game1
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
             resAmountsPacketsByDestin[destination].Add(resInd: resInd, resAmount: resAmount);
-            TotalWeight += Resource.all[resInd].weight * resAmount;
+            TotalWeight += CurResConfig.resources[resInd].weight * resAmount;
         }
 
         public ULongArray ReturnAndRemove(Vector2 destination)

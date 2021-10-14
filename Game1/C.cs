@@ -7,22 +7,11 @@ namespace Game1
 {
     public static class C
     {
-        //public const int standardScreenHeight = 1080;
-        //public const float standardStarRadius = 50;
-        //public static double ScreenWidth
-        //    => (double)GraphicsDevice.Viewport.Width * CurConfig.standardScreenHeight / GraphicsDevice.Viewport.Height;
-        //public static double ScreenHeight
-        //    => standardScreenHeight;
-        public const Overlay MaxRes = (Overlay)2;
-        //public const float letterHeight = 20;
-        public static ContentManager ContentManager { get; private set; }
-        public static GraphicsDevice GraphicsDevice { get; private set; }
         public static SpriteBatch SpriteBatch { get; private set; }
-        //public static WorldCamera WorldCamera { get; private set; }
-        public static HUDCamera HUDCamera { get; private set; }
 
-        public static readonly double minPosDouble;
-        public static readonly decimal minPosDecimal;
+        private static ContentManager contentManager;
+        private static readonly double minPosDouble;
+        private static readonly decimal minPosDecimal;
         private static readonly Random random;
 
         static C()
@@ -33,12 +22,10 @@ namespace Game1
             random = new();
         }
 
-        public static void Initialize(ContentManager contentManager, GraphicsDevice graphicsDevice, SpriteBatch spriteBatch)
+        public static void Initialize(ContentManager contentManager, SpriteBatch spriteBatch)
         {
-            ContentManager = contentManager;
-            GraphicsDevice = graphicsDevice;
+            C.contentManager = contentManager;
             SpriteBatch = spriteBatch;
-            HUDCamera = new();
         }
 
         public static double Random(double min, double max)
@@ -92,6 +79,12 @@ namespace Game1
 
         public static bool Transparent(Color color)
             => color.A is 0;
+
+        public static Texture2D LoadTexture(string name)
+            => contentManager.Load<Texture2D>(name);
+
+        public static SpriteFont LoadFont(string name)
+            => contentManager.Load<SpriteFont>(name);
 
         public static void Draw(Texture2D texture, Vector2 position, Color color, float rotation, Vector2 origin, float scale)
             => SpriteBatch.Draw

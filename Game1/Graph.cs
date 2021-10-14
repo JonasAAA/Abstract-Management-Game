@@ -5,33 +5,12 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using static Game1.WorldManager;
 
 namespace Game1
 {
     public class Graph : UIElement
     {
-        //public delegate void OverlayChangedEventHandler(Overlay oldOverlay);
-
-        //public static Overlay Overlay { get; private set; }
-
-        //public static TimeSpan CurrentTime { get; private set; }
-
-        //public static TimeSpan Elapsed { get; private set; }
-
-        //public static event OverlayChangedEventHandler OverlayChanged;
-
-        //public static Graph World { get; private set; }
-
-        //public static void InitializeWorld(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links, Overlay overlay)
-        //{
-        //    if (World is not null)
-        //        throw new InvalidOperationException();
-
-        //    World = new Graph(stars: stars, nodes: nodes, links: links, overlay: overlay);
-        //    foreach (var node in nodes)
-        //        node.Init(startPersonCount: 5);
-        //}
-
         public IEnumerable<Node> Nodes
             => nodes;
         public IEnumerable<Link> Links
@@ -51,84 +30,17 @@ namespace Game1
         private readonly List<Node> nodes;
         private readonly List<Link> links;
         private readonly double persDistTimeCoeff, persDistEnergyCoeff, resDistTimeCoeff, resDistEnergyCoeff;
-        //private readonly TextBox globalTextBox;
-        //private bool paused;
 
         public Graph()
             : base(shape: new InfinitePlane())
         {
-            this.stars = new();
-            this.nodes = new();
-            this.links = new();
+            stars = new();
+            nodes = new();
+            links = new();
             persDistTimeCoeff = 1;
             persDistEnergyCoeff = 0;
             resDistTimeCoeff = 0;
             resDistEnergyCoeff = 1;
-
-            //paused = false;
-
-            //globalTextBox = new();
-            //globalTextBox.Shape.MinWidth = 250;
-            //globalTextBox.Shape.Color = Color.White;
-            //ActiveUI.AddHUDElement
-            //(
-            //    UIElement: globalTextBox,
-            //    horizPos: HorizPos.Left,
-            //    vertPos: VertPos.Top
-            //);
-
-            //ToggleButton<MyRectangle> pauseButton = new
-            //(
-            //    shape: new
-            //    (
-            //        width: 60,
-            //        height: 60
-            //    ),
-            //    on: false,
-            //    text: "Toggle\nPause",
-            //    selectedColor: Color.White,
-            //    deselectedColor: Color.Gray
-            //);
-
-            //pauseButton.OnChanged += () => paused = pauseButton.On;
-
-            //ActiveUI.AddHUDElement
-            //(
-            //    UIElement: pauseButton,
-            //    horizPos: HorizPos.Right,
-            //    vertPos: VertPos.Bottom
-            //);
-
-            //MultipleChoicePanel overlayChoicePanel = new
-            //(
-            //    horizontal: true,
-            //    choiceWidth: 100,
-            //    choiceHeight: 30,
-            //    selectedColor: Color.White,
-            //    deselectedColor: Color.Gray,
-            //    backgroundColor: Color.White
-            //);
-
-            //foreach (var posOverlay in Enum.GetValues<Overlay>())
-            //    overlayChoicePanel.AddChoice
-            //    (
-            //        choiceText: posOverlay.ToString(),
-            //        select: () =>
-            //        {
-            //            if (Overlay == posOverlay)
-            //                return;
-            //            Overlay oldOverlay = Overlay;
-            //            Overlay = posOverlay;
-            //            OverlayChanged?.Invoke(oldOverlay: oldOverlay);
-            //        }
-            //    );
-
-            //ActiveUI.AddHUDElement
-            //(
-            //    UIElement: overlayChoicePanel,
-            //    horizPos: HorizPos.Middle,
-            //    vertPos: VertPos.Top
-            //);
         }
 
         public void Initialize(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links)
@@ -254,17 +166,6 @@ namespace Game1
 
         public void Update()
         {
-            //if (elapsed < TimeSpan.Zero)
-            //    throw new ArgumentException();
-
-            //if (paused)
-            //    elapsed = TimeSpan.Zero;
-
-            //Elapsed = elapsed;
-            //CurrentTime += Elapsed;
-
-            //CurEnergyManager.DistributeEnergy();
-
             links.ForEach(link => link.Update());
             foreach (var node in nodes)
                 node.Update(personFirstLinks: personFirstLinks);
@@ -274,15 +175,11 @@ namespace Game1
 
             nodes.ForEach(node => node.StartSplitRes());
 
-            for (int resInd = 0; resInd < Resource.Count; resInd++)
+            for (int resInd = 0; resInd < CurResConfig.ResCount; resInd++)
                 SplitRes(resInd: resInd);
 
             foreach (var node in nodes)
                 node.EndSplitRes(resFirstLinks: resFirstLinks);
-
-            //ActivityManager.ManageActivities();
-
-            //globalTextBox.Text = (CurEnergyManager.Summary() + $"population {Person.PeopleCount}").Trim();
         }
 
         private class NodeInfo
@@ -417,18 +314,14 @@ namespace Game1
 
         public void DrawBeforeLight()
         {
-            //C.WorldCamera.BeginDraw();
             foreach (var child in Children(maxLayer: LightManager.layer - 1))
                 child.Draw();
-            //C.WorldCamera.EndDraw();
         }
 
         public void DrawAfterLight()
         {
-            //C.WorldCamera.BeginDraw();
             foreach (var child in Children(minLayer: LightManager.layer + 1))
                 child.Draw();
-            //C.WorldCamera.EndDraw();
         }
 
         public override void Draw()

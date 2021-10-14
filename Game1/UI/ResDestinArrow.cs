@@ -1,5 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
+using static Game1.WorldManager;
 
 namespace Game1.UI
 {
@@ -43,7 +44,7 @@ namespace Game1.UI
             this.shape = shape;
             this.defaultActiveColor = defaultActiveColor;
             this.defaultInactiveColor = defaultInactiveColor;
-            if (resInd is < 0 or > (int)C.MaxRes)
+            if (resInd is < 0 or > (int)MaxRes)
                 throw new ArgumentOutOfRangeException();
             popup = new UIRectVertPanel<IUIElement<NearRectangle>>
             (

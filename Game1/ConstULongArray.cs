@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -28,14 +29,14 @@ namespace Game1
             => new(array);
 
         public ulong TotalWeight()
-            => Enumerable.Range(start: 0, count: (int)length).Sum(i => Resource.all[i].weight * array[i]);
+            => Enumerable.Range(start: 0, count: Length).Sum(i => CurResConfig.resources[i].weight * array[i]);
 
         public override string ToString()
         {
-            if (TotalWeight() is 0)
+            if (array.All(value => value is 0))
                 return "None";
             string result = "";
-            for (int resInd = 0; resInd < Resource.Count; resInd++)
+            for (int resInd = 0; resInd < Length; resInd++)
                 if (array[resInd] > 0)
                     result += $"res{resInd}: {array[resInd]}, ";
             return result.Trim(' ', ',');

@@ -11,12 +11,6 @@ namespace Game1.UI
 
     public interface IUIElement
     {
-        //this should go to a confing file
-        //protected static readonly Color mouseOnColor;
-
-        //static IUIElement()
-        //    => mouseOnColor = Color.Yellow;
-
         public bool Enabled { get; }
 
         public bool PersonallyEnabled { set; }

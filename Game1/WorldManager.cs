@@ -1,5 +1,7 @@
-﻿using Game1.UI;
+﻿using Game1.Industries;
+using Game1.UI;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
@@ -9,6 +11,8 @@ namespace Game1
 {
     public sealed class WorldManager
     {
+        public const Overlay MaxRes = (Overlay)2;
+
         public static WorldManager Current { get; private set; }
 
         public static Overlay CurOverlay
@@ -21,9 +25,12 @@ namespace Game1
         public static WorldConfig CurWorldConfig
             => Current.worldConfig;
 
-        //public static Graph CurGraph
-        //    => Current.graph;
+        public static ResConfig CurResConfig
+            => Current.resConfig;
 
+        public static IndustryConfig CurIndustryConfig
+            => Current.industryConfig;
+        
         public static TimeSpan CurTime { get; private set; }
 
         public static TimeSpan Elapsed { get; private set; }
@@ -37,11 +44,11 @@ namespace Game1
         public static double MaxLinkJoulesPerKg
             => Current.graph.MaxLinkJoulesPerKg;
 
-        public static Graph InitializeNew()
+        public static Graph InitializeNew(GraphicsDevice graphicsDevice)
         {
             if (Current is not null)
                 throw new InvalidOperationException();
-            Current = new();
+            Current = new(graphicsDevice: graphicsDevice);
             Current.Initialize();
             return Current.graph;
         }
@@ -67,38 +74,50 @@ namespace Game1
         public static void AddLightSource(ILightSource lightSource)
             => Current.lightManager.AddLightSource(lightSource: lightSource);
 
+        public static void AddPerson(Person person)
+        {
+            Current.people.Add(person);
+            person.Deleted += () => Current.people.Remove(person);
+        }
+
         private readonly WorldConfig worldConfig;
+        private readonly ResConfig resConfig;
+        private readonly IndustryConfig industryConfig;
+
         private readonly Graph graph;
         private readonly WorldCamera worldCamera;
         private readonly EnergyManager energyManager;
         private readonly ActivityManager activityManager;
         private readonly LightManager lightManager;
+        private readonly MyHashSet<Person> people;
         private readonly TextBox globalTextBox;
 
         private Overlay overlay;
         private bool paused;
 
-        private WorldManager()
+        private WorldManager(GraphicsDevice graphicsDevice)
         {
             worldConfig = new();
-            worldCamera = new(scrollSpeed: 60);
+            resConfig = new();
+            ConstArray.Initialize(resCount: resConfig.ResCount);
+            industryConfig = new();
+            worldCamera = new(graphicsDevice: graphicsDevice, scrollSpeed: worldConfig.scrollSpeed);
             activityManager = new();
             energyManager = new();
             graph = new();
-            lightManager = new();
+            lightManager = new(graphicsDevice: graphicsDevice, standardStarRadius: worldConfig.standardStarRadius);
+            people = new();
 
             overlay = Overlay.Res0;
             paused = false;
 
             globalTextBox = new();
-            globalTextBox.Shape.MinWidth = 250;
+            globalTextBox.Shape.MinWidth = 300;
             globalTextBox.Shape.Color = Color.White;
         }
 
         private void Initialize()
         {
-            lightManager.Initialize();
-
             Star[] stars = new Star[]
             {
                 new
@@ -172,7 +191,7 @@ namespace Game1
                             minSafeDist: minSafeDist
                         )
                     );
-            //Graph.InitializeWorld
+
             graph.Initialize
             (
                 stars: stars,
@@ -240,8 +259,6 @@ namespace Game1
                 horizPos: HorizPos.Middle,
                 vertPos: VertPos.Top
             );
-
-            //ActiveUI.Initialize();
         }
 
         public void Update(TimeSpan elapsed)
@@ -268,24 +285,22 @@ namespace Game1
 
             graph.Update();
 
-            activityManager.ManageActivities();
+            activityManager.ManageActivities(people: people);
 
-            globalTextBox.Text = (energyManager.Summary() + $"population {Person.PeopleCount}").Trim();
+            globalTextBox.Text = (energyManager.Summary() + $"population {people.Count}").Trim();
         }
 
-        public void Draw()
+        public void Draw(GraphicsDevice graphicsDevice)
         {
             worldCamera.BeginDraw();
             graph.DrawBeforeLight();
             worldCamera.EndDraw();
 
-            lightManager.Draw(worldToScreenTransform: worldCamera.GetToScreenTransform());
+            lightManager.Draw(graphicsDevice: graphicsDevice, worldToScreenTransform: worldCamera.GetToScreenTransform());
 
             worldCamera.BeginDraw();
             graph.DrawAfterLight();
             worldCamera.EndDraw();
-
-            //ActiveUI.DrawHUD();
         }
     }
 }

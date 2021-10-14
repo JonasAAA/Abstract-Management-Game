@@ -31,13 +31,13 @@ namespace Game1
             private readonly Texture2D diskTexture;
             private double energyPropor;
 
-            public DirLink(Node begin, Node end, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
+            public DirLink(Node startNode, Node endNode, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
             {
-                this.startNode = begin;
-                this.endNode = end;
+                this.startNode = startNode;
+                this.endNode = endNode;
 
                 timedPacketQueue = new(duration: travelTime);
-                minSafePropor = minSafeDist / Vector2.Distance(begin.Position, end.Position);
+                minSafePropor = minSafeDist / Vector2.Distance(startNode.Position, endNode.Position);
                 if (!C.IsInSuitableRange(value: minSafePropor))
                     throw new ArgumentOutOfRangeException();
                 waitingResAmountsPackets = new();
@@ -45,7 +45,7 @@ namespace Game1
                 if (wattsPerKg <= 0)
                     throw new ArgumentOutOfRangeException();
                 reqWattsPerKg = wattsPerKg / travelTime.TotalSeconds;
-                diskTexture = C.ContentManager.Load<Texture2D>("big disk");
+                diskTexture = C.LoadTexture(name: "big disk");
                 energyPropor = 0;
 
                 AddEnergyConsumer(energyConsumer: this);
@@ -97,7 +97,7 @@ namespace Game1
 
                 switch (CurOverlay)
                 {
-                    case <= C.MaxRes:
+                    case <= MaxRes:
                         foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
                             DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts[(int)CurOverlay]);
                         break;
@@ -125,11 +125,6 @@ namespace Game1
                 => this.energyPropor = energyPropor;
         }
 
-        //private static readonly ulong linkEnergyPriority;
-
-        //static Link()
-        //    => linkEnergyPriority = 10;
-
         public readonly Node node1, node2;
         public double JoulesPerKg
             => link1To2.JoulesPerKg;
@@ -147,8 +142,8 @@ namespace Game1
             this.node1 = node1;
             this.node2 = node2;
             
-            link1To2 = new(begin: node1, end: node2, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
-            link2To1 = new(begin: node2, end: node1, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
+            link1To2 = new(startNode: node1, endNode: node2, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
+            link2To1 = new(startNode: node2, endNode: node1, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
         }
 
         public Node OtherNode(Node node)
@@ -194,7 +189,7 @@ namespace Game1
         public override void Draw()
         {
             // temporary
-            Texture2D pixel = C.ContentManager.Load<Texture2D>(assetName: "pixel");
+            Texture2D pixel = C.LoadTexture(name: "pixel");
             Color color = Color.Lerp
             (
                 value1: Color.White,

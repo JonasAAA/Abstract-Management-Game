@@ -36,5 +36,13 @@ namespace Game1
                 keySelector: a => a.Key,
                 elementSelector: a => Math.Clamp(a.Value, min, max)
             );
+
+        public static MyHashSet<T> ToMyHashSet<T>(this IEnumerable<T> source)
+        {
+            MyHashSet<T> result = new();
+            foreach (var item in source)
+                result.Add(item);
+            return result;
+        }
     }
 }

@@ -3,11 +3,11 @@ using System;
 
 namespace Game1.UI
 {
-    public interface IUIElement<out TShape> : IUIElement
-        where TShape : Shape
-    {
-        public TShape Shape { get; }
-    }
+    //public interface IHUDElement<out TShape> : IUIElement
+    //    where TShape : Shape
+    //{
+    //    public TShape Shape { get; }
+    //}
 
     public interface IUIElement
     {
@@ -24,6 +24,8 @@ namespace Game1.UI
         public string Explanation { get; }
 
         public event Action SizeOrPosChanged, EnabledChanged, MouseOnChanged;
+
+        public void Initialize();
 
         public bool Contains(Vector2 position);
 

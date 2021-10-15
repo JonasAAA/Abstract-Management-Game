@@ -2,22 +2,20 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using static Game1.WorldManager;
 
 namespace Game1
 {
     public sealed class WorldCamera : Camera
     {
         private Matrix worldToScreen, screenToWorld;
-        private readonly float scrollSpeed, boundWidth;
         private readonly double scale;
         private Vector2 worldCenter, screenCenter;
 
-        public WorldCamera(GraphicsDevice graphicsDevice, float scrollSpeed)
+        public WorldCamera(GraphicsDevice graphicsDevice)
             : base(graphicsDevice: graphicsDevice)
         {
-            this.scrollSpeed = scrollSpeed;
-            scale = 1;
-            boundWidth = 10;
+            scale = CurWorldConfig.startingWorldScale;
             worldCenter = new(0, 0);
             screenCenter = new((float)(ActiveUI.ScreenWidth * .5), (float)(ActiveUI.ScreenHeight * .5));
             Update(elapsed: TimeSpan.Zero, canScroll: false);
@@ -34,14 +32,14 @@ namespace Game1
             float elapsedSeconds = (float)elapsed.TotalSeconds;
             if (canScroll)
             {
-                if (ActiveUI.HUDPos.X <= boundWidth)
-                    worldCenter.X -= scrollSpeed * elapsedSeconds;
-                if (ActiveUI.HUDPos.X >= ActiveUI.ScreenWidth - boundWidth)
-                    worldCenter.X += scrollSpeed * elapsedSeconds;
-                if (ActiveUI.HUDPos.Y <= boundWidth)
-                    worldCenter.Y -= scrollSpeed * elapsedSeconds;
-                if (ActiveUI.HUDPos.Y >= ActiveUI.ScreenHeight - boundWidth)
-                    worldCenter.Y += scrollSpeed * elapsedSeconds;
+                if (ActiveUI.HUDPos.X <= CurWorldConfig.screenBoundWidthForMapMoving)
+                    worldCenter.X -= CurWorldConfig.scrollSpeed * elapsedSeconds;
+                if (ActiveUI.HUDPos.X >= ActiveUI.ScreenWidth - CurWorldConfig.screenBoundWidthForMapMoving)
+                    worldCenter.X += CurWorldConfig.scrollSpeed * elapsedSeconds;
+                if (ActiveUI.HUDPos.Y <= CurWorldConfig.screenBoundWidthForMapMoving)
+                    worldCenter.Y -= CurWorldConfig.scrollSpeed * elapsedSeconds;
+                if (ActiveUI.HUDPos.Y >= ActiveUI.ScreenHeight - CurWorldConfig.screenBoundWidthForMapMoving)
+                    worldCenter.Y += CurWorldConfig.scrollSpeed * elapsedSeconds;
             }
 
             worldToScreen = Matrix.CreateTranslation(xPosition: -worldCenter.X * (float)screenScale, yPosition: -worldCenter.Y * (float)screenScale, zPosition: 0) *

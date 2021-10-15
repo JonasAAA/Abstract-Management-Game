@@ -3,7 +3,7 @@ using System;
 
 namespace Game1.UI
 {
-    public class NumIncDecrPanel : UIElement<MyRectangle>
+    public class NumIncDecrPanel : HUDElement<MyRectangle>
     {
         public int Number
         {
@@ -25,7 +25,7 @@ namespace Game1.UI
 
         private int number;
         private readonly int minNum;
-        private readonly UIRectVertPanel<IUIElement<NearRectangle>> panel;
+        private readonly UIRectVertPanel<IHUDElement<NearRectangle>> panel;
         private readonly TextBox textBox;
 
         public NumIncDecrPanel(int minNum, int number, float incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)

@@ -34,26 +34,26 @@ namespace Game1.UI
         private new readonly Arrow shape;
         private int totalImportance;
         private readonly Color defaultActiveColor, defaultInactiveColor;
-        private readonly UIRectPanel<IUIElement<NearRectangle>> popup;
+        private readonly UIRectPanel<IHUDElement<NearRectangle>> popup;
         private readonly NumIncDecrPanel importanceIncDecrPanel;
         private readonly TextBox line2;
 
-        public ResDestinArrow(Arrow shape, bool active, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int importance, int resInd)
-            : base(shape: shape, active: active, activeColor: defaultActiveColor, inactiveColor: defaultInactiveColor, popupHorizPos: popupHorizPos, popupVertPos: popupVertPos)
+        public ResDestinArrow(Arrow shape, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int importance, int resInd)
+            : base(shape: shape, activeColor: defaultActiveColor, inactiveColor: defaultInactiveColor, popupHorizPos: popupHorizPos, popupVertPos: popupVertPos)
         {
             this.shape = shape;
             this.defaultActiveColor = defaultActiveColor;
             this.defaultInactiveColor = defaultInactiveColor;
             if (resInd is < 0 or > (int)MaxRes)
                 throw new ArgumentOutOfRangeException();
-            popup = new UIRectVertPanel<IUIElement<NearRectangle>>
+            popup = new UIRectVertPanel<IHUDElement<NearRectangle>>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
             );
             SetPopup(UIElement: popup, overlay: (Overlay)resInd);
 
-            UIRectHorizPanel<IUIElement<NearRectangle>> line1 = new
+            UIRectHorizPanel<IHUDElement<NearRectangle>> line1 = new
             (
                 color: Color.White,
                 childVertPos: VertPos.Middle
@@ -91,7 +91,7 @@ namespace Game1.UI
                 },
                 action: () =>
                 {
-                    OnDelete();
+                    OnMouseDownWorldNotMe();
                     Delete?.Invoke();
                 },
                 text: "delete"

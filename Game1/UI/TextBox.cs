@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Game1.UI
 {
-    public class TextBox : UIElement<MyRectangle>
+    public class TextBox : HUDElement<MyRectangle>
     {
         public Color TextColor { private get; set; }
         public string Text

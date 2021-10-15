@@ -32,25 +32,30 @@ namespace Game1.UI
         }
 
         private Color activeColor, inactiveColor;
-        private readonly Dictionary<Overlay, IUIElement<NearRectangle>> popup;
+        private readonly Dictionary<Overlay, IHUDElement<NearRectangle>> popup;
         private readonly HorizPos popupHorizPos;
         private readonly VertPos popupVertPos;
 
-        public WorldUIElement(Shape shape, bool active, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
+        public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
             : base(shape: shape)
         {
-            Active = active;
             this.activeColor = activeColor;
             this.inactiveColor = inactiveColor;
             SetShapeColor();
             this.popupHorizPos = popupHorizPos;
             this.popupVertPos = popupVertPos;
+            Active = false;
 
             popup = Enum.GetValues<Overlay>().ToDictionary
             (
                 keySelector: overlay => overlay,
-                elementSelector: overlay => (IUIElement<NearRectangle>)null
+                elementSelector: overlay => (IHUDElement<NearRectangle>)null
             );
+        }
+
+        protected override void InitUninitialized()
+        {
+            base.InitUninitialized();
 
             CurOverlayChanged += oldOverlay =>
             {
@@ -59,7 +64,7 @@ namespace Game1.UI
                 if (popup[oldOverlay] == popup[CurOverlay])
                     return;
 
-                ActiveUI.RemoveUIElement(UIElement: popup[oldOverlay]);
+                ActiveUI.RemoveHUDElement(UIElement: popup[oldOverlay]);
                 ActiveUI.AddHUDElement
                 (
                     UIElement: popup[CurOverlay],
@@ -69,10 +74,10 @@ namespace Game1.UI
             };
         }
 
-        protected void SetPopup(IUIElement<NearRectangle> UIElement, Overlay overlay)
+        protected void SetPopup(IHUDElement<NearRectangle> UIElement, Overlay overlay)
             => popup[overlay] = UIElement;
 
-        protected void SetPopup(IUIElement<NearRectangle> UIElement, IEnumerable<Overlay> overlays)
+        protected void SetPopup(IHUDElement<NearRectangle> UIElement, IEnumerable<Overlay> overlays)
         {
             foreach (var overlay in overlays)
                 SetPopup(UIElement: UIElement, overlay: overlay);
@@ -102,14 +107,11 @@ namespace Game1.UI
 
             Active = false;
             SetShapeColor();
-            ActiveUI.RemoveUIElement
+            ActiveUI.RemoveHUDElement
             (
                 UIElement: popup[CurOverlay]
             );
         }
-
-        protected void OnDelete()
-            => ActiveUI.RemoveUIElement(UIElement: popup[CurOverlay]);
 
         private void SetShapeColor()
             => shape.Color = Active switch

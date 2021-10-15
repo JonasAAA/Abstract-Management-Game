@@ -197,8 +197,8 @@ namespace Game1.Industries
         public IEnumerable<Person> PeopleHere
             => employer.PeopleHere;
 
-        public readonly IUIElement<NearRectangle> UIElement;
-        protected readonly UIRectPanel<IUIElement<NearRectangle>> UIPanel;
+        public readonly IHUDElement<NearRectangle> UIElement;
+        protected readonly UIRectPanel<IHUDElement<NearRectangle>> UIPanel;
         private readonly TextBox textBox;
 
         protected readonly NodeState state;
@@ -211,7 +211,7 @@ namespace Game1.Industries
         private double energyPropor;
         private bool deleted;
         
-        protected Industry(Params parameters, NodeState state, UIRectPanel<IUIElement<NearRectangle>> UIPanel)
+        protected Industry(Params parameters, NodeState state, UIRectPanel<IHUDElement<NearRectangle>> UIPanel)
         {
             this.parameters = parameters;
             this.state = state;

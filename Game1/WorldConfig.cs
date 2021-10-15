@@ -14,6 +14,13 @@ namespace Game1
         /// </summary>
         public readonly ulong personDefaultEnergyPriority;
         public readonly TimeSpan personMinSeekChangeTime, personMaxSeekChangeTime;
+        public readonly double personDistanceTimeCoeff, personDistanceEnergyCoeff, resDistanceTimeCoeff, resDistanceEnergyCoeff;
+        public readonly int lightTextureWidth;
+        public readonly ulong lightLayer, nodeLayer, linkLayer;
+        public readonly double brightStarTextureBrigthness, dimStarTextureBrightness;
+
+        public readonly double startingWorldScale;
+        public readonly float screenBoundWidthForMapMoving;
 
         public WorldConfig()
         {
@@ -37,6 +44,21 @@ namespace Game1
             personDefaultEnergyPriority = 100;
             personMinSeekChangeTime = TimeSpan.FromSeconds(5);
             personMaxSeekChangeTime = TimeSpan.FromSeconds(30);
+
+            personDistanceTimeCoeff = 1;
+            personDistanceEnergyCoeff = 0;
+            resDistanceTimeCoeff = 0;
+            resDistanceEnergyCoeff = 1;
+
+            lightTextureWidth = 2048;
+            lightLayer = 5;
+            nodeLayer = 10;
+            linkLayer = 0;
+            brightStarTextureBrigthness = 100;
+            dimStarTextureBrightness = 1;
+
+            startingWorldScale = 1;
+            screenBoundWidthForMapMoving = 10;
         }
     }
 }

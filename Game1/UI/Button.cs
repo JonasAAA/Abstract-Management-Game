@@ -3,8 +3,8 @@ using System;
 
 namespace Game1.UI
 {
-    public class Button<TShape> : UIElement<TShape>
-        where TShape : Shape
+    public class Button<TShape> : HUDElement<TShape>
+        where TShape : NearRectangle
     {
         public override bool CanBeClicked
             => true;

@@ -13,87 +13,70 @@ namespace Game1
     {
         public IEnumerable<Node> Nodes
             => nodes;
-        public IEnumerable<Link> Links
-            => links;
-        private ReadOnlyDictionary<(Vector2, Vector2), double> personDists;
-        private ReadOnlyDictionary<(Vector2, Vector2), double> resDists;
-        public TimeSpan MaxLinkTravelTime { get; private set; }
-        public double MaxLinkJoulesPerKg { get; private set; }
+
+        public readonly ReadOnlyDictionary<Vector2, Node> posToNode;
+        public readonly TimeSpan maxLinkTravelTime;
+        public readonly double maxLinkJoulesPerKg;
+
+        //private readonly ReadOnlyDictionary<(Vector2, Vector2), double> personDists;
+        //private readonly ReadOnlyDictionary<(Vector2, Vector2), double> resDists;
+
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        private ReadOnlyDictionary<(Vector2, Vector2), Link> personFirstLinks;
-        private ReadOnlyDictionary<(Vector2, Vector2), Link> resFirstLinks;
-        public ReadOnlyDictionary<Vector2, Node> PosToNode { get; private set; }
+        private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> personFirstLinks;
+        private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> resFirstLinks;
 
         private readonly List<Star> stars;
         private readonly List<Node> nodes;
         private readonly List<Link> links;
-        private readonly double persDistTimeCoeff, persDistEnergyCoeff, resDistTimeCoeff, resDistEnergyCoeff;
 
-        public Graph()
+        public Graph(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links)
             : base(shape: new InfinitePlane())
         {
-            stars = new();
-            nodes = new();
-            links = new();
-            persDistTimeCoeff = 1;
-            persDistEnergyCoeff = 0;
-            resDistTimeCoeff = 0;
-            resDistEnergyCoeff = 1;
-        }
+            this.stars = stars.ToMyHashSet().ToList();
+            this.nodes = nodes.ToMyHashSet().ToList();
+            this.links = links.ToMyHashSet().ToList();
+            foreach (var link in this.links)
+            {
+                link.node1.AddLink(link: link);
+                link.node2.AddLink(link: link);
+            }
 
-        public void Initialize(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links)
-        {
-            foreach (var star in stars)
-                AddStar(star: star);
-            foreach (var node in nodes)
-                AddNode(node: node);
-            foreach (var link in links)
-                AddLink(link: link);
+            maxLinkTravelTime = this.links.Max(link => link.TravelTime);
+            maxLinkJoulesPerKg = this.links.Max(link => link.JoulesPerKg);
 
-            MaxLinkTravelTime = this.links.Max(link => link.TravelTime);
-            MaxLinkJoulesPerKg = this.links.Max(link => link.JoulesPerKg);
-
-            (personDists, personFirstLinks) = FindShortestPaths(distTimeCoeff: persDistTimeCoeff, distEnergyCoeff: persDistEnergyCoeff);
-            (resDists, resFirstLinks) = FindShortestPaths(distTimeCoeff: resDistTimeCoeff, distEnergyCoeff: resDistEnergyCoeff);
-            PosToNode = new
+            (_, personFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.personDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.personDistanceEnergyCoeff);
+            (_, resFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.resDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.resDistanceEnergyCoeff);
+            posToNode = new
             (
                 dictionary: nodes.ToDictionary
                 (
                     keySelector: nodes => nodes.Position
                 )
             );
-
-            foreach (var node in this.nodes)
-                node.Init(startPersonCount: 5);
         }
 
-        private void AddStar(Star star)
+        protected override void InitUninitialized()
         {
-            if (stars.Contains(star))
-                throw new ArgumentException();
-            stars.Add(star);
-            AddChild(child: star, layer: LightManager.layer);
-        }
+            base.InitUninitialized();
 
-        private void AddNode(Node node)
-        {
-            if (nodes.Contains(node))
-                throw new ArgumentException();
-            nodes.Add(node);
-            AddChild(child: node, layer: 10);
-        }
-
-        private void AddLink(Link link)
-        {
-            if (links.Contains(link))
-                throw new ArgumentException();
-            links.Add(link);
-
-            link.node1.AddLink(link: link);
-            link.node2.AddLink(link: link);
-            AddChild(child: link, layer: 0);
+            // I call initialize on stars, nodes and links as they may add new children to this
+            foreach (var star in stars)
+            {
+                AddChild(child: star, layer: CurWorldConfig.lightLayer);
+                star.Initialize();
+            }
+            foreach (var node in nodes)
+            {
+                AddChild(child: node, layer: CurWorldConfig.nodeLayer);
+                node.Initialize();
+            }
+            foreach (var link in links)
+            {
+                AddChild(child: link, layer: CurWorldConfig.linkLayer);
+                link.Initialize();
+            }
         }
 
         // currently uses Floyd-Warshall;
@@ -285,7 +268,7 @@ namespace Game1
                 NodeInfo sink = sinks.Dequeue();
                 sink.node.SplitRes
                 (
-                    posToNode: PosToNode,
+                    posToNode: posToNode,
                     resInd: resInd,
                     maxExtraResFunc: MaxExtraRes
                 );
@@ -304,7 +287,7 @@ namespace Game1
                 {
                     nodeInfo.node.SplitRes
                     (
-                        posToNode: PosToNode,
+                        posToNode: posToNode,
                         resInd: resInd,
                         maxExtraResFunc: MaxExtraRes
                     );
@@ -314,13 +297,13 @@ namespace Game1
 
         public void DrawBeforeLight()
         {
-            foreach (var child in Children(maxLayer: LightManager.layer - 1))
+            foreach (var child in Children(maxLayer: CurWorldConfig.lightLayer - 1))
                 child.Draw();
         }
 
         public void DrawAfterLight()
         {
-            foreach (var child in Children(minLayer: LightManager.layer + 1))
+            foreach (var child in Children(minLayer: CurWorldConfig.lightLayer + 1))
                 child.Draw();
         }
 

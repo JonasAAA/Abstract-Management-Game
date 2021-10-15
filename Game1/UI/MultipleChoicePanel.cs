@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 namespace Game1.UI
 {
-    public class MultipleChoicePanel : UIElement<MyRectangle>
+    public class MultipleChoicePanel : HUDElement<MyRectangle>
     {
         private readonly UIRectPanel<SelectButton<MyRectangle>> choicePanel;
         private readonly Dictionary<string, SelectButton<MyRectangle>> choices;

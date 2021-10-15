@@ -4,7 +4,7 @@ using System.Linq;
 namespace Game1.UI
 {
     public class UIRectVertPanel<TChild> : UIRectPanel<TChild>
-        where TChild : IUIElement<NearRectangle>
+        where TChild : IHUDElement<NearRectangle>
     {
         private readonly HorizPos childHorizPos;
 

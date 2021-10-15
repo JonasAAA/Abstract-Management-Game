@@ -38,7 +38,7 @@ namespace Game1.Industries
             (
                 parameters: parameters,
                 state: state,
-                UIPanel: new UIRectVertPanel<IUIElement<NearRectangle>>(color: Color.White, childHorizPos: HorizPos.Left)
+                UIPanel: new UIRectVertPanel<IHUDElement<NearRectangle>>(color: Color.White, childHorizPos: HorizPos.Left)
             )
         {
             this.parameters = parameters;

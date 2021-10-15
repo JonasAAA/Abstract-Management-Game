@@ -39,17 +39,17 @@ namespace Game1
             => Current.worldCamera.WorldPos(screenPos: Mouse.GetState().Position.ToVector2());
 
         public static TimeSpan MaxLinkTravelTime
-            => Current.graph.MaxLinkTravelTime;
+            => Current.graph.maxLinkTravelTime;
 
         public static double MaxLinkJoulesPerKg
-            => Current.graph.MaxLinkJoulesPerKg;
+            => Current.graph.maxLinkJoulesPerKg;
 
         public static Graph InitializeNew(GraphicsDevice graphicsDevice)
         {
             if (Current is not null)
                 throw new InvalidOperationException();
-            Current = new(graphicsDevice: graphicsDevice);
-            Current.Initialize();
+            Current = new();
+            Current.Initialize(graphicsDevice: graphicsDevice);
             return Current.graph;
         }
 
@@ -83,29 +83,24 @@ namespace Game1
         private readonly WorldConfig worldConfig;
         private readonly ResConfig resConfig;
         private readonly IndustryConfig industryConfig;
-
-        private readonly Graph graph;
-        private readonly WorldCamera worldCamera;
-        private readonly EnergyManager energyManager;
-        private readonly ActivityManager activityManager;
-        private readonly LightManager lightManager;
         private readonly MyHashSet<Person> people;
         private readonly TextBox globalTextBox;
+
+        private Graph graph;
+        private WorldCamera worldCamera;
+        private EnergyManager energyManager;
+        private ActivityManager activityManager;
+        private LightManager lightManager;
 
         private Overlay overlay;
         private bool paused;
 
-        private WorldManager(GraphicsDevice graphicsDevice)
+        private WorldManager()
         {
             worldConfig = new();
             resConfig = new();
             ConstArray.Initialize(resCount: resConfig.ResCount);
             industryConfig = new();
-            worldCamera = new(graphicsDevice: graphicsDevice, scrollSpeed: worldConfig.scrollSpeed);
-            activityManager = new();
-            energyManager = new();
-            graph = new();
-            lightManager = new(graphicsDevice: graphicsDevice, standardStarRadius: worldConfig.standardStarRadius);
             people = new();
 
             overlay = Overlay.Res0;
@@ -116,8 +111,13 @@ namespace Game1
             globalTextBox.Shape.Color = Color.White;
         }
 
-        private void Initialize()
+        private void Initialize(GraphicsDevice graphicsDevice)
         {
+            worldCamera = new(graphicsDevice: graphicsDevice);
+            activityManager = new();
+            energyManager = new();
+            lightManager = new(graphicsDevice: graphicsDevice);
+
             Star[] stars = new Star[]
             {
                 new
@@ -157,7 +157,8 @@ namespace Game1
                         radius: 32,
                         activeColor: Color.White,
                         inactiveColor: Color.Gray,
-                        resDestinArrowWidth: 64
+                        resDestinArrowWidth: 64,
+                        startPersonCount: 5
                     );
 
             const int minSafeDist = 100;
@@ -192,13 +193,14 @@ namespace Game1
                         )
                     );
 
-            graph.Initialize
+            graph = new
             (
                 stars: stars,
                 nodes: from Node node in nodes
                        select node,
                 links: links
             );
+            graph.Initialize();
 
             ActiveUI.AddHUDElement
             (
@@ -280,7 +282,7 @@ namespace Game1
             (
                 nodePositions: from node in graph.Nodes
                                select node.Position,
-                posToNode: graph.PosToNode
+                posToNode: graph.posToNode
             );
 
             graph.Update();

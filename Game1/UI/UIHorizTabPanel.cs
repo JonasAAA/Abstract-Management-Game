@@ -6,8 +6,8 @@ using System.Linq;
 
 namespace Game1.UI
 {
-    public class UIHorizTabPanel<TTab> : UIElement<MyRectangle>
-        where TTab : class, IUIElement<MyRectangle>
+    public class UIHorizTabPanel<TTab> : HUDElement<MyRectangle>
+        where TTab : class, IHUDElement<MyRectangle>
     {
         private readonly MultipleChoicePanel tabChoicePanel;
         private readonly Dictionary<string, TTab> tabs;

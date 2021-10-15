@@ -5,18 +5,6 @@ using System.Linq;
 
 namespace Game1.UI
 {
-    public class UIElement<TShape> : UIElement, IUIElement<TShape>
-        where TShape : Shape
-    {
-        public TShape Shape { get; }
-
-        public UIElement(TShape shape, string explanation = defaultExplanation)
-            : base(shape: shape, explanation: explanation)
-        {
-            Shape = shape;
-        }
-    }
-
     public class UIElement : IUIElement
     {
         protected const string defaultExplanation = "Explanation missing!";
@@ -85,19 +73,43 @@ namespace Game1.UI
         private bool personallyEnabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
         private readonly SortedDictionary<ulong, List<IUIElement>> layerToChildren;
         private readonly Dictionary<IUIElement, ulong> childToLayer;
+
+        // DO NOT serialize this
+        private bool initialized;
         
         public UIElement(Shape shape, string explanation = defaultExplanation)
         {
             this.shape = shape;
             Explanation = explanation;
-            SizeOrPosChanged += RecalcSizeAndPos;
             personallyEnabled = true;
             MouseOn = false;
             hasDisabledAncestor = false;
             inRecalcSizeAndPos = false;
             layerToChildren = new();
             childToLayer = new();
+            initialized = false;
+        }
 
+        public void Initialize()
+        {
+            foreach (var child in Children().Clone())
+            {
+                child.Initialize();
+                SubscribeToChildEvents(child: child);
+            }
+
+            if (!initialized)
+                InitUninitialized();
+
+            initialized = true;
+        }
+
+        protected virtual void InitUninitialized()
+        {
+            if (initialized)
+                throw new InvalidOperationException();
+
+            SizeOrPosChanged += RecalcSizeAndPos;
             EnabledChanged += () =>
             {
                 if (Enabled)
@@ -122,16 +134,24 @@ namespace Game1.UI
 
         protected void AddChild(IUIElement child, ulong layer = 0)
         {
-            child.SizeOrPosChanged += RecalcSizeAndPos;
             if (!layerToChildren.ContainsKey(layer))
                 layerToChildren[layer] = new();
             layerToChildren[layer].Add(child);
             childToLayer.Add(child, layer);
+            SubscribeToChildEvents(child: child);
             RecalcSizeAndPos();
+        }
+
+        private void SubscribeToChildEvents(IUIElement child)
+        {
+            child.SizeOrPosChanged -= RecalcSizeAndPos;
+            child.SizeOrPosChanged += RecalcSizeAndPos;
         }
 
         protected void RemoveChild(IUIElement child)
         {
+            if (!initialized)
+                throw new InvalidOperationException();
             ulong layer = childToLayer[child];
             child.SizeOrPosChanged -= RecalcSizeAndPos;
             if (!layerToChildren[layer].Remove(child) || !childToLayer.Remove(child))
@@ -140,10 +160,17 @@ namespace Game1.UI
         }
 
         public bool Contains(Vector2 position)
-            => shape.Contains(position: position);
+        {
+            if (!initialized)
+                throw new InvalidOperationException();
+            return shape.Contains(position: position);
+        }
 
         public virtual IUIElement CatchUIElement(Vector2 mousePos)
         {
+            if (!initialized)
+                throw new InvalidOperationException();
+
             if (!Contains(position: mousePos))
                 return null;
 
@@ -181,15 +208,23 @@ namespace Game1.UI
 
         public virtual void OnClick()
         {
+            if (!initialized)
+                throw new InvalidOperationException();
             if (!CanBeClicked)
                 throw new InvalidOperationException();
         }
 
         public virtual void OnMouseDownWorldNotMe()
-        { }
+        {
+            if (!initialized)
+                throw new InvalidOperationException();
+        }
 
         public virtual void Draw()
         {
+            if (!initialized)
+                throw new InvalidOperationException();
+
             shape.Draw
             (
                 otherColor: ActiveUI.UIConfig.mouseOnColor,

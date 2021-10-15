@@ -21,7 +21,7 @@ namespace Game1
         private readonly TextBox popupTextBox;
 
         public Star(float radius, Vector2 center, double prodWatts, Color color)
-            : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), active: false, activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
+            : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             shape.Center = center;
             this.prodWatts = prodWatts;

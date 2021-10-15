@@ -57,7 +57,6 @@ namespace Game1
         public event Action Deleted;
 
         private readonly NodeState state;
-        private readonly TextBox textBox;
         private readonly List<Link> links;
         private Industry industry;
         private readonly UnemploymentCenter unemploymentCenter;
@@ -65,22 +64,24 @@ namespace Game1
         private ConstULongArray targetStoredResAmounts;
         private readonly MyArray<bool> store;
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
-
-        private readonly UIHorizTabPanel<IUIElement<MyRectangle>> UITabPanel;
-        private readonly UIRectPanel<IUIElement<NearRectangle>> infoPanel, buildButtonPannel;
-        private readonly Dictionary<Overlay, UIRectPanel<IUIElement<NearRectangle>>> overlayTabPanels;
-        private readonly TextBox infoTextBox;
-        private readonly string overlayTabLabel;
-        private readonly Dictionary<Overlay, UITransparentPanel<ResDestinArrow>> resDistribArrows;
-        private readonly ulong resDistribArrowsUILayer;
-        private readonly float resDestinArrowWidth;
         private readonly new LightCatchingDisk shape;
         private double remainingLocalWatts;
 
-        public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth)
-            : base(shape: new LightCatchingDisk(radius: radius), active: false, activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
+        private TextBox textBox;
+        private UIHorizTabPanel<IHUDElement<MyRectangle>> UITabPanel;
+        private UIRectPanel<IHUDElement<NearRectangle>> infoPanel, buildButtonPannel;
+        private Dictionary<Overlay, UIRectPanel<IHUDElement<NearRectangle>>> overlayTabPanels;
+        private TextBox infoTextBox;
+        private string overlayTabLabel;
+        private Dictionary<Overlay, UITransparentPanel<ResDestinArrow>> resDistribArrows;
+        private ulong resDistribArrowsUILayer;
+        private readonly float resDestinArrowWidth;
+
+        public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth, int startPersonCount = 0)
+            : base(shape: new LightCatchingDisk(radius: radius), activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             this.state = state;
+            this.resDestinArrowWidth = resDestinArrowWidth;
             shape = (LightCatchingDisk)base.shape;
             shape.Center = Position;
             
@@ -103,6 +104,17 @@ namespace Game1
             resTravelHereAmounts = new();
             remainingLocalWatts = new();
 
+            for (int i = 0; i < startPersonCount; i++)
+            {
+                Person person = Person.GeneratePerson(nodePos: Position);
+                state.waitingPeople.Add(person);
+            }
+        }
+
+        protected override void InitUninitialized()
+        {
+            base.InitUninitialized();
+
             textBox = new()
             {
                 Text = "",
@@ -124,7 +136,7 @@ namespace Game1
                 inactiveTabLabelColor: Color.Gray
             );
 
-            infoPanel = new UIRectVertPanel<IUIElement<NearRectangle>>
+            infoPanel = new UIRectVertPanel<IHUDElement<NearRectangle>>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
@@ -137,7 +149,7 @@ namespace Game1
             infoTextBox = new();
             infoPanel.AddChild(child: infoTextBox);
 
-            buildButtonPannel = new UIRectVertPanel<IUIElement<NearRectangle>>
+            buildButtonPannel = new UIRectVertPanel<IHUDElement<NearRectangle>>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
@@ -170,7 +182,7 @@ namespace Game1
             overlayTabPanels = new();
 
             foreach (var overlay in Enum.GetValues<Overlay>())
-                overlayTabPanels[overlay] = new UIRectVertPanel<IUIElement<NearRectangle>>
+                overlayTabPanels[overlay] = new UIRectVertPanel<IHUDElement<NearRectangle>>
                 (
                     color: Color.White,
                     childHorizPos: HorizPos.Left
@@ -223,7 +235,6 @@ namespace Game1
             resDistribArrows = new();
             foreach (var overlay in Enum.GetValues<Overlay>())
                 resDistribArrows[overlay] = new UITransparentPanel<ResDestinArrow>();
-            this.resDestinArrowWidth = resDestinArrowWidth;
 
             CurOverlayChanged += oldOverlay =>
             {
@@ -243,15 +254,9 @@ namespace Game1
                     layer: resDistribArrowsUILayer
                 );
             };
-        }
 
-        public void Init(int startPersonCount = 0)
-        {
-            for (int i = 0; i < startPersonCount; i++)
-            {
-                Person person = Person.GeneratePerson(nodePos: Position);
-                state.waitingPeople.Add(person);
-            }
+            foreach (var ovelray in Enum.GetValues<Overlay>())
+                resDistribArrows[ovelray].Initialize();
 
             AddWorldUIElement(UIElement: resDistribArrows[CurOverlay], layer: resDistribArrowsUILayer);
         }
@@ -337,7 +342,6 @@ namespace Game1
             ResDestinArrow resDestinArrow = new
             (
                 shape: new Arrow(startPos: Position, endPos: destination, width: resDestinArrowWidth),
-                active: false,
                 defaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
                 defaultInactiveColor: Color.White * .5f,
                 popupHorizPos: HorizPos.Right,

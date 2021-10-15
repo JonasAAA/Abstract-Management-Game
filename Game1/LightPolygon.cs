@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -64,7 +65,7 @@ namespace Game1
             int centerInd = vertices.Count;
             vertPosTex[centerInd] = new VertexPositionColorTexture(Transform(pos: center), color, textureCenter);
             for (int i = 0; i < centerInd; i++)
-                vertPosTex[i] = new VertexPositionColorTexture(Transform(vertices[i]), color, textureCenter + (vertices[i] - center) / LightManager.maxWidth / strength);
+                vertPosTex[i] = new VertexPositionColorTexture(Transform(vertices[i]), color, textureCenter + (vertices[i] - center) / CurWorldConfig.lightTextureWidth / strength);
             if (vertPosTex.Length == 0)
                 return;
 

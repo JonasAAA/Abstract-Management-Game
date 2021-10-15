@@ -51,7 +51,7 @@ namespace Game1.UI
 
         private static bool arrowDrawingModeOn;
         private static readonly List<IUIElement> activeUIElements;
-        private static readonly HashSet<IUIElement> HUDUIElements;
+        private static readonly HashSet<IUIElement> HUDElements;
         private static bool leftDown, prevLeftDown;
         private static IUIElement halfClicked, contMouse, activeWorldElement;
         private static readonly TimeSpan minDurationToGetExplanation;
@@ -66,7 +66,7 @@ namespace Game1.UI
 
             arrowDrawingModeOn = false;
             activeUIElements = new();
-            HUDUIElements = new();
+            HUDElements = new();
             leftDown = new();
             prevLeftDown = new();
             halfClicked = null;
@@ -96,7 +96,7 @@ namespace Game1.UI
             activeUIElements.Add(curGraph);
         }
 
-        public static void AddHUDElement(IUIElement<NearRectangle> UIElement, HorizPos horizPos, VertPos vertPos)
+        public static void AddHUDElement(IHUDElement<NearRectangle> UIElement, HorizPos horizPos, VertPos vertPos)
         {
             if (UIElement is null)
                 return;
@@ -113,16 +113,17 @@ namespace Game1.UI
             UIElement.Shape.SizeOrPosChanged += SetUIElementPosition;
 
             activeUIElements.Add(UIElement);
-            if (!HUDUIElements.Add(UIElement))
+            if (!HUDElements.Add(UIElement))
                 throw new ArgumentException();
         }
 
-        public static bool RemoveUIElement(IUIElement UIElement)
+        public static void RemoveHUDElement(IHUDElement<NearRectangle> UIElement)
         {
             if (UIElement is null)
-                return true;
-            HUDUIElements.Remove(UIElement);
-            return activeUIElements.Remove(UIElement);
+                return;
+            if (!HUDElements.Remove(UIElement))
+                throw new ArgumentException();
+            activeUIElements.Remove(UIElement);
         }
 
         public static void Update(TimeSpan elapsed)
@@ -151,7 +152,7 @@ namespace Game1.UI
                 if (catchingUIElement is not null)
                 {
                     contMouse = catchingUIElement;
-                    MouseAboveHUD = HUDUIElements.Contains(UIElement);
+                    MouseAboveHUD = HUDElements.Contains(UIElement);
                     break;
                 }
             }
@@ -218,7 +219,7 @@ namespace Game1.UI
         public static void DrawHUD()
         {
             HUDCamera.BeginDraw();
-            foreach (var UIElement in HUDUIElements)
+            foreach (var UIElement in HUDElements)
                 UIElement.Draw();
             explanationTextBox.Draw();
             HUDCamera.EndDraw();

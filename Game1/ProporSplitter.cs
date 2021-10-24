@@ -101,70 +101,51 @@ namespace Game1
         public bool Empty
             => Count is 0;
         public IEnumerable<TKey> Keys
-            => proportions.Keys;
-        public IReadOnlyDictionary<TKey, decimal> Proportions
-            => proportions;
+            => importances.Keys;
+        public IReadOnlyDictionary<TKey, ulong> Importances
+            => importances;
 
-        private readonly Dictionary<TKey, decimal> proportions;
+        private readonly Dictionary<TKey, ulong> importances;
         private readonly NecAdds necAdds;
 
         private int Count
-            => proportions.Count;
+            => importances.Count;
 
         public ProporSplitter()
         {
-            proportions = new();
+            importances = new();
             necAdds = new();
         }
 
         public bool ContainsKey(TKey key)
-            => proportions.ContainsKey(key);
+            => importances.ContainsKey(key);
 
-        private void AddKey(TKey key, decimal prop)
+        private void AddKey(TKey key, ulong importance)
         {
-            proportions.Add(key, prop);
+            importances.Add(key, importance);
             necAdds.Add(key: key);
         }
 
         public void RemoveKey(TKey key)
         {
-            proportions.Remove(key);
+            importances.Remove(key);
             necAdds.Remove(key: key);
         }
 
-        /// <returns> true if successful </returns>
-        public bool AddToProp(TKey key, decimal add)
+        public void SetImportance(TKey key, ulong importance)
         {
-            if (!ContainsKey(key: key))
-                AddKey(key: key, prop: 0);
-            proportions[key] += add;
-            if (C.IsTiny(value: proportions[key]))
-            {
-                RemoveKey(key: key);
-                return true;
-            }
-            if (proportions[key] < 0)
-            {
-                RemoveKey(key: key);
-                return false;
-            }
-            return true;
-        }
-
-        public void SetProp(TKey key, decimal value)
-        {
-            if (value < 0)
+            if (importance < 0)
                 throw new ArgumentOutOfRangeException();
 
             if (ContainsKey(key: key))
             {
-                if (C.IsTiny(proportions[key] - value))
+                if (importances[key] == importance)
                     return;
-                proportions[key] = value;
+                importances[key] = importance;
             }
             else
-                AddKey(key: key, prop: value);
-            if (C.IsTiny(value: proportions[key]))
+                AddKey(key: key, importance: importance);
+            if (importances[key] is 0)
                 RemoveKey(key: key);
         }
 
@@ -183,18 +164,18 @@ namespace Game1
             Dictionary<TKey, ulong> maxAmounts = MakeDictionary(func: key => maxAmountsFunc(key)),
                 splitAmounts = new();
             HashSet<TKey> unusedKeys = new(Keys);
-            decimal unusedPropSum = proportions.Values.Sum();
+            decimal unusedPropSum = importances.Values.Sum();
 
             while (true)
             {
                 bool didSomething = false;
                 foreach (var key in unusedKeys.Clone())
-                    if ((ulong)(amount * proportions[key] / unusedPropSum + necAdds[key]) >= maxAmounts[key])
+                    if ((ulong)(amount * importances[key] / unusedPropSum + necAdds[key]) >= maxAmounts[key])
                     {
                         //could turn this into a function
                         necAdds.LockAtZero(key: key);
                         unusedKeys.Remove(key);
-                        unusedPropSum -= proportions[key];
+                        unusedPropSum -= importances[key];
                         splitAmounts.Add(key, maxAmounts[key]);
                         amount -= maxAmounts[key];
 
@@ -209,7 +190,7 @@ namespace Game1
             ulong splitAmount = amount;
             foreach (var key in unusedKeys)
             {
-                perfect.Add(key, splitAmount * proportions[key] / unusedPropSum + necAdds[key]);
+                perfect.Add(key, splitAmount * importances[key] / unusedPropSum + necAdds[key]);
                 splitAmounts.Add(key, (ulong)perfect[key]);
                 amount -= splitAmounts[key];
             }

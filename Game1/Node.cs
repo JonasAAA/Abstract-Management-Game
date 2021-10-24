@@ -73,13 +73,19 @@ namespace Game1
         private Dictionary<Overlay, UIRectPanel<IHUDElement<NearRectangle>>> overlayTabPanels;
         private TextBox infoTextBox;
         private string overlayTabLabel;
-        private Dictionary<Overlay, UITransparentPanel<ResDestinArrow>> resDistribArrows;
+        private MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows { get; set; }
         private ulong resDistribArrowsUILayer;
         private readonly float resDestinArrowWidth;
 
         public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth, int startPersonCount = 0)
             : base(shape: new LightCatchingDisk(radius: radius), activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
+            // AddResDestin adds (currently uninitialized) UI
+            // and if that UI would be saved and loaded, it wouldn't work as it
+            // would be uninitialised, and, more importantly, not all events would be subscribed to properly
+            // to combat the last part, when initializing node, if it already has some resource destinations,
+            // need to create UI for them
+            // throw new NotImplementedException();
             this.state = state;
             this.resDestinArrowWidth = resDestinArrowWidth;
             shape = (LightCatchingDisk)base.shape;
@@ -114,6 +120,15 @@ namespace Game1
         protected override void InitUninitialized()
         {
             base.InitUninitialized();
+
+            for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
+                foreach (var (destination, importance) in resSplittersToDestins[resInd].Importances)
+                    AddResDestin
+                    (
+                        resInd: resInd,
+                        destination: destination,
+                        importance: (int)importance
+                    );
 
             textBox = new()
             {
@@ -233,8 +248,10 @@ namespace Game1
 
             resDistribArrowsUILayer = 1;
             resDistribArrows = new();
-            foreach (var overlay in Enum.GetValues<Overlay>())
-                resDistribArrows[overlay] = new UITransparentPanel<ResDestinArrow>();
+            for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
+                resDistribArrows[resInd] = new UITransparentPanel<ResDestinArrow>();
+            //foreach (var overlay in Enum.GetValues<Overlay>())
+            //    resDistribArrows[overlay] = new UITransparentPanel<ResDestinArrow>();
 
             CurOverlayChanged += oldOverlay =>
             {
@@ -244,21 +261,30 @@ namespace Game1
                     tab: overlayTabPanels[CurOverlay]
                 );
 
-                RemoveWorldUIElement
-                (
-                    UIElement: resDistribArrows[oldOverlay]
-                );
-                AddWorldUIElement
-                (
-                    UIElement: resDistribArrows[CurOverlay],
-                    layer: resDistribArrowsUILayer
-                );
+                if (oldOverlay <= MaxRes)
+                    RemoveWorldUIElement
+                    (
+                        UIElement: resDistribArrows[(int)oldOverlay]
+                    );
+                if (CurOverlay <= MaxRes)
+                    AddWorldUIElement
+                    (
+                        UIElement: resDistribArrows[(int)CurOverlay],
+                        layer: resDistribArrowsUILayer
+                    );
             };
 
-            foreach (var ovelray in Enum.GetValues<Overlay>())
-                resDistribArrows[ovelray].Initialize();
+            for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
+                resDistribArrows[resInd].Initialize();
+            //foreach (var ovelray in Enum.GetValues<Overlay>())
+            //    resDistribArrows[ovelray].Initialize();
 
-            AddWorldUIElement(UIElement: resDistribArrows[CurOverlay], layer: resDistribArrowsUILayer);
+            if (CurOverlay <= MaxRes)
+                AddWorldUIElement
+                (
+                    UIElement: resDistribArrows[(int)CurOverlay],
+                    layer: resDistribArrowsUILayer
+                );
         }
 
         public void AddLink(Link link)
@@ -322,22 +348,25 @@ namespace Game1
             if (!CanHaveDestin(destination: destination))
                 throw new ArgumentException();
 
-            // to make lambda expressions work correctly
-            Overlay overlay = CurOverlay;
-            int resInd = (int)overlay;
+            AddResDestin
+            (
+                resInd: (int)CurOverlay,
+                destination: destination,
+                importance: 1
+            );
+        }
 
-            void SyncSplittersWithArrows()
-            {
-                foreach (var resDestinArrow in resDistribArrows[overlay])
-                    resSplittersToDestins[resInd].SetProp
-                    (
-                        key: resDestinArrow.EndPos,
-                        value: resDestinArrow.Importance
-                    );
-                int totalImportance = resDistribArrows[overlay].Sum(resDestinArrow => resDestinArrow.Importance);
-                foreach (var resDestinArrow in resDistribArrows[overlay])
-                    resDestinArrow.TotalImportance = totalImportance;
-            }
+        private void AddResDestin(int resInd, Vector2 destination, int importance)
+        {
+            if (resInd is < 0 or > (int)MaxRes)
+                throw new ArgumentOutOfRangeException();
+            if (resSplittersToDestins[resInd].ContainsKey(key: destination))
+                throw new ArgumentException();
+            if (importance <= 0)
+                throw new ArgumentOutOfRangeException();
+
+            //// to make lambda expressions and local functions work correctly
+            //Overlay overlay = (Overlay)resInd;
 
             ResDestinArrow resDestinArrow = new
             (
@@ -347,19 +376,33 @@ namespace Game1
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top,
                 minImportance: 1,
-                importance: 1,
+                importance: importance,
                 resInd: resInd
             );
             resDestinArrow.ImportanceChanged += SyncSplittersWithArrows;
             resDestinArrow.Delete += () =>
             {
-                resDistribArrows[overlay].RemoveChild(child: resDestinArrow);
+                resDistribArrows[resInd].RemoveChild(child: resDestinArrow);
                 resSplittersToDestins[resInd].RemoveKey(key: destination);
                 SyncSplittersWithArrows();
             };
+            resDestinArrow.Initialize();
 
-            resDistribArrows[overlay].AddChild(child: resDestinArrow);
+            resDistribArrows[resInd].AddChild(child: resDestinArrow);
             SyncSplittersWithArrows();
+
+            void SyncSplittersWithArrows()
+            {
+                foreach (var resDestinArrow in resDistribArrows[resInd])
+                    resSplittersToDestins[resInd].SetImportance
+                    (
+                        key: resDestinArrow.EndPos,
+                        importance: (ulong)resDestinArrow.Importance
+                    );
+                int totalImportance = resDistribArrows[resInd].Sum(resDestinArrow => resDestinArrow.Importance);
+                foreach (var resDestinArrow in resDistribArrows[resInd])
+                    resDestinArrow.TotalImportance = totalImportance;
+            }
         }
 
         public override void OnMouseDownWorldNotMe()

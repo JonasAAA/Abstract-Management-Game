@@ -1,15 +1,18 @@
 ﻿using Game1.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Runtime.Serialization;
 
 namespace Game1
 {
+    [DataContract]
     public abstract class Camera
     {
+        [DataMember]
         protected readonly double screenScale;
 
         protected Camera(GraphicsDevice graphicsDevice)
-            => screenScale = (double)graphicsDevice.Viewport.Height / ActiveUI.UIConfig.standardScreenHeight;
+            => screenScale = (double)graphicsDevice.Viewport.Height / ActiveUIManager.UIConfig.standardScreenHeight;
 
         public void BeginDraw()
             => C.SpriteBatch.Begin

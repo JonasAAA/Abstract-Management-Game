@@ -5,12 +5,17 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using System.Xml;
 
 namespace Game1
 {
-    public sealed class WorldManager
+    [DataContract]
+    public class WorldManager
     {
         public const Overlay MaxRes = (Overlay)2;
 
@@ -45,13 +50,41 @@ namespace Game1
         public static double MaxLinkJoulesPerKg
             => Current.graph.maxLinkJoulesPerKg;
 
-        public static Graph InitializeNew(GraphicsDevice graphicsDevice)
+        public static Graph Create(GraphicsDevice graphicsDevice)
         {
             if (Current is not null)
                 throw new InvalidOperationException();
             Current = new();
             Current.Initialize(graphicsDevice: graphicsDevice);
             return Current.graph;
+        }
+
+        public static Graph Load(GraphicsDevice graphicsDevice)
+        {
+            if (Current is not null)
+                throw new InvalidOperationException();
+
+            Current = Deserialize();
+            Current.Initialize(graphicsDevice: graphicsDevice);
+            return Current.graph;
+
+            static WorldManager Deserialize()
+            {
+                using FileStream fileStream = new(path: @"C:\Users\Jonas\Desktop\Abstract Management Game\save.bin", FileMode.Open);
+                DataContractSerializerSettings serializerSettings = new()
+                {
+                    KnownTypes = GetKnownTypes(),
+                    PreserveObjectReferences = true,
+                    SerializeReadOnlyTypes = true
+                };
+                DataContractSerializer serializer = new
+                (
+                    type: typeof(WorldManager),
+                    settings: serializerSettings
+                );
+                XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader(fileStream, new XmlDictionaryReaderQuotas());
+                return (WorldManager)serializer.ReadObject(reader, true);
+            }
         }
 
         public static void AddWorldUIElement(IUIElement UIElement, ulong layer)
@@ -81,20 +114,30 @@ namespace Game1
             person.Deleted += () => Current.people.Remove(person);
         }
 
+        [DataMember]
         private readonly WorldConfig worldConfig;
+        [DataMember]
         private readonly ResConfig resConfig;
+        [DataMember]
         private readonly IndustryConfig industryConfig;
+        [DataMember]
         private readonly MyHashSet<Person> people;
-        private readonly TextBox globalTextBox;
-
+        [DataMember]
         private Graph graph;
+        [DataMember]
         private WorldCamera worldCamera;
+        [DataMember]
         private EnergyManager energyManager;
+        [DataMember]
         private ActivityManager activityManager;
+        [DataMember]
         private LightManager lightManager;
-
+        [DataMember]
         private Overlay overlay;
+        [DataMember]
         private bool paused;
+
+        private readonly TextBox globalTextBox;
 
         private WorldManager()
         {
@@ -117,7 +160,15 @@ namespace Game1
             worldCamera = new(graphicsDevice: graphicsDevice);
             activityManager = new();
             energyManager = new();
-            lightManager = new(graphicsDevice: graphicsDevice);
+            energyManager.Initialize();
+            lightManager = new();
+            lightManager.Initialize(graphicsDevice: graphicsDevice);
+
+            // have a separate initialize method which initializes everyone's UI
+            //
+            // It may be easier to make IUIElement serializable, have proper Initialize functions
+            // for UI to subscribe to relevant events, and call the Initialize functions appropriately
+            throw new NotImplementedException();
 
             Star[] stars = new Star[]
             {
@@ -203,7 +254,7 @@ namespace Game1
             );
             graph.Initialize();
 
-            ActiveUI.AddHUDElement
+            ActiveUIManager.AddHUDElement
             (
                 UIElement: globalTextBox,
                 horizPos: HorizPos.Left,
@@ -225,7 +276,7 @@ namespace Game1
 
             pauseButton.OnChanged += () => paused = pauseButton.On;
 
-            ActiveUI.AddHUDElement
+            ActiveUIManager.AddHUDElement
             (
                 UIElement: pauseButton,
                 horizPos: HorizPos.Right,
@@ -256,7 +307,7 @@ namespace Game1
                     }
                 );
 
-            ActiveUI.AddHUDElement
+            ActiveUIManager.AddHUDElement
             (
                 UIElement: overlayChoicePanel,
                 horizPos: HorizPos.Middle,
@@ -275,7 +326,7 @@ namespace Game1
             Elapsed = elapsed;
             CurTime += Elapsed;
 
-            worldCamera.Update(elapsed: elapsed, canScroll: !ActiveUI.MouseAboveHUD);
+            worldCamera.Update(elapsed: elapsed, canScroll: !ActiveUIManager.MouseAboveHUD);
 
             lightManager.Update();
 
@@ -305,5 +356,34 @@ namespace Game1
             graph.DrawAfterLight();
             worldCamera.EndDraw();
         }
+
+        public void Serialize()
+        {
+            using FileStream fileStream = new(path: @"C:\Users\Jonas\Desktop\Abstract Management Game\save.bin", FileMode.Create);
+            DataContractSerializerSettings serializerSettings = new()
+            {
+                KnownTypes = GetKnownTypes(),
+                PreserveObjectReferences = true,
+                SerializeReadOnlyTypes = true
+            };
+            DataContractSerializer serializer = new
+            (
+                type: typeof(WorldManager),
+                settings: serializerSettings
+            );
+
+            XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);
+            serializer.WriteObject(writer, this);
+        }
+
+        private static Type[] GetKnownTypes()
+            => Assembly.GetExecutingAssembly().GetTypes().Where
+            (
+                type => Attribute.GetCustomAttribute(type, typeof(CompilerGeneratedAttribute)) is null
+                    && Attribute.GetCustomAttribute(type, typeof(DataContractAttribute)) is not null
+            ).ToArray();
+
+        //private IEnumerable<Type> DerivedTypes(Type type)
+        //    => type.Assembly.GetTypes().Where(t => type.IsAssignableFrom(t));
     }
 }

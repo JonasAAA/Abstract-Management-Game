@@ -2,17 +2,24 @@
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
+    [DataContract]
     public class ReprodIndustry : Industry
     {
+        [DataContract]
         public new class Params : Industry.Params
         {
+            [DataMember]
             public readonly double reqWattsPerChild;
+            [DataMember]
             public readonly ulong maxCouples;
+            [DataMember]
             public readonly ConstULongArray resPerChild;
+            [DataMember]
             public readonly TimeSpan birthDuration;
 
             public Params(string name, ulong energyPriority, double reqSkill, ulong reqWattsPerChild, ulong maxCouples, ConstULongArray resPerChild, TimeSpan birthDuration)
@@ -31,18 +38,21 @@ namespace Game1.Industries
                 this.birthDuration = birthDuration;
             }
 
-            public override Industry MakeIndustry(NodeState state)
-                => new ReprodIndustry(parameters: this, state: state);
+            protected override Industry MakeIndustry(NodeState state)
+                => new ReprodIndustry(state: state, parameters: this);
         }
 
+        [DataContract]
         private class ReprodCenter : ActivityCenter
         {
+            [DataMember]
             public readonly Queue<Person> unpairedPeople;
 
+            [DataMember]
             private readonly Params parameters;
 
-            public ReprodCenter(Vector2 position, ulong energyPriority, Action<Person> personLeft, Params parameters)
-                : base(activityType: ActivityType.Reproduction, position, energyPriority, personLeft)
+            public ReprodCenter(ulong energyPriority, NodeState state, Params parameters)
+                : base(activityType: ActivityType.Reproduction, energyPriority: energyPriority, state: state)
             {
                 this.parameters = parameters;
                 unpairedPeople = new();
@@ -77,24 +87,21 @@ namespace Game1.Industries
                 => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - peopleHere.Count} people travelling here\n";
         }
 
+        [DataMember]
         private readonly Params parameters;
+        [DataMember]
         private readonly ReprodCenter reprodCenter;
+        [DataMember]
         private readonly TimedQueue<(Person, Person)> birthQueue;
 
-        public ReprodIndustry(Params parameters, NodeState state)
-            : base
-            (
-                parameters: parameters,
-                state: state,
-                UIPanel: new UIRectVertPanel<IHUDElement<NearRectangle>>(color: Color.White, childHorizPos: HorizPos.Left)
-            )
+        public ReprodIndustry(NodeState state, Params parameters)
+            : base(state: state, parameters: parameters)
         {
             this.parameters = parameters;
             reprodCenter = new
             (
-                position: state.position,
                 energyPriority: parameters.energyPriority,
-                personLeft: PersonLeft,
+                state: state,
                 parameters: parameters
             );
 
@@ -114,7 +121,7 @@ namespace Game1.Industries
             foreach (var (person1, person2) in birthQueue.DoneElements())
             {
                 var newPerson = Person.GenerateChild(nodePos: state.position, person1: person1, person2: person2);
-                PersonLeft(person: newPerson);
+                state.waitingPeople.Add(newPerson);
 
                 reprodCenter.RemovePerson(person: person1);
                 reprodCenter.RemovePerson(person: person2);

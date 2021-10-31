@@ -36,7 +36,7 @@ namespace Game1.UI
         {
             Shape.Color = Color.Transparent;
             font = C.LoadFont(name: "font");
-            scale = ActiveUI.UIConfig.letterHeight / font.MeasureString("F").Y;
+            scale = ActiveUIManager.UIConfig.letterHeight / font.MeasureString("F").Y;
             TextColor = Color.Black;
             Text = null;
         }

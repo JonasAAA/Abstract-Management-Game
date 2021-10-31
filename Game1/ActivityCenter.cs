@@ -2,35 +2,48 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1
 {
+    [DataContract]
     public abstract class ActivityCenter : IActivityCenter
     {
-        public ActivityType ActivityType { get; }
+        [DataMember]
+        public ActivityType ActivityType { get; private init; }
 
-        public Vector2 Position { get; }
+        public Vector2 Position
+            => state.position;
 
-        public ulong EnergyPriority { get; }
+        [DataMember]
+        public ulong EnergyPriority { get; private set; }
 
         public IEnumerable<Person> PeopleHere
             => peopleHere;
 
+        [field: NonSerialized]
         public event Action Deleted;
 
+        [DataMember]
         protected readonly MyHashSet<Person> peopleHere, allPeople;
+        [DataMember]
+        protected readonly NodeState state;
 
-        protected readonly Action<Person> personLeft;
+        //[DataMember]
+        //protected readonly Action<Person> personLeft;
 
-        protected ActivityCenter(ActivityType activityType, Vector2 position, ulong energyPriority, Action<Person> personLeft)
+        [DataMember]
+        private readonly HashSet<Person> peopleInProcessOfRemoving = new();
+
+        protected ActivityCenter(ActivityType activityType, ulong energyPriority, NodeState state)
         {
             ActivityType = activityType;
-            Position = position;
             EnergyPriority = energyPriority;
-            if (personLeft is null)
-                throw new ArgumentNullException();
-            this.personLeft = personLeft;
+            this.state = state;
+            //if (personLeft is null)
+            //    throw new ArgumentNullException();
+            //this.personLeft = personLeft;
             peopleHere = new();
             allPeople = new();
 
@@ -63,7 +76,6 @@ namespace Game1
 
         public abstract bool CanPersonLeave(Person person);
 
-        private readonly HashSet<Person> peopleInProcessOfRemoving = new();
         public void RemovePerson(Person person)
         {
             if (peopleInProcessOfRemoving.Contains(person))
@@ -75,7 +87,8 @@ namespace Game1
             if (IsPersonHere(person: person))
             {
                 peopleHere.Remove(person);
-                personLeft(person);
+                state.waitingPeople.Add(person);
+                //personLeft(person);
             }
 
             peopleInProcessOfRemoving.Remove(person);

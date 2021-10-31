@@ -1,25 +1,38 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Game1
 {
+    [DataContract]
     public class WorldConfig
     {
+        [DataMember]
         public readonly double personJobEnjoymentCoeff, personTalentCoeff, personSkillCoeff, jobDesperationCoeff, PlayerToJobDistCoeff, minAcceptablePersonScore, personTimeSkillCoeff, jobVacDespCoeff;
+        [DataMember]
         public readonly ulong linkEnergyPriority;
+        [DataMember]
         public readonly float standardStarRadius, scrollSpeed;
+        [DataMember]
         public readonly double personMomentumCoeff, personMinReqWatts, personMaxReqWatts, randConrtribToChild, parentContribToChild;
         /// <summary>
         /// MUST always be the same for all people
         /// as the way industry deals with required energy requires that
         /// </summary>
+        [DataMember]
         public readonly ulong personDefaultEnergyPriority;
+        [DataMember]
         public readonly TimeSpan personMinSeekChangeTime, personMaxSeekChangeTime;
+        [DataMember]
         public readonly double personDistanceTimeCoeff, personDistanceEnergyCoeff, resDistanceTimeCoeff, resDistanceEnergyCoeff;
+        [DataMember]
         public readonly int lightTextureWidth;
+        [DataMember]
         public readonly ulong lightLayer, nodeLayer, linkLayer;
+        [DataMember]
         public readonly double brightStarTextureBrigthness, dimStarTextureBrightness;
-
+        [DataMember]
         public readonly double startingWorldScale;
+        [DataMember]
         public readonly float screenBoundWidthForMapMoving;
 
         public WorldConfig()

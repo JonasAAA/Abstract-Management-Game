@@ -1,9 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class Triangle : NearRectangle
     {
         public enum Direction
@@ -13,6 +15,10 @@ namespace Game1.UI
             Down = 1,
             Right = 0
         }
+
+        private static readonly Texture2D triangleTexture;
+        static Triangle()
+            => triangleTexture = C.LoadTexture(name: "triangle");
 
         private Vector2 BasePos
             => Center - dirVector * MainAltitudeLength * .5f;
@@ -29,9 +35,11 @@ namespace Game1.UI
                 not 0 => Height
             };
 
+        [DataMember]
         private readonly Direction direction;
+        [DataMember]
         private readonly float rotation;
-        private readonly Texture2D triangleTexture;
+        [DataMember]
         private readonly Vector2 origin, dirVector, orthDir, scale;
 
         public Triangle(float width, float height, Direction direction)
@@ -39,7 +47,6 @@ namespace Game1.UI
         {
             this.direction = direction;
             rotation = (int)direction * MathHelper.PiOver2;
-            triangleTexture = C.LoadTexture(name: "triangle");
             origin = new Vector2(triangleTexture.Width, triangleTexture.Height) * .5f;
             dirVector = C.Direction(rotation: rotation);
             orthDir = new Vector2(-dirVector.Y, dirVector.X);

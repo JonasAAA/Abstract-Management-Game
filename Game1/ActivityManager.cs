@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Game1
 {
+    [DataContract]
     public class ActivityManager
     {
+        [DataMember]
         private readonly HashSet<IActivityCenter> activityCenters;
 
         public ActivityManager()

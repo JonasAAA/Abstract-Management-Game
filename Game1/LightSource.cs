@@ -9,7 +9,8 @@
 //    {
 //        public Vector2 position;
 
-//        public event Action Deleted;
+//        public
+//        Action Deleted;
         
 //        protected float mainAngle;
 //        private readonly float maxAngleDiff;

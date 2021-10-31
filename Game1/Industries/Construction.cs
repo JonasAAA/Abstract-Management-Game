@@ -1,17 +1,24 @@
 ﻿using Game1.UI;
 using Microsoft.Xna.Framework;
 using System;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
+    [DataContract]
     public class Construction : Industry
     {
+        [DataContract]
         public new class Params : Industry.Params
         {
+            [DataMember]
             public readonly double reqWatts;
+            [DataMember]
             public readonly Industry.Params industrParams;
+            [DataMember]
             public readonly TimeSpan duration;
+            [DataMember]
             public readonly ConstULongArray cost;
 
             public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, Industry.Params industrParams, TimeSpan duration, ConstULongArray cost)
@@ -34,20 +41,17 @@ namespace Game1.Industries
                 this.cost = cost;
             }
 
-            public override Industry MakeIndustry(NodeState state)
-                => new Construction(parameters: this, state: state);
+            protected override Industry MakeIndustry(NodeState state)
+                => new Construction(state: state, parameters: this);
         }
 
+        [DataMember]
         private readonly Params parameters;
+        [DataMember]
         private TimeSpan constrTimeLeft;
 
-        private Construction(Params parameters, NodeState state)
-            : base
-            (
-                parameters: parameters,
-                state: state,
-                UIPanel: new UIRectVertPanel<IHUDElement<NearRectangle>>(color: Color.White, childHorizPos: HorizPos.Left)
-            )
+        private Construction(NodeState state, Params parameters)
+            : base(state: state, parameters: parameters)
         {
             this.parameters = parameters;
             constrTimeLeft = TimeSpan.MaxValue;
@@ -77,7 +81,7 @@ namespace Game1.Industries
             if (constrTimeLeft <= TimeSpan.Zero)
             {
                 Delete();
-                return parameters.industrParams.MakeIndustry(state: state);
+                return parameters.industrParams.MakeAndInitIndustry(state: state);
             }
             return this;
         }

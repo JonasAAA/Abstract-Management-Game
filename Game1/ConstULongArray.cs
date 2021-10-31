@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1
 {
+    [DataContract]
     public class ConstULongArray : ConstArray<ulong>
     {
         public ConstULongArray()

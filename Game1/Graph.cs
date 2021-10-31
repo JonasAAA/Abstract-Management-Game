@@ -5,17 +5,22 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1
 {
+    [DataContract]
     public class Graph : UIElement
     {
         public IEnumerable<Node> Nodes
             => nodes;
 
+        [DataMember]
         public readonly ReadOnlyDictionary<Vector2, Node> posToNode;
+        [DataMember]
         public readonly TimeSpan maxLinkTravelTime;
+        [DataMember]
         public readonly double maxLinkJoulesPerKg;
 
         //private readonly ReadOnlyDictionary<(Vector2, Vector2), double> personDists;
@@ -24,11 +29,16 @@ namespace Game1
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
+        [DataMember]
         private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> personFirstLinks;
+        [DataMember]
         private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> resFirstLinks;
 
+        [DataMember]
         private readonly List<Star> stars;
+        [DataMember]
         private readonly List<Node> nodes;
+        [DataMember]
         private readonly List<Link> links;
 
         public Graph(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links)

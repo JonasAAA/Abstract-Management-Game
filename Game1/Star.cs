@@ -5,20 +5,27 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1
 {
+    [DataContract]
     public class Star : WorldUIElement, ILightSource
     {
         /// <summary>
         /// CURRENTLY UNUSED
         /// </summary>
+        [field:NonSerialized]
         public event Action Deleted;
 
+        [DataMember]
         private readonly double prodWatts;
+        [DataMember]
         private readonly LightPolygon polygon;
-        private readonly TextBox popupTextBox;
+
+        [NonSerialized]
+        private TextBox popupTextBox;
 
         public Star(float radius, Vector2 center, double prodWatts, Color color)
             : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
@@ -27,6 +34,13 @@ namespace Game1
             this.prodWatts = prodWatts;
             polygon = new LightPolygon(strength: radius / CurWorldConfig.standardStarRadius, color: color);
 
+            AddLightSource(lightSource: this);
+        }
+
+        protected override void InitUninitialized()
+        {
+            base.InitUninitialized();
+
             popupTextBox = new();
             popupTextBox.Shape.Color = Color.White;
             SetPopup
@@ -34,8 +48,6 @@ namespace Game1
                 UIElement: popupTextBox,
                 overlays: Enum.GetValues<Overlay>()
             );
-
-            AddLightSource(lightSource: this);
         }
 
         public void Delete()

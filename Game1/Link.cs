@@ -4,31 +4,46 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1
 {
+    [DataContract]
     public class Link : UIElement
     {
+        [DataContract]
         private class DirLink : IEnergyConsumer
         {
+            private static readonly Texture2D diskTexture;
+
+            static DirLink()
+                => diskTexture = C.LoadTexture(name: "big disk");
+
             /// <summary>
             /// CURRENTLY UNUSED
             /// </summary>
+            [field: NonSerialized]
             public event Action Deleted;
 
+            [DataMember]
             public readonly Node startNode, endNode;
             public double JoulesPerKg
                 => timedPacketQueue.duration.TotalSeconds * reqWattsPerKg;
             public TimeSpan TravelTime
                 => timedPacketQueue.duration;
 
+            [DataMember]
             private readonly TimedPacketQueue timedPacketQueue;
+            [DataMember]
             private readonly double minSafePropor;
+            [DataMember]
             private ResAmountsPacketsByDestin waitingResAmountsPackets;
+            [DataMember]
             private readonly MyHashSet<Person> waitingPeople;
+            [DataMember]
             private readonly double reqWattsPerKg;
-            private readonly Texture2D diskTexture;
+            [DataMember]
             private double energyPropor;
 
             public DirLink(Node startNode, Node endNode, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
@@ -45,7 +60,6 @@ namespace Game1
                 if (wattsPerKg <= 0)
                     throw new ArgumentOutOfRangeException();
                 reqWattsPerKg = wattsPerKg / travelTime.TotalSeconds;
-                diskTexture = C.LoadTexture(name: "big disk");
                 energyPropor = 0;
 
                 AddEnergyConsumer(energyConsumer: this);
@@ -125,12 +139,14 @@ namespace Game1
                 => this.energyPropor = energyPropor;
         }
 
+        [DataMember]
         public readonly Node node1, node2;
         public double JoulesPerKg
             => link1To2.JoulesPerKg;
         public TimeSpan TravelTime
             => link1To2.TravelTime;
 
+        [DataMember]
         private readonly DirLink link1To2, link2To1;
 
         public Link(Node node1, Node node2, TimeSpan travelTime, double wattsPerKg, double minSafeDist)

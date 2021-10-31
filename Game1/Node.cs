@@ -5,16 +5,19 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1
 {
+    [DataContract]
     public class Node : WorldUIElement
     {
+        [DataContract]
         private class UnemploymentCenter : ActivityCenter
         {
-            public UnemploymentCenter(Vector2 position, Action<Person> personLeft)
-                : base(activityType: ActivityType.Unemployed, position: position, energyPriority: ulong.MaxValue, personLeft: personLeft)
+            public UnemploymentCenter(NodeState state)
+                : base(activityType: ActivityType.Unemployed, energyPriority: ulong.MaxValue, state: state)
             { }
 
             public override bool IsFull()
@@ -47,6 +50,7 @@ namespace Game1
 
         public Vector2 Position
             => state.position;
+        [DataMember]
         public readonly float radius;
         public double LocallyProducedWatts
             => shape.Watts;
@@ -54,28 +58,48 @@ namespace Game1
         /// <summary>
         /// CURRENTLY UNUSED
         /// </summary>
+        [field:NonSerialized]
         public event Action Deleted;
 
+        [DataMember]
         private readonly NodeState state;
+        [DataMember]
         private readonly List<Link> links;
+        [DataMember]
         private Industry industry;
+        [DataMember]
         private readonly UnemploymentCenter unemploymentCenter;
+        [DataMember]
         private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
+        [DataMember]
         private ConstULongArray targetStoredResAmounts;
+        [DataMember]
         private readonly MyArray<bool> store;
+        [DataMember]
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
+        [DataMember]
         private readonly new LightCatchingDisk shape;
+        [DataMember]
         private double remainingLocalWatts;
-
-        private TextBox textBox;
-        private UIHorizTabPanel<IHUDElement<MyRectangle>> UITabPanel;
-        private UIRectPanel<IHUDElement<NearRectangle>> infoPanel, buildButtonPannel;
-        private Dictionary<Overlay, UIRectPanel<IHUDElement<NearRectangle>>> overlayTabPanels;
-        private TextBox infoTextBox;
-        private string overlayTabLabel;
-        private MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows { get; set; }
-        private ulong resDistribArrowsUILayer;
+        [DataMember]
         private readonly float resDestinArrowWidth;
+
+        [NonSerialized]
+        private TextBox textBox;
+        [NonSerialized]
+        private UIHorizTabPanel<IHUDElement<MyRectangle>> UITabPanel;
+        [NonSerialized]
+        private UIRectPanel<IHUDElement<NearRectangle>> infoPanel, buildButtonPannel;
+        [NonSerialized]
+        private Dictionary<Overlay, UIRectPanel<IHUDElement<NearRectangle>>> overlayTabPanels;
+        [NonSerialized]
+        private TextBox infoTextBox;
+        [NonSerialized]
+        private string overlayTabLabel;
+        [NonSerialized]
+        private MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
+        [NonSerialized]
+        private ulong resDistribArrowsUILayer;
 
         public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth, int startPersonCount = 0)
             : base(shape: new LightCatchingDisk(radius: radius), activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
@@ -93,11 +117,7 @@ namespace Game1
             
             links = new();
             industry = null;
-            unemploymentCenter = new
-            (
-                position: state.position,
-                personLeft: person => state.waitingPeople.Add(person)
-            );
+            unemploymentCenter = new(state: state);
 
             resSplittersToDestins = new
             (
@@ -129,6 +149,8 @@ namespace Game1
                         destination: destination,
                         importance: (int)importance
                     );
+
+            industry?.Initialize();
 
             textBox = new()
             {
@@ -188,7 +210,7 @@ namespace Game1
                             Color = Color.White
                         },
                         explanation: constrParams.explanation,
-                        action: () => SetIndustry(newIndustry: constrParams.MakeIndustry(state: state)),
+                        action: () => SetIndustry(newIndustry: constrParams.MakeAndInitIndustry(state: state)),
                         text: "build " + constrParams.industrParams.name
                     )
                 );
@@ -229,7 +251,7 @@ namespace Game1
                         {
                             Color = Color.White
                         },
-                        action: () => ActiveUI.ArrowDrawingModeOn = true,
+                        action: () => ActiveUIManager.ArrowDrawingModeOn = true,
                         text: $"add resource {resInd}\ndestination"
                     )
                 );
@@ -330,14 +352,14 @@ namespace Game1
 
         public override void OnClick()
         {
-            if (ActiveUI.ArrowDrawingModeOn)
+            if (ActiveUIManager.ArrowDrawingModeOn)
                 return;
             base.OnClick();
         }
 
         public bool CanHaveDestin(Vector2 destination)
         {
-            if (!Active || !ActiveUI.ArrowDrawingModeOn)
+            if (!Active || !ActiveUIManager.ArrowDrawingModeOn)
                 throw new InvalidOperationException();
 
             return !resSplittersToDestins[(int)CurOverlay].ContainsKey(destination);
@@ -407,7 +429,7 @@ namespace Game1
 
         public override void OnMouseDownWorldNotMe()
         {
-            if (ActiveUI.ArrowDrawingModeOn)
+            if (ActiveUIManager.ArrowDrawingModeOn)
                 return;
             base.OnMouseDownWorldNotMe();
         }
@@ -562,7 +584,7 @@ namespace Game1
         {
             base.Draw();
 
-            if (Active && ActiveUI.ArrowDrawingModeOn)
+            if (Active && ActiveUIManager.ArrowDrawingModeOn)
                 Arrow.DrawArrow
                 (
                     startPos: Position,

@@ -1,10 +1,14 @@
 ﻿using System;
+using System.Runtime.Serialization;
 
 namespace Game1
 {
+    [DataContract]
     public class Resource
     {
+        [DataMember]
         public readonly int id;
+        [DataMember]
         public readonly ulong weight;
 
         public Resource(int id, ulong weight)

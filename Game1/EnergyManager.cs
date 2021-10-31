@@ -3,13 +3,18 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Game1
 {
+    [DataContract]
     public class EnergyManager
     {
+        [DataMember]
         private readonly MyHashSet<IEnergyProducer> energyProducers;
+        [DataMember]
         private readonly MyHashSet<IEnergyConsumer> energyConsumers;
+        [DataMember]
         private double totReqWatts, totProdWatts, totUsedLocalWatts, totUsedPowerPlantWatts;
 
         public EnergyManager()
@@ -22,19 +27,35 @@ namespace Game1
             totUsedPowerPlantWatts = 0;
         }
 
+        public void Initialize()
+        {
+            foreach (var energyProducer in energyProducers)
+                DealWithEnergyProducerDeletion(energyProducer: energyProducer);
+
+            foreach (var energyConsumer in energyConsumers)
+                DealWithEnergyConsumerDeletion(energyConsumer: energyConsumer);
+        }
+
         public void AddEnergyProducer(IEnergyProducer energyProducer)
         {
             energyProducers.Add(energyProducer);
 
-            energyProducer.Deleted += () => energyProducers.Remove(energyProducer);
+            DealWithEnergyProducerDeletion(energyProducer: energyProducer);
+            //energyProducer.Deleted += () => energyProducers.Remove(energyProducer);
         }
+
+        private void DealWithEnergyProducerDeletion(IEnergyProducer energyProducer)
+            => energyProducer.Deleted += () => energyProducers.Remove(energyProducer);
 
         public void AddEnergyConsumer(IEnergyConsumer energyConsumer)
         {
             energyConsumers.Add(energyConsumer);
-            
-            energyConsumer.Deleted += () => energyConsumers.Remove(energyConsumer);
+
+            DealWithEnergyConsumerDeletion(energyConsumer: energyConsumer);
         }
+
+        private void DealWithEnergyConsumerDeletion(IEnergyConsumer energyConsumer)
+            => energyConsumer.Deleted += () => energyConsumers.Remove(energyConsumer);
 
         public void DistributeEnergy(IEnumerable<Vector2> nodePositions, IReadOnlyDictionary<Vector2, Node> posToNode)
         {

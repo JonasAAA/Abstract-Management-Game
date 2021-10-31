@@ -1,17 +1,20 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Game1
 {
     /// <summary>
     /// throws exception when duplicates are added or try to remove non-existent element
     /// </summary>
+    [DataContract]
     public class MyHashSet<T> : IEnumerable<T>
     {
         public int Count
             => set.Count;
 
+        [DataMember]
         private readonly HashSet<T> set;
         
         public MyHashSet()

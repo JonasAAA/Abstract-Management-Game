@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Game1
 {
+    [DataContract]
     public class ULongArray : ConstULongArray
     {
         public ULongArray()

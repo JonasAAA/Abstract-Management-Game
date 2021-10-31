@@ -1,13 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public abstract class Shape
     {
         public bool Transparent
            => C.Transparent(color: Color);
+        [DataMember]
         public Color Color { get; set; }
         public Vector2 Center
         {
@@ -37,8 +40,10 @@ namespace Game1.UI
             }
         }
 
+        [DataMember]
         private Vector2 center;
-
+        
+        [field:NonSerialized]
         private event Action sizeOrPosChanged;
 
         protected Shape()

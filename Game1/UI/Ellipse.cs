@@ -1,17 +1,20 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class Ellipse : NearRectangle
     {
-        private readonly Texture2D diskTexture;
+        private static readonly Texture2D diskTexture;
+
+        static Ellipse()
+            => diskTexture = C.LoadTexture(name: "big disk");
 
         public Ellipse(float width, float height)
             : base(width: width, height: height)
-        {
-            diskTexture = C.LoadTexture(name: "big disk");
-        }
+        { }
 
         public override bool Contains(Vector2 position)
         {

@@ -2,19 +2,25 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Game1
 {
+    [DataContract]
     public class ProporSplitter<TKey>
     {
         /// <summary>
         /// TODO:
         /// deal with potential numeric instability
         /// </summary>
+        [DataContract]
         private class NecAdds
         {
+            [DataMember]
             private readonly HashSet<TKey> keys;
+            [DataMember]
             private Dictionary<TKey, decimal> necNotLockedAdds;
+            [DataMember]
             private decimal sum;
 
             public NecAdds()
@@ -105,7 +111,9 @@ namespace Game1
         public IReadOnlyDictionary<TKey, ulong> Importances
             => importances;
 
+        [DataMember]
         private readonly Dictionary<TKey, ulong> importances;
+        [DataMember]
         private readonly NecAdds necAdds;
 
         private int Count

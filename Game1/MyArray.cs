@@ -1,7 +1,9 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Game1
 {
+    [DataContract]
     public class MyArray<T> : ConstArray<T>
     {
         public MyArray()

@@ -2,18 +2,24 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1
 {
+    [DataContract]
     public class TimedQueue<T>
     {
         public int Count
             => endTimeQueue.Count;
+        [DataMember]
         public readonly TimeSpan duration;
-
+        
+        [DataMember]
         private TimeSpan currentLocalTime, lastEndTime;
+        [DataMember]
         private readonly Queue<TimeSpan> endTimeQueue;
+        [DataMember]
         private readonly Queue<T> queue;
 
         public TimedQueue(TimeSpan duration)

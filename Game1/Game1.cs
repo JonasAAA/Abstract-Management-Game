@@ -22,7 +22,11 @@ namespace Game1
             exitButton = new KeyButton
             (
                 key: Keys.Escape,
-                action: Exit
+                action: () =>
+                {
+                    WorldManager.Current.Serialize();
+                    Exit();
+                }
             );
         }
 
@@ -50,10 +54,10 @@ namespace Game1
                 spriteBatch: new(GraphicsDevice)
             );
 
-            ActiveUI.Initialize(graphicsDevice: GraphicsDevice);
-            var curGraph = WorldManager.InitializeNew(graphicsDevice: GraphicsDevice);
+            ActiveUIManager.Initialize(graphicsDevice: GraphicsDevice);
+            var curGraph = WorldManager.Create(graphicsDevice: GraphicsDevice);
             curGraph.Initialize();
-            ActiveUI.SetCurGraph(curGraph: curGraph);
+            ActiveUIManager.SetCurGraph(curGraph: curGraph);
         }
 
         protected override void Update(GameTime gameTime)
@@ -64,7 +68,7 @@ namespace Game1
 
             WorldManager.Current.Update(elapsed: elapsed);
 
-            ActiveUI.Update(elapsed: elapsed);
+            ActiveUIManager.Update(elapsed: elapsed);
 
             base.Update(gameTime);
         }
@@ -75,7 +79,7 @@ namespace Game1
 
             WorldManager.Current.Draw(graphicsDevice: GraphicsDevice);
 
-            ActiveUI.DrawHUD();
+            ActiveUIManager.DrawHUD();
 
             base.Draw(gameTime);
         }

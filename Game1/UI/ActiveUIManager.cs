@@ -8,7 +8,7 @@ using static Game1.WorldManager;
 
 namespace Game1.UI
 {
-    public static class ActiveUI
+    public static class ActiveUIManager
     {
         public static readonly UIConfig UIConfig;
         public static double ScreenWidth { get; private set; }
@@ -60,7 +60,7 @@ namespace Game1.UI
         private static HUDCamera HUDCamera;
         private static Graph curGraph;
 
-        static ActiveUI()
+        static ActiveUIManager()
         {
             UIConfig = new();
 
@@ -90,7 +90,7 @@ namespace Game1.UI
         /// </summary>
         public static void SetCurGraph(Graph curGraph)
         {
-            ActiveUI.curGraph = curGraph;
+            ActiveUIManager.curGraph = curGraph;
             if (activeUIElements.Contains(curGraph))
                 throw new InvalidOperationException();
             activeUIElements.Add(curGraph);

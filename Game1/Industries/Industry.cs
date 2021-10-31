@@ -5,19 +5,27 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
+    [DataContract]
     public abstract class Industry : IEnergyConsumer
     {
         // all fields and properties in this and derived classes must have unchangeable state
+        [DataContract]
         public abstract class Params
         {
+            [DataMember]
             public readonly IndustryType industryType;
+            [DataMember]
             public readonly string name;
+            [DataMember]
             public readonly ulong energyPriority;
+            [DataMember]
             public readonly double reqSkill;
+            [DataMember]
             public readonly string explanation;
 
             public Params(IndustryType industryType, string name, ulong energyPriority, double reqSkill, string explanation)
@@ -34,20 +42,32 @@ namespace Game1.Industries
                 this.explanation = explanation;
             }
 
-            public abstract Industry MakeIndustry(NodeState state);
+            public Industry MakeAndInitIndustry(NodeState state)
+            {
+                var industry = MakeIndustry(state: state);
+                industry.Initialize();
+                return industry;
+            }
+
+            protected abstract Industry MakeIndustry(NodeState state);
         }
 
+        [DataContract]
         private class Employer : ActivityCenter
         {
+            [DataMember]
             public double CurSkillPropor { get; private set; }
 
+            [DataMember]
             private readonly Params parameters;
             // must be >= 0
+            [DataMember]
             private TimeSpan avgVacancyDuration;
+            [DataMember]
             private double curUnboundedSkillPropor, workingPropor;
 
-            public Employer(Vector2 position, ulong energyPriority, Action<Person> personLeft, Params parameters)
-                : base(activityType: ActivityType.Working, position: position, energyPriority: energyPriority, personLeft: personLeft)
+            public Employer(ulong energyPriority, NodeState state, Params parameters)
+                : base(activityType: ActivityType.Working, energyPriority: energyPriority, state: state)
             {
                 this.parameters = parameters;
 
@@ -57,7 +77,7 @@ namespace Game1.Industries
                 workingPropor = 0;
             }
 
-            public void StartUpdate()
+            public void StartUpdate(NodeState state)
             {
                 double totalHiredSkill = HiredSkill();
                 if (totalHiredSkill >= parameters.reqSkill)
@@ -78,6 +98,7 @@ namespace Game1.Industries
                         var person = allEmployeesPriorQueue.Dequeue();
                         totalHiredSkill -= person.skills[parameters.industryType];
                         RemovePerson(person: person);
+
                     }
 
                     double curOpenSpace = OpenSpace();
@@ -182,6 +203,7 @@ namespace Game1.Industries
             }
         }
 
+        [field:NonSerialized]
         public event Action Deleted;
 
         public ulong EnergyPriority
@@ -197,32 +219,41 @@ namespace Game1.Industries
         public IEnumerable<Person> PeopleHere
             => employer.PeopleHere;
 
-        public readonly IHUDElement<NearRectangle> UIElement;
-        protected readonly UIRectPanel<IHUDElement<NearRectangle>> UIPanel;
-        private readonly TextBox textBox;
-
-        protected readonly NodeState state;
+        public IHUDElement<NearRectangle> UIElement
+            => UIPanel;
+        
+        //[DataMember]
+        //protected readonly NodeState state;
+        [DataMember]
         protected bool CanStartProduction { get; private set; }
         protected double CurSkillPropor
             => employer.CurSkillPropor;
-        
+
+        [DataMember]
+        protected readonly NodeState state;
+        [DataMember]
         private readonly Params parameters;
+        [DataMember]
         private readonly Employer employer;
+        [DataMember]
         private double energyPropor;
+        [DataMember]
         private bool deleted;
-        
-        protected Industry(Params parameters, NodeState state, UIRectPanel<IHUDElement<NearRectangle>> UIPanel)
+
+        [field:NonSerialized]
+        protected UIRectPanel<IHUDElement<NearRectangle>> UIPanel { get; private set; }
+        [NonSerialized]
+        private TextBox textBox;
+
+        protected Industry(NodeState state, Params parameters)
         {
-            this.parameters = parameters;
             this.state = state;
-            UIElement = UIPanel;
-            this.UIPanel = UIPanel;
+            this.parameters = parameters;
 
             employer = new
             (
-                position: state.position,
+                state: state,
                 energyPriority: parameters.energyPriority,
-                personLeft: PersonLeft,
                 parameters: parameters
             );
 
@@ -232,8 +263,12 @@ namespace Game1.Industries
             deleted = false;
 
             AddEnergyConsumer(energyConsumer: this);
-
+        }
+        
+        public void Initialize()
+        {
             textBox = new();
+            UIPanel = new UIRectVertPanel<IHUDElement<NearRectangle>>(color: Color.White, childHorizPos: HorizPos.Left);
             UIPanel.AddChild(child: textBox);
             UIPanel.AddChild
             (
@@ -253,7 +288,7 @@ namespace Game1.Industries
                 )
             );
         }
-        
+
         public abstract ULongArray TargetStoredResAmounts();
 
         protected abstract bool IsBusy();
@@ -266,7 +301,7 @@ namespace Game1.Industries
                 return null;
             }
 
-            employer.StartUpdate();
+            employer.StartUpdate(state: state);
 
             var result = Update(workingPropor: energyPropor * CurSkillPropor);
 
@@ -299,9 +334,6 @@ namespace Game1.Industries
             };
 
         public abstract double ReqWatts();
-
-        protected void PersonLeft(Person person)
-            => state.waitingPeople.Add(person);
 
         void IEnergyConsumer.ConsumeEnergy(double energyPropor)
         {

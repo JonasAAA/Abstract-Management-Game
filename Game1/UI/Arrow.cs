@@ -1,9 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class Arrow : Shape
     {
         private static readonly Texture2D triangleTexture;
@@ -22,7 +24,9 @@ namespace Game1.UI
                 scale: new Vector2(Vector2.Distance(startPos, endPos) / triangleTexture.Width, width / triangleTexture.Height)
             );
 
+        [DataMember]
         public readonly Vector2 startPos, endPos;
+        [DataMember]
         private readonly float width;
 
         public Arrow(Vector2 startPos, Vector2 endPos, float width)

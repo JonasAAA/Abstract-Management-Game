@@ -1,16 +1,22 @@
 ﻿using Game1.UI;
 using Microsoft.Xna.Framework;
 using System;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
+    [DataContract]
     public class Factory : Industry
     {
+        [DataContract]
         public new class Params : Industry.Params
         {
+            [DataMember]
             public readonly double reqWatts;
+            [DataMember]
             public readonly ConstULongArray supply, demand;
+            [DataMember]
             public readonly TimeSpan prodDuration;
 
             public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, ConstULongArray supply, ConstULongArray demand, TimeSpan prodDuration)
@@ -33,20 +39,17 @@ namespace Game1.Industries
                 this.prodDuration = prodDuration;
             }
 
-            public override Industry MakeIndustry(NodeState state)
-                => new Factory(parameters: this, state: state);
+            protected override Industry MakeIndustry(NodeState state)
+                => new Factory(state: state, parameters: this);
         }
 
+        [DataMember]
         private readonly Params parameters;
+        [DataMember]
         private TimeSpan prodTimeLeft;
 
-        private Factory(Params parameters, NodeState state)
-            : base
-            (
-                parameters: parameters,
-                state: state,
-                UIPanel: new UIRectVertPanel<IHUDElement<NearRectangle>>(color: Color.White, childHorizPos: HorizPos.Left)
-            )
+        private Factory(NodeState state, Params parameters)
+            : base(state: state, parameters: parameters)
         {
             this.parameters = parameters;
             prodTimeLeft = TimeSpan.MaxValue;

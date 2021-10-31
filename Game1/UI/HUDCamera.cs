@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-namespace Game1
+namespace Game1.UI
 {
     public class HUDCamera : Camera
     {

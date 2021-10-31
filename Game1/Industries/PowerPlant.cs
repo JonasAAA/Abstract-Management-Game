@@ -1,15 +1,18 @@
 ﻿using Game1.UI;
 using Microsoft.Xna.Framework;
 using System;
-
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
+    [DataContract]
     public class PowerPlant : Industry, IEnergyProducer
     {
+        [DataContract]
         public new class Params : Industry.Params
         {
+            [DataMember]
             public readonly double prodWatts;
 
             public Params(string name, double reqSkill, double prodWatts)
@@ -27,19 +30,15 @@ namespace Game1.Industries
                 this.prodWatts = prodWatts;
             }
 
-            public override Industry MakeIndustry(NodeState state)
-                => new PowerPlant(parameters: this, state: state);
+            protected override Industry MakeIndustry(NodeState state)
+                => new PowerPlant(state: state, parameters: this);
         }
 
+        [DataMember]
         private readonly Params parameters;
 
-        private PowerPlant(Params parameters, NodeState state)
-            : base
-            (
-                parameters: parameters,
-                state: state,
-                UIPanel: new UIRectVertPanel<IHUDElement<NearRectangle>>(color: Color.White, childHorizPos: HorizPos.Left)
-            )
+        private PowerPlant(NodeState state, Params parameters)
+            : base(state: state, parameters: parameters)
         {
             this.parameters = parameters;
             AddEnergyProducer(energyProducer: this);

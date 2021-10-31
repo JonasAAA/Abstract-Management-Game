@@ -2,15 +2,18 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class WorldUIElement : UIElement
     {
         public override bool CanBeClicked
             => !Active;
 
+        [DataMember]
         protected bool Active { get; private set; }
         protected Color ActiveColor
         {
@@ -31,10 +34,15 @@ namespace Game1.UI
             }
         }
 
+        [DataMember]
         private Color activeColor, inactiveColor;
-        private readonly Dictionary<Overlay, IHUDElement<NearRectangle>> popup;
+        [DataMember]
         private readonly HorizPos popupHorizPos;
+        [DataMember]
         private readonly VertPos popupVertPos;
+
+        [NonSerialized]
+        private Dictionary<Overlay, IHUDElement<NearRectangle>> popup;
 
         public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
             : base(shape: shape)
@@ -45,17 +53,17 @@ namespace Game1.UI
             this.popupHorizPos = popupHorizPos;
             this.popupVertPos = popupVertPos;
             Active = false;
+        }
+
+        protected override void InitUninitialized()
+        {
+            base.InitUninitialized();
 
             popup = Enum.GetValues<Overlay>().ToDictionary
             (
                 keySelector: overlay => overlay,
                 elementSelector: overlay => (IHUDElement<NearRectangle>)null
             );
-        }
-
-        protected override void InitUninitialized()
-        {
-            base.InitUninitialized();
 
             CurOverlayChanged += oldOverlay =>
             {
@@ -64,8 +72,8 @@ namespace Game1.UI
                 if (popup[oldOverlay] == popup[CurOverlay])
                     return;
 
-                ActiveUI.RemoveHUDElement(UIElement: popup[oldOverlay]);
-                ActiveUI.AddHUDElement
+                ActiveUIManager.RemoveHUDElement(UIElement: popup[oldOverlay]);
+                ActiveUIManager.AddHUDElement
                 (
                     UIElement: popup[CurOverlay],
                     horizPos: popupHorizPos,
@@ -91,7 +99,7 @@ namespace Game1.UI
 
             Active = true;
             SetShapeColor();
-            ActiveUI.AddHUDElement
+            ActiveUIManager.AddHUDElement
             (
                 UIElement: popup[CurOverlay],
                 horizPos: popupHorizPos,
@@ -107,7 +115,7 @@ namespace Game1.UI
 
             Active = false;
             SetShapeColor();
-            ActiveUI.RemoveHUDElement
+            ActiveUIManager.RemoveHUDElement
             (
                 UIElement: popup[CurOverlay]
             );

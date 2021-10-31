@@ -1,22 +1,39 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1
 {
+    [DataContract]
     public class LightManager
     {
+        [DataMember]
         private readonly MyHashSet<ILightCatchingObject> lightCatchingObjects;
+        [DataMember]
         private readonly MyHashSet<ILightSource> lightSources;
-        private readonly RenderTarget2D renderTarget;
-        private readonly int actualScreenWidth, actualScreenHeight;
-        private readonly BasicEffect brightEffect, dimEffect;
+        [NonSerialized]
+        private RenderTarget2D renderTarget;
+        [NonSerialized]
+        private int actualScreenWidth, actualScreenHeight;
+        [NonSerialized]
+        private BasicEffect brightEffect, dimEffect;
 
-        public LightManager(GraphicsDevice graphicsDevice)
+        public LightManager()
         {
             lightCatchingObjects = new();
             lightSources = new();
+        }
+
+        public void Initialize(GraphicsDevice graphicsDevice)
+        {
+            foreach (var lightCatchingObject in lightCatchingObjects)
+                DealWithLightCatchingObjectDeletion(lightCatchingObject: lightCatchingObject);
+
+            foreach (var lightSource in lightSources)
+                DealWithLightSourceDeletion(lightSource: lightSource);
+
             actualScreenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             actualScreenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             renderTarget = new(graphicsDevice, actualScreenWidth, actualScreenHeight);
@@ -56,15 +73,21 @@ namespace Game1
         {
             lightCatchingObjects.Add(lightCatchingObject);
 
-            lightCatchingObject.Deleted += () => lightCatchingObjects.Remove(lightCatchingObject);
+            DealWithLightCatchingObjectDeletion(lightCatchingObject: lightCatchingObject);
         }
+
+        private void DealWithLightCatchingObjectDeletion(ILightCatchingObject lightCatchingObject)
+            => lightCatchingObject.Deleted += () => lightCatchingObjects.Remove(lightCatchingObject);
 
         public void AddLightSource(ILightSource lightSource)
         {
             lightSources.Add(lightSource);
 
-            lightSource.Deleted += () => lightSources.Remove(lightSource);
+            DealWithLightSourceDeletion(lightSource: lightSource);
         }
+
+        private void DealWithLightSourceDeletion(ILightSource lightSource)
+            => lightSource.Deleted += () => lightSources.Remove(lightSource);
 
         public void Update()
         {

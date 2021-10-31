@@ -18,13 +18,13 @@ namespace Game1.UI
         {
             base.PartOfRecalcSizeAndPos();
 
-            Shape.Width = 2 * ActiveUI.UIConfig.rectOutlineWidth + children.Count switch
+            Shape.Width = 2 * ActiveUIManager.UIConfig.rectOutlineWidth + children.Count switch
             {
                 0 => 0,
                 not 0 => children.Max(child => child.Shape.Width)
             };
             
-            Shape.Height = 2 * ActiveUI.UIConfig.rectOutlineWidth + children.Count switch
+            Shape.Height = 2 * ActiveUIManager.UIConfig.rectOutlineWidth + children.Count switch
             {
                 0 => 0,
                 not 0 => children.Sum(child => child.Shape.Height)
@@ -36,7 +36,7 @@ namespace Game1.UI
                 child.Shape.SetPosition
                 (
                     position: Shape.GetPosition(horizOrigin: childHorizPos, vertOrigin: VertPos.Top)
-                        + new Vector2(-(int)childHorizPos * ActiveUI.UIConfig.rectOutlineWidth, curHeightSum + ActiveUI.UIConfig.rectOutlineWidth),
+                        + new Vector2(-(int)childHorizPos * ActiveUIManager.UIConfig.rectOutlineWidth, curHeightSum + ActiveUIManager.UIConfig.rectOutlineWidth),
                     horizOrigin: childHorizPos,
                     vertOrigin: VertPos.Top
                 );

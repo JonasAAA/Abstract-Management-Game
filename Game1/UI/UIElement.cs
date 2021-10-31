@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class UIElement : IUIElement
     {
         protected const string defaultExplanation = "Explanation missing!";
@@ -58,7 +60,8 @@ namespace Game1.UI
         public virtual bool CanBeClicked
             => false;
 
-        public string Explanation { get; }
+        [DataMember]
+        public string Explanation { get; private init; }
 
         public event Action SizeOrPosChanged
         {
@@ -66,15 +69,22 @@ namespace Game1.UI
             remove => shape.SizeOrPosChanged -= value;
         }
 
+        [field:NonSerialized]
         public event Action EnabledChanged, MouseOnChanged;
 
+        [DataMember]
         protected readonly Shape shape;
         
+        [DataMember]
         private bool personallyEnabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
-        private readonly SortedDictionary<ulong, List<IUIElement>> layerToChildren;
-        private readonly Dictionary<IUIElement, ulong> childToLayer;
+
+        [NonSerialized]
+        private SortedDictionary<ulong, List<IUIElement>> layerToChildren;
+        [NonSerialized]
+        private Dictionary<IUIElement, ulong> childToLayer;
 
         // DO NOT serialize this
+        [NonSerialized]
         private bool initialized;
         
         public UIElement(Shape shape, string explanation = defaultExplanation)
@@ -85,13 +95,13 @@ namespace Game1.UI
             MouseOn = false;
             hasDisabledAncestor = false;
             inRecalcSizeAndPos = false;
-            layerToChildren = new();
-            childToLayer = new();
             initialized = false;
         }
 
         public void Initialize()
         {
+            layerToChildren = new();
+            childToLayer = new();
             foreach (var child in Children().Clone())
             {
                 child.Initialize();
@@ -227,7 +237,7 @@ namespace Game1.UI
 
             shape.Draw
             (
-                otherColor: ActiveUI.UIConfig.mouseOnColor,
+                otherColor: ActiveUIManager.UIConfig.mouseOnColor,
                 otherColorProp: (CanBeClicked && MouseOn) switch
                 {
                     true => .5f,

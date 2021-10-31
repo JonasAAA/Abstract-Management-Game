@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Game1
 {
+    [DataContract]
     public class TimedPacketQueue : TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, IEnumerable<Person> people)>
     {
         public IEnumerable<Person> People
             => people;
 
+        [DataMember]
         public ulong TotalWeight { get; private set; }
 
+        [DataMember]
         private readonly MyHashSet<Person> people;
 
         public TimedPacketQueue(TimeSpan duration)

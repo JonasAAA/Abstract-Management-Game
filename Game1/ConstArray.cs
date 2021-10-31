@@ -2,11 +2,14 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 
 namespace Game1
 {
+    [DataContract]
     public class ConstArray<T> : ConstArray, IEnumerable<T>
     {
+        [DataMember]
         protected readonly T[] array;
 
         public ConstArray()
@@ -39,6 +42,7 @@ namespace Game1
             => GetEnumerator();
     }
 
+    [DataContract]
     public class ConstArray
     {
         public static int Length { get; private set; }

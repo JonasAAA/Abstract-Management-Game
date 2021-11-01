@@ -1,4 +1,5 @@
-﻿using Game1.UI;
+﻿using Game1.Events;
+using Game1.UI;
 using Microsoft.Xna.Framework;
 using Priority_Queue;
 using System;
@@ -203,8 +204,8 @@ namespace Game1.Industries
             }
         }
 
-        [field:NonSerialized]
-        public event Action Deleted;
+        [DataMember]
+        public Event<IDeletedListener> Deleted { get; private init; }
 
         public ulong EnergyPriority
             => IsBusy() switch
@@ -222,8 +223,6 @@ namespace Game1.Industries
         public IHUDElement<NearRectangle> UIElement
             => UIPanel;
         
-        //[DataMember]
-        //protected readonly NodeState state;
         [DataMember]
         protected bool CanStartProduction { get; private set; }
         protected double CurSkillPropor
@@ -247,6 +246,7 @@ namespace Game1.Industries
 
         protected Industry(NodeState state, Params parameters)
         {
+            Deleted = new();
             this.state = state;
             this.parameters = parameters;
 
@@ -320,7 +320,7 @@ namespace Game1.Industries
         protected virtual void Delete()
         {
             employer.Delete();
-            Deleted?.Invoke();
+            Deleted.Raise(action: listener => listener.Deleted(deletable: this));
         }
 
         public virtual string GetText()

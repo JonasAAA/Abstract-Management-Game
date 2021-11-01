@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Game1.Events;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -6,7 +7,7 @@ using System.Runtime.Serialization;
 namespace Game1
 {
     [DataContract]
-    public class ActivityManager
+    public class ActivityManager : IDeletedListener
     {
         [DataMember]
         private readonly HashSet<IActivityCenter> activityCenters;
@@ -19,7 +20,7 @@ namespace Game1
             if (!activityCenters.Add(activityCenter))
                 throw new ArgumentException();
 
-            activityCenter.Deleted += () => activityCenters.Remove(activityCenter);
+            activityCenter.Deleted.Add(listener: this);
         }
 
         public void ManageActivities(IEnumerable<Person> people)
@@ -56,6 +57,14 @@ namespace Game1
                 if (activityCenter.IsFull())
                     availableActivityCenters.Remove(activityCenter);
             }
+        }
+
+        void IDeletedListener.Deleted(object deletable)
+        {
+            if (deletable is IActivityCenter activityCenter)
+                activityCenters.Remove(activityCenter);
+            else
+                throw new ArgumentException();
         }
     }
 }

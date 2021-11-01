@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Runtime.Serialization;
@@ -7,7 +8,7 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [DataContract]
-    public class LightManager
+    public class LightManager : IDeletedListener
     {
         [DataMember]
         private readonly MyHashSet<ILightCatchingObject> lightCatchingObjects;
@@ -28,12 +29,6 @@ namespace Game1
 
         public void Initialize(GraphicsDevice graphicsDevice)
         {
-            foreach (var lightCatchingObject in lightCatchingObjects)
-                DealWithLightCatchingObjectDeletion(lightCatchingObject: lightCatchingObject);
-
-            foreach (var lightSource in lightSources)
-                DealWithLightSourceDeletion(lightSource: lightSource);
-
             actualScreenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             actualScreenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             renderTarget = new(graphicsDevice, actualScreenWidth, actualScreenHeight);
@@ -73,21 +68,15 @@ namespace Game1
         {
             lightCatchingObjects.Add(lightCatchingObject);
 
-            DealWithLightCatchingObjectDeletion(lightCatchingObject: lightCatchingObject);
+            lightCatchingObject.Deleted.Add(listener: this);
         }
-
-        private void DealWithLightCatchingObjectDeletion(ILightCatchingObject lightCatchingObject)
-            => lightCatchingObject.Deleted += () => lightCatchingObjects.Remove(lightCatchingObject);
 
         public void AddLightSource(ILightSource lightSource)
         {
             lightSources.Add(lightSource);
 
-            DealWithLightSourceDeletion(lightSource: lightSource);
+            lightSource.Deleted.Add(listener: this);
         }
-
-        private void DealWithLightSourceDeletion(ILightSource lightSource)
-            => lightSource.Deleted += () => lightSources.Remove(lightSource);
 
         public void Update()
         {
@@ -126,6 +115,21 @@ namespace Game1
             C.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
             C.SpriteBatch.Draw(renderTarget, Vector2.Zero, Color.White);
             C.SpriteBatch.End();
+        }
+
+        void IDeletedListener.Deleted(object deletable)
+        {
+            switch (deletable)
+            {
+                case ILightCatchingObject lightCatchingObject:
+                    lightCatchingObjects.Remove(lightCatchingObject);
+                    break;
+                case ILightSource lightSource:
+                    lightSources.Remove(lightSource);
+                    break;
+                default:
+                    throw new ArgumentException();
+            }
         }
     }
 }

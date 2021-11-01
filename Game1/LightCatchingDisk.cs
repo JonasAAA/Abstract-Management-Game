@@ -1,4 +1,5 @@
-﻿using Game1.UI;
+﻿using Game1.Events;
+using Game1.UI;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -22,9 +23,8 @@ namespace Game1
 
         [DataMember]
         public readonly float radius;
-
-        [field:NonSerialized]
-        public event Action Deleted;
+        [DataMember]
+        public Event<IDeletedListener> Deleted { get; private init; }
 
         [DataMember]
         private readonly Dictionary<Vector2, double> starPosToWatts, starPosToPowerProp;
@@ -32,6 +32,7 @@ namespace Game1
         public LightCatchingDisk(float radius)
             : base(width: 2 * radius, height: 2 * radius)
         {
+            Deleted = new();
             if (radius <= 0)
                 throw new ArgumentOutOfRangeException();
             this.radius = radius;
@@ -43,7 +44,7 @@ namespace Game1
         }
 
         public void Delete()
-            => Deleted?.Invoke();
+            => Deleted.Raise(action: listener => listener.Deleted(deletable: this));
 
         IEnumerable<float> ILightCatchingObject.RelAngles(Vector2 lightPos)
         {

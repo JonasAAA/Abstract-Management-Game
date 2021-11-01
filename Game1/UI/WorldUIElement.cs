@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,7 +9,7 @@ using static Game1.WorldManager;
 namespace Game1.UI
 {
     [DataContract]
-    public class WorldUIElement : UIElement
+    public class WorldUIElement : UIElement, ICurOverlayChangedListener
     {
         public override bool CanBeClicked
             => !Active;
@@ -65,21 +66,7 @@ namespace Game1.UI
                 elementSelector: overlay => (IHUDElement<NearRectangle>)null
             );
 
-            CurOverlayChanged += oldOverlay =>
-            {
-                if (!Active)
-                    return;
-                if (popup[oldOverlay] == popup[CurOverlay])
-                    return;
-
-                ActiveUIManager.RemoveHUDElement(UIElement: popup[oldOverlay]);
-                ActiveUIManager.AddHUDElement
-                (
-                    UIElement: popup[CurOverlay],
-                    horizPos: popupHorizPos,
-                    vertPos: popupVertPos
-                );
-            };
+            CurOverlayChanged.Add(listener: this);
         }
 
         protected void SetPopup(IHUDElement<NearRectangle> UIElement, Overlay overlay)
@@ -127,5 +114,21 @@ namespace Game1.UI
                 true => activeColor,
                 false => inactiveColor
             };
+
+        public virtual void OnOverlayChanged(Overlay oldOverlay)
+        {
+            if (!Active)
+                return;
+            if (popup[oldOverlay] == popup[CurOverlay])
+                return;
+
+            ActiveUIManager.RemoveHUDElement(UIElement: popup[oldOverlay]);
+            ActiveUIManager.AddHUDElement
+            (
+                UIElement: popup[CurOverlay],
+                horizPos: popupHorizPos,
+                vertPos: popupVertPos
+            );
+        }
     }
 }

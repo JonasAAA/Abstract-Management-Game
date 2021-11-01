@@ -1,9 +1,9 @@
-﻿using System;
+﻿using Game1.Events;
 
 namespace Game1
 {
     public interface IDeletable
     {
-        public event Action Deleted;
+        public Event<IDeletedListener> Deleted { get; }
     }
 }

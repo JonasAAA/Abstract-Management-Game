@@ -1,4 +1,5 @@
-﻿using Game1.UI;
+﻿using Game1.Events;
+using Game1.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -23,8 +24,8 @@ namespace Game1
             /// <summary>
             /// CURRENTLY UNUSED
             /// </summary>
-            [field: NonSerialized]
-            public event Action Deleted;
+            [DataMember]
+            public Event<IDeletedListener> Deleted { get; private init; }
 
             [DataMember]
             public readonly Node startNode, endNode;
@@ -48,6 +49,7 @@ namespace Game1
 
             public DirLink(Node startNode, Node endNode, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
             {
+                Deleted = new();
                 this.startNode = startNode;
                 this.endNode = endNode;
 

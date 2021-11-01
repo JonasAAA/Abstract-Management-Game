@@ -96,12 +96,15 @@ namespace Game1.UI
             hasDisabledAncestor = false;
             inRecalcSizeAndPos = false;
             initialized = false;
+            // should be moved to Initialize()
+            layerToChildren = new();
+            childToLayer = new();
         }
 
         public void Initialize()
         {
-            layerToChildren = new();
-            childToLayer = new();
+            //layerToChildren = new();
+            //childToLayer = new();
             foreach (var child in Children().Clone())
             {
                 child.Initialize();
@@ -141,6 +144,7 @@ namespace Game1.UI
                where minLayer <= childrenLayer.Key && childrenLayer.Key <= maxLayer
                from child in childrenLayer.Value
                select child;
+
 
         protected void AddChild(IUIElement child, ulong layer = 0)
         {

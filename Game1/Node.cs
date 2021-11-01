@@ -1,4 +1,5 @@
-﻿using Game1.Industries;
+﻿using Game1.Events;
+using Game1.Industries;
 using Game1.UI;
 using Microsoft.Xna.Framework;
 using System;
@@ -104,12 +105,6 @@ namespace Game1
         public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth, int startPersonCount = 0)
             : base(shape: new LightCatchingDisk(radius: radius), activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
-            // AddResDestin adds (currently uninitialized) UI
-            // and if that UI would be saved and loaded, it wouldn't work as it
-            // would be uninitialised, and, more importantly, not all events would be subscribed to properly
-            // to combat the last part, when initializing node, if it already has some resource destinations,
-            // need to create UI for them
-            // throw new NotImplementedException();
             this.state = state;
             this.resDestinArrowWidth = resDestinArrowWidth;
             shape = (LightCatchingDisk)base.shape;
@@ -272,34 +267,9 @@ namespace Game1
             resDistribArrows = new();
             for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
                 resDistribArrows[resInd] = new UITransparentPanel<ResDestinArrow>();
-            //foreach (var overlay in Enum.GetValues<Overlay>())
-            //    resDistribArrows[overlay] = new UITransparentPanel<ResDestinArrow>();
-
-            CurOverlayChanged += oldOverlay =>
-            {
-                UITabPanel.ReplaceTab
-                (
-                    tabLabelText: overlayTabLabel,
-                    tab: overlayTabPanels[CurOverlay]
-                );
-
-                if (oldOverlay <= MaxRes)
-                    RemoveWorldUIElement
-                    (
-                        UIElement: resDistribArrows[(int)oldOverlay]
-                    );
-                if (CurOverlay <= MaxRes)
-                    AddWorldUIElement
-                    (
-                        UIElement: resDistribArrows[(int)CurOverlay],
-                        layer: resDistribArrowsUILayer
-                    );
-            };
 
             for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
                 resDistribArrows[resInd].Initialize();
-            //foreach (var ovelray in Enum.GetValues<Overlay>())
-            //    resDistribArrows[ovelray].Initialize();
 
             if (CurOverlay <= MaxRes)
                 AddWorldUIElement
@@ -386,9 +356,6 @@ namespace Game1
                 throw new ArgumentException();
             if (importance <= 0)
                 throw new ArgumentOutOfRangeException();
-
-            //// to make lambda expressions and local functions work correctly
-            //Overlay overlay = (Overlay)resInd;
 
             ResDestinArrow resDestinArrow = new
             (
@@ -596,5 +563,28 @@ namespace Game1
         
         public void SetRemainingLocalWatts(double remainingLocalWatts)
             => this.remainingLocalWatts = remainingLocalWatts;
+
+        public override void OnOverlayChanged(Overlay oldOverlay)
+        {
+            base.OnOverlayChanged(oldOverlay: oldOverlay);
+
+            UITabPanel.ReplaceTab
+                (
+                    tabLabelText: overlayTabLabel,
+                    tab: overlayTabPanels[CurOverlay]
+                );
+
+            if (oldOverlay <= MaxRes)
+                RemoveWorldUIElement
+                (
+                    UIElement: resDistribArrows[(int)oldOverlay]
+                );
+            if (CurOverlay <= MaxRes)
+                AddWorldUIElement
+                (
+                    UIElement: resDistribArrows[(int)CurOverlay],
+                    layer: resDistribArrowsUILayer
+                );
+        }
     }
 }

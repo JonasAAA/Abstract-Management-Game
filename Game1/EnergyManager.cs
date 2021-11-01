@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,7 +9,7 @@ using System.Runtime.Serialization;
 namespace Game1
 {
     [DataContract]
-    public class EnergyManager
+    public class EnergyManager : IDeletedListener
     {
         [DataMember]
         private readonly MyHashSet<IEnergyProducer> energyProducers;
@@ -27,35 +28,21 @@ namespace Game1
             totUsedPowerPlantWatts = 0;
         }
 
-        public void Initialize()
-        {
-            foreach (var energyProducer in energyProducers)
-                DealWithEnergyProducerDeletion(energyProducer: energyProducer);
-
-            foreach (var energyConsumer in energyConsumers)
-                DealWithEnergyConsumerDeletion(energyConsumer: energyConsumer);
-        }
-
         public void AddEnergyProducer(IEnergyProducer energyProducer)
         {
             energyProducers.Add(energyProducer);
 
-            DealWithEnergyProducerDeletion(energyProducer: energyProducer);
-            //energyProducer.Deleted += () => energyProducers.Remove(energyProducer);
+            if (!energyProducer.Deleted.Contains(listener: this))
+                energyProducer.Deleted.Add(listener: this);
         }
-
-        private void DealWithEnergyProducerDeletion(IEnergyProducer energyProducer)
-            => energyProducer.Deleted += () => energyProducers.Remove(energyProducer);
 
         public void AddEnergyConsumer(IEnergyConsumer energyConsumer)
         {
             energyConsumers.Add(energyConsumer);
 
-            DealWithEnergyConsumerDeletion(energyConsumer: energyConsumer);
+            if (!energyConsumer.Deleted.Contains(listener: this))
+                energyConsumer.Deleted.Add(listener: this);
         }
-
-        private void DealWithEnergyConsumerDeletion(IEnergyConsumer energyConsumer)
-            => energyConsumer.Deleted += () => energyConsumers.Remove(energyConsumer);
 
         public void DistributeEnergy(IEnumerable<Vector2> nodePositions, IReadOnlyDictionary<Vector2, Node> posToNode)
         {
@@ -166,5 +153,13 @@ namespace Game1
 
         public string Summary()
             => $"required energy: {totReqWatts:0.##} W\nproduced energy: {totProdWatts:0.##} W\nused local energy {totUsedLocalWatts:0.##} W\nused power plant energy {totUsedPowerPlantWatts:0.##} W\n";
+
+        void IDeletedListener.Deleted(object deletable)
+        {
+            if (deletable is IEnergyProducer energyProducer)
+                energyProducers.Remove(energyProducer);
+            if (deletable is IEnergyConsumer energyConsumer)
+                energyConsumers.Remove(energyConsumer);
+        }
     }
 }

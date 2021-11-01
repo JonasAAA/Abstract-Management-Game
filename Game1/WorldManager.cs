@@ -1,4 +1,5 @@
-﻿using Game1.Industries;
+﻿using Game1.Events;
+using Game1.Industries;
 using Game1.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -15,7 +16,7 @@ using System.Xml;
 namespace Game1
 {
     [DataContract]
-    public class WorldManager
+    public class WorldManager : IDeletedListener
     {
         public const Overlay MaxRes = (Overlay)2;
 
@@ -24,9 +25,8 @@ namespace Game1
         public static Overlay CurOverlay
             => Current.overlay;
 
-        public delegate void OverlayChangedEventHandler(Overlay oldOverlay);
-
-        public static event OverlayChangedEventHandler CurOverlayChanged;
+        public static Event<ICurOverlayChangedListener> CurOverlayChanged
+            => Current.curOverlayChanged;
 
         public static WorldConfig CurWorldConfig
             => Current.worldConfig;
@@ -111,9 +111,11 @@ namespace Game1
         public static void AddPerson(Person person)
         {
             Current.people.Add(person);
-            person.Deleted += () => Current.people.Remove(person);
+            person.Deleted.Add(listener: Current);
         }
 
+        [DataMember]
+        private readonly Event<ICurOverlayChangedListener> curOverlayChanged;
         [DataMember]
         private readonly WorldConfig worldConfig;
         [DataMember]
@@ -141,6 +143,7 @@ namespace Game1
 
         private WorldManager()
         {
+            curOverlayChanged = new();
             worldConfig = new();
             resConfig = new();
             ConstArray.Initialize(resCount: resConfig.ResCount);
@@ -160,15 +163,8 @@ namespace Game1
             worldCamera = new(graphicsDevice: graphicsDevice);
             activityManager = new();
             energyManager = new();
-            energyManager.Initialize();
             lightManager = new();
             lightManager.Initialize(graphicsDevice: graphicsDevice);
-
-            // have a separate initialize method which initializes everyone's UI
-            //
-            // It may be easier to make IUIElement serializable, have proper Initialize functions
-            // for UI to subscribe to relevant events, and call the Initialize functions appropriately
-            throw new NotImplementedException();
 
             Star[] stars = new Star[]
             {
@@ -303,7 +299,7 @@ namespace Game1
                             return;
                         Overlay oldOverlay = CurOverlay;
                         overlay = posOverlay;
-                        CurOverlayChanged?.Invoke(oldOverlay: oldOverlay);
+                        curOverlayChanged.Raise(action: listener => listener.OnOverlayChanged(oldOverlay: oldOverlay));
                     }
                 );
 
@@ -383,7 +379,12 @@ namespace Game1
                     && Attribute.GetCustomAttribute(type, typeof(DataContractAttribute)) is not null
             ).ToArray();
 
-        //private IEnumerable<Type> DerivedTypes(Type type)
-        //    => type.Assembly.GetTypes().Where(t => type.IsAssignableFrom(t));
+        void IDeletedListener.Deleted(object deletable)
+        {
+            if (deletable is Person person)
+                people.Remove(person);
+            else
+                throw new ArgumentException();
+        }
     }
 }

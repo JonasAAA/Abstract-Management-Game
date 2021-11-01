@@ -3,12 +3,6 @@ using System;
 
 namespace Game1.UI
 {
-    //public interface IHUDElement<out TShape> : IUIElement
-    //    where TShape : Shape
-    //{
-    //    public TShape Shape { get; }
-    //}
-
     public interface IUIElement
     {
         public bool Enabled { get; }

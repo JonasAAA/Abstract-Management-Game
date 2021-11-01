@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Game1
+﻿namespace Game1
 {
     /// <summary>
     /// MUST call EnergyManager.AddEnergyProducer() for each instance

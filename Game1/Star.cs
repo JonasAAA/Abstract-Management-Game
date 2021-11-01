@@ -1,4 +1,5 @@
-﻿using Game1.UI;
+﻿using Game1.Events;
+using Game1.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -16,8 +17,8 @@ namespace Game1
         /// <summary>
         /// CURRENTLY UNUSED
         /// </summary>
-        [field:NonSerialized]
-        public event Action Deleted;
+        [DataMember]
+        public Event<IDeletedListener> Deleted { get; private init; }
 
         [DataMember]
         private readonly double prodWatts;
@@ -30,6 +31,7 @@ namespace Game1
         public Star(float radius, Vector2 center, double prodWatts, Color color)
             : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
+            Deleted = new();
             shape.Center = center;
             this.prodWatts = prodWatts;
             polygon = new LightPolygon(strength: radius / CurWorldConfig.standardStarRadius, color: color);
@@ -51,7 +53,7 @@ namespace Game1
         }
 
         public void Delete()
-            => Deleted?.Invoke();
+            => Deleted.Raise(action: listener => listener.Deleted(deletable: this));
 
         // let N = lightCatchingObject.Count()
         // the complexity is O(N ^ 2) as each object has O(1) relevant angles

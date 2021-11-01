@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -8,8 +9,10 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [DataContract]
-    public abstract class ActivityCenter : IActivityCenter
+    public abstract class ActivityCenter : IActivityCenter, IDeletable
     {
+        public Event<IDeletedListener> Deleted { get; private init; }
+
         [DataMember]
         public ActivityType ActivityType { get; private init; }
 
@@ -22,28 +25,20 @@ namespace Game1
         public IEnumerable<Person> PeopleHere
             => peopleHere;
 
-        [field: NonSerialized]
-        public event Action Deleted;
-
         [DataMember]
         protected readonly MyHashSet<Person> peopleHere, allPeople;
         [DataMember]
         protected readonly NodeState state;
-
-        //[DataMember]
-        //protected readonly Action<Person> personLeft;
 
         [DataMember]
         private readonly HashSet<Person> peopleInProcessOfRemoving = new();
 
         protected ActivityCenter(ActivityType activityType, ulong energyPriority, NodeState state)
         {
+            Deleted = new();
             ActivityType = activityType;
             EnergyPriority = energyPriority;
             this.state = state;
-            //if (personLeft is null)
-            //    throw new ArgumentNullException();
-            //this.personLeft = personLeft;
             peopleHere = new();
             allPeople = new();
 
@@ -88,7 +83,6 @@ namespace Game1
             {
                 peopleHere.Remove(person);
                 state.waitingPeople.Add(person);
-                //personLeft(person);
             }
 
             peopleInProcessOfRemoving.Remove(person);
@@ -99,7 +93,7 @@ namespace Game1
             foreach (var person in allPeople)
                 RemovePerson(person: person);
             Debug.Assert(allPeople.Count is 0 && peopleHere.Count is 0);
-            Deleted?.Invoke();
+            Deleted.Raise(action: listener => listener.Deleted(deletable: this));
         }
 
         // must be between 0 and 1 or double.NegativeInfinity

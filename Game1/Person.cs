@@ -1,4 +1,5 @@
-﻿using Game1.Industries;
+﻿using Game1.Events;
+using Game1.Industries;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -99,8 +100,8 @@ namespace Game1
         /// <summary>
         /// CURRENTLY UNUSED
         /// </summary>
-        [field:NonSerialized]
-        public event Action Deleted;
+        [DataMember]
+        public Event<IDeletedListener> Deleted { get; private init; }
 
         /// <summary>
         /// is null just been let go from activity center
@@ -118,6 +119,7 @@ namespace Game1
 
         private Person(Vector2 nodePos, Dictionary<IndustryType, double> enjoyments, Dictionary<IndustryType, double> talents, Dictionary<IndustryType, double> skills, ulong weight, double reqWatts, TimeSpan seekChangeTime)
         {
+            Deleted = new();
             prevNodePos = nodePos;
             ClosestNodePos = nodePos;
             if (!enjoyments.Values.All(C.IsInSuitableRange))

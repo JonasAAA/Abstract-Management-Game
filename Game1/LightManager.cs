@@ -117,7 +117,7 @@ namespace Game1
             C.SpriteBatch.End();
         }
 
-        void IDeletedListener.Deleted(object deletable)
+        void IDeletedListener.DeletedResponse(IDeletable deletable)
         {
             switch (deletable)
             {

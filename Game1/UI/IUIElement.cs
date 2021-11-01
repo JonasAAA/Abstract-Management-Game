@@ -1,5 +1,5 @@
-﻿using Microsoft.Xna.Framework;
-using System;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 
 namespace Game1.UI
 {
@@ -17,7 +17,9 @@ namespace Game1.UI
 
         public string Explanation { get; }
 
-        public event Action SizeOrPosChanged, EnabledChanged, MouseOnChanged;
+        public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; }
+
+        public Event<IEnabledChangedListener> EnabledChanged { get; }
 
         public void Initialize();
 

@@ -2,6 +2,6 @@
 {
     public interface IDeletedListener
     {
-        public void Deleted(object deletable);
+        public void DeletedResponse(IDeletable deletable);
     }
 }

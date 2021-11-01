@@ -1,11 +1,16 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using System;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1.UI
 {
-    public class ResDestinArrow : WorldUIElement
+    public class ResDestinArrow : WorldUIElement, IDeletable
     {
+        [DataMember]
+        public Event<IDeletedListener> Deleted { get; private init; }
+
         public int Importance
             => importanceIncDecrPanel.Number;
 
@@ -29,7 +34,6 @@ namespace Game1.UI
             add => importanceIncDecrPanel.NumberChanged += value;
             remove => importanceIncDecrPanel.NumberChanged -= value;
         }
-        public event Action Delete;
 
         private new readonly Arrow shape;
         private int totalImportance;
@@ -41,6 +45,7 @@ namespace Game1.UI
         public ResDestinArrow(Arrow shape, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int importance, int resInd)
             : base(shape: shape, activeColor: defaultActiveColor, inactiveColor: defaultInactiveColor, popupHorizPos: popupHorizPos, popupVertPos: popupVertPos)
         {
+            Deleted = new();
             this.shape = shape;
             this.defaultActiveColor = defaultActiveColor;
             this.defaultInactiveColor = defaultInactiveColor;
@@ -92,7 +97,8 @@ namespace Game1.UI
                 action: () =>
                 {
                     OnMouseDownWorldNotMe();
-                    Delete?.Invoke();
+                    Deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+                    //Delete?.Invoke();
                 },
                 text: "delete"
             );

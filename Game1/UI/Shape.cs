@@ -1,6 +1,5 @@
-﻿using Microsoft.Xna.Framework;
-using System;
-using System.Linq;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using System.Runtime.Serialization;
 
 namespace Game1.UI
@@ -25,34 +24,22 @@ namespace Game1.UI
             }
         }
 
-        public event Action SizeOrPosChanged
-        {
-            add
-            {
-                if (sizeOrPosChanged is not null && sizeOrPosChanged.GetInvocationList().Contains(value))
-                    throw new InvalidOperationException();
-                sizeOrPosChanged -= value;
-                sizeOrPosChanged += value;
-            }
-            remove
-            {
-                sizeOrPosChanged -= value;
-            }
-        }
+        public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; private init; }
 
         [DataMember]
         private Vector2 center;
-        
-        [field:NonSerialized]
-        private event Action sizeOrPosChanged;
 
         protected Shape()
-            => Color = Color.Transparent;
+        {
+            SizeOrPosChanged = new();
+            Color = Color.Transparent;
+        }
 
         public abstract bool Contains(Vector2 position);
 
         protected void RaiseSizeOrPosChanged()
-            => sizeOrPosChanged?.Invoke();
+            => SizeOrPosChanged.Raise(action: listener => listener.SizeOrPosChangedResponse(shape: this));
+            //=> sizeOrPosChanged?.Invoke();
 
         protected abstract void Draw(Color color);
 

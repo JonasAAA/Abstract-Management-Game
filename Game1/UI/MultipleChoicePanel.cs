@@ -1,10 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 
 namespace Game1.UI
 {
-    public class MultipleChoicePanel : HUDElement<MyRectangle>
+    public class MultipleChoicePanel : HUDElement<MyRectangle>, IEnabledChangedListener
     {
         private readonly UIRectPanel<SelectButton<MyRectangle>> choicePanel;
         private readonly Dictionary<string, SelectButton<MyRectangle>> choices;
@@ -52,7 +53,7 @@ namespace Game1.UI
             choicePanel.Shape.Center = Shape.Center;
         }
 
-        public SelectButton<MyRectangle> AddChoice(string choiceText, Action select)
+        public /*SelectButton<MyRectangle>*/ void AddChoice(string choiceText, Action select)
         {
             SelectButton<MyRectangle> choice = new
             (
@@ -85,25 +86,26 @@ namespace Game1.UI
 
             choice.OnChanged += choiceAction;
 
-            choice.EnabledChanged += () =>
-            {
-                if (choice.PersonallyEnabled || !choice.On)
-                    return;
+            choice.EnabledChanged.Add(listener: this);
+            //choice.EnabledChanged += () =>
+            //{
+            //    if (choice.PersonallyEnabled || !choice.On)
+            //        return;
                 
-                foreach (var choice in choicePanel)
-                    if (choice.PersonallyEnabled)
-                    {
-                        choice.On = true;
-                        return;
-                    }
-                throw new Exception("enabled choice doesn't exist");
-            };
+            //    foreach (var choice in choicePanel)
+            //        if (choice.PersonallyEnabled)
+            //        {
+            //            choice.On = true;
+            //            return;
+            //        }
+            //    throw new Exception("enabled choice doesn't exist");
+            //};
 
             choices.Add(choiceText, choice);
             choiceActions.Add(choiceText, choiceAction);
             choicePanel.AddChild(child: choice);
 
-            return choice;
+            //return choice;
         }
     
         public void ReplaceChoiceAction(string choiceText, Action newSelect)
@@ -130,5 +132,24 @@ namespace Game1.UI
 
         public SelectButton<MyRectangle> GetChoice(string choiceText)
             => choices[choiceText];
+
+        void IEnabledChangedListener.EnabledChangedResponse(IUIElement UIElement)
+        {
+            if (UIElement is SelectButton<MyRectangle> choice)
+            {
+                if (choice.PersonallyEnabled || !choice.On)
+                    return;
+
+                foreach (var posChoice in choicePanel)
+                    if (posChoice.PersonallyEnabled)
+                    {
+                        posChoice.On = true;
+                        return;
+                    }
+                throw new Exception("enabled choice doesn't exist");
+            }
+            else
+                throw new ArgumentException();
+        }
     }
 }

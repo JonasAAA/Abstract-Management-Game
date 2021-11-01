@@ -56,12 +56,6 @@ namespace Game1
         public double LocallyProducedWatts
             => shape.Watts;
 
-        /// <summary>
-        /// CURRENTLY UNUSED
-        /// </summary>
-        [field:NonSerialized]
-        public event Action Deleted;
-
         [DataMember]
         private readonly NodeState state;
         [DataMember]
@@ -153,11 +147,11 @@ namespace Game1
                 TextColor = Color.White
             };
             textBox.Shape.Center = Position;
-            SizeOrPosChanged += () =>
-            {
-                if (shape.Center != Position)
-                    throw new Exception();
-            };
+            //SizeOrPosChanged += () =>
+            //{
+            //    if (shape.Center != Position)
+            //        throw new Exception();
+            //};
             AddChild(child: textBox);
 
             UITabPanel = new
@@ -368,29 +362,59 @@ namespace Game1
                 importance: importance,
                 resInd: resInd
             );
-            resDestinArrow.ImportanceChanged += SyncSplittersWithArrows;
-            resDestinArrow.Delete += () =>
-            {
-                resDistribArrows[resInd].RemoveChild(child: resDestinArrow);
-                resSplittersToDestins[resInd].RemoveKey(key: destination);
-                SyncSplittersWithArrows();
-            };
+            resDestinArrow.ImportanceChanged += () => SyncSplittersWithArrows(resInd: resInd);
+            resDestinArrow.Deleted.Add(listener: new ThisAsDeletedListener(Node: this, ResInd: resInd));
+            //resDestinArrow.Delete += () =>
+            //{
+            //    resDistribArrows[resInd].RemoveChild(child: resDestinArrow);
+            //    resSplittersToDestins[resInd].RemoveKey(key: destination);
+            //    SyncSplittersWithArrows();
+            //};
             resDestinArrow.Initialize();
 
             resDistribArrows[resInd].AddChild(child: resDestinArrow);
-            SyncSplittersWithArrows();
+            SyncSplittersWithArrows(resInd: resInd);
 
-            void SyncSplittersWithArrows()
+            //void SyncSplittersWithArrows()
+            //{
+            //    foreach (var resDestinArrow in resDistribArrows[resInd])
+            //        resSplittersToDestins[resInd].SetImportance
+            //        (
+            //            key: resDestinArrow.EndPos,
+            //            importance: (ulong)resDestinArrow.Importance
+            //        );
+            //    int totalImportance = resDistribArrows[resInd].Sum(resDestinArrow => resDestinArrow.Importance);
+            //    foreach (var resDestinArrow in resDistribArrows[resInd])
+            //        resDestinArrow.TotalImportance = totalImportance;
+            //}
+        }
+
+        void SyncSplittersWithArrows(int resInd)
+        {
+            foreach (var resDestinArrow in resDistribArrows[resInd])
+                resSplittersToDestins[resInd].SetImportance
+                (
+                    key: resDestinArrow.EndPos,
+                    importance: (ulong)resDestinArrow.Importance
+                );
+            int totalImportance = resDistribArrows[resInd].Sum(resDestinArrow => resDestinArrow.Importance);
+            foreach (var resDestinArrow in resDistribArrows[resInd])
+                resDestinArrow.TotalImportance = totalImportance;
+        }
+
+        [DataContract]
+        private record ThisAsDeletedListener([property: DataMember] Node Node, [property: DataMember] int ResInd) : IDeletedListener
+        {
+            public void DeletedResponse(IDeletable deletable)
             {
-                foreach (var resDestinArrow in resDistribArrows[resInd])
-                    resSplittersToDestins[resInd].SetImportance
-                    (
-                        key: resDestinArrow.EndPos,
-                        importance: (ulong)resDestinArrow.Importance
-                    );
-                int totalImportance = resDistribArrows[resInd].Sum(resDestinArrow => resDestinArrow.Importance);
-                foreach (var resDestinArrow in resDistribArrows[resInd])
-                    resDestinArrow.TotalImportance = totalImportance;
+                if (deletable is ResDestinArrow resDestinArrow)
+                {
+                    Node.resDistribArrows[ResInd].RemoveChild(child: resDestinArrow);
+                    Node.resSplittersToDestins[ResInd].RemoveKey(key: resDestinArrow.EndPos);
+                    Node.SyncSplittersWithArrows(resInd: ResInd);
+                }
+                else
+                    throw new ArgumentException();
             }
         }
 
@@ -564,9 +588,9 @@ namespace Game1
         public void SetRemainingLocalWatts(double remainingLocalWatts)
             => this.remainingLocalWatts = remainingLocalWatts;
 
-        public override void OnOverlayChanged(Overlay oldOverlay)
+        public override void OverlayChangedResponse(Overlay oldOverlay)
         {
-            base.OnOverlayChanged(oldOverlay: oldOverlay);
+            base.OverlayChangedResponse(oldOverlay: oldOverlay);
 
             UITabPanel.ReplaceTab
                 (
@@ -585,6 +609,14 @@ namespace Game1
                     UIElement: resDistribArrows[(int)CurOverlay],
                     layer: resDistribArrowsUILayer
                 );
+        }
+
+        public override void SizeOrPosChangedResponse(Shape shape)
+        {
+            if (shape.Center != Position)
+                throw new Exception();
+
+            base.SizeOrPosChangedResponse(shape: shape);
         }
     }
 }

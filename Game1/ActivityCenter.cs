@@ -93,7 +93,7 @@ namespace Game1
             foreach (var person in allPeople)
                 RemovePerson(person: person);
             Debug.Assert(allPeople.Count is 0 && peopleHere.Count is 0);
-            Deleted.Raise(action: listener => listener.Deleted(deletable: this));
+            Deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 
         // must be between 0 and 1 or double.NegativeInfinity

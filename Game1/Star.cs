@@ -53,7 +53,7 @@ namespace Game1
         }
 
         public void Delete()
-            => Deleted.Raise(action: listener => listener.Deleted(deletable: this));
+            => Deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
 
         // let N = lightCatchingObject.Count()
         // the complexity is O(N ^ 2) as each object has O(1) relevant angles

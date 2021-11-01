@@ -80,6 +80,7 @@ namespace Game1.UI
                 if (!C.IsTiny(value: width - value))
                 {
                     width = value;
+                    //SizeOrPosChanged.Raise(action: listener => listener.SizeOrPosChangedResponse());
                     RaiseSizeOrPosChanged();
                 }
             }

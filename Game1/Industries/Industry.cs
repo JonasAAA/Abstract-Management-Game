@@ -320,7 +320,7 @@ namespace Game1.Industries
         protected virtual void Delete()
         {
             employer.Delete();
-            Deleted.Raise(action: listener => listener.Deleted(deletable: this));
+            Deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 
         public virtual string GetText()

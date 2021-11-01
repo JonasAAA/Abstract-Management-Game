@@ -44,7 +44,7 @@ namespace Game1
         }
 
         public void Delete()
-            => Deleted.Raise(action: listener => listener.Deleted(deletable: this));
+            => Deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
 
         IEnumerable<float> ILightCatchingObject.RelAngles(Vector2 lightPos)
         {

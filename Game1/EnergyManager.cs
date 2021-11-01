@@ -154,7 +154,7 @@ namespace Game1
         public string Summary()
             => $"required energy: {totReqWatts:0.##} W\nproduced energy: {totProdWatts:0.##} W\nused local energy {totUsedLocalWatts:0.##} W\nused power plant energy {totUsedPowerPlantWatts:0.##} W\n";
 
-        void IDeletedListener.Deleted(object deletable)
+        void IDeletedListener.DeletedResponse(IDeletable deletable)
         {
             if (deletable is IEnergyProducer energyProducer)
                 energyProducers.Remove(energyProducer);

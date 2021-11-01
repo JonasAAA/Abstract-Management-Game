@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,9 +8,13 @@ using System.Runtime.Serialization;
 namespace Game1.UI
 {
     [DataContract]
-    public class UIElement : IUIElement
+    public class UIElement : IUIElement, ISizeOrPosChangedListener
     {
         protected const string defaultExplanation = "Explanation missing!";
+
+        public Event<ISizeOrPosChangedListener> SizeOrPosChanged
+            => shape.SizeOrPosChanged;
+        public Event<IEnabledChangedListener> EnabledChanged { get; private init; }
 
         public bool Enabled
             => personallyEnabled && !hasDisabledAncestor;
@@ -25,7 +30,8 @@ namespace Game1.UI
                 bool oldEnabled = Enabled;
                 personallyEnabled = value;
                 if (oldEnabled != Enabled)
-                    EnabledChanged?.Invoke();
+                    MyEnabledChangedResponse();
+                    //EnabledChanged?.Invoke();
             }
         }
 
@@ -40,7 +46,8 @@ namespace Game1.UI
                 bool oldEnabled = Enabled;
                 hasDisabledAncestor = value;
                 if (oldEnabled != Enabled)
-                    EnabledChanged?.Invoke();
+                    MyEnabledChangedResponse();
+                    //EnabledChanged?.Invoke();
             }
         }
 
@@ -53,7 +60,7 @@ namespace Game1.UI
                     return;
 
                 mouseOn = value;
-                MouseOnChanged?.Invoke();
+                //MouseOnChanged?.Invoke();
             }
         }
 
@@ -62,15 +69,6 @@ namespace Game1.UI
 
         [DataMember]
         public string Explanation { get; private init; }
-
-        public event Action SizeOrPosChanged
-        {
-            add => shape.SizeOrPosChanged += value;
-            remove => shape.SizeOrPosChanged -= value;
-        }
-
-        [field:NonSerialized]
-        public event Action EnabledChanged, MouseOnChanged;
 
         [DataMember]
         protected readonly Shape shape;
@@ -89,6 +87,7 @@ namespace Game1.UI
         
         public UIElement(Shape shape, string explanation = defaultExplanation)
         {
+            EnabledChanged = new();
             this.shape = shape;
             Explanation = explanation;
             personallyEnabled = true;
@@ -122,21 +121,22 @@ namespace Game1.UI
             if (initialized)
                 throw new InvalidOperationException();
 
-            SizeOrPosChanged += RecalcSizeAndPos;
-            EnabledChanged += () =>
-            {
-                if (Enabled)
-                {
-                    foreach (var child in Children())
-                        child.HasDisabledAncestor = false;
-                }
-                else
-                {
-                    MouseOn = false;
-                    foreach (var child in Children())
-                        child.HasDisabledAncestor = true;
-                }
-            };
+            SizeOrPosChanged.Add(listener: this);
+            //SizeOrPosChanged += RecalcSizeAndPos;
+            //EnabledChanged += () =>
+            //{
+            //    if (Enabled)
+            //    {
+            //        foreach (var child in Children())
+            //            child.HasDisabledAncestor = false;
+            //    }
+            //    else
+            //    {
+            //        MouseOn = false;
+            //        foreach (var child in Children())
+            //            child.HasDisabledAncestor = true;
+            //    }
+            //};
         }
 
         protected IEnumerable<IUIElement> Children(ulong minLayer = 0, ulong maxLayer = ulong.MaxValue)
@@ -158,8 +158,10 @@ namespace Game1.UI
 
         private void SubscribeToChildEvents(IUIElement child)
         {
-            child.SizeOrPosChanged -= RecalcSizeAndPos;
-            child.SizeOrPosChanged += RecalcSizeAndPos;
+            if (!child.SizeOrPosChanged.Contains(listener: this))
+                child.SizeOrPosChanged.Add(listener: this);
+            //child.SizeOrPosChanged -= RecalcSizeAndPos;
+            //child.SizeOrPosChanged += RecalcSizeAndPos;
         }
 
         protected void RemoveChild(IUIElement child)
@@ -167,7 +169,8 @@ namespace Game1.UI
             if (!initialized)
                 throw new InvalidOperationException();
             ulong layer = childToLayer[child];
-            child.SizeOrPosChanged -= RecalcSizeAndPos;
+            child.SizeOrPosChanged.Remove(listener: this);
+            //child.SizeOrPosChanged -= RecalcSizeAndPos;
             if (!layerToChildren[layer].Remove(child) || !childToLayer.Remove(child))
                 throw new ArgumentException();
             RecalcSizeAndPos();
@@ -250,6 +253,25 @@ namespace Game1.UI
             );
             foreach (var child in Children())
                 child.Draw();
+        }
+
+        public virtual void SizeOrPosChangedResponse(Shape shape)
+            => RecalcSizeAndPos();
+
+        private void MyEnabledChangedResponse()
+        {
+            if (Enabled)
+            {
+                foreach (var child in Children())
+                    child.HasDisabledAncestor = false;
+            }
+            else
+            {
+                MouseOn = false;
+                foreach (var child in Children())
+                    child.HasDisabledAncestor = true;
+            }
+            EnabledChanged.Raise(action: listener => listener.EnabledChangedResponse(UIElement: this));
         }
     }
 }

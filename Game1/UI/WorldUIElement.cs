@@ -54,17 +54,23 @@ namespace Game1.UI
             this.popupHorizPos = popupHorizPos;
             this.popupVertPos = popupVertPos;
             Active = false;
-        }
-
-        protected override void InitUninitialized()
-        {
-            base.InitUninitialized();
 
             popup = Enum.GetValues<Overlay>().ToDictionary
             (
                 keySelector: overlay => overlay,
                 elementSelector: overlay => (IHUDElement<NearRectangle>)null
             );
+        }
+
+        protected override void InitUninitialized()
+        {
+            base.InitUninitialized();
+
+            //popup = Enum.GetValues<Overlay>().ToDictionary
+            //(
+            //    keySelector: overlay => overlay,
+            //    elementSelector: overlay => (IHUDElement<NearRectangle>)null
+            //);
 
             CurOverlayChanged.Add(listener: this);
         }
@@ -88,7 +94,7 @@ namespace Game1.UI
             SetShapeColor();
             ActiveUIManager.AddHUDElement
             (
-                UIElement: popup[CurOverlay],
+                HUDElement: popup[CurOverlay],
                 horizPos: popupHorizPos,
                 vertPos: popupVertPos
             );
@@ -104,7 +110,7 @@ namespace Game1.UI
             SetShapeColor();
             ActiveUIManager.RemoveHUDElement
             (
-                UIElement: popup[CurOverlay]
+                HUDElement: popup[CurOverlay]
             );
         }
 
@@ -115,17 +121,17 @@ namespace Game1.UI
                 false => inactiveColor
             };
 
-        public virtual void OnOverlayChanged(Overlay oldOverlay)
+        public virtual void OverlayChangedResponse(Overlay oldOverlay)
         {
             if (!Active)
                 return;
             if (popup[oldOverlay] == popup[CurOverlay])
                 return;
 
-            ActiveUIManager.RemoveHUDElement(UIElement: popup[oldOverlay]);
+            ActiveUIManager.RemoveHUDElement(HUDElement: popup[oldOverlay]);
             ActiveUIManager.AddHUDElement
             (
-                UIElement: popup[CurOverlay],
+                HUDElement: popup[CurOverlay],
                 horizPos: popupHorizPos,
                 vertPos: popupVertPos
             );

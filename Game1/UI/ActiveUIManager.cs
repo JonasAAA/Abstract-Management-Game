@@ -1,9 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1.UI
@@ -59,6 +61,7 @@ namespace Game1.UI
         private static readonly TextBox explanationTextBox;
         private static HUDCamera HUDCamera;
         private static Graph curGraph;
+        private static readonly Dictionary<IHUDElement<NearRectangle>, SizeOrPosChangedListener> sizeOrPosChangedListenersByHUDElement;
 
         static ActiveUIManager()
         {
@@ -77,6 +80,8 @@ namespace Game1.UI
             hoverDuration = TimeSpan.Zero;
             explanationTextBox = new();
             explanationTextBox.Shape.Color = Color.LightPink;
+
+            sizeOrPosChangedListenersByHUDElement = new();
         }
 
         public static void Initialize(GraphicsDevice graphicsDevice)
@@ -96,34 +101,63 @@ namespace Game1.UI
             activeUIElements.Add(curGraph);
         }
 
-        public static void AddHUDElement(IHUDElement<NearRectangle> UIElement, HorizPos horizPos, VertPos vertPos)
+        public static void AddHUDElement(IHUDElement<NearRectangle> HUDElement, HorizPos horizPos, VertPos vertPos)
         {
-            if (UIElement is null)
+            if (HUDElement is null)
                 return;
-            Vector2 HUDCenter = new((float)(ScreenWidth * .5), (float)(ScreenHeight * .5));
-            void SetUIElementPosition()
-                => UIElement.Shape.SetPosition
-                (
-                    position: HUDCenter + new Vector2((int)horizPos * HUDCenter.X, (int)vertPos * HUDCenter.Y),
-                    horizOrigin: horizPos,
-                    vertOrigin: vertPos
-                );
+            
+            //void SetUIElementPosition()
+            //{
+            //    Vector2 HUDCenter = new((float)(ScreenWidth * .5), (float)(ScreenHeight * .5));
+            //    HUDElement.Shape.SetPosition
+            //    (
+            //        position: HUDCenter + new Vector2((int)horizPos * HUDCenter.X, (int)vertPos * HUDCenter.Y),
+            //        horizOrigin: horizPos,
+            //        vertOrigin: vertPos
+            //    );
+            //}
 
-            SetUIElementPosition();
-            UIElement.Shape.SizeOrPosChanged += SetUIElementPosition;
+            //SetUIElementPosition();
+            sizeOrPosChangedListenersByHUDElement[HUDElement] = new SizeOrPosChangedListener(HorizPos: horizPos, VertPos: vertPos);
+            sizeOrPosChangedListenersByHUDElement[HUDElement].SizeOrPosChangedResponse(shape: HUDElement.Shape);
+            HUDElement.SizeOrPosChanged.Add(listener: sizeOrPosChangedListenersByHUDElement[HUDElement]);
+            //HUDElement.Shape.SizeOrPosChanged += SetUIElementPosition;
 
-            activeUIElements.Add(UIElement);
-            if (!HUDElements.Add(UIElement))
+            activeUIElements.Add(HUDElement);
+            if (!HUDElements.Add(HUDElement))
                 throw new ArgumentException();
         }
 
-        public static void RemoveHUDElement(IHUDElement<NearRectangle> UIElement)
+        public static void RemoveHUDElement(IHUDElement<NearRectangle> HUDElement)
         {
-            if (UIElement is null)
+            if (HUDElement is null)
                 return;
-            if (!HUDElements.Remove(UIElement))
+            if (!HUDElements.Remove(HUDElement))
                 throw new ArgumentException();
-            activeUIElements.Remove(UIElement);
+            activeUIElements.Remove(HUDElement);
+            HUDElement.SizeOrPosChanged.Remove(listener: sizeOrPosChangedListenersByHUDElement[HUDElement]);
+            sizeOrPosChangedListenersByHUDElement.Remove(HUDElement);
+            //HUDElement.Shape.SizeOrPosChanged -= SetUIElementPosition;
+        }
+
+        [DataContract]
+        private record SizeOrPosChangedListener([property:DataMember] HorizPos HorizPos, [property: DataMember] VertPos VertPos) : ISizeOrPosChangedListener
+        {
+            public void SizeOrPosChangedResponse(Shape shape)
+            {
+                if (shape is NearRectangle nearRectangle)
+                {
+                    Vector2 HUDCenter = new((float)(ScreenWidth * .5), (float)(ScreenHeight * .5));
+                    nearRectangle.SetPosition
+                    (
+                        position: HUDCenter + new Vector2((int)HorizPos * HUDCenter.X, (int)VertPos * HUDCenter.Y),
+                        horizOrigin: HorizPos,
+                        vertOrigin: VertPos
+                    );
+                }
+                else
+                    throw new ArgumentException();
+            }
         }
 
         public static void Update(TimeSpan elapsed)

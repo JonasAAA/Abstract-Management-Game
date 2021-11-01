@@ -2,6 +2,6 @@
 {
     public interface ICurOverlayChangedListener
     {
-        public void OnOverlayChanged(Overlay oldOverlay);
+        public void OverlayChangedResponse(Overlay oldOverlay);
     }
 }

@@ -59,7 +59,7 @@ namespace Game1
             }
         }
 
-        void IDeletedListener.Deleted(object deletable)
+        void IDeletedListener.DeletedResponse(IDeletable deletable)
         {
             if (deletable is IActivityCenter activityCenter)
                 activityCenters.Remove(activityCenter);

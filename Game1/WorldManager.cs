@@ -252,7 +252,7 @@ namespace Game1
 
             ActiveUIManager.AddHUDElement
             (
-                UIElement: globalTextBox,
+                HUDElement: globalTextBox,
                 horizPos: HorizPos.Left,
                 vertPos: VertPos.Top
             );
@@ -274,7 +274,7 @@ namespace Game1
 
             ActiveUIManager.AddHUDElement
             (
-                UIElement: pauseButton,
+                HUDElement: pauseButton,
                 horizPos: HorizPos.Right,
                 vertPos: VertPos.Bottom
             );
@@ -299,13 +299,13 @@ namespace Game1
                             return;
                         Overlay oldOverlay = CurOverlay;
                         overlay = posOverlay;
-                        curOverlayChanged.Raise(action: listener => listener.OnOverlayChanged(oldOverlay: oldOverlay));
+                        curOverlayChanged.Raise(action: listener => listener.OverlayChangedResponse(oldOverlay: oldOverlay));
                     }
                 );
 
             ActiveUIManager.AddHUDElement
             (
-                UIElement: overlayChoicePanel,
+                HUDElement: overlayChoicePanel,
                 horizPos: HorizPos.Middle,
                 vertPos: VertPos.Top
             );
@@ -379,7 +379,7 @@ namespace Game1
                     && Attribute.GetCustomAttribute(type, typeof(DataContractAttribute)) is not null
             ).ToArray();
 
-        void IDeletedListener.Deleted(object deletable)
+        void IDeletedListener.DeletedResponse(IDeletable deletable)
         {
             if (deletable is Person person)
                 people.Remove(person);

@@ -61,7 +61,7 @@ namespace Game1.UI
         private static readonly TextBox explanationTextBox;
         private static HUDCamera HUDCamera;
         private static Graph curGraph;
-        private static readonly Dictionary<IHUDElement, SizeOrPosChangedListener> sizeOrPosChangedListenersByHUDElement;
+        private static readonly Dictionary<IHUDElement, HUDElementSizeOrPosChangedListener> sizeOrPosChangedListenersByHUDElement;
 
         static ActiveUIManager()
         {
@@ -106,7 +106,7 @@ namespace Game1.UI
             if (HUDElement is null)
                 return;
 
-            sizeOrPosChangedListenersByHUDElement[HUDElement] = new SizeOrPosChangedListener(HorizPos: horizPos, VertPos: vertPos);
+            sizeOrPosChangedListenersByHUDElement[HUDElement] = new HUDElementSizeOrPosChangedListener(HorizPos: horizPos, VertPos: vertPos);
             sizeOrPosChangedListenersByHUDElement[HUDElement].SizeOrPosChangedResponse(shape: HUDElement.Shape);
             HUDElement.SizeOrPosChanged.Add(listener: sizeOrPosChangedListenersByHUDElement[HUDElement]);
 
@@ -127,7 +127,7 @@ namespace Game1.UI
         }
 
         [DataContract]
-        private record SizeOrPosChangedListener([property:DataMember] HorizPos HorizPos, [property: DataMember] VertPos VertPos) : ISizeOrPosChangedListener
+        private record HUDElementSizeOrPosChangedListener([property:DataMember] HorizPos HorizPos, [property: DataMember] VertPos VertPos) : ISizeOrPosChangedListener
         {
             public void SizeOrPosChangedResponse(Shape shape)
             {

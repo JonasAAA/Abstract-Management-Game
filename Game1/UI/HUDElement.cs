@@ -8,7 +8,6 @@
             : base(shape: shape, explanation: explanation)
         {
             Shape = shape;
-            Initialize();
         }
     }
 }

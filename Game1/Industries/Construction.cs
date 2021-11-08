@@ -41,7 +41,7 @@ namespace Game1.Industries
                 this.cost = cost;
             }
 
-            protected override Industry MakeIndustry(NodeState state)
+            public override Industry MakeIndustry(NodeState state)
                 => new Construction(state: state, parameters: this);
         }
 
@@ -81,7 +81,7 @@ namespace Game1.Industries
             if (constrTimeLeft <= TimeSpan.Zero)
             {
                 Delete();
-                return parameters.industrParams.MakeAndInitIndustry(state: state);
+                return parameters.industrParams.MakeIndustry(state: state);
             }
             return this;
         }

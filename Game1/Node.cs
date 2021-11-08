@@ -50,7 +50,7 @@ namespace Game1
         }
 
         [DataContract]
-        private record ThisAsListener([property: DataMember] Node Node, [property: DataMember] int ResInd) : IDeletedListener, INumberChangedListener
+        private record ResDesinArrowEventListener([property: DataMember] Node Node, [property: DataMember] int ResInd) : IDeletedListener, INumberChangedListener
         {
             public void SyncSplittersWithArrows()
             {
@@ -79,6 +79,20 @@ namespace Game1
 
             void INumberChangedListener.NumberChangedResponse()
                 => SyncSplittersWithArrows();
+        }
+
+        [DataContract]
+        private record BuildIndustryButtonClickedListener([property: DataMember] Node Node, [property: DataMember] Construction.Params ConstrParams) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+                => Node.SetIndustry(newIndustry: ConstrParams.MakeIndustry(state: Node.state));
+        }
+
+        [DataContract]
+        private record AddResourceDestinationButtonClickedListener : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+                => ActiveUIManager.ArrowDrawingModeOn = true;
         }
 
         public Vector2 Position
@@ -110,22 +124,22 @@ namespace Game1
         private readonly float resDestinArrowWidth;
 
         [NonSerialized]
-        private TextBox textBox;
-        private MyArray<ToggleButton> storeToggleButtons;
+        private readonly TextBox textBox;
+        private readonly MyArray<ToggleButton> storeToggleButtons;
         [NonSerialized]
-        private UIHorizTabPanel<IHUDElement> UITabPanel;
+        private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
         [NonSerialized]
-        private UIRectPanel<IHUDElement> infoPanel, buildButtonPannel;
+        private readonly UIRectPanel<IHUDElement> infoPanel, buildButtonPannel;
         [NonSerialized]
-        private Dictionary<Overlay, UIRectPanel<IHUDElement>> overlayTabPanels;
+        private readonly Dictionary<Overlay, UIRectPanel<IHUDElement>> overlayTabPanels;
         [NonSerialized]
-        private TextBox infoTextBox;
+        private readonly TextBox infoTextBox;
         [NonSerialized]
-        private string overlayTabLabel;
+        private readonly string overlayTabLabel;
         [NonSerialized]
-        private MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
+        private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
         [NonSerialized]
-        private ulong resDistribArrowsUILayer;
+        private readonly ulong resDistribArrowsUILayer;
 
         public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth, int startPersonCount = 0)
             : base(shape: new LightCatchingDisk(radius: radius), activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
@@ -154,22 +168,6 @@ namespace Game1
                 Person person = Person.GeneratePerson(nodePos: Position);
                 state.waitingPeople.Add(person);
             }
-        }
-
-        protected override void InitUninitialized()
-        {
-            base.InitUninitialized();
-
-            for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
-                foreach (var (destination, importance) in resSplittersToDestins[resInd].Importances)
-                    AddResDestin
-                    (
-                        resInd: resInd,
-                        destination: destination,
-                        importance: (int)importance
-                    );
-
-            industry?.Initialize();
 
             textBox = new()
             {
@@ -211,23 +209,31 @@ namespace Game1
                 tab: buildButtonPannel
             );
             foreach (var constrParams in CurIndustryConfig.constrBuildingParams)
-                buildButtonPannel.AddChild
+            {
+                Button buildIndustryButton = new
                 (
-                    child: new Button
+                    shape: new Ellipse
                     (
-                        shape: new Ellipse
-                        (
-                            width: 200,
-                            height: 20
-                        )
-                        {
-                            Color = Color.White
-                        },
-                        explanation: constrParams.explanation,
-                        action: () => SetIndustry(newIndustry: constrParams.MakeAndInitIndustry(state: state)),
-                        text: "build " + constrParams.industrParams.name
+                        width: 200,
+                        height: 20
+                    )
+                    {
+                        Color = Color.White
+                    },
+                    explanation: constrParams.explanation,
+                    text: "build " + constrParams.industrParams.name
+                );
+                buildIndustryButton.clicked.Add
+                (
+                    listener: new BuildIndustryButtonClickedListener
+                    (
+                        Node: this,
+                        ConstrParams: constrParams
                     )
                 );
+
+                buildButtonPannel.AddChild(child: buildIndustryButton);
+            }
 
             overlayTabLabel = "overlay tab";
             overlayTabPanels = new();
@@ -249,24 +255,26 @@ namespace Game1
                         height: 60
                     ),
                     text: "store\nswitch",
-                    on: false, 
+                    on: false,
                     selectedColor: Color.White,
                     deselectedColor: Color.Gray
                 );
 
                 overlayTabPanels[(Overlay)resInd].AddChild(child: storeToggleButtons[resInd]);
 
+                Button addResourceDestinationButton = new
+                (
+                    shape: new MyRectangle(width: 150, height: 50)
+                    {
+                        Color = Color.White
+                    },
+                    text: $"add resource {resInd}\ndestination"
+                );
+                addResourceDestinationButton.clicked.Add(listener: new AddResourceDestinationButtonClickedListener());
+
                 overlayTabPanels[(Overlay)resInd].AddChild
                 (
-                    child: new Button
-                    (
-                        shape: new MyRectangle(width: 150, height: 50)
-                        {
-                            Color = Color.White
-                        },
-                        action: () => ActiveUIManager.ArrowDrawingModeOn = true,
-                        text: $"add resource {resInd}\ndestination"
-                    )
+                    child: addResourceDestinationButton
                 );
             }
             UITabPanel.AddTab
@@ -285,9 +293,6 @@ namespace Game1
             resDistribArrows = new();
             for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
                 resDistribArrows[resInd] = new UITransparentPanel<ResDestinArrow>();
-
-            for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
-                resDistribArrows[resInd].Initialize();
 
             if (CurOverlay <= MaxRes)
                 AddWorldUIElement
@@ -358,22 +363,11 @@ namespace Game1
             if (!CanHaveDestin(destination: destination))
                 throw new ArgumentException();
 
-            AddResDestin
-            (
-                resInd: (int)CurOverlay,
-                destination: destination,
-                importance: 1
-            );
-        }
-
-        private void AddResDestin(int resInd, Vector2 destination, int importance)
-        {
+            int resInd = (int)CurOverlay;
             if (resInd is < 0 or > (int)MaxRes)
                 throw new ArgumentOutOfRangeException();
             if (resSplittersToDestins[resInd].ContainsKey(key: destination))
                 throw new ArgumentException();
-            if (importance <= 0)
-                throw new ArgumentOutOfRangeException();
 
             ResDestinArrow resDestinArrow = new
             (
@@ -383,16 +377,15 @@ namespace Game1
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top,
                 minImportance: 1,
-                importance: importance,
+                importance: 1,
                 resInd: resInd
             );
-            ThisAsListener thisAsListener = new(Node: this, ResInd: resInd);
-            resDestinArrow.ImportanceNumberChanged.Add(listener: thisAsListener);
-            resDestinArrow.Deleted.Add(listener: thisAsListener);
-            resDestinArrow.Initialize();
-            
+            ResDesinArrowEventListener resDesinArrowEventListener = new(Node: this, ResInd: resInd);
+            resDestinArrow.ImportanceNumberChanged.Add(listener: resDesinArrowEventListener);
+            resDestinArrow.Deleted.Add(listener: resDesinArrowEventListener);
+
             resDistribArrows[resInd].AddChild(child: resDestinArrow);
-            thisAsListener.SyncSplittersWithArrows();
+            resDesinArrowEventListener.SyncSplittersWithArrows();
         }
 
         public override void OnMouseDownWorldNotMe()

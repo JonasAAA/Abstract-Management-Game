@@ -66,12 +66,6 @@ namespace Game1.UI
                 keySelector: overlay => overlay,
                 elementSelector: overlay => (IHUDElement)null
             );
-        }
-
-        protected override void InitUninitialized()
-        {
-            base.InitUninitialized();
-
             CurOverlayChanged.Add(listener: this);
         }
 

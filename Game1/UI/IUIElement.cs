@@ -21,8 +21,6 @@ namespace Game1.UI
 
         public Event<IEnabledChangedListener> EnabledChanged { get; }
 
-        public void Initialize();
-
         public bool Contains(Vector2 position);
 
         public IUIElement CatchUIElement(Vector2 mousePos);

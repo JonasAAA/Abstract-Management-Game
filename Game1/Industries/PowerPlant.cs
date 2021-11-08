@@ -28,7 +28,7 @@ namespace Game1.Industries
                 this.prodWatts = prodWatts;
             }
 
-            protected override Industry MakeIndustry(NodeState state)
+            public override Industry MakeIndustry(NodeState state)
                 => new PowerPlant(state: state, parameters: this);
         }
 

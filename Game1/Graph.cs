@@ -65,28 +65,13 @@ namespace Game1
                     keySelector: nodes => nodes.Position
                 )
             );
-        }
 
-        protected override void InitUninitialized()
-        {
-            base.InitUninitialized();
-
-            // I call initialize on stars, nodes and links as they may add new children to this
             foreach (var star in stars)
-            {
                 AddChild(child: star, layer: CurWorldConfig.lightLayer);
-                star.Initialize();
-            }
             foreach (var node in nodes)
-            {
                 AddChild(child: node, layer: CurWorldConfig.nodeLayer);
-                node.Initialize();
-            }
             foreach (var link in links)
-            {
                 AddChild(child: link, layer: CurWorldConfig.linkLayer);
-                link.Initialize();
-            }
         }
 
         // currently uses Floyd-Warshall;

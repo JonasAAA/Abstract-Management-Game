@@ -38,7 +38,7 @@ namespace Game1.Industries
                 this.birthDuration = birthDuration;
             }
 
-            protected override Industry MakeIndustry(NodeState state)
+            public override Industry MakeIndustry(NodeState state)
                 => new ReprodIndustry(state: state, parameters: this);
         }
 

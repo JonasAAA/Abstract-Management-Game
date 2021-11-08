@@ -11,9 +11,20 @@ namespace Game1.UI
     public class UIHorizTabPanel<TTab> : HUDElement
         where TTab : class, IHUDElement
     {
+        [DataContract]
+        private record TabEnabledChangedListener([property: DataMember] UIHorizTabPanel<TTab> UIHorizTabPanel, [property: DataMember] string TabLabelText) : IEnabledChangedListener
+        {
+            public void EnabledChangedResponse()
+                => UIHorizTabPanel.tabChoicePanel.SetChoicePersonallyEnabled
+                (
+                    choiceLabel: TabLabelText,
+                    newPersonallyEnabled: UIHorizTabPanel.tabs[TabLabelText].Enabled
+                );
+        }
+
         private readonly MultipleChoicePanel<string> tabChoicePanel;
         private readonly Dictionary<string, TTab> tabs;
-        private readonly Dictionary<string, ThisAsEnabledChangedListener> thisAsEnabledChangedListenersByTabLabelText;
+        private readonly Dictionary<string, TabEnabledChangedListener> tabEnabledChangedListeners;
         private TTab ActiveTab
             => tabChoicePanel.SelectedChoiceLabel switch
             {
@@ -36,7 +47,7 @@ namespace Game1.UI
                 backgroundColor: inactiveTabLabelColor
             );
             tabs = new();
-            thisAsEnabledChangedListenersByTabLabelText = new();
+            tabEnabledChangedListeners = new();
             AddChild(child: tabChoicePanel);
         }
 
@@ -77,9 +88,9 @@ namespace Game1.UI
 
             tabs.Add(tabLabelText, tab);
 
-            thisAsEnabledChangedListenersByTabLabelText[tabLabelText] = new ThisAsEnabledChangedListener(UIHorizTabPanel: this, TabLabelText: tabLabelText);
+            tabEnabledChangedListeners[tabLabelText] = new TabEnabledChangedListener(UIHorizTabPanel: this, TabLabelText: tabLabelText);
 
-            tab.EnabledChanged.Add(listener: thisAsEnabledChangedListenersByTabLabelText[tabLabelText]);
+            tab.EnabledChanged.Add(listener: tabEnabledChangedListeners[tabLabelText]);
 
             AddChild(child: tab);
         }
@@ -87,18 +98,11 @@ namespace Game1.UI
         public void ReplaceTab(string tabLabelText, TTab tab)
         {
             RemoveChild(child: tabs[tabLabelText]);
-            tabs[tabLabelText].EnabledChanged.Remove(listener: thisAsEnabledChangedListenersByTabLabelText[tabLabelText]);
+            tabs[tabLabelText].EnabledChanged.Remove(listener: tabEnabledChangedListeners[tabLabelText]);
             
             tabs[tabLabelText] = tab;
-            tab.EnabledChanged.Add(listener: thisAsEnabledChangedListenersByTabLabelText[tabLabelText]);
+            tab.EnabledChanged.Add(listener: tabEnabledChangedListeners[tabLabelText]);
             AddChild(child: tab);
-        }
-
-        [DataContract]
-        private record ThisAsEnabledChangedListener([property:DataMember] UIHorizTabPanel<TTab> UIHorizTabPanel, [property: DataMember] string TabLabelText) : IEnabledChangedListener
-        {
-            public void EnabledChangedResponse(IUIElement UIElement)
-                => UIHorizTabPanel.tabChoicePanel.SetChoicePersonallyEnabled(choiceLabel: TabLabelText, newPersonallyEnabled: UIElement.Enabled);
         }
 
         public override IUIElement CatchUIElement(Vector2 mousePos)

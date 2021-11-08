@@ -82,7 +82,6 @@ namespace Game1
         // between 0 and 1
         [DataMember]
         public readonly Dictionary<IndustryType, double> skills;
-        //public double MinAcceptableEnjoyment { get; private set; }
         
         public Vector2? ActivityCenterPosition
             => activityCenter?.Position;
@@ -117,7 +116,7 @@ namespace Game1
         [DataMember]
         private Vector2 prevNodePos;
         [DataMember]
-        private Event<IDeletedListener> deleted;
+        private readonly Event<IDeletedListener> deleted;
 
         private Person(Vector2 nodePos, Dictionary<IndustryType, double> enjoyments, Dictionary<IndustryType, double> talents, Dictionary<IndustryType, double> skills, ulong weight, double reqWatts, TimeSpan seekChangeTime)
         {

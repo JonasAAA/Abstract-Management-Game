@@ -1,11 +1,29 @@
 ﻿using Game1.Events;
 using Microsoft.Xna.Framework;
 using System;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
     public class NumIncDecrPanel : HUDElement
     {
+        [DataContract]
+        private record NumIncrButtonClickedListener([property: DataMember] NumIncDecrPanel NumIncDecrPanel) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+                => NumIncDecrPanel.Number++;
+        }
+
+        [DataContract]
+        private record NumDecrButtonClickedListener([property: DataMember] NumIncDecrPanel NumIncDecrPanel) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+            {
+                if (NumIncDecrPanel.Number > NumIncDecrPanel.minNum)
+                    NumIncDecrPanel.Number--;
+            }
+        }
+
         public int Number
         {
             get => number;
@@ -46,43 +64,38 @@ namespace Game1.UI
             textBox.Text = number.ToString();
             float width = textBox.MeasureText(text: "00").X;
             textBox.Shape.MinWidth = width;
-            panel.AddChild
+
+            Button numIncrButton = new
             (
-                child: new Button
+                shape: new Triangle
                 (
-                    shape: new Triangle
-                    (
-                        width: width,
-                        height: incrDecrButtonHeight,
-                        direction: Triangle.Direction.Up
-                    )
-                    {
-                        Color = incrDecrButtonColor
-                    },
-                    action: () => Number++
+                    width: width,
+                    height: incrDecrButtonHeight,
+                    direction: Triangle.Direction.Up
                 )
+                {
+                    Color = incrDecrButtonColor
+                }
             );
+            numIncrButton.clicked.Add(listener: new NumIncrButtonClickedListener(NumIncDecrPanel: this));
+            panel.AddChild(child: numIncrButton);
+
             panel.AddChild(child: textBox);
-            panel.AddChild
+
+            Button numDecrButton = new
             (
-                child: new Button
+                shape: new Triangle
                 (
-                    shape: new Triangle
-                    (
-                        width: width,
-                        height: incrDecrButtonHeight,
-                        direction: Triangle.Direction.Down
-                    )
-                    {
-                        Color = Color.Blue
-                    },
-                    action: () =>
-                    {
-                        if (Number > minNum)
-                            Number--;
-                    }
+                    width: width,
+                    height: incrDecrButtonHeight,
+                    direction: Triangle.Direction.Down
                 )
+                {
+                    Color = Color.Blue
+                }
             );
+            numDecrButton.clicked.Add(listener: new NumDecrButtonClickedListener(NumIncDecrPanel: this));
+            panel.AddChild(child: numDecrButton);
 
             Shape.Color = shapeColor;
             Shape.Width = panel.Shape.Width;

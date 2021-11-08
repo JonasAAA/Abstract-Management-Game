@@ -8,6 +8,16 @@ namespace Game1.UI
 {
     public class ResDestinArrow : WorldUIElement
     {
+        [DataContract]
+        private record DeleteButtonClickedListener([property:DataMember] ResDestinArrow ResDestinArrow) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+            {
+                ResDestinArrow.OnMouseDownWorldNotMe();
+                ResDestinArrow.Delete();
+            }
+        }
+
         public int Importance
             => importanceIncDecrPanel.Number;
 
@@ -88,13 +98,9 @@ namespace Game1.UI
                 {
                     Color = Color.Red
                 },
-                action: () =>
-                {
-                    OnMouseDownWorldNotMe();
-                    Delete();
-                },
                 text: "delete"
             );
+            deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(ResDestinArrow: this));
             popup.AddChild(deleteButton);
         }
     }

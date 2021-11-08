@@ -39,7 +39,7 @@ namespace Game1.Industries
                 this.prodDuration = prodDuration;
             }
 
-            protected override Industry MakeIndustry(NodeState state)
+            public override Industry MakeIndustry(NodeState state)
                 => new Factory(state: state, parameters: this);
         }
 

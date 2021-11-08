@@ -50,6 +50,13 @@ namespace Game1
         public static double MaxLinkJoulesPerKg
             => Current.graph.maxLinkJoulesPerKg;
 
+        private static readonly List<(IUIElement UIElement, ulong layer)> waitingWorldUIElements;
+
+        static WorldManager()
+        {
+            waitingWorldUIElements = new();
+        }
+
         public static Graph Create(GraphicsDevice graphicsDevice)
         {
             if (Current is not null)
@@ -88,7 +95,12 @@ namespace Game1
         }
 
         public static void AddWorldUIElement(IUIElement UIElement, ulong layer)
-            => Current.graph.AddUIElement(UIElement: UIElement, layer: layer);
+        {
+            if (Current is null || Current.graph is null)
+                waitingWorldUIElements.Add((UIElement, layer));
+            else
+                Current.graph.AddUIElement(UIElement: UIElement, layer: layer);
+        }
 
         public static void RemoveWorldUIElement(IUIElement UIElement)
             => Current.graph.RemoveUIElement(UIElement: UIElement);
@@ -127,11 +139,11 @@ namespace Game1
         [DataMember]
         private WorldCamera worldCamera;
         [DataMember]
-        private EnergyManager energyManager;
+        private readonly EnergyManager energyManager;
         [DataMember]
-        private ActivityManager activityManager;
+        private readonly ActivityManager activityManager;
         [DataMember]
-        private LightManager lightManager;
+        private readonly LightManager lightManager;
 
         private readonly TextBox globalTextBox;
         private ToggleButton pauseButton;
@@ -161,14 +173,17 @@ namespace Game1
 
             foreach (var posOverlay in Enum.GetValues<Overlay>())
                 overlayChoicePanel.AddChoice(choiceLabel: posOverlay);
+
+            activityManager = new();
+            energyManager = new();
+            lightManager = new();
         }
 
         private void Initialize(GraphicsDevice graphicsDevice)
         {
+            // THIS IS NEEDED
             worldCamera = new(graphicsDevice: graphicsDevice);
-            activityManager = new();
-            energyManager = new();
-            lightManager = new();
+            // THIS IS NEEDED
             lightManager.Initialize(graphicsDevice: graphicsDevice);
 
             Star[] stars = new Star[]
@@ -253,7 +268,9 @@ namespace Game1
                        select node,
                 links: links
             );
-            graph.Initialize();
+            foreach (var (UIElement, layer) in waitingWorldUIElements)
+                AddWorldUIElement(UIElement: UIElement, layer: layer);
+            waitingWorldUIElements.Clear();
 
             ActiveUIManager.AddHUDElement
             (

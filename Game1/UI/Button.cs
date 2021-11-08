@@ -1,20 +1,22 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using System;
 
 namespace Game1.UI
 {
     public class Button : HUDElement
     {
+        public readonly Event<IClickedListener> clicked;
+
         public override bool CanBeClicked
             => true;
 
         protected readonly TextBox textBox;
-        private readonly Action action;
 
-        public Button(NearRectangle shape, string explanation = defaultExplanation, Action action = null, string text = null)
+        public Button(NearRectangle shape, string explanation = defaultExplanation, string text = null)
             : base(shape: shape, explanation)
         {
-            this.action = action;
+            clicked = new();
             textBox = new()
             {
                 Text = text
@@ -38,7 +40,7 @@ namespace Game1.UI
         public override void OnClick()
         {
             base.OnClick();
-            action?.Invoke();
+            clicked.Raise(action: listener => listener.ClickedResponse());
         }
     }
 }

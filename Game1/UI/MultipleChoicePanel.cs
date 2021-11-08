@@ -6,11 +6,27 @@ using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
-    public class MultipleChoicePanel<TChoice> : HUDElement, IEnabledChangedListener
+    public class MultipleChoicePanel<TChoice> : HUDElement
     {
         [DataContract]
-        private record ChoiceOnChangedListener([property: DataMember] MultipleChoicePanel<TChoice> MultipleChoicePanel, TChoice ChoiceLabel) : IOnChangedListener
+        private record ChoiceEventListener([property: DataMember] MultipleChoicePanel<TChoice> MultipleChoicePanel, TChoice ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
         {
+            void IEnabledChangedListener.EnabledChangedResponse()
+            {
+                var choice = MultipleChoicePanel.choices[ChoiceLabel];
+
+                if (choice.PersonallyEnabled || !choice.On)
+                    return;
+
+                foreach (var posChoice in MultipleChoicePanel.choicePanel)
+                    if (posChoice.PersonallyEnabled)
+                    {
+                        posChoice.On = true;
+                        return;
+                    }
+                throw new Exception("enabled choice doesn't exist");
+            }
+
             void IOnChangedListener.OnChangedResponse()
             {
                 if (!MultipleChoicePanel.choices[ChoiceLabel].On)
@@ -104,15 +120,13 @@ namespace Game1.UI
             if (choicePanel.Count is 0)
                 SelectedChoiceLabel = choiceLabel;
 
-            choice.onChanged.Add
+            ChoiceEventListener choiceEventListener = new
             (
-                listener: new ChoiceOnChangedListener
-                (
-                    MultipleChoicePanel: this,
-                    ChoiceLabel: choiceLabel
-                )
+                MultipleChoicePanel: this,
+                ChoiceLabel: choiceLabel
             );
-            choice.EnabledChanged.Add(listener: this);
+            choice.onChanged.Add(listener: choiceEventListener);
+            choice.EnabledChanged.Add(listener: choiceEventListener);
 
             choices.Add(choiceLabel, choice);
             choicePanel.AddChild(child: choice);
@@ -120,24 +134,5 @@ namespace Game1.UI
 
         public void SetChoicePersonallyEnabled(TChoice choiceLabel, bool newPersonallyEnabled)
             => choices[choiceLabel].PersonallyEnabled = newPersonallyEnabled;
-
-        void IEnabledChangedListener.EnabledChangedResponse(IUIElement UIElement)
-        {
-            if (UIElement is SelectButton choice)
-            {
-                if (choice.PersonallyEnabled || !choice.On)
-                    return;
-
-                foreach (var posChoice in choicePanel)
-                    if (posChoice.PersonallyEnabled)
-                    {
-                        posChoice.On = true;
-                        return;
-                    }
-                throw new Exception("enabled choice doesn't exist");
-            }
-            else
-                throw new ArgumentException();
-        }
     }
 }

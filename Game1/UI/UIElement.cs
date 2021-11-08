@@ -75,14 +75,10 @@ namespace Game1.UI
         private bool personallyEnabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
 
         [NonSerialized]
-        private SortedDictionary<ulong, List<IUIElement>> layerToChildren;
+        private readonly SortedDictionary<ulong, List<IUIElement>> layerToChildren;
         [NonSerialized]
-        private Dictionary<IUIElement, ulong> childToLayer;
+        private readonly Dictionary<IUIElement, ulong> childToLayer;
 
-        // DO NOT serialize this
-        [NonSerialized]
-        private bool initialized;
-        
         public UIElement(Shape shape, string explanation = defaultExplanation)
         {
             EnabledChanged = new();
@@ -92,29 +88,8 @@ namespace Game1.UI
             MouseOn = false;
             hasDisabledAncestor = false;
             inRecalcSizeAndPos = false;
-            initialized = false;
             layerToChildren = new();
             childToLayer = new();
-        }
-
-        public void Initialize()
-        {
-            foreach (var child in Children().Clone())
-            {
-                child.Initialize();
-                SubscribeToChildEvents(child: child);
-            }
-
-            if (!initialized)
-                InitUninitialized();
-
-            initialized = true;
-        }
-
-        protected virtual void InitUninitialized()
-        {
-            if (initialized)
-                throw new InvalidOperationException();
 
             SizeOrPosChanged.Add(listener: this);
         }
@@ -131,20 +106,12 @@ namespace Game1.UI
                 layerToChildren[layer] = new();
             layerToChildren[layer].Add(child);
             childToLayer.Add(child, layer);
-            SubscribeToChildEvents(child: child);
+            child.SizeOrPosChanged.Add(listener: this);
             RecalcSizeAndPos();
-        }
-
-        private void SubscribeToChildEvents(IUIElement child)
-        {
-            if (!child.SizeOrPosChanged.Contains(listener: this))
-                child.SizeOrPosChanged.Add(listener: this);
         }
 
         protected void RemoveChild(IUIElement child)
         {
-            if (!initialized)
-                throw new InvalidOperationException();
             ulong layer = childToLayer[child];
             child.SizeOrPosChanged.Remove(listener: this);
             if (!layerToChildren[layer].Remove(child) || !childToLayer.Remove(child))
@@ -155,17 +122,10 @@ namespace Game1.UI
         }
 
         public bool Contains(Vector2 position)
-        {
-            if (!initialized)
-                throw new InvalidOperationException();
-            return shape.Contains(position: position);
-        }
+            => shape.Contains(position: position);
 
         public virtual IUIElement CatchUIElement(Vector2 mousePos)
         {
-            if (!initialized)
-                throw new InvalidOperationException();
-
             if (!Contains(position: mousePos))
                 return null;
 
@@ -203,23 +163,15 @@ namespace Game1.UI
 
         public virtual void OnClick()
         {
-            if (!initialized)
-                throw new InvalidOperationException();
             if (!CanBeClicked)
                 throw new InvalidOperationException();
         }
 
         public virtual void OnMouseDownWorldNotMe()
-        {
-            if (!initialized)
-                throw new InvalidOperationException();
-        }
+        { }
 
         public virtual void Draw()
         {
-            if (!initialized)
-                throw new InvalidOperationException();
-
             shape.Draw
             (
                 otherColor: ActiveUIManager.UIConfig.mouseOnColor,
@@ -249,7 +201,7 @@ namespace Game1.UI
                 foreach (var child in Children())
                     child.HasDisabledAncestor = true;
             }
-            EnabledChanged.Raise(action: listener => listener.EnabledChangedResponse(UIElement: this));
+            EnabledChanged.Raise(action: listener => listener.EnabledChangedResponse());
         }
     }
 }

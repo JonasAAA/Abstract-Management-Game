@@ -43,14 +43,7 @@ namespace Game1.Industries
                 this.explanation = explanation;
             }
 
-            public Industry MakeAndInitIndustry(NodeState state)
-            {
-                var industry = MakeIndustry(state: state);
-                industry.Initialize();
-                return industry;
-            }
-
-            protected abstract Industry MakeIndustry(NodeState state);
+            public abstract Industry MakeIndustry(NodeState state);
         }
 
         [DataContract]
@@ -78,7 +71,7 @@ namespace Game1.Industries
                 workingPropor = 0;
             }
 
-            public void StartUpdate(NodeState state)
+            public void StartUpdate()
             {
                 double totalHiredSkill = HiredSkill();
                 if (totalHiredSkill >= parameters.reqSkill)
@@ -204,6 +197,13 @@ namespace Game1.Industries
             }
         }
 
+        [DataContract]
+        private record DeleteButtonClickedListener([field: DataMember] Industry Industry) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+                => Industry.isDeleted = true;
+        }
+
         public IEvent<IDeletedListener> Deleted
             => deleted;
 
@@ -241,10 +241,10 @@ namespace Game1.Industries
         [DataMember]
         private readonly Event<IDeletedListener> deleted;
 
-        [field:NonSerialized]
-        protected UIRectPanel<IHUDElement> UIPanel { get; private set; }
         [NonSerialized]
-        private TextBox textBox;
+        protected readonly UIRectPanel<IHUDElement> UIPanel;
+        [NonSerialized]
+        private readonly TextBox textBox;
 
         protected Industry(NodeState state, Params parameters)
         {
@@ -264,31 +264,26 @@ namespace Game1.Industries
             isDeleted = false;
             deleted = new();
 
-            AddEnergyConsumer(energyConsumer: this);
-        }
-        
-        public void Initialize()
-        {
             textBox = new();
             UIPanel = new UIRectVertPanel<IHUDElement>(color: Color.White, childHorizPos: HorizPos.Left);
             UIPanel.AddChild(child: textBox);
-            UIPanel.AddChild
+            Button deleteButton = new
             (
-                child: new Button
+                shape: new MyRectangle
                 (
-                    shape: new MyRectangle
-                    (
-                        width: 60,
-                        height: 30
-                    )
-                    {
-                        Color = Color.Red
-                    },
-                    explanation: "deletes this industry",
-                    action: () => isDeleted = true,
-                    text: "delete"
+                    width: 60,
+                    height: 30
                 )
+                {
+                    Color = Color.Red
+                },
+                explanation: "deletes this industry",
+                text: "delete"
             );
+            deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(Industry: this));
+            UIPanel.AddChild(child: deleteButton);
+
+            AddEnergyConsumer(energyConsumer: this);
         }
 
         public abstract ULongArray TargetStoredResAmounts();
@@ -303,7 +298,7 @@ namespace Game1.Industries
                 return null;
             }
 
-            employer.StartUpdate(state: state);
+            employer.StartUpdate();
 
             var result = Update(workingPropor: energyPropor * CurSkillPropor);
 

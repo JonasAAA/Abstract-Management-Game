@@ -56,7 +56,6 @@ namespace Game1
 
             ActiveUIManager.Initialize(graphicsDevice: GraphicsDevice);
             var curGraph = WorldManager.Create(graphicsDevice: GraphicsDevice);
-            curGraph.Initialize();
             ActiveUIManager.SetCurGraph(curGraph: curGraph);
         }
 

@@ -236,22 +236,24 @@ namespace Game1
             base.Draw();
         }
 
-        public override int GetHashCode()
-            => node1.GetHashCode() ^ node2.GetHashCode();
+        // this is commented out, otherwise the object construction fails as
+        // tries to put object into HashSet before assigning node1 and node2
+        //public override int GetHashCode()
+        //    => node1.GetHashCode() ^ node2.GetHashCode();
 
-        public static bool operator ==(Link link1, Link link2)
-            => (link1.node1 == link2.node1 && link1.node2 == link2.node2) ||
-            (link1.node1 == link2.node2 && link1.node2 == link2.node1);
+        //public static bool operator ==(Link link1, Link link2)
+        //    => (link1.node1 == link2.node1 && link1.node2 == link2.node2) ||
+        //    (link1.node1 == link2.node2 && link1.node2 == link2.node1);
 
-        public static bool operator !=(Link link1, Link link2)
-            => !(link1 == link2);
+        //public static bool operator !=(Link link1, Link link2)
+        //    => !(link1 == link2);
 
-        public override bool Equals(object obj)
-        {
-            if (obj is Link other)
-                return this == other;
+        //public override bool Equals(object obj)
+        //{
+        //    if (obj is Link other)
+        //        return this == other;
 
-            return false;
-        }
+        //    return false;
+        //}
     }
 }

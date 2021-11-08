@@ -20,7 +20,7 @@ namespace Game1
         private readonly LightPolygon polygon;
 
         [NonSerialized]
-        private TextBox popupTextBox;
+        private readonly TextBox popupTextBox;
 
         public Star(float radius, Vector2 center, double prodWatts, Color color)
             : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
@@ -29,13 +29,6 @@ namespace Game1
             this.prodWatts = prodWatts;
             polygon = new LightPolygon(strength: radius / CurWorldConfig.standardStarRadius, color: color);
 
-            AddLightSource(lightSource: this);
-        }
-
-        protected override void InitUninitialized()
-        {
-            base.InitUninitialized();
-
             popupTextBox = new();
             popupTextBox.Shape.Color = Color.White;
             SetPopup
@@ -43,6 +36,8 @@ namespace Game1
                 UIElement: popupTextBox,
                 overlays: Enum.GetValues<Overlay>()
             );
+
+            AddLightSource(lightSource: this);
         }
 
         // let N = lightCatchingObject.Count()

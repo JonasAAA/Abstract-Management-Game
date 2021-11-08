@@ -32,7 +32,6 @@ namespace Game1.UI
                 personallyEnabled = value;
                 if (oldEnabled != Enabled)
                     MyEnabledChangedResponse();
-                    //EnabledChanged?.Invoke();
             }
         }
 
@@ -48,7 +47,6 @@ namespace Game1.UI
                 hasDisabledAncestor = value;
                 if (oldEnabled != Enabled)
                     MyEnabledChangedResponse();
-                    //EnabledChanged?.Invoke();
             }
         }
 
@@ -61,7 +59,6 @@ namespace Game1.UI
                     return;
 
                 mouseOn = value;
-                //MouseOnChanged?.Invoke();
             }
         }
 
@@ -96,15 +93,12 @@ namespace Game1.UI
             hasDisabledAncestor = false;
             inRecalcSizeAndPos = false;
             initialized = false;
-            // should be moved to Initialize()
             layerToChildren = new();
             childToLayer = new();
         }
 
         public void Initialize()
         {
-            //layerToChildren = new();
-            //childToLayer = new();
             foreach (var child in Children().Clone())
             {
                 child.Initialize();
@@ -123,21 +117,6 @@ namespace Game1.UI
                 throw new InvalidOperationException();
 
             SizeOrPosChanged.Add(listener: this);
-            //SizeOrPosChanged += RecalcSizeAndPos;
-            //EnabledChanged += () =>
-            //{
-            //    if (Enabled)
-            //    {
-            //        foreach (var child in Children())
-            //            child.HasDisabledAncestor = false;
-            //    }
-            //    else
-            //    {
-            //        MouseOn = false;
-            //        foreach (var child in Children())
-            //            child.HasDisabledAncestor = true;
-            //    }
-            //};
         }
 
         protected IEnumerable<IUIElement> Children(ulong minLayer = 0, ulong maxLayer = ulong.MaxValue)
@@ -160,8 +139,6 @@ namespace Game1.UI
         {
             if (!child.SizeOrPosChanged.Contains(listener: this))
                 child.SizeOrPosChanged.Add(listener: this);
-            //child.SizeOrPosChanged -= RecalcSizeAndPos;
-            //child.SizeOrPosChanged += RecalcSizeAndPos;
         }
 
         protected void RemoveChild(IUIElement child)
@@ -170,7 +147,6 @@ namespace Game1.UI
                 throw new InvalidOperationException();
             ulong layer = childToLayer[child];
             child.SizeOrPosChanged.Remove(listener: this);
-            //child.SizeOrPosChanged -= RecalcSizeAndPos;
             if (!layerToChildren[layer].Remove(child) || !childToLayer.Remove(child))
                 throw new ArgumentException();
             if (layerToChildren[layer].Count is 0)

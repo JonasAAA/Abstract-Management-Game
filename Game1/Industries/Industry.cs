@@ -220,7 +220,7 @@ namespace Game1.Industries
         public IEnumerable<Person> PeopleHere
             => employer.PeopleHere;
 
-        public IHUDElement/*<NearRectangle>*/ UIElement
+        public IHUDElement UIElement
             => UIPanel;
         
         [DataMember]
@@ -242,7 +242,7 @@ namespace Game1.Industries
         private readonly Event<IDeletedListener> deleted;
 
         [field:NonSerialized]
-        protected UIRectPanel<IHUDElement/*<NearRectangle>*/> UIPanel { get; private set; }
+        protected UIRectPanel<IHUDElement> UIPanel { get; private set; }
         [NonSerialized]
         private TextBox textBox;
 
@@ -270,11 +270,11 @@ namespace Game1.Industries
         public void Initialize()
         {
             textBox = new();
-            UIPanel = new UIRectVertPanel<IHUDElement/*<NearRectangle>*/>(color: Color.White, childHorizPos: HorizPos.Left);
+            UIPanel = new UIRectVertPanel<IHUDElement>(color: Color.White, childHorizPos: HorizPos.Left);
             UIPanel.AddChild(child: textBox);
             UIPanel.AddChild
             (
-                child: new Button/*<MyRectangle>*/
+                child: new Button
                 (
                     shape: new MyRectangle
                     (

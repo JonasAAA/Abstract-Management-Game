@@ -9,7 +9,7 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [DataContract]
-    public abstract class ActivityCenter : IActivityCenter, IDeletable/*, IDeletedListener*/
+    public abstract class ActivityCenter : IActivityCenter, IDeletable
     {
         public IEvent<IDeletedListener> Deleted
             => deleted;
@@ -105,17 +105,5 @@ namespace Game1
         // should later be changed to graph distance (either time or energy cost)
         protected double DistanceToHere(Person person)
             => 1 - Math.Tanh(Vector2.Distance(person.ClosestNodePos, Position) / 100);
-
-        //public void DeletedResponse(IDeletable deletable)
-        //{
-        //    if (ReferenceEquals(deletable, this))
-        //    {
-        //        foreach (var person in allPeople)
-        //            RemovePerson(person: person);
-        //        Debug.Assert(allPeople.Count is 0 && peopleHere.Count is 0);
-        //    }
-        //    else
-        //        throw new ArgumentException();
-        //}
     }
 }

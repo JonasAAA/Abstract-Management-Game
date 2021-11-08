@@ -4,7 +4,7 @@ using System;
 
 namespace Game1.UI
 {
-    public class NumIncDecrPanel : HUDElement/*<MyRectangle>*/
+    public class NumIncDecrPanel : HUDElement
     {
         public int Number
         {
@@ -19,7 +19,6 @@ namespace Game1.UI
                 number = value;
                 textBox.Text = number.ToString();
                 numberChanged.Raise(action: listener => listener.NumberChangedResponse());
-                //numberChanged?.Invoke();
             }
         }
 
@@ -27,7 +26,7 @@ namespace Game1.UI
 
         private int number;
         private readonly int minNum;
-        private readonly UIRectVertPanel<IHUDElement/*<NearRectangle>*/> panel;
+        private readonly UIRectVertPanel<IHUDElement> panel;
         private readonly TextBox textBox;
 
         public NumIncDecrPanel(int minNum, int number, float incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
@@ -49,7 +48,7 @@ namespace Game1.UI
             textBox.Shape.MinWidth = width;
             panel.AddChild
             (
-                child: new Button/*<Triangle>*/
+                child: new Button
                 (
                     shape: new Triangle
                     (
@@ -66,7 +65,7 @@ namespace Game1.UI
             panel.AddChild(child: textBox);
             panel.AddChild
             (
-                child: new Button/*<Triangle>*/
+                child: new Button
                 (
                     shape: new Triangle
                     (

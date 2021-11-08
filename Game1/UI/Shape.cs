@@ -39,7 +39,6 @@ namespace Game1.UI
 
         protected void RaiseSizeOrPosChanged()
             => SizeOrPosChanged.Raise(action: listener => listener.SizeOrPosChangedResponse(shape: this));
-            //=> sizeOrPosChanged?.Invoke();
 
         protected abstract void Draw(Color color);
 

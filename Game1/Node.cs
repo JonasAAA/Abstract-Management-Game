@@ -49,15 +49,8 @@ namespace Game1
                 => $"unemployed {peopleHere.Count}\ntravel to be unemployed\nhere {allPeople.Count - peopleHere.Count}\n";
         }
 
-        //[DataContract]
-        //private record StoredChangedListener([property: DataMember] Node Node, [property: DataMember] int ResInd) : IOnChangedListener
-        //{
-        //    void IOnChangedListener.OnChangedResponse()
-        //        => Node.store[ResInd] = Node.storeToggleButtons[ResInd].On;
-        //}
-
         [DataContract]
-        private record ThisAsListener([property: DataMember] Node Node, [property: DataMember] int ResInd) : IDeletedListener, INumberChangedListener//, IOnChangedListener
+        private record ThisAsListener([property: DataMember] Node Node, [property: DataMember] int ResInd) : IDeletedListener, INumberChangedListener
         {
             public void SyncSplittersWithArrows()
             {
@@ -86,9 +79,6 @@ namespace Game1
 
             void INumberChangedListener.NumberChangedResponse()
                 => SyncSplittersWithArrows();
-
-            //void IOnChangedListener.OnChangedResponse(OnOffButton onOffButton)
-            //    => Node.store[ResInd] = onOffButton.On;
         }
 
         public Vector2 Position
@@ -110,8 +100,6 @@ namespace Game1
         private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
         [DataMember]
         private ConstULongArray targetStoredResAmounts;
-        //[DataMember]
-        //private readonly MyArray<bool> store;
         [DataMember]
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
         [DataMember]
@@ -125,11 +113,11 @@ namespace Game1
         private TextBox textBox;
         private MyArray<ToggleButton> storeToggleButtons;
         [NonSerialized]
-        private UIHorizTabPanel<IHUDElement/*<MyRectangle>*/> UITabPanel;
+        private UIHorizTabPanel<IHUDElement> UITabPanel;
         [NonSerialized]
-        private UIRectPanel<IHUDElement/*<NearRectangle>*/> infoPanel, buildButtonPannel;
+        private UIRectPanel<IHUDElement> infoPanel, buildButtonPannel;
         [NonSerialized]
-        private Dictionary<Overlay, UIRectPanel<IHUDElement/*<NearRectangle>*/>> overlayTabPanels;
+        private Dictionary<Overlay, UIRectPanel<IHUDElement>> overlayTabPanels;
         [NonSerialized]
         private TextBox infoTextBox;
         [NonSerialized]
@@ -157,7 +145,6 @@ namespace Game1
                         select new ProporSplitter<Vector2>()
             );
             targetStoredResAmounts = new();
-            //store = new(value: false);
             undecidedResAmounts = new();
             resTravelHereAmounts = new();
             remainingLocalWatts = new();
@@ -190,11 +177,6 @@ namespace Game1
                 TextColor = Color.White
             };
             textBox.Shape.Center = Position;
-            //SizeOrPosChanged += () =>
-            //{
-            //    if (shape.Center != Position)
-            //        throw new Exception();
-            //};
             AddChild(child: textBox);
 
             UITabPanel = new
@@ -205,7 +187,7 @@ namespace Game1
                 inactiveTabLabelColor: Color.Gray
             );
 
-            infoPanel = new UIRectVertPanel<IHUDElement/*<NearRectangle>*/>
+            infoPanel = new UIRectVertPanel<IHUDElement>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
@@ -218,7 +200,7 @@ namespace Game1
             infoTextBox = new();
             infoPanel.AddChild(child: infoTextBox);
 
-            buildButtonPannel = new UIRectVertPanel<IHUDElement/*<NearRectangle>*/>
+            buildButtonPannel = new UIRectVertPanel<IHUDElement>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
@@ -231,7 +213,7 @@ namespace Game1
             foreach (var constrParams in CurIndustryConfig.constrBuildingParams)
                 buildButtonPannel.AddChild
                 (
-                    child: new Button/*<Ellipse>*/
+                    child: new Button
                     (
                         shape: new Ellipse
                         (
@@ -251,7 +233,7 @@ namespace Game1
             overlayTabPanels = new();
 
             foreach (var overlay in Enum.GetValues<Overlay>())
-                overlayTabPanels[overlay] = new UIRectVertPanel<IHUDElement/*<NearRectangle>*/>
+                overlayTabPanels[overlay] = new UIRectVertPanel<IHUDElement>
                 (
                     color: Color.White,
                     childHorizPos: HorizPos.Left
@@ -259,7 +241,7 @@ namespace Game1
             storeToggleButtons = new();
             for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
             {
-                storeToggleButtons[resInd] = new ToggleButton/*<MyRectangle>*/
+                storeToggleButtons[resInd] = new ToggleButton
                 (
                     shape: new MyRectangle
                     (
@@ -267,20 +249,16 @@ namespace Game1
                         height: 60
                     ),
                     text: "store\nswitch",
-                    on: false, //store[resInd],
+                    on: false, 
                     selectedColor: Color.White,
                     deselectedColor: Color.Gray
                 );
-                //ThisAsListener thisAsListener = new(Node: this, ResInd: resInd);
-                //storeToggleButtons[resInd].onChanged.Add(listener: thisAsListener);
-                //// hack to make lambda expression work correctly
-                //int curResInd = resInd;
-                //storeToggle.onChanged += () => store[curResInd] = storeToggle.On;
+
                 overlayTabPanels[(Overlay)resInd].AddChild(child: storeToggleButtons[resInd]);
 
                 overlayTabPanels[(Overlay)resInd].AddChild
                 (
-                    child: new Button/*<MyRectangle>*/
+                    child: new Button
                     (
                         shape: new MyRectangle(width: 150, height: 50)
                         {
@@ -350,7 +328,6 @@ namespace Game1
 
         public bool IfStore(int resInd)
             => storeToggleButtons[resInd].On;
-            //=> store[resInd];
 
         public IEnumerable<Vector2> ResDestins(int resInd)
             => resSplittersToDestins[resInd].Keys;
@@ -411,45 +388,12 @@ namespace Game1
             );
             ThisAsListener thisAsListener = new(Node: this, ResInd: resInd);
             resDestinArrow.ImportanceNumberChanged.Add(listener: thisAsListener);
-            //resDestinArrow.ImportanceNumberChanged += () => SyncSplittersWithArrows(resInd: resInd);
             resDestinArrow.Deleted.Add(listener: thisAsListener);
-            //resDestinArrow.Delete += () =>
-            //{
-            //    resDistribArrows[resInd].RemoveChild(child: resDestinArrow);
-            //    resSplittersToDestins[resInd].RemoveKey(key: destination);
-            //    SyncSplittersWithArrows();
-            //};
             resDestinArrow.Initialize();
             
             resDistribArrows[resInd].AddChild(child: resDestinArrow);
             thisAsListener.SyncSplittersWithArrows();
-
-            //void SyncSplittersWithArrows()
-            //{
-            //    foreach (var resDestinArrow in resDistribArrows[resInd])
-            //        resSplittersToDestins[resInd].SetImportance
-            //        (
-            //            key: resDestinArrow.EndPos,
-            //            importance: (ulong)resDestinArrow.Importance
-            //        );
-            //    int totalImportance = resDistribArrows[resInd].Sum(resDestinArrow => resDestinArrow.Importance);
-            //    foreach (var resDestinArrow in resDistribArrows[resInd])
-            //        resDestinArrow.TotalImportance = totalImportance;
-            //}
         }
-
-        //private void SyncSplittersWithArrows(int resInd)
-        //{
-        //    foreach (var resDestinArrow in resDistribArrows[resInd])
-        //        resSplittersToDestins[resInd].SetImportance
-        //        (
-        //            key: resDestinArrow.EndPos,
-        //            importance: (ulong)resDestinArrow.Importance
-        //        );
-        //    int totalImportance = resDistribArrows[resInd].Sum(resDestinArrow => resDestinArrow.Importance);
-        //    foreach (var resDestinArrow in resDistribArrows[resInd])
-        //        resDestinArrow.TotalImportance = totalImportance;
-        //}
 
         public override void OnMouseDownWorldNotMe()
         {

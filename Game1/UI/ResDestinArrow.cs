@@ -8,9 +8,6 @@ namespace Game1.UI
 {
     public class ResDestinArrow : WorldUIElement
     {
-        //[DataMember]
-        //public Event<IDeletedListener> Deleted { get; private init; }
-
         public int Importance
             => importanceIncDecrPanel.Number;
 
@@ -36,27 +33,26 @@ namespace Game1.UI
         private new readonly Arrow shape;
         private int totalImportance;
         private readonly Color defaultActiveColor, defaultInactiveColor;
-        private readonly UIRectPanel<IHUDElement/*<NearRectangle>*/> popup;
+        private readonly UIRectPanel<IHUDElement> popup;
         private readonly NumIncDecrPanel importanceIncDecrPanel;
         private readonly TextBox line2;
 
         public ResDestinArrow(Arrow shape, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int importance, int resInd)
             : base(shape: shape, activeColor: defaultActiveColor, inactiveColor: defaultInactiveColor, popupHorizPos: popupHorizPos, popupVertPos: popupVertPos)
         {
-            //Deleted = new();
             this.shape = shape;
             this.defaultActiveColor = defaultActiveColor;
             this.defaultInactiveColor = defaultInactiveColor;
             if (resInd is < 0 or > (int)MaxRes)
                 throw new ArgumentOutOfRangeException();
-            popup = new UIRectVertPanel<IHUDElement/*<NearRectangle>*/>
+            popup = new UIRectVertPanel<IHUDElement>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
             );
             SetPopup(UIElement: popup, overlay: (Overlay)resInd);
 
-            UIRectHorizPanel<IHUDElement/*<NearRectangle>*/> line1 = new
+            UIRectHorizPanel<IHUDElement> line1 = new
             (
                 color: Color.White,
                 childVertPos: VertPos.Middle
@@ -82,7 +78,7 @@ namespace Game1.UI
             line2 = new();
             popup.AddChild(child: line2);
 
-            Button/*<MyRectangle>*/ deleteButton = new
+            Button deleteButton = new
             (
                 shape: new MyRectangle
                 (
@@ -96,8 +92,6 @@ namespace Game1.UI
                 {
                     OnMouseDownWorldNotMe();
                     Delete();
-                    //Deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
-                    //Delete?.Invoke();
                 },
                 text: "delete"
             );

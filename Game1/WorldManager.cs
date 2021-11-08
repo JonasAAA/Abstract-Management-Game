@@ -16,24 +16,17 @@ using System.Xml;
 namespace Game1
 {
     [DataContract]
-    public class WorldManager : IDeletedListener //, IOnChangedListener
+    public class WorldManager : IDeletedListener
     {
-        //[DataContract]
-        //private record OverlayChoiceChangedListener
-        //    =>
-
         public const Overlay MaxRes = (Overlay)2;
 
         public static WorldManager Current { get; private set; }
 
         public static Overlay CurOverlay
             => Current.overlayChoicePanel.SelectedChoiceLabel;
-        //=> Current.overlay;
 
         public static IEvent<IChoiceChangedListener<Overlay>> CurOverlayChanged
             => Current.overlayChoicePanel.choiceChanged;
-        //public static Event<ICurOverlayChangedListener> CurOverlayChanged
-        //    => Current.curOverlayChanged;
 
         public static WorldConfig CurWorldConfig
             => Current.worldConfig;
@@ -121,8 +114,6 @@ namespace Game1
             person.Deleted.Add(listener: Current);
         }
 
-        //[DataMember]
-        //private readonly Event<ICurOverlayChangedListener> curOverlayChanged;
         [DataMember]
         private readonly WorldConfig worldConfig;
         [DataMember]
@@ -141,26 +132,18 @@ namespace Game1
         private ActivityManager activityManager;
         [DataMember]
         private LightManager lightManager;
-        //[DataMember]
-        //private Overlay overlay;
-        //[DataMember]
-        //private bool paused;
 
         private readonly TextBox globalTextBox;
-        private ToggleButton/*<MyRectangle>*/ pauseButton;
-        private MultipleChoicePanel<Overlay> overlayChoicePanel;
+        private ToggleButton pauseButton;
+        private readonly MultipleChoicePanel<Overlay> overlayChoicePanel;
 
         private WorldManager()
         {
-            //curOverlayChanged = new();
             worldConfig = new();
             resConfig = new();
             ConstArray.Initialize(resCount: resConfig.ResCount);
             industryConfig = new();
             people = new();
-
-            //overlay = Overlay.Res0;
-            //paused = false;
 
             globalTextBox = new();
             globalTextBox.Shape.MinWidth = 300;
@@ -177,18 +160,7 @@ namespace Game1
             );
 
             foreach (var posOverlay in Enum.GetValues<Overlay>())
-                overlayChoicePanel.AddChoice
-                (
-                    choiceLabel: posOverlay
-                    //select: () =>
-                    //{
-                    //    if (CurOverlay == posOverlay)
-                    //        return;
-                    //    Overlay oldOverlay = CurOverlay;
-                    //    overlay = posOverlay;
-                    //    curOverlayChanged.Raise(action: listener => listener.OverlayChangedResponse(oldOverlay: oldOverlay));
-                    //}
-                );
+                overlayChoicePanel.AddChoice(choiceLabel: posOverlay);
         }
 
         private void Initialize(GraphicsDevice graphicsDevice)
@@ -303,39 +275,12 @@ namespace Game1
                 deselectedColor: Color.Gray
             );
 
-            //pauseButton.onChanged.Add(listener: this);
-            //pauseButton.onChanged += () => paused = pauseButton.On;
-
             ActiveUIManager.AddHUDElement
             (
                 HUDElement: pauseButton,
                 horizPos: HorizPos.Right,
                 vertPos: VertPos.Bottom
             );
-
-            //overlayChoicePanel = new
-            //(
-            //    horizontal: true,
-            //    choiceWidth: 100,
-            //    choiceHeight: 30,
-            //    selectedColor: Color.White,
-            //    deselectedColor: Color.Gray,
-            //    backgroundColor: Color.White
-            //);
-
-            //foreach (var posOverlay in Enum.GetValues<Overlay>())
-            //    overlayChoicePanel.AddChoice
-            //    (
-            //        choiceLabel: posOverlay
-            //        //select: () =>
-            //        //{
-            //        //    if (CurOverlay == posOverlay)
-            //        //        return;
-            //        //    Overlay oldOverlay = CurOverlay;
-            //        //    overlay = posOverlay;
-            //        //    curOverlayChanged.Raise(action: listener => listener.OverlayChangedResponse(oldOverlay: oldOverlay));
-            //        //}
-            //    );
 
             ActiveUIManager.AddHUDElement
             (
@@ -350,7 +295,6 @@ namespace Game1
             if (elapsed < TimeSpan.Zero)
                 throw new ArgumentException();
 
-            //if (paused)
             if (pauseButton.On)
                 elapsed = TimeSpan.Zero;
 
@@ -390,9 +334,6 @@ namespace Game1
 
         public void Serialize()
         {
-            //GC.Collect(GC.MaxGeneration, GCCollectionMode.Forced, true, true);
-            //GC.WaitForPendingFinalizers();
-
             using FileStream fileStream = new(path: @"C:\Users\Jonas\Desktop\Abstract Management Game\save.bin", FileMode.Create);
             DataContractSerializerSettings serializerSettings = new()
             {
@@ -424,13 +365,5 @@ namespace Game1
             else
                 throw new ArgumentException();
         }
-
-        //void IOnChangedListener.OnChangedResponse(OnOffButton onOffButton)
-        //{
-        //    if (ReferenceEquals(onOffButton, pauseButton))
-        //        paused = onOffButton.On;
-        //    else
-        //        throw new ArgumentException();
-        //}
     }
 }

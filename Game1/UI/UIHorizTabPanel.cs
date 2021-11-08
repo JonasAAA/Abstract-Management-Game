@@ -8,14 +8,12 @@ using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
-    public class UIHorizTabPanel<TTab> : HUDElement/*<MyRectangle>*/
-        where TTab : class, IHUDElement/*<MyRectangle>*/
+    public class UIHorizTabPanel<TTab> : HUDElement
+        where TTab : class, IHUDElement
     {
         private readonly MultipleChoicePanel<string> tabChoicePanel;
         private readonly Dictionary<string, TTab> tabs;
-        //private readonly Dictionary<string, Action> tabEnabledActions;
         private readonly Dictionary<string, ThisAsEnabledChangedListener> thisAsEnabledChangedListenersByTabLabelText;
-        //private TTab activeTab;
         private TTab ActiveTab
             => tabChoicePanel.SelectedChoiceLabel switch
             {
@@ -39,7 +37,6 @@ namespace Game1.UI
             );
             tabs = new();
             thisAsEnabledChangedListenersByTabLabelText = new();
-            //activeTab = null;
             AddChild(child: tabChoicePanel);
         }
 
@@ -76,20 +73,13 @@ namespace Game1.UI
 
         public void AddTab(string tabLabelText, TTab tab)
         {
-            /*var choice = */tabChoicePanel.AddChoice
-            (
-                choiceLabel: tabLabelText
-                //select: () => activeTab = tab
-            );
+            tabChoicePanel.AddChoice(choiceLabel: tabLabelText);
 
             tabs.Add(tabLabelText, tab);
 
             thisAsEnabledChangedListenersByTabLabelText[tabLabelText] = new ThisAsEnabledChangedListener(UIHorizTabPanel: this, TabLabelText: tabLabelText);
 
-            //tabEnabledActions[tabLabelText] = () => choice.PersonallyEnabled = tab.Enabled;
-
             tab.EnabledChanged.Add(listener: thisAsEnabledChangedListenersByTabLabelText[tabLabelText]);
-            //tab.EnabledChanged += tabEnabledActions[tabLabelText];
 
             AddChild(child: tab);
         }
@@ -98,23 +88,9 @@ namespace Game1.UI
         {
             RemoveChild(child: tabs[tabLabelText]);
             tabs[tabLabelText].EnabledChanged.Remove(listener: thisAsEnabledChangedListenersByTabLabelText[tabLabelText]);
-            //tabs[tabLabelText].EnabledChanged -= tabEnabledActions[tabLabelText];
-
-            //if (activeTab == tabs[tabLabelText])
-            //    activeTab = tab;
+            
             tabs[tabLabelText] = tab;
-
-            //tabEnabledActions[tabLabelText] = () => tabChoicePanel.GetChoice(choiceText: tabLabelText).PersonallyEnabled = tab.Enabled;
-
             tab.EnabledChanged.Add(listener: thisAsEnabledChangedListenersByTabLabelText[tabLabelText]);
-            //tab.EnabledChanged += tabEnabledActions[tabLabelText];
-
-            //tabChoicePanel.ReplaceChoiceAction
-            //(
-            //    choiceText: tabLabelText,
-            //    newSelect: () => activeTab = tab
-            //);
-
             AddChild(child: tab);
         }
 
@@ -123,7 +99,6 @@ namespace Game1.UI
         {
             public void EnabledChangedResponse(IUIElement UIElement)
                 => UIHorizTabPanel.tabChoicePanel.SetChoicePersonallyEnabled(choiceLabel: TabLabelText, newPersonallyEnabled: UIElement.Enabled);
-                //=> UIHorizTabPanel.tabChoicePanel.GetChoice(choiceLabel: TabLabelText).PersonallyEnabled = UIElement.Enabled;
         }
 
         public override IUIElement CatchUIElement(Vector2 mousePos)
@@ -134,7 +109,6 @@ namespace Game1.UI
             if (catchingUIElement is not null)
                 return catchingUIElement;
 
-            //if (activeTab is null)
             if (ActiveTab is null)
             {
                 Debug.Assert(tabs.Count is 0);
@@ -142,7 +116,6 @@ namespace Game1.UI
             }
 
             return ActiveTab.CatchUIElement(mousePos: mousePos) ?? this;
-            //return activeTab.CatchUIElement(mousePos: mousePos) ?? this;
         }
 
         public override void Draw()
@@ -150,7 +123,6 @@ namespace Game1.UI
             Shape.Draw();
             tabChoicePanel.Draw();
             ActiveTab?.Draw();
-            //activeTab?.Draw();
         }
     }
 }

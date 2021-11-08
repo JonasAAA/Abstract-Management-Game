@@ -4,8 +4,7 @@ using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
-    public abstract class OnOffButton/*<TShape>*/ : Button/*<TShape>*/
-        //where TShape : NearRectangle
+    public abstract class OnOffButton : Button
     {
         [DataMember]
         public readonly Event<IOnChangedListener> onChanged;
@@ -23,18 +22,16 @@ namespace Game1.UI
                         true => selectedColor,
                         false => deselectedColor
                     };
-                    onChanged.Raise(action: listener => listener.OnChangedResponse(/*onOffButton: this*/));
-                    //onChanged?.Invoke();
+                    onChanged.Raise(action: listener => listener.OnChangedResponse());
                 }
             }
         }
 
-        //public event Action onChanged;
 
         private bool on;
         private readonly Color selectedColor, deselectedColor;
 
-        protected OnOffButton(/*TShape*/NearRectangle shape, string text, bool on, Color selectedColor, Color deselectedColor)
+        protected OnOffButton(NearRectangle shape, string text, bool on, Color selectedColor, Color deselectedColor)
             : base(shape: shape, action: null, text: text)
         {
             onChanged = new();

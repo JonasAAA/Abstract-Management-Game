@@ -48,12 +48,11 @@ namespace Game1.UI
         private readonly Event<IDeletedListener> deleted;
 
         [NonSerialized]
-        private Dictionary<Overlay, IHUDElement/*<NearRectangle>*/> popup;
+        private readonly Dictionary<Overlay, IHUDElement> popup;
 
         public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
             : base(shape: shape)
         {
-            //Deleted.Add(listener: this);
             this.activeColor = activeColor;
             this.inactiveColor = inactiveColor;
             SetShapeColor();
@@ -65,7 +64,7 @@ namespace Game1.UI
             popup = Enum.GetValues<Overlay>().ToDictionary
             (
                 keySelector: overlay => overlay,
-                elementSelector: overlay => (IHUDElement/*<NearRectangle>*/)null
+                elementSelector: overlay => (IHUDElement)null
             );
         }
 
@@ -73,19 +72,13 @@ namespace Game1.UI
         {
             base.InitUninitialized();
 
-            //popup = Enum.GetValues<Overlay>().ToDictionary
-            //(
-            //    keySelector: overlay => overlay,
-            //    elementSelector: overlay => (IHUDElement<NearRectangle>)null
-            //);
-
             CurOverlayChanged.Add(listener: this);
         }
 
-        protected void SetPopup(IHUDElement/*<NearRectangle>*/ UIElement, Overlay overlay)
+        protected void SetPopup(IHUDElement UIElement, Overlay overlay)
             => popup[overlay] = UIElement;
 
-        protected void SetPopup(IHUDElement/*<NearRectangle>*/ UIElement, IEnumerable<Overlay> overlays)
+        protected void SetPopup(IHUDElement UIElement, IEnumerable<Overlay> overlays)
         {
             foreach (var overlay in overlays)
                 SetPopup(UIElement: UIElement, overlay: overlay);
@@ -149,13 +142,5 @@ namespace Game1.UI
             CurOverlayChanged.Remove(listener: this);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
-
-        //public void DeletedResponse(IDeletable deletable)
-        //{
-        //    if (ReferenceEquals(deletable, this))
-        //        CurOverlayChanged.Remove(listener: this);
-        //    else
-        //        throw new ArgumentException();
-        //}
     }
 }

@@ -6,7 +6,7 @@ using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
-    public class MultipleChoicePanel<TChoice> : HUDElement/*<MyRectangle>*/, IEnabledChangedListener
+    public class MultipleChoicePanel<TChoice> : HUDElement, IEnabledChangedListener
     {
         [DataContract]
         private record ChoiceOnChangedListener([property: DataMember] MultipleChoicePanel<TChoice> MultipleChoicePanel, TChoice ChoiceLabel) : IOnChangedListener
@@ -38,14 +38,11 @@ namespace Game1.UI
             }
         }
 
-        private readonly UIRectPanel<SelectButton/*<MyRectangle>*/> choicePanel;
-        private readonly Dictionary<TChoice, SelectButton/*<MyRectangle>*/> choices;
-        //private readonly Dictionary<string, IOnChangedListener> choiceOnChangedListeners;
-        //private readonly Dictionary<string, Action> choiceActions;
+        private readonly UIRectPanel<SelectButton> choicePanel;
+        private readonly Dictionary<TChoice, SelectButton> choices;
         private readonly float choiceWidth, choiceHeight;
         private readonly Color selectedColor, deselectedColor;
         private TChoice selectedChoiceLabel;
-        //private SelectButton/*<MyRectangle>*/ selectedChoice;
 
         public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
             : base(shape: new MyRectangle())
@@ -53,12 +50,12 @@ namespace Game1.UI
             choiceChanged = new();
             choicePanel = horizontal switch
             {
-                true => new UIRectHorizPanel<SelectButton/*<MyRectangle>*/>
+                true => new UIRectHorizPanel<SelectButton>
                 (
                     color: backgroundColor,
                     childVertPos: VertPos.Top
                 ),
-                false => new UIRectVertPanel<SelectButton/*<MyRectangle>*/>
+                false => new UIRectVertPanel<SelectButton>
                 (
                     color: backgroundColor,
                     childHorizPos: HorizPos.Left
@@ -68,14 +65,11 @@ namespace Game1.UI
             Shape.Color = backgroundColor;
             selectedChoiceLabel = default;
             choices = new();
-            //choiceOnChangedListeners = new();
-            //choiceActions = new();
 
             this.choiceWidth = choiceWidth;
             this.choiceHeight = choiceHeight;
             this.selectedColor = selectedColor;
             this.deselectedColor = deselectedColor;
-            //selectedChoice = null;
 
             AddChild(child: choicePanel);
         }
@@ -89,12 +83,12 @@ namespace Game1.UI
             choicePanel.Shape.Center = Shape.Center;
         }
 
-        public /*SelectButton<MyRectangle>*/ void AddChoice(TChoice choiceLabel /*Action select*/)
+        public void AddChoice(TChoice choiceLabel)
         {
             if (choices.ContainsKey(choiceLabel))
                 throw new ArgumentException();
 
-            SelectButton/*<MyRectangle>*/ choice = new
+            SelectButton choice = new
             (
                 shape: new MyRectangle
                 (
@@ -108,23 +102,7 @@ namespace Game1.UI
             );
 
             if (choicePanel.Count is 0)
-            {
-                //selectedChoice = choice;
                 SelectedChoiceLabel = choiceLabel;
-                //select();
-            }
-
-            //void choiceAction()
-            //{
-            //    if (!choice.On)
-            //        return;
-
-            //    choices[SelectedChoiceText].On = false;
-            //    //selectedChoice.On = false;
-            //    //selectedChoice = choice;
-            //    SelectedChoiceText = choiceText;
-            //    //select();
-            //}
 
             choice.onChanged.Add
             (
@@ -134,66 +112,18 @@ namespace Game1.UI
                     ChoiceLabel: choiceLabel
                 )
             );
-            //choice.onChanged += choiceAction;
-
             choice.EnabledChanged.Add(listener: this);
-            //choice.EnabledChanged += () =>
-            //{
-            //    if (choice.PersonallyEnabled || !choice.On)
-            //        return;
-                
-            //    foreach (var choice in choicePanel)
-            //        if (choice.PersonallyEnabled)
-            //        {
-            //            choice.On = true;
-            //            return;
-            //        }
-            //    throw new Exception("enabled choice doesn't exist");
-            //};
 
             choices.Add(choiceLabel, choice);
-            //choiceOnChangedListeners.Add(choiceText, choiceOnChangedListener);
-            //choiceActions.Add(choiceText, choiceAction);
             choicePanel.AddChild(child: choice);
-
-            //return choice;
         }
-    
-        //public void ReplaceChoiceAction(string choiceText/*, Action newSelect*/)
-        //{
-        //    var choice = choices[choiceText];
-        //    choice.onChanged.Remove(listener: choiceOnChangedListeners[choiceText]);
-        //    //choice.onChanged -= choiceActions[choiceText];
-
-        //    //if (selectedChoice == choice)
-        //    if (choices[SelectedChoiceText] == choice)
-        //        newSelect();
-
-        //    void choiceAction()
-        //    {
-        //        if (!choice.On)
-        //            return;
-
-        //        //selectedChoice.On = false;
-        //        choices[SelectedChoiceText].On = false;
-        //        //selectedChoice = choice;
-        //        SelectedChoiceText = choiceText;
-        //        newSelect();
-        //    }
-
-        //    choice.onChanged += choiceAction;
-        //    choiceActions[choiceText] = choiceAction;
-        //}
 
         public void SetChoicePersonallyEnabled(TChoice choiceLabel, bool newPersonallyEnabled)
             => choices[choiceLabel].PersonallyEnabled = newPersonallyEnabled;
 
-        //public SelectButton/*<MyRectangle>*/ GetChoice(TChoice choiceLabel)
-        //    => choices[choiceLabel];
-
         void IEnabledChangedListener.EnabledChangedResponse(IUIElement UIElement)
         {
-            if (UIElement is SelectButton/*<MyRectangle>*/ choice)
+            if (UIElement is SelectButton choice)
             {
                 if (choice.PersonallyEnabled || !choice.On)
                     return;

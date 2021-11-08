@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace Game1.UI
 {
-    public abstract class UIRectPanel<TChild> : HUDElement/*<MyRectangle>*/, IEnumerable<TChild>
-        where TChild : IHUDElement/*<NearRectangle>*/
+    public abstract class UIRectPanel<TChild> : HUDElement, IEnumerable<TChild>
+        where TChild : IHUDElement
     {
         public int Count
             => children.Count;

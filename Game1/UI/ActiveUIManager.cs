@@ -61,7 +61,7 @@ namespace Game1.UI
         private static readonly TextBox explanationTextBox;
         private static HUDCamera HUDCamera;
         private static Graph curGraph;
-        private static readonly Dictionary<IHUDElement/*<NearRectangle>*/, SizeOrPosChangedListener> sizeOrPosChangedListenersByHUDElement;
+        private static readonly Dictionary<IHUDElement, SizeOrPosChangedListener> sizeOrPosChangedListenersByHUDElement;
 
         static ActiveUIManager()
         {
@@ -101,34 +101,21 @@ namespace Game1.UI
             activeUIElements.Add(curGraph);
         }
 
-        public static void AddHUDElement(IHUDElement/*<NearRectangle>*/ HUDElement, HorizPos horizPos, VertPos vertPos)
+        public static void AddHUDElement(IHUDElement HUDElement, HorizPos horizPos, VertPos vertPos)
         {
             if (HUDElement is null)
                 return;
-            
-            //void SetUIElementPosition()
-            //{
-            //    Vector2 HUDCenter = new((float)(ScreenWidth * .5), (float)(ScreenHeight * .5));
-            //    HUDElement.Shape.SetPosition
-            //    (
-            //        position: HUDCenter + new Vector2((int)horizPos * HUDCenter.X, (int)vertPos * HUDCenter.Y),
-            //        horizOrigin: horizPos,
-            //        vertOrigin: vertPos
-            //    );
-            //}
 
-            //SetUIElementPosition();
             sizeOrPosChangedListenersByHUDElement[HUDElement] = new SizeOrPosChangedListener(HorizPos: horizPos, VertPos: vertPos);
             sizeOrPosChangedListenersByHUDElement[HUDElement].SizeOrPosChangedResponse(shape: HUDElement.Shape);
             HUDElement.SizeOrPosChanged.Add(listener: sizeOrPosChangedListenersByHUDElement[HUDElement]);
-            //HUDElement.Shape.SizeOrPosChanged += SetUIElementPosition;
 
             activeUIElements.Add(HUDElement);
             if (!HUDElements.Add(HUDElement))
                 throw new ArgumentException();
         }
 
-        public static void RemoveHUDElement(IHUDElement/*<NearRectangle>*/ HUDElement)
+        public static void RemoveHUDElement(IHUDElement HUDElement)
         {
             if (HUDElement is null)
                 return;
@@ -137,7 +124,6 @@ namespace Game1.UI
             activeUIElements.Remove(HUDElement);
             HUDElement.SizeOrPosChanged.Remove(listener: sizeOrPosChangedListenersByHUDElement[HUDElement]);
             sizeOrPosChangedListenersByHUDElement.Remove(HUDElement);
-            //HUDElement.Shape.SizeOrPosChanged -= SetUIElementPosition;
         }
 
         [DataContract]

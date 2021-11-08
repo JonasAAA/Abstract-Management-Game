@@ -9,8 +9,11 @@ using static Game1.WorldManager;
 namespace Game1.UI
 {
     [DataContract]
-    public class WorldUIElement : UIElement, ICurOverlayChangedListener
+    public class WorldUIElement : UIElement, IDeletable, IChoiceChangedListener<Overlay>
     {
+        public IEvent<IDeletedListener> Deleted
+            => deleted;
+
         public override bool CanBeClicked
             => !Active;
 
@@ -41,24 +44,28 @@ namespace Game1.UI
         private readonly HorizPos popupHorizPos;
         [DataMember]
         private readonly VertPos popupVertPos;
+        [DataMember]
+        private readonly Event<IDeletedListener> deleted;
 
         [NonSerialized]
-        private Dictionary<Overlay, IHUDElement<NearRectangle>> popup;
+        private Dictionary<Overlay, IHUDElement/*<NearRectangle>*/> popup;
 
         public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
             : base(shape: shape)
         {
+            //Deleted.Add(listener: this);
             this.activeColor = activeColor;
             this.inactiveColor = inactiveColor;
             SetShapeColor();
             this.popupHorizPos = popupHorizPos;
             this.popupVertPos = popupVertPos;
             Active = false;
+            deleted = new();
 
             popup = Enum.GetValues<Overlay>().ToDictionary
             (
                 keySelector: overlay => overlay,
-                elementSelector: overlay => (IHUDElement<NearRectangle>)null
+                elementSelector: overlay => (IHUDElement/*<NearRectangle>*/)null
             );
         }
 
@@ -75,10 +82,10 @@ namespace Game1.UI
             CurOverlayChanged.Add(listener: this);
         }
 
-        protected void SetPopup(IHUDElement<NearRectangle> UIElement, Overlay overlay)
+        protected void SetPopup(IHUDElement/*<NearRectangle>*/ UIElement, Overlay overlay)
             => popup[overlay] = UIElement;
 
-        protected void SetPopup(IHUDElement<NearRectangle> UIElement, IEnumerable<Overlay> overlays)
+        protected void SetPopup(IHUDElement/*<NearRectangle>*/ UIElement, IEnumerable<Overlay> overlays)
         {
             foreach (var overlay in overlays)
                 SetPopup(UIElement: UIElement, overlay: overlay);
@@ -121,14 +128,14 @@ namespace Game1.UI
                 false => inactiveColor
             };
 
-        public virtual void OverlayChangedResponse(Overlay oldOverlay)
+        public virtual void ChoiceChangedResponse(Overlay prevOverlay)
         {
             if (!Active)
                 return;
-            if (popup[oldOverlay] == popup[CurOverlay])
+            if (popup[prevOverlay] == popup[CurOverlay])
                 return;
 
-            ActiveUIManager.RemoveHUDElement(HUDElement: popup[oldOverlay]);
+            ActiveUIManager.RemoveHUDElement(HUDElement: popup[prevOverlay]);
             ActiveUIManager.AddHUDElement
             (
                 HUDElement: popup[CurOverlay],
@@ -136,5 +143,19 @@ namespace Game1.UI
                 vertPos: popupVertPos
             );
         }
+
+        protected virtual void Delete()
+        {
+            CurOverlayChanged.Remove(listener: this);
+            deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+        }
+
+        //public void DeletedResponse(IDeletable deletable)
+        //{
+        //    if (ReferenceEquals(deletable, this))
+        //        CurOverlayChanged.Remove(listener: this);
+        //    else
+        //        throw new ArgumentException();
+        //}
     }
 }

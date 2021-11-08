@@ -4,6 +4,6 @@ namespace Game1
 {
     public interface IDeletable
     {
-        public Event<IDeletedListener> Deleted { get; }
+        public IEvent<IDeletedListener> Deleted { get; }
     }
 }

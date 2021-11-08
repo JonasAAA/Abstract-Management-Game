@@ -7,6 +7,8 @@ namespace Game1.UI
     [DataContract]
     public abstract class Shape
     {
+        [DataMember]
+        public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; private init; }
         public bool Transparent
            => C.Transparent(color: Color);
         [DataMember]
@@ -23,8 +25,6 @@ namespace Game1.UI
                 }
             }
         }
-
-        public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; private init; }
 
         [DataMember]
         private Vector2 center;

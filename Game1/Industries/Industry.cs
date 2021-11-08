@@ -204,8 +204,8 @@ namespace Game1.Industries
             }
         }
 
-        [DataMember]
-        public Event<IDeletedListener> Deleted { get; private init; }
+        public IEvent<IDeletedListener> Deleted
+            => deleted;
 
         public ulong EnergyPriority
             => IsBusy() switch
@@ -220,7 +220,7 @@ namespace Game1.Industries
         public IEnumerable<Person> PeopleHere
             => employer.PeopleHere;
 
-        public IHUDElement<NearRectangle> UIElement
+        public IHUDElement/*<NearRectangle>*/ UIElement
             => UIPanel;
         
         [DataMember]
@@ -237,16 +237,17 @@ namespace Game1.Industries
         [DataMember]
         private double energyPropor;
         [DataMember]
-        private bool deleted;
+        private bool isDeleted;
+        [DataMember]
+        private readonly Event<IDeletedListener> deleted;
 
         [field:NonSerialized]
-        protected UIRectPanel<IHUDElement<NearRectangle>> UIPanel { get; private set; }
+        protected UIRectPanel<IHUDElement/*<NearRectangle>*/> UIPanel { get; private set; }
         [NonSerialized]
         private TextBox textBox;
 
         protected Industry(NodeState state, Params parameters)
         {
-            Deleted = new();
             this.state = state;
             this.parameters = parameters;
 
@@ -260,7 +261,8 @@ namespace Game1.Industries
             CanStartProduction = true;
             energyPropor = 0;
 
-            deleted = false;
+            isDeleted = false;
+            deleted = new();
 
             AddEnergyConsumer(energyConsumer: this);
         }
@@ -268,13 +270,13 @@ namespace Game1.Industries
         public void Initialize()
         {
             textBox = new();
-            UIPanel = new UIRectVertPanel<IHUDElement<NearRectangle>>(color: Color.White, childHorizPos: HorizPos.Left);
+            UIPanel = new UIRectVertPanel<IHUDElement/*<NearRectangle>*/>(color: Color.White, childHorizPos: HorizPos.Left);
             UIPanel.AddChild(child: textBox);
             UIPanel.AddChild
             (
-                child: new Button<MyRectangle>
+                child: new Button/*<MyRectangle>*/
                 (
-                    shape: new
+                    shape: new MyRectangle
                     (
                         width: 60,
                         height: 30
@@ -283,7 +285,7 @@ namespace Game1.Industries
                         Color = Color.Red
                     },
                     explanation: "deletes this industry",
-                    action: () => deleted = true,
+                    action: () => isDeleted = true,
                     text: "delete"
                 )
             );
@@ -295,7 +297,7 @@ namespace Game1.Industries
 
         public Industry Update()
         {
-            if (deleted)
+            if (isDeleted)
             {
                 PlayerDelete();
                 return null;
@@ -320,7 +322,7 @@ namespace Game1.Industries
         protected virtual void Delete()
         {
             employer.Delete();
-            Deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+            deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 
         public virtual string GetText()

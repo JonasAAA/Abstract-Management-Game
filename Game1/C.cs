@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
+using System.Collections.Generic;
 
 namespace Game1
 {
@@ -127,5 +128,8 @@ namespace Game1
                 effects: SpriteEffects.None,
                 layerDepth: 0
             );
+
+        public static bool Equals<T>(T object1, T object2)
+            => EqualityComparer<T>.Default.Equals(object1, object2);
     }
 }

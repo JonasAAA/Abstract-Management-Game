@@ -14,6 +14,7 @@ namespace Game1.UI
 
         public Event<ISizeOrPosChangedListener> SizeOrPosChanged
             => shape.SizeOrPosChanged;
+        [DataMember]
         public Event<IEnabledChangedListener> EnabledChanged { get; private init; }
 
         public bool Enabled
@@ -145,7 +146,6 @@ namespace Game1.UI
                from child in childrenLayer.Value
                select child;
 
-
         protected void AddChild(IUIElement child, ulong layer = 0)
         {
             if (!layerToChildren.ContainsKey(layer))
@@ -173,6 +173,8 @@ namespace Game1.UI
             //child.SizeOrPosChanged -= RecalcSizeAndPos;
             if (!layerToChildren[layer].Remove(child) || !childToLayer.Remove(child))
                 throw new ArgumentException();
+            if (layerToChildren[layer].Count is 0)
+                layerToChildren.Remove(layer);
             RecalcSizeAndPos();
         }
 

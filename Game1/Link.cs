@@ -24,8 +24,8 @@ namespace Game1
             /// <summary>
             /// CURRENTLY UNUSED
             /// </summary>
-            [DataMember]
-            public Event<IDeletedListener> Deleted { get; private init; }
+            public IEvent<IDeletedListener> Deleted
+                => deleted;
 
             [DataMember]
             public readonly Node startNode, endNode;
@@ -46,10 +46,11 @@ namespace Game1
             private readonly double reqWattsPerKg;
             [DataMember]
             private double energyPropor;
+            [DataMember]
+            private readonly Event<IDeletedListener> deleted;
 
             public DirLink(Node startNode, Node endNode, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
             {
-                Deleted = new();
                 this.startNode = startNode;
                 this.endNode = endNode;
 
@@ -63,6 +64,7 @@ namespace Game1
                     throw new ArgumentOutOfRangeException();
                 reqWattsPerKg = wattsPerKg / travelTime.TotalSeconds;
                 energyPropor = 0;
+                deleted = new();
 
                 AddEnergyConsumer(energyConsumer: this);
             }

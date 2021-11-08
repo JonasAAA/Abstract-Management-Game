@@ -14,11 +14,11 @@ namespace Game1
     [DataContract]
     public class Star : WorldUIElement, ILightSource
     {
-        /// <summary>
-        /// CURRENTLY UNUSED
-        /// </summary>
-        [DataMember]
-        public Event<IDeletedListener> Deleted { get; private init; }
+        ///// <summary>
+        ///// CURRENTLY UNUSED
+        ///// </summary>
+        //[DataMember]
+        //public Event<IDeletedListener> Deleted { get; private init; }
 
         [DataMember]
         private readonly double prodWatts;
@@ -31,7 +31,7 @@ namespace Game1
         public Star(float radius, Vector2 center, double prodWatts, Color color)
             : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
-            Deleted = new();
+            //Deleted = new();
             shape.Center = center;
             this.prodWatts = prodWatts;
             polygon = new LightPolygon(strength: radius / CurWorldConfig.standardStarRadius, color: color);
@@ -52,8 +52,8 @@ namespace Game1
             );
         }
 
-        public void Delete()
-            => Deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+        //public void Delete()
+        //    => Deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
 
         // let N = lightCatchingObject.Count()
         // the complexity is O(N ^ 2) as each object has O(1) relevant angles

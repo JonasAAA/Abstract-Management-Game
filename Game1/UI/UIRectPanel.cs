@@ -4,8 +4,8 @@ using System.Collections.Generic;
 
 namespace Game1.UI
 {
-    public abstract class UIRectPanel<TChild> : HUDElement<MyRectangle>, IEnumerable<TChild>
-        where TChild : IHUDElement<NearRectangle>
+    public abstract class UIRectPanel<TChild> : HUDElement/*<MyRectangle>*/, IEnumerable<TChild>
+        where TChild : IHUDElement/*<NearRectangle>*/
     {
         public int Count
             => children.Count;
@@ -13,7 +13,7 @@ namespace Game1.UI
         protected readonly List<TChild> children;
 
         protected UIRectPanel(Color color)
-            : base(shape: new())
+            : base(shape: new MyRectangle())
         {
             Shape.Color = color;
             children = new();

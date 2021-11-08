@@ -61,7 +61,7 @@ namespace Game1.UI
         private static readonly TextBox explanationTextBox;
         private static HUDCamera HUDCamera;
         private static Graph curGraph;
-        private static readonly Dictionary<IHUDElement<NearRectangle>, SizeOrPosChangedListener> sizeOrPosChangedListenersByHUDElement;
+        private static readonly Dictionary<IHUDElement/*<NearRectangle>*/, SizeOrPosChangedListener> sizeOrPosChangedListenersByHUDElement;
 
         static ActiveUIManager()
         {
@@ -101,7 +101,7 @@ namespace Game1.UI
             activeUIElements.Add(curGraph);
         }
 
-        public static void AddHUDElement(IHUDElement<NearRectangle> HUDElement, HorizPos horizPos, VertPos vertPos)
+        public static void AddHUDElement(IHUDElement/*<NearRectangle>*/ HUDElement, HorizPos horizPos, VertPos vertPos)
         {
             if (HUDElement is null)
                 return;
@@ -128,7 +128,7 @@ namespace Game1.UI
                 throw new ArgumentException();
         }
 
-        public static void RemoveHUDElement(IHUDElement<NearRectangle> HUDElement)
+        public static void RemoveHUDElement(IHUDElement/*<NearRectangle>*/ HUDElement)
         {
             if (HUDElement is null)
                 return;

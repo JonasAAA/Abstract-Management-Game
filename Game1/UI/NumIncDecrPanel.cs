@@ -1,9 +1,10 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using System;
 
 namespace Game1.UI
 {
-    public class NumIncDecrPanel : HUDElement<MyRectangle>
+    public class NumIncDecrPanel : HUDElement/*<MyRectangle>*/
     {
         public int Number
         {
@@ -17,20 +18,22 @@ namespace Game1.UI
 
                 number = value;
                 textBox.Text = number.ToString();
-                NumberChanged?.Invoke();
+                numberChanged.Raise(action: listener => listener.NumberChangedResponse());
+                //numberChanged?.Invoke();
             }
         }
 
-        public event Action NumberChanged;
+        public Event<INumberChangedListener> numberChanged;
 
         private int number;
         private readonly int minNum;
-        private readonly UIRectVertPanel<IHUDElement<NearRectangle>> panel;
+        private readonly UIRectVertPanel<IHUDElement/*<NearRectangle>*/> panel;
         private readonly TextBox textBox;
 
         public NumIncDecrPanel(int minNum, int number, float incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
-            : base(shape: new())
+            : base(shape: new MyRectangle())
         {
+            numberChanged = new();
             if (number < minNum)
                 throw new ArgumentException();
             this.minNum = minNum;
@@ -46,9 +49,9 @@ namespace Game1.UI
             textBox.Shape.MinWidth = width;
             panel.AddChild
             (
-                child: new Button<Triangle>
+                child: new Button/*<Triangle>*/
                 (
-                    shape: new
+                    shape: new Triangle
                     (
                         width: width,
                         height: incrDecrButtonHeight,
@@ -63,9 +66,9 @@ namespace Game1.UI
             panel.AddChild(child: textBox);
             panel.AddChild
             (
-                child: new Button<Triangle>
+                child: new Button/*<Triangle>*/
                 (
-                    shape: new
+                    shape: new Triangle
                     (
                         width: width,
                         height: incrDecrButtonHeight,

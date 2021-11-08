@@ -9,9 +9,10 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [DataContract]
-    public abstract class ActivityCenter : IActivityCenter, IDeletable
+    public abstract class ActivityCenter : IActivityCenter, IDeletable/*, IDeletedListener*/
     {
-        public Event<IDeletedListener> Deleted { get; private init; }
+        public IEvent<IDeletedListener> Deleted
+            => deleted;
 
         [DataMember]
         public ActivityType ActivityType { get; private init; }
@@ -31,16 +32,20 @@ namespace Game1
         protected readonly NodeState state;
 
         [DataMember]
-        private readonly HashSet<Person> peopleInProcessOfRemoving = new();
+        private readonly Event<IDeletedListener> deleted;
+        [DataMember]
+        private readonly HashSet<Person> peopleInProcessOfRemoving;
 
         protected ActivityCenter(ActivityType activityType, ulong energyPriority, NodeState state)
         {
-            Deleted = new();
             ActivityType = activityType;
             EnergyPriority = energyPriority;
             this.state = state;
             peopleHere = new();
             allPeople = new();
+
+            deleted = new();
+            peopleInProcessOfRemoving = new();
 
             AddActivityCenter(activityCenter: this);
         }
@@ -93,12 +98,24 @@ namespace Game1
             foreach (var person in allPeople)
                 RemovePerson(person: person);
             Debug.Assert(allPeople.Count is 0 && peopleHere.Count is 0);
-            Deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+            deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 
         // must be between 0 and 1 or double.NegativeInfinity
         // should later be changed to graph distance (either time or energy cost)
         protected double DistanceToHere(Person person)
             => 1 - Math.Tanh(Vector2.Distance(person.ClosestNodePos, Position) / 100);
+
+        //public void DeletedResponse(IDeletable deletable)
+        //{
+        //    if (ReferenceEquals(deletable, this))
+        //    {
+        //        foreach (var person in allPeople)
+        //            RemovePerson(person: person);
+        //        Debug.Assert(allPeople.Count is 0 && peopleHere.Count is 0);
+        //    }
+        //    else
+        //        throw new ArgumentException();
+        //}
     }
 }

@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace Game1.UI
 {
-    public class TextBox : HUDElement<MyRectangle>
+    public class TextBox : HUDElement/*<MyRectangle>*/
     {
         public Color TextColor { private get; set; }
         public string Text
@@ -32,7 +32,7 @@ namespace Game1.UI
         private readonly float scale;
 
         public TextBox()
-            : base(shape: new())
+            : base(shape: new MyRectangle())
         {
             Shape.Color = Color.Transparent;
             font = C.LoadFont(name: "font");

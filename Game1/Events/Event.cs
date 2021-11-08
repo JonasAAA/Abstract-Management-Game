@@ -1,17 +1,12 @@
-﻿using System;
+﻿using Game1.UI;
+using System;
 using System.Runtime.Serialization;
 
 namespace Game1.Events
 {
-    //public interface IEvent<in T>
-    //{
-    //    public void Add(T listener);
-
-    //    public void Remove(T listener);
-    //}
-
     [DataContract]
-    public class Event<T>
+    public class Event<T> : IEvent<T>
+        where T : IListener
     {
         [DataMember]
         private readonly MyHashSet<T> listeners;

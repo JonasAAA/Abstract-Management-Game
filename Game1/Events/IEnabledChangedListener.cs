@@ -2,7 +2,7 @@
 
 namespace Game1.Events
 {
-    public interface IEnabledChangedListener
+    public interface IEnabledChangedListener : IListener
     {
         public void EnabledChangedResponse(IUIElement UIElement);
     }

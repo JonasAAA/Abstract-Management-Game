@@ -49,6 +49,48 @@ namespace Game1
                 => $"unemployed {peopleHere.Count}\ntravel to be unemployed\nhere {allPeople.Count - peopleHere.Count}\n";
         }
 
+        //[DataContract]
+        //private record StoredChangedListener([property: DataMember] Node Node, [property: DataMember] int ResInd) : IOnChangedListener
+        //{
+        //    void IOnChangedListener.OnChangedResponse()
+        //        => Node.store[ResInd] = Node.storeToggleButtons[ResInd].On;
+        //}
+
+        [DataContract]
+        private record ThisAsListener([property: DataMember] Node Node, [property: DataMember] int ResInd) : IDeletedListener, INumberChangedListener//, IOnChangedListener
+        {
+            public void SyncSplittersWithArrows()
+            {
+                foreach (var resDestinArrow in Node.resDistribArrows[ResInd])
+                    Node.resSplittersToDestins[ResInd].SetImportance
+                    (
+                        key: resDestinArrow.EndPos,
+                        importance: (ulong)resDestinArrow.Importance
+                    );
+                int totalImportance = Node.resDistribArrows[ResInd].Sum(resDestinArrow => resDestinArrow.Importance);
+                foreach (var resDestinArrow in Node.resDistribArrows[ResInd])
+                    resDestinArrow.TotalImportance = totalImportance;
+            }
+
+            void IDeletedListener.DeletedResponse(IDeletable deletable)
+            {
+                if (deletable is ResDestinArrow resDestinArrow)
+                {
+                    Node.resDistribArrows[ResInd].RemoveChild(child: resDestinArrow);
+                    Node.resSplittersToDestins[ResInd].RemoveKey(key: resDestinArrow.EndPos);
+                    SyncSplittersWithArrows();
+                }
+                else
+                    throw new ArgumentException();
+            }
+
+            void INumberChangedListener.NumberChangedResponse()
+                => SyncSplittersWithArrows();
+
+            //void IOnChangedListener.OnChangedResponse(OnOffButton onOffButton)
+            //    => Node.store[ResInd] = onOffButton.On;
+        }
+
         public Vector2 Position
             => state.position;
         [DataMember]
@@ -68,8 +110,8 @@ namespace Game1
         private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
         [DataMember]
         private ConstULongArray targetStoredResAmounts;
-        [DataMember]
-        private readonly MyArray<bool> store;
+        //[DataMember]
+        //private readonly MyArray<bool> store;
         [DataMember]
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
         [DataMember]
@@ -81,12 +123,13 @@ namespace Game1
 
         [NonSerialized]
         private TextBox textBox;
+        private MyArray<ToggleButton> storeToggleButtons;
         [NonSerialized]
-        private UIHorizTabPanel<IHUDElement<MyRectangle>> UITabPanel;
+        private UIHorizTabPanel<IHUDElement/*<MyRectangle>*/> UITabPanel;
         [NonSerialized]
-        private UIRectPanel<IHUDElement<NearRectangle>> infoPanel, buildButtonPannel;
+        private UIRectPanel<IHUDElement/*<NearRectangle>*/> infoPanel, buildButtonPannel;
         [NonSerialized]
-        private Dictionary<Overlay, UIRectPanel<IHUDElement<NearRectangle>>> overlayTabPanels;
+        private Dictionary<Overlay, UIRectPanel<IHUDElement/*<NearRectangle>*/>> overlayTabPanels;
         [NonSerialized]
         private TextBox infoTextBox;
         [NonSerialized]
@@ -114,7 +157,7 @@ namespace Game1
                         select new ProporSplitter<Vector2>()
             );
             targetStoredResAmounts = new();
-            store = new(value: false);
+            //store = new(value: false);
             undecidedResAmounts = new();
             resTravelHereAmounts = new();
             remainingLocalWatts = new();
@@ -162,7 +205,7 @@ namespace Game1
                 inactiveTabLabelColor: Color.Gray
             );
 
-            infoPanel = new UIRectVertPanel<IHUDElement<NearRectangle>>
+            infoPanel = new UIRectVertPanel<IHUDElement/*<NearRectangle>*/>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
@@ -175,7 +218,7 @@ namespace Game1
             infoTextBox = new();
             infoPanel.AddChild(child: infoTextBox);
 
-            buildButtonPannel = new UIRectVertPanel<IHUDElement<NearRectangle>>
+            buildButtonPannel = new UIRectVertPanel<IHUDElement/*<NearRectangle>*/>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
@@ -188,9 +231,9 @@ namespace Game1
             foreach (var constrParams in CurIndustryConfig.constrBuildingParams)
                 buildButtonPannel.AddChild
                 (
-                    child: new Button<Ellipse>
+                    child: new Button/*<Ellipse>*/
                     (
-                        shape: new
+                        shape: new Ellipse
                         (
                             width: 200,
                             height: 20
@@ -208,35 +251,38 @@ namespace Game1
             overlayTabPanels = new();
 
             foreach (var overlay in Enum.GetValues<Overlay>())
-                overlayTabPanels[overlay] = new UIRectVertPanel<IHUDElement<NearRectangle>>
+                overlayTabPanels[overlay] = new UIRectVertPanel<IHUDElement/*<NearRectangle>*/>
                 (
                     color: Color.White,
                     childHorizPos: HorizPos.Left
                 );
+            storeToggleButtons = new();
             for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
             {
-                var storeToggle = new ToggleButton<MyRectangle>
+                storeToggleButtons[resInd] = new ToggleButton/*<MyRectangle>*/
                 (
-                    shape: new
+                    shape: new MyRectangle
                     (
                         width: 60,
                         height: 60
                     ),
                     text: "store\nswitch",
-                    on: store[resInd],
+                    on: false, //store[resInd],
                     selectedColor: Color.White,
                     deselectedColor: Color.Gray
                 );
-                // hack to make lambda expression work correctly
-                int curResInd = resInd;
-                storeToggle.OnChanged += () => store[curResInd] = storeToggle.On;
-                overlayTabPanels[(Overlay)resInd].AddChild(child: storeToggle);
+                //ThisAsListener thisAsListener = new(Node: this, ResInd: resInd);
+                //storeToggleButtons[resInd].onChanged.Add(listener: thisAsListener);
+                //// hack to make lambda expression work correctly
+                //int curResInd = resInd;
+                //storeToggle.onChanged += () => store[curResInd] = storeToggle.On;
+                overlayTabPanels[(Overlay)resInd].AddChild(child: storeToggleButtons[resInd]);
 
                 overlayTabPanels[(Overlay)resInd].AddChild
                 (
-                    child: new Button<MyRectangle>
+                    child: new Button/*<MyRectangle>*/
                     (
-                        shape: new(width: 150, height: 50)
+                        shape: new MyRectangle(width: 150, height: 50)
                         {
                             Color = Color.White
                         },
@@ -303,7 +349,8 @@ namespace Game1
             => state.storedRes[resInd] + resTravelHereAmounts[resInd];
 
         public bool IfStore(int resInd)
-            => store[resInd];
+            => storeToggleButtons[resInd].On;
+            //=> store[resInd];
 
         public IEnumerable<Vector2> ResDestins(int resInd)
             => resSplittersToDestins[resInd].Keys;
@@ -362,8 +409,10 @@ namespace Game1
                 importance: importance,
                 resInd: resInd
             );
-            resDestinArrow.ImportanceChanged += () => SyncSplittersWithArrows(resInd: resInd);
-            resDestinArrow.Deleted.Add(listener: new ThisAsDeletedListener(Node: this, ResInd: resInd));
+            ThisAsListener thisAsListener = new(Node: this, ResInd: resInd);
+            resDestinArrow.ImportanceNumberChanged.Add(listener: thisAsListener);
+            //resDestinArrow.ImportanceNumberChanged += () => SyncSplittersWithArrows(resInd: resInd);
+            resDestinArrow.Deleted.Add(listener: thisAsListener);
             //resDestinArrow.Delete += () =>
             //{
             //    resDistribArrows[resInd].RemoveChild(child: resDestinArrow);
@@ -371,9 +420,9 @@ namespace Game1
             //    SyncSplittersWithArrows();
             //};
             resDestinArrow.Initialize();
-
+            
             resDistribArrows[resInd].AddChild(child: resDestinArrow);
-            SyncSplittersWithArrows(resInd: resInd);
+            thisAsListener.SyncSplittersWithArrows();
 
             //void SyncSplittersWithArrows()
             //{
@@ -389,34 +438,18 @@ namespace Game1
             //}
         }
 
-        void SyncSplittersWithArrows(int resInd)
-        {
-            foreach (var resDestinArrow in resDistribArrows[resInd])
-                resSplittersToDestins[resInd].SetImportance
-                (
-                    key: resDestinArrow.EndPos,
-                    importance: (ulong)resDestinArrow.Importance
-                );
-            int totalImportance = resDistribArrows[resInd].Sum(resDestinArrow => resDestinArrow.Importance);
-            foreach (var resDestinArrow in resDistribArrows[resInd])
-                resDestinArrow.TotalImportance = totalImportance;
-        }
-
-        [DataContract]
-        private record ThisAsDeletedListener([property: DataMember] Node Node, [property: DataMember] int ResInd) : IDeletedListener
-        {
-            public void DeletedResponse(IDeletable deletable)
-            {
-                if (deletable is ResDestinArrow resDestinArrow)
-                {
-                    Node.resDistribArrows[ResInd].RemoveChild(child: resDestinArrow);
-                    Node.resSplittersToDestins[ResInd].RemoveKey(key: resDestinArrow.EndPos);
-                    Node.SyncSplittersWithArrows(resInd: ResInd);
-                }
-                else
-                    throw new ArgumentException();
-            }
-        }
+        //private void SyncSplittersWithArrows(int resInd)
+        //{
+        //    foreach (var resDestinArrow in resDistribArrows[resInd])
+        //        resSplittersToDestins[resInd].SetImportance
+        //        (
+        //            key: resDestinArrow.EndPos,
+        //            importance: (ulong)resDestinArrow.Importance
+        //        );
+        //    int totalImportance = resDistribArrows[resInd].Sum(resDestinArrow => resDestinArrow.Importance);
+        //    foreach (var resDestinArrow in resDistribArrows[resInd])
+        //        resDestinArrow.TotalImportance = totalImportance;
+        //}
 
         public override void OnMouseDownWorldNotMe()
         {
@@ -544,7 +577,7 @@ namespace Game1
             {
                 case <= MaxRes:
                     int resInd = (int)CurOverlay;
-                    if (store[resInd])
+                    if (IfStore(resInd: resInd))
                         textBox.Text += "store\n";
                     if (state.storedRes[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
                         textBox.Text += (state.storedRes[resInd] >= targetStoredResAmounts[resInd]) switch
@@ -588,9 +621,9 @@ namespace Game1
         public void SetRemainingLocalWatts(double remainingLocalWatts)
             => this.remainingLocalWatts = remainingLocalWatts;
 
-        public override void OverlayChangedResponse(Overlay oldOverlay)
+        public override void ChoiceChangedResponse(Overlay prevOverlay)
         {
-            base.OverlayChangedResponse(oldOverlay: oldOverlay);
+            base.ChoiceChangedResponse(prevOverlay: prevOverlay);
 
             UITabPanel.ReplaceTab
                 (
@@ -598,10 +631,10 @@ namespace Game1
                     tab: overlayTabPanels[CurOverlay]
                 );
 
-            if (oldOverlay <= MaxRes)
+            if (prevOverlay <= MaxRes)
                 RemoveWorldUIElement
                 (
-                    UIElement: resDistribArrows[(int)oldOverlay]
+                    UIElement: resDistribArrows[(int)prevOverlay]
                 );
             if (CurOverlay <= MaxRes)
                 AddWorldUIElement

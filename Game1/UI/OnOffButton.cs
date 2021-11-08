@@ -1,11 +1,15 @@
-﻿using Microsoft.Xna.Framework;
-using System;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
-    public abstract class OnOffButton<TShape> : Button<TShape>
-        where TShape : NearRectangle
+    public abstract class OnOffButton/*<TShape>*/ : Button/*<TShape>*/
+        //where TShape : NearRectangle
     {
+        [DataMember]
+        public readonly Event<IOnChangedListener> onChanged;
+
         public bool On
         {
             get => on;
@@ -19,19 +23,21 @@ namespace Game1.UI
                         true => selectedColor,
                         false => deselectedColor
                     };
-                    OnChanged?.Invoke();
+                    onChanged.Raise(action: listener => listener.OnChangedResponse(/*onOffButton: this*/));
+                    //onChanged?.Invoke();
                 }
             }
         }
 
-        public event Action OnChanged;
+        //public event Action onChanged;
 
         private bool on;
         private readonly Color selectedColor, deselectedColor;
 
-        protected OnOffButton(TShape shape, string text, bool on, Color selectedColor, Color deselectedColor)
+        protected OnOffButton(/*TShape*/NearRectangle shape, string text, bool on, Color selectedColor, Color deselectedColor)
             : base(shape: shape, action: null, text: text)
         {
+            onChanged = new();
             this.on = on;
             this.selectedColor = selectedColor;
             this.deselectedColor = deselectedColor;

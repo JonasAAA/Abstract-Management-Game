@@ -100,8 +100,8 @@ namespace Game1
         /// <summary>
         /// CURRENTLY UNUSED
         /// </summary>
-        [DataMember]
-        public Event<IDeletedListener> Deleted { get; private init; }
+        public IEvent<IDeletedListener> Deleted
+            => deleted;
 
         /// <summary>
         /// is null just been let go from activity center
@@ -116,10 +116,11 @@ namespace Game1
         private readonly Dictionary<ActivityType, TimeSpan> lastActivityTimes;
         [DataMember]
         private Vector2 prevNodePos;
+        [DataMember]
+        private Event<IDeletedListener> deleted;
 
         private Person(Vector2 nodePos, Dictionary<IndustryType, double> enjoyments, Dictionary<IndustryType, double> talents, Dictionary<IndustryType, double> skills, ulong weight, double reqWatts, TimeSpan seekChangeTime)
         {
-            Deleted = new();
             prevNodePos = nodePos;
             ClosestNodePos = nodePos;
             if (!enjoyments.Values.All(C.IsInSuitableRange))
@@ -152,6 +153,8 @@ namespace Game1
                 keySelector: activityType => activityType,
                 elementSelector: activityType => TimeSpan.MinValue / 3
             );
+
+            deleted = new();
 
             AddEnergyConsumer(energyConsumer: this);
             AddPerson(person: this);

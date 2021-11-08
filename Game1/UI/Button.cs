@@ -3,8 +3,8 @@ using System;
 
 namespace Game1.UI
 {
-    public class Button<TShape> : HUDElement<TShape>
-        where TShape : NearRectangle
+    public class Button/*<TShape>*/ : HUDElement/*<TShape>*/
+        //where TShape : NearRectangle
     {
         public override bool CanBeClicked
             => true;
@@ -12,7 +12,7 @@ namespace Game1.UI
         protected readonly TextBox textBox;
         private readonly Action action;
 
-        public Button(TShape shape, string explanation = defaultExplanation, Action action = null, string text = null)
+        public Button(/*TShape*/NearRectangle shape, string explanation = defaultExplanation, Action action = null, string text = null)
             : base(shape: shape, explanation)
         {
             this.action = action;

@@ -12,6 +12,8 @@ namespace Game1
     [DataContract]
     public class LightCatchingDisk : Ellipse, ILightCatchingObject
     {
+        public IEvent<IDeletedListener> Deleted
+            => deleted;
         public IReadOnlyDictionary<Vector2, double> StarPosToWatts
             => starPosToWatts;
 
@@ -23,28 +25,28 @@ namespace Game1
 
         [DataMember]
         public readonly float radius;
-        [DataMember]
-        public Event<IDeletedListener> Deleted { get; private init; }
 
         [DataMember]
         private readonly Dictionary<Vector2, double> starPosToWatts, starPosToPowerProp;
+        [DataMember]
+        private readonly Event<IDeletedListener> deleted;
 
         public LightCatchingDisk(float radius)
             : base(width: 2 * radius, height: 2 * radius)
         {
-            Deleted = new();
             if (radius <= 0)
                 throw new ArgumentOutOfRangeException();
             this.radius = radius;
 
             starPosToWatts = new();
             starPosToPowerProp = new();
+            deleted = new();
 
             AddLightCatchingObject(lightCatchingObject: this);
         }
 
         public void Delete()
-            => Deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+            => deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
 
         IEnumerable<float> ILightCatchingObject.RelAngles(Vector2 lightPos)
         {

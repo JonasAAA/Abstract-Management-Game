@@ -9,8 +9,9 @@ namespace Game1.UI
     [DataContract]
     public class MultipleChoicePanel<TChoice> : HUDElement
     {
+        // it is public to easily add it to knownTypes
         [DataContract]
-        private record ChoiceEventListener([property: DataMember] MultipleChoicePanel<TChoice> MultipleChoicePanel, TChoice ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
+        public record ChoiceEventListener([property: DataMember] MultipleChoicePanel<TChoice> MultipleChoicePanel, TChoice ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
         {
             void IEnabledChangedListener.EnabledChangedResponse()
             {

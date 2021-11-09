@@ -14,7 +14,7 @@ namespace Game1.UI
         where TTab : class, IHUDElement
     {
         [DataContract]
-        private record TabEnabledChangedListener([property: DataMember] UIHorizTabPanel<TTab> UIHorizTabPanel, [property: DataMember] string TabLabelText) : IEnabledChangedListener
+        public record TabEnabledChangedListener([property: DataMember] UIHorizTabPanel<TTab> UIHorizTabPanel, [property: DataMember] string TabLabelText) : IEnabledChangedListener
         {
             public void EnabledChangedResponse()
                 => UIHorizTabPanel.tabChoicePanel.SetChoicePersonallyEnabled

@@ -91,7 +91,6 @@ namespace Game1
                 double curReqWatts = energyConsumer.ReqWatts();
                 if (C.IsTiny(value: curReqWatts))
                     curReqWatts = 0;
-                var aaa = reqWattsByConsumer[energyConsumer];
                 double energyPropor = curReqWatts switch
                 {
                     0 => 1,
@@ -102,7 +101,9 @@ namespace Game1
                 if (C.IsTiny(value: energyPropor - 1))
                     energyPropor = 1;
                 Debug.Assert(C.IsInSuitableRange(value: energyPropor));
-                    
+
+                if (energyConsumer.EnergyPriority is 0 && !C.IsTiny(energyPropor - 1))
+                    throw new Exception();
                 energyConsumer.ConsumeEnergy(energyPropor: energyPropor);
             }
 
@@ -127,8 +128,8 @@ namespace Game1
                     {
                         energyPropor = availableWatts / reqWatts;
                         availableWatts = 0;
-                        if (priority is 0)
-                            throw new Exception();
+                        //if (priority is 0)
+                        //    throw new Exception();
                     }
                     else
                     {

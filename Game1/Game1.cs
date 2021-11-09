@@ -56,6 +56,7 @@ namespace Game1
 
             CreateActiveUIManager(graphicsDevice: GraphicsDevice);
             var (graph, worldHUD) = WorldManager.CreateWorldUIManager(graphicsDevice: GraphicsDevice);
+            //var (graph, worldHUD) = WorldManager.LoadWorldUIManager(graphicsDevice: GraphicsDevice);
             CurActiveUIManager.SetWorld(graph: graph, worldHUD: worldHUD);
         }
 

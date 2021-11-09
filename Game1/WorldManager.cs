@@ -141,23 +141,35 @@ namespace Game1
 
             static WorldManager Deserialize()
             {
-                using FileStream fileStream = new(path: @"C:\Users\Jonas\Desktop\Abstract Management Game\save.bin", FileMode.Open);
-                DataContractSerializerSettings serializerSettings = new()
+                using FileStream fileStream = new(path: GetSaveFilePath, FileMode.Open, FileAccess.Read);
+                DataContractSerializer serializer = GetDataContractSerializer();
+                XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader
+                (
+                    stream: fileStream,
+                    quotas: new XmlDictionaryReaderQuotas()
+                    {
+                        MaxDepth = 1024
+                    }
+                );
+                return (WorldManager)serializer.ReadObject(reader, true);
+            }
+        }
+
+        private static string GetSaveFilePath
+            => @"C:\Users\Jonas\Desktop\Abstract Management Game\save.bin";
+
+        private static DataContractSerializer GetDataContractSerializer()
+            => new
+            (
+                type: typeof(WorldManager),
+                settings: new()
                 {
                     KnownTypes = GetKnownTypes(),
                     PreserveObjectReferences = true,
                     SerializeReadOnlyTypes = true
-                };
-                DataContractSerializer serializer = new
-                (
-                    type: typeof(WorldManager),
-                    settings: serializerSettings
-                );
-                XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader(fileStream, new XmlDictionaryReaderQuotas());
-                return (WorldManager)serializer.ReadObject(reader, true);
-            }
-        }
-        
+                }
+            );
+
         public Overlay Overlay
             => overlayChoicePanel.SelectedChoiceLabel;
 
@@ -345,21 +357,13 @@ namespace Game1
 
         public void Serialize()
         {
-            using FileStream fileStream = new(path: @"C:\Users\Jonas\Desktop\Abstract Management Game\save.bin", FileMode.Create);
-            DataContractSerializerSettings serializerSettings = new()
-            {
-                KnownTypes = GetKnownTypes(),
-                PreserveObjectReferences = true,
-                SerializeReadOnlyTypes = true
-            };
-            DataContractSerializer serializer = new
-            (
-                type: typeof(WorldManager),
-                settings: serializerSettings
-            );
+            using FileStream fileStream = new(path: GetSaveFilePath, FileMode.Create);
+            DataContractSerializer serializer = GetDataContractSerializer();
 
             XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);
             serializer.WriteObject(writer, this);
+            // very important, otherwise program may exit before finishing writing to file!
+            writer.Flush();
         }
 
         private static Type[] GetKnownTypes()
@@ -367,6 +371,20 @@ namespace Game1
             (
                 type => Attribute.GetCustomAttribute(type, typeof(CompilerGeneratedAttribute)) is null
                     && Attribute.GetCustomAttribute(type, typeof(DataContractAttribute)) is not null
+            ).Concat
+            (
+                new Type[]
+                {
+                    typeof(UIHorizTabPanel<IHUDElement>),
+                    typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
+                    typeof(MultipleChoicePanel<string>),
+                    typeof(MultipleChoicePanel<string>.ChoiceEventListener),
+                    typeof(MultipleChoicePanel<Overlay>),
+                    typeof(MultipleChoicePanel<Overlay>.ChoiceEventListener),
+                    typeof(UIRectHorizPanel<SelectButton>),
+                    typeof(UIRectVertPanel<IHUDElement>),
+                    typeof(UITransparentPanel<ResDestinArrow>),
+                }
             ).ToArray();
 
         void IDeletedListener.DeletedResponse(IDeletable deletable)

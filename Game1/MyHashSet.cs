@@ -8,7 +8,7 @@ namespace Game1
     /// <summary>
     /// throws exception when duplicates are added or try to remove non-existent element
     /// </summary>
-    [DataContract]
+    [CollectionDataContract]
     public class MyHashSet<T> : IEnumerable<T>
     {
         public int Count

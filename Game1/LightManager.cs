@@ -12,8 +12,8 @@ namespace Game1
     {
         [DataMember] private readonly MyHashSet<ILightCatchingObject> lightCatchingObjects;
         [DataMember] private readonly MyHashSet<ILightSource> lightSources;
-        [DataMember] private RenderTarget2D renderTarget;
         [DataMember] private int actualScreenWidth, actualScreenHeight;
+        [NonSerialized] private RenderTarget2D renderTarget;
         [NonSerialized] private BasicEffect brightEffect, dimEffect;
 
         public LightManager()

@@ -1,6 +1,4 @@
-﻿using Game1.UI;
-using Microsoft.Xna.Framework;
-using System;
+﻿using System;
 using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
@@ -12,14 +10,10 @@ namespace Game1.Industries
         [DataContract]
         public new class Params : Industry.Params
         {
-            [DataMember]
-            public readonly double reqWatts;
-            [DataMember]
-            public readonly Industry.Params industrParams;
-            [DataMember]
-            public readonly TimeSpan duration;
-            [DataMember]
-            public readonly ConstULongArray cost;
+            [DataMember] public readonly double reqWatts;
+            [DataMember] public readonly Industry.Params industrParams;
+            [DataMember] public readonly TimeSpan duration;
+            [DataMember] public readonly ConstULongArray cost;
 
             public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, Industry.Params industrParams, TimeSpan duration, ConstULongArray cost)
                 : base
@@ -45,10 +39,8 @@ namespace Game1.Industries
                 => new Construction(state: state, parameters: this);
         }
 
-        [DataMember]
-        private readonly Params parameters;
-        [DataMember]
-        private TimeSpan constrTimeLeft;
+        [DataMember] private readonly Params parameters;
+        [DataMember] private TimeSpan constrTimeLeft;
 
         private Construction(NodeState state, Params parameters)
             : base(state: state, parameters: parameters)
@@ -70,7 +62,7 @@ namespace Game1.Industries
         protected override Industry Update(double workingPropor)
         {
             if (IsBusy())
-                constrTimeLeft -= workingPropor * Elapsed;
+                constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;
 
             if (!IsBusy() && state.storedRes >= parameters.cost)
             {

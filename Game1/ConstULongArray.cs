@@ -31,14 +31,14 @@ namespace Game1
             => new(array);
 
         public ulong TotalWeight()
-            => Enumerable.Range(start: 0, count: Length).Sum(i => CurResConfig.resources[i].weight * array[i]);
+            => Enumerable.Range(start: 0, count: length).Sum(i => CurResConfig.resources[i].weight * array[i]);
 
         public override string ToString()
         {
             if (array.All(value => value is 0))
                 return "None";
             string result = "";
-            for (int resInd = 0; resInd < Length; resInd++)
+            for (int resInd = 0; resInd < length; resInd++)
                 if (array[resInd] > 0)
                     result += $"res{resInd}: {array[resInd]}, ";
             return result.Trim(' ', ',');

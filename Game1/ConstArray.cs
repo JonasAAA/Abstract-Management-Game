@@ -3,18 +3,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using static Game1.WorldManager;
 
 namespace Game1
 {
     [DataContract]
     public class ConstArray<T> : ConstArray, IEnumerable<T>
     {
-        [DataMember]
-        protected readonly T[] array;
+        [DataMember] protected readonly T[] array;
 
         public ConstArray()
-            => array = new T[Length];
+            => array = new T[length];
 
         public ConstArray(T value)
             : this()
@@ -23,7 +21,7 @@ namespace Game1
         public ConstArray(IEnumerable<T> values)
         {
             array = values.ToArray();
-            if (array.Length != Length)
+            if (array.Length != length)
                 throw new ArgumentException();
         }
 
@@ -35,7 +33,7 @@ namespace Game1
 
         public IEnumerator<T> GetEnumerator()
         {
-            for (int i = 0; i < Length; i++)
+            for (int i = 0; i < length; i++)
                 yield return array[i];
         }
 
@@ -46,9 +44,6 @@ namespace Game1
     [DataContract]
     public class ConstArray
     {
-        public static int Length { get; private set; }
-
-        public static void Initialize(int resCount)
-            => Length = resCount;
+        public const int length = (int)WorldManager.MaxRes + 1;
     }
 }

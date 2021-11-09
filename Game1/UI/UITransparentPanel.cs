@@ -1,15 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class UITransparentPanel<TChild> : UIElement, IEnumerable<TChild>
         where TChild : IUIElement
     {
         public int Count
             => children.Count;
 
-        private readonly List<TChild> children;
+        [DataMember] private readonly List<TChild> children;
 
         public UITransparentPanel()
             : base(shape: new InfinitePlane())

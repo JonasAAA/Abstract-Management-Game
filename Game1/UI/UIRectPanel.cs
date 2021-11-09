@@ -1,16 +1,18 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public abstract class UIRectPanel<TChild> : HUDElement, IEnumerable<TChild>
         where TChild : IHUDElement
     {
         public int Count
             => children.Count;
 
-        protected readonly List<TChild> children;
+        [DataMember] protected readonly List<TChild> children;
 
         protected UIRectPanel(Color color)
             : base(shape: new MyRectangle())

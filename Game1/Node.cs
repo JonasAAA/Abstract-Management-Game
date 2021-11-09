@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using static Game1.WorldManager;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1
 {
@@ -92,54 +93,35 @@ namespace Game1
         private record AddResourceDestinationButtonClickedListener : IClickedListener
         {
             void IClickedListener.ClickedResponse()
-                => ActiveUIManager.ArrowDrawingModeOn = true;
+                => CurActiveUIManager.ArrowDrawingModeOn = true;
         }
 
         public Vector2 Position
             => state.position;
-        [DataMember]
-        public readonly float radius;
+        [DataMember] public readonly float radius;
         public double LocallyProducedWatts
             => shape.Watts;
 
-        [DataMember]
-        private readonly NodeState state;
-        [DataMember]
-        private readonly List<Link> links;
-        [DataMember]
-        private Industry industry;
-        [DataMember]
-        private readonly UnemploymentCenter unemploymentCenter;
-        [DataMember]
-        private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
-        [DataMember]
-        private ConstULongArray targetStoredResAmounts;
-        [DataMember]
-        private ULongArray undecidedResAmounts, resTravelHereAmounts;
-        [DataMember]
-        private readonly new LightCatchingDisk shape;
-        [DataMember]
-        private double remainingLocalWatts;
-        [DataMember]
-        private readonly float resDestinArrowWidth;
+        [DataMember] private readonly NodeState state;
+        [DataMember] private readonly List<Link> links;
+        [DataMember] private Industry industry;
+        [DataMember] private readonly UnemploymentCenter unemploymentCenter;
+        [DataMember] private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
+        [DataMember] private ConstULongArray targetStoredResAmounts;
+        [DataMember] private ULongArray undecidedResAmounts, resTravelHereAmounts;
+        [DataMember] private readonly new LightCatchingDisk shape;
+        [DataMember] private double remainingLocalWatts;
+        [DataMember] private readonly float resDestinArrowWidth;
 
-        [NonSerialized]
-        private readonly TextBox textBox;
-        private readonly MyArray<ToggleButton> storeToggleButtons;
-        [NonSerialized]
-        private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
-        [NonSerialized]
-        private readonly UIRectPanel<IHUDElement> infoPanel, buildButtonPannel;
-        [NonSerialized]
-        private readonly Dictionary<Overlay, UIRectPanel<IHUDElement>> overlayTabPanels;
-        [NonSerialized]
-        private readonly TextBox infoTextBox;
-        [NonSerialized]
-        private readonly string overlayTabLabel;
-        [NonSerialized]
-        private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
-        [NonSerialized]
-        private readonly ulong resDistribArrowsUILayer;
+        [DataMember] private readonly TextBox textBox;
+        [DataMember] private readonly MyArray<ToggleButton> storeToggleButtons;
+        [DataMember] private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
+        [DataMember] private readonly UIRectPanel<IHUDElement> infoPanel, buildButtonPannel;
+        [DataMember] private readonly Dictionary<Overlay, UIRectPanel<IHUDElement>> overlayTabPanels;
+        [DataMember] private readonly TextBox infoTextBox;
+        [DataMember] private readonly string overlayTabLabel;
+        [DataMember] private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
+        [DataMember] private readonly ulong resDistribArrowsUILayer;
 
         public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth, int startPersonCount = 0)
             : base(shape: new LightCatchingDisk(radius: radius), activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
@@ -280,7 +262,7 @@ namespace Game1
             UITabPanel.AddTab
             (
                 tabLabelText: overlayTabLabel,
-                tab: overlayTabPanels[CurOverlay]
+                tab: overlayTabPanels[CurWorldManager.Overlay]
             );
 
             SetPopup
@@ -294,10 +276,10 @@ namespace Game1
             for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
                 resDistribArrows[resInd] = new UITransparentPanel<ResDestinArrow>();
 
-            if (CurOverlay <= MaxRes)
-                AddWorldUIElement
+            if (CurWorldManager.Overlay <= MaxRes)
+                CurWorldManager.AddWorldUIElement
                 (
-                    UIElement: resDistribArrows[(int)CurOverlay],
+                    UIElement: resDistribArrows[(int)CurWorldManager.Overlay],
                     layer: resDistribArrowsUILayer
                 );
         }
@@ -345,17 +327,17 @@ namespace Game1
 
         public override void OnClick()
         {
-            if (ActiveUIManager.ArrowDrawingModeOn)
+            if (CurActiveUIManager.ArrowDrawingModeOn)
                 return;
             base.OnClick();
         }
 
         public bool CanHaveDestin(Vector2 destination)
         {
-            if (!Active || !ActiveUIManager.ArrowDrawingModeOn)
+            if (!Active || !CurActiveUIManager.ArrowDrawingModeOn)
                 throw new InvalidOperationException();
 
-            return !resSplittersToDestins[(int)CurOverlay].ContainsKey(destination);
+            return !resSplittersToDestins[(int)CurWorldManager.Overlay].ContainsKey(destination);
         }
 
         public void AddResDestin(Vector2 destination)
@@ -363,7 +345,7 @@ namespace Game1
             if (!CanHaveDestin(destination: destination))
                 throw new ArgumentException();
 
-            int resInd = (int)CurOverlay;
+            int resInd = (int)CurWorldManager.Overlay;
             if (resInd is < 0 or > (int)MaxRes)
                 throw new ArgumentOutOfRangeException();
             if (resSplittersToDestins[resInd].ContainsKey(key: destination))
@@ -390,7 +372,7 @@ namespace Game1
 
         public override void OnMouseDownWorldNotMe()
         {
-            if (ActiveUIManager.ArrowDrawingModeOn)
+            if (CurActiveUIManager.ArrowDrawingModeOn)
                 return;
             base.OnMouseDownWorldNotMe();
         }
@@ -510,10 +492,10 @@ namespace Game1
             if (industry is not null)
                 textBox.Text += industry.GetText();
 
-            switch (CurOverlay)
+            switch (CurWorldManager.Overlay)
             {
                 case <= MaxRes:
-                    int resInd = (int)CurOverlay;
+                    int resInd = (int)CurWorldManager.Overlay;
                     if (IfStore(resInd: resInd))
                         textBox.Text += "store\n";
                     if (state.storedRes[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
@@ -545,11 +527,11 @@ namespace Game1
         {
             base.Draw();
 
-            if (Active && ActiveUIManager.ArrowDrawingModeOn)
+            if (Active && CurActiveUIManager.ArrowDrawingModeOn)
                 Arrow.DrawArrow
                 (
                     startPos: Position,
-                    endPos: MouseWorldPos,
+                    endPos: CurWorldManager.MouseWorldPos,
                     width: resDestinArrowWidth,
                     color: Color.White * .25f
                 );
@@ -565,18 +547,18 @@ namespace Game1
             UITabPanel.ReplaceTab
                 (
                     tabLabelText: overlayTabLabel,
-                    tab: overlayTabPanels[CurOverlay]
+                    tab: overlayTabPanels[CurWorldManager.Overlay]
                 );
 
             if (prevOverlay <= MaxRes)
-                RemoveWorldUIElement
+                CurWorldManager.RemoveWorldUIElement
                 (
                     UIElement: resDistribArrows[(int)prevOverlay]
                 );
-            if (CurOverlay <= MaxRes)
-                AddWorldUIElement
+            if (CurWorldManager.Overlay <= MaxRes)
+                CurWorldManager.AddWorldUIElement
                 (
-                    UIElement: resDistribArrows[(int)CurOverlay],
+                    UIElement: resDistribArrows[(int)CurWorldManager.Overlay],
                     layer: resDistribArrowsUILayer
                 );
         }

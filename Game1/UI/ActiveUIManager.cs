@@ -1,23 +1,36 @@
-﻿using Game1.Events;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1.UI
 {
-    public static class ActiveUIManager
+    public class ActiveUIManager
     {
-        public static readonly UIConfig UIConfig;
-        public static double ScreenWidth { get; private set; }
-        public static double ScreenHeight
+        public static ActiveUIManager CurActiveUIManager { get; private set; }
+
+        public static UIConfig CurUIConfig
+            => CurActiveUIManager.UIConfig;
+
+        public static void CreateActiveUIManager(GraphicsDevice graphicsDevice)
+        {
+            if (CurActiveUIManager is not null)
+                throw new InvalidOperationException();
+            CurActiveUIManager = new(graphicsDevice: graphicsDevice);
+
+            CurActiveUIManager.explanationTextBox = new();
+            CurActiveUIManager.explanationTextBox.Shape.Color = Color.LightPink;
+
+            CurActiveUIManager.HUDCamera = new(graphicsDevice: graphicsDevice);
+        }
+
+        public double ScreenHeight
             => UIConfig.standardScreenHeight;
-        public static bool MouseAboveHUD { get; private set; }
-        public static bool ArrowDrawingModeOn
+
+        public bool ArrowDrawingModeOn
         {
             get => arrowDrawingModeOn;
             set
@@ -28,13 +41,13 @@ namespace Game1.UI
                 arrowDrawingModeOn = value;
                 if (arrowDrawingModeOn)
                 {
-                    if (CurOverlay > MaxRes)
+                    if (CurWorldManager.Overlay > MaxRes)
                         throw new Exception();
                     foreach (var UIElement in activeUIElements)
                         UIElement.HasDisabledAncestor = true;
                     if (activeWorldElement is Node activeNode)
                     {
-                        foreach (var node in curGraph.Nodes)
+                        foreach (var node in graph.Nodes)
                             if (activeNode.CanHaveDestin(destination: node.Position))
                                 node.HasDisabledAncestor = false;
                     }
@@ -48,22 +61,28 @@ namespace Game1.UI
                 }
             }
         }
-        public static Vector2 HUDPos
+
+        public Vector2 MouseHUDPos
             => HUDCamera.HUDPos(screenPos: Mouse.GetState().Position.ToVector2());
 
-        private static bool arrowDrawingModeOn;
-        private static readonly List<IUIElement> activeUIElements;
-        private static readonly HashSet<IUIElement> HUDElements;
-        private static bool leftDown, prevLeftDown;
-        private static IUIElement halfClicked, contMouse, activeWorldElement;
-        private static readonly TimeSpan minDurationToGetExplanation;
-        private static TimeSpan hoverDuration;
-        private static readonly TextBox explanationTextBox;
-        private static HUDCamera HUDCamera;
-        private static Graph curGraph;
-        private static readonly Dictionary<IHUDElement, HUDElementSizeOrPosChangedListener> sizeOrPosChangedListenersByHUDElement;
+        public bool MouseAboveHUD { get; private set; }
 
-        static ActiveUIManager()
+        public readonly double screenWidth;
+        private readonly UIConfig UIConfig;
+        
+        private bool arrowDrawingModeOn;
+        private readonly List<IUIElement> activeUIElements;
+        private readonly HashSet<IUIElement> HUDElements;
+        private bool leftDown, prevLeftDown;
+        private IUIElement halfClicked, contMouse, activeWorldElement;
+        private readonly TimeSpan minDurationToGetExplanation;
+        private TimeSpan hoverDuration;
+        private TextBox explanationTextBox;
+        private HUDCamera HUDCamera;
+        private Graph graph;
+        private readonly HUDPosSetter HUDPosSetter;
+
+        private ActiveUIManager(GraphicsDevice graphicsDevice)
         {
             UIConfig = new();
 
@@ -78,75 +97,54 @@ namespace Game1.UI
             MouseAboveHUD = true;
             minDurationToGetExplanation = TimeSpan.FromSeconds(.5);
             hoverDuration = TimeSpan.Zero;
-            explanationTextBox = new();
-            explanationTextBox.Shape.Color = Color.LightPink;
 
-            sizeOrPosChangedListenersByHUDElement = new();
-        }
-
-        public static void Initialize(GraphicsDevice graphicsDevice)
-        {
-            HUDCamera = new(graphicsDevice: graphicsDevice);
-            ScreenWidth = (double)graphicsDevice.Viewport.Width * UIConfig.standardScreenHeight / graphicsDevice.Viewport.Height;
+            screenWidth = (double)graphicsDevice.Viewport.Width * UIConfig.standardScreenHeight / graphicsDevice.Viewport.Height;
+            HUDPosSetter = new();
         }
 
         /// <summary>
         /// call exatly once after PlayState.InitializeNew()
         /// </summary>
-        public static void SetCurGraph(Graph curGraph)
+        public void SetWorld(Graph graph, WorldHUD worldHUD)
         {
-            ActiveUIManager.curGraph = curGraph;
-            if (activeUIElements.Contains(curGraph))
+            this.graph = graph;
+            if (activeUIElements.Contains(graph))
                 throw new InvalidOperationException();
-            activeUIElements.Add(curGraph);
-        }
-
-        public static void AddHUDElement(IHUDElement HUDElement, HorizPos horizPos, VertPos vertPos)
-        {
-            if (HUDElement is null)
-                return;
-
-            sizeOrPosChangedListenersByHUDElement[HUDElement] = new HUDElementSizeOrPosChangedListener(HorizPos: horizPos, VertPos: vertPos);
-            sizeOrPosChangedListenersByHUDElement[HUDElement].SizeOrPosChangedResponse(shape: HUDElement.Shape);
-            HUDElement.SizeOrPosChanged.Add(listener: sizeOrPosChangedListenersByHUDElement[HUDElement]);
-
-            activeUIElements.Add(HUDElement);
-            if (!HUDElements.Add(HUDElement))
+            activeUIElements.Add(graph);
+            activeUIElements.Add(worldHUD);
+            if (!HUDElements.Add(worldHUD))
                 throw new ArgumentException();
         }
 
-        public static void RemoveHUDElement(IHUDElement HUDElement)
-        {
-            if (HUDElement is null)
-                return;
-            if (!HUDElements.Remove(HUDElement))
-                throw new ArgumentException();
-            activeUIElements.Remove(HUDElement);
-            HUDElement.SizeOrPosChanged.Remove(listener: sizeOrPosChangedListenersByHUDElement[HUDElement]);
-            sizeOrPosChangedListenersByHUDElement.Remove(HUDElement);
-        }
+        //public void AddHUDElement(IHUDElement HUDElement, HorizPos horizPos, VertPos vertPos)
+        //{
+        //    if (HUDElement is null)
+        //        return;
 
-        [DataContract]
-        private record HUDElementSizeOrPosChangedListener([property:DataMember] HorizPos HorizPos, [property: DataMember] VertPos VertPos) : ISizeOrPosChangedListener
-        {
-            public void SizeOrPosChangedResponse(Shape shape)
-            {
-                if (shape is NearRectangle nearRectangle)
-                {
-                    Vector2 HUDCenter = new((float)(ScreenWidth * .5), (float)(ScreenHeight * .5));
-                    nearRectangle.SetPosition
-                    (
-                        position: HUDCenter + new Vector2((int)HorizPos * HUDCenter.X, (int)VertPos * HUDCenter.Y),
-                        horizOrigin: HorizPos,
-                        vertOrigin: VertPos
-                    );
-                }
-                else
-                    throw new ArgumentException();
-            }
-        }
+        //    HUDPosSetter.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
 
-        public static void Update(TimeSpan elapsed)
+        //    //sizeOrPosChangedListeners[HUDElement] = new HUDElementSizeOrPosChangedListener(HorizPos: horizPos, VertPos: vertPos);
+        //    //sizeOrPosChangedListeners[HUDElement].SizeOrPosChangedResponse(shape: HUDElement.Shape);
+        //    //HUDElement.SizeOrPosChanged.Add(listener: sizeOrPosChangedListeners[HUDElement]);
+
+        //    activeUIElements.Add(HUDElement);
+        //    if (!HUDElements.Add(HUDElement))
+        //        throw new ArgumentException();
+        //}
+
+        //public void RemoveHUDElement(IHUDElement HUDElement)
+        //{
+        //    if (HUDElement is null)
+        //        return;
+        //    if (!HUDElements.Remove(HUDElement))
+        //        throw new ArgumentException();
+        //    activeUIElements.Remove(HUDElement);
+        //    HUDPosSetter.RemoveHUDElement(HUDElement: HUDElement);
+        //    //HUDElement.SizeOrPosChanged.Remove(listener: sizeOrPosChangedListeners[HUDElement]);
+        //    //sizeOrPosChangedListeners.Remove(HUDElement);
+        //}
+
+        public void Update(TimeSpan elapsed)
         {
             IUIElement prevContMouse = contMouse;
 
@@ -154,14 +152,14 @@ namespace Game1.UI
             prevLeftDown = leftDown;
             leftDown = mouseState.LeftButton == ButtonState.Pressed;
             Vector2 mouseScreenPos = mouseState.Position.ToVector2(),
-                mouseWorldPos = MouseWorldPos,
+                mouseWorldPos = CurWorldManager.MouseWorldPos,
                 mouseHUDPos = HUDCamera.HUDPos(screenPos: mouseScreenPos);
 
             contMouse = null;
             MouseAboveHUD = false;
             foreach (var UIElement in Enumerable.Reverse(activeUIElements))
             {
-                Vector2 mousePos = (UIElement == curGraph) switch
+                Vector2 mousePos = (UIElement == graph) switch
                 {
                     true => mouseWorldPos,
                     false => mouseHUDPos
@@ -187,7 +185,7 @@ namespace Game1.UI
                     explanationTextBox.Shape.ClampPosition
                     (
                         left: 0,
-                        right: (float)ScreenWidth,
+                        right: (float)screenWidth,
                         top: 0,
                         bottom: (float)ScreenHeight
                     );
@@ -236,7 +234,7 @@ namespace Game1.UI
             }
         }
 
-        public static void DrawHUD()
+        public void DrawHUD()
         {
             HUDCamera.BeginDraw();
             foreach (var UIElement in HUDElements)

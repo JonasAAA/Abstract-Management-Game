@@ -74,27 +74,20 @@ namespace Game1
             );
 
         // between 0 and 1
-        [DataMember]
-        public readonly ReadOnlyDictionary<IndustryType, double> enjoyments;
+        [DataMember] public readonly ReadOnlyDictionary<IndustryType, double> enjoyments;
         // between 0 and 1
-        [DataMember]
-        public readonly ReadOnlyDictionary<IndustryType, double> talents;
+        [DataMember] public readonly ReadOnlyDictionary<IndustryType, double> talents;
         // between 0 and 1
-        [DataMember]
-        public readonly Dictionary<IndustryType, double> skills;
+        [DataMember] public readonly Dictionary<IndustryType, double> skills;
         
         public Vector2? ActivityCenterPosition
             => activityCenter?.Position;
-        [DataMember]
-        public Vector2 ClosestNodePos { get; private set; }
-        [DataMember]
-        public double EnergyPropor { get; private set; }
+        [DataMember] public Vector2 ClosestNodePos { get; private set; }
+        [DataMember] public double EnergyPropor { get; private set; }
         public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
             => lastActivityTimes;
-        [DataMember]
-        public readonly ulong weight;
-        [DataMember]
-        public readonly double reqWatts;
+        [DataMember] public readonly ulong weight;
+        [DataMember] public readonly double reqWatts;
 
         /// <summary>
         /// CURRENTLY UNUSED
@@ -105,18 +98,12 @@ namespace Game1
         /// <summary>
         /// is null just been let go from activity center
         /// </summary>
-        [DataMember]
-        private IPersonFacingActivityCenter activityCenter;
-        [DataMember]
-        private readonly TimeSpan seekChangeTime;
-        [DataMember]
-        private TimeSpan timeSinceActivitySearch;
-        [DataMember]
-        private readonly Dictionary<ActivityType, TimeSpan> lastActivityTimes;
-        [DataMember]
-        private Vector2 prevNodePos;
-        [DataMember]
-        private readonly Event<IDeletedListener> deleted;
+        [DataMember] private IPersonFacingActivityCenter activityCenter;
+        [DataMember] private readonly TimeSpan seekChangeTime;
+        [DataMember] private TimeSpan timeSinceActivitySearch;
+        [DataMember] private readonly Dictionary<ActivityType, TimeSpan> lastActivityTimes;
+        [DataMember] private Vector2 prevNodePos;
+        [DataMember] private readonly Event<IDeletedListener> deleted;
 
         private Person(Vector2 nodePos, Dictionary<IndustryType, double> enjoyments, Dictionary<IndustryType, double> talents, Dictionary<IndustryType, double> skills, ulong weight, double reqWatts, TimeSpan seekChangeTime)
         {
@@ -155,8 +142,8 @@ namespace Game1
 
             deleted = new();
 
-            AddEnergyConsumer(energyConsumer: this);
-            AddPerson(person: this);
+            CurWorldManager.AddEnergyConsumer(energyConsumer: this);
+            CurWorldManager.AddPerson(person: this);
         }
 
         public void Arrived()
@@ -169,8 +156,8 @@ namespace Game1
             if (activityCenter is not null && activityCenter.IsPersonHere(person: this))
             {
                 activityCenter.UpdatePerson(person: this);
-                lastActivityTimes[activityCenter.ActivityType] = CurTime;
-                timeSinceActivitySearch += Elapsed;
+                lastActivityTimes[activityCenter.ActivityType] = CurWorldManager.CurTime;
+                timeSinceActivitySearch += CurWorldManager.Elapsed;
             }
             else
                 IActivityCenter.UpdatePersonDefault(person: this);

@@ -6,6 +6,7 @@ using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class MultipleChoicePanel<TChoice> : HUDElement
     {
         [DataContract]
@@ -37,8 +38,7 @@ namespace Game1.UI
             }
         }
 
-        [DataMember]
-        public readonly Event<IChoiceChangedListener<TChoice>> choiceChanged;
+        [DataMember] public readonly Event<IChoiceChangedListener<TChoice>> choiceChanged;
 
         public TChoice SelectedChoiceLabel
         {
@@ -54,11 +54,11 @@ namespace Game1.UI
             }
         }
 
-        private readonly UIRectPanel<SelectButton> choicePanel;
-        private readonly Dictionary<TChoice, SelectButton> choices;
-        private readonly float choiceWidth, choiceHeight;
-        private readonly Color selectedColor, deselectedColor;
-        private TChoice selectedChoiceLabel;
+        [DataMember] private readonly UIRectPanel<SelectButton> choicePanel;
+        [DataMember] private readonly Dictionary<TChoice, SelectButton> choices;
+        [DataMember] private readonly float choiceWidth, choiceHeight;
+        [DataMember] private readonly Color selectedColor, deselectedColor;
+        [DataMember] private TChoice selectedChoiceLabel;
 
         public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
             : base(shape: new MyRectangle())

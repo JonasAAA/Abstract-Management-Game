@@ -5,9 +5,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class UIHorizTabPanel<TTab> : HUDElement
         where TTab : class, IHUDElement
     {
@@ -22,9 +24,9 @@ namespace Game1.UI
                 );
         }
 
-        private readonly MultipleChoicePanel<string> tabChoicePanel;
-        private readonly Dictionary<string, TTab> tabs;
-        private readonly Dictionary<string, TabEnabledChangedListener> tabEnabledChangedListeners;
+        [DataMember] private readonly MultipleChoicePanel<string> tabChoicePanel;
+        [DataMember] private readonly Dictionary<string, TTab> tabs;
+        [DataMember] private readonly Dictionary<string, TabEnabledChangedListener> tabEnabledChangedListeners;
         private TTab ActiveTab
             => tabChoicePanel.SelectedChoiceLabel switch
             {
@@ -66,8 +68,8 @@ namespace Game1.UI
                 not 0 => tabs.Values.Max(tab => tab.Shape.Height)
             };
 
-            Shape.Width = 2 * ActiveUIManager.UIConfig.rectOutlineWidth + innerWidth;
-            Shape.Height = 2 * ActiveUIManager.UIConfig.rectOutlineWidth + tabChoicePanel.Shape.Height + tabHeight;
+            Shape.Width = 2 * CurUIConfig.rectOutlineWidth + innerWidth;
+            Shape.Height = 2 * CurUIConfig.rectOutlineWidth + tabChoicePanel.Shape.Height + tabHeight;
 
             tabChoicePanel.Shape.MinWidth = innerWidth;
             foreach (var tab in tabs.Values)
@@ -77,9 +79,9 @@ namespace Game1.UI
                 tab.Shape.MinHeight = tabHeight;
 
             // recalc children positions
-            tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(ActiveUIManager.UIConfig.rectOutlineWidth);
+            tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(CurUIConfig.rectOutlineWidth);
             foreach (var tab in tabs.Values)
-                tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(ActiveUIManager.UIConfig.rectOutlineWidth) + new Vector2(0, tabChoicePanel.Shape.Height);
+                tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(CurUIConfig.rectOutlineWidth) + new Vector2(0, tabChoicePanel.Shape.Height);
         }
 
         public void AddTab(string tabLabelText, TTab tab)

@@ -13,33 +13,89 @@ namespace Game1
     [DataContract]
     public class Graph : UIElement
     {
+        [DataContract]
+        private class NodeInfo
+        {
+            private static int resInd;
+
+            public static void Init(int resInd)
+                => NodeInfo.resInd = resInd;
+
+            [DataMember] public readonly Node node;
+            [DataMember] public readonly List<NodeInfo> nodesIn, nodesOut;
+            [DataMember] public uint unvisitedDestinsCount;
+            [DataMember] public bool isSplitAleady;
+
+            public NodeInfo(Node node)
+            {
+                this.node = node;
+                nodesIn = new();
+                nodesOut = new();
+                unvisitedDestinsCount = 0;
+                isSplitAleady = false;
+            }
+
+            public ulong MaxExtraRes()
+                => unvisitedDestinsCount switch
+                {
+                    0 => DFS().maxExtraRes,
+                    > 0 => ulong.MaxValue
+                };
+
+            private (ulong maxExtraRes, ulong subgraphUserTargetStoredRes) DFS()
+            {
+                if (unvisitedDestinsCount is not 0)
+                    throw new InvalidOperationException();
+
+                ulong maxExtraResFromNodesOut = 0,
+                    userTargetStoredResFromNodesOut = 0;
+
+                foreach (var nodeInfo in nodesOut)
+                {
+                    var (curMaxExtraRes, curSubgraphUserTargetStoredRes) = nodeInfo.DFS();
+                    maxExtraResFromNodesOut += curMaxExtraRes;
+                    userTargetStoredResFromNodesOut += curSubgraphUserTargetStoredRes;
+                }
+
+                ulong subgraphUserTargetStoredRes = node.TargetStoredResAmount(resInd: resInd) + userTargetStoredResFromNodesOut,
+                    targetStoredRes = node.IfStore(resInd: resInd) switch
+                    {
+                        true => subgraphUserTargetStoredRes,
+                        false => node.TargetStoredResAmount(resInd: resInd)
+                    };
+
+                return
+                (
+                    maxExtraRes: (maxExtraResFromNodesOut + targetStoredRes >= node.TotalQueuedRes(resInd: resInd)) switch
+                    {
+                        true => maxExtraResFromNodesOut + targetStoredRes - node.TotalQueuedRes(resInd: resInd),
+                        false => 0
+                    },
+                    subgraphUserTargetStoredRes: subgraphUserTargetStoredRes
+                );
+            }
+        }
+
         public IEnumerable<Node> Nodes
             => nodes;
 
-        [DataMember]
-        public readonly ReadOnlyDictionary<Vector2, Node> posToNode;
-        [DataMember]
-        public readonly TimeSpan maxLinkTravelTime;
-        [DataMember]
-        public readonly double maxLinkJoulesPerKg;
+        [DataMember] public readonly ReadOnlyDictionary<Vector2, Node> posToNode;
+        [DataMember] public readonly TimeSpan maxLinkTravelTime;
+        [DataMember] public readonly double maxLinkJoulesPerKg;
 
-        //private readonly ReadOnlyDictionary<(Vector2, Vector2), double> personDists;
+       
+        private readonly ReadOnlyDictionary<(Vector2, Vector2), double> personDists;
         //private readonly ReadOnlyDictionary<(Vector2, Vector2), double> resDists;
 
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        [DataMember]
-        private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> personFirstLinks;
-        [DataMember]
-        private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> resFirstLinks;
+        [DataMember] private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> personFirstLinks;
+        [DataMember] private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> resFirstLinks;
 
-        [DataMember]
-        private readonly List<Star> stars;
-        [DataMember]
-        private readonly List<Node> nodes;
-        [DataMember]
-        private readonly List<Link> links;
+        [DataMember] private readonly List<Star> stars;
+        [DataMember] private readonly List<Node> nodes;
+        [DataMember] private readonly List<Link> links;
 
         public Graph(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links)
             : base(shape: new InfinitePlane())
@@ -158,68 +214,6 @@ namespace Game1
 
             foreach (var node in nodes)
                 node.EndSplitRes(resFirstLinks: resFirstLinks);
-        }
-
-        private class NodeInfo
-        {
-            private static int resInd;
-
-            public static void Init(int resInd)
-                => NodeInfo.resInd = resInd;
-
-            public readonly Node node;
-            public readonly List<NodeInfo> nodesIn, nodesOut;
-            public uint unvisitedDestinsCount;
-            public bool isSplitAleady;
-
-            public NodeInfo(Node node)
-            {
-                this.node = node;
-                nodesIn = new();
-                nodesOut = new();
-                unvisitedDestinsCount = 0;
-                isSplitAleady = false;
-            }
-
-            public ulong MaxExtraRes()
-                => unvisitedDestinsCount switch
-                {
-                    0 => DFS().maxExtraRes,
-                    > 0 => ulong.MaxValue
-                };
-
-            private (ulong maxExtraRes, ulong subgraphUserTargetStoredRes) DFS()
-            {
-                if (unvisitedDestinsCount is not 0)
-                    throw new InvalidOperationException();
-
-                ulong maxExtraResFromNodesOut = 0,
-                    userTargetStoredResFromNodesOut = 0;
-
-                foreach (var nodeInfo in nodesOut)
-                {
-                    var (curMaxExtraRes, curSubgraphUserTargetStoredRes) = nodeInfo.DFS();
-                    maxExtraResFromNodesOut += curMaxExtraRes;
-                    userTargetStoredResFromNodesOut += curSubgraphUserTargetStoredRes;
-                }
-
-                ulong subgraphUserTargetStoredRes = node.TargetStoredResAmount(resInd: resInd) + userTargetStoredResFromNodesOut,
-                    targetStoredRes = node.IfStore(resInd: resInd) switch
-                    {
-                        true => subgraphUserTargetStoredRes,
-                        false => node.TargetStoredResAmount(resInd: resInd)
-                    };
-
-                return
-                (
-                    maxExtraRes: (maxExtraResFromNodesOut + targetStoredRes >= node.TotalQueuedRes(resInd: resInd)) switch
-                    {
-                        true => maxExtraResFromNodesOut + targetStoredRes - node.TotalQueuedRes(resInd: resInd),
-                        false => 0
-                    },
-                    subgraphUserTargetStoredRes: subgraphUserTargetStoredRes
-                );
-            }
         }
 
         /// <summary>

@@ -1,11 +1,19 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Runtime.Serialization;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class TextBox : HUDElement
     {
-        public Color TextColor { private get; set; }
+        private static readonly SpriteFont font;
+
+        static TextBox()
+            => font = C.LoadFont(name: "font");
+
+        [DataMember] public Color TextColor { private get; set; }
         public string Text
         {
             get => text;
@@ -24,22 +32,21 @@ namespace Game1.UI
                 }
             }
         }
-        public Vector2 MeasureText(string text)
-            => font.MeasureString(text) * scale;
 
-        private string text;
-        private readonly SpriteFont font;
-        private readonly float scale;
+        [DataMember] private string text;
+        [DataMember] private readonly float scale;
 
         public TextBox()
             : base(shape: new MyRectangle())
         {
             Shape.Color = Color.Transparent;
-            font = C.LoadFont(name: "font");
-            scale = ActiveUIManager.UIConfig.letterHeight / font.MeasureString("F").Y;
+            scale = CurUIConfig.letterHeight / font.MeasureString("F").Y;
             TextColor = Color.Black;
             Text = null;
         }
+
+        public Vector2 MeasureText(string text)
+            => font.MeasureString(text) * scale;
 
         public override void Draw()
         {

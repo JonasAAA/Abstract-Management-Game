@@ -8,15 +8,12 @@ namespace Game1
     [DataContract]
     public class ResAmountsPacketsByDestin
     {
-        [DataMember]
-        public ConstULongArray ResAmounts { get; private set; }
-        [DataMember]
-        public ulong TotalWeight { get; private set; }
+        [DataMember] public ConstULongArray ResAmounts { get; private set; }
+        [DataMember] public ulong TotalWeight { get; private set; }
         public bool Empty
             => TotalWeight is 0;
 
-        [DataMember]
-        private Dictionary<Vector2, ResAmountsPacket> resAmountsPacketsByDestin;
+        [DataMember] private Dictionary<Vector2, ResAmountsPacket> resAmountsPacketsByDestin;
 
         public ResAmountsPacketsByDestin()
         {

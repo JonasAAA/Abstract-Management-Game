@@ -1,11 +1,13 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class HUDCamera : Camera
     {
-        private readonly Matrix HUDToScreen, screenToHUD;
+        [DataMember] private readonly Matrix HUDToScreen, screenToHUD;
 
         public HUDCamera(GraphicsDevice graphicsDevice)
             : base(graphicsDevice: graphicsDevice)

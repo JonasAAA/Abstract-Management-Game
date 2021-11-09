@@ -11,12 +11,9 @@ namespace Game1
     [DataContract]
     public class EnergyManager : IDeletedListener
     {
-        [DataMember]
-        private readonly MyHashSet<IEnergyProducer> energyProducers;
-        [DataMember]
-        private readonly MyHashSet<IEnergyConsumer> energyConsumers;
-        [DataMember]
-        private double totReqWatts, totProdWatts, totUsedLocalWatts, totUsedPowerPlantWatts;
+        [DataMember] private readonly MyHashSet<IEnergyProducer> energyProducers;
+        [DataMember] private readonly MyHashSet<IEnergyConsumer> energyConsumers;
+        [DataMember] private double totReqWatts, totProdWatts, totUsedLocalWatts, totUsedPowerPlantWatts;
 
         public EnergyManager()
         {

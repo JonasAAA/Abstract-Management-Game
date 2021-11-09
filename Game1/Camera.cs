@@ -8,11 +8,10 @@ namespace Game1
     [DataContract]
     public abstract class Camera
     {
-        [DataMember]
-        protected readonly double screenScale;
+        [DataMember] protected readonly double screenScale;
 
         protected Camera(GraphicsDevice graphicsDevice)
-            => screenScale = (double)graphicsDevice.Viewport.Height / ActiveUIManager.UIConfig.standardScreenHeight;
+            => screenScale = (double)graphicsDevice.Viewport.Height / ActiveUIManager.CurUIConfig.standardScreenHeight;
 
         public void BeginDraw()
             => C.SpriteBatch.Begin

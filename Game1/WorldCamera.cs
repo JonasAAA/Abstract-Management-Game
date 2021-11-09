@@ -4,22 +4,23 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Runtime.Serialization;
 using static Game1.WorldManager;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1
 {
     [DataContract]
     public class WorldCamera : Camera
     {
-        private Matrix worldToScreen, screenToWorld;
-        private readonly double scale;
-        private Vector2 worldCenter, screenCenter;
+        [DataMember] private Matrix worldToScreen, screenToWorld;
+        [DataMember] private readonly double scale;
+        [DataMember] private Vector2 worldCenter, screenCenter;
 
         public WorldCamera(GraphicsDevice graphicsDevice)
             : base(graphicsDevice: graphicsDevice)
         {
             scale = CurWorldConfig.startingWorldScale;
             worldCenter = new(0, 0);
-            screenCenter = new((float)(ActiveUIManager.ScreenWidth * .5), (float)(ActiveUIManager.ScreenHeight * .5));
+            screenCenter = new((float)(CurActiveUIManager.screenWidth * .5), (float)(CurActiveUIManager.ScreenHeight * .5));
             Update(elapsed: TimeSpan.Zero, canScroll: false);
         }
 
@@ -34,13 +35,13 @@ namespace Game1
             float elapsedSeconds = (float)elapsed.TotalSeconds;
             if (canScroll)
             {
-                if (ActiveUIManager.HUDPos.X <= CurWorldConfig.screenBoundWidthForMapMoving)
+                if (CurActiveUIManager.MouseHUDPos.X <= CurWorldConfig.screenBoundWidthForMapMoving)
                     worldCenter.X -= CurWorldConfig.scrollSpeed * elapsedSeconds;
-                if (ActiveUIManager.HUDPos.X >= ActiveUIManager.ScreenWidth - CurWorldConfig.screenBoundWidthForMapMoving)
+                if (CurActiveUIManager.MouseHUDPos.X >= CurActiveUIManager.screenWidth - CurWorldConfig.screenBoundWidthForMapMoving)
                     worldCenter.X += CurWorldConfig.scrollSpeed * elapsedSeconds;
-                if (ActiveUIManager.HUDPos.Y <= CurWorldConfig.screenBoundWidthForMapMoving)
+                if (CurActiveUIManager.MouseHUDPos.Y <= CurWorldConfig.screenBoundWidthForMapMoving)
                     worldCenter.Y -= CurWorldConfig.scrollSpeed * elapsedSeconds;
-                if (ActiveUIManager.HUDPos.Y >= ActiveUIManager.ScreenHeight - CurWorldConfig.screenBoundWidthForMapMoving)
+                if (CurActiveUIManager.MouseHUDPos.Y >= CurActiveUIManager.ScreenHeight - CurWorldConfig.screenBoundWidthForMapMoving)
                     worldCenter.Y += CurWorldConfig.scrollSpeed * elapsedSeconds;
             }
 

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -14,8 +15,7 @@ namespace Game1.UI
 
         public Event<ISizeOrPosChangedListener> SizeOrPosChanged
             => shape.SizeOrPosChanged;
-        [DataMember]
-        public Event<IEnabledChangedListener> EnabledChanged { get; private init; }
+        [DataMember] public Event<IEnabledChangedListener> EnabledChanged { get; private init; }
 
         public bool Enabled
             => personallyEnabled && !hasDisabledAncestor;
@@ -65,19 +65,14 @@ namespace Game1.UI
         public virtual bool CanBeClicked
             => false;
 
-        [DataMember]
-        public string Explanation { get; private init; }
+        [DataMember] public string Explanation { get; private init; }
 
-        [DataMember]
-        protected readonly Shape shape;
+        [DataMember] protected readonly Shape shape;
         
-        [DataMember]
-        private bool personallyEnabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
+        [DataMember] private bool personallyEnabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
 
-        [NonSerialized]
-        private readonly SortedDictionary<ulong, List<IUIElement>> layerToChildren;
-        [NonSerialized]
-        private readonly Dictionary<IUIElement, ulong> childToLayer;
+        [DataMember] private readonly SortedDictionary<ulong, List<IUIElement>> layerToChildren;
+        [DataMember] private readonly Dictionary<IUIElement, ulong> childToLayer;
 
         public UIElement(Shape shape, string explanation = defaultExplanation)
         {
@@ -174,7 +169,7 @@ namespace Game1.UI
         {
             shape.Draw
             (
-                otherColor: ActiveUIManager.UIConfig.mouseOnColor,
+                otherColor: CurUIConfig.mouseOnColor,
                 otherColorProp: (CanBeClicked && MouseOn) switch
                 {
                     true => .5f,

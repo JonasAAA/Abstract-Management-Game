@@ -35,12 +35,9 @@ namespace Game1.UI
                 not 0 => Height
             };
 
-        [DataMember]
-        private readonly Direction direction;
-        [DataMember]
-        private readonly float rotation;
-        [DataMember]
-        private readonly Vector2 origin, dirVector, orthDir, scale;
+        [DataMember] private readonly Direction direction;
+        [DataMember] private readonly float rotation;
+        [DataMember] private readonly Vector2 origin, dirVector, orthDir, scale;
 
         public Triangle(float width, float height, Direction direction)
             : base(width: width, height: height)

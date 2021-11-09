@@ -1,17 +1,19 @@
 ﻿using Game1.Events;
 using Microsoft.Xna.Framework;
 using System;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class Button : HUDElement
     {
-        public readonly Event<IClickedListener> clicked;
+        [DataMember] public readonly Event<IClickedListener> clicked;
 
         public override bool CanBeClicked
             => true;
 
-        protected readonly TextBox textBox;
+        [DataMember] protected readonly TextBox textBox;
 
         public Button(NearRectangle shape, string explanation = defaultExplanation, string text = null)
             : base(shape: shape, explanation)

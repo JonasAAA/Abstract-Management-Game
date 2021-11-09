@@ -14,8 +14,7 @@ namespace Game1
         public int Count
             => set.Count;
 
-        [DataMember]
-        private readonly HashSet<T> set;
+        [DataMember] private readonly HashSet<T> set;
         
         public MyHashSet()
             => set = new();

@@ -23,13 +23,10 @@ namespace Game1
         public double Watts
             => starPosToWatts.Values.DefaultIfEmpty().Sum();
 
-        [DataMember]
-        public readonly float radius;
+        [DataMember] public readonly float radius;
 
-        [DataMember]
-        private readonly Dictionary<Vector2, double> starPosToWatts, starPosToPowerProp;
-        [DataMember]
-        private readonly Event<IDeletedListener> deleted;
+        [DataMember] private readonly Dictionary<Vector2, double> starPosToWatts, starPosToPowerProp;
+        [DataMember] private readonly Event<IDeletedListener> deleted;
 
         public LightCatchingDisk(float radius)
             : base(width: 2 * radius, height: 2 * radius)
@@ -42,7 +39,7 @@ namespace Game1
             starPosToPowerProp = new();
             deleted = new();
 
-            AddLightCatchingObject(lightCatchingObject: this);
+            CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
         }
 
         public void Delete()

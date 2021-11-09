@@ -124,8 +124,7 @@ namespace Game1.UI
             }
         }
 
-        [DataMember]
-        private float width, height, minWidth, minHeight;
+        [DataMember] private float width, height, minWidth, minHeight;
 
         protected NearRectangle(float width, float height)
         {

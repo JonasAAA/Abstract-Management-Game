@@ -17,8 +17,7 @@ namespace Game1.UI
         public override bool CanBeClicked
             => !Active;
 
-        [DataMember]
-        protected bool Active { get; private set; }
+        [DataMember] protected bool Active { get; private set; }
         protected Color ActiveColor
         {
             get => activeColor;
@@ -38,17 +37,12 @@ namespace Game1.UI
             }
         }
 
-        [DataMember]
-        private Color activeColor, inactiveColor;
-        [DataMember]
-        private readonly HorizPos popupHorizPos;
-        [DataMember]
-        private readonly VertPos popupVertPos;
-        [DataMember]
-        private readonly Event<IDeletedListener> deleted;
+        [DataMember] private Color activeColor, inactiveColor;
+        [DataMember] private readonly HorizPos popupHorizPos;
+        [DataMember] private readonly VertPos popupVertPos;
+        [DataMember] private readonly Event<IDeletedListener> deleted;
 
-        [NonSerialized]
-        private readonly Dictionary<Overlay, IHUDElement> popup;
+        [DataMember] private readonly Dictionary<Overlay, IHUDElement> popup;
 
         public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
             : base(shape: shape)
@@ -86,9 +80,9 @@ namespace Game1.UI
 
             Active = true;
             SetShapeColor();
-            ActiveUIManager.AddHUDElement
+            CurWorldManager.AddHUDElement
             (
-                HUDElement: popup[CurOverlay],
+                HUDElement: popup[CurWorldManager.Overlay],
                 horizPos: popupHorizPos,
                 vertPos: popupVertPos
             );
@@ -102,9 +96,9 @@ namespace Game1.UI
 
             Active = false;
             SetShapeColor();
-            ActiveUIManager.RemoveHUDElement
+            CurWorldManager.RemoveHUDElement
             (
-                HUDElement: popup[CurOverlay]
+                HUDElement: popup[CurWorldManager.Overlay]
             );
         }
 
@@ -119,13 +113,13 @@ namespace Game1.UI
         {
             if (!Active)
                 return;
-            if (popup[prevOverlay] == popup[CurOverlay])
+            if (popup[prevOverlay] == popup[CurWorldManager.Overlay])
                 return;
 
-            ActiveUIManager.RemoveHUDElement(HUDElement: popup[prevOverlay]);
-            ActiveUIManager.AddHUDElement
+            CurWorldManager.RemoveHUDElement(HUDElement: popup[prevOverlay]);
+            CurWorldManager.AddHUDElement
             (
-                HUDElement: popup[CurOverlay],
+                HUDElement: popup[CurWorldManager.Overlay],
                 horizPos: popupHorizPos,
                 vertPos: popupVertPos
             );

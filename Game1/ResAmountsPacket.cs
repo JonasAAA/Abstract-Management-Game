@@ -8,17 +8,14 @@ namespace Game1
     [DataContract]
     public class ResAmountsPacket
     {
-        [DataMember]
-        public readonly Vector2 destination;
+        [DataMember] public readonly Vector2 destination;
         public ConstULongArray ResAmounts
             => resAmounts;
-        [DataMember]
-        public ulong TotalWeight { get; private set; }
+        [DataMember] public ulong TotalWeight { get; private set; }
         public bool Empty
             => TotalWeight is 0;
 
-        [DataMember]
-        private ULongArray resAmounts;
+        [DataMember] private ULongArray resAmounts;
 
         public ResAmountsPacket(Vector2 destination)
             : this(destination: destination, resAmounts: new())

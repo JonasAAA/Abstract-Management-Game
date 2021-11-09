@@ -12,8 +12,7 @@ namespace Game1
     {
         public int ResCount
             => resources.Count;
-        [DataMember]
-        public readonly ReadOnlyCollection<Resource> resources;
+        [DataMember] public readonly ReadOnlyCollection<Resource> resources;
 
         public ResConfig()
         {

@@ -27,27 +27,19 @@ namespace Game1
             public IEvent<IDeletedListener> Deleted
                 => deleted;
 
-            [DataMember]
-            public readonly Node startNode, endNode;
+            [DataMember] public readonly Node startNode, endNode;
             public double JoulesPerKg
                 => timedPacketQueue.duration.TotalSeconds * reqWattsPerKg;
             public TimeSpan TravelTime
                 => timedPacketQueue.duration;
 
-            [DataMember]
-            private readonly TimedPacketQueue timedPacketQueue;
-            [DataMember]
-            private readonly double minSafePropor;
-            [DataMember]
-            private ResAmountsPacketsByDestin waitingResAmountsPackets;
-            [DataMember]
-            private readonly MyHashSet<Person> waitingPeople;
-            [DataMember]
-            private readonly double reqWattsPerKg;
-            [DataMember]
-            private double energyPropor;
-            [DataMember]
-            private readonly Event<IDeletedListener> deleted;
+            [DataMember] private readonly TimedPacketQueue timedPacketQueue;
+            [DataMember] private readonly double minSafePropor;
+            [DataMember] private ResAmountsPacketsByDestin waitingResAmountsPackets;
+            [DataMember] private readonly MyHashSet<Person> waitingPeople;
+            [DataMember] private readonly double reqWattsPerKg;
+            [DataMember] private double energyPropor;
+            [DataMember] private readonly Event<IDeletedListener> deleted;
 
             public DirLink(Node startNode, Node endNode, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
             {
@@ -66,7 +58,7 @@ namespace Game1
                 energyPropor = 0;
                 deleted = new();
 
-                AddEnergyConsumer(energyConsumer: this);
+                CurWorldManager.AddEnergyConsumer(energyConsumer: this);
             }
 
             public void Add(ResAmountsPacket resAmountsPacket)
@@ -113,11 +105,11 @@ namespace Game1
                         scale: (float)Math.Sqrt(size) * 2 / diskTexture.Width
                     );
 
-                switch (CurOverlay)
+                switch (CurWorldManager.Overlay)
                 {
                     case <= MaxRes:
                         foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts[(int)CurOverlay]);
+                            DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts[(int)CurWorldManager.Overlay]);
                         break;
                     case Overlay.AllRes:
                         foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
@@ -143,15 +135,13 @@ namespace Game1
                 => this.energyPropor = energyPropor;
         }
 
-        [DataMember]
-        public readonly Node node1, node2;
+        [DataMember] public readonly Node node1, node2;
         public double JoulesPerKg
             => link1To2.JoulesPerKg;
         public TimeSpan TravelTime
             => link1To2.TravelTime;
 
-        [DataMember]
-        private readonly DirLink link1To2, link2To1;
+        [DataMember] private readonly DirLink link1To2, link2To1;
 
         public Link(Node node1, Node node2, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
             : base(shape: new EmptyShape())
@@ -214,10 +204,10 @@ namespace Game1
             (
                 value1: Color.White,
                 value2: Color.Green,
-                amount: CurOverlay switch
+                amount: CurWorldManager.Overlay switch
                 {
-                    Overlay.People => (float)(TravelTime / MaxLinkTravelTime),
-                    _ => (float)(JoulesPerKg / MaxLinkJoulesPerKg)
+                    Overlay.People => (float)(TravelTime / CurWorldManager.MaxLinkTravelTime),
+                    _ => (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
                 }
             );
             C.Draw
@@ -238,6 +228,7 @@ namespace Game1
 
         // this is commented out, otherwise the object construction fails as
         // tries to put object into HashSet before assigning node1 and node2
+
         //public override int GetHashCode()
         //    => node1.GetHashCode() ^ node2.GetHashCode();
 

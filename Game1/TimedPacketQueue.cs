@@ -11,11 +11,9 @@ namespace Game1
         public IEnumerable<Person> People
             => people;
 
-        [DataMember]
-        public ulong TotalWeight { get; private set; }
+        [DataMember] public ulong TotalWeight { get; private set; }
 
-        [DataMember]
-        private readonly MyHashSet<Person> people;
+        [DataMember] private readonly MyHashSet<Person> people;
 
         public TimedPacketQueue(TimeSpan duration)
             : base(duration: duration)

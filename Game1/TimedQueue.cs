@@ -12,15 +12,11 @@ namespace Game1
     {
         public int Count
             => endTimeQueue.Count;
-        [DataMember]
-        public readonly TimeSpan duration;
+        [DataMember] public readonly TimeSpan duration;
         
-        [DataMember]
-        private TimeSpan currentLocalTime, lastEndTime;
-        [DataMember]
-        private readonly Queue<TimeSpan> endTimeQueue;
-        [DataMember]
-        private readonly Queue<T> queue;
+        [DataMember] private TimeSpan currentLocalTime, lastEndTime;
+        [DataMember] private readonly Queue<TimeSpan> endTimeQueue;
+        [DataMember] private readonly Queue<T> queue;
 
         public TimedQueue(TimeSpan duration)
         {
@@ -38,7 +34,7 @@ namespace Game1
         {
             if (!C.IsInSuitableRange(value: workingPropor))
                 throw new ArgumentOutOfRangeException();
-            currentLocalTime += Elapsed * workingPropor;
+            currentLocalTime += CurWorldManager.Elapsed * workingPropor;
         }
 
         public virtual void Enqueue(T element)

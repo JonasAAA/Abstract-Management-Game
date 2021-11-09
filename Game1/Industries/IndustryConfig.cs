@@ -7,8 +7,7 @@ namespace Game1.Industries
     [DataContract]
     public class IndustryConfig
     {
-        [DataMember]
-        public readonly ReadOnlyCollection<Construction.Params> constrBuildingParams;
+        [DataMember] public readonly ReadOnlyCollection<Construction.Params> constrBuildingParams;
 
         public IndustryConfig()
         {

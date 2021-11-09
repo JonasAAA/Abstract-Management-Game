@@ -14,13 +14,10 @@ namespace Game1
     [DataContract]
     public class Star : WorldUIElement, ILightSource
     {
-        [DataMember]
-        private readonly double prodWatts;
-        [DataMember]
-        private readonly LightPolygon polygon;
+        [DataMember] private readonly double prodWatts;
+        [DataMember] private readonly LightPolygon polygon;
 
-        [NonSerialized]
-        private readonly TextBox popupTextBox;
+        [DataMember] private readonly TextBox popupTextBox;
 
         public Star(float radius, Vector2 center, double prodWatts, Color color)
             : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
@@ -37,7 +34,7 @@ namespace Game1
                 overlays: Enum.GetValues<Overlay>()
             );
 
-            AddLightSource(lightSource: this);
+            CurWorldManager.AddLightSource(lightSource: this);
         }
 
         // let N = lightCatchingObject.Count()

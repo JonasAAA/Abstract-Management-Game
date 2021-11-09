@@ -16,12 +16,9 @@ namespace Game1
         [DataContract]
         private class NecAdds
         {
-            [DataMember]
-            private readonly HashSet<TKey> keys;
-            [DataMember]
-            private Dictionary<TKey, decimal> necNotLockedAdds;
-            [DataMember]
-            private decimal sum;
+            [DataMember] private readonly HashSet<TKey> keys;
+            [DataMember] private Dictionary<TKey, decimal> necNotLockedAdds;
+            [DataMember] private decimal sum;
 
             public NecAdds()
             {
@@ -111,10 +108,8 @@ namespace Game1
         public IReadOnlyDictionary<TKey, ulong> Importances
             => importances;
 
-        [DataMember]
-        private readonly Dictionary<TKey, ulong> importances;
-        [DataMember]
-        private readonly NecAdds necAdds;
+        [DataMember] private readonly Dictionary<TKey, ulong> importances;
+        [DataMember] private readonly NecAdds necAdds;
 
         private int Count
             => importances.Count;

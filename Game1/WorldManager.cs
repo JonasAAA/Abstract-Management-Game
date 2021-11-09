@@ -12,6 +12,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Xml;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1
 {
@@ -20,60 +21,123 @@ namespace Game1
     {
         public const Overlay MaxRes = (Overlay)2;
 
-        public static WorldManager Current { get; private set; }
-
-        public static Overlay CurOverlay
-            => Current.overlayChoicePanel.SelectedChoiceLabel;
+        public static WorldManager CurWorldManager { get; private set; }
 
         public static IEvent<IChoiceChangedListener<Overlay>> CurOverlayChanged
-            => Current.overlayChoicePanel.choiceChanged;
+            => CurWorldManager.overlayChoicePanel.choiceChanged;
 
         public static WorldConfig CurWorldConfig
-            => Current.worldConfig;
+            => CurWorldManager.worldConfig;
 
         public static ResConfig CurResConfig
-            => Current.resConfig;
+            => CurWorldManager.resConfig;
 
         public static IndustryConfig CurIndustryConfig
-            => Current.industryConfig;
-        
-        public static TimeSpan CurTime { get; private set; }
+            => CurWorldManager.industryConfig;
 
-        public static TimeSpan Elapsed { get; private set; }
-
-        public static Vector2 MouseWorldPos
-            => Current.worldCamera.WorldPos(screenPos: Mouse.GetState().Position.ToVector2());
-
-        public static TimeSpan MaxLinkTravelTime
-            => Current.graph.maxLinkTravelTime;
-
-        public static double MaxLinkJoulesPerKg
-            => Current.graph.maxLinkJoulesPerKg;
-
-        private static readonly List<(IUIElement UIElement, ulong layer)> waitingWorldUIElements;
-
-        static WorldManager()
+        public static (Graph, WorldHUD) CreateWorldUIManager(GraphicsDevice graphicsDevice)
         {
-            waitingWorldUIElements = new();
+            if (CurWorldManager is not null)
+                throw new InvalidOperationException();
+            CurWorldManager = new();
+            CurWorldManager.graph = CreateGraph();
+            CurWorldManager.Initialize(graphicsDevice: graphicsDevice);
+            return (CurWorldManager.graph, CurWorldManager.worldHUD);
+
+            static Graph CreateGraph()
+            {
+                Star[] stars = new Star[]
+                {
+                    new
+                    (
+                        radius: 20,
+                        center: new Vector2(0, -300),
+                        prodWatts: 200,
+                        color: Color.Lerp(Color.White, Color.Red, .3f)
+                    ),
+                    new
+                    (
+                        radius: 10,
+                        center: new Vector2(200, 300),
+                        prodWatts: 100,
+                        color: Color.Lerp(Color.White, Color.Blue, .3f)
+                    ),
+                    new
+                    (
+                        radius: 40,
+                        center: new Vector2(-200, 100),
+                        prodWatts: 400,
+                        color: Color.Lerp(Color.White, new Color(0f, 1f, 0f), .3f)
+                    ),
+                };
+
+                const int width = 8, height = 5, dist = 200;
+                Node[,] nodes = new Node[width, height];
+                for (int i = 0; i < width; i++)
+                    for (int j = 0; j < height; j++)
+                        nodes[i, j] = new
+                        (
+                            state: new
+                            (
+                                position: new Vector2(i - (width - 1) * .5f, j - (height - 1) * .5f) * dist,
+                                maxBatchDemResStored: 2
+                            ),
+                            radius: 32,
+                            activeColor: Color.White,
+                            inactiveColor: Color.Gray,
+                            resDestinArrowWidth: 64,
+                            startPersonCount: 5
+                        );
+
+                const double distScale = .1;
+
+                List<Link> links = new();
+                for (int i = 0; i < width; i++)
+                    for (int j = 0; j < height - 1; j++)
+                        links.Add
+                        (
+                            item: new
+                            (
+                                node1: nodes[i, j],
+                                node2: nodes[i, j + 1],
+                                travelTime: TimeSpan.FromSeconds((i + 1) * distScale),
+                                wattsPerKg: (j + 1.5) * distScale,
+                                minSafeDist: CurWorldConfig.minSafeDist
+                            )
+                        );
+
+                for (int i = 0; i < width - 1; i++)
+                    for (int j = 0; j < height; j++)
+                        links.Add
+                        (
+                            item: new
+                            (
+                                node1: nodes[i, j],
+                                node2: nodes[i + 1, j],
+                                travelTime: TimeSpan.FromSeconds((i + 1.5) * distScale),
+                                wattsPerKg: (j + 1) * distScale,
+                                minSafeDist: CurWorldConfig.minSafeDist
+                            )
+                        );
+
+                return new
+                (
+                    stars: stars,
+                    nodes: from Node node in nodes
+                           select node,
+                    links: links
+                );
+            }
         }
 
-        public static Graph Create(GraphicsDevice graphicsDevice)
+        public static (Graph, WorldHUD) LoadWorldUIManager(GraphicsDevice graphicsDevice)
         {
-            if (Current is not null)
-                throw new InvalidOperationException();
-            Current = new();
-            Current.Initialize(graphicsDevice: graphicsDevice);
-            return Current.graph;
-        }
-
-        public static Graph Load(GraphicsDevice graphicsDevice)
-        {
-            if (Current is not null)
+            if (CurWorldManager is not null)
                 throw new InvalidOperationException();
 
-            Current = Deserialize();
-            Current.Initialize(graphicsDevice: graphicsDevice);
-            return Current.graph;
+            CurWorldManager = Deserialize();
+            CurWorldManager.Initialize(graphicsDevice: graphicsDevice);
+            return (CurWorldManager.graph, CurWorldManager.worldHUD);
 
             static WorldManager Deserialize()
             {
@@ -93,73 +157,62 @@ namespace Game1
                 return (WorldManager)serializer.ReadObject(reader, true);
             }
         }
+        
+        public Overlay Overlay
+            => overlayChoicePanel.SelectedChoiceLabel;
 
-        public static void AddWorldUIElement(IUIElement UIElement, ulong layer)
-        {
-            if (Current is null || Current.graph is null)
-                waitingWorldUIElements.Add((UIElement, layer));
-            else
-                Current.graph.AddUIElement(UIElement: UIElement, layer: layer);
-        }
+        [DataMember] public TimeSpan CurTime { get; private set; }
 
-        public static void RemoveWorldUIElement(IUIElement UIElement)
-            => Current.graph.RemoveUIElement(UIElement: UIElement);
+        [DataMember] public TimeSpan Elapsed { get; private set; }
 
-        public static void AddEnergyProducer(IEnergyProducer energyProducer)
-            => Current.energyManager.AddEnergyProducer(energyProducer: energyProducer);
+        public Vector2 MouseWorldPos
+            => worldCamera.WorldPos(screenPos: Mouse.GetState().Position.ToVector2());
 
-        public static void AddEnergyConsumer(IEnergyConsumer energyConsumer)
-            => Current.energyManager.AddEnergyConsumer(energyConsumer: energyConsumer);
+        public TimeSpan MaxLinkTravelTime
+            => graph.maxLinkTravelTime;
 
-        public static void AddActivityCenter(IActivityCenter activityCenter)
-            => Current.activityManager.AddActivityCenter(activityCenter: activityCenter);
+        public double MaxLinkJoulesPerKg
+            => graph.maxLinkJoulesPerKg;
 
-        public static void AddLightCatchingObject(ILightCatchingObject lightCatchingObject)
-            => Current.lightManager.AddLightCatchingObject(lightCatchingObject: lightCatchingObject);
+        [DataMember] private readonly WorldConfig worldConfig;
+        [DataMember] private readonly ResConfig resConfig;
+        [DataMember] private readonly IndustryConfig industryConfig;
+        [DataMember] private readonly MyHashSet<Person> people;
+        [DataMember] private readonly EnergyManager energyManager;
+        [DataMember] private readonly ActivityManager activityManager;
+        [DataMember] private readonly LightManager lightManager;
 
-        public static void AddLightSource(ILightSource lightSource)
-            => Current.lightManager.AddLightSource(lightSource: lightSource);
+        [DataMember] private readonly WorldHUD worldHUD;
+        [DataMember] private readonly TextBox globalTextBox;
+        [DataMember] private readonly ToggleButton pauseButton;
+        [DataMember] private readonly MultipleChoicePanel<Overlay> overlayChoicePanel;
+        [DataMember] private readonly List<(IUIElement UIElement, ulong layer)> waitingWorldUIElements;
 
-        public static void AddPerson(Person person)
-        {
-            Current.people.Add(person);
-            person.Deleted.Add(listener: Current);
-        }
-
-        [DataMember]
-        private readonly WorldConfig worldConfig;
-        [DataMember]
-        private readonly ResConfig resConfig;
-        [DataMember]
-        private readonly IndustryConfig industryConfig;
-        [DataMember]
-        private readonly MyHashSet<Person> people;
-        [DataMember]
-        private Graph graph;
-        [DataMember]
-        private WorldCamera worldCamera;
-        [DataMember]
-        private readonly EnergyManager energyManager;
-        [DataMember]
-        private readonly ActivityManager activityManager;
-        [DataMember]
-        private readonly LightManager lightManager;
-
-        private readonly TextBox globalTextBox;
-        private ToggleButton pauseButton;
-        private readonly MultipleChoicePanel<Overlay> overlayChoicePanel;
+        [DataMember] private Graph graph;
+        [DataMember] private WorldCamera worldCamera;
 
         private WorldManager()
         {
             worldConfig = new();
             resConfig = new();
-            ConstArray.Initialize(resCount: resConfig.ResCount);
             industryConfig = new();
             people = new();
+
+            activityManager = new();
+            energyManager = new();
+            lightManager = new();
+
+            worldHUD = new();
 
             globalTextBox = new();
             globalTextBox.Shape.MinWidth = 300;
             globalTextBox.Shape.Color = Color.White;
+            AddHUDElement
+            (
+                HUDElement: globalTextBox,
+                horizPos: HorizPos.Left,
+                vertPos: VertPos.Top
+            );
 
             overlayChoicePanel = new
             (
@@ -170,112 +223,12 @@ namespace Game1
                 deselectedColor: Color.Gray,
                 backgroundColor: Color.White
             );
-
             foreach (var posOverlay in Enum.GetValues<Overlay>())
                 overlayChoicePanel.AddChoice(choiceLabel: posOverlay);
-
-            activityManager = new();
-            energyManager = new();
-            lightManager = new();
-        }
-
-        private void Initialize(GraphicsDevice graphicsDevice)
-        {
-            // THIS IS NEEDED
-            worldCamera = new(graphicsDevice: graphicsDevice);
-            // THIS IS NEEDED
-            lightManager.Initialize(graphicsDevice: graphicsDevice);
-
-            Star[] stars = new Star[]
-            {
-                new
-                (
-                    radius: 20,
-                    center: new Vector2(0, -300),
-                    prodWatts: 200,
-                    color: Color.Lerp(Color.White, Color.Red, .3f)
-                ),
-                new
-                (
-                    radius: 10,
-                    center: new Vector2(200, 300),
-                    prodWatts: 100,
-                    color: Color.Lerp(Color.White, Color.Blue, .3f)
-                ),
-                new
-                (
-                    radius: 40,
-                    center: new Vector2(-200, 100),
-                    prodWatts: 400,
-                    color: Color.Lerp(Color.White, new Color(0f, 1f, 0f), .3f)
-                ),
-            };
-
-            const int width = 8, height = 5, dist = 200;
-            Node[,] nodes = new Node[width, height];
-            for (int i = 0; i < width; i++)
-                for (int j = 0; j < height; j++)
-                    nodes[i, j] = new
-                    (
-                        state: new
-                        (
-                            position: new Vector2(i - (width - 1) * .5f, j - (height - 1) * .5f) * dist,
-                            maxBatchDemResStored: 2
-                        ),
-                        radius: 32,
-                        activeColor: Color.White,
-                        inactiveColor: Color.Gray,
-                        resDestinArrowWidth: 64,
-                        startPersonCount: 5
-                    );
-
-            const int minSafeDist = 100;
-            const double distScale = .1;
-
-            List<Link> links = new();
-            for (int i = 0; i < width; i++)
-                for (int j = 0; j < height - 1; j++)
-                    links.Add
-                    (
-                        item: new
-                        (
-                            node1: nodes[i, j],
-                            node2: nodes[i, j + 1],
-                            travelTime: TimeSpan.FromSeconds((i + 1) * distScale),
-                            wattsPerKg: (j + 1.5) * distScale,
-                            minSafeDist: minSafeDist
-                        )
-                    );
-
-            for (int i = 0; i < width - 1; i++)
-                for (int j = 0; j < height; j++)
-                    links.Add
-                    (
-                        item: new
-                        (
-                            node1: nodes[i, j],
-                            node2: nodes[i + 1, j],
-                            travelTime: TimeSpan.FromSeconds((i + 1.5) * distScale),
-                            wattsPerKg: (j + 1) * distScale,
-                            minSafeDist: minSafeDist
-                        )
-                    );
-
-            graph = new
+            AddHUDElement
             (
-                stars: stars,
-                nodes: from Node node in nodes
-                       select node,
-                links: links
-            );
-            foreach (var (UIElement, layer) in waitingWorldUIElements)
-                AddWorldUIElement(UIElement: UIElement, layer: layer);
-            waitingWorldUIElements.Clear();
-
-            ActiveUIManager.AddHUDElement
-            (
-                HUDElement: globalTextBox,
-                horizPos: HorizPos.Left,
+                HUDElement: overlayChoicePanel,
+                horizPos: HorizPos.Middle,
                 vertPos: VertPos.Top
             );
 
@@ -291,20 +244,61 @@ namespace Game1
                 selectedColor: Color.White,
                 deselectedColor: Color.Gray
             );
-
-            ActiveUIManager.AddHUDElement
+            AddHUDElement
             (
                 HUDElement: pauseButton,
                 horizPos: HorizPos.Right,
                 vertPos: VertPos.Bottom
             );
+            waitingWorldUIElements = new();
+        }
 
-            ActiveUIManager.AddHUDElement
-            (
-                HUDElement: overlayChoicePanel,
-                horizPos: HorizPos.Middle,
-                vertPos: VertPos.Top
-            );
+        private void Initialize(GraphicsDevice graphicsDevice)
+        {
+            worldCamera = new(graphicsDevice: graphicsDevice);
+            lightManager.Initialize(graphicsDevice: graphicsDevice);
+
+            foreach (var (UIElement, layer) in waitingWorldUIElements)
+                AddWorldUIElement(UIElement: UIElement, layer: layer);
+            waitingWorldUIElements.Clear();
+        }
+
+        public void AddWorldUIElement(IUIElement UIElement, ulong layer)
+        {
+            if (graph is null)
+                waitingWorldUIElements.Add((UIElement, layer));
+            else
+                graph.AddUIElement(UIElement: UIElement, layer: layer);
+        }
+
+        public void RemoveWorldUIElement(IUIElement UIElement)
+            => graph.RemoveUIElement(UIElement: UIElement);
+
+        public void AddHUDElement(IHUDElement HUDElement, HorizPos horizPos, VertPos vertPos)
+            => worldHUD.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
+
+        public void RemoveHUDElement(IHUDElement HUDElement)
+            => worldHUD.RemoveHUDElement(HUDElement: HUDElement);
+
+        public void AddEnergyProducer(IEnergyProducer energyProducer)
+            => energyManager.AddEnergyProducer(energyProducer: energyProducer);
+
+        public void AddEnergyConsumer(IEnergyConsumer energyConsumer)
+            => energyManager.AddEnergyConsumer(energyConsumer: energyConsumer);
+
+        public void AddActivityCenter(IActivityCenter activityCenter)
+            => activityManager.AddActivityCenter(activityCenter: activityCenter);
+
+        public void AddLightCatchingObject(ILightCatchingObject lightCatchingObject)
+            => lightManager.AddLightCatchingObject(lightCatchingObject: lightCatchingObject);
+
+        public void AddLightSource(ILightSource lightSource)
+            => lightManager.AddLightSource(lightSource: lightSource);
+
+        public void AddPerson(Person person)
+        {
+            people.Add(person);
+            person.Deleted.Add(listener: this);
         }
 
         public void Update(TimeSpan elapsed)
@@ -318,7 +312,7 @@ namespace Game1
             Elapsed = elapsed;
             CurTime += Elapsed;
 
-            worldCamera.Update(elapsed: elapsed, canScroll: !ActiveUIManager.MouseAboveHUD);
+            worldCamera.Update(elapsed: elapsed, canScroll: !CurActiveUIManager.MouseAboveHUD);
 
             lightManager.Update();
 

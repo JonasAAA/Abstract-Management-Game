@@ -10,16 +10,11 @@ namespace Game1
     [DataContract]
     public class LightManager : IDeletedListener
     {
-        [DataMember]
-        private readonly MyHashSet<ILightCatchingObject> lightCatchingObjects;
-        [DataMember]
-        private readonly MyHashSet<ILightSource> lightSources;
-        [NonSerialized]
-        private RenderTarget2D renderTarget;
-        [NonSerialized]
-        private int actualScreenWidth, actualScreenHeight;
-        [NonSerialized]
-        private BasicEffect brightEffect, dimEffect;
+        [DataMember] private readonly MyHashSet<ILightCatchingObject> lightCatchingObjects;
+        [DataMember] private readonly MyHashSet<ILightSource> lightSources;
+        [DataMember] private RenderTarget2D renderTarget;
+        [DataMember] private int actualScreenWidth, actualScreenHeight;
+        [NonSerialized] private BasicEffect brightEffect, dimEffect;
 
         public LightManager()
         {
@@ -101,7 +96,7 @@ namespace Game1
                 (
                     graphicsDevice: graphicsDevice,
                     worldToScreenTransform: worldToScreenTransform,
-                    basicEffect: CurOverlay switch
+                    basicEffect: CurWorldManager.Overlay switch
                     {
                         Overlay.Power => brightEffect,
                         _ => dimEffect

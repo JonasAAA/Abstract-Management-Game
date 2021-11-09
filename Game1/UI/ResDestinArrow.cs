@@ -6,6 +6,7 @@ using static Game1.WorldManager;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class ResDestinArrow : WorldUIElement
     {
         [DataContract]
@@ -36,16 +37,15 @@ namespace Game1.UI
         public Vector2 EndPos
             => shape.endPos;
 
-        [DataMember]
         public Event<INumberChangedListener> ImportanceNumberChanged
             => importanceIncDecrPanel.numberChanged;
 
-        private new readonly Arrow shape;
-        private int totalImportance;
-        private readonly Color defaultActiveColor, defaultInactiveColor;
-        private readonly UIRectPanel<IHUDElement> popup;
-        private readonly NumIncDecrPanel importanceIncDecrPanel;
-        private readonly TextBox line2;
+        [DataMember] private new readonly Arrow shape;
+        [DataMember] private int totalImportance;
+        [DataMember] private readonly Color defaultActiveColor, defaultInactiveColor;
+        [DataMember] private readonly UIRectPanel<IHUDElement> popup;
+        [DataMember] private readonly NumIncDecrPanel importanceIncDecrPanel;
+        [DataMember] private readonly TextBox line2;
 
         public ResDestinArrow(Arrow shape, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int importance, int resInd)
             : base(shape: shape, activeColor: defaultActiveColor, inactiveColor: defaultInactiveColor, popupHorizPos: popupHorizPos, popupVertPos: popupVertPos)

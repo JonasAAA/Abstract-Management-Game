@@ -1,7 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class SelectButton : OnOffButton
     {
         public override bool CanBeClicked

@@ -1,12 +1,15 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Linq;
+using System.Runtime.Serialization;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class UIRectVertPanel<TChild> : UIRectPanel<TChild>
         where TChild : IHUDElement
     {
-        private readonly HorizPos childHorizPos;
+        [DataMember] private readonly HorizPos childHorizPos;
 
         public UIRectVertPanel(Color color, HorizPos childHorizPos)
             : base(color: color)
@@ -18,13 +21,13 @@ namespace Game1.UI
         {
             base.PartOfRecalcSizeAndPos();
 
-            Shape.Width = 2 * ActiveUIManager.UIConfig.rectOutlineWidth + children.Count switch
+            Shape.Width = 2 * CurUIConfig.rectOutlineWidth + children.Count switch
             {
                 0 => 0,
                 not 0 => children.Max(child => child.Shape.Width)
             };
             
-            Shape.Height = 2 * ActiveUIManager.UIConfig.rectOutlineWidth + children.Count switch
+            Shape.Height = 2 * CurUIConfig.rectOutlineWidth + children.Count switch
             {
                 0 => 0,
                 not 0 => children.Sum(child => child.Shape.Height)
@@ -36,7 +39,7 @@ namespace Game1.UI
                 child.Shape.SetPosition
                 (
                     position: Shape.GetPosition(horizOrigin: childHorizPos, vertOrigin: VertPos.Top)
-                        + new Vector2(-(int)childHorizPos * ActiveUIManager.UIConfig.rectOutlineWidth, curHeightSum + ActiveUIManager.UIConfig.rectOutlineWidth),
+                        + new Vector2(-(int)childHorizPos * CurUIConfig.rectOutlineWidth, curHeightSum + CurUIConfig.rectOutlineWidth),
                     horizOrigin: childHorizPos,
                     vertOrigin: VertPos.Top
                 );

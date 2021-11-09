@@ -18,16 +18,11 @@ namespace Game1.Industries
         [DataContract]
         public abstract class Params
         {
-            [DataMember]
-            public readonly IndustryType industryType;
-            [DataMember]
-            public readonly string name;
-            [DataMember]
-            public readonly ulong energyPriority;
-            [DataMember]
-            public readonly double reqSkill;
-            [DataMember]
-            public readonly string explanation;
+            [DataMember] public readonly IndustryType industryType;
+            [DataMember] public readonly string name;
+            [DataMember] public readonly ulong energyPriority;
+            [DataMember] public readonly double reqSkill;
+            [DataMember] public readonly string explanation;
 
             public Params(IndustryType industryType, string name, ulong energyPriority, double reqSkill, string explanation)
             {
@@ -49,16 +44,12 @@ namespace Game1.Industries
         [DataContract]
         private class Employer : ActivityCenter
         {
-            [DataMember]
-            public double CurSkillPropor { get; private set; }
+            [DataMember] public double CurSkillPropor { get; private set; }
 
-            [DataMember]
-            private readonly Params parameters;
+            [DataMember] private readonly Params parameters;
             // must be >= 0
-            [DataMember]
-            private TimeSpan avgVacancyDuration;
-            [DataMember]
-            private double curUnboundedSkillPropor, workingPropor;
+            [DataMember] private TimeSpan avgVacancyDuration;
+            [DataMember] private double curUnboundedSkillPropor, workingPropor;
 
             public Employer(ulong energyPriority, NodeState state, Params parameters)
                 : base(activityType: ActivityType.Working, energyPriority: energyPriority, state: state)
@@ -108,7 +99,7 @@ namespace Game1.Industries
                 if (openSpace is double.NegativeInfinity)
                     avgVacancyDuration = TimeSpan.Zero;
                 else
-                    avgVacancyDuration += Elapsed;
+                    avgVacancyDuration += CurWorldManager.Elapsed;
             }
 
             public void EndUpdate()
@@ -138,7 +129,7 @@ namespace Game1.Industries
                     throw new ArgumentOutOfRangeException();
 
                 Debug.Assert(C.IsInSuitableRange(value: person.skills[parameters.industryType]));
-                person.skills[parameters.industryType] = 1 - (1 - person.skills[parameters.industryType]) * Math.Pow(1 - person.talents[parameters.industryType], Elapsed.TotalSeconds * workingPropor * CurWorldConfig.personTimeSkillCoeff);
+                person.skills[parameters.industryType] = 1 - (1 - person.skills[parameters.industryType]) * Math.Pow(1 - person.talents[parameters.industryType], CurWorldManager.Elapsed.TotalSeconds * workingPropor * CurWorldConfig.personTimeSkillCoeff);
                 Debug.Assert(C.IsInSuitableRange(value: person.skills[parameters.industryType]));
             }
 
@@ -223,28 +214,19 @@ namespace Game1.Industries
         public IHUDElement UIElement
             => UIPanel;
         
-        [DataMember]
-        protected bool CanStartProduction { get; private set; }
+        [DataMember] protected bool CanStartProduction { get; private set; }
         protected double CurSkillPropor
             => employer.CurSkillPropor;
 
-        [DataMember]
-        protected readonly NodeState state;
-        [DataMember]
-        private readonly Params parameters;
-        [DataMember]
-        private readonly Employer employer;
-        [DataMember]
-        private double energyPropor;
-        [DataMember]
-        private bool isDeleted;
-        [DataMember]
-        private readonly Event<IDeletedListener> deleted;
+        [DataMember] protected readonly NodeState state;
+        [DataMember] private readonly Params parameters;
+        [DataMember] private readonly Employer employer;
+        [DataMember] private double energyPropor;
+        [DataMember] private bool isDeleted;
+        [DataMember] private readonly Event<IDeletedListener> deleted;
 
-        [NonSerialized]
-        protected readonly UIRectPanel<IHUDElement> UIPanel;
-        [NonSerialized]
-        private readonly TextBox textBox;
+        [DataMember] protected readonly UIRectPanel<IHUDElement> UIPanel;
+        [DataMember] private readonly TextBox textBox;
 
         protected Industry(NodeState state, Params parameters)
         {
@@ -283,7 +265,7 @@ namespace Game1.Industries
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(Industry: this));
             UIPanel.AddChild(child: deleteButton);
 
-            AddEnergyConsumer(energyConsumer: this);
+            CurWorldManager.AddEnergyConsumer(energyConsumer: this);
         }
 
         public abstract ULongArray TargetStoredResAmounts();
@@ -321,7 +303,7 @@ namespace Game1.Industries
         }
 
         public virtual string GetText()
-            => CurOverlay switch
+            => CurWorldManager.Overlay switch
             {
                 <= MaxRes => "",
                 Overlay.AllRes => "",

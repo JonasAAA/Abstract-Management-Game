@@ -9,8 +9,7 @@ namespace Game1
     [DataContract]
     public class ActivityManager : IDeletedListener
     {
-        [DataMember]
-        private readonly HashSet<IActivityCenter> activityCenters;
+        [DataMember] private readonly HashSet<IActivityCenter> activityCenters;
 
         public ActivityManager()
             => activityCenters = new();

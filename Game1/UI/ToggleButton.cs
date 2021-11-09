@@ -1,7 +1,9 @@
 ﻿using Microsoft.Xna.Framework;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class ToggleButton : OnOffButton
     {
         public ToggleButton(NearRectangle shape, string text, bool on, Color selectedColor, Color deselectedColor)

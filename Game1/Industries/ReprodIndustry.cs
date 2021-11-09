@@ -1,6 +1,4 @@
-﻿using Game1.UI;
-using Microsoft.Xna.Framework;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 using static Game1.WorldManager;
@@ -13,14 +11,10 @@ namespace Game1.Industries
         [DataContract]
         public new class Params : Industry.Params
         {
-            [DataMember]
-            public readonly double reqWattsPerChild;
-            [DataMember]
-            public readonly ulong maxCouples;
-            [DataMember]
-            public readonly ConstULongArray resPerChild;
-            [DataMember]
-            public readonly TimeSpan birthDuration;
+            [DataMember] public readonly double reqWattsPerChild;
+            [DataMember] public readonly ulong maxCouples;
+            [DataMember] public readonly ConstULongArray resPerChild;
+            [DataMember] public readonly TimeSpan birthDuration;
 
             public Params(string name, ulong energyPriority, double reqSkill, ulong reqWattsPerChild, ulong maxCouples, ConstULongArray resPerChild, TimeSpan birthDuration)
                 : base
@@ -45,11 +39,9 @@ namespace Game1.Industries
         [DataContract]
         private class ReprodCenter : ActivityCenter
         {
-            [DataMember]
-            public readonly Queue<Person> unpairedPeople;
+            [DataMember] public readonly Queue<Person> unpairedPeople;
 
-            [DataMember]
-            private readonly Params parameters;
+            [DataMember] private readonly Params parameters;
 
             public ReprodCenter(ulong energyPriority, NodeState state, Params parameters)
                 : base(activityType: ActivityType.Reproduction, energyPriority: energyPriority, state: state)
@@ -66,7 +58,7 @@ namespace Game1.Industries
                 => true;
 
             public override double PersonScoreOfThis(Person person)
-                => .9 * Math.Tanh((CurTime - person.LastActivityTimes[ActivityType]).TotalSeconds / 100)
+                => .9 * Math.Tanh((CurWorldManager.CurTime - person.LastActivityTimes[ActivityType]).TotalSeconds / 100)
                 + .1 * DistanceToHere(person: person);
 
             public override void TakePerson(Person person)
@@ -87,12 +79,9 @@ namespace Game1.Industries
                 => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - peopleHere.Count} people travelling here\n";
         }
 
-        [DataMember]
-        private readonly Params parameters;
-        [DataMember]
-        private readonly ReprodCenter reprodCenter;
-        [DataMember]
-        private readonly TimedQueue<(Person, Person)> birthQueue;
+        [DataMember] private readonly Params parameters;
+        [DataMember] private readonly ReprodCenter reprodCenter;
+        [DataMember] private readonly TimedQueue<(Person, Person)> birthQueue;
 
         public ReprodIndustry(NodeState state, Params parameters)
             : base(state: state, parameters: parameters)
@@ -153,7 +142,7 @@ namespace Game1.Industries
         public override string GetText()
         {
             string text = base.GetText() + $"{parameters.name}\n";
-            if (CurOverlay is Overlay.People)
+            if (CurWorldManager.Overlay is Overlay.People)
             {
                 text += $"{birthQueue.Count} children are being born\n";
                 text += reprodCenter.GetText();

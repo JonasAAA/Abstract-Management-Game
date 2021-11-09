@@ -1,8 +1,8 @@
-﻿using Game1.UI;
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1
 {
@@ -24,7 +24,7 @@ namespace Game1
                 key: Keys.Escape,
                 action: () =>
                 {
-                    WorldManager.Current.Serialize();
+                    WorldManager.CurWorldManager.Serialize();
                     Exit();
                 }
             );
@@ -54,9 +54,9 @@ namespace Game1
                 spriteBatch: new(GraphicsDevice)
             );
 
-            ActiveUIManager.Initialize(graphicsDevice: GraphicsDevice);
-            var curGraph = WorldManager.Create(graphicsDevice: GraphicsDevice);
-            ActiveUIManager.SetCurGraph(curGraph: curGraph);
+            CreateActiveUIManager(graphicsDevice: GraphicsDevice);
+            var (graph, worldHUD) = WorldManager.CreateWorldUIManager(graphicsDevice: GraphicsDevice);
+            CurActiveUIManager.SetWorld(graph: graph, worldHUD: worldHUD);
         }
 
         protected override void Update(GameTime gameTime)
@@ -65,9 +65,9 @@ namespace Game1
 
             TimeSpan elapsed = gameTime.ElapsedGameTime;
 
-            WorldManager.Current.Update(elapsed: elapsed);
+            WorldManager.CurWorldManager.Update(elapsed: elapsed);
 
-            ActiveUIManager.Update(elapsed: elapsed);
+            CurActiveUIManager.Update(elapsed: elapsed);
 
             base.Update(gameTime);
         }
@@ -76,9 +76,9 @@ namespace Game1
         {
             GraphicsDevice.Clear(Color.Transparent);
 
-            WorldManager.Current.Draw(graphicsDevice: GraphicsDevice);
+            WorldManager.CurWorldManager.Draw(graphicsDevice: GraphicsDevice);
 
-            ActiveUIManager.DrawHUD();
+            CurActiveUIManager.DrawHUD();
 
             base.Draw(gameTime);
         }

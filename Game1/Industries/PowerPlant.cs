@@ -10,8 +10,7 @@ namespace Game1.Industries
         [DataContract]
         public new class Params : Industry.Params
         {
-            [DataMember]
-            public readonly double prodWatts;
+            [DataMember] public readonly double prodWatts;
 
             public Params(string name, double reqSkill, double prodWatts)
                 : base
@@ -32,14 +31,13 @@ namespace Game1.Industries
                 => new PowerPlant(state: state, parameters: this);
         }
 
-        [DataMember]
-        private readonly Params parameters;
+        [DataMember] private readonly Params parameters;
 
         private PowerPlant(NodeState state, Params parameters)
             : base(state: state, parameters: parameters)
         {
             this.parameters = parameters;
-            AddEnergyProducer(energyProducer: this);
+            CurWorldManager.AddEnergyProducer(energyProducer: this);
         }
 
         public override ULongArray TargetStoredResAmounts()

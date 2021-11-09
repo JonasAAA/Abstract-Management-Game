@@ -5,6 +5,7 @@ using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class NumIncDecrPanel : HUDElement
     {
         [DataContract]
@@ -40,12 +41,12 @@ namespace Game1.UI
             }
         }
 
-        public Event<INumberChangedListener> numberChanged;
+        [DataMember] public Event<INumberChangedListener> numberChanged;
 
-        private int number;
-        private readonly int minNum;
-        private readonly UIRectVertPanel<IHUDElement> panel;
-        private readonly TextBox textBox;
+        [DataMember] private int number;
+        [DataMember] private readonly int minNum;
+        [DataMember] private readonly UIRectVertPanel<IHUDElement> panel;
+        [DataMember] private readonly TextBox textBox;
 
         public NumIncDecrPanel(int minNum, int number, float incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
             : base(shape: new MyRectangle())

@@ -11,7 +11,7 @@ namespace Game1.UI
     {
         // it is public to easily add it to knownTypes
         [DataContract]
-        public record ChoiceEventListener([property: DataMember] MultipleChoicePanel<TChoice> MultipleChoicePanel, TChoice ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
+        public record ChoiceEventListener([property:DataMember] MultipleChoicePanel<TChoice> MultipleChoicePanel, [property:DataMember] TChoice ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
         {
             void IEnabledChangedListener.EnabledChangedResponse()
             {

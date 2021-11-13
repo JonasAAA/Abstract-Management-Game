@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using static Game1.WorldManager;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -13,11 +14,39 @@ namespace Game1.UI
     {
         public IEvent<IDeletedListener> Deleted
             => deleted;
+        [DataMember] public readonly Event<IActiveChangedListener> activeChanged;
 
         public override bool CanBeClicked
             => !Active;
 
-        [DataMember] protected bool Active { get; private set; }
+        public bool Active
+        {
+            get => active;
+            set
+            {
+                if (active == value)
+                    return;
+
+                active = value;
+                SetShapeColor();
+                if (active)
+                    CurWorldManager.AddHUDElement
+                    (
+                        HUDElement: popup[CurWorldManager.Overlay],
+                        horizPos: popupHorizPos,
+                        vertPos: popupVertPos
+                    );
+                else
+                    CurWorldManager.RemoveHUDElement
+                    (
+                        HUDElement: popup[CurWorldManager.Overlay]
+                    );
+                activeChanged.Raise(action: listener => listener.ActiveChangedResponse(worldUIElement: this));
+
+                CurWorldManager.ArrowDrawingModeOn = false;
+            } 
+        }
+
         protected Color ActiveColor
         {
             get => activeColor;
@@ -41,18 +70,20 @@ namespace Game1.UI
         [DataMember] private readonly HorizPos popupHorizPos;
         [DataMember] private readonly VertPos popupVertPos;
         [DataMember] private readonly Event<IDeletedListener> deleted;
+        [DataMember] private bool active;
 
         [DataMember] private readonly Dictionary<Overlay, IHUDElement> popup;
 
         public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
             : base(shape: shape)
         {
+            activeChanged = new();
             this.activeColor = activeColor;
             this.inactiveColor = inactiveColor;
-            SetShapeColor();
             this.popupHorizPos = popupHorizPos;
             this.popupVertPos = popupVertPos;
-            Active = false;
+            active = false;
+            SetShapeColor();
             deleted = new();
 
             popup = Enum.GetValues<Overlay>().ToDictionary
@@ -79,27 +110,6 @@ namespace Game1.UI
             base.OnClick();
 
             Active = true;
-            SetShapeColor();
-            CurWorldManager.AddHUDElement
-            (
-                HUDElement: popup[CurWorldManager.Overlay],
-                horizPos: popupHorizPos,
-                vertPos: popupVertPos
-            );
-        }
-
-        public override void OnMouseDownWorldNotMe()
-        {
-            if (!Active)
-                return;
-            base.OnMouseDownWorldNotMe();
-
-            Active = false;
-            SetShapeColor();
-            CurWorldManager.RemoveHUDElement
-            (
-                HUDElement: popup[CurWorldManager.Overlay]
-            );
         }
 
         private void SetShapeColor()

@@ -9,6 +9,9 @@ namespace Game1.UI
         public InfinitePlane()
             => Color = Color.Transparent;
 
+        public InfinitePlane(Color color)
+            => Color = color;
+
         public override bool Contains(Vector2 position)
             => true;
 

@@ -162,8 +162,8 @@ namespace Game1.UI
                 throw new InvalidOperationException();
         }
 
-        public virtual void OnMouseDownWorldNotMe()
-        { }
+        //public virtual void OnMouseDownWorldNotMe()
+        //{ }
 
         public virtual void Draw()
         {

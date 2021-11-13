@@ -30,8 +30,8 @@ namespace Game1.UI
         public virtual void OnClick()
         { }
 
-        public virtual void OnMouseDownWorldNotMe()
-        { }
+        //public virtual void OnMouseDownWorldNotMe()
+        //{ }
 
         public void Draw();
     }

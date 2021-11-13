@@ -189,7 +189,7 @@ namespace Game1.Industries
         }
 
         [DataContract]
-        private record DeleteButtonClickedListener([field: DataMember] Industry Industry) : IClickedListener
+        private record DeleteButtonClickedListener([property: DataMember] Industry Industry) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => Industry.isDeleted = true;

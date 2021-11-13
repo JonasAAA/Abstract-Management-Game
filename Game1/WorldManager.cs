@@ -17,7 +17,7 @@ using static Game1.UI.ActiveUIManager;
 namespace Game1
 {
     [DataContract]
-    public class WorldManager : IDeletedListener
+    public class WorldManager : IDeletedListener, IClickedNowhereListener
     {
         public const Overlay MaxRes = (Overlay)2;
 
@@ -35,14 +35,13 @@ namespace Game1
         public static IndustryConfig CurIndustryConfig
             => CurWorldManager.industryConfig;
 
-        public static (Graph, WorldHUD) CreateWorldUIManager(GraphicsDevice graphicsDevice)
+        public static void CreateWorldUIManager(GraphicsDevice graphicsDevice)
         {
             if (CurWorldManager is not null)
                 throw new InvalidOperationException();
             CurWorldManager = new();
             CurWorldManager.graph = CreateGraph();
             CurWorldManager.Initialize(graphicsDevice: graphicsDevice);
-            return (CurWorldManager.graph, CurWorldManager.worldHUD);
 
             static Graph CreateGraph()
             {
@@ -130,20 +129,20 @@ namespace Game1
             }
         }
 
-        public static (Graph, WorldHUD) LoadWorldUIManager(GraphicsDevice graphicsDevice)
+        public static void LoadWorldUIManager(GraphicsDevice graphicsDevice)
         {
             if (CurWorldManager is not null)
                 throw new InvalidOperationException();
 
             CurWorldManager = Deserialize();
             CurWorldManager.Initialize(graphicsDevice: graphicsDevice);
-            return (CurWorldManager.graph, CurWorldManager.worldHUD);
 
             static WorldManager Deserialize()
             {
                 using FileStream fileStream = new(path: GetSaveFilePath, FileMode.Open, FileAccess.Read);
                 DataContractSerializer serializer = GetDataContractSerializer();
-                XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader
+                
+                using XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader
                 (
                     stream: fileStream,
                     quotas: new XmlDictionaryReaderQuotas()
@@ -186,6 +185,38 @@ namespace Game1
         public double MaxLinkJoulesPerKg
             => graph.maxLinkJoulesPerKg;
 
+        public bool ArrowDrawingModeOn
+        {
+            get => arrowDrawingModeOn;
+            set
+            {
+                if (arrowDrawingModeOn == value)
+                    return;
+
+                arrowDrawingModeOn = value;
+                if (arrowDrawingModeOn)
+                {
+                    if (CurWorldManager.Overlay > MaxRes)
+                        throw new Exception();
+                    worldHUD.HasDisabledAncestor = true;
+                    graph.HasDisabledAncestor = true;
+                    if (graph.ActiveWorldElement is Node activeNode)
+                    {
+                        foreach (var node in graph.Nodes)
+                            if (activeNode.CanHaveDestin(destination: node.Position))
+                                node.HasDisabledAncestor = false;
+                    }
+                    else
+                        throw new Exception();
+                }
+                else
+                {
+                    worldHUD.HasDisabledAncestor = false;
+                    graph.HasDisabledAncestor = false;
+                }
+            }
+        }
+
         [DataMember] private readonly WorldConfig worldConfig;
         [DataMember] private readonly ResConfig resConfig;
         [DataMember] private readonly IndustryConfig industryConfig;
@@ -198,10 +229,10 @@ namespace Game1
         [DataMember] private readonly TextBox globalTextBox;
         [DataMember] private readonly ToggleButton pauseButton;
         [DataMember] private readonly MultipleChoicePanel<Overlay> overlayChoicePanel;
-        [DataMember] private readonly List<(IUIElement UIElement, ulong layer)> waitingWorldUIElements;
 
         [DataMember] private Graph graph;
         [DataMember] private WorldCamera worldCamera;
+        [DataMember] private bool arrowDrawingModeOn;
 
         private WorldManager()
         {
@@ -262,7 +293,8 @@ namespace Game1
                 horizPos: HorizPos.Right,
                 vertPos: VertPos.Bottom
             );
-            waitingWorldUIElements = new();
+
+            arrowDrawingModeOn = false;
         }
 
         private void Initialize(GraphicsDevice graphicsDevice)
@@ -270,21 +302,16 @@ namespace Game1
             worldCamera = new(graphicsDevice: graphicsDevice);
             lightManager.Initialize(graphicsDevice: graphicsDevice);
 
-            foreach (var (UIElement, layer) in waitingWorldUIElements)
-                AddWorldUIElement(UIElement: UIElement, layer: layer);
-            waitingWorldUIElements.Clear();
+            CurActiveUIManager.AddNonHUDElement(UIElement: graph, screenToPos: worldCamera.WorldPos);
+            CurActiveUIManager.AddHUDElement(HUDElement: worldHUD, horizPos: HorizPos.Middle, vertPos: VertPos.Middle);
+            CurActiveUIManager.clickedNowhere.Add(listener: this);
         }
 
-        public void AddWorldUIElement(IUIElement UIElement, ulong layer)
-        {
-            if (graph is null)
-                waitingWorldUIElements.Add((UIElement, layer));
-            else
-                graph.AddUIElement(UIElement: UIElement, layer: layer);
-        }
+        public void AddResDestinArrow(int resInd, ResDestinArrow resDestinArrow)
+            => graph.AddResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
-        public void RemoveWorldUIElement(IUIElement UIElement)
-            => graph.RemoveUIElement(UIElement: UIElement);
+        public void RemoveResDestinArrow(int resInd, ResDestinArrow resDestinArrow)
+            => graph.RemoveResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
         public void AddHUDElement(IHUDElement HUDElement, HorizPos horizPos, VertPos vertPos)
             => worldHUD.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
@@ -357,13 +384,15 @@ namespace Game1
 
         public void Serialize()
         {
+            CurActiveUIManager.RemoveNonHUDElement(UIElement: graph);
+            CurActiveUIManager.RemoveHUDElement(HUDElement: worldHUD);
+            CurActiveUIManager.clickedNowhere.Remove(listener: this);
+
             using FileStream fileStream = new(path: GetSaveFilePath, FileMode.Create);
             DataContractSerializer serializer = GetDataContractSerializer();
 
-            XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);
+            using XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);
             serializer.WriteObject(writer, this);
-            // very important, otherwise program may exit before finishing writing to file!
-            writer.Flush();
         }
 
         private static Type[] GetKnownTypes()
@@ -381,9 +410,11 @@ namespace Game1
                     typeof(MultipleChoicePanel<string>.ChoiceEventListener),
                     typeof(MultipleChoicePanel<Overlay>),
                     typeof(MultipleChoicePanel<Overlay>.ChoiceEventListener),
+                    typeof(UIRectHorizPanel<IHUDElement>),
                     typeof(UIRectHorizPanel<SelectButton>),
                     typeof(UIRectVertPanel<IHUDElement>),
                     typeof(UITransparentPanel<ResDestinArrow>),
+                    typeof(Dictionary<Overlay, IHUDElement>)
                 }
             ).ToArray();
 
@@ -394,5 +425,8 @@ namespace Game1
             else
                 throw new ArgumentException();
         }
+
+        void IClickedNowhereListener.ClickedNowhereResponse()
+            => ArrowDrawingModeOn = false;
     }
 }

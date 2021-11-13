@@ -1,10 +1,11 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using static Game1.WorldManager;
+//using static Game1.WorldManager;
 
 namespace Game1.UI
 {
@@ -27,40 +28,10 @@ namespace Game1.UI
             CurActiveUIManager.HUDCamera = new(graphicsDevice: graphicsDevice);
         }
 
+        public Event<IClickedNowhereListener> clickedNowhere;
+
         public double ScreenHeight
             => UIConfig.standardScreenHeight;
-
-        public bool ArrowDrawingModeOn
-        {
-            get => arrowDrawingModeOn;
-            set
-            {
-                if (arrowDrawingModeOn == value)
-                    return;
-
-                arrowDrawingModeOn = value;
-                if (arrowDrawingModeOn)
-                {
-                    if (CurWorldManager.Overlay > MaxRes)
-                        throw new Exception();
-                    foreach (var UIElement in activeUIElements)
-                        UIElement.HasDisabledAncestor = true;
-                    if (activeWorldElement is Node activeNode)
-                    {
-                        foreach (var node in graph.Nodes)
-                            if (activeNode.CanHaveDestin(destination: node.Position))
-                                node.HasDisabledAncestor = false;
-                    }
-                    else
-                        throw new Exception();
-                }
-                else
-                {
-                    foreach (var UIElement in activeUIElements)
-                        UIElement.HasDisabledAncestor = false;
-                }
-            }
-        }
 
         public Vector2 MouseHUDPos
             => HUDCamera.HUDPos(screenPos: Mouse.GetState().Position.ToVector2());
@@ -68,81 +39,72 @@ namespace Game1.UI
         public bool MouseAboveHUD { get; private set; }
 
         public readonly double screenWidth;
+
         private readonly UIConfig UIConfig;
-        
-        private bool arrowDrawingModeOn;
         private readonly List<IUIElement> activeUIElements;
-        private readonly HashSet<IUIElement> HUDElements;
+        private readonly HashSet<IHUDElement> HUDElements;
+        private readonly Dictionary<IUIElement, Func<Vector2, Vector2>> nonHUDElementsToTransform;
         private bool leftDown, prevLeftDown;
-        private IUIElement halfClicked, contMouse, activeWorldElement;
+        private IUIElement halfClicked, contMouse;
         private readonly TimeSpan minDurationToGetExplanation;
         private TimeSpan hoverDuration;
         private TextBox explanationTextBox;
         private HUDCamera HUDCamera;
-        private Graph graph;
         private readonly HUDPosSetter HUDPosSetter;
 
         private ActiveUIManager(GraphicsDevice graphicsDevice)
         {
-            UIConfig = new();
+            clickedNowhere = new();
 
-            arrowDrawingModeOn = false;
+            UIConfig = new();
             activeUIElements = new();
             HUDElements = new();
             leftDown = new();
             prevLeftDown = new();
             halfClicked = null;
             contMouse = null;
-            activeWorldElement = null;
             MouseAboveHUD = true;
             minDurationToGetExplanation = TimeSpan.FromSeconds(.5);
             hoverDuration = TimeSpan.Zero;
 
             screenWidth = (double)graphicsDevice.Viewport.Width * UIConfig.standardScreenHeight / graphicsDevice.Viewport.Height;
             HUDPosSetter = new();
+            nonHUDElementsToTransform = new();
         }
 
-        /// <summary>
-        /// call exatly once after PlayState.InitializeNew()
-        /// </summary>
-        public void SetWorld(Graph graph, WorldHUD worldHUD)
+        public void AddNonHUDElement(IUIElement UIElement, Func<Vector2, Vector2> screenToPos)
         {
-            this.graph = graph;
-            if (activeUIElements.Contains(graph))
-                throw new InvalidOperationException();
-            activeUIElements.Add(graph);
-            activeUIElements.Add(worldHUD);
-            if (!HUDElements.Add(worldHUD))
+            activeUIElements.Add(UIElement);
+            nonHUDElementsToTransform.Add(UIElement, screenToPos);
+        }
+
+        public void RemoveNonHUDElement(IUIElement UIElement)
+        {
+            activeUIElements.Remove(UIElement);
+            nonHUDElementsToTransform.Remove(UIElement);
+        }
+
+        public void AddHUDElement(IHUDElement HUDElement, HorizPos horizPos, VertPos vertPos)
+        {
+            if (HUDElement is null)
+                return;
+
+            HUDPosSetter.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
+
+            activeUIElements.Add(HUDElement);
+            if (!HUDElements.Add(HUDElement))
                 throw new ArgumentException();
         }
 
-        //public void AddHUDElement(IHUDElement HUDElement, HorizPos horizPos, VertPos vertPos)
-        //{
-        //    if (HUDElement is null)
-        //        return;
-
-        //    HUDPosSetter.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
-
-        //    //sizeOrPosChangedListeners[HUDElement] = new HUDElementSizeOrPosChangedListener(HorizPos: horizPos, VertPos: vertPos);
-        //    //sizeOrPosChangedListeners[HUDElement].SizeOrPosChangedResponse(shape: HUDElement.Shape);
-        //    //HUDElement.SizeOrPosChanged.Add(listener: sizeOrPosChangedListeners[HUDElement]);
-
-        //    activeUIElements.Add(HUDElement);
-        //    if (!HUDElements.Add(HUDElement))
-        //        throw new ArgumentException();
-        //}
-
-        //public void RemoveHUDElement(IHUDElement HUDElement)
-        //{
-        //    if (HUDElement is null)
-        //        return;
-        //    if (!HUDElements.Remove(HUDElement))
-        //        throw new ArgumentException();
-        //    activeUIElements.Remove(HUDElement);
-        //    HUDPosSetter.RemoveHUDElement(HUDElement: HUDElement);
-        //    //HUDElement.SizeOrPosChanged.Remove(listener: sizeOrPosChangedListeners[HUDElement]);
-        //    //sizeOrPosChangedListeners.Remove(HUDElement);
-        //}
+        public void RemoveHUDElement(IHUDElement HUDElement)
+        {
+            if (HUDElement is null)
+                return;
+            if (!HUDElements.Remove(HUDElement))
+                throw new ArgumentException();
+            activeUIElements.Remove(HUDElement);
+            HUDPosSetter.RemoveHUDElement(HUDElement: HUDElement);
+        }
 
         public void Update(TimeSpan elapsed)
         {
@@ -152,18 +114,23 @@ namespace Game1.UI
             prevLeftDown = leftDown;
             leftDown = mouseState.LeftButton == ButtonState.Pressed;
             Vector2 mouseScreenPos = mouseState.Position.ToVector2(),
-                mouseWorldPos = CurWorldManager.MouseWorldPos,
+                //mouseWorldPos = CurWorldManager.MouseWorldPos,
                 mouseHUDPos = HUDCamera.HUDPos(screenPos: mouseScreenPos);
 
             contMouse = null;
             MouseAboveHUD = false;
             foreach (var UIElement in Enumerable.Reverse(activeUIElements))
             {
-                Vector2 mousePos = (UIElement == graph) switch
+                Vector2 mousePos = nonHUDElementsToTransform.ContainsKey(UIElement) switch
                 {
-                    true => mouseWorldPos,
+                    true => nonHUDElementsToTransform[UIElement](mouseScreenPos),
                     false => mouseHUDPos
                 };
+                //Vector2 mousePos = HUDElements.Contains(UIElement) switch
+                //{
+                //    true => mouseHUDPos,
+                //    false => mouseWorldPos
+                //};
 
                 IUIElement catchingUIElement = UIElement.CatchUIElement(mousePos: mousePos);
 
@@ -207,28 +174,10 @@ namespace Game1.UI
             if (!leftDown && prevLeftDown)
             {
                 IUIElement otherHalfClicked = contMouse;
-                if (ArrowDrawingModeOn)
-                {
-                    if (otherHalfClicked is not null && halfClicked == otherHalfClicked && otherHalfClicked != activeWorldElement && otherHalfClicked.Enabled && otherHalfClicked is Node destinationNode)
-                        ((Node)activeWorldElement).AddResDestin(destination: destinationNode.Position);
-                    ArrowDrawingModeOn = false;
-                }
+                if (halfClicked == otherHalfClicked && otherHalfClicked is not null && otherHalfClicked.Enabled && otherHalfClicked.CanBeClicked)
+                    otherHalfClicked.OnClick();
                 else
-                {
-                    if (!MouseAboveHUD && (halfClicked != activeWorldElement || otherHalfClicked != activeWorldElement))
-                    {
-                        activeWorldElement?.OnMouseDownWorldNotMe();
-                        activeWorldElement = null;
-                    }
-                    if (halfClicked == otherHalfClicked)
-                    {
-                        if (otherHalfClicked is not null && otherHalfClicked.Enabled && otherHalfClicked.CanBeClicked)
-                            otherHalfClicked.OnClick();
-
-                        if (!MouseAboveHUD)
-                            activeWorldElement = otherHalfClicked;
-                    }
-                }
+                    clickedNowhere.Raise(action: listener => listener.ClickedNowhereResponse());
 
                 halfClicked = null;
             }

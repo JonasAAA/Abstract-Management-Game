@@ -1,4 +1,5 @@
-﻿using Game1.UI;
+﻿using Game1.Events;
+using Game1.UI;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [DataContract]
-    public class Graph : UIElement
+    public class Graph : UIElement, IChoiceChangedListener<Overlay>, IActiveChangedListener
     {
         [DataContract]
         private class NodeInfo
@@ -83,9 +84,27 @@ namespace Game1
         [DataMember] public readonly TimeSpan maxLinkTravelTime;
         [DataMember] public readonly double maxLinkJoulesPerKg;
 
-       
-        private readonly ReadOnlyDictionary<(Vector2, Vector2), double> personDists;
-        //private readonly ReadOnlyDictionary<(Vector2, Vector2), double> resDists;
+        public override bool CanBeClicked
+            => true;
+
+        private IEnumerable<WorldUIElement> WorldUIElements
+        {
+            get
+            {
+                foreach (var star in stars)
+                    yield return star;
+                foreach (var node in nodes)
+                    yield return node;
+                foreach (var link in links)
+                    yield return link;
+                for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
+                    foreach (var resDestinArrow in resDestinArrows[resInd])
+                        yield return resDestinArrow;
+            }
+        }
+
+        [DataMember] private readonly ReadOnlyDictionary<(Vector2, Vector2), double> personDists;
+        //[DataMember] private readonly ReadOnlyDictionary<(Vector2, Vector2), double> resDists;
 
         /// <summary>
         /// if both key nodes are the same, value is null
@@ -97,8 +116,11 @@ namespace Game1
         [DataMember] private readonly List<Node> nodes;
         [DataMember] private readonly List<Link> links;
 
+        [DataMember] private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDestinArrows;
+        [DataMember] public WorldUIElement ActiveWorldElement { get; private set; }
+
         public Graph(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links)
-            : base(shape: new InfinitePlane())
+            : base(shape: new InfinitePlane(color: Color.Black))
         {
             this.stars = stars.ToMyHashSet().ToList();
             this.nodes = nodes.ToMyHashSet().ToList();
@@ -128,6 +150,24 @@ namespace Game1
                 AddChild(child: node, layer: CurWorldConfig.nodeLayer);
             foreach (var link in links)
                 AddChild(child: link, layer: CurWorldConfig.linkLayer);
+
+            resDestinArrows = new();
+            for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
+                resDestinArrows[resInd] = new();
+
+            if (CurWorldManager.Overlay <= MaxRes)
+                AddChild
+                (
+                    child: resDestinArrows[(int)CurWorldManager.Overlay],
+                    layer: CurWorldConfig.resDistribArrowsUILayer
+                );
+
+            foreach (var worldUIElement in WorldUIElements)
+                worldUIElement.activeChanged.Add(listener: this);
+
+            ActiveWorldElement = null;
+
+            CurOverlayChanged.Add(listener: this);
         }
 
         // currently uses Floyd-Warshall;
@@ -192,11 +232,24 @@ namespace Game1
             return (dists: new(distsDict), firstLinks: new(firstLinksDict));
         }
 
-        public void AddUIElement(IUIElement UIElement, ulong layer)
-            => AddChild(child: UIElement, layer: layer);
+        public void AddResDestinArrow(int resInd, ResDestinArrow resDestinArrow)
+        {
+            resDestinArrow.activeChanged.Add(listener: this);
+            resDestinArrows[resInd].AddChild(child: resDestinArrow);
+        }
 
-        public void RemoveUIElement(IUIElement UIElement)
-            => RemoveChild(child: UIElement);
+        public override void OnClick()
+        {
+            base.OnClick();
+    
+            ActiveWorldElement.Active = false;
+        }
+
+        public void RemoveResDestinArrow(int resInd, ResDestinArrow resDestinArrow)
+        {
+            resDestinArrow.activeChanged.Remove(listener: this);
+            resDestinArrows[resInd].RemoveChild(child: resDestinArrow);
+        }
 
         public void Update()
         {
@@ -298,5 +351,42 @@ namespace Game1
 
         public override void Draw()
             => throw new InvalidOperationException();
+
+        void IChoiceChangedListener<Overlay>.ChoiceChangedResponse(Overlay prevOverlay)
+        {
+            if (prevOverlay <= MaxRes)
+                RemoveChild(child: resDestinArrows[(int)prevOverlay]);
+            if (CurWorldManager.Overlay <= MaxRes)
+                AddChild
+                (
+                    child: resDestinArrows[(int)CurWorldManager.Overlay],
+                    layer:CurWorldConfig.resDistribArrowsUILayer
+                );
+        }
+
+        void IActiveChangedListener.ActiveChangedResponse(WorldUIElement worldUIElement)
+        {
+            if (CurWorldManager.ArrowDrawingModeOn)
+            {
+                if (worldUIElement.Active)
+                {
+                    ((Node)ActiveWorldElement).AddResDestin(destination: ((Node)worldUIElement).Position);
+                    worldUIElement.Active = false;
+                }
+                return;
+            }
+
+            if (worldUIElement.Active)
+            {
+                if (ActiveWorldElement is not null)
+                    ActiveWorldElement.Active = false;
+                ActiveWorldElement = worldUIElement;
+            }
+            else
+            {
+                if (ActiveWorldElement == worldUIElement)
+                    ActiveWorldElement = null;
+            }
+        }
     }
 }

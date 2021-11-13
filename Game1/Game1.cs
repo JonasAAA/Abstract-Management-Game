@@ -1,4 +1,6 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Game1.UI;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
@@ -8,6 +10,12 @@ namespace Game1
 {
     public class Game1 : Game
     {
+        private record NewGameButtonClickedListener(Button NewGameButton, GraphicsDevice GraphicsDevice) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+                => WorldManager.CreateWorldUIManager(graphicsDevice: GraphicsDevice);
+        }
+
         private readonly GraphicsDeviceManager graphics;
         private readonly KeyButton exitButton;
         
@@ -55,9 +63,29 @@ namespace Game1
             );
 
             CreateActiveUIManager(graphicsDevice: GraphicsDevice);
-            var (graph, worldHUD) = WorldManager.CreateWorldUIManager(graphicsDevice: GraphicsDevice);
-            //var (graph, worldHUD) = WorldManager.LoadWorldUIManager(graphicsDevice: GraphicsDevice);
-            CurActiveUIManager.SetWorld(graph: graph, worldHUD: worldHUD);
+            UIRectVertPanel<Button> UIPanel = new(color: Color.White, childHorizPos: HorizPos.Middle);
+            //Button newGameButton = new
+            //(
+            //    shape: new MyRectangle(width: 200, height: 30)
+            //    {
+            //        Color = Color.White
+            //    },
+            //    text: "New game"
+            //);
+            //newGameButton.clicked.Add
+            //(
+            //    listener: new NewGameButtonClickedListener
+            //    (
+            //        NewGameButton: newGameButton,
+            //        GraphicsDevice: GraphicsDevice
+            //    )
+            //);
+            //UIPanel.AddChild(child: newGameButton);
+
+            CurActiveUIManager.AddHUDElement(HUDElement: UIPanel, horizPos: HorizPos.Middle, vertPos: VertPos.Middle);
+
+            WorldManager.CreateWorldUIManager(graphicsDevice: GraphicsDevice);
+            //WorldManager.LoadWorldUIManager(graphicsDevice: GraphicsDevice);
         }
 
         protected override void Update(GameTime gameTime)
@@ -66,9 +94,9 @@ namespace Game1
 
             TimeSpan elapsed = gameTime.ElapsedGameTime;
 
-            WorldManager.CurWorldManager.Update(elapsed: elapsed);
-
             CurActiveUIManager.Update(elapsed: elapsed);
+
+            WorldManager.CurWorldManager?.Update(elapsed: elapsed);
 
             base.Update(gameTime);
         }
@@ -77,7 +105,7 @@ namespace Game1
         {
             GraphicsDevice.Clear(Color.Transparent);
 
-            WorldManager.CurWorldManager.Draw(graphicsDevice: GraphicsDevice);
+            WorldManager.CurWorldManager?.Draw(graphicsDevice: GraphicsDevice);
 
             CurActiveUIManager.DrawHUD();
 

@@ -1,14 +1,15 @@
 ﻿using System.Runtime.Serialization;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
     [DataContract]
-    public class WorldHUD : UIElement
+    public class WorldHUD : HUDElement
     {
         [DataMember] private readonly HUDPosSetter HUDPosSetter;
 
         public WorldHUD()
-            : base(shape: new InfinitePlane())
+            : base(shape: new MyRectangle(width: (float)CurActiveUIManager.screenWidth, height: (float)CurActiveUIManager.ScreenHeight))
         {
             HUDPosSetter = new();
         }

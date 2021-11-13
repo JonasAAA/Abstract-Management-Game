@@ -11,7 +11,7 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [DataContract]
-    public class Link : UIElement
+    public class Link : WorldUIElement
     {
         [DataContract]
         private class DirLink : IEnergyConsumer
@@ -144,7 +144,7 @@ namespace Game1
         [DataMember] private readonly DirLink link1To2, link2To1;
 
         public Link(Node node1, Node node2, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
-            : base(shape: new EmptyShape())
+            : base(shape: new EmptyShape(), activeColor: Color.White, inactiveColor: Color.Gray, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             if (node1 == node2)
                 throw new ArgumentException();

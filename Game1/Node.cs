@@ -71,6 +71,7 @@ namespace Game1
                 if (deletable is ResDestinArrow resDestinArrow)
                 {
                     Node.resDistribArrows[ResInd].RemoveChild(child: resDestinArrow);
+                    CurWorldManager.RemoveResDestinArrow(resInd: ResInd, resDestinArrow: resDestinArrow);
                     Node.resSplittersToDestins[ResInd].RemoveKey(key: resDestinArrow.EndPos);
                     SyncSplittersWithArrows();
                 }
@@ -93,7 +94,7 @@ namespace Game1
         private record AddResourceDestinationButtonClickedListener : IClickedListener
         {
             void IClickedListener.ClickedResponse()
-                => CurActiveUIManager.ArrowDrawingModeOn = true;
+                => CurWorldManager.ArrowDrawingModeOn = true;
         }
 
         public Vector2 Position
@@ -121,7 +122,6 @@ namespace Game1
         [DataMember] private readonly TextBox infoTextBox;
         [DataMember] private readonly string overlayTabLabel;
         [DataMember] private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
-        [DataMember] private readonly ulong resDistribArrowsUILayer;
 
         public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth, int startPersonCount = 0)
             : base(shape: new LightCatchingDisk(radius: radius), activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
@@ -271,17 +271,9 @@ namespace Game1
                 overlays: Enum.GetValues<Overlay>()
             );
 
-            resDistribArrowsUILayer = 1;
             resDistribArrows = new();
             for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
-                resDistribArrows[resInd] = new UITransparentPanel<ResDestinArrow>();
-
-            if (CurWorldManager.Overlay <= MaxRes)
-                CurWorldManager.AddWorldUIElement
-                (
-                    UIElement: resDistribArrows[(int)CurWorldManager.Overlay],
-                    layer: resDistribArrowsUILayer
-                );
+                resDistribArrows[resInd] = new();
         }
 
         public void AddLink(Link link)
@@ -325,19 +317,12 @@ namespace Game1
         public ulong StoredResAmount(int resInd)
             => state.storedRes[resInd];
 
-        public override void OnClick()
-        {
-            if (CurActiveUIManager.ArrowDrawingModeOn)
-                return;
-            base.OnClick();
-        }
-
         public bool CanHaveDestin(Vector2 destination)
         {
-            if (!Active || !CurActiveUIManager.ArrowDrawingModeOn)
+            if (!Active || !CurWorldManager.ArrowDrawingModeOn)
                 throw new InvalidOperationException();
 
-            return !resSplittersToDestins[(int)CurWorldManager.Overlay].ContainsKey(destination);
+            return destination != Position && !resSplittersToDestins[(int)CurWorldManager.Overlay].ContainsKey(destination);
         }
 
         public void AddResDestin(Vector2 destination)
@@ -367,14 +352,8 @@ namespace Game1
             resDestinArrow.Deleted.Add(listener: resDesinArrowEventListener);
 
             resDistribArrows[resInd].AddChild(child: resDestinArrow);
+            CurWorldManager.AddResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
             resDesinArrowEventListener.SyncSplittersWithArrows();
-        }
-
-        public override void OnMouseDownWorldNotMe()
-        {
-            if (CurActiveUIManager.ArrowDrawingModeOn)
-                return;
-            base.OnMouseDownWorldNotMe();
         }
 
         private void SetIndustry(Industry newIndustry)
@@ -527,7 +506,7 @@ namespace Game1
         {
             base.Draw();
 
-            if (Active && CurActiveUIManager.ArrowDrawingModeOn)
+            if (Active && CurWorldManager.ArrowDrawingModeOn)
                 Arrow.DrawArrow
                 (
                     startPos: Position,
@@ -548,18 +527,6 @@ namespace Game1
                 (
                     tabLabelText: overlayTabLabel,
                     tab: overlayTabPanels[CurWorldManager.Overlay]
-                );
-
-            if (prevOverlay <= MaxRes)
-                CurWorldManager.RemoveWorldUIElement
-                (
-                    UIElement: resDistribArrows[(int)prevOverlay]
-                );
-            if (CurWorldManager.Overlay <= MaxRes)
-                CurWorldManager.AddWorldUIElement
-                (
-                    UIElement: resDistribArrows[(int)CurWorldManager.Overlay],
-                    layer: resDistribArrowsUILayer
                 );
         }
 

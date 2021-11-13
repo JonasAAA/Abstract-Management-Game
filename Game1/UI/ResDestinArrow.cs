@@ -14,7 +14,7 @@ namespace Game1.UI
         {
             void IClickedListener.ClickedResponse()
             {
-                ResDestinArrow.OnMouseDownWorldNotMe();
+                ResDestinArrow.Active = false;
                 ResDestinArrow.Delete();
             }
         }

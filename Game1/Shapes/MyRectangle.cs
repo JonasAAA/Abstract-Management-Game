@@ -1,10 +1,10 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.UI;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Runtime.Serialization;
-using static Game1.UI.ActiveUIManager;
 
-namespace Game1.UI
+namespace Game1.Shapes
 {
     [DataContract]
     public class MyRectangle : NearRectangle
@@ -33,7 +33,7 @@ namespace Game1.UI
                     color: Color,
                     rotation: C.Rotation(vector: direction),
                     origin: origin,
-                    scale: new Vector2(Vector2.Distance(Start, End), CurUIConfig.rectOutlineWidth)
+                    scale: new Vector2(Vector2.Distance(Start, End), ActiveUIManager.RectOutlineWidth)
                 );
             }
         }
@@ -44,14 +44,14 @@ namespace Game1.UI
             => pixelTexture = C.LoadTexture(name: "pixel");
 
         public MyRectangle()
-            : this(width: 2 * CurUIConfig.rectOutlineWidth, height: 2 * CurUIConfig.rectOutlineWidth)
+            : this(width: 2 * ActiveUIManager.RectOutlineWidth, height: 2 * ActiveUIManager.RectOutlineWidth)
         { }
 
         public MyRectangle(float width, float height)
             : base(width: width, height: height)
         {
-            MinWidth = 2 * CurUIConfig.rectOutlineWidth;
-            MinHeight = 2 * CurUIConfig.rectOutlineWidth;
+            MinWidth = 2 * ActiveUIManager.RectOutlineWidth;
+            MinHeight = 2 * ActiveUIManager.RectOutlineWidth;
         }
 
         public override bool Contains(Vector2 position)

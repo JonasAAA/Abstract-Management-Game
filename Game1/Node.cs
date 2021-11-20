@@ -1,5 +1,6 @@
 ﻿using Game1.Events;
 using Game1.Industries;
+using Game1.Shapes;
 using Game1.UI;
 using Microsoft.Xna.Framework;
 using System;
@@ -8,7 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Serialization;
 using static Game1.WorldManager;
-using static Game1.UI.ActiveUIManager;
 
 namespace Game1
 {
@@ -267,7 +267,7 @@ namespace Game1
 
             SetPopup
             (
-                UIElement: UITabPanel,
+                HUDElement: UITabPanel,
                 overlays: Enum.GetValues<Overlay>()
             );
 
@@ -338,7 +338,7 @@ namespace Game1
 
             ResDestinArrow resDestinArrow = new
             (
-                shape: new Arrow(startPos: Position, endPos: destination, width: resDestinArrowWidth),
+                shape: new Arrow(startPos: Position, endPos: destination, baseWidth: resDestinArrowWidth),
                 defaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
                 defaultInactiveColor: Color.White * .5f,
                 popupHorizPos: HorizPos.Right,
@@ -507,13 +507,15 @@ namespace Game1
             base.Draw();
 
             if (Active && CurWorldManager.ArrowDrawingModeOn)
-                Arrow.DrawArrow
+                new Arrow
                 (
                     startPos: Position,
                     endPos: CurWorldManager.MouseWorldPos,
-                    width: resDestinArrowWidth,
-                    color: Color.White * .25f
-                );
+                    baseWidth: resDestinArrowWidth
+                )
+                {
+                    Color = Color.White * .25f
+                }.Draw();
         }
         
         public void SetRemainingLocalWatts(double remainingLocalWatts)

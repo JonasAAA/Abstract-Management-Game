@@ -3,7 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Runtime.Serialization;
 
-namespace Game1.UI
+namespace Game1.Shapes
 {
     [DataContract]
     public class Triangle : NearRectangle

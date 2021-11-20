@@ -24,6 +24,7 @@ namespace Game1
         [DataMember] public readonly float screenBoundWidthForMapMoving;
         [DataMember] public readonly float minSafeDist;
         [DataMember] public readonly ulong resDistribArrowsUILayer;
+        [DataMember] public readonly float linkWidth;
 
         public WorldConfig()
         {
@@ -66,6 +67,8 @@ namespace Game1
             minSafeDist = 100;
 
             resDistribArrowsUILayer = 1;
+
+            linkWidth = 10;
         }
     }
 }

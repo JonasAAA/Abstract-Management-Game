@@ -1,6 +1,5 @@
 ﻿using Game1.Events;
-using Microsoft.Xna.Framework;
-using System;
+using Game1.Shapes;
 using System.Runtime.Serialization;
 
 namespace Game1.UI
@@ -15,7 +14,7 @@ namespace Game1.UI
 
         [DataMember] protected readonly TextBox textBox;
 
-        public Button(NearRectangle shape, string explanation = defaultExplanation, string text = null)
+        public Button(NearRectangle shape, string text = null, string explanation = defaultExplanation)
             : base(shape: shape, explanation)
         {
             clicked = new();
@@ -24,13 +23,6 @@ namespace Game1.UI
                 Text = text
             };
             AddChild(child: textBox);
-        }
-
-        public override IUIElement CatchUIElement(Vector2 mousePos)
-        {
-            if (shape.Transparent)
-                throw new InvalidOperationException();
-            return base.CatchUIElement(mousePos);
         }
 
         protected override void PartOfRecalcSizeAndPos()

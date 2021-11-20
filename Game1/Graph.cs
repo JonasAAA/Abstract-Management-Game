@@ -1,4 +1,5 @@
 ﻿using Game1.Events;
+using Game1.Shapes;
 using Game1.UI;
 using Microsoft.Xna.Framework;
 using System;
@@ -241,8 +242,12 @@ namespace Game1
         public override void OnClick()
         {
             base.OnClick();
-    
-            ActiveWorldElement.Active = false;
+
+            if (ActiveWorldElement is not null)
+            {
+                ActiveWorldElement.Active = false;
+                ActiveWorldElement = null;
+            }
         }
 
         public void RemoveResDestinArrow(int resInd, ResDestinArrow resDestinArrow)

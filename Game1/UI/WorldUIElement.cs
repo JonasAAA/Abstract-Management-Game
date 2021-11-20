@@ -1,11 +1,11 @@
 ﻿using Game1.Events;
+using Game1.Shapes;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
 using static Game1.WorldManager;
-using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -32,14 +32,14 @@ namespace Game1.UI
                 if (active)
                     CurWorldManager.AddHUDElement
                     (
-                        HUDElement: popup[CurWorldManager.Overlay],
+                        HUDElement: popups[CurWorldManager.Overlay],
                         horizPos: popupHorizPos,
                         vertPos: popupVertPos
                     );
                 else
                     CurWorldManager.RemoveHUDElement
                     (
-                        HUDElement: popup[CurWorldManager.Overlay]
+                        HUDElement: popups[CurWorldManager.Overlay]
                     );
                 activeChanged.Raise(action: listener => listener.ActiveChangedResponse(worldUIElement: this));
 
@@ -72,7 +72,7 @@ namespace Game1.UI
         [DataMember] private readonly Event<IDeletedListener> deleted;
         [DataMember] private bool active;
 
-        [DataMember] private readonly Dictionary<Overlay, IHUDElement> popup;
+        [DataMember] private readonly Dictionary<Overlay, IHUDElement> popups;
 
         public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
             : base(shape: shape)
@@ -86,7 +86,7 @@ namespace Game1.UI
             SetShapeColor();
             deleted = new();
 
-            popup = Enum.GetValues<Overlay>().ToDictionary
+            popups = Enum.GetValues<Overlay>().ToDictionary
             (
                 keySelector: overlay => overlay,
                 elementSelector: overlay => (IHUDElement)null
@@ -94,13 +94,13 @@ namespace Game1.UI
             CurOverlayChanged.Add(listener: this);
         }
 
-        protected void SetPopup(IHUDElement UIElement, Overlay overlay)
-            => popup[overlay] = UIElement;
+        protected void SetPopup(IHUDElement HUDElement, Overlay overlay)
+            => popups[overlay] = HUDElement;
 
-        protected void SetPopup(IHUDElement UIElement, IEnumerable<Overlay> overlays)
+        protected void SetPopup(IHUDElement HUDElement, IEnumerable<Overlay> overlays)
         {
             foreach (var overlay in overlays)
-                SetPopup(UIElement: UIElement, overlay: overlay);
+                SetPopup(HUDElement: HUDElement, overlay: overlay);
         }
 
         public override void OnClick()
@@ -123,13 +123,13 @@ namespace Game1.UI
         {
             if (!Active)
                 return;
-            if (popup[prevOverlay] == popup[CurWorldManager.Overlay])
+            if (popups[prevOverlay] == popups[CurWorldManager.Overlay])
                 return;
 
-            CurWorldManager.RemoveHUDElement(HUDElement: popup[prevOverlay]);
+            CurWorldManager.RemoveHUDElement(HUDElement: popups[prevOverlay]);
             CurWorldManager.AddHUDElement
             (
-                HUDElement: popup[CurWorldManager.Overlay],
+                HUDElement: popups[CurWorldManager.Overlay],
                 horizPos: popupHorizPos,
                 vertPos: popupVertPos
             );

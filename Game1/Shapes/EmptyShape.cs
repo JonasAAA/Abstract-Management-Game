@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Runtime.Serialization;
 
-namespace Game1.UI
+namespace Game1.Shapes
 {
     [DataContract]
     public class EmptyShape : NearRectangle

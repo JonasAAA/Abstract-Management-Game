@@ -1,7 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Shapes;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Runtime.Serialization;
-using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -40,7 +40,7 @@ namespace Game1.UI
             : base(shape: new MyRectangle())
         {
             Shape.Color = Color.Transparent;
-            scale = CurUIConfig.letterHeight / font.MeasureString("F").Y;
+            scale = ActiveUIManager.CurUIConfig.letterHeight / font.MeasureString("F").Y;
             TextColor = Color.Black;
             Text = null;
         }

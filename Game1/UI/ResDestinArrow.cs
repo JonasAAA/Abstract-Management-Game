@@ -1,4 +1,5 @@
 ﻿using Game1.Events;
+using Game1.Shapes;
 using Microsoft.Xna.Framework;
 using System;
 using System.Runtime.Serialization;
@@ -43,7 +44,6 @@ namespace Game1.UI
         [DataMember] private new readonly Arrow shape;
         [DataMember] private int totalImportance;
         [DataMember] private readonly Color defaultActiveColor, defaultInactiveColor;
-        [DataMember] private readonly UIRectPanel<IHUDElement> popup;
         [DataMember] private readonly NumIncDecrPanel importanceIncDecrPanel;
         [DataMember] private readonly TextBox line2;
 
@@ -55,12 +55,12 @@ namespace Game1.UI
             this.defaultInactiveColor = defaultInactiveColor;
             if (resInd is < 0 or > (int)MaxRes)
                 throw new ArgumentOutOfRangeException();
-            popup = new UIRectVertPanel<IHUDElement>
+            UIRectPanel<IHUDElement> popup = new UIRectVertPanel<IHUDElement>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
             );
-            SetPopup(UIElement: popup, overlay: (Overlay)resInd);
+            SetPopup(HUDElement: popup, overlay: (Overlay)resInd);
 
             UIRectHorizPanel<IHUDElement> line1 = new
             (

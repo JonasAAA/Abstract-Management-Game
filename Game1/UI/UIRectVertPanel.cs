@@ -1,7 +1,7 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Shapes;
+using Microsoft.Xna.Framework;
 using System.Linq;
 using System.Runtime.Serialization;
-using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -21,13 +21,13 @@ namespace Game1.UI
         {
             base.PartOfRecalcSizeAndPos();
 
-            Shape.Width = 2 * CurUIConfig.rectOutlineWidth + children.Count switch
+            Shape.Width = 2 * ActiveUIManager.RectOutlineWidth + children.Count switch
             {
                 0 => 0,
                 not 0 => children.Max(child => child.Shape.Width)
             };
             
-            Shape.Height = 2 * CurUIConfig.rectOutlineWidth + children.Count switch
+            Shape.Height = 2 * ActiveUIManager.RectOutlineWidth + children.Count switch
             {
                 0 => 0,
                 not 0 => children.Sum(child => child.Shape.Height)
@@ -39,7 +39,7 @@ namespace Game1.UI
                 child.Shape.SetPosition
                 (
                     position: Shape.GetPosition(horizOrigin: childHorizPos, vertOrigin: VertPos.Top)
-                        + new Vector2(-(int)childHorizPos * CurUIConfig.rectOutlineWidth, curHeightSum + CurUIConfig.rectOutlineWidth),
+                        + new Vector2(-(int)childHorizPos * ActiveUIManager.RectOutlineWidth, curHeightSum + ActiveUIManager.RectOutlineWidth),
                     horizOrigin: childHorizPos,
                     vertOrigin: VertPos.Top
                 );

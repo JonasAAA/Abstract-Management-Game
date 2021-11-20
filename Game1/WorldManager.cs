@@ -1,5 +1,6 @@
 ﻿using Game1.Events;
 using Game1.Industries;
+using Game1.Shapes;
 using Game1.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -12,7 +13,6 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Xml;
-using static Game1.UI.ActiveUIManager;
 
 namespace Game1
 {
@@ -35,13 +35,37 @@ namespace Game1
         public static IndustryConfig CurIndustryConfig
             => CurWorldManager.industryConfig;
 
-        public static void CreateWorldUIManager(GraphicsDevice graphicsDevice)
+        public static ActiveUIManager CreateWorldManager(GraphicsDevice graphicsDevice)
         {
-            if (CurWorldManager is not null)
-                throw new InvalidOperationException();
             CurWorldManager = new();
             CurWorldManager.graph = CreateGraph();
+            AddUIElements();
             CurWorldManager.Initialize(graphicsDevice: graphicsDevice);
+
+            return CurWorldManager.activeUIManager;
+
+            static void AddUIElements()
+            {
+                CurWorldManager.activeUIManager.AddNonHUDElement(UIElement: CurWorldManager.graph, posTransformer: CurWorldManager.worldCamera);
+                CurWorldManager.AddHUDElement
+                (
+                    HUDElement: CurWorldManager.globalTextBox,
+                    horizPos: HorizPos.Left,
+                    vertPos: VertPos.Top
+                );
+                CurWorldManager.AddHUDElement
+                (
+                    HUDElement: CurWorldManager.overlayChoicePanel,
+                    horizPos: HorizPos.Middle,
+                    vertPos: VertPos.Top
+                );
+                CurWorldManager.AddHUDElement
+                (
+                    HUDElement: CurWorldManager.pauseButton,
+                    horizPos: HorizPos.Right,
+                    vertPos: VertPos.Bottom
+                );
+            }
 
             static Graph CreateGraph()
             {
@@ -129,13 +153,15 @@ namespace Game1
             }
         }
 
-        public static void LoadWorldUIManager(GraphicsDevice graphicsDevice)
+        public static ActiveUIManager LoadWorldManager(GraphicsDevice graphicsDevice)
         {
             if (CurWorldManager is not null)
                 throw new InvalidOperationException();
 
             CurWorldManager = Deserialize();
             CurWorldManager.Initialize(graphicsDevice: graphicsDevice);
+
+            return CurWorldManager.activeUIManager;
 
             static WorldManager Deserialize()
             {
@@ -198,8 +224,7 @@ namespace Game1
                 {
                     if (CurWorldManager.Overlay > MaxRes)
                         throw new Exception();
-                    worldHUD.HasDisabledAncestor = true;
-                    graph.HasDisabledAncestor = true;
+                    activeUIManager.DisableAllUIElements();
                     if (graph.ActiveWorldElement is Node activeNode)
                     {
                         foreach (var node in graph.Nodes)
@@ -210,10 +235,7 @@ namespace Game1
                         throw new Exception();
                 }
                 else
-                {
-                    worldHUD.HasDisabledAncestor = false;
-                    graph.HasDisabledAncestor = false;
-                }
+                    activeUIManager.EnableAllUIElements();
             }
         }
 
@@ -225,13 +247,13 @@ namespace Game1
         [DataMember] private readonly ActivityManager activityManager;
         [DataMember] private readonly LightManager lightManager;
 
-        [DataMember] private readonly WorldHUD worldHUD;
+        [DataMember] private readonly ActiveUIManager activeUIManager;
         [DataMember] private readonly TextBox globalTextBox;
         [DataMember] private readonly ToggleButton pauseButton;
         [DataMember] private readonly MultipleChoicePanel<Overlay> overlayChoicePanel;
 
         [DataMember] private Graph graph;
-        [DataMember] private WorldCamera worldCamera;
+        [DataMember] private readonly WorldCamera worldCamera;
         [DataMember] private bool arrowDrawingModeOn;
 
         private WorldManager()
@@ -245,18 +267,15 @@ namespace Game1
             energyManager = new();
             lightManager = new();
 
-            worldHUD = new();
+            worldCamera = new(startingWorldScale: worldConfig.startingWorldScale);
+
+            activeUIManager = new();
+            activeUIManager.clickedNowhere.Add(listener: this);
 
             globalTextBox = new();
             globalTextBox.Shape.MinWidth = 300;
             globalTextBox.Shape.Color = Color.White;
-            AddHUDElement
-            (
-                HUDElement: globalTextBox,
-                horizPos: HorizPos.Left,
-                vertPos: VertPos.Top
-            );
-
+            
             overlayChoicePanel = new
             (
                 horizontal: true,
@@ -268,13 +287,7 @@ namespace Game1
             );
             foreach (var posOverlay in Enum.GetValues<Overlay>())
                 overlayChoicePanel.AddChoice(choiceLabel: posOverlay);
-            AddHUDElement
-            (
-                HUDElement: overlayChoicePanel,
-                horizPos: HorizPos.Middle,
-                vertPos: VertPos.Top
-            );
-
+            
             pauseButton = new
             (
                 shape: new MyRectangle
@@ -287,25 +300,12 @@ namespace Game1
                 selectedColor: Color.White,
                 deselectedColor: Color.Gray
             );
-            AddHUDElement
-            (
-                HUDElement: pauseButton,
-                horizPos: HorizPos.Right,
-                vertPos: VertPos.Bottom
-            );
-
+            
             arrowDrawingModeOn = false;
         }
 
         private void Initialize(GraphicsDevice graphicsDevice)
-        {
-            worldCamera = new(graphicsDevice: graphicsDevice);
-            lightManager.Initialize(graphicsDevice: graphicsDevice);
-
-            CurActiveUIManager.AddNonHUDElement(UIElement: graph, screenToPos: worldCamera.WorldPos);
-            CurActiveUIManager.AddHUDElement(HUDElement: worldHUD, horizPos: HorizPos.Middle, vertPos: VertPos.Middle);
-            CurActiveUIManager.clickedNowhere.Add(listener: this);
-        }
+            => lightManager.Initialize(graphicsDevice: graphicsDevice);
 
         public void AddResDestinArrow(int resInd, ResDestinArrow resDestinArrow)
             => graph.AddResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
@@ -314,10 +314,10 @@ namespace Game1
             => graph.RemoveResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
         public void AddHUDElement(IHUDElement HUDElement, HorizPos horizPos, VertPos vertPos)
-            => worldHUD.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
-
+            => activeUIManager.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
+            
         public void RemoveHUDElement(IHUDElement HUDElement)
-            => worldHUD.RemoveHUDElement(HUDElement: HUDElement);
+            => activeUIManager.RemoveHUDElement(HUDElement: HUDElement);
 
         public void AddEnergyProducer(IEnergyProducer energyProducer)
             => energyManager.AddEnergyProducer(energyProducer: energyProducer);
@@ -351,7 +351,7 @@ namespace Game1
             Elapsed = elapsed;
             CurTime += Elapsed;
 
-            worldCamera.Update(elapsed: elapsed, canScroll: !CurActiveUIManager.MouseAboveHUD);
+            worldCamera.Update(elapsed: elapsed, canScroll: graph.MouseOn);
 
             lightManager.Update();
 
@@ -367,6 +367,8 @@ namespace Game1
             activityManager.ManageActivities(people: people);
 
             globalTextBox.Text = (energyManager.Summary() + $"population {people.Count}").Trim();
+
+            activeUIManager.Update(elapsed: elapsed);
         }
 
         public void Draw(GraphicsDevice graphicsDevice)
@@ -380,14 +382,12 @@ namespace Game1
             worldCamera.BeginDraw();
             graph.DrawAfterLight();
             worldCamera.EndDraw();
+
+            activeUIManager.DrawHUD();
         }
 
-        public void Serialize()
+        public void Save()
         {
-            CurActiveUIManager.RemoveNonHUDElement(UIElement: graph);
-            CurActiveUIManager.RemoveHUDElement(HUDElement: worldHUD);
-            CurActiveUIManager.clickedNowhere.Remove(listener: this);
-
             using FileStream fileStream = new(path: GetSaveFilePath, FileMode.Create);
             DataContractSerializer serializer = GetDataContractSerializer();
 

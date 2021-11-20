@@ -128,8 +128,6 @@ namespace Game1
                     {
                         energyPropor = availableWatts / reqWatts;
                         availableWatts = 0;
-                        //if (priority is 0)
-                        //    throw new Exception();
                     }
                     else
                     {

@@ -1,4 +1,5 @@
 ﻿using Game1.Events;
+using Game1.Shapes;
 using Game1.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -70,6 +71,15 @@ namespace Game1
             public void Add(Person person)
                 => waitingPeople.Add(person);
 
+            public ulong GetTravellingAmount()
+                => CurWorldManager.Overlay switch
+                {
+                    <= MaxRes => timedPacketQueue.TotalResAmounts[(int)CurWorldManager.Overlay],
+                    Overlay.AllRes => timedPacketQueue.TotalResAmounts.TotalWeight(),
+                    Overlay.People => (ulong)timedPacketQueue.PeopleCount,
+                    _ => throw new InvalidOperationException()
+                };
+
             public void Update()
             {
                 timedPacketQueue.Update(workingPropor: energyPropor);
@@ -94,17 +104,6 @@ namespace Game1
             public void DrawTravelingRes()
             {
                 // temporary
-                void DrawDisk(double complProp, double size)
-                    => C.Draw
-                    (
-                        texture: diskTexture,
-                        position: startNode.Position + (float)complProp * (endNode.Position - startNode.Position),
-                        color: Color.Black,
-                        rotation: 0,
-                        origin: new Vector2(diskTexture.Width * .5f, diskTexture.Height * .5f),
-                        scale: (float)Math.Sqrt(size) * 2 / diskTexture.Width
-                    );
-
                 switch (CurWorldManager.Overlay)
                 {
                     case <= MaxRes:
@@ -120,6 +119,17 @@ namespace Game1
                             DrawDisk(complProp: complProp, size: people.Count());
                         break;
                 }
+
+                void DrawDisk(double complProp, double size)
+                    => C.Draw
+                    (
+                        texture: diskTexture,
+                        position: startNode.Position + (float)complProp * (endNode.Position - startNode.Position),
+                        color: Color.Black,
+                        rotation: 0,
+                        origin: new Vector2(diskTexture.Width * .5f, diskTexture.Height * .5f),
+                        scale: (float)Math.Sqrt(size) * 2 / diskTexture.Width
+                    );
             }
 
             ulong IEnergyConsumer.EnergyPriority
@@ -142,9 +152,23 @@ namespace Game1
             => link1To2.TravelTime;
 
         [DataMember] private readonly DirLink link1To2, link2To1;
+        [DataMember] private readonly MyArray<TextBox> resTextBoxes;
+        [DataMember] private readonly TextBox allResTextBox, peopleTextBox;
 
         public Link(Node node1, Node node2, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
-            : base(shape: new EmptyShape(), activeColor: Color.White, inactiveColor: Color.Gray, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
+            : base
+            (
+                shape: new LineSegment
+                (
+                    startPos: node1.Position,
+                    endPos: node2.Position,
+                    width: CurWorldConfig.linkWidth
+                ),
+                activeColor: Color.White,
+                inactiveColor: Color.Green,
+                popupHorizPos: HorizPos.Right,
+                popupVertPos: VertPos.Top
+            )
         {
             if (node1 == node2)
                 throw new ArgumentException();
@@ -154,6 +178,22 @@ namespace Game1
             
             link1To2 = new(startNode: node1, endNode: node2, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
             link2To1 = new(startNode: node2, endNode: node1, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
+
+            resTextBoxes = new();
+            for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
+            {
+                resTextBoxes[resInd] = new();
+                resTextBoxes[resInd].Shape.Color = Color.White;
+                SetPopup(HUDElement: resTextBoxes[resInd], overlay: (Overlay)resInd);
+            }
+
+            allResTextBox = new();
+            allResTextBox.Shape.Color = Color.White;
+            SetPopup(HUDElement: allResTextBox, overlay: Overlay.AllRes);
+
+            peopleTextBox = new();
+            peopleTextBox.Shape.Color = Color.White;
+            SetPopup(HUDElement: peopleTextBox, overlay: Overlay.People);
         }
 
         public Node OtherNode(Node node)
@@ -188,6 +228,35 @@ namespace Game1
         {
             link1To2.Update();
             link2To1.Update();
+
+            InactiveColor = Color.Lerp
+            (
+                value1: Color.White,
+                value2: Color.Green,
+                amount: CurWorldManager.Overlay switch
+                {
+                    Overlay.People => (float)(TravelTime / CurWorldManager.MaxLinkTravelTime),
+                    _ => (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
+                }
+            );
+
+            if (CurWorldManager.Overlay is Overlay.Power)
+                return;
+
+            ulong travellingAmount = link1To2.GetTravellingAmount() + link2To1.GetTravellingAmount();
+
+            switch (CurWorldManager.Overlay)
+            {
+                case <= MaxRes:
+                    resTextBoxes[(int)CurWorldManager.Overlay].Text = $"{travellingAmount} of {CurWorldManager.Overlay} is travelling";
+                    break;
+                case Overlay.AllRes:
+                    allResTextBox.Text = $"{travellingAmount} kg of resources are travelling";
+                    break;
+                case Overlay.People:
+                    peopleTextBox.Text = $"{travellingAmount} of people are travelling";
+                    break;
+            }
         }
 
         public void UpdatePeople()
@@ -198,32 +267,10 @@ namespace Game1
 
         public override void Draw()
         {
-            // temporary
-            Texture2D pixel = C.LoadTexture(name: "pixel");
-            Color color = Color.Lerp
-            (
-                value1: Color.White,
-                value2: Color.Green,
-                amount: CurWorldManager.Overlay switch
-                {
-                    Overlay.People => (float)(TravelTime / CurWorldManager.MaxLinkTravelTime),
-                    _ => (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
-                }
-            );
-            C.Draw
-            (
-                texture: pixel,
-                position: (node1.Position + node2.Position) / 2,
-                color: color,
-                rotation: C.Rotation(vector: node1.Position - node2.Position),
-                origin: new Vector2(.5f, .5f),
-                scale: new Vector2(Vector2.Distance(node1.Position, node2.Position), 10)
-            );
+            base.Draw();
 
             link1To2.DrawTravelingRes();
             link2To1.DrawTravelingRes();
-
-            base.Draw();
         }
 
         // this is commented out, otherwise the object construction fails as

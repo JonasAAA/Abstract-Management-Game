@@ -3,31 +3,17 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Runtime.Serialization;
 
-namespace Game1.UI
+namespace Game1.Shapes
 {
     [DataContract]
-    public class Arrow : Shape
+    public abstract class VectorShape : Shape
     {
-        private static readonly Texture2D triangleTexture;
-
-        static Arrow()
-            => triangleTexture = C.LoadTexture(name: "triangle");
-
-        public static void DrawArrow(Vector2 startPos, Vector2 endPos, float width, Color color)
-            => C.Draw
-            (
-                texture: triangleTexture,
-                position: (startPos + endPos) / 2,
-                color: color,
-                rotation: C.Rotation(vector: endPos - startPos),
-                origin: new Vector2(triangleTexture.Width, triangleTexture.Height) * .5f,
-                scale: new Vector2(Vector2.Distance(startPos, endPos) / triangleTexture.Width, width / triangleTexture.Height)
-            );
-
         [DataMember] public readonly Vector2 startPos, endPos;
-        [DataMember] private readonly float width;
 
-        public Arrow(Vector2 startPos, Vector2 endPos, float width)
+        protected abstract Texture2D Texture { get; }
+        [DataMember] protected readonly float width;
+
+        protected VectorShape(Vector2 startPos, Vector2 endPos, float width)
         {
             if (C.IsTiny(Vector2.Distance(startPos, endPos)))
                 throw new ArgumentException();
@@ -47,10 +33,22 @@ namespace Game1.UI
                 orthDirProp = Math.Abs(Vector2.Dot(relPos, orthDir) / (width * .5f));
             if (dirProp is < 0 or >= 1 || orthDirProp >= 1)
                 return false;
-            return dirProp + orthDirProp < 1;
+            return Contains(dirProp: dirProp, orthDirProp: orthDirProp);
         }
 
+        /// <param name="dirProp">0 to 1</param>
+        /// <param name="orthDirProp">0 to 1</param>
+        protected abstract bool Contains(float dirProp, float orthDirProp);
+
         protected override void Draw(Color color)
-            => DrawArrow(startPos: startPos, endPos: endPos, width: width, color: color);
+            => C.Draw
+            (
+                texture: Texture,
+                position: (startPos + endPos) / 2,
+                color: color,
+                rotation: C.Rotation(vector: endPos - startPos),
+                origin: new Vector2(Texture.Width, Texture.Height) * .5f,
+                scale: new Vector2(Vector2.Distance(startPos, endPos) / Texture.Width, width / Texture.Height)
+            );
     }
 }

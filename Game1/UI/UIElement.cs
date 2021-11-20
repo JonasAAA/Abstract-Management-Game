@@ -1,10 +1,10 @@
 ﻿using Game1.Events;
+using Game1.Shapes;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.Serialization;
-using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -162,14 +162,11 @@ namespace Game1.UI
                 throw new InvalidOperationException();
         }
 
-        //public virtual void OnMouseDownWorldNotMe()
-        //{ }
-
         public virtual void Draw()
         {
             shape.Draw
             (
-                otherColor: CurUIConfig.mouseOnColor,
+                otherColor: ActiveUIManager.CurUIConfig.mouseOnColor,
                 otherColorProp: (CanBeClicked && MouseOn) switch
                 {
                     true => .5f,

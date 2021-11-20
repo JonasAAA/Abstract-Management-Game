@@ -8,9 +8,12 @@ namespace Game1
     [DataContract]
     public class TimedPacketQueue : TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, IEnumerable<Person> people)>
     {
+        public int PeopleCount
+            => people.Count;
         public IEnumerable<Person> People
             => people;
 
+        [DataMember] public ConstULongArray TotalResAmounts { get; private set; }
         [DataMember] public ulong TotalWeight { get; private set; }
 
         [DataMember] private readonly MyHashSet<Person> people;
@@ -18,17 +21,19 @@ namespace Game1
         public TimedPacketQueue(TimeSpan duration)
             : base(duration: duration)
         {
+            TotalResAmounts = new();
             TotalWeight = 0;
             people = new();
         }
 
         public override void Enqueue((ResAmountsPacketsByDestin resAmountsPackets, IEnumerable<Person> people) packets)
         {
-            var newPeople = packets.people.Clone();
-            if (packets.resAmountsPackets.Empty && newPeople.Count() is 0)
+            var newPeople = packets.people.ToArray();
+            if (packets.resAmountsPackets.Empty && newPeople.Length is 0)
                 return;
             people.UnionWith(newPeople);
             base.Enqueue(element: (packets.resAmountsPackets, newPeople));
+            TotalResAmounts += packets.resAmountsPackets.ResAmounts;
             TotalWeight += packets.resAmountsPackets.TotalWeight + newPeople.TotalWeight();
         }
 
@@ -40,6 +45,7 @@ namespace Game1
             var result = base.DoneElements().ToArray();
             foreach (var (resAmountsPackets, people) in result)
             {
+                TotalResAmounts -= resAmountsPackets.ResAmounts;
                 TotalWeight -= resAmountsPackets.TotalWeight + people.TotalWeight();
                 this.people.ExceptWith(people);
             }

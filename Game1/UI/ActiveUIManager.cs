@@ -1,81 +1,73 @@
 ﻿using Game1.Events;
+using Game1.Shapes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-//using static Game1.WorldManager;
+using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
+    [DataContract]
     public class ActiveUIManager
     {
-        public static ActiveUIManager CurActiveUIManager { get; private set; }
+        public static UIConfig CurUIConfig { get; private set; }
+        public static double ScreenWidth { get; private set; }
+        public static double ScreenHeight
+            => CurUIConfig.standardScreenHeight;
+        public static Vector2 MouseHUDPos
+            => HUDCamera.HUDPos(screenPos: Mouse.GetState().Position.ToVector2());
+        public static float RectOutlineWidth
+            => CurUIConfig.rectOutlineWidth;
 
-        public static UIConfig CurUIConfig
-            => CurActiveUIManager.UIConfig;
+        private static HUDCamera HUDCamera;
 
-        public static void CreateActiveUIManager(GraphicsDevice graphicsDevice)
+        public static void Initialize(GraphicsDevice graphicsDevice)
         {
-            if (CurActiveUIManager is not null)
-                throw new InvalidOperationException();
-            CurActiveUIManager = new(graphicsDevice: graphicsDevice);
-
-            CurActiveUIManager.explanationTextBox = new();
-            CurActiveUIManager.explanationTextBox.Shape.Color = Color.LightPink;
-
-            CurActiveUIManager.HUDCamera = new(graphicsDevice: graphicsDevice);
+            CurUIConfig = new();
+            Camera.Initialize(graphicsDevice: graphicsDevice);
+            ScreenWidth = (double)graphicsDevice.Viewport.Width * CurUIConfig.standardScreenHeight / graphicsDevice.Viewport.Height;
+            HUDCamera = new();
         }
 
-        public Event<IClickedNowhereListener> clickedNowhere;
+        [DataMember] public Event<IClickedNowhereListener> clickedNowhere;
 
-        public double ScreenHeight
-            => UIConfig.standardScreenHeight;
+        [DataMember] private readonly List<IUIElement> activeUIElements;
+        [DataMember] private readonly HashSet<IHUDElement> HUDElements;
+        [DataMember] private readonly Dictionary<IUIElement, IPosTransformer> nonHUDElementsToTransform;
+        [DataMember] private bool leftDown, prevLeftDown;
+        [DataMember] private IUIElement halfClicked, contMouse;
+        [DataMember] private readonly TimeSpan minDurationToGetExplanation;
+        [DataMember] private TimeSpan hoverDuration;
+        [DataMember] private readonly TextBox explanationTextBox;
+        [DataMember] private readonly HUDPosSetter HUDPosSetter;
 
-        public Vector2 MouseHUDPos
-            => HUDCamera.HUDPos(screenPos: Mouse.GetState().Position.ToVector2());
-
-        public bool MouseAboveHUD { get; private set; }
-
-        public readonly double screenWidth;
-
-        private readonly UIConfig UIConfig;
-        private readonly List<IUIElement> activeUIElements;
-        private readonly HashSet<IHUDElement> HUDElements;
-        private readonly Dictionary<IUIElement, Func<Vector2, Vector2>> nonHUDElementsToTransform;
-        private bool leftDown, prevLeftDown;
-        private IUIElement halfClicked, contMouse;
-        private readonly TimeSpan minDurationToGetExplanation;
-        private TimeSpan hoverDuration;
-        private TextBox explanationTextBox;
-        private HUDCamera HUDCamera;
-        private readonly HUDPosSetter HUDPosSetter;
-
-        private ActiveUIManager(GraphicsDevice graphicsDevice)
+        public ActiveUIManager()
         {
             clickedNowhere = new();
 
-            UIConfig = new();
             activeUIElements = new();
             HUDElements = new();
             leftDown = new();
             prevLeftDown = new();
             halfClicked = null;
             contMouse = null;
-            MouseAboveHUD = true;
             minDurationToGetExplanation = TimeSpan.FromSeconds(.5);
             hoverDuration = TimeSpan.Zero;
 
-            screenWidth = (double)graphicsDevice.Viewport.Width * UIConfig.standardScreenHeight / graphicsDevice.Viewport.Height;
             HUDPosSetter = new();
             nonHUDElementsToTransform = new();
+
+            explanationTextBox = new();
+            explanationTextBox.Shape.Color = Color.LightPink;
         }
 
-        public void AddNonHUDElement(IUIElement UIElement, Func<Vector2, Vector2> screenToPos)
+        public void AddNonHUDElement(IUIElement UIElement, IPosTransformer posTransformer)
         {
             activeUIElements.Add(UIElement);
-            nonHUDElementsToTransform.Add(UIElement, screenToPos);
+            nonHUDElementsToTransform.Add(UIElement, posTransformer);
         }
 
         public void RemoveNonHUDElement(IUIElement UIElement)
@@ -106,6 +98,18 @@ namespace Game1.UI
             HUDPosSetter.RemoveHUDElement(HUDElement: HUDElement);
         }
 
+        public void EnableAllUIElements()
+        {
+            foreach (var UIElement in activeUIElements)
+                UIElement.HasDisabledAncestor = false;
+        }
+
+        public void DisableAllUIElements()
+        {
+            foreach (var UIElement in activeUIElements)
+                UIElement.HasDisabledAncestor = true;
+        }
+
         public void Update(TimeSpan elapsed)
         {
             IUIElement prevContMouse = contMouse;
@@ -114,30 +118,22 @@ namespace Game1.UI
             prevLeftDown = leftDown;
             leftDown = mouseState.LeftButton == ButtonState.Pressed;
             Vector2 mouseScreenPos = mouseState.Position.ToVector2(),
-                //mouseWorldPos = CurWorldManager.MouseWorldPos,
                 mouseHUDPos = HUDCamera.HUDPos(screenPos: mouseScreenPos);
 
             contMouse = null;
-            MouseAboveHUD = false;
             foreach (var UIElement in Enumerable.Reverse(activeUIElements))
             {
                 Vector2 mousePos = nonHUDElementsToTransform.ContainsKey(UIElement) switch
                 {
-                    true => nonHUDElementsToTransform[UIElement](mouseScreenPos),
+                    true => nonHUDElementsToTransform[UIElement].Transform(screenPos: mouseScreenPos),
                     false => mouseHUDPos
                 };
-                //Vector2 mousePos = HUDElements.Contains(UIElement) switch
-                //{
-                //    true => mouseHUDPos,
-                //    false => mouseWorldPos
-                //};
 
                 IUIElement catchingUIElement = UIElement.CatchUIElement(mousePos: mousePos);
 
                 if (catchingUIElement is not null)
                 {
                     contMouse = catchingUIElement;
-                    MouseAboveHUD = HUDElements.Contains(UIElement);
                     break;
                 }
             }
@@ -152,7 +148,7 @@ namespace Game1.UI
                     explanationTextBox.Shape.ClampPosition
                     (
                         left: 0,
-                        right: (float)screenWidth,
+                        right: (float)ScreenWidth,
                         top: 0,
                         bottom: (float)ScreenHeight
                     );

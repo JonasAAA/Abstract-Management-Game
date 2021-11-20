@@ -1,9 +1,9 @@
 ﻿using Game1.Events;
+using Game1.Shapes;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
-using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -17,7 +17,7 @@ namespace Game1.UI
             {
                 if (shape is NearRectangle nearRectangle)
                 {
-                    Vector2 HUDCenter = new((float)(CurActiveUIManager.screenWidth * .5), (float)(CurActiveUIManager.ScreenHeight * .5));
+                    Vector2 HUDCenter = new((float)(ActiveUIManager.ScreenWidth * .5), (float)(ActiveUIManager.ScreenHeight * .5));
                     nearRectangle.SetPosition
                     (
                         position: HUDCenter + new Vector2((int)HorizPos * HUDCenter.X, (int)VertPos * HUDCenter.Y),

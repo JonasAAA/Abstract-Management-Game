@@ -2,7 +2,7 @@
 //using Microsoft.Xna.Framework.Graphics;
 //using System.Runtime.Serialization;
 
-//namespace Game1.UI
+//namespace Game1.Shapes
 //{
 //    public class Image : NearRectangle
 //    {

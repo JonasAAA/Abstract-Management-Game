@@ -1,26 +1,25 @@
-﻿using Game1.UI;
+﻿using Game1.Events;
+using Game1.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Runtime.Serialization;
 using static Game1.WorldManager;
-using static Game1.UI.ActiveUIManager;
 
 namespace Game1
 {
     [DataContract]
-    public class WorldCamera : Camera
+    public class WorldCamera : Camera, IPosTransformer
     {
         [DataMember] private Matrix worldToScreen, screenToWorld;
         [DataMember] private readonly double scale;
         [DataMember] private Vector2 worldCenter, screenCenter;
 
-        public WorldCamera(GraphicsDevice graphicsDevice)
-            : base(graphicsDevice: graphicsDevice)
+        public WorldCamera(double startingWorldScale)
         {
-            scale = CurWorldConfig.startingWorldScale;
+            scale = startingWorldScale;
             worldCenter = new(0, 0);
-            screenCenter = new((float)(CurActiveUIManager.screenWidth * .5), (float)(CurActiveUIManager.ScreenHeight * .5));
+            screenCenter = new((float)(ActiveUIManager.ScreenWidth * .5), (float)(ActiveUIManager.ScreenHeight * .5));
             Update(elapsed: TimeSpan.Zero, canScroll: false);
         }
 
@@ -35,25 +34,28 @@ namespace Game1
             float elapsedSeconds = (float)elapsed.TotalSeconds;
             if (canScroll)
             {
-                if (CurActiveUIManager.MouseHUDPos.X <= CurWorldConfig.screenBoundWidthForMapMoving)
+                if (ActiveUIManager.MouseHUDPos.X <= CurWorldConfig.screenBoundWidthForMapMoving)
                     worldCenter.X -= CurWorldConfig.scrollSpeed * elapsedSeconds;
-                if (CurActiveUIManager.MouseHUDPos.X >= CurActiveUIManager.screenWidth - CurWorldConfig.screenBoundWidthForMapMoving)
+                if (ActiveUIManager.MouseHUDPos.X >= ActiveUIManager.ScreenWidth - CurWorldConfig.screenBoundWidthForMapMoving)
                     worldCenter.X += CurWorldConfig.scrollSpeed * elapsedSeconds;
-                if (CurActiveUIManager.MouseHUDPos.Y <= CurWorldConfig.screenBoundWidthForMapMoving)
+                if (ActiveUIManager.MouseHUDPos.Y <= CurWorldConfig.screenBoundWidthForMapMoving)
                     worldCenter.Y -= CurWorldConfig.scrollSpeed * elapsedSeconds;
-                if (CurActiveUIManager.MouseHUDPos.Y >= CurActiveUIManager.ScreenHeight - CurWorldConfig.screenBoundWidthForMapMoving)
+                if (ActiveUIManager.MouseHUDPos.Y >= ActiveUIManager.ScreenHeight - CurWorldConfig.screenBoundWidthForMapMoving)
                     worldCenter.Y += CurWorldConfig.scrollSpeed * elapsedSeconds;
             }
 
-            worldToScreen = Matrix.CreateTranslation(xPosition: -worldCenter.X * (float)screenScale, yPosition: -worldCenter.Y * (float)screenScale, zPosition: 0) *
+            worldToScreen = Matrix.CreateTranslation(xPosition: -worldCenter.X * (float)ScreenScale, yPosition: -worldCenter.Y * (float)ScreenScale, zPosition: 0) *
                 Matrix.CreateScale((float)scale) *
                 Matrix.CreateTranslation(xPosition: screenCenter.X, yPosition: screenCenter.Y, zPosition: 0) *
-                Matrix.CreateScale((float)screenScale);
+                Matrix.CreateScale((float)ScreenScale);
 
             screenToWorld = Matrix.Invert(worldToScreen);
         }
 
         public override Matrix GetToScreenTransform()
             => worldToScreen;
+
+        Vector2 IPosTransformer.Transform(Vector2 screenPos)
+            => WorldPos(screenPos: screenPos);
     }
 }

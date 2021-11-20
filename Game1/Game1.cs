@@ -1,23 +1,18 @@
-﻿using Game1.Events;
+﻿using Game1.GameStates;
+using Game1.Shapes;
 using Game1.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using System;
-using static Game1.UI.ActiveUIManager;
+using System.Collections.Generic;
 
 namespace Game1
 {
     public class Game1 : Game
     {
-        private record NewGameButtonClickedListener(Button NewGameButton, GraphicsDevice GraphicsDevice) : IClickedListener
-        {
-            void IClickedListener.ClickedResponse()
-                => WorldManager.CreateWorldUIManager(graphicsDevice: GraphicsDevice);
-        }
-
         private readonly GraphicsDeviceManager graphics;
-        private readonly KeyButton exitButton;
+        private PlayState playState;
+        private GameState gameState;
         
         public Game1()
         {
@@ -26,16 +21,6 @@ namespace Game1
             IsMouseVisible = true;
 
             Window.IsBorderless = true;
-
-            exitButton = new KeyButton
-            (
-                key: Keys.Escape,
-                action: () =>
-                {
-                    WorldManager.CurWorldManager.Serialize();
-                    Exit();
-                }
-            );
         }
 
         protected override void Initialize()
@@ -62,52 +47,117 @@ namespace Game1
                 spriteBatch: new(GraphicsDevice)
             );
 
-            CreateActiveUIManager(graphicsDevice: GraphicsDevice);
-            UIRectVertPanel<Button> UIPanel = new(color: Color.White, childHorizPos: HorizPos.Middle);
-            //Button newGameButton = new
-            //(
-            //    shape: new MyRectangle(width: 200, height: 30)
-            //    {
-            //        Color = Color.White
-            //    },
-            //    text: "New game"
-            //);
-            //newGameButton.clicked.Add
-            //(
-            //    listener: new NewGameButtonClickedListener
-            //    (
-            //        NewGameButton: newGameButton,
-            //        GraphicsDevice: GraphicsDevice
-            //    )
-            //);
-            //UIPanel.AddChild(child: newGameButton);
+            ActiveUIManager.Initialize(graphicsDevice: GraphicsDevice);
 
-            CurActiveUIManager.AddHUDElement(HUDElement: UIPanel, horizPos: HorizPos.Middle, vertPos: VertPos.Middle);
+            const float buttonWidth = 200, buttonHeight = 30;
+            MenuState mainMenu = new
+            (
+                actionButtons: new List<ActionButton>()
+                {
+                    new
+                    (
+                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                        {
+                            Color = Color.White
+                        },
+                        action: () =>
+                        {
+                            if (playState is null)
+                                playState = PlayState.LoadGame(graphicsDevice: GraphicsDevice);
+                            SetGameState(newGameState: playState);
+                        },
+                        text: "Continue"
+                    ),
+                    new
+                    (
+                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                        {
+                            Color = Color.White
+                        },
+                        action: () =>
+                        {
+                            playState = PlayState.StartNewGame(graphicsDevice: GraphicsDevice);
+                            SetGameState(newGameState: playState);
+                        },
+                        text: "New game"
+                    ),
+                    new
+                    (
+                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                        {
+                            Color = Color.White
+                        },
+                        action: Exit,
+                        text: "Exit"
+                    ),
+                }
+            );
 
-            WorldManager.CreateWorldUIManager(graphicsDevice: GraphicsDevice);
-            //WorldManager.LoadWorldUIManager(graphicsDevice: GraphicsDevice);
+            SetGameState(newGameState: mainMenu);
+
+            MenuState pauseMenu = new
+            (
+                actionButtons: new List<ActionButton>()
+                {
+                    new
+                    (
+                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                        {
+                            Color = Color.White
+                        },
+                        action: () => SetGameState(newGameState: playState),
+                        text: "Continue"
+                    ),
+                    new
+                    (
+                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                        {
+                            Color = Color.White
+                        },
+                        action: () => playState.SaveGame(),
+                        text: "Quick save"
+                    ),
+                    new
+                    (
+                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                        {
+                            Color = Color.White
+                        },
+                        action: () =>
+                        {
+                            playState.SaveGame();
+                            SetGameState(newGameState: mainMenu);
+                        },
+                        text: "Save and exit"
+                    ),
+                }
+            );
+            PlayState.Initialize
+            (
+                switchToPauseMenu: () => SetGameState(newGameState: pauseMenu)
+            );
+
+            void SetGameState(GameState newGameState)
+            {
+                if (gameState is not null)
+                    gameState.OnLeave();
+                gameState = newGameState;
+                gameState.OnEnter();
+            }
         }
 
         protected override void Update(GameTime gameTime)
         {
-            exitButton.Update();
-
             TimeSpan elapsed = gameTime.ElapsedGameTime;
 
-            CurActiveUIManager.Update(elapsed: elapsed);
-
-            WorldManager.CurWorldManager?.Update(elapsed: elapsed);
+            gameState.Update(elapsed: elapsed);
 
             base.Update(gameTime);
         }
 
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.Transparent);
-
-            WorldManager.CurWorldManager?.Draw(graphicsDevice: GraphicsDevice);
-
-            CurActiveUIManager.DrawHUD();
+            gameState.Draw(graphicsDevice: GraphicsDevice);
 
             base.Draw(gameTime);
         }

@@ -63,6 +63,8 @@ namespace Game1
 
         public void Draw(GraphicsDevice graphicsDevice, Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
         {
+            if (vertices.Count is 0)
+                return;
             Vector2 textureCenter = new(.5f);
             int centerInd = vertices.Count;
             vertPosTex[centerInd] = new VertexPositionColorTexture(Transform(pos: center), color, textureCenter);

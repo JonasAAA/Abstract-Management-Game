@@ -1,4 +1,5 @@
 ﻿using Game1.Events;
+using Game1.Shapes;
 using Game1.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -30,7 +31,7 @@ namespace Game1
             popupTextBox.Shape.Color = Color.White;
             SetPopup
             (
-                UIElement: popupTextBox,
+                HUDElement: popupTextBox,
                 overlays: Enum.GetValues<Overlay>()
             );
 

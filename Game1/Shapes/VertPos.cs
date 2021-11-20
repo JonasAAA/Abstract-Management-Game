@@ -1,4 +1,4 @@
-﻿namespace Game1.UI
+﻿namespace Game1.Shapes
 {
     public enum VertPos
     {

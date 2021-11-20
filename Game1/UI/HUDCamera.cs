@@ -9,10 +9,9 @@ namespace Game1.UI
     {
         [DataMember] private readonly Matrix HUDToScreen, screenToHUD;
 
-        public HUDCamera(GraphicsDevice graphicsDevice)
-            : base(graphicsDevice: graphicsDevice)
+        public HUDCamera()
         {
-            HUDToScreen = Matrix.CreateScale(scale: (float)screenScale);
+            HUDToScreen = Matrix.CreateScale(scale: (float)ScreenScale);
             screenToHUD = Matrix.Invert(HUDToScreen);
         }
 

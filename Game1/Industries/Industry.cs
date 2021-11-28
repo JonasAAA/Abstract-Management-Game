@@ -25,7 +25,7 @@ namespace Game1.Industries
             [DataMember] public readonly double reqSkill;
             [DataMember] public readonly string explanation;
 
-            public Params(IndustryType industryType, string name, ulong energyPriority, double reqSkill, string explanation)
+            protected Params(IndustryType industryType, string name, ulong energyPriority, double reqSkill, string explanation)
             {
                 this.industryType = industryType;
                 this.name = name;
@@ -84,7 +84,6 @@ namespace Game1.Industries
                         var person = allEmployeesPriorQueue.Dequeue();
                         totalHiredSkill -= person.skills[parameters.industryType];
                         RemovePerson(person: person);
-
                     }
 
                     double curOpenSpace = OpenSpace();
@@ -96,8 +95,7 @@ namespace Game1.Industries
                     Debug.Assert(HiredSkill() >= parameters.reqSkill);
                 }
 
-                double openSpace = OpenSpace();
-                if (openSpace is double.NegativeInfinity)
+                if (IsFull())
                     avgVacancyDuration = TimeSpan.Zero;
                 else
                     avgVacancyDuration += CurWorldManager.Elapsed;
@@ -144,7 +142,7 @@ namespace Game1.Industries
                 workingPropor = energyPropor / Math.Max(1, curUnboundedSkillPropor);
             }
 
-            public string GetText()
+            public string GetInfo()
                 => $"have {peopleHere.Sum(person => person.skills[parameters.industryType]) / parameters.reqSkill * 100:0.}% skill\ndesperation {(IsFull() ? 0 : Desperation() * 100):0.}%\nemployed {peopleHere.Count}\n";
 
             private double HiredSkill()
@@ -287,7 +285,7 @@ namespace Game1.Industries
 
             employer.EndUpdate();
 
-            textBox.Text = GetText();
+            textBox.Text = GetInfo();
 
             return result;
         }
@@ -303,13 +301,13 @@ namespace Game1.Industries
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 
-        public virtual string GetText()
+        public virtual string GetInfo()
             => CurWorldManager.Overlay switch
             {
                 <= MaxRes => "",
                 Overlay.AllRes => "",
                 Overlay.Power => "",
-                Overlay.People => employer.GetText(),
+                Overlay.People => employer.GetInfo(),
                 _ => throw new Exception(),
             };
 

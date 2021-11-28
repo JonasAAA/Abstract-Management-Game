@@ -5,10 +5,10 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [DataContract]
-    public class Factory : Industry
+    public class Factory : BuildingIndustry
     {
         [DataContract]
-        public new class Params : Industry.Params
+        public new class Params : BuildingIndustry.Params
         {
             [DataMember] public readonly double reqWatts;
             [DataMember] public readonly ConstULongArray supply, demand;
@@ -34,8 +34,8 @@ namespace Game1.Industries
                 this.prodDuration = prodDuration;
             }
 
-            public override Industry MakeIndustry(NodeState state)
-                => new Factory(state: state, parameters: this);
+            public override Factory MakeIndustry(NodeState state)
+                => new(state: state, parameters: this);
         }
 
         [DataMember] private readonly Params parameters;
@@ -78,9 +78,9 @@ namespace Game1.Industries
             return this;
         }
 
-        public override string GetText()
+        public override string GetInfo()
         {
-            string text = base.GetText() + $"{parameters.name}\n";
+            string text = base.GetInfo() + $"{parameters.name}\n";
             if (IsBusy())
                 text += $"producing {C.DonePart(timeLeft: prodTimeLeft, duration: parameters.prodDuration) * 100: 0.}%\n";
             else

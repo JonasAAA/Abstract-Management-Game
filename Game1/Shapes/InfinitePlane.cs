@@ -24,7 +24,7 @@ namespace Game1.Shapes
 
         protected override void Draw(Color color)
         {
-            if (!C.Transparent(color: color))
+            if (!color.Transparent())
                 C.Draw
                 (
                     texture: pixelTexture,

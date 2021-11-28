@@ -1,7 +1,7 @@
 ﻿using Game1.Events;
 using Game1.UI;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Input;
 using System;
 using System.Runtime.Serialization;
 using static Game1.WorldManager;
@@ -12,7 +12,7 @@ namespace Game1
     public class WorldCamera : Camera, IPosTransformer
     {
         [DataMember] private Matrix worldToScreen, screenToWorld;
-        [DataMember] private readonly double scale;
+        [DataMember] private double scale;
         [DataMember] private Vector2 worldCenter, screenCenter;
 
         public WorldCamera(double startingWorldScale)
@@ -31,22 +31,29 @@ namespace Game1
 
         public void Update(TimeSpan elapsed, bool canScroll)
         {
-            float elapsedSeconds = (float)elapsed.TotalSeconds;
             if (canScroll)
             {
+                float scrollDist = CurWorldConfig.scrollSpeed * (float)elapsed.TotalSeconds;
                 if (ActiveUIManager.MouseHUDPos.X <= CurWorldConfig.screenBoundWidthForMapMoving)
-                    worldCenter.X -= CurWorldConfig.scrollSpeed * elapsedSeconds;
+                    worldCenter.X -= scrollDist;
                 if (ActiveUIManager.MouseHUDPos.X >= ActiveUIManager.ScreenWidth - CurWorldConfig.screenBoundWidthForMapMoving)
-                    worldCenter.X += CurWorldConfig.scrollSpeed * elapsedSeconds;
+                    worldCenter.X += scrollDist;
                 if (ActiveUIManager.MouseHUDPos.Y <= CurWorldConfig.screenBoundWidthForMapMoving)
-                    worldCenter.Y -= CurWorldConfig.scrollSpeed * elapsedSeconds;
+                    worldCenter.Y -= scrollDist;
                 if (ActiveUIManager.MouseHUDPos.Y >= ActiveUIManager.ScreenHeight - CurWorldConfig.screenBoundWidthForMapMoving)
-                    worldCenter.Y += CurWorldConfig.scrollSpeed * elapsedSeconds;
+                    worldCenter.Y += scrollDist;
             }
 
-            worldToScreen = Matrix.CreateTranslation(xPosition: -worldCenter.X * (float)ScreenScale, yPosition: -worldCenter.Y * (float)ScreenScale, zPosition: 0) *
+            // temporary
+            double scaleChange = Math.Pow(.5, elapsed.TotalSeconds);
+            if (Keyboard.GetState().IsKeyDown(Keys.O))
+                scale *= scaleChange;
+            if (Keyboard.GetState().IsKeyDown(Keys.I))
+                scale /= scaleChange;
+
+            worldToScreen = Matrix.CreateTranslation(-worldCenter.X * (float)ScreenScale, -worldCenter.Y * (float)ScreenScale, 0) *
                 Matrix.CreateScale((float)scale) *
-                Matrix.CreateTranslation(xPosition: screenCenter.X, yPosition: screenCenter.Y, zPosition: 0) *
+                Matrix.CreateTranslation(screenCenter.X, screenCenter.Y, 0) *
                 Matrix.CreateScale((float)ScreenScale);
 
             screenToWorld = Matrix.Invert(worldToScreen);

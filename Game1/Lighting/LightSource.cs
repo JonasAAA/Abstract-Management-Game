@@ -3,7 +3,7 @@
 //using System.Collections.Generic;
 //using System.Linq;
 
-//namespace Game1
+//namespace Game1.Lighting
 //{
 //    public class LightSource : ILightSource
 //    {
@@ -11,7 +11,7 @@
 
 //        public
 //        Action Deleted;
-        
+
 //        protected float mainAngle;
 //        private readonly float maxAngleDiff;
 //        private readonly LightPolygon polygon;

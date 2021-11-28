@@ -1,7 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using System.Collections.Generic;
 
-namespace Game1
+namespace Game1.Lighting
 {
     public interface ILightCatchingObject : IDeletable
     {

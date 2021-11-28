@@ -11,7 +11,7 @@ namespace Game1
         [DataMember] public ULongArray storedRes;
         [DataMember] public readonly ulong maxBatchDemResStored;
         [DataMember] public ResAmountsPacketsByDestin waitingResAmountsPackets;
-        [DataMember] public readonly MyHashSet<Person> waitingPeople;
+        [DataMember] public readonly Dictionary<Person> waitingPeople;
 
         public NodeState(Vector2 position, ulong maxBatchDemResStored)
         {

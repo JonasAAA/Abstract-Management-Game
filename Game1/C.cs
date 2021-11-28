@@ -78,8 +78,8 @@ namespace Game1
         public static bool IsSuitable(double value)
             => value is double.NegativeInfinity || IsInSuitableRange(value: value);
 
-        public static bool Transparent(Color color)
-            => color.A is 0;
+        //public static bool Transparent(Color color)
+        //    => color.A is 0;
 
         public static Texture2D LoadTexture(string name)
             => contentManager.Load<Texture2D>(name);

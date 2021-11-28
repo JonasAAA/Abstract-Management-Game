@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -37,12 +38,15 @@ namespace Game1
                 elementSelector: a => Math.Clamp(a.Value, min, max)
             );
 
-        public static MyHashSet<T> ToMyHashSet<T>(this IEnumerable<T> source)
+        public static Dictionary<T> ToMyHashSet<T>(this IEnumerable<T> source)
         {
-            MyHashSet<T> result = new();
+            Dictionary<T> result = new();
             foreach (var item in source)
                 result.Add(item);
             return result;
         }
+
+        public static bool Transparent(this Color color)
+            => color.A is 0;
     }
 }

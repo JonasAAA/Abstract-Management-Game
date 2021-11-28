@@ -151,11 +151,31 @@ namespace Game1
                 AddChild(child: node, layer: CurWorldConfig.nodeLayer);
             foreach (var link in links)
                 AddChild(child: link, layer: CurWorldConfig.linkLayer);
+            //AddChild
+            //(
+            //    child: new WorldUIElement
+            //    (
+            //        shape: new Image
+            //        (
+            //            imageName: "triangle",
+            //            width: 200,
+            //            height: 500
+            //        )
+            //        {
+            //            Center = new Vector2(-200, -300),
+            //            rotation = 1.235f,
+            //        },
+            //        activeColor: Color.White,
+            //        inactiveColor: Color.Red,
+            //        popupHorizPos: HorizPos.Left,
+            //        popupVertPos: VertPos.Top
+            //    ),
+            //    layer: 20
+            //);
 
             resDestinArrows = new();
             for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
                 resDestinArrows[resInd] = new();
-
             if (CurWorldManager.Overlay <= MaxRes)
                 AddChild
                 (

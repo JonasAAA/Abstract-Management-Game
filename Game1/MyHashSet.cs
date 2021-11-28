@@ -9,17 +9,17 @@ namespace Game1
     /// throws exception when duplicates are added or try to remove non-existent element
     /// </summary>
     [CollectionDataContract]
-    public class MyHashSet<T> : IEnumerable<T>
+    public class Dictionary<T> : IEnumerable<T>
     {
         public int Count
             => set.Count;
 
         [DataMember] private readonly HashSet<T> set;
         
-        public MyHashSet()
+        public Dictionary()
             => set = new();
 
-        public MyHashSet(IEnumerable<T> collection)
+        public Dictionary(IEnumerable<T> collection)
             : this()
         {
             UnionWith(collection: collection);

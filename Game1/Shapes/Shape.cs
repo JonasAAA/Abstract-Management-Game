@@ -1,16 +1,18 @@
 ﻿using Game1.Events;
 using Microsoft.Xna.Framework;
+using System;
 using System.Runtime.Serialization;
 
 namespace Game1.Shapes
 {
-    [DataContract]
+    //[DataContract]
+    [Serializable]
     public abstract class Shape
     {
-        [DataMember] public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; private init; }
+        /*[DataMember]*/ public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; private init; }
         public bool Transparent
-           => C.Transparent(color: Color);
-        [DataMember] public Color Color { get; set; }
+           => Color.Transparent();
+        /*[DataMember]*/ public Color Color { get; set; }
         public Vector2 Center
         {
             get => center;
@@ -24,7 +26,7 @@ namespace Game1.Shapes
             }
         }
 
-        [DataMember] private Vector2 center;
+        /*[DataMember]*/ private Vector2 center;
 
         protected Shape()
         {
@@ -41,7 +43,7 @@ namespace Game1.Shapes
 
         public void Draw()
         {
-            if (!C.Transparent(color: Color))
+            if (!Color.Transparent())
                 Draw(color: Color);
         }
 
@@ -49,7 +51,7 @@ namespace Game1.Shapes
         {
             Color color = Color.Lerp(Color, otherColor, amount: otherColorProp);
             color.A = Color.A;
-            if (!C.Transparent(color: color))
+            if (!color.Transparent())
                 Draw(color: color);
         }
     }

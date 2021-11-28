@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
-namespace Game1
+namespace Game1.Lighting
 {
     [DataContract]
     public class LightPolygon

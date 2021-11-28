@@ -1,5 +1,6 @@
 ﻿using Game1.Events;
 using Game1.Industries;
+using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
 using Microsoft.Xna.Framework;
@@ -242,7 +243,7 @@ namespace Game1
         [DataMember] private readonly WorldConfig worldConfig;
         [DataMember] private readonly ResConfig resConfig;
         [DataMember] private readonly IndustryConfig industryConfig;
-        [DataMember] private readonly MyHashSet<Person> people;
+        [DataMember] private readonly Dictionary<Person> people;
         [DataMember] private readonly EnergyManager energyManager;
         [DataMember] private readonly ActivityManager activityManager;
         [DataMember] private readonly LightManager lightManager;
@@ -399,7 +400,8 @@ namespace Game1
             => Assembly.GetExecutingAssembly().GetTypes().Where
             (
                 type => Attribute.GetCustomAttribute(type, typeof(CompilerGeneratedAttribute)) is null
-                    && Attribute.GetCustomAttribute(type, typeof(DataContractAttribute)) is not null
+                    && (Attribute.GetCustomAttribute(type, typeof(DataContractAttribute)) is not null
+                    || Attribute.GetCustomAttribute(type, typeof(SerializableAttribute)) is not null)
             ).Concat
             (
                 new Type[]

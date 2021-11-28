@@ -24,7 +24,7 @@ namespace Game1
         public IEnumerable<Person> PeopleHere
             => peopleHere;
 
-        [DataMember] protected readonly MyHashSet<Person> peopleHere, allPeople;
+        [DataMember] protected readonly Dictionary<Person> peopleHere, allPeople;
         [DataMember] protected readonly NodeState state;
 
         [DataMember] private readonly Event<IDeletedListener> deleted;

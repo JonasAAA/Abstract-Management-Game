@@ -1,5 +1,6 @@
 ﻿using Game1.Events;
 using Game1.Industries;
+using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
 using Microsoft.Xna.Framework;
@@ -46,7 +47,7 @@ namespace Game1
             public override bool CanPersonLeave(Person person)
                 => true;
 
-            public string GetText()
+            public string GetInfo()
                 => $"unemployed {peopleHere.Count}\ntravel to be unemployed\nhere {allPeople.Count - peopleHere.Count}\n";
         }
 
@@ -469,7 +470,7 @@ namespace Game1
             // update text
             textBox.Text = $"";
             if (industry is not null)
-                textBox.Text += industry.GetText();
+                textBox.Text += industry.GetInfo();
 
             switch (CurWorldManager.Overlay)
             {
@@ -493,7 +494,7 @@ namespace Game1
                     textBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {shape.Watts - remainingLocalWatts:.##} W is used";
                     break;
                 case Overlay.People:
-                    textBox.Text += unemploymentCenter.GetText();
+                    textBox.Text += unemploymentCenter.GetInfo();
                     break;
                 default:
                     throw new Exception();

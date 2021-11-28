@@ -37,7 +37,7 @@ namespace Game1
             [DataMember] private readonly TimedPacketQueue timedPacketQueue;
             [DataMember] private readonly double minSafePropor;
             [DataMember] private ResAmountsPacketsByDestin waitingResAmountsPackets;
-            [DataMember] private readonly MyHashSet<Person> waitingPeople;
+            [DataMember] private readonly Dictionary<Person> waitingPeople;
             [DataMember] private readonly double reqWattsPerKg;
             [DataMember] private double energyPropor;
             [DataMember] private readonly Event<IDeletedListener> deleted;

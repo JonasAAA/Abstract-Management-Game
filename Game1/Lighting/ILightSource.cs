@@ -2,7 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 
-namespace Game1
+namespace Game1.Lighting
 {
     public interface ILightSource : IDeletable
     {

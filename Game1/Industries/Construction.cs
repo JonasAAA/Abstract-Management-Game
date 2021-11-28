@@ -5,17 +5,17 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [DataContract]
-    public class Construction : Industry
+    public class Construction : EquipmentIndustry
     {
         [DataContract]
-        public new class Params : Industry.Params
+        public new class Params : EquipmentIndustry.Params
         {
             [DataMember] public readonly double reqWatts;
-            [DataMember] public readonly Industry.Params industrParams;
+            [DataMember] public readonly BuildingIndustry.Params industrParams;
             [DataMember] public readonly TimeSpan duration;
             [DataMember] public readonly ConstULongArray cost;
 
-            public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, Industry.Params industrParams, TimeSpan duration, ConstULongArray cost)
+            public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, BuildingIndustry.Params industrParams, TimeSpan duration, ConstULongArray cost)
                 : base
                 (
                     industryType: IndustryType.Construction,
@@ -35,8 +35,8 @@ namespace Game1.Industries
                 this.cost = cost;
             }
 
-            public override Industry MakeIndustry(NodeState state)
-                => new Construction(state: state, parameters: this);
+            public override Construction MakeIndustry(NodeState state)
+                => new(state: state, parameters: this);
         }
 
         [DataMember] private readonly Params parameters;
@@ -89,9 +89,9 @@ namespace Game1.Industries
             };
         }
 
-        public override string GetText()
+        public override string GetInfo()
         {
-            string text = base.GetText();
+            string text = base.GetInfo();
             if (IsBusy())
                 text += $"constructing {C.DonePart(timeLeft: constrTimeLeft, duration: parameters.duration) * 100: 0.}%\n";
             else

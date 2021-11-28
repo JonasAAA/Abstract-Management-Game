@@ -5,10 +5,10 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [DataContract]
-    public class PowerPlant : Industry, IEnergyProducer
+    public class PowerPlant : BuildingIndustry, IEnergyProducer
     {
         [DataContract]
-        public new class Params : Industry.Params
+        public new class Params : BuildingIndustry.Params
         {
             [DataMember] public readonly double prodWatts;
 
@@ -27,8 +27,8 @@ namespace Game1.Industries
                 this.prodWatts = prodWatts;
             }
 
-            public override Industry MakeIndustry(NodeState state)
-                => new PowerPlant(state: state, parameters: this);
+            public override PowerPlant MakeIndustry(NodeState state)
+                => new(state: state, parameters: this);
         }
 
         [DataMember] private readonly Params parameters;
@@ -53,8 +53,8 @@ namespace Game1.Industries
             return this;
         }
 
-        public override string GetText()
-            => base.GetText() + parameters.name + "\n";
+        public override string GetInfo()
+            => base.GetInfo() + parameters.name + "\n";
 
         public override double ReqWatts()
             => 0;

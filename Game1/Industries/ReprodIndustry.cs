@@ -6,10 +6,10 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [DataContract]
-    public class ReprodIndustry : Industry
+    public class ReprodIndustry : BuildingIndustry
     {
         [DataContract]
-        public new class Params : Industry.Params
+        public new class Params : BuildingIndustry.Params
         {
             [DataMember] public readonly double reqWattsPerChild;
             [DataMember] public readonly ulong maxCouples;
@@ -32,8 +32,8 @@ namespace Game1.Industries
                 this.birthDuration = birthDuration;
             }
 
-            public override Industry MakeIndustry(NodeState state)
-                => new ReprodIndustry(state: state, parameters: this);
+            public override ReprodIndustry MakeIndustry(NodeState state)
+                => new(state: state, parameters: this);
         }
 
         [DataContract]
@@ -75,7 +75,7 @@ namespace Game1.Industries
                 throw new NotImplementedException();
             }
 
-            public string GetText()
+            public string GetInfo()
                 => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - peopleHere.Count} people travelling here\n";
         }
 
@@ -139,13 +139,13 @@ namespace Game1.Industries
         public override double ReqWatts()
             => birthQueue.Count * parameters.reqWattsPerChild * CurSkillPropor;
 
-        public override string GetText()
+        public override string GetInfo()
         {
-            string text = base.GetText() + $"{parameters.name}\n";
+            string text = base.GetInfo() + $"{parameters.name}\n";
             if (CurWorldManager.Overlay is Overlay.People)
             {
                 text += $"{birthQueue.Count} children are being born\n";
-                text += reprodCenter.GetText();
+                text += reprodCenter.GetInfo();
             }
             return text;
         }

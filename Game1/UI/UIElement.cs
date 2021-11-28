@@ -4,18 +4,18 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
+
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public class UIElement : IUIElement, ISizeOrPosChangedListener
     {
         protected const string defaultExplanation = "Explanation missing!";
 
         public Event<ISizeOrPosChangedListener> SizeOrPosChanged
             => shape.SizeOrPosChanged;
-        [DataMember] public Event<IEnabledChangedListener> EnabledChanged { get; private init; }
+        public Event<IEnabledChangedListener> EnabledChanged { get; }
 
         public bool Enabled
             => personallyEnabled && !hasDisabledAncestor;
@@ -65,14 +65,14 @@ namespace Game1.UI
         public virtual bool CanBeClicked
             => false;
 
-        [DataMember] public string Explanation { get; private init; }
+        public string Explanation { get; }
 
-        [DataMember] protected readonly Shape shape;
+        protected readonly Shape shape;
         
-        [DataMember] private bool personallyEnabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
+        private bool personallyEnabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
 
-        [DataMember] private readonly SortedDictionary<ulong, List<IUIElement>> layerToChildren;
-        [DataMember] private readonly Dictionary<IUIElement, ulong> childToLayer;
+        private readonly SortedDictionary<ulong, List<IUIElement>> layerToChildren;
+        private readonly Dictionary<IUIElement, ulong> childToLayer;
 
         public UIElement(Shape shape, string explanation = defaultExplanation)
         {

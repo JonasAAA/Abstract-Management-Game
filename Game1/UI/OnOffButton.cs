@@ -1,14 +1,15 @@
 ﻿using Game1.Events;
 using Game1.Shapes;
 using Microsoft.Xna.Framework;
-using System.Runtime.Serialization;
+using System;
+
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public abstract class OnOffButton : Button
     {
-        [DataMember] public readonly Event<IOnChangedListener> onChanged;
+        public readonly Event<IOnChangedListener> onChanged;
 
         public bool On
         {
@@ -28,8 +29,8 @@ namespace Game1.UI
             }
         }
 
-        [DataMember] private bool on;
-        [DataMember] private readonly Color selectedColor, deselectedColor;
+        private bool on;
+        private readonly Color selectedColor, deselectedColor;
 
         protected OnOffButton(NearRectangle shape, string text, bool on, Color selectedColor, Color deselectedColor)
             : base(shape: shape, text: text)

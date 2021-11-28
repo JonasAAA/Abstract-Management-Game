@@ -3,15 +3,15 @@ using Game1.Shapes;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
+
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public class HUDPosSetter
     {
-        [DataContract]
-        private record HUDElementSizeOrPosChangedListener([property: DataMember] HorizPos HorizPos, [property: DataMember] VertPos VertPos) : ISizeOrPosChangedListener
+        [Serializable]
+        private record HUDElementSizeOrPosChangedListener(HorizPos HorizPos, VertPos VertPos) : ISizeOrPosChangedListener
         {
             public void SizeOrPosChangedResponse(Shape shape)
             {
@@ -30,7 +30,7 @@ namespace Game1.UI
             }
         }
 
-        [DataMember] private readonly Dictionary<IHUDElement, HUDElementSizeOrPosChangedListener> sizeOrPosChangedListeners;
+        private readonly Dictionary<IHUDElement, HUDElementSizeOrPosChangedListener> sizeOrPosChangedListeners;
 
         public HUDPosSetter()
             => sizeOrPosChangedListeners = new();

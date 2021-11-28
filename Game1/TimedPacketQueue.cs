@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
+
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class TimedPacketQueue : TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, IEnumerable<Person> people)>
     {
         public int PeopleCount
@@ -13,10 +13,10 @@ namespace Game1
         public IEnumerable<Person> People
             => people;
 
-        [DataMember] public ConstULongArray TotalResAmounts { get; private set; }
-        [DataMember] public ulong TotalWeight { get; private set; }
+        public ConstULongArray TotalResAmounts { get; private set; }
+        public ulong TotalWeight { get; private set; }
 
-        [DataMember] private readonly Dictionary<Person> people;
+        private readonly Dictionary<Person> people;
 
         public TimedPacketQueue(TimeSpan duration)
             : base(duration: duration)

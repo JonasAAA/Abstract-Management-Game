@@ -4,17 +4,17 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public class WorldUIElement : UIElement, IDeletable, IChoiceChangedListener<Overlay>
     {
         public IEvent<IDeletedListener> Deleted
             => deleted;
-        [DataMember] public readonly Event<IActiveChangedListener> activeChanged;
+        public readonly Event<IActiveChangedListener> activeChanged;
 
         public override bool CanBeClicked
             => !Active;
@@ -66,13 +66,13 @@ namespace Game1.UI
             }
         }
 
-        [DataMember] private Color activeColor, inactiveColor;
-        [DataMember] private readonly HorizPos popupHorizPos;
-        [DataMember] private readonly VertPos popupVertPos;
-        [DataMember] private readonly Event<IDeletedListener> deleted;
-        [DataMember] private bool active;
+        private Color activeColor, inactiveColor;
+        private readonly HorizPos popupHorizPos;
+        private readonly VertPos popupVertPos;
+        private readonly Event<IDeletedListener> deleted;
+        private bool active;
 
-        [DataMember] private readonly Dictionary<Overlay, IHUDElement> popups;
+        private readonly Dictionary<Overlay, IHUDElement> popups;
 
         public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
             : base(shape: shape)

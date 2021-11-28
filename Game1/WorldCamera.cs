@@ -3,17 +3,17 @@ using Game1.UI;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 using System;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class WorldCamera : Camera, IPosTransformer
     {
-        [DataMember] private Matrix worldToScreen, screenToWorld;
-        [DataMember] private double scale;
-        [DataMember] private Vector2 worldCenter, screenCenter;
+        private Matrix worldToScreen, screenToWorld;
+        private double scale;
+        private Vector2 worldCenter, screenCenter;
 
         public WorldCamera(double startingWorldScale)
         {

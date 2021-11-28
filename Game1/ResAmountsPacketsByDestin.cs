@@ -1,19 +1,20 @@
 ﻿using Microsoft.Xna.Framework;
+using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class ResAmountsPacketsByDestin
     {
-        [DataMember] public ConstULongArray ResAmounts { get; private set; }
-        [DataMember] public ulong TotalWeight { get; private set; }
+        public ConstULongArray ResAmounts { get; private set; }
+        public ulong TotalWeight { get; private set; }
         public bool Empty
             => TotalWeight is 0;
 
-        [DataMember] private Dictionary<Vector2, ResAmountsPacket> resAmountsPacketsByDestin;
+        private Dictionary<Vector2, ResAmountsPacket> resAmountsPacketsByDestin;
 
         public ResAmountsPacketsByDestin()
         {

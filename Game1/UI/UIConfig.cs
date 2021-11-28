@@ -1,15 +1,16 @@
 ﻿using Microsoft.Xna.Framework;
-using System.Runtime.Serialization;
+using System;
+
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public class UIConfig
     {
-        [DataMember] public readonly int standardScreenHeight;
-        [DataMember] public readonly float rectOutlineWidth;
-        [DataMember] public readonly float letterHeight;
-        [DataMember] public readonly Color mouseOnColor;
+        public readonly int standardScreenHeight;
+        public readonly float rectOutlineWidth;
+        public readonly float letterHeight;
+        public readonly Color mouseOnColor;
 
         public UIConfig()
         {

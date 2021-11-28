@@ -44,7 +44,7 @@ namespace Game1
             C.Initialize
             (
                 contentManager: Content,
-                spriteBatch: new(GraphicsDevice)
+                graphicsDevice: GraphicsDevice
             );
 
             ActiveUIManager.Initialize(graphicsDevice: GraphicsDevice);

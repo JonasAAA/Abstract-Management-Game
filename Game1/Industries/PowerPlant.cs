@@ -1,16 +1,16 @@
 ﻿using System;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
-    [DataContract]
+    [Serializable]
     public class PowerPlant : BuildingIndustry, IEnergyProducer
     {
-        [DataContract]
+        [Serializable]
         public new class Params : BuildingIndustry.Params
         {
-            [DataMember] public readonly double prodWatts;
+            public readonly double prodWatts;
 
             public Params(string name, double reqSkill, double prodWatts)
                 : base
@@ -31,7 +31,7 @@ namespace Game1.Industries
                 => new(state: state, parameters: this);
         }
 
-        [DataMember] private readonly Params parameters;
+        private readonly Params parameters;
 
         private PowerPlant(NodeState state, Params parameters)
             : base(state: state, parameters: parameters)

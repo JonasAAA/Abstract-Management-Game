@@ -7,15 +7,15 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class Graph : UIElement, IChoiceChangedListener<Overlay>, IActiveChangedListener
     {
-        [DataContract]
+        [Serializable]
         private class NodeInfo
         {
             private static int resInd;
@@ -23,10 +23,10 @@ namespace Game1
             public static void Init(int resInd)
                 => NodeInfo.resInd = resInd;
 
-            [DataMember] public readonly Node node;
-            [DataMember] public readonly List<NodeInfo> nodesIn, nodesOut;
-            [DataMember] public uint unvisitedDestinsCount;
-            [DataMember] public bool isSplitAleady;
+            public readonly Node node;
+            public readonly List<NodeInfo> nodesIn, nodesOut;
+            public uint unvisitedDestinsCount;
+            public bool isSplitAleady;
 
             public NodeInfo(Node node)
             {
@@ -81,9 +81,9 @@ namespace Game1
         public IEnumerable<Node> Nodes
             => nodes;
 
-        [DataMember] public readonly ReadOnlyDictionary<Vector2, Node> posToNode;
-        [DataMember] public readonly TimeSpan maxLinkTravelTime;
-        [DataMember] public readonly double maxLinkJoulesPerKg;
+        public readonly ReadOnlyDictionary<Vector2, Node> posToNode;
+        public readonly TimeSpan maxLinkTravelTime;
+        public readonly double maxLinkJoulesPerKg;
 
         public override bool CanBeClicked
             => true;
@@ -104,21 +104,21 @@ namespace Game1
             }
         }
 
-        [DataMember] private readonly ReadOnlyDictionary<(Vector2, Vector2), double> personDists;
-        //[DataMember] private readonly ReadOnlyDictionary<(Vector2, Vector2), double> resDists;
+        //private readonly ReadOnlyDictionary<(Vector2, Vector2), double> personDists;
+        //private readonly ReadOnlyDictionary<(Vector2, Vector2), double> resDists;
 
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        [DataMember] private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> personFirstLinks;
-        [DataMember] private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> resFirstLinks;
+        private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> personFirstLinks;
+        private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> resFirstLinks;
 
-        [DataMember] private readonly List<Star> stars;
-        [DataMember] private readonly List<Node> nodes;
-        [DataMember] private readonly List<Link> links;
+        private readonly List<Star> stars;
+        private readonly List<Node> nodes;
+        private readonly List<Link> links;
 
-        [DataMember] private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDestinArrows;
-        [DataMember] public WorldUIElement ActiveWorldElement { get; private set; }
+        private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDestinArrows;
+        public WorldUIElement ActiveWorldElement { get; private set; }
 
         public Graph(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links)
             : base(shape: new InfinitePlane(color: Color.Black))
@@ -151,27 +151,37 @@ namespace Game1
                 AddChild(child: node, layer: CurWorldConfig.nodeLayer);
             foreach (var link in links)
                 AddChild(child: link, layer: CurWorldConfig.linkLayer);
-            //AddChild
-            //(
-            //    child: new WorldUIElement
-            //    (
-            //        shape: new Image
-            //        (
-            //            imageName: "triangle",
-            //            width: 200,
-            //            height: 500
-            //        )
-            //        {
-            //            Center = new Vector2(-200, -300),
-            //            rotation = 1.235f,
-            //        },
-            //        activeColor: Color.White,
-            //        inactiveColor: Color.Red,
-            //        popupHorizPos: HorizPos.Left,
-            //        popupVertPos: VertPos.Top
-            //    ),
-            //    layer: 20
-            //);
+
+            CustomImage customImage = new
+            (
+                imageName: "triangle",
+                width: 200,
+                height: 500
+            )
+            {
+                Center = new Vector2(-200, -300),
+                rotation = 1.235f,
+            };
+            customImage.StartEdit();
+            customImage.DrawLineInImage
+            (
+                worldPos1: customImage.Center,
+                worldPos2: customImage.Center + new Vector2(20, 10),
+                color: Color.Transparent
+            );
+            customImage.EndEdit();
+            AddChild
+            (
+                child: new WorldUIElement
+                (
+                    shape: customImage,
+                    activeColor: Color.White,
+                    inactiveColor: Color.Red,
+                    popupHorizPos: HorizPos.Left,
+                    popupVertPos: VertPos.Top
+                ),
+                layer: 20
+            );
 
             resDestinArrows = new();
             for (int resInd = 0; resInd <= (int)MaxRes; resInd++)

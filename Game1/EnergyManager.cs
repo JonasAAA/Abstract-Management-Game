@@ -4,16 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Serialization;
+
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class EnergyManager : IDeletedListener
     {
-        [DataMember] private readonly Dictionary<IEnergyProducer> energyProducers;
-        [DataMember] private readonly Dictionary<IEnergyConsumer> energyConsumers;
-        [DataMember] private double totReqWatts, totProdWatts, totUsedLocalWatts, totUsedPowerPlantWatts;
+        private readonly Dictionary<IEnergyProducer> energyProducers;
+        private readonly Dictionary<IEnergyConsumer> energyConsumers;
+        private double totReqWatts, totProdWatts, totUsedLocalWatts, totUsedPowerPlantWatts;
 
         public EnergyManager()
         {

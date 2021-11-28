@@ -1,18 +1,17 @@
 ﻿using Game1.Events;
 using Microsoft.Xna.Framework;
 using System;
-using System.Runtime.Serialization;
+
 
 namespace Game1.Shapes
 {
-    //[DataContract]
     [Serializable]
     public abstract class Shape
     {
-        /*[DataMember]*/ public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; private init; }
+        public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; }
         public bool Transparent
            => Color.Transparent();
-        /*[DataMember]*/ public Color Color { get; set; }
+        public Color Color { get; set; }
         public Vector2 Center
         {
             get => center;
@@ -26,7 +25,7 @@ namespace Game1.Shapes
             }
         }
 
-        /*[DataMember]*/ private Vector2 center;
+        private Vector2 center;
 
         protected Shape()
         {

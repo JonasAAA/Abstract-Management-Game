@@ -8,15 +8,15 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class Node : WorldUIElement
     {
-        [DataContract]
+        [Serializable]
         private class UnemploymentCenter : ActivityCenter
         {
             public UnemploymentCenter(NodeState state)
@@ -51,8 +51,8 @@ namespace Game1
                 => $"unemployed {peopleHere.Count}\ntravel to be unemployed\nhere {allPeople.Count - peopleHere.Count}\n";
         }
 
-        [DataContract]
-        private record ResDesinArrowEventListener([property: DataMember] Node Node, [property: DataMember] int ResInd) : IDeletedListener, INumberChangedListener
+        [Serializable]
+        private record ResDesinArrowEventListener(Node Node, int ResInd) : IDeletedListener, INumberChangedListener
         {
             public void SyncSplittersWithArrows()
             {
@@ -84,14 +84,14 @@ namespace Game1
                 => SyncSplittersWithArrows();
         }
 
-        [DataContract]
-        private record BuildIndustryButtonClickedListener([property: DataMember] Node Node, [property: DataMember] Construction.Params ConstrParams) : IClickedListener
+        [Serializable]
+        private record BuildIndustryButtonClickedListener(Node Node, Construction.Params ConstrParams) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => Node.SetIndustry(newIndustry: ConstrParams.MakeIndustry(state: Node.state));
         }
 
-        [DataContract]
+        [Serializable]
         private record AddResourceDestinationButtonClickedListener : IClickedListener
         {
             void IClickedListener.ClickedResponse()
@@ -100,29 +100,29 @@ namespace Game1
 
         public Vector2 Position
             => state.position;
-        [DataMember] public readonly float radius;
+        public readonly float radius;
         public double LocallyProducedWatts
             => shape.Watts;
 
-        [DataMember] private readonly NodeState state;
-        [DataMember] private readonly List<Link> links;
-        [DataMember] private Industry industry;
-        [DataMember] private readonly UnemploymentCenter unemploymentCenter;
-        [DataMember] private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
-        [DataMember] private ConstULongArray targetStoredResAmounts;
-        [DataMember] private ULongArray undecidedResAmounts, resTravelHereAmounts;
-        [DataMember] private readonly new LightCatchingDisk shape;
-        [DataMember] private double remainingLocalWatts;
-        [DataMember] private readonly float resDestinArrowWidth;
+        private readonly NodeState state;
+        private readonly List<Link> links;
+        private Industry industry;
+        private readonly UnemploymentCenter unemploymentCenter;
+        private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
+        private ConstULongArray targetStoredResAmounts;
+        private ULongArray undecidedResAmounts, resTravelHereAmounts;
+        private readonly new LightCatchingDisk shape;
+        private double remainingLocalWatts;
+        private readonly float resDestinArrowWidth;
 
-        [DataMember] private readonly TextBox textBox;
-        [DataMember] private readonly MyArray<ToggleButton> storeToggleButtons;
-        [DataMember] private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
-        [DataMember] private readonly UIRectPanel<IHUDElement> infoPanel, buildButtonPannel;
-        [DataMember] private readonly Dictionary<Overlay, UIRectPanel<IHUDElement>> overlayTabPanels;
-        [DataMember] private readonly TextBox infoTextBox;
-        [DataMember] private readonly string overlayTabLabel;
-        [DataMember] private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
+        private readonly TextBox textBox;
+        private readonly MyArray<ToggleButton> storeToggleButtons;
+        private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
+        private readonly UIRectPanel<IHUDElement> infoPanel, buildButtonPannel;
+        private readonly Dictionary<Overlay, UIRectPanel<IHUDElement>> overlayTabPanels;
+        private readonly TextBox infoTextBox;
+        private readonly string overlayTabLabel;
+        private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
         public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth, int startPersonCount = 0)
             : base(shape: new LightCatchingDisk(radius: radius), activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)

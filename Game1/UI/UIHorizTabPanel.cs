@@ -5,16 +5,16 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Serialization;
+
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public class UIHorizTabPanel<TTab> : HUDElement
         where TTab : class, IHUDElement
     {
-        [DataContract]
-        public record TabEnabledChangedListener([property: DataMember] UIHorizTabPanel<TTab> UIHorizTabPanel, [property: DataMember] string TabLabelText) : IEnabledChangedListener
+        [Serializable]
+        public record TabEnabledChangedListener(UIHorizTabPanel<TTab> UIHorizTabPanel, string TabLabelText) : IEnabledChangedListener
         {
             public void EnabledChangedResponse()
                 => UIHorizTabPanel.tabChoicePanel.SetChoicePersonallyEnabled
@@ -24,9 +24,9 @@ namespace Game1.UI
                 );
         }
 
-        [DataMember] private readonly MultipleChoicePanel<string> tabChoicePanel;
-        [DataMember] private readonly Dictionary<string, TTab> tabs;
-        [DataMember] private readonly Dictionary<string, TabEnabledChangedListener> tabEnabledChangedListeners;
+        private readonly MultipleChoicePanel<string> tabChoicePanel;
+        private readonly Dictionary<string, TTab> tabs;
+        private readonly Dictionary<string, TabEnabledChangedListener> tabEnabledChangedListeners;
         private TTab ActiveTab
             => tabChoicePanel.SelectedChoiceLabel switch
             {

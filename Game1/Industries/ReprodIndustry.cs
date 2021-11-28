@@ -1,20 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
-    [DataContract]
+    [Serializable]
     public class ReprodIndustry : BuildingIndustry
     {
-        [DataContract]
+        [Serializable]
         public new class Params : BuildingIndustry.Params
         {
-            [DataMember] public readonly double reqWattsPerChild;
-            [DataMember] public readonly ulong maxCouples;
-            [DataMember] public readonly ConstULongArray resPerChild;
-            [DataMember] public readonly TimeSpan birthDuration;
+            public readonly double reqWattsPerChild;
+            public readonly ulong maxCouples;
+            public readonly ConstULongArray resPerChild;
+            public readonly TimeSpan birthDuration;
 
             public Params(string name, ulong energyPriority, double reqSkill, ulong reqWattsPerChild, ulong maxCouples, ConstULongArray resPerChild, TimeSpan birthDuration)
                 : base
@@ -36,12 +36,12 @@ namespace Game1.Industries
                 => new(state: state, parameters: this);
         }
 
-        [DataContract]
+        [Serializable]
         private class ReprodCenter : ActivityCenter
         {
-            [DataMember] public readonly Queue<Person> unpairedPeople;
+            public readonly Queue<Person> unpairedPeople;
 
-            [DataMember] private readonly Params parameters;
+            private readonly Params parameters;
 
             public ReprodCenter(ulong energyPriority, NodeState state, Params parameters)
                 : base(activityType: ActivityType.Reproduction, energyPriority: energyPriority, state: state)
@@ -79,9 +79,9 @@ namespace Game1.Industries
                 => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - peopleHere.Count} people travelling here\n";
         }
 
-        [DataMember] private readonly Params parameters;
-        [DataMember] private readonly ReprodCenter reprodCenter;
-        [DataMember] private readonly TimedQueue<(Person, Person)> birthQueue;
+        private readonly Params parameters;
+        private readonly ReprodCenter reprodCenter;
+        private readonly TimedQueue<(Person, Person)> birthQueue;
 
         public ReprodIndustry(NodeState state, Params parameters)
             : base(state: state, parameters: parameters)

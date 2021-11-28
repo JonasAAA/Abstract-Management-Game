@@ -8,9 +8,10 @@ namespace Game1
 {
     public static class C
     {
+        public static ContentManager contentManager { get; private set; }
+        public static GraphicsDevice graphicsDevice { get; private set; }
         public static SpriteBatch SpriteBatch { get; private set; }
-
-        private static ContentManager contentManager;
+        //private static ContentManager contentManager;
         private static readonly double minPosDouble;
         private static readonly decimal minPosDecimal;
         private static readonly Random random;
@@ -23,10 +24,11 @@ namespace Game1
             random = new();
         }
 
-        public static void Initialize(ContentManager contentManager, SpriteBatch spriteBatch)
+        public static void Initialize(ContentManager contentManager, GraphicsDevice graphicsDevice)
         {
             C.contentManager = contentManager;
-            SpriteBatch = spriteBatch;
+            C.graphicsDevice = graphicsDevice;
+            SpriteBatch = new(graphicsDevice);
         }
 
         public static double Random(double min, double max)

@@ -7,18 +7,18 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class Star : WorldUIElement, ILightSource
     {
-        [DataMember] private readonly double prodWatts;
-        [DataMember] private readonly LightPolygon polygon;
+        private readonly double prodWatts;
+        private readonly LightPolygon polygon;
 
-        [DataMember] private readonly TextBox popupTextBox;
+        private readonly TextBox popupTextBox;
 
         public Star(float radius, Vector2 center, double prodWatts, Color color)
             : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)

@@ -4,12 +4,12 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1.Lighting
 {
-    [DataContract]
+    [Serializable]
     public class LightCatchingDisk : Ellipse, ILightCatchingObject
     {
         public IEvent<IDeletedListener> Deleted
@@ -23,10 +23,10 @@ namespace Game1.Lighting
         public double Watts
             => starPosToWatts.Values.DefaultIfEmpty().Sum();
 
-        [DataMember] public readonly float radius;
+        public readonly float radius;
 
-        [DataMember] private readonly Dictionary<Vector2, double> starPosToWatts, starPosToPowerProp;
-        [DataMember] private readonly Event<IDeletedListener> deleted;
+        private readonly Dictionary<Vector2, double> starPosToWatts, starPosToPowerProp;
+        private readonly Event<IDeletedListener> deleted;
 
         public LightCatchingDisk(float radius)
             : base(width: 2 * radius, height: 2 * radius)

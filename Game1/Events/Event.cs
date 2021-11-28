@@ -1,13 +1,13 @@
 ﻿using System;
-using System.Runtime.Serialization;
+
 
 namespace Game1.Events
 {
-    [DataContract]
+    [Serializable]
     public class Event<T> : IEvent<T>
         where T : IListener
     {
-        [DataMember] private readonly Dictionary<T> listeners;
+        private readonly Dictionary<T> listeners;
 
         public Event()
             => listeners = new();

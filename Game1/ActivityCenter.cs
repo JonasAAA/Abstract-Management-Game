@@ -3,32 +3,32 @@ using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public abstract class ActivityCenter : IActivityCenter, IDeletable
     {
         public IEvent<IDeletedListener> Deleted
             => deleted;
 
-        [DataMember] public ActivityType ActivityType { get; private init; }
+        public ActivityType ActivityType { get; }
 
         public Vector2 Position
             => state.position;
 
-        [DataMember] public ulong EnergyPriority { get; private set; }
+        public ulong EnergyPriority { get; private set; }
 
         public IEnumerable<Person> PeopleHere
             => peopleHere;
 
-        [DataMember] protected readonly Dictionary<Person> peopleHere, allPeople;
-        [DataMember] protected readonly NodeState state;
+        protected readonly Dictionary<Person> peopleHere, allPeople;
+        protected readonly NodeState state;
 
-        [DataMember] private readonly Event<IDeletedListener> deleted;
-        [DataMember] private readonly HashSet<Person> peopleInProcessOfRemoving;
+        private readonly Event<IDeletedListener> deleted;
+        private readonly HashSet<Person> peopleInProcessOfRemoving;
 
         protected ActivityCenter(ActivityType activityType, ulong energyPriority, NodeState state)
         {

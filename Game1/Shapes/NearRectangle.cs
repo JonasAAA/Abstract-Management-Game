@@ -1,10 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
-using System.Runtime.Serialization;
+
 
 namespace Game1.Shapes
 {
-    [DataContract]
+    [Serializable]
     public abstract class NearRectangle : Shape
     {
         // can do:
@@ -124,7 +124,7 @@ namespace Game1.Shapes
             }
         }
 
-        [DataMember] private float width, height, minWidth, minHeight;
+        private float width, height, minWidth, minHeight;
 
         protected NearRectangle(float width, float height)
         {

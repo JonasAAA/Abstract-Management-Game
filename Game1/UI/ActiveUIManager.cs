@@ -6,11 +6,11 @@ using Microsoft.Xna.Framework.Input;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
+
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public class ActiveUIManager
     {
         public static UIConfig CurUIConfig { get; private set; }
@@ -32,17 +32,17 @@ namespace Game1.UI
             HUDCamera = new();
         }
 
-        [DataMember] public Event<IClickedNowhereListener> clickedNowhere;
+        public Event<IClickedNowhereListener> clickedNowhere;
 
-        [DataMember] private readonly List<IUIElement> activeUIElements;
-        [DataMember] private readonly HashSet<IHUDElement> HUDElements;
-        [DataMember] private readonly Dictionary<IUIElement, IPosTransformer> nonHUDElementsToTransform;
-        [DataMember] private bool leftDown, prevLeftDown;
-        [DataMember] private IUIElement halfClicked, contMouse;
-        [DataMember] private readonly TimeSpan minDurationToGetExplanation;
-        [DataMember] private TimeSpan hoverDuration;
-        [DataMember] private readonly TextBox explanationTextBox;
-        [DataMember] private readonly HUDPosSetter HUDPosSetter;
+        private readonly List<IUIElement> activeUIElements;
+        private readonly HashSet<IHUDElement> HUDElements;
+        private readonly Dictionary<IUIElement, IPosTransformer> nonHUDElementsToTransform;
+        private bool leftDown, prevLeftDown;
+        private IUIElement halfClicked, contMouse;
+        private readonly TimeSpan minDurationToGetExplanation;
+        private TimeSpan hoverDuration;
+        private readonly TextBox explanationTextBox;
+        private readonly HUDPosSetter HUDPosSetter;
 
         public ActiveUIManager()
         {

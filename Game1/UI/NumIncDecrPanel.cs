@@ -2,22 +2,22 @@
 using Game1.Shapes;
 using Microsoft.Xna.Framework;
 using System;
-using System.Runtime.Serialization;
+
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public class NumIncDecrPanel : HUDElement
     {
-        [DataContract]
-        private record NumIncrButtonClickedListener([property: DataMember] NumIncDecrPanel NumIncDecrPanel) : IClickedListener
+        [Serializable]
+        private record NumIncrButtonClickedListener(NumIncDecrPanel NumIncDecrPanel) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => NumIncDecrPanel.Number++;
         }
 
-        [DataContract]
-        private record NumDecrButtonClickedListener([property: DataMember] NumIncDecrPanel NumIncDecrPanel) : IClickedListener
+        [Serializable]
+        private record NumDecrButtonClickedListener(NumIncDecrPanel NumIncDecrPanel) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
             {
@@ -42,12 +42,12 @@ namespace Game1.UI
             }
         }
 
-        [DataMember] public Event<INumberChangedListener> numberChanged;
+        public Event<INumberChangedListener> numberChanged;
 
-        [DataMember] private int number;
-        [DataMember] private readonly int minNum;
-        [DataMember] private readonly UIRectVertPanel<IHUDElement> panel;
-        [DataMember] private readonly TextBox textBox;
+        private int number;
+        private readonly int minNum;
+        private readonly UIRectVertPanel<IHUDElement> panel;
+        private readonly TextBox textBox;
 
         public NumIncDecrPanel(int minNum, int number, float incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
             : base(shape: new MyRectangle())

@@ -1,11 +1,12 @@
 ﻿using Game1.Shapes;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Runtime.Serialization;
+using System;
+
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public class TextBox : HUDElement
     {
         private static readonly SpriteFont font;
@@ -13,7 +14,7 @@ namespace Game1.UI
         static TextBox()
             => font = C.LoadFont(name: "font");
 
-        [DataMember] public Color TextColor { private get; set; }
+        public Color TextColor { private get; set; }
         public string Text
         {
             get => text;
@@ -33,8 +34,8 @@ namespace Game1.UI
             }
         }
 
-        [DataMember] private string text;
-        [DataMember] private readonly float scale;
+        private string text;
+        private readonly float scale;
 
         public TextBox()
             : base(shape: new MyRectangle())

@@ -7,23 +7,23 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
-    [DataContract]
+    [Serializable]
     public abstract class Industry : IEnergyConsumer
     {
         // all fields and properties in this and derived classes must have unchangeable state
-        [DataContract]
+        [Serializable]
         public abstract class Params
         {
-            [DataMember] public readonly IndustryType industryType;
-            [DataMember] public readonly string name;
-            [DataMember] public readonly ulong energyPriority;
-            [DataMember] public readonly double reqSkill;
-            [DataMember] public readonly string explanation;
+            public readonly IndustryType industryType;
+            public readonly string name;
+            public readonly ulong energyPriority;
+            public readonly double reqSkill;
+            public readonly string explanation;
 
             protected Params(IndustryType industryType, string name, ulong energyPriority, double reqSkill, string explanation)
             {
@@ -42,15 +42,15 @@ namespace Game1.Industries
             public abstract Industry MakeIndustry(NodeState state);
         }
 
-        [DataContract]
+        [Serializable]
         private class Employer : ActivityCenter
         {
-            [DataMember] public double CurSkillPropor { get; private set; }
+            public double CurSkillPropor { get; private set; }
 
-            [DataMember] private readonly Params parameters;
+            private readonly Params parameters;
             // must be >= 0
-            [DataMember] private TimeSpan avgVacancyDuration;
-            [DataMember] private double curUnboundedSkillPropor, workingPropor;
+            private TimeSpan avgVacancyDuration;
+            private double curUnboundedSkillPropor, workingPropor;
 
             public Employer(ulong energyPriority, NodeState state, Params parameters)
                 : base(activityType: ActivityType.Working, energyPriority: energyPriority, state: state)
@@ -187,8 +187,8 @@ namespace Game1.Industries
             }
         }
 
-        [DataContract]
-        private record DeleteButtonClickedListener([property: DataMember] Industry Industry) : IClickedListener
+        [Serializable]
+        private record DeleteButtonClickedListener(Industry Industry) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => Industry.isDeleted = true;
@@ -213,19 +213,19 @@ namespace Game1.Industries
         public IHUDElement UIElement
             => UIPanel;
         
-        [DataMember] protected bool CanStartProduction { get; private set; }
+        protected bool CanStartProduction { get; private set; }
         protected double CurSkillPropor
             => employer.CurSkillPropor;
 
-        [DataMember] protected readonly NodeState state;
-        [DataMember] private readonly Params parameters;
-        [DataMember] private readonly Employer employer;
-        [DataMember] private double energyPropor;
-        [DataMember] private bool isDeleted;
-        [DataMember] private readonly Event<IDeletedListener> deleted;
+        protected readonly NodeState state;
+        private readonly Params parameters;
+        private readonly Employer employer;
+        private double energyPropor;
+        private bool isDeleted;
+        private readonly Event<IDeletedListener> deleted;
 
-        [DataMember] protected readonly UIRectPanel<IHUDElement> UIPanel;
-        [DataMember] private readonly TextBox textBox;
+        protected readonly UIRectPanel<IHUDElement> UIPanel;
+        private readonly TextBox textBox;
 
         protected Industry(NodeState state, Params parameters)
         {

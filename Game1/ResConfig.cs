@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class ResConfig
     {
         public int ResCount
             => resources.Count;
-        [DataMember] public readonly ReadOnlyCollection<Resource> resources;
+        public readonly ReadOnlyCollection<Resource> resources;
 
         public ResConfig()
         {

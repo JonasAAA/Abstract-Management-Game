@@ -1,21 +1,21 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class ResAmountsPacket
     {
-        [DataMember] public readonly Vector2 destination;
+        public readonly Vector2 destination;
         public ConstULongArray ResAmounts
             => resAmounts;
-        [DataMember] public ulong TotalWeight { get; private set; }
+        public ulong TotalWeight { get; private set; }
         public bool Empty
             => TotalWeight is 0;
 
-        [DataMember] private ULongArray resAmounts;
+        private ULongArray resAmounts;
 
         public ResAmountsPacket(Vector2 destination)
             : this(destination: destination, resAmounts: new())

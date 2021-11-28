@@ -2,11 +2,11 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Runtime.Serialization;
+
 
 namespace Game1.Shapes
 {
-    [DataContract]
+    [Serializable]
     public class MyRectangle : NearRectangle
     {
         private static class OutlineDrawer

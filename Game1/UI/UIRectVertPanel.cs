@@ -1,15 +1,16 @@
 ﻿using Game1.Shapes;
 using Microsoft.Xna.Framework;
+using System;
 using System.Linq;
-using System.Runtime.Serialization;
+
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public class UIRectVertPanel<TChild> : UIRectPanel<TChild>
         where TChild : IHUDElement
     {
-        [DataMember] private readonly HorizPos childHorizPos;
+        private readonly HorizPos childHorizPos;
 
         public UIRectVertPanel(Color color, HorizPos childHorizPos)
             : base(color: color)

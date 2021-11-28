@@ -1,11 +1,11 @@
-﻿using System.Runtime.Serialization;
+﻿using System;
 
 namespace Game1.Industries
 {
-    [DataContract]
+    [Serializable]
     public abstract class BuildingIndustry : Industry
     {
-        [DataContract]
+        [Serializable]
         public abstract new class Params : Industry.Params
         {
             protected Params(IndustryType industryType, string name, ulong energyPriority, double reqSkill, string explanation)

@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.ObjectModel;
-using System.Runtime.Serialization;
 
 namespace Game1.Industries
 {
-    [DataContract]
+    [Serializable]
     public class IndustryConfig
     {
-        [DataMember] public readonly ReadOnlyCollection<Construction.Params> constrBuildingParams;
+        public readonly ReadOnlyCollection<Construction.Params> constrBuildingParams;
 
         public IndustryConfig()
         {

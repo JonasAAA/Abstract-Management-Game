@@ -6,15 +6,15 @@ using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class Link : WorldUIElement
     {
-        [DataContract]
+        [Serializable]
         private class DirLink : IEnergyConsumer
         {
             private static readonly Texture2D diskTexture;
@@ -28,19 +28,19 @@ namespace Game1
             public IEvent<IDeletedListener> Deleted
                 => deleted;
 
-            [DataMember] public readonly Node startNode, endNode;
+            public readonly Node startNode, endNode;
             public double JoulesPerKg
                 => timedPacketQueue.duration.TotalSeconds * reqWattsPerKg;
             public TimeSpan TravelTime
                 => timedPacketQueue.duration;
 
-            [DataMember] private readonly TimedPacketQueue timedPacketQueue;
-            [DataMember] private readonly double minSafePropor;
-            [DataMember] private ResAmountsPacketsByDestin waitingResAmountsPackets;
-            [DataMember] private readonly Dictionary<Person> waitingPeople;
-            [DataMember] private readonly double reqWattsPerKg;
-            [DataMember] private double energyPropor;
-            [DataMember] private readonly Event<IDeletedListener> deleted;
+            private readonly TimedPacketQueue timedPacketQueue;
+            private readonly double minSafePropor;
+            private ResAmountsPacketsByDestin waitingResAmountsPackets;
+            private readonly Dictionary<Person> waitingPeople;
+            private readonly double reqWattsPerKg;
+            private double energyPropor;
+            private readonly Event<IDeletedListener> deleted;
 
             public DirLink(Node startNode, Node endNode, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
             {
@@ -145,15 +145,15 @@ namespace Game1
                 => this.energyPropor = energyPropor;
         }
 
-        [DataMember] public readonly Node node1, node2;
+        public readonly Node node1, node2;
         public double JoulesPerKg
             => link1To2.JoulesPerKg;
         public TimeSpan TravelTime
             => link1To2.TravelTime;
 
-        [DataMember] private readonly DirLink link1To2, link2To1;
-        [DataMember] private readonly MyArray<TextBox> resTextBoxes;
-        [DataMember] private readonly TextBox allResTextBox, peopleTextBox;
+        private readonly DirLink link1To2, link2To1;
+        private readonly MyArray<TextBox> resTextBoxes;
+        private readonly TextBox allResTextBox, peopleTextBox;
 
         public Link(Node node1, Node node2, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
             : base

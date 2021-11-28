@@ -1,30 +1,30 @@
 ﻿using System;
-using System.Runtime.Serialization;
+
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class WorldConfig
     {
-        [DataMember] public readonly double personJobEnjoymentCoeff, personTalentCoeff, personSkillCoeff, jobDesperationCoeff, PlayerToJobDistCoeff, minAcceptablePersonScore, personTimeSkillCoeff, jobVacDespCoeff;
-        [DataMember] public readonly ulong linkEnergyPriority;
-        [DataMember] public readonly float standardStarRadius, scrollSpeed;
-        [DataMember] public readonly double personMomentumCoeff, personMinReqWatts, personMaxReqWatts, randConrtribToChild, parentContribToChild;
+        public readonly double personJobEnjoymentCoeff, personTalentCoeff, personSkillCoeff, jobDesperationCoeff, PlayerToJobDistCoeff, minAcceptablePersonScore, personTimeSkillCoeff, jobVacDespCoeff;
+        public readonly ulong linkEnergyPriority;
+        public readonly float standardStarRadius, scrollSpeed;
+        public readonly double personMomentumCoeff, personMinReqWatts, personMaxReqWatts, randConrtribToChild, parentContribToChild;
         /// <summary>
         /// MUST always be the same for all people
         /// as the way industry deals with required energy requires that
         /// </summary>
-        [DataMember] public readonly ulong personDefaultEnergyPriority;
-        [DataMember] public readonly TimeSpan personMinSeekChangeTime, personMaxSeekChangeTime;
-        [DataMember] public readonly double personDistanceTimeCoeff, personDistanceEnergyCoeff, resDistanceTimeCoeff, resDistanceEnergyCoeff;
-        [DataMember] public readonly int lightTextureWidth;
-        [DataMember] public readonly ulong lightLayer, nodeLayer, linkLayer;
-        [DataMember] public readonly double brightStarTextureBrigthness, dimStarTextureBrightness;
-        [DataMember] public readonly double startingWorldScale;
-        [DataMember] public readonly float screenBoundWidthForMapMoving;
-        [DataMember] public readonly float minSafeDist;
-        [DataMember] public readonly ulong resDistribArrowsUILayer;
-        [DataMember] public readonly float linkWidth;
+        public readonly ulong personDefaultEnergyPriority;
+        public readonly TimeSpan personMinSeekChangeTime, personMaxSeekChangeTime;
+        public readonly double personDistanceTimeCoeff, personDistanceEnergyCoeff, resDistanceTimeCoeff, resDistanceEnergyCoeff;
+        public readonly int lightTextureWidth;
+        public readonly ulong lightLayer, nodeLayer, linkLayer;
+        public readonly double brightStarTextureBrigthness, dimStarTextureBrightness;
+        public readonly double startingWorldScale;
+        public readonly float screenBoundWidthForMapMoving;
+        public readonly float minSafeDist;
+        public readonly ulong resDistribArrowsUILayer;
+        public readonly float linkWidth;
 
         public WorldConfig()
         {

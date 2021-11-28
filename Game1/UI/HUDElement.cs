@@ -1,12 +1,12 @@
 ﻿using Game1.Shapes;
-using System.Runtime.Serialization;
+using System;
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public class HUDElement : UIElement, IHUDElement
     {
-        [DataMember] public NearRectangle Shape { get; private init; }
+        public NearRectangle Shape { get; }
 
         public HUDElement(NearRectangle shape, string explanation = defaultExplanation)
             : base(shape: shape, explanation: explanation)

@@ -2,21 +2,21 @@
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1.Lighting
 {
-    [DataContract]
+    [Serializable]
     public class LightPolygon
     {
-        [DataMember] private Vector2 center;
-        [DataMember] private List<Vector2> vertices;
-        [DataMember] private VertexPositionColorTexture[] vertPosTex;
-        [DataMember] private int[] ind;
+        private Vector2 center;
+        private List<Vector2> vertices;
+        private VertexPositionColorTexture[] vertPosTex;
+        private int[] ind;
 
-        [DataMember] private readonly float strength;
-        [DataMember] private readonly Color color;
+        private readonly float strength;
+        private readonly Color color;
 
         /// <param name="strength">a positive float which determins the radius of the lit area</param>
         public LightPolygon(float strength, Color color)

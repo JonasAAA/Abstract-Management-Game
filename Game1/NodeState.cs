@@ -1,17 +1,17 @@
 ﻿using Microsoft.Xna.Framework;
 using System;
-using System.Runtime.Serialization;
+
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class NodeState
     {
-        [DataMember] public readonly Vector2 position;
-        [DataMember] public ULongArray storedRes;
-        [DataMember] public readonly ulong maxBatchDemResStored;
-        [DataMember] public ResAmountsPacketsByDestin waitingResAmountsPackets;
-        [DataMember] public readonly Dictionary<Person> waitingPeople;
+        public readonly Vector2 position;
+        public ULongArray storedRes;
+        public readonly ulong maxBatchDemResStored;
+        public ResAmountsPacketsByDestin waitingResAmountsPackets;
+        public readonly Dictionary<Person> waitingPeople;
 
         public NodeState(Vector2 position, ulong maxBatchDemResStored)
         {

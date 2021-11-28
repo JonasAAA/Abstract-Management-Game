@@ -1,11 +1,11 @@
-﻿//using System.Runtime.Serialization;
+﻿//
 
 //namespace Game1.UI
 //{
-//    [DataContract]
+//    [Serializable]
 //    public class WorldHUD : HUDElement
 //    {
-//        [DataMember] private readonly HUDPosSetter HUDPosSetter;
+//        private readonly HUDPosSetter HUDPosSetter;
 
 //        public WorldHUD()
 //            : base(shape: new MyRectangle(width: (float)ActiveUIManager.ScreenWidth, height: (float)ActiveUIManager.ScreenHeight))

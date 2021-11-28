@@ -2,14 +2,14 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.Serialization;
+
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class ActivityManager : IDeletedListener
     {
-        [DataMember] private readonly HashSet<IActivityCenter> activityCenters;
+        private readonly HashSet<IActivityCenter> activityCenters;
 
         public ActivityManager()
             => activityCenters = new();

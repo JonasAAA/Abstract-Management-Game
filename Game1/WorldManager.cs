@@ -17,7 +17,7 @@ using System.Xml;
 
 namespace Game1
 {
-    [DataContract]
+    [Serializable]
     public class WorldManager : IDeletedListener, IClickedNowhereListener
     {
         public const Overlay MaxRes = (Overlay)2;
@@ -199,9 +199,9 @@ namespace Game1
         public Overlay Overlay
             => overlayChoicePanel.SelectedChoiceLabel;
 
-        [DataMember] public TimeSpan CurTime { get; private set; }
+        public TimeSpan CurTime { get; private set; }
 
-        [DataMember] public TimeSpan Elapsed { get; private set; }
+        public TimeSpan Elapsed { get; private set; }
 
         public Vector2 MouseWorldPos
             => worldCamera.WorldPos(screenPos: Mouse.GetState().Position.ToVector2());
@@ -240,22 +240,24 @@ namespace Game1
             }
         }
 
-        [DataMember] private readonly WorldConfig worldConfig;
-        [DataMember] private readonly ResConfig resConfig;
-        [DataMember] private readonly IndustryConfig industryConfig;
-        [DataMember] private readonly Dictionary<Person> people;
-        [DataMember] private readonly EnergyManager energyManager;
-        [DataMember] private readonly ActivityManager activityManager;
-        [DataMember] private readonly LightManager lightManager;
+        public readonly Dictionary<string, MyTexture> myTextures;
 
-        [DataMember] private readonly ActiveUIManager activeUIManager;
-        [DataMember] private readonly TextBox globalTextBox;
-        [DataMember] private readonly ToggleButton pauseButton;
-        [DataMember] private readonly MultipleChoicePanel<Overlay> overlayChoicePanel;
+        private readonly WorldConfig worldConfig;
+        private readonly ResConfig resConfig;
+        private readonly IndustryConfig industryConfig;
+        private readonly Dictionary<Person> people;
+        private readonly EnergyManager energyManager;
+        private readonly ActivityManager activityManager;
+        private readonly LightManager lightManager;
 
-        [DataMember] private Graph graph;
-        [DataMember] private readonly WorldCamera worldCamera;
-        [DataMember] private bool arrowDrawingModeOn;
+        private readonly ActiveUIManager activeUIManager;
+        private readonly TextBox globalTextBox;
+        private readonly ToggleButton pauseButton;
+        private readonly MultipleChoicePanel<Overlay> overlayChoicePanel;
+        private readonly WorldCamera worldCamera;
+
+        private Graph graph;
+        private bool arrowDrawingModeOn;
 
         private WorldManager()
         {
@@ -269,6 +271,7 @@ namespace Game1
             lightManager = new();
 
             worldCamera = new(startingWorldScale: worldConfig.startingWorldScale);
+            myTextures = new();
 
             activeUIManager = new();
             activeUIManager.clickedNowhere.Add(listener: this);

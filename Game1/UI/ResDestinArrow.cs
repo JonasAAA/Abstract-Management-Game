@@ -2,16 +2,16 @@
 using Game1.Shapes;
 using Microsoft.Xna.Framework;
 using System;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public class ResDestinArrow : WorldUIElement
     {
-        [DataContract]
-        private record DeleteButtonClickedListener([property:DataMember] ResDestinArrow ResDestinArrow) : IClickedListener
+        [Serializable]
+        private record DeleteButtonClickedListener(ResDestinArrow ResDestinArrow) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
             {
@@ -41,11 +41,11 @@ namespace Game1.UI
         public Event<INumberChangedListener> ImportanceNumberChanged
             => importanceIncDecrPanel.numberChanged;
 
-        [DataMember] private new readonly Arrow shape;
-        [DataMember] private int totalImportance;
-        [DataMember] private readonly Color defaultActiveColor, defaultInactiveColor;
-        [DataMember] private readonly NumIncDecrPanel importanceIncDecrPanel;
-        [DataMember] private readonly TextBox line2;
+        private new readonly Arrow shape;
+        private int totalImportance;
+        private readonly Color defaultActiveColor, defaultInactiveColor;
+        private readonly NumIncDecrPanel importanceIncDecrPanel;
+        private readonly TextBox line2;
 
         public ResDestinArrow(Arrow shape, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int importance, int resInd)
             : base(shape: shape, activeColor: defaultActiveColor, inactiveColor: defaultInactiveColor, popupHorizPos: popupHorizPos, popupVertPos: popupVertPos)

@@ -2,16 +2,15 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Runtime.Serialization;
 using static Game1.WorldManager;
 
 namespace Game1.Lighting
 {
-    [DataContract]
+    [Serializable]
     public class LightManager : IDeletedListener
     {
-        [DataMember] private readonly Dictionary<ILightCatchingObject> lightCatchingObjects;
-        [DataMember] private readonly Dictionary<ILightSource> lightSources;
+        private readonly Dictionary<ILightCatchingObject> lightCatchingObjects;
+        private readonly Dictionary<ILightSource> lightSources;
 
         [NonSerialized] private int actualScreenWidth, actualScreenHeight;
         [NonSerialized] private RenderTarget2D renderTarget;

@@ -3,16 +3,15 @@ using Game1.Shapes;
 using Microsoft.Xna.Framework;
 using System;
 using System.Collections.Generic;
-using System.Runtime.Serialization;
 
 namespace Game1.UI
 {
-    [DataContract]
+    [Serializable]
     public class MultipleChoicePanel<TChoice> : HUDElement
     {
         // it is public to easily add it to knownTypes
-        [DataContract]
-        public record ChoiceEventListener([property:DataMember] MultipleChoicePanel<TChoice> MultipleChoicePanel, [property:DataMember] TChoice ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
+        [Serializable]
+        public record ChoiceEventListener(MultipleChoicePanel<TChoice> MultipleChoicePanel, TChoice ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
         {
             void IEnabledChangedListener.EnabledChangedResponse()
             {
@@ -40,7 +39,7 @@ namespace Game1.UI
             }
         }
 
-        [DataMember] public readonly Event<IChoiceChangedListener<TChoice>> choiceChanged;
+        public readonly Event<IChoiceChangedListener<TChoice>> choiceChanged;
 
         public TChoice SelectedChoiceLabel
         {
@@ -56,11 +55,11 @@ namespace Game1.UI
             }
         }
 
-        [DataMember] private readonly UIRectPanel<SelectButton> choicePanel;
-        [DataMember] private readonly Dictionary<TChoice, SelectButton> choices;
-        [DataMember] private readonly float choiceWidth, choiceHeight;
-        [DataMember] private readonly Color selectedColor, deselectedColor;
-        [DataMember] private TChoice selectedChoiceLabel;
+        private readonly UIRectPanel<SelectButton> choicePanel;
+        private readonly Dictionary<TChoice, SelectButton> choices;
+        private readonly float choiceWidth, choiceHeight;
+        private readonly Color selectedColor, deselectedColor;
+        private TChoice selectedChoiceLabel;
 
         public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
             : base(shape: new MyRectangle())

@@ -1,18 +1,18 @@
 ﻿using System;
-using System.Runtime.Serialization;
+
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
-    [DataContract]
+    [Serializable]
     public class Factory : BuildingIndustry
     {
-        [DataContract]
+        [Serializable]
         public new class Params : BuildingIndustry.Params
         {
-            [DataMember] public readonly double reqWatts;
-            [DataMember] public readonly ConstULongArray supply, demand;
-            [DataMember] public readonly TimeSpan prodDuration;
+            public readonly double reqWatts;
+            public readonly ConstULongArray supply, demand;
+            public readonly TimeSpan prodDuration;
 
             public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, ConstULongArray supply, ConstULongArray demand, TimeSpan prodDuration)
                 : base
@@ -38,8 +38,8 @@ namespace Game1.Industries
                 => new(state: state, parameters: this);
         }
 
-        [DataMember] private readonly Params parameters;
-        [DataMember] private TimeSpan prodTimeLeft;
+        private readonly Params parameters;
+        private TimeSpan prodTimeLeft;
 
         private Factory(NodeState state, Params parameters)
             : base(state: state, parameters: parameters)

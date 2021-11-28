@@ -1,11 +1,11 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Runtime.Serialization;
+
 
 namespace Game1.Shapes
 {
-    [DataContract]
+    [Serializable]
     public class Triangle : NearRectangle
     {
         public enum Direction
@@ -35,9 +35,9 @@ namespace Game1.Shapes
                 not 0 => Height
             };
 
-        [DataMember] private readonly Direction direction;
-        [DataMember] private readonly float rotation;
-        [DataMember] private readonly Vector2 origin, dirVector, orthDir, scale;
+        private readonly Direction direction;
+        private readonly float rotation;
+        private readonly Vector2 origin, dirVector, orthDir, scale;
 
         public Triangle(float width, float height, Direction direction)
             : base(width: width, height: height)

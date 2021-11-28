@@ -1,17 +1,17 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using System.Runtime.Serialization;
+
 
 namespace Game1.Shapes
 {
-    [DataContract]
+    [Serializable]
     public abstract class VectorShape : Shape
     {
-        [DataMember] public readonly Vector2 startPos, endPos;
+        public readonly Vector2 startPos, endPos;
 
         protected abstract Texture2D Texture { get; }
-        [DataMember] protected readonly float width;
+        protected readonly float width;
 
         protected VectorShape(Vector2 startPos, Vector2 endPos, float width)
         {

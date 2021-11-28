@@ -1,10 +1,10 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using System.Runtime.Serialization;
+using System;
 
 namespace Game1.Shapes
 {
-    [DataContract]
+    [Serializable]
     public class LineSegment : VectorShape
     {
         private static readonly Texture2D pixelTexture;

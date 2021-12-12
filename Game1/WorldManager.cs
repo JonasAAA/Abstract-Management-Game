@@ -259,8 +259,13 @@ namespace Game1
         private Graph graph;
         private bool arrowDrawingModeOn;
 
+        // temporary
+        private readonly Planet planet;
+
         private WorldManager()
         {
+            planet = new();
+
             worldConfig = new();
             resConfig = new();
             industryConfig = new();
@@ -366,6 +371,8 @@ namespace Game1
                 posToNode: graph.posToNode
             );
 
+            planet.Update();
+
             graph.Update();
 
             activityManager.ManageActivities(people: people);
@@ -386,6 +393,8 @@ namespace Game1
             worldCamera.BeginDraw();
             graph.DrawAfterLight();
             worldCamera.EndDraw();
+
+            planet.DrawPoly(worldToScreenTransform: worldCamera.GetToScreenTransform());
 
             activeUIManager.DrawHUD();
         }

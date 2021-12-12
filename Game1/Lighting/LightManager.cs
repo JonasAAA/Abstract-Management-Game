@@ -86,7 +86,8 @@ namespace Game1.Lighting
             graphicsDevice.Clear(Color.Transparent);
 
             graphicsDevice.BlendState = BlendState.Additive;
-            graphicsDevice.RasterizerState = new RasterizerState()
+            // to correctly draw clockwise and counterclocwise triangles
+            graphicsDevice.RasterizerState = new()
             {
                 CullMode = CullMode.None
             };

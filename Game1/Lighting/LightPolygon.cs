@@ -12,8 +12,8 @@ namespace Game1.Lighting
     {
         private Vector2 center;
         private List<Vector2> vertices;
-        private VertexPositionColorTexture[] vertPosTex;
-        private int[] ind;
+        private VertexPositionColorTexture[] vertPosTexs;
+        private ushort[] inds;
 
         private readonly float strength;
         private readonly Color color;
@@ -23,8 +23,8 @@ namespace Game1.Lighting
             : this(strength: strength, color: color, center: Vector2.Zero, vertices: new())
         {
             vertices = new List<Vector2>();
-            vertPosTex = Array.Empty<VertexPositionColorTexture>();
-            ind = Array.Empty<int>();
+            vertPosTexs = Array.Empty<VertexPositionColorTexture>();
+            inds = Array.Empty<ushort>();
             if (strength <= 0)
                 throw new ArgumentOutOfRangeException();
             this.strength = strength;
@@ -39,8 +39,8 @@ namespace Game1.Lighting
             this.color = color;
             this.center = center;
             this.vertices = vertices;
-            vertPosTex = Array.Empty<VertexPositionColorTexture>();
-            ind = Array.Empty<int>();
+            vertPosTexs = Array.Empty<VertexPositionColorTexture>();
+            inds = Array.Empty<ushort>();
             Update(center: center, vertices: vertices);
         }
 
@@ -48,16 +48,16 @@ namespace Game1.Lighting
         {
             this.center = center;
             this.vertices = vertices;
-            int centerInd = vertices.Count;
-            vertPosTex = new VertexPositionColorTexture[centerInd + 1];
+            ushort centerInd = (ushort)vertices.Count;
+            vertPosTexs = new VertexPositionColorTexture[centerInd + 1];
 
-            ind = new int[vertices.Count * 3];
-            for (int i = 0; i < vertices.Count; i++)
+            inds = new ushort[vertices.Count * 3];
+            for (ushort i = 0; i < vertices.Count; i++)
             {
                 // may need to swap the last two
-                ind[3 * i] = centerInd;
-                ind[3 * i + 1] = i;
-                ind[3 * i + 2] = (i + 1) % vertices.Count;
+                inds[3 * i] = centerInd;
+                inds[3 * i + 1] = i;
+                inds[3 * i + 2] = (ushort)((i + 1) % vertices.Count);
             }
         }
 
@@ -67,16 +67,32 @@ namespace Game1.Lighting
                 return;
             Vector2 textureCenter = new(.5f);
             int centerInd = vertices.Count;
-            vertPosTex[centerInd] = new VertexPositionColorTexture(Transform(pos: center), color, textureCenter);
+            vertPosTexs[centerInd] = new VertexPositionColorTexture(Transform(pos: center), color, textureCenter);
             for (int i = 0; i < centerInd; i++)
-                vertPosTex[i] = new VertexPositionColorTexture(Transform(vertices[i]), color, textureCenter + (vertices[i] - center) / CurWorldConfig.lightTextureWidth / strength);
-            if (vertPosTex.Length == 0)
+                vertPosTexs[i] = new VertexPositionColorTexture(Transform(vertices[i]), color, textureCenter + (vertices[i] - center) / CurWorldConfig.lightTextureWidth / strength);
+            if (vertPosTexs.Length == 0)
                 return;
+
+            VertexBuffer vertexBuffer = new(graphicsDevice, typeof(VertexPositionColorTexture), vertPosTexs.Length, BufferUsage.WriteOnly);
+            IndexBuffer indexBuffer = new(graphicsDevice, typeof(ushort), inds.Length, BufferUsage.WriteOnly);
+
+            vertexBuffer.SetData(vertPosTexs);
+            indexBuffer.SetData(inds);
+
+            graphicsDevice.SetVertexBuffer(vertexBuffer);
+            graphicsDevice.Indices = indexBuffer;
 
             foreach (var effectPass in basicEffect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
-                graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertPosTex, 0, vertPosTex.Length, ind, 0, ind.Length / 3);
+                graphicsDevice.DrawIndexedPrimitives
+                (
+                    primitiveType: PrimitiveType.TriangleList,
+                    baseVertex: 0,
+                    startIndex: 0,
+                    primitiveCount: inds.Length / 3
+                );
+                //graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertPosTexs, 0, vertPosTexs.Length, inds, 0, inds.Length / 3);
             }
 
             Vector3 Transform(Vector2 pos)

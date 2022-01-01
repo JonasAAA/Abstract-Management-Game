@@ -21,10 +21,21 @@ namespace Game1
             IsMouseVisible = true;
 
             Window.IsBorderless = true;
+
+            // tries to enable antialiasing. will only work for Monogame 3.8.1 and later
+            // this pr fixes the issue https://github.com/MonoGame/MonoGame/pull/7338
+            graphics.PreparingDeviceSettings += (sender, e) =>
+            {
+                graphics.PreferMultiSampling = true;
+                e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 8;
+            };
         }
 
         protected override void Initialize()
         {
+            graphics.GraphicsProfile = GraphicsProfile.HiDef;
+            graphics.PreferMultiSampling = true;
+            GraphicsDevice.PresentationParameters.MultiSampleCount = 8;
             graphics.PreferredBackBufferWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
             graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             //graphics.IsFullScreen = true;

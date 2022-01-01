@@ -1,4 +1,5 @@
 ﻿using Game1.Events;
+using Game1.Geometry;
 using Game1.Industries;
 using Game1.Lighting;
 using Game1.Shapes;

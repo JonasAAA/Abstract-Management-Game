@@ -8,6 +8,8 @@ namespace Game1
 {
     public static class C
     {
+        // power of two to make float / scale and float * scale lossless
+        public const long accurScale = (long)1 << 10;
         public static ContentManager contentManager { get; private set; }
         public static GraphicsDevice graphicsDevice { get; private set; }
         public static SpriteBatch SpriteBatch { get; private set; }
@@ -55,6 +57,12 @@ namespace Game1
 
         public static float Rotation(Vector2 vector)
             => (float)Math.Atan2(vector.Y, vector.X);
+
+        /// <summary>
+        /// 90 degrees to the left
+        /// </summary>
+        public static Vector2 OrthDir(Vector2 direction)
+            => new(direction.Y, -direction.X);
 
         public static bool Click(bool prev, bool cur)
             => prev && !cur;

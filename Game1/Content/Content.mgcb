@@ -13,6 +13,12 @@
 
 #---------------------------------- Content ---------------------------------#
 
+#begin BentGeom.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:BentGeom.fx
+
 #begin big disk.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -24,6 +30,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:big disk.png
+
+#begin DeprecatedDiskEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:DeprecatedDiskEffect.fx
+
+#begin DiskEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:DiskEffect.fx
 
 #begin font.spritefont
 /importer:FontDescriptionImporter

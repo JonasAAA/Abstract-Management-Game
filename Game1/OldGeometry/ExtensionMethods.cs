@@ -1,7 +1,7 @@
 ﻿using LibTessDotNet;
 using Microsoft.Xna.Framework;
 
-namespace Game1.Geometry
+namespace Game1.OldGeometry
 {
     public static class ExtensionMethods
     {

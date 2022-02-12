@@ -152,37 +152,6 @@ namespace Game1
             foreach (var link in links)
                 AddChild(child: link, layer: CurWorldConfig.linkLayer);
 
-            CustomImage customImage = new
-            (
-                imageName: "triangle",
-                width: 200,
-                height: 500
-            )
-            {
-                Center = new Vector2(-200, -300),
-                rotation = 1.235f,
-            };
-            customImage.StartEdit();
-            customImage.DrawLineInImage
-            (
-                worldPos1: customImage.Center,
-                worldPos2: customImage.Center + new Vector2(20, 10),
-                color: Color.Transparent
-            );
-            customImage.EndEdit();
-            AddChild
-            (
-                child: new WorldUIElement
-                (
-                    shape: customImage,
-                    activeColor: Color.White,
-                    inactiveColor: Color.Red,
-                    popupHorizPos: HorizPos.Left,
-                    popupVertPos: VertPos.Top
-                ),
-                layer: 20
-            );
-
             resDestinArrows = new();
             for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
                 resDestinArrows[resInd] = new();

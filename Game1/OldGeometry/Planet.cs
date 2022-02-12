@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using static Game1.WorldManager;
 
-namespace Game1.Geometry
+namespace Game1.OldGeometry
 {
     public class Planet
     {

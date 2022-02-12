@@ -6,7 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Game1.Geometry
+namespace Game1.OldGeometry
 {
     public class MyPolygon
     {

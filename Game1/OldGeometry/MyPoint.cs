@@ -3,7 +3,7 @@ using LibTessDotNet;
 using Microsoft.Xna.Framework;
 using System;
 
-namespace Game1.Geometry
+namespace Game1.OldGeometry
 {
     public readonly struct MyPoint
     {

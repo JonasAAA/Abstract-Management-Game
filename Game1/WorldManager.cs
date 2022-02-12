@@ -1,5 +1,4 @@
 ﻿using Game1.Events;
-using Game1.Geometry;
 using Game1.Industries;
 using Game1.Lighting;
 using Game1.Shapes;
@@ -260,13 +259,8 @@ namespace Game1
         private Graph graph;
         private bool arrowDrawingModeOn;
 
-        // temporary
-        private readonly Planet planet;
-
         private WorldManager()
         {
-            planet = new();
-
             worldConfig = new();
             resConfig = new();
             industryConfig = new();
@@ -372,7 +366,7 @@ namespace Game1
                 posToNode: graph.posToNode
             );
 
-            planet.Update();
+            //planet.Update();
 
             graph.Update();
 
@@ -394,8 +388,6 @@ namespace Game1
             worldCamera.BeginDraw();
             graph.DrawAfterLight();
             worldCamera.EndDraw();
-
-            planet.DrawPoly(worldToScreenTransform: worldCamera.GetToScreenTransform());
 
             activeUIManager.DrawHUD();
         }

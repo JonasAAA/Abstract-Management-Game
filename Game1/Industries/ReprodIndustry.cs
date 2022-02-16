@@ -6,10 +6,10 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public class ReprodIndustry : BuildingIndustry
+    public class ReprodIndustry : Industry
     {
         [Serializable]
-        public new class Params : BuildingIndustry.Params
+        public new class Params : Industry.Params
         {
             public readonly double reqWattsPerChild;
             public readonly ulong maxCouples;

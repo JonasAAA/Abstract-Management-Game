@@ -5,10 +5,10 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public class Factory : BuildingIndustry
+    public class Factory : Industry
     {
         [Serializable]
-        public new class Params : BuildingIndustry.Params
+        public new class Params : Industry.Params
         {
             public readonly double reqWatts;
             public readonly ConstULongArray supply, demand;

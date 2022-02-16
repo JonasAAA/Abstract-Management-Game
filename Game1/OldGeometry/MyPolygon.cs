@@ -37,13 +37,13 @@ namespace Game1.OldGeometry
 
             Triangulate();
 
-            static bool Clockwise(List<MyPoint> polygon)
-                => Clipper.Orientation
-                (
-                    (from myPoint in polygon
-                     select (IntPoint)myPoint)
-                     .ToList()
-                );
+            //static bool Clockwise(List<MyPoint> polygon)
+            //    => Clipper.Orientation
+            //    (
+            //        (from myPoint in polygon
+            //         select (IntPoint)myPoint)
+            //         .ToList()
+            //    );
         }
 
         public static double CommonPerimeter(MyPolygon myPolygon1, MyPolygon myPolygon2)

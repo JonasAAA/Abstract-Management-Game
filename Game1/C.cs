@@ -47,11 +47,6 @@ namespace Game1
             return min + random.NextDouble() * (max - min);
         }
 
-        /// <param name="min">inclusive minimum</param>
-        /// <param name="max">exclusive maximum</param>
-        public static int RandInt(int min, int max)
-            => random.Next(min, max);
-
         public static Vector2 Direction(float rotation)
             => new((float)Math.Cos(rotation), (float)Math.Sin(rotation));
 

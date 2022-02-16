@@ -5,17 +5,17 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public class Construction : EquipmentIndustry
+    public class Construction : Industry
     {
         [Serializable]
-        public new class Params : EquipmentIndustry.Params
+        public new class Params : Industry.Params
         {
             public readonly double reqWatts;
-            public readonly BuildingIndustry.Params industrParams;
+            public readonly Industry.Params industrParams;
             public readonly TimeSpan duration;
             public readonly ConstULongArray cost;
 
-            public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, BuildingIndustry.Params industrParams, TimeSpan duration, ConstULongArray cost)
+            public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, Industry.Params industrParams, TimeSpan duration, ConstULongArray cost)
                 : base
                 (
                     industryType: IndustryType.Construction,

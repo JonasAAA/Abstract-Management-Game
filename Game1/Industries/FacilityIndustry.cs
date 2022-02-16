@@ -3,7 +3,7 @@
 //namespace Game1.Industries
 //{
 //    [Serializable]
-//    public abstract class EquipmentIndustry : Industry
+//    public abstract class FacilityIndustry : Industry
 //    {
 //        [Serializable]
 //        public abstract new class Params : Industry.Params
@@ -12,10 +12,10 @@
 //                : base(industryType: industryType, name: name, energyPriority: energyPriority, reqSkill: reqSkill, explanation: explanation)
 //            { }
 
-//            public abstract override EquipmentIndustry MakeIndustry(NodeState state);
+//            public abstract override FacilityIndustry MakeIndustry(NodeState state);
 //        }
 
-//        protected EquipmentIndustry(NodeState state, Params parameters)
+//        protected FacilityIndustry(NodeState state, Params parameters)
 //            : base(state: state, parameters: parameters)
 //        { }
 //    }

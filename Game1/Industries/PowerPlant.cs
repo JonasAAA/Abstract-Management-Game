@@ -5,10 +5,10 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public class PowerPlant : BuildingIndustry, IEnergyProducer
+    public class PowerPlant : Industry, IEnergyProducer
     {
         [Serializable]
-        public new class Params : BuildingIndustry.Params
+        public new class Params : Industry.Params
         {
             public readonly double prodWatts;
 

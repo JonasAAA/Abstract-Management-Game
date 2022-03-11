@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.Events;
+using Microsoft.Xna.Framework;
 using System;
 
 
@@ -12,6 +13,20 @@ namespace Game1.Shapes
         //{
         //    public abstract void Make(float width, float height);
         //}
+        public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; }
+
+        public override Vector2 Center
+        {
+            get => base.Center;
+            set
+            {
+                if (!C.IsTiny(value: Vector2.Distance(base.Center, value)))
+                {
+                    base.Center = value;
+                    RaiseSizeOrPosChanged();
+                }
+            }
+        }
 
         public Vector2 TopLeftCorner
         {
@@ -69,7 +84,7 @@ namespace Game1.Shapes
                 vertOrigin: VertPos.Bottom
             );
         }
-        public float Width
+        public virtual float Width
         {
             get => width;
             set
@@ -84,7 +99,7 @@ namespace Game1.Shapes
                 }
             }
         }
-        public float Height
+        public virtual float Height
         {
             get => height;
             set
@@ -107,8 +122,8 @@ namespace Game1.Shapes
                 if (value < 0)
                     throw new ArgumentOutOfRangeException();
                 minWidth = value;
-                if (width < minWidth)
-                    width = minWidth;
+                if (Width < minWidth)
+                    Width = minWidth;
             }
         }
         public float MinHeight
@@ -119,8 +134,8 @@ namespace Game1.Shapes
                 if (value < 0)
                     throw new ArgumentOutOfRangeException();
                 minHeight = value;
-                if (height < minHeight)
-                    height = minHeight;
+                if (Height < minHeight)
+                    Height = minHeight;
             }
         }
 
@@ -135,8 +150,10 @@ namespace Game1.Shapes
                 throw new ArgumentOutOfRangeException();
             this.height = height;
 
-            MinWidth = 0;
-            MinHeight = 0;
+            minWidth = 0;
+            minHeight = 0;
+
+            SizeOrPosChanged = new();
         }
 
         public Vector2 GetPosition(HorizPos horizOrigin, VertPos vertOrigin)
@@ -161,5 +178,8 @@ namespace Game1.Shapes
                     max: bottom - Height * .5f
                 )
             );
+
+        private void RaiseSizeOrPosChanged()
+            => SizeOrPosChanged.Raise(action: listener => listener.SizeOrPosChangedResponse(shape: this));
     }
 }

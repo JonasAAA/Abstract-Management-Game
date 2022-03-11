@@ -7,7 +7,7 @@ namespace Game1.Events
     public class Event<T> : IEvent<T>
         where T : IListener
     {
-        private readonly Dictionary<T> listeners;
+        private readonly MySet<T> listeners;
 
         public Event()
             => listeners = new();

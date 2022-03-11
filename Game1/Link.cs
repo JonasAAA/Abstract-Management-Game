@@ -37,7 +37,7 @@ namespace Game1
             private readonly TimedPacketQueue timedPacketQueue;
             private readonly double minSafePropor;
             private ResAmountsPacketsByDestin waitingResAmountsPackets;
-            private readonly Dictionary<Person> waitingPeople;
+            private readonly MySet<Person> waitingPeople;
             private readonly double reqWattsPerKg;
             private double energyPropor;
             private readonly Event<IDeletedListener> deleted;
@@ -162,7 +162,7 @@ namespace Game1
                 (
                     startPos: node1.Position,
                     endPos: node2.Position,
-                    width: CurWorldConfig.linkWidth
+                    width: new ChangingFloat(CurWorldConfig.linkWidth)
                 ),
                 activeColor: Color.White,
                 inactiveColor: Color.Green,

@@ -11,9 +11,9 @@ namespace Game1.Shapes
         public readonly Vector2 startPos, endPos;
 
         protected abstract Texture2D Texture { get; }
-        protected readonly float width;
+        protected readonly IReadOnlyChangingFloat width;
 
-        protected VectorShape(Vector2 startPos, Vector2 endPos, float width)
+        protected VectorShape(Vector2 startPos, Vector2 endPos, IReadOnlyChangingFloat width)
         {
             if (C.IsTiny(Vector2.Distance(startPos, endPos)))
                 throw new ArgumentException();
@@ -30,7 +30,7 @@ namespace Game1.Shapes
             Vector2 orthDir = new(-direction.Y, direction.X);
             float distance = Vector2.Distance(startPos, endPos),
                 dirProp = Vector2.Dot(relPos, direction) / distance,
-                orthDirProp = Math.Abs(Vector2.Dot(relPos, orthDir) / (width * .5f));
+                orthDirProp = Math.Abs(Vector2.Dot(relPos, orthDir) / (width.Value * .5f));
             if (dirProp is < 0 or >= 1 || orthDirProp >= 1)
                 return false;
             return Contains(dirProp: dirProp, orthDirProp: orthDirProp);
@@ -48,7 +48,7 @@ namespace Game1.Shapes
                 color: color,
                 rotation: C.Rotation(vector: endPos - startPos),
                 origin: new Vector2(Texture.Width, Texture.Height) * .5f,
-                scale: new Vector2(Vector2.Distance(startPos, endPos) / Texture.Width, width / Texture.Height)
+                scale: new Vector2(Vector2.Distance(startPos, endPos) / Texture.Width, width.Value / Texture.Height)
             );
     }
 }

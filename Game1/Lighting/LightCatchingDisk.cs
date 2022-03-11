@@ -10,7 +10,7 @@ using static Game1.WorldManager;
 namespace Game1.Lighting
 {
     [Serializable]
-    public class LightCatchingDisk : Ellipse, ILightCatchingObject
+    public class LightCatchingDisk : Disk, ILightCatchingObject
     {
         public IEvent<IDeletedListener> Deleted
             => deleted;
@@ -23,18 +23,12 @@ namespace Game1.Lighting
         public double Watts
             => starPosToWatts.Values.DefaultIfEmpty().Sum();
 
-        public readonly float radius;
-
         private readonly Dictionary<Vector2, double> starPosToWatts, starPosToPowerProp;
         private readonly Event<IDeletedListener> deleted;
 
-        public LightCatchingDisk(float radius)
-            : base(width: 2 * radius, height: 2 * radius)
+        public LightCatchingDisk(IReadOnlyChangingFloat radius)
+            : base(radius: radius)
         {
-            if (radius <= 0)
-                throw new ArgumentOutOfRangeException();
-            this.radius = radius;
-
             starPosToWatts = new();
             starPosToPowerProp = new();
             deleted = new();
@@ -48,10 +42,10 @@ namespace Game1.Lighting
         IEnumerable<float> ILightCatchingObject.RelAngles(Vector2 lightPos)
         {
             float dist = Vector2.Distance(lightPos, Center);
-            if (dist <= radius)
+            if (dist <= radius.Value)
                 yield break;
 
-            float a = radius / Vector2.Distance(lightPos, Center),
+            float a = radius.Value / Vector2.Distance(lightPos, Center),
                   b = (float)Math.Sqrt(1 - a * a);
             Vector2 center = Center * b * b + lightPos * a * a,
                     diff = Center - lightPos,
@@ -65,7 +59,7 @@ namespace Game1.Lighting
         IEnumerable<float> ILightCatchingObject.InterPoints(Vector2 lightPos, Vector2 lightDir)
         {
             Vector2 d = lightPos - Center;
-            float e = Vector2.Dot(lightDir, d), f = Vector2.Dot(d, d) - radius * radius, g = e * e - f;
+            float e = Vector2.Dot(lightDir, d), f = Vector2.Dot(d, d) - radius.Value * radius.Value, g = e * e - f;
             if (g < 0)
                 yield break;
 

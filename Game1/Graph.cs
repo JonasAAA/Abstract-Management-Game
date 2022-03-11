@@ -13,7 +13,7 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [Serializable]
-    public class Graph : UIElement, IChoiceChangedListener<Overlay>, IActiveChangedListener
+    public class Graph : UIElement<IUIElement>, IChoiceChangedListener<Overlay>, IActiveChangedListener
     {
         [Serializable]
         private class NodeInfo
@@ -118,6 +118,7 @@ namespace Game1
         private readonly List<Link> links;
 
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDestinArrows;
+
         public WorldUIElement ActiveWorldElement { get; private set; }
 
         public Graph(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links)

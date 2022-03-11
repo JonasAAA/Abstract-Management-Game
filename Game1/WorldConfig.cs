@@ -6,7 +6,7 @@ namespace Game1
     [Serializable]
     public class WorldConfig
     {
-        public readonly double personJobEnjoymentCoeff, personTalentCoeff, personSkillCoeff, jobDesperationCoeff, PlayerToJobDistCoeff, minAcceptablePersonScore, personTimeSkillCoeff, jobVacDespCoeff;
+        public readonly double personJobEnjoymentCoeff, personTalentCoeff, personSkillCoeff, jobDesperationCoeff, playerToJobDistCoeff, minAcceptablePersonScore, personTimeSkillCoeff, jobVacDespCoeff;
         public readonly ulong linkEnergyPriority;
         public readonly float standardStarRadius, scrollSpeed;
         public readonly double personMomentumCoeff, personMinReqWatts, personMaxReqWatts, randConrtribToChild, parentContribToChild;
@@ -25,15 +25,18 @@ namespace Game1
         public readonly float minSafeDist;
         public readonly ulong resDistribArrowsUILayer;
         public readonly float linkWidth;
+        public readonly double planetMassPerUnitArea;
+        // So gravitational force between masses M1 and M2 at distance R is gravitConst * M1 * M2 / (R ^ gravitPower)
+        public readonly double gravitPower, gravitConst;
 
         public WorldConfig()
         {
             personJobEnjoymentCoeff = .2;
-            personTalentCoeff = .1;
+            personTalentCoeff = .3;
             personSkillCoeff = .2;
-            PlayerToJobDistCoeff = .1;
-            jobDesperationCoeff = .4;
-            minAcceptablePersonScore = .4;
+            playerToJobDistCoeff = .1;
+            jobDesperationCoeff = .2;
+            minAcceptablePersonScore = .2;
             personTimeSkillCoeff = .1;
             jobVacDespCoeff = .1;
             linkEnergyPriority = 10;
@@ -64,11 +67,16 @@ namespace Game1
             startingWorldScale = 1;
             screenBoundWidthForMapMoving = 10;
 
-            minSafeDist = 100;
+            minSafeDist = 1;
 
             resDistribArrowsUILayer = 1;
 
             linkWidth = 10;
+
+            planetMassPerUnitArea = 1;
+
+            gravitPower = 1.5;
+            gravitConst = 1;
         }
     }
 }

@@ -16,7 +16,7 @@ namespace Game1
         public ConstULongArray TotalResAmounts { get; private set; }
         public ulong TotalWeight { get; private set; }
 
-        private readonly Dictionary<Person> people;
+        private readonly MySet<Person> people;
 
         public TimedPacketQueue(TimeSpan duration)
             : base(duration: duration)
@@ -52,10 +52,10 @@ namespace Game1
             return result;
         }
 
-        public (ResAmountsPacketsByDestin resAmountsPackets, Dictionary<Person> people) DonePacketsAndPeople()
+        public (ResAmountsPacketsByDestin resAmountsPackets, MySet<Person> people) DonePacketsAndPeople()
         {
             ResAmountsPacketsByDestin doneResAmountsPackets = new();
-            Dictionary<Person> donePeople = new();
+            MySet<Person> donePeople = new();
             foreach (var (resAmountsPackets, people) in DoneElements())
             {
                 doneResAmountsPackets.Add(resAmountsPackets: resAmountsPackets);

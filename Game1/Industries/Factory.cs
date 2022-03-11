@@ -5,10 +5,10 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public class Factory : Industry
+    public class Factory : ProductiveIndustry
     {
         [Serializable]
-        public new class Params : Industry.Params
+        public new class Params : ProductiveIndustry.Params
         {
             public readonly double reqWatts;
             public readonly ConstULongArray supply, demand;
@@ -58,7 +58,7 @@ namespace Game1.Industries
         protected override bool IsBusy()
             => prodTimeLeft < TimeSpan.MaxValue;
 
-        protected override Industry Update(double workingPropor)
+        protected override Factory InternalUpdate(double workingPropor)
         {
             if (IsBusy())
                 prodTimeLeft -= workingPropor * CurWorldManager.Elapsed;

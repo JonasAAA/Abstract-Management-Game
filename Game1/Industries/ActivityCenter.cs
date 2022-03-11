@@ -6,7 +6,7 @@ using System.Diagnostics;
 
 using static Game1.WorldManager;
 
-namespace Game1
+namespace Game1.Industries
 {
     [Serializable]
     public abstract class ActivityCenter : IActivityCenter, IDeletable
@@ -24,7 +24,7 @@ namespace Game1
         public IEnumerable<Person> PeopleHere
             => peopleHere;
 
-        protected readonly Dictionary<Person> peopleHere, allPeople;
+        protected readonly MySet<Person> peopleHere, allPeople;
         protected readonly NodeState state;
 
         private readonly Event<IDeletedListener> deleted;

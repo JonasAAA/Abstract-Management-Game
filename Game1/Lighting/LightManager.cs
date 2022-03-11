@@ -9,8 +9,8 @@ namespace Game1.Lighting
     [Serializable]
     public class LightManager : IDeletedListener
     {
-        private readonly Dictionary<ILightCatchingObject> lightCatchingObjects;
-        private readonly Dictionary<ILightSource> lightSources;
+        private readonly MySet<ILightCatchingObject> lightCatchingObjects;
+        private readonly MySet<ILightSource> lightSources;
 
         [NonSerialized] private int actualScreenWidth, actualScreenHeight;
         [NonSerialized] private RenderTarget2D renderTarget;

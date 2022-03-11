@@ -7,7 +7,7 @@ using System.Collections.Generic;
 namespace Game1.UI
 {
     [Serializable]
-    public class UITransparentPanel<TChild> : UIElement, IEnumerable<TChild>
+    public class UITransparentPanel<TChild> : UIElement<IUIElement>, IEnumerable<TChild>
         where TChild : IUIElement
     {
         public int Count

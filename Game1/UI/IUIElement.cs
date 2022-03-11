@@ -17,15 +17,11 @@ namespace Game1.UI
 
         public string Explanation { get; }
 
-        public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; }
-
         public Event<IEnabledChangedListener> EnabledChanged { get; }
 
         public bool Contains(Vector2 position);
 
         public IUIElement CatchUIElement(Vector2 mousePos);
-
-        public void RecalcSizeAndPos();
 
         public virtual void OnClick()
         { }

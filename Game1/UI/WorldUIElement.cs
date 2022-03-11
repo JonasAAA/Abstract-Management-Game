@@ -10,7 +10,7 @@ using static Game1.WorldManager;
 namespace Game1.UI
 {
     [Serializable]
-    public class WorldUIElement : UIElement, IDeletable, IChoiceChangedListener<Overlay>
+    public class WorldUIElement : UIElement<IUIElement>, IDeletable, IChoiceChangedListener<Overlay>
     {
         public IEvent<IDeletedListener> Deleted
             => deleted;

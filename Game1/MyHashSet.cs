@@ -10,17 +10,17 @@ namespace Game1
     /// </summary>
     //[CollectionDataContract]
     [Serializable]
-    public class Dictionary<T> : IEnumerable<T>
+    public class MySet<T> : IEnumerable<T>
     {
         public int Count
             => set.Count;
 
         private readonly HashSet<T> set;
         
-        public Dictionary()
+        public MySet()
             => set = new();
 
-        public Dictionary(IEnumerable<T> collection)
+        public MySet(IEnumerable<T> collection)
             : this()
         {
             UnionWith(collection: collection);

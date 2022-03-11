@@ -15,7 +15,7 @@ namespace Game1.Shapes
         protected override Texture2D Texture
             => triangleTexture;
 
-        public Arrow(Vector2 startPos, Vector2 endPos, float baseWidth)
+        public Arrow(Vector2 startPos, Vector2 endPos, IReadOnlyChangingFloat baseWidth)
             : base(startPos: startPos, endPos: endPos, width: baseWidth)
         { }
 

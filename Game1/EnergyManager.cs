@@ -11,8 +11,8 @@ namespace Game1
     [Serializable]
     public class EnergyManager : IDeletedListener
     {
-        private readonly Dictionary<IEnergyProducer> energyProducers;
-        private readonly Dictionary<IEnergyConsumer> energyConsumers;
+        private readonly MySet<IEnergyProducer> energyProducers;
+        private readonly MySet<IEnergyConsumer> energyConsumers;
         private double totReqWatts, totProdWatts, totUsedLocalWatts, totUsedPowerPlantWatts;
 
         public EnergyManager()
@@ -60,7 +60,7 @@ namespace Game1
             totUsedLocalWatts = 0;
             totUsedPowerPlantWatts = 0;
 
-            Dictionary<Vector2, Dictionary<IEnergyConsumer>> energyConsumersByNode = new();
+            Dictionary<Vector2, MySet<IEnergyConsumer>> energyConsumersByNode = new();
             foreach (var nodePos in nodePositions)
                 energyConsumersByNode[nodePos] = new();
             foreach (var energyConsumer in energyConsumers)
@@ -110,7 +110,7 @@ namespace Game1
             // returns remaining watts
             double DistributePartOfEnergy(IEnumerable<IEnergyConsumer> energyConsumers, double availableWatts)
             {
-                SortedDictionary<ulong, Dictionary<IEnergyConsumer>> energyConsumersByPriority = new();
+                SortedDictionary<ulong, MySet<IEnergyConsumer>> energyConsumersByPriority = new();
                 foreach (var energyConsumer in energyConsumers)
                 {
                     ulong priority = energyConsumer.EnergyPriority;

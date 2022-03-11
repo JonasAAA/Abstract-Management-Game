@@ -38,9 +38,9 @@ namespace Game1
                 elementSelector: a => Math.Clamp(a.Value, min, max)
             );
 
-        public static Dictionary<T> ToMyHashSet<T>(this IEnumerable<T> source)
+        public static MySet<T> ToMyHashSet<T>(this IEnumerable<T> source)
         {
-            Dictionary<T> result = new();
+            MySet<T> result = new();
             foreach (var item in source)
                 result.Add(item);
             return result;

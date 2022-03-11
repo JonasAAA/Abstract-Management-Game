@@ -1,15 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
     [Serializable]
-    public class ReprodIndustry : Industry
+    public class ReprodIndustry : ProductiveIndustry
     {
         [Serializable]
-        public new class Params : Industry.Params
+        public new class Params : ProductiveIndustry.Params
         {
             public readonly double reqWattsPerChild;
             public readonly ulong maxCouples;
@@ -43,8 +43,8 @@ namespace Game1.Industries
 
             private readonly Params parameters;
 
-            public ReprodCenter(ulong energyPriority, NodeState state, Params parameters)
-                : base(activityType: ActivityType.Reproduction, energyPriority: energyPriority, state: state)
+            public ReprodCenter(NodeState state, Params parameters)
+                : base(activityType: ActivityType.Reproduction, energyPriority: parameters.energyPriority, state: state)
             {
                 this.parameters = parameters;
                 unpairedPeople = new();
@@ -71,13 +71,15 @@ namespace Game1.Industries
                 => IActivityCenter.UpdatePersonDefault(person: person);
 
             public override bool CanPersonLeave(Person person)
-            {
-                throw new NotImplementedException();
-            }
+                // a person can't leave while in the process of having a child
+                => false;
 
             public string GetInfo()
                 => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - peopleHere.Count} people travelling here\n";
         }
+
+        public override IEnumerable<Person> PeopleHere
+            => base.PeopleHere.Concat(reprodCenter.PeopleHere);
 
         private readonly Params parameters;
         private readonly ReprodCenter reprodCenter;
@@ -89,7 +91,6 @@ namespace Game1.Industries
             this.parameters = parameters;
             reprodCenter = new
             (
-                energyPriority: parameters.energyPriority,
                 state: state,
                 parameters: parameters
             );
@@ -103,7 +104,7 @@ namespace Game1.Industries
         protected override bool IsBusy()
             => birthQueue.Count > 0;
 
-        protected override Industry Update(double workingPropor)
+        protected override ReprodIndustry InternalUpdate(double workingPropor)
         {
             birthQueue.Update(workingPropor: workingPropor);
 

@@ -5,30 +5,30 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public class Construction : Industry
+    public class Construction : ProductiveIndustry
     {
         [Serializable]
-        public new class Params : Industry.Params
+        public new class Params : ProductiveIndustry.Params
         {
             public readonly double reqWatts;
             public readonly Industry.Params industrParams;
             public readonly TimeSpan duration;
             public readonly ConstULongArray cost;
 
-            public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, Industry.Params industrParams, TimeSpan duration, ConstULongArray cost)
+            public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, Industry.Params industryParams, TimeSpan duration, ConstULongArray cost)
                 : base
                 (
                     industryType: IndustryType.Construction,
                     name: name,
                     energyPriority: energyPriority,
                     reqSkill: reqSkill,
-                    explanation: $"construction stats:\nrequires {reqWatts} W/s\nduration {duration.TotalSeconds:0.}s\ncost {cost}\n\nbuilding stats:\n{industrParams.explanation}"
+                    explanation: $"construction stats:\nrequires {reqWatts} W/s\nduration {duration.TotalSeconds:0.}s\ncost {cost}\n\nbuilding stats:\n{industryParams.explanation}"
                 )
             {
                 if (reqWatts <= 0)
                     throw new ArgumentOutOfRangeException();
                 this.reqWatts = reqWatts;
-                this.industrParams = industrParams;
+                this.industrParams = industryParams;
                 if (duration < TimeSpan.Zero || duration == TimeSpan.MaxValue)
                     throw new ArgumentException();
                 this.duration = duration;
@@ -59,7 +59,7 @@ namespace Game1.Industries
         protected override bool IsBusy()
             => constrTimeLeft < TimeSpan.MaxValue;
 
-        protected override Industry Update(double workingPropor)
+        protected override Industry InternalUpdate(double workingPropor)
         {
             if (IsBusy())
                 constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;

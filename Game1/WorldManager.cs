@@ -104,12 +104,11 @@ namespace Game1
                             state: new
                             (
                                 position: new Vector2(i - (width - 1) * .5f, j - (height - 1) * .5f) * dist,
+                                radius: (float)Math.Pow(2, C.Random(min: 3, max: 6)),
                                 maxBatchDemResStored: 2
                             ),
-                            radius: 32,
                             activeColor: Color.White,
                             inactiveColor: Color.Gray,
-                            resDestinArrowWidth: 64,
                             startPersonCount: 5
                         );
 
@@ -245,7 +244,7 @@ namespace Game1
         private readonly WorldConfig worldConfig;
         private readonly ResConfig resConfig;
         private readonly IndustryConfig industryConfig;
-        private readonly Dictionary<Person> people;
+        private readonly MySet<Person> people;
         private readonly EnergyManager energyManager;
         private readonly ActivityManager activityManager;
         private readonly LightManager lightManager;
@@ -366,7 +365,7 @@ namespace Game1
                 posToNode: graph.posToNode
             );
 
-            //planet.Update();
+            //planet.InternalUpdate();
 
             graph.Update();
 

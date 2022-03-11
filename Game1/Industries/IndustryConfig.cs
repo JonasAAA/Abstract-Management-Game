@@ -14,11 +14,25 @@ namespace Game1.Industries
             {
                 new
                 (
+                    name: "house construction",
+                    energyPriority: 20,
+                    reqSkill: 10,
+                    reqWatts: 10,
+                    industryParams: new House.Params
+                    (
+                        name: "house",
+                        floorSpace: 100
+                    ),
+                    duration: TimeSpan.FromSeconds(5),
+                    cost: new()
+                ),
+                new
+                (
                     name: "factory costruction",
                     energyPriority: 10,
                     reqSkill: 10,
                     reqWatts: 100,
-                    industrParams: new Factory.Params
+                    industryParams: new Factory.Params
                     (
                         name: "factory0_lvl1",
                         energyPriority: 20,
@@ -40,7 +54,7 @@ namespace Game1.Industries
                     energyPriority: 10,
                     reqSkill: 10,
                     reqWatts: 100,
-                    industrParams: new Factory.Params
+                    industryParams: new Factory.Params
                     (
                         name: "factory1_lvl1",
                         energyPriority: 20,
@@ -62,7 +76,7 @@ namespace Game1.Industries
                     energyPriority: 10,
                     reqSkill: 10,
                     reqWatts: 100,
-                    industrParams: new Factory.Params
+                    industryParams: new Factory.Params
                     (
                         name: "factory2_lvl1",
                         energyPriority: 20,
@@ -84,7 +98,7 @@ namespace Game1.Industries
                     energyPriority: 10,
                     reqSkill: 30,
                     reqWatts: 100,
-                    industrParams: new PowerPlant.Params
+                    industryParams: new PowerPlant.Params
                     (
                         name: "power_plant_lvl1",
                         reqSkill: 20,
@@ -99,7 +113,7 @@ namespace Game1.Industries
                     energyPriority: 10,
                     reqSkill: 10,
                     reqWatts: 100,
-                    industrParams: new Factory.Params
+                    industryParams: new Factory.Params
                     (
                         name: "factory0_lvl2",
                         energyPriority: 20,
@@ -128,7 +142,7 @@ namespace Game1.Industries
                     energyPriority: 10,
                     reqSkill: 5,
                     reqWatts: 200,
-                    industrParams: new ReprodIndustry.Params
+                    industryParams: new ReprodIndustry.Params
                     (
                         name: "reprod. ind.",
                         energyPriority: 11,

@@ -5,21 +5,21 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public class PowerPlant : Industry, IEnergyProducer
+    public class PowerPlant : ProductiveIndustry, IEnergyProducer
     {
         [Serializable]
-        public new class Params : Industry.Params
+        public new class Params : ProductiveIndustry.Params
         {
             public readonly double prodWatts;
 
             public Params(string name, double reqSkill, double prodWatts)
                 : base
                 (
-                      industryType: IndustryType.PowerPlant,
-                      energyPriority: 0,
-                      name: name,
-                      reqSkill: reqSkill,
-                      explanation: $"requires {reqSkill} skill\nproduces {prodWatts} W/s"
+                    industryType: IndustryType.PowerPlant,
+                    energyPriority: 0,
+                    name: name,
+                    reqSkill: reqSkill,
+                    explanation: $"requires {reqSkill} skill\nproduces {prodWatts} W/s"
                 )
             {
                 if (prodWatts <= 0)
@@ -46,7 +46,7 @@ namespace Game1.Industries
         protected override bool IsBusy()
             => true;
 
-        protected override Industry Update(double workingPropor)
+        protected override PowerPlant InternalUpdate(double workingPropor)
         {
             if (!C.IsTiny(value: workingPropor - CurSkillPropor))
                 throw new Exception();

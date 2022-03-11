@@ -9,12 +9,11 @@ using System.Linq;
 namespace Game1.UI
 {
     [Serializable]
-    public class UIElement : IUIElement, ISizeOrPosChangedListener
+    public class UIElement<TChild> : IUIElement
+        where TChild : IUIElement
     {
         protected const string defaultExplanation = "Explanation missing!";
 
-        public Event<ISizeOrPosChangedListener> SizeOrPosChanged
-            => shape.SizeOrPosChanged;
         public Event<IEnabledChangedListener> EnabledChanged { get; }
 
         public bool Enabled
@@ -69,10 +68,10 @@ namespace Game1.UI
 
         protected readonly Shape shape;
         
-        private bool personallyEnabled, hasDisabledAncestor, mouseOn, inRecalcSizeAndPos;
+        private bool personallyEnabled, hasDisabledAncestor, mouseOn;
 
-        private readonly SortedDictionary<ulong, List<IUIElement>> layerToChildren;
-        private readonly Dictionary<IUIElement, ulong> childToLayer;
+        private readonly SortedDictionary<ulong, List<TChild>> layerToChildren;
+        private readonly Dictionary<TChild, ulong> childToLayer;
 
         public UIElement(Shape shape, string explanation = defaultExplanation)
         {
@@ -82,38 +81,36 @@ namespace Game1.UI
             personallyEnabled = true;
             MouseOn = false;
             hasDisabledAncestor = false;
-            inRecalcSizeAndPos = false;
             layerToChildren = new();
             childToLayer = new();
-
-            SizeOrPosChanged.Add(listener: this);
         }
 
-        protected IEnumerable<IUIElement> Children(ulong minLayer = 0, ulong maxLayer = ulong.MaxValue)
+        protected IEnumerable<TChild> Children(ulong minLayer = 0, ulong maxLayer = ulong.MaxValue)
             => from childrenLayer in layerToChildren
                where minLayer <= childrenLayer.Key && childrenLayer.Key <= maxLayer
                from child in childrenLayer.Value
                select child;
 
-        protected void AddChild(IUIElement child, ulong layer = 0)
+        protected virtual void AddChild(TChild child, ulong layer = 0)
         {
             if (!layerToChildren.ContainsKey(layer))
                 layerToChildren[layer] = new();
             layerToChildren[layer].Add(child);
             childToLayer.Add(child, layer);
-            child.SizeOrPosChanged.Add(listener: this);
-            RecalcSizeAndPos();
+            // TODO
+            //probably want to move this to HUDElement
+            //later would probably need to add some reaction to position changes to WorldUIElement
+            //(maybe WorldUIElements use only shapes which have their positions defined by something like IReadOnlyChangingFloat)
+            //child.SizeOrPosChanged.Add(listener: this);
         }
 
-        protected void RemoveChild(IUIElement child)
+        protected virtual void RemoveChild(TChild child)
         {
             ulong layer = childToLayer[child];
-            child.SizeOrPosChanged.Remove(listener: this);
             if (!layerToChildren[layer].Remove(child) || !childToLayer.Remove(child))
                 throw new ArgumentException();
             if (layerToChildren[layer].Count is 0)
                 layerToChildren.Remove(layer);
-            RecalcSizeAndPos();
         }
 
         public bool Contains(Vector2 position)
@@ -137,25 +134,6 @@ namespace Game1.UI
             };
         }
 
-        public void RecalcSizeAndPos()
-        {
-            if (inRecalcSizeAndPos)
-                return;
-            inRecalcSizeAndPos = true;
-
-            PartOfRecalcSizeAndPos();
-            foreach (var child in Children())
-                child.RecalcSizeAndPos();
-
-            inRecalcSizeAndPos = false;
-        }
-
-        protected virtual void PartOfRecalcSizeAndPos()
-        {
-            if (!inRecalcSizeAndPos)
-                throw new InvalidOperationException();
-        }
-
         public virtual void OnClick()
         {
             if (!CanBeClicked)
@@ -176,9 +154,6 @@ namespace Game1.UI
             foreach (var child in Children())
                 child.Draw();
         }
-
-        public virtual void SizeOrPosChangedResponse(Shape shape)
-            => RecalcSizeAndPos();
 
         private void MyEnabledChangedResponse()
         {

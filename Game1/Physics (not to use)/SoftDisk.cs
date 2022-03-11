@@ -172,7 +172,7 @@ namespace Game1.Physics
         //SoftDisk.BeginDraw(worldCenter: (AccurVector2) Vector2.Zero, worldToScreenTransform: worldCamera.GetToScreenTransform());
         //softDisks[0].center = (AccurVector2) MouseWorldPos;
         //    foreach (var softDisk in softDisks)
-        //        softDisk.Update();
+        //        softDisk.InternalUpdate();
         //    foreach (var softDisk in softDisks)
         //    {
         //        softDisk.CalcNextPos(softDisks: softDisks);
@@ -265,7 +265,7 @@ namespace Game1.Physics
         }
 
         // frame x:
-        //      Update()
+        //      InternalUpdate()
         //      CalcNextPos()
         public void Update()
         {

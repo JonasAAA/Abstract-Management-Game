@@ -68,7 +68,7 @@
 //            if (maxAngleDiff * 2 < MathHelper.TwoPi)
 //                vertices.Add(position);
 
-//            polygon.Update(center: position, vertices: vertices);
+//            polygon.InternalUpdate(center: position, vertices: vertices);
 //        }
 
 //        private void PrepareAngles(ref List<float> angles)

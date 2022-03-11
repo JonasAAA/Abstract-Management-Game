@@ -17,41 +17,6 @@ namespace Game1
     public class Node : WorldUIElement
     {
         [Serializable]
-        private class UnemploymentCenter : ActivityCenter
-        {
-            public UnemploymentCenter(NodeState state)
-                : base(activityType: ActivityType.Unemployed, energyPriority: ulong.MaxValue, state: state)
-            { }
-
-            public override bool IsFull()
-                => false;
-
-            public override double PersonScoreOfThis(Person person)
-                => CurWorldConfig.personMomentumCoeff * (IsPersonHere(person: person) ? 1 : 0) 
-                + (.7 * C.Random(min: 0, max: 1) + .3 * DistanceToHere(person: person)) * (1 - CurWorldConfig.personMomentumCoeff);
-
-            public override bool IsPersonSuitable(Person person)
-                // may disallow far travel
-                => true;
-
-            public override void UpdatePerson(Person person)
-            {
-                if (!IsPersonHere(person: person))
-                    throw new ArgumentException();
-
-                IActivityCenter.UpdatePersonDefault(person: person);
-                // TODO calculate happiness
-                // may decrease person's skills
-            }
-
-            public override bool CanPersonLeave(Person person)
-                => true;
-
-            public string GetInfo()
-                => $"unemployed {peopleHere.Count}\ntravel to be unemployed\nhere {allPeople.Count - peopleHere.Count}\n";
-        }
-
-        [Serializable]
         private record ResDesinArrowEventListener(Node Node, int ResInd) : IDeletedListener, INumberChangedListener
         {
             public void SyncSplittersWithArrows()
@@ -107,14 +72,14 @@ namespace Game1
         private readonly NodeState state;
         private readonly List<Link> links;
         private Industry industry;
-        private readonly UnemploymentCenter unemploymentCenter;
+        private readonly HouseOld unemploymentCenter;
         private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
         private ULongArray undecidedResAmounts, resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
         private double remainingLocalWatts;
-        private readonly float resDestinArrowWidth;
 
+        private IReadOnlyChangingFloat resDestinArrowWidth;
         private readonly TextBox textBox;
         private readonly MyArray<ToggleButton> storeToggleButtons;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
@@ -124,11 +89,10 @@ namespace Game1
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
-        public Node(NodeState state, float radius, Color activeColor, Color inactiveColor, float resDestinArrowWidth, int startPersonCount = 0)
-            : base(shape: new LightCatchingDisk(radius: radius), activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
+        public Node(NodeState state, Color activeColor, Color inactiveColor, int startPersonCount = 0)
+            : base(shape: new LightCatchingDisk(radius: state.radius), activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             this.state = state;
-            this.resDestinArrowWidth = resDestinArrowWidth;
             shape = (LightCatchingDisk)base.shape;
             shape.Center = Position;
             
@@ -152,6 +116,7 @@ namespace Game1
                 state.waitingPeople.Add(person);
             }
 
+            resDestinArrowWidth = 2 * state.radius;
             textBox = new()
             {
                 Text = "",
@@ -375,6 +340,10 @@ namespace Game1
 
         public void Update(IReadOnlyDictionary<(Vector2, Vector2), Link> personFirstLinks)
         {
+            // TODO: delete
+            // temporary
+            // state.SetRadius((float)C.Random(0.99, 1.01) * state.radius.Value);
+
             if (industry is not null)
                 SetIndustry(newIndustry: industry.Update());
 
@@ -531,14 +500,6 @@ namespace Game1
                     tabLabelText: overlayTabLabel,
                     tab: overlayTabPanels[CurWorldManager.Overlay]
                 );
-        }
-
-        public override void SizeOrPosChangedResponse(Shape shape)
-        {
-            if (shape.Center != Position)
-                throw new Exception();
-
-            base.SizeOrPosChangedResponse(shape: shape);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Game1.PrimitiveTypeWrappers;
+using System;
 
 using static Game1.WorldManager;
 
@@ -10,23 +11,23 @@ namespace Game1.Industries
         [Serializable]
         public new class Params : ProductiveIndustry.Params
         {
-            public readonly double reqWatts;
+            public readonly UFloat reqWattsPerUnitSurface;
             public readonly ConstULongArray supply, demand;
             public readonly TimeSpan prodDuration;
-
-            public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, ConstULongArray supply, ConstULongArray demand, TimeSpan prodDuration)
+            
+            public Params(string name, ulong energyPriority, UFloat reqSkillPerUnitSurface, UFloat reqWattsPerUnitSurface, ConstULongArray supply, ConstULongArray demand, TimeSpan prodDuration)
                 : base
                 (
                     industryType: IndustryType.Production,
                     name: name,
                     energyPriority: energyPriority,
-                    reqSkill: reqSkill,
-                    explanation: $"requires {reqSkill} skill\nrequires {reqWatts} W\nsupply {supply}\ndemand {demand}"
+                    reqSkillPerUnitSurface: reqSkillPerUnitSurface,
+                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(supply)} {supply}\n{nameof(demand)} {demand}"
                 )
             {
-                if (reqWatts <= 0)
+                if (reqWattsPerUnitSurface <= 0)
                     throw new ArgumentOutOfRangeException();
-                this.reqWatts = reqWatts;
+                this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
                 this.supply = supply;
                 this.demand = demand;
                 if (prodDuration < TimeSpan.Zero)
@@ -39,12 +40,14 @@ namespace Game1.Industries
         }
 
         private readonly Params parameters;
+        private readonly IReadOnlyChangingUFloat reqWatts;
         private TimeSpan prodTimeLeft;
 
         private Factory(NodeState state, Params parameters)
             : base(state: state, parameters: parameters)
         {
             this.parameters = parameters;
+            reqWatts = parameters.reqWattsPerUnitSurface * state.approxSurfaceLength;
             prodTimeLeft = TimeSpan.MaxValue;
         }
 
@@ -95,7 +98,7 @@ namespace Game1.Industries
             // and if they don't, then the industry will get 0 energy anyway
             => IsBusy() switch
             {
-                true => parameters.reqWatts * CurSkillPropor,
+                true => reqWatts.Value * CurSkillPropor,
                 false => 0
             };
     }

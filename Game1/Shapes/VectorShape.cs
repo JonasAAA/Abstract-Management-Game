@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.PrimitiveTypeWrappers;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
@@ -11,9 +12,9 @@ namespace Game1.Shapes
         public readonly Vector2 startPos, endPos;
 
         protected abstract Texture2D Texture { get; }
-        protected readonly IReadOnlyChangingFloat width;
+        protected readonly IReadOnlyChangingUFloat width;
 
-        protected VectorShape(Vector2 startPos, Vector2 endPos, IReadOnlyChangingFloat width)
+        protected VectorShape(Vector2 startPos, Vector2 endPos, IReadOnlyChangingUFloat width)
         {
             if (C.IsTiny(Vector2.Distance(startPos, endPos)))
                 throw new ArgumentException();

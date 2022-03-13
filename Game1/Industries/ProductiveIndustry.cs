@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.PrimitiveTypeWrappers;
+using Microsoft.Xna.Framework;
 using Priority_Queue;
 using System;
 using System.Collections.Generic;
@@ -17,9 +18,9 @@ namespace Game1.Industries
         {
             public readonly IndustryType industryType;
             public readonly ulong energyPriority;
-            public readonly double reqSkill;
+            public readonly UFloat reqSkillPerUnitSurface;
 
-            protected Params(IndustryType industryType, string name, ulong energyPriority, double reqSkill, string explanation)
+            protected Params(IndustryType industryType, string name, ulong energyPriority, UFloat reqSkillPerUnitSurface, string explanation)
                 : base(name: name, explanation: explanation)
             {
                 this.industryType = industryType;
@@ -27,9 +28,9 @@ namespace Game1.Industries
                     || (industryType is not IndustryType.PowerPlant && energyPriority is 0))
                     throw new ArgumentException();
                 this.energyPriority = energyPriority;
-                if (reqSkill <= 0)
+                if (reqSkillPerUnitSurface <= 0)
                     throw new ArgumentOutOfRangeException();
-                this.reqSkill = reqSkill;
+                this.reqSkillPerUnitSurface = reqSkillPerUnitSurface;
             }
 
             public abstract override ProductiveIndustry MakeIndustry(NodeState state);
@@ -41,6 +42,7 @@ namespace Game1.Industries
             public double CurSkillPropor { get; private set; }
 
             private readonly Params parameters;
+            private readonly IReadOnlyChangingUFloat reqSkill;
             // must be >= 0
             private TimeSpan avgVacancyDuration;
             private double curUnboundedSkillPropor, workingPropor;
@@ -50,6 +52,7 @@ namespace Game1.Industries
             {
                 this.parameters = parameters;
 
+                reqSkill = state.approxSurfaceLength * parameters.reqSkillPerUnitSurface;
                 CurSkillPropor = 0;
                 curUnboundedSkillPropor = 0;
                 avgVacancyDuration = TimeSpan.Zero;
@@ -59,7 +62,7 @@ namespace Game1.Industries
             public void StartUpdate()
             {
                 double totalHiredSkill = HiredSkill();
-                if (totalHiredSkill >= parameters.reqSkill)
+                if (totalHiredSkill >= reqSkill.Value)
                 {
                     // if can, fire the worst people
                     double oldOpenSpace = OpenSpace();
@@ -72,7 +75,7 @@ namespace Game1.Industries
                             priority: CurrentEmploymentScore(person: person)
                         );
 
-                    while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill - allEmployeesPriorQueue.First.skills[parameters.industryType] >= parameters.reqSkill)
+                    while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill - allEmployeesPriorQueue.First.skills[parameters.industryType] >= reqSkill.Value)
                     {
                         var person = allEmployeesPriorQueue.Dequeue();
                         totalHiredSkill -= person.skills[parameters.industryType];
@@ -85,7 +88,7 @@ namespace Game1.Industries
                     else
                         avgVacancyDuration *= oldOpenSpace / curOpenSpace;
 
-                    Debug.Assert(HiredSkill() >= parameters.reqSkill);
+                    Debug.Assert(HiredSkill() >= reqSkill.Value);
                 }
 
                 if (IsFull())
@@ -96,7 +99,7 @@ namespace Game1.Industries
 
             public void EndUpdate()
             {
-                curUnboundedSkillPropor = peopleHere.Sum(person => person.skills[parameters.industryType]) / parameters.reqSkill;
+                curUnboundedSkillPropor = peopleHere.Sum(person => person.skills[parameters.industryType]) / reqSkill.Value;
                 CurSkillPropor = Math.Min(1, curUnboundedSkillPropor);
             }
 
@@ -136,7 +139,7 @@ namespace Game1.Industries
             }
 
             public string GetInfo()
-                => $"have {peopleHere.Sum(person => person.skills[parameters.industryType]) / parameters.reqSkill * 100:0.}% skill\ndesperation {(IsFull() ? 0 : Desperation() * 100):0.}%\nemployed {peopleHere.Count}\n";
+                => $"have {peopleHere.Sum(person => person.skills[parameters.industryType]) / reqSkill.Value * 100:0.}% skill\ndesperation {(IsFull() ? 0 : Desperation() * 100):0.}%\nemployed {peopleHere.Count}\n";
 
             private double HiredSkill()
                 => allPeople.Sum(person => person.skills[parameters.industryType]);
@@ -144,9 +147,9 @@ namespace Game1.Industries
             private double OpenSpace()
             {
                 double hiredSkill = HiredSkill();
-                if (hiredSkill >= parameters.reqSkill)
+                if (hiredSkill >= reqSkill.Value)
                     return double.NegativeInfinity;
-                double result = 1 - hiredSkill / parameters.reqSkill;
+                double result = 1 - hiredSkill / reqSkill.Value;
                 Debug.Assert(C.IsInSuitableRange(result));
                 return result;
             }

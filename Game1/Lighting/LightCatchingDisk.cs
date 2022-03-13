@@ -1,4 +1,5 @@
 ﻿using Game1.Events;
+using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Microsoft.Xna.Framework;
 using System;
@@ -26,7 +27,7 @@ namespace Game1.Lighting
         private readonly Dictionary<Vector2, double> starPosToWatts, starPosToPowerProp;
         private readonly Event<IDeletedListener> deleted;
 
-        public LightCatchingDisk(IReadOnlyChangingFloat radius)
+        public LightCatchingDisk(IReadOnlyChangingUFloat radius)
             : base(radius: radius)
         {
             starPosToWatts = new();

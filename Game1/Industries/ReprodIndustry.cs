@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Game1.PrimitiveTypeWrappers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Game1.WorldManager;
@@ -16,14 +17,14 @@ namespace Game1.Industries
             public readonly ConstULongArray resPerChild;
             public readonly TimeSpan birthDuration;
 
-            public Params(string name, ulong energyPriority, double reqSkill, ulong reqWattsPerChild, ulong maxCouples, ConstULongArray resPerChild, TimeSpan birthDuration)
+            public Params(string name, ulong energyPriority, UFloat reqSkillPerUnitSurface, ulong reqWattsPerChild, ulong maxCouples, ConstULongArray resPerChild, TimeSpan birthDuration)
                 : base
                 (
                     industryType: IndustryType.Reproduction,
                     name: name,
                     energyPriority: energyPriority,
-                    reqSkill: reqSkill,
-                    explanation: $"requires {reqSkill} skill\nneeds {reqWattsPerChild} W/s for a child\nsupports no more than {maxCouples} couples\nrequires {resPerChild} resources for a child\nchildbirth takes {birthDuration} s"
+                    reqSkillPerUnitSurface: reqSkillPerUnitSurface,
+                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(reqWattsPerChild)} {reqWattsPerChild}\n{nameof(maxCouples)} {maxCouples}\n{nameof(resPerChild)} {resPerChild}\n{nameof(birthDuration)} {birthDuration.TotalSeconds:0.#} s"
                 )
             {
                 this.reqWattsPerChild = reqWattsPerChild;

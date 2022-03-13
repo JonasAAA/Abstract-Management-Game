@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.PrimitiveTypeWrappers;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
@@ -12,9 +13,9 @@ namespace Game1.Shapes
         static Disk()
             => diskTexture = C.LoadTexture(name: "big disk");
 
-        public readonly IReadOnlyChangingFloat radius;
+        public readonly IReadOnlyChangingUFloat radius;
 
-        public Disk(IReadOnlyChangingFloat radius)
+        public Disk(IReadOnlyChangingUFloat radius)
             => this.radius = radius;
 
         public override bool Contains(Vector2 position)

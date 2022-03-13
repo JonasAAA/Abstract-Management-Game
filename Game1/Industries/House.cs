@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Game1.PrimitiveTypeWrappers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Game1.WorldManager;
@@ -11,18 +12,18 @@ namespace Game1.Industries
         [Serializable]
         public new class Params : Industry.Params
         {
-            public readonly double floorSpace;
+            public readonly UFloat floorSpacePerUnitSurface;
 
-            public Params(string name, double floorSpace)
+            public Params(string name, UFloat floorSpacePerUnitSurface)
                 : base
                 (
                     name: name,
-                    explanation: $"has {floorSpace} floor space"
+                    explanation: $"{nameof(floorSpacePerUnitSurface)} {floorSpacePerUnitSurface}"
                 )
             {
-                if (floorSpace < 0)
+                if (floorSpacePerUnitSurface < 0)
                     throw new ArgumentException();
-                this.floorSpace = floorSpace;
+                this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
             }
 
             public override House MakeIndustry(NodeState state)
@@ -33,11 +34,13 @@ namespace Game1.Industries
         private class Housing : ActivityCenter
         {
             private readonly Params parameters;
+            private readonly IReadOnlyChangingUFloat floorSpace;
 
             public Housing(NodeState state, Params parameters)
                 : base(activityType: ActivityType.Unemployed, energyPriority: ulong.MaxValue, state: state)
             {
                 this.parameters = parameters;
+                floorSpace = parameters.floorSpacePerUnitSurface * state.approxSurfaceLength;
             }
             
             public override bool IsFull()
@@ -47,7 +50,7 @@ namespace Game1.Industries
                 => PersonalSpace(peopleCount: peopleHere.Count);
 
             private double PersonalSpace(int peopleCount)
-                => Math.Tanh(parameters.floorSpace / peopleCount);
+                => Math.Tanh(floorSpace.Value / peopleCount);
 
             public override double PersonScoreOfThis(Person person)
                 => CurWorldConfig.personMomentumCoeff * (IsPersonHere(person: person) ? 1 : 0)

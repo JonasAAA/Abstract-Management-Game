@@ -1,6 +1,7 @@
 ﻿using Game1.Events;
 using Game1.Industries;
 using Game1.Lighting;
+using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
 using Microsoft.Xna.Framework;
@@ -104,7 +105,7 @@ namespace Game1
                             state: new
                             (
                                 position: new Vector2(i - (width - 1) * .5f, j - (height - 1) * .5f) * dist,
-                                radius: (float)Math.Pow(2, C.Random(min: 3, max: 6)),
+                                radius: (UFloat)Math.Pow(2, C.Random(min: 3, max: 6)),
                                 maxBatchDemResStored: 2
                             ),
                             activeColor: Color.White,

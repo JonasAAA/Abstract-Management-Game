@@ -1,4 +1,5 @@
 ﻿using Game1.Events;
+using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
 using Microsoft.Xna.Framework;
@@ -162,7 +163,7 @@ namespace Game1
                 (
                     startPos: node1.Position,
                     endPos: node2.Position,
-                    width: new ChangingFloat(CurWorldConfig.linkWidth)
+                    width: new ChangingUFloat(CurWorldConfig.linkWidth)
                 ),
                 activeColor: Color.White,
                 inactiveColor: Color.Green,

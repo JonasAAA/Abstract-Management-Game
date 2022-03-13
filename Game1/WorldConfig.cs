@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Game1.PrimitiveTypeWrappers;
+using System;
 
 
 namespace Game1
@@ -24,7 +25,7 @@ namespace Game1
         public readonly float screenBoundWidthForMapMoving;
         public readonly float minSafeDist;
         public readonly ulong resDistribArrowsUILayer;
-        public readonly float linkWidth;
+        public readonly UFloat linkWidth;
         public readonly double planetMassPerUnitArea;
         // So gravitational force between masses M1 and M2 at distance R is gravitConst * M1 * M2 / (R ^ gravitPower)
         public readonly double gravitPower, gravitConst;

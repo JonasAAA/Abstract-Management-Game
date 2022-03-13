@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Game1.PrimitiveTypeWrappers;
+using System;
 
 using static Game1.WorldManager;
 
@@ -10,25 +11,25 @@ namespace Game1.Industries
         [Serializable]
         public new class Params : ProductiveIndustry.Params
         {
-            public readonly double reqWatts;
-            public readonly Industry.Params industrParams;
+            public readonly UFloat reqWattsPerUnitSurface;
+            public readonly Industry.Params industryParams;
             public readonly TimeSpan duration;
             public readonly ConstULongArray cost;
-
-            public Params(string name, ulong energyPriority, double reqSkill, ulong reqWatts, Industry.Params industryParams, TimeSpan duration, ConstULongArray cost)
+            
+            public Params(string name, ulong energyPriority, UFloat reqSkillPerUnitSurface, UFloat reqWattsPerUnitSurface, Industry.Params industryParams, TimeSpan duration, ConstULongArray cost)
                 : base
                 (
                     industryType: IndustryType.Construction,
                     name: name,
                     energyPriority: energyPriority,
-                    reqSkill: reqSkill,
-                    explanation: $"construction stats:\nrequires {reqWatts} W/s\nduration {duration.TotalSeconds:0.}s\ncost {cost}\n\nbuilding stats:\n{industryParams.explanation}"
+                    reqSkillPerUnitSurface: reqSkillPerUnitSurface,
+                    explanation: $"construction stats:\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(duration)} {duration.TotalSeconds:0.}s\n{nameof(cost)} {cost}\n\nbuilding stats:\n{industryParams.explanation}"
                 )
             {
-                if (reqWatts <= 0)
+                if (reqWattsPerUnitSurface <= 0)
                     throw new ArgumentOutOfRangeException();
-                this.reqWatts = reqWatts;
-                this.industrParams = industryParams;
+                this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
+                this.industryParams = industryParams;
                 if (duration < TimeSpan.Zero || duration == TimeSpan.MaxValue)
                     throw new ArgumentException();
                 this.duration = duration;
@@ -40,12 +41,14 @@ namespace Game1.Industries
         }
 
         private readonly Params parameters;
+        private readonly IReadOnlyChangingUFloat reqWatts;
         private TimeSpan constrTimeLeft;
 
         private Construction(NodeState state, Params parameters)
             : base(state: state, parameters: parameters)
         {
             this.parameters = parameters;
+            reqWatts = parameters.reqWattsPerUnitSurface * state.approxSurfaceLength;
             constrTimeLeft = TimeSpan.MaxValue;
         }
 
@@ -73,7 +76,7 @@ namespace Game1.Industries
             if (constrTimeLeft <= TimeSpan.Zero)
             {
                 Delete();
-                return parameters.industrParams.MakeIndustry(state: state);
+                return parameters.industryParams.MakeIndustry(state: state);
             }
             return this;
         }
@@ -104,7 +107,7 @@ namespace Game1.Industries
             // and if they don't, then the industry will get 0 energy anyway
             => IsBusy() switch
             {
-                true => parameters.reqWatts * CurSkillPropor,
+                true => reqWatts.Value * CurSkillPropor,
                 false => 0
             };
     }

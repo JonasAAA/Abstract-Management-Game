@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.PrimitiveTypeWrappers;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
@@ -15,7 +16,7 @@ namespace Game1.Shapes
         protected override Texture2D Texture
             => pixelTexture;
 
-        public LineSegment(Vector2 startPos, Vector2 endPos, IReadOnlyChangingFloat width)
+        public LineSegment(Vector2 startPos, Vector2 endPos, IReadOnlyChangingUFloat width)
             : base(startPos: startPos, endPos: endPos, width: width)
         { }
 

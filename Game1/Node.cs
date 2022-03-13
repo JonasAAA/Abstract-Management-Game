@@ -1,6 +1,7 @@
 ﻿using Game1.Events;
 using Game1.Industries;
 using Game1.Lighting;
+using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
 using Microsoft.Xna.Framework;
@@ -79,7 +80,7 @@ namespace Game1
         private readonly new LightCatchingDisk shape;
         private double remainingLocalWatts;
 
-        private IReadOnlyChangingFloat resDestinArrowWidth;
+        private readonly IReadOnlyChangingUFloat resDestinArrowWidth;
         private readonly TextBox textBox;
         private readonly MyArray<ToggleButton> storeToggleButtons;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
@@ -169,7 +170,7 @@ namespace Game1
                         Color = Color.White
                     },
                     explanation: constrParams.explanation,
-                    text: "build " + constrParams.industrParams.name
+                    text: "build " + constrParams.industryParams.name
                 );
                 buildIndustryButton.clicked.Add
                 (

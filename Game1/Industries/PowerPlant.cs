@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Game1.PrimitiveTypeWrappers;
+using System;
 
 using static Game1.WorldManager;
 
@@ -10,21 +11,21 @@ namespace Game1.Industries
         [Serializable]
         public new class Params : ProductiveIndustry.Params
         {
-            public readonly double prodWatts;
-
-            public Params(string name, double reqSkill, double prodWatts)
+            public readonly UFloat prodWattsPerUnitSurface;
+            
+            public Params(string name, UFloat reqSkillPerUnitSurface, UFloat prodWattsPerUnitSurface)
                 : base
                 (
                     industryType: IndustryType.PowerPlant,
                     energyPriority: 0,
                     name: name,
-                    reqSkill: reqSkill,
-                    explanation: $"requires {reqSkill} skill\nproduces {prodWatts} W/s"
+                    reqSkillPerUnitSurface: reqSkillPerUnitSurface,
+                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(prodWattsPerUnitSurface)} {prodWattsPerUnitSurface}"
                 )
             {
-                if (prodWatts <= 0)
+                if (prodWattsPerUnitSurface <= 0)
                     throw new ArgumentOutOfRangeException();
-                this.prodWatts = prodWatts;
+                this.prodWattsPerUnitSurface = prodWattsPerUnitSurface;
             }
 
             public override PowerPlant MakeIndustry(NodeState state)
@@ -32,11 +33,13 @@ namespace Game1.Industries
         }
 
         private readonly Params parameters;
+        private readonly IReadOnlyChangingUFloat prodWatts;
 
         private PowerPlant(NodeState state, Params parameters)
             : base(state: state, parameters: parameters)
         {
             this.parameters = parameters;
+            prodWatts = parameters.prodWattsPerUnitSurface * state.approxSurfaceLength;
             CurWorldManager.AddEnergyProducer(energyProducer: this);
         }
 
@@ -62,7 +65,7 @@ namespace Game1.Industries
         double IEnergyProducer.ProdWatts()
             => IsBusy() switch
             {
-                true => parameters.prodWatts * CurSkillPropor,
+                true => prodWatts.Value * CurSkillPropor,
                 false => 0
             };
     }

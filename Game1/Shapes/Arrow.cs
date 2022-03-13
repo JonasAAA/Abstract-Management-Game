@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.PrimitiveTypeWrappers;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 
@@ -15,7 +16,7 @@ namespace Game1.Shapes
         protected override Texture2D Texture
             => triangleTexture;
 
-        public Arrow(Vector2 startPos, Vector2 endPos, IReadOnlyChangingFloat baseWidth)
+        public Arrow(Vector2 startPos, Vector2 endPos, IReadOnlyChangingUFloat baseWidth)
             : base(startPos: startPos, endPos: endPos, width: baseWidth)
         { }
 

@@ -1,7 +1,6 @@
-﻿using System;
-
-namespace Game1.Physics
+﻿namespace Game1.Physics
 {
+    [Serializable]
     public readonly struct AccurNum
     {
         private readonly long num;

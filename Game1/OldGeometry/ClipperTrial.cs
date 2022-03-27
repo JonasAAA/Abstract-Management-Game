@@ -1,11 +1,11 @@
 ﻿using ClipperLib;
-using System.Collections.Generic;
 
 namespace Game1.OldGeometry
 {
 	using Polygon = List<IntPoint>;
 	using Polygons = List<List<IntPoint>>;
 
+	[Serializable]
 	public class ClipperTrial
     {
 		public static void TryCommonPerimeter()

@@ -1,10 +1,9 @@
 ﻿using ClipperLib;
 using LibTessDotNet;
 using Microsoft.Xna.Framework;
-using System;
-
 namespace Game1.OldGeometry
 {
+    [Serializable]
     public readonly struct MyPoint
     {
         // power of two to make float / scale and float * scale lossless

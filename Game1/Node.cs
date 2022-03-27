@@ -1,14 +1,9 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Game1.Industries;
 using Game1.Lighting;
 using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
-using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
 using static Game1.WorldManager;
 
@@ -18,7 +13,7 @@ namespace Game1
     public class Node : WorldUIElement
     {
         [Serializable]
-        private record ResDesinArrowEventListener(Node Node, int ResInd) : IDeletedListener, INumberChangedListener
+        private readonly record struct ResDesinArrowEventListener(Node Node, int ResInd) : IDeletedListener, INumberChangedListener
         {
             public void SyncSplittersWithArrows()
             {
@@ -51,14 +46,14 @@ namespace Game1
         }
 
         [Serializable]
-        private record BuildIndustryButtonClickedListener(Node Node, Construction.Params ConstrParams) : IClickedListener
+        private readonly record struct BuildIndustryButtonClickedListener(Node Node, Construction.Params ConstrParams) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => Node.SetIndustry(newIndustry: ConstrParams.MakeIndustry(state: Node.state));
         }
 
         [Serializable]
-        private record AddResourceDestinationButtonClickedListener : IClickedListener
+        private readonly record struct AddResourceDestinationButtonClickedListener : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => CurWorldManager.ArrowDrawingModeOn = true;

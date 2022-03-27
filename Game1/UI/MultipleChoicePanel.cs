@@ -1,8 +1,5 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Game1.Shapes;
-using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
 
 namespace Game1.UI
 {
@@ -11,7 +8,7 @@ namespace Game1.UI
     {
         // it is public to easily add it to knownTypes
         [Serializable]
-        public record ChoiceEventListener(MultipleChoicePanel<TChoice> MultipleChoicePanel, TChoice ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
+        public readonly record struct ChoiceEventListener(MultipleChoicePanel<TChoice> MultipleChoicePanel, TChoice ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
         {
             void IEnabledChangedListener.EnabledChangedResponse()
             {

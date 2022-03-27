@@ -1,12 +1,7 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 using static Game1.WorldManager;
 

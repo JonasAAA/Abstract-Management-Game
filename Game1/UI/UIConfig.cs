@@ -1,8 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using System;
-
-
-namespace Game1.UI
+﻿namespace Game1.UI
 {
     [Serializable]
     public class UIConfig

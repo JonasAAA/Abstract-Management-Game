@@ -1,8 +1,4 @@
-﻿using Game1.Events;
-using Microsoft.Xna.Framework;
-using System;
-
-namespace Game1.Shapes
+﻿namespace Game1.Shapes
 {
     [Serializable]
     public abstract class Shape

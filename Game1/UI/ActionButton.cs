@@ -1,8 +1,8 @@
 ﻿using Game1.Shapes;
-using System;
 
 namespace Game1.UI
 {
+    [Serializable]
     public class ActionButton : HUDElement
     {
         public override bool CanBeClicked

@@ -1,8 +1,5 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Game1.Shapes;
-using Microsoft.Xna.Framework;
-using System;
-
 
 namespace Game1.UI
 {
@@ -10,14 +7,14 @@ namespace Game1.UI
     public class NumIncDecrPanel : HUDElement
     {
         [Serializable]
-        private record NumIncrButtonClickedListener(NumIncDecrPanel NumIncDecrPanel) : IClickedListener
+        private readonly record struct NumIncrButtonClickedListener(NumIncDecrPanel NumIncDecrPanel) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => NumIncDecrPanel.Number++;
         }
 
         [Serializable]
-        private record NumDecrButtonClickedListener(NumIncDecrPanel NumIncDecrPanel) : IClickedListener
+        private readonly record struct NumDecrButtonClickedListener(NumIncDecrPanel NumIncDecrPanel) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
             {

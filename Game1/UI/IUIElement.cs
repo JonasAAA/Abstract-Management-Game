@@ -1,4 +1,4 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Microsoft.Xna.Framework;
 
 namespace Game1.UI

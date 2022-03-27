@@ -1,8 +1,5 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Game1.UI;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Input;
-using System;
 
 using static Game1.WorldManager;
 

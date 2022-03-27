@@ -1,9 +1,5 @@
 ﻿using Game1.Shapes;
-using Microsoft.Xna.Framework;
-using System;
 using System.Collections;
-using System.Collections.Generic;
-
 
 namespace Game1.UI
 {

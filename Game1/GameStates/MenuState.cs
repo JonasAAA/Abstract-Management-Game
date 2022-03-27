@@ -1,12 +1,9 @@
 ﻿using Game1.Shapes;
 using Game1.UI;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
 
 namespace Game1.GameStates
 {
+    [Serializable]
     public class MenuState : GameState
     {
         private readonly ActiveUIManager activeUIManager;

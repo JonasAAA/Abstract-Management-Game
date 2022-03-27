@@ -1,6 +1,6 @@
 ﻿using Game1.UI;
 
-namespace Game1.Events
+namespace Game1.Delegates
 {
     public interface IActiveChangedListener : IListener
     {

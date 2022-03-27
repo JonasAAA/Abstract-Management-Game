@@ -1,6 +1,4 @@
 ﻿using Game1.PrimitiveTypeWrappers;
-using Microsoft.Xna.Framework;
-using System;
 
 using static Game1.WorldManager;
 

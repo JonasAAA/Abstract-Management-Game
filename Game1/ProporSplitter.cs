@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-
-
-namespace Game1
+﻿namespace Game1
 {
     [Serializable]
     public class ProporSplitter<TKey>

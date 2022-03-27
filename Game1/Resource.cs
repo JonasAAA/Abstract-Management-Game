@@ -1,7 +1,4 @@
-﻿using System;
-
-
-namespace Game1
+﻿namespace Game1
 {
     [Serializable]
     public class Resource

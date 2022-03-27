@@ -1,8 +1,4 @@
-﻿using Game1.Events;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
+﻿using Game1.Delegates;
 
 namespace Game1
 {

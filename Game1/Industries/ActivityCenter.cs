@@ -1,8 +1,4 @@
-﻿using Game1.Events;
-using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
+﻿using Game1.Delegates;
 
 using static Game1.WorldManager;
 

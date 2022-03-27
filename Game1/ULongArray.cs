@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Game1
+﻿namespace Game1
 {
     [Serializable]
     public class ULongArray : ConstULongArray

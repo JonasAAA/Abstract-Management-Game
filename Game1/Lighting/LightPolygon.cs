@@ -1,9 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1.Lighting
 {

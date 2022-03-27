@@ -1,7 +1,5 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Game1.Shapes;
-using Microsoft.Xna.Framework;
-using System;
 
 using static Game1.WorldManager;
 
@@ -11,7 +9,7 @@ namespace Game1.UI
     public class ResDestinArrow : WorldUIElement
     {
         [Serializable]
-        private record DeleteButtonClickedListener(ResDestinArrow ResDestinArrow) : IClickedListener
+        private readonly record struct DeleteButtonClickedListener(ResDestinArrow ResDestinArrow) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
             {

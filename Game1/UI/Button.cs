@@ -1,7 +1,5 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Game1.Shapes;
-using System;
-
 
 namespace Game1.UI
 {

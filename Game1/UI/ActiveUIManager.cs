@@ -1,12 +1,5 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Game1.Shapes;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 
 namespace Game1.UI
 {

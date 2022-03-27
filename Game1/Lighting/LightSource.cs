@@ -1,9 +1,4 @@
-﻿//using Microsoft.Xna.Framework;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-
-//namespace Game1.Lighting
+﻿//namespace Game1.Lighting
 //{
 //    public class LightSource : ILightSource
 //    {

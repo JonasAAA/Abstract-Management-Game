@@ -1,24 +1,23 @@
-﻿using System;
-
-namespace Game1.PrimitiveTypeWrappers
+﻿namespace Game1.PrimitiveTypeWrappers
 {
     public interface IReadOnlyChangingUFloat : IReadOnlyChangingValue<UFloat>
     {
         [Serializable]
-        private readonly struct ScaleUFloatByUFloat : ITransform<UFloat, UFloat, UFloat>
+        private readonly struct ScaleUFloatByUFloat : ITransformer<(IReadOnlyChangingUFloat, UFloat), UFloat>
         {
-            public readonly UFloat Transform(UFloat param, UFloat value)
-                => param * value;
+            public readonly UFloat Transform((IReadOnlyChangingUFloat, UFloat) param)
+                => param.Item1.Value * param.Item2;
         }
 
-        private readonly struct RoundUFloatDown : ITransform<UFloat, ulong>
+        [Serializable]
+        private readonly struct RoundUFloatDown : ITransformer<IReadOnlyChangingUFloat, ulong>
         {
-            public readonly ulong Transform(UFloat value)
-                => (ulong)value;
+            public readonly ulong Transform(IReadOnlyChangingUFloat param)
+                => (ulong)param.Value;
         }
 
         public static IReadOnlyChangingUFloat operator *(UFloat scalar, IReadOnlyChangingUFloat readOnlyChangingUFloat)
-            => new ScaleUFloatByUFloat().Transform(param: scalar, readOnlyChangingValue: readOnlyChangingUFloat);
+            => new ScaleUFloatByUFloat().TransformIntoReadOnlyChangingUFloat(param: (readOnlyChangingUFloat, scalar));
 
         public static IReadOnlyChangingUFloat operator *(IReadOnlyChangingUFloat readOnlyChangingUFloat, UFloat scalar)
             => scalar * readOnlyChangingUFloat;
@@ -27,6 +26,6 @@ namespace Game1.PrimitiveTypeWrappers
             => readOnlyChangingUFloat * (1 / divisor);
 
         public IReadOnlyChangingULong RoundDown()
-            => new RoundUFloatDown().Transform(readOnlyChangingValue: this);
+            => new RoundUFloatDown().TransformIntoReadOnlyChangingULong(param: this);
     }
 }

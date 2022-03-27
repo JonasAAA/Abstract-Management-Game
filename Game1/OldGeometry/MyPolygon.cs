@@ -1,13 +1,8 @@
-﻿using ClipperLib;
-using LibTessDotNet;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using LibTessDotNet;
 
 namespace Game1.OldGeometry
 {
+    [Serializable]
     public class MyPolygon
     {
         public Color color;
@@ -17,8 +12,8 @@ namespace Game1.OldGeometry
         public IReadOnlyCollection<int> TriangleIndices
             => triangleIndices;
 
-        private List<MyPoint> boundary;
-        private List<List<MyPoint>> holes;
+        private readonly List<MyPoint> boundary;
+        private readonly List<List<MyPoint>> holes;
         private VertexPositionColor[] vertices;
         private int[] triangleIndices;
         

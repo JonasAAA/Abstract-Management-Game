@@ -1,11 +1,5 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Game1.Shapes;
-using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-
 
 namespace Game1.UI
 {
@@ -14,7 +8,7 @@ namespace Game1.UI
         where TTab : class, IHUDElement
     {
         [Serializable]
-        public record TabEnabledChangedListener(UIHorizTabPanel<TTab> UIHorizTabPanel, string TabLabelText) : IEnabledChangedListener
+        public readonly record struct TabEnabledChangedListener(UIHorizTabPanel<TTab> UIHorizTabPanel, string TabLabelText) : IEnabledChangedListener
         {
             public void EnabledChangedResponse()
                 => UIHorizTabPanel.tabChoicePanel.SetChoicePersonallyEnabled

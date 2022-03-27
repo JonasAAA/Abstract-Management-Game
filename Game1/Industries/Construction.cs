@@ -1,5 +1,4 @@
 ﻿using Game1.PrimitiveTypeWrappers;
-using System;
 
 using static Game1.WorldManager;
 
@@ -16,6 +15,7 @@ namespace Game1.Industries
             public readonly TimeSpan duration;
             public readonly ConstULongArray cost;
             
+            // TODO: make cost depend on the planet size
             public Params(string name, ulong energyPriority, UFloat reqSkillPerUnitSurface, UFloat reqWattsPerUnitSurface, Industry.Params industryParams, TimeSpan duration, ConstULongArray cost)
                 : base
                 (

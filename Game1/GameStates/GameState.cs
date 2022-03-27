@@ -1,8 +1,6 @@
-﻿using Microsoft.Xna.Framework.Graphics;
-using System;
-
-namespace Game1.GameStates
+﻿namespace Game1.GameStates
 {
+    [Serializable]
     public abstract class GameState
     {
         public virtual void OnEnter()

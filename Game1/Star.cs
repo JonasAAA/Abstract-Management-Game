@@ -1,12 +1,6 @@
 ﻿using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
 using static Game1.WorldManager;
 

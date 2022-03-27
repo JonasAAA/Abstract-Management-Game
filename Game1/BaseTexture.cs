@@ -1,8 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-
-namespace Game1
+﻿namespace Game1
 {
     [Serializable]
     public class BaseTexture

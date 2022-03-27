@@ -1,6 +1,4 @@
 ﻿using Game1.PrimitiveTypeWrappers;
-using System;
-using System.Collections.ObjectModel;
 
 namespace Game1.Industries
 {
@@ -149,7 +147,7 @@ namespace Game1.Industries
                         energyPriority: 11,
                         reqSkillPerUnitSurface: (UFloat).1,
                         reqWattsPerChild: 10,
-                        maxCouples: 10,
+                        maxCouplesPerUnitSurface: 10,
                         resPerChild: new()
                         {
                             [0] = 10,

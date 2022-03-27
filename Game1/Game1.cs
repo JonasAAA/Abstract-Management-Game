@@ -1,10 +1,7 @@
-﻿using Game1.GameStates;
+﻿using Game1.Delegates;
+using Game1.GameStates;
 using Game1.Shapes;
 using Game1.UI;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
-using System.Collections.Generic;
 
 namespace Game1
 {
@@ -48,6 +45,13 @@ namespace Game1
             graphics.ApplyChanges();
 
             base.Initialize();
+        }
+
+        [Serializable]
+        private readonly record struct SetGameStateToPause(Game1 Game, GameState PauseMenu) : IAction
+        {
+            public void Invoke()
+                => Game.SetGameState(newGameState: PauseMenu);
         }
 
         protected override void LoadContent()
@@ -145,16 +149,16 @@ namespace Game1
             );
             PlayState.Initialize
             (
-                switchToPauseMenu: () => SetGameState(newGameState: pauseMenu)
+                switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: pauseMenu)
             );
+        }
 
-            void SetGameState(GameState newGameState)
-            {
-                if (gameState is not null)
-                    gameState.OnLeave();
-                gameState = newGameState;
-                gameState.OnEnter();
-            }
+        private void SetGameState(GameState newGameState)
+        {
+            if (gameState is not null)
+                gameState.OnLeave();
+            gameState = newGameState;
+            gameState.OnEnter();
         }
 
         protected override void Update(GameTime gameTime)

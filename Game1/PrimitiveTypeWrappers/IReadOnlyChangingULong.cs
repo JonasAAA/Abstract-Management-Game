@@ -1,27 +1,25 @@
-﻿using System;
-
-namespace Game1.PrimitiveTypeWrappers
+﻿namespace Game1.PrimitiveTypeWrappers
 {
     public interface IReadOnlyChangingULong : IReadOnlyChangingValue<ulong>
     {
         [Serializable]
-        private readonly struct ScaleULong : ITransform<ulong, ulong, ulong>, ITransform<UFloat, ulong, UFloat>
+        private readonly struct ScaleULong : ITransformer<(ulong, IReadOnlyChangingULong), ulong>, ITransformer<(UFloat, IReadOnlyChangingULong), UFloat>
         {
-            public readonly ulong Transform(ulong param, ulong value)
-                => param * value;
+            public readonly ulong Transform((ulong, IReadOnlyChangingULong) param)
+                => param.Item1 * param.Item2.Value;
 
-            public readonly UFloat Transform(UFloat param, ulong value)
-                => param * value;
+            public readonly UFloat Transform((UFloat, IReadOnlyChangingULong) param)
+                => param.Item1 * param.Item2.Value;
         }
 
         public static IReadOnlyChangingULong operator *(ulong scalar, IReadOnlyChangingULong readOnlyChangingULong)
-            => new ScaleULong().Transform(param: scalar, readOnlyChangingValue: readOnlyChangingULong);
+            => new ScaleULong().TransformIntoReadOnlyChangingULong(param: (scalar, readOnlyChangingULong));
 
         public static IReadOnlyChangingULong operator *(IReadOnlyChangingULong readOnlyChangingUFloat, ulong scalar)
             => scalar * readOnlyChangingUFloat;
 
         public static IReadOnlyChangingUFloat operator *(UFloat scalar, IReadOnlyChangingULong readOnlyChangingULong)
-            => new ScaleULong().Transform(param: scalar, readOnlyChangingValue: readOnlyChangingULong);
+            => new ScaleULong().TransformIntoReadOnlyChangingUFloat(param: (scalar, readOnlyChangingULong));
 
         public static IReadOnlyChangingUFloat operator *(IReadOnlyChangingULong readOnlyChangingULong, UFloat scalar)
             => scalar * readOnlyChangingULong;

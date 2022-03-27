@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Diagnostics;
-
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1
 {

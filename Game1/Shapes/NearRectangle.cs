@@ -1,7 +1,4 @@
-﻿using Game1.Events;
-using Microsoft.Xna.Framework;
-using System;
-
+﻿using Game1.Delegates;
 
 namespace Game1.Shapes
 {

@@ -1,7 +1,4 @@
-﻿using Microsoft.Xna.Framework;
-using System;
-
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1
 {

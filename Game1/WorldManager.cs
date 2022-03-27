@@ -1,16 +1,10 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Game1.Industries;
 using Game1.Lighting;
 using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
@@ -36,6 +30,8 @@ namespace Game1
 
         public static IndustryConfig CurIndustryConfig
             => CurWorldManager.industryConfig;
+
+        private static readonly Type[] knownTypes;
 
         public static ActiveUIManager CreateWorldManager(GraphicsDevice graphicsDevice)
         {
@@ -190,11 +186,49 @@ namespace Game1
                 type: typeof(WorldManager),
                 settings: new()
                 {
-                    KnownTypes = GetKnownTypes(),
+                    KnownTypes = knownTypes,
                     PreserveObjectReferences = true,
                     SerializeReadOnlyTypes = true
                 }
             );
+        
+        static WorldManager()
+        {
+            // TODO: move to a more appropriate class?
+            HashSet<Type> knownTypesSet = new()
+            {
+                typeof(UIHorizTabPanel<IHUDElement>),
+                typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
+                typeof(MultipleChoicePanel<string>),
+                typeof(MultipleChoicePanel<string>.ChoiceEventListener),
+                typeof(MultipleChoicePanel<Overlay>),
+                typeof(MultipleChoicePanel<Overlay>.ChoiceEventListener),
+                typeof(UIRectHorizPanel<IHUDElement>),
+                typeof(UIRectHorizPanel<SelectButton>),
+                typeof(UIRectVertPanel<IHUDElement>),
+                typeof(UITransparentPanel<ResDestinArrow>),
+                typeof(Dictionary<Overlay, IHUDElement>)
+            };
+            List<Type> unserializedTypeList = new();
+            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                if (Attribute.GetCustomAttribute(type, typeof(CompilerGeneratedAttribute)) is not null)
+                    continue;
+
+                if (Attribute.GetCustomAttribute(type, typeof(DataContractAttribute)) is not null
+                    || Attribute.GetCustomAttribute(type, typeof(SerializableAttribute)) is not null
+                    || type.IsEnum)
+                    knownTypesSet.Add(type);
+                else
+                    if (type != typeof(Game1) && !(type.IsAbstract && type.IsSealed) && !type.IsInterface)
+                        unserializedTypeList.Add(type);
+
+                knownTypesSet.UnionWith(PrimitiveTypeWrappers.ExtensionMethods.GetRelatedGenericTypes(type: type));
+            }
+            if (unserializedTypeList.Count > 0)
+                throw new Exception($"Every non-static, non-interface, non-enum type (except for Game1) must have attribute Serializable. The following types don't comply {unserializedTypeList}.");
+            knownTypes = knownTypesSet.ToArray();
+        }
 
         public Overlay Overlay
             => overlayChoicePanel.SelectedChoiceLabel;
@@ -400,30 +434,6 @@ namespace Game1
             using XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);
             serializer.WriteObject(writer, this);
         }
-
-        private static Type[] GetKnownTypes()
-            => Assembly.GetExecutingAssembly().GetTypes().Where
-            (
-                type => Attribute.GetCustomAttribute(type, typeof(CompilerGeneratedAttribute)) is null
-                    && (Attribute.GetCustomAttribute(type, typeof(DataContractAttribute)) is not null
-                    || Attribute.GetCustomAttribute(type, typeof(SerializableAttribute)) is not null)
-            ).Concat
-            (
-                new Type[]
-                {
-                    typeof(UIHorizTabPanel<IHUDElement>),
-                    typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
-                    typeof(MultipleChoicePanel<string>),
-                    typeof(MultipleChoicePanel<string>.ChoiceEventListener),
-                    typeof(MultipleChoicePanel<Overlay>),
-                    typeof(MultipleChoicePanel<Overlay>.ChoiceEventListener),
-                    typeof(UIRectHorizPanel<IHUDElement>),
-                    typeof(UIRectHorizPanel<SelectButton>),
-                    typeof(UIRectVertPanel<IHUDElement>),
-                    typeof(UITransparentPanel<ResDestinArrow>),
-                    typeof(Dictionary<Overlay, IHUDElement>)
-                }
-            ).ToArray();
 
         void IDeletedListener.DeletedResponse(IDeletable deletable)
         {

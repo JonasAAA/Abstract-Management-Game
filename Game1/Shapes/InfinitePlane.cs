@@ -1,7 +1,4 @@
 ﻿using Game1.UI;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
 
 namespace Game1.Shapes
 {

@@ -1,6 +1,6 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace Game1.Events
+namespace Game1.Delegates
 {
     public interface IPosTransformer
     {

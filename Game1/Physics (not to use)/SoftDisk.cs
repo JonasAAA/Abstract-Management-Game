@@ -1,19 +1,14 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using Nito.Collections;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
+﻿using Nito.Collections;
 
 namespace Game1.Physics
 {
     /// <summary>
     /// Y direction is down
     /// </summary>
+    [Serializable]
     public class SoftDisk
     {
+        [Serializable]
         private readonly struct SoftDiskVertexFormat
         {
             public static readonly VertexDeclaration vertexDeclaration;
@@ -55,6 +50,8 @@ namespace Game1.Physics
         /// <summary>
         /// Open half plane, i.e. if a point is on the separating line, it it considered not in the half-plane
         /// </summary>
+        
+        [Serializable]
         private readonly struct HalfPlane
         {
             public enum Inter3Status

@@ -1,7 +1,5 @@
-﻿using Game1.Events;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using System;
+﻿using Game1.Delegates;
+
 using static Game1.WorldManager;
 
 namespace Game1.Lighting

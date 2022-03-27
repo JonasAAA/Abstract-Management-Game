@@ -1,5 +1,4 @@
 ﻿using Game1.PrimitiveTypeWrappers;
-using System;
 
 using static Game1.WorldManager;
 
@@ -15,6 +14,7 @@ namespace Game1.Industries
             public readonly ConstULongArray supply, demand;
             public readonly TimeSpan prodDuration;
             
+            // TODO: make supply, demand depend on the size of the planet
             public Params(string name, ulong energyPriority, UFloat reqSkillPerUnitSurface, UFloat reqWattsPerUnitSurface, ConstULongArray supply, ConstULongArray demand, TimeSpan prodDuration)
                 : base
                 (

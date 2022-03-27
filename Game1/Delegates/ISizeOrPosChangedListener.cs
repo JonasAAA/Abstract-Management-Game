@@ -1,6 +1,6 @@
 ﻿using Game1.Shapes;
 
-namespace Game1.Events
+namespace Game1.Delegates
 {
     public interface ISizeOrPosChangedListener : IListener
     {

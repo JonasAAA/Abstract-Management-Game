@@ -1,10 +1,5 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Game1.Shapes;
-using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 
 namespace Game1.UI
 {
@@ -98,7 +93,6 @@ namespace Game1.UI
             layerToChildren[layer].Add(child);
             childToLayer.Add(child, layer);
             // TODO
-            //probably want to move this to HUDElement
             //later would probably need to add some reaction to position changes to WorldUIElement
             //(maybe WorldUIElements use only shapes which have their positions defined by something like IReadOnlyChangingFloat)
             //child.SizeOrPosChanged.Add(listener: this);

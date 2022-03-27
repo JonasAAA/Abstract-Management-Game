@@ -1,7 +1,4 @@
 ﻿using Game1.PrimitiveTypeWrappers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
@@ -13,22 +10,22 @@ namespace Game1.Industries
         public new class Params : ProductiveIndustry.Params
         {
             public readonly double reqWattsPerChild;
-            public readonly ulong maxCouples;
+            public readonly ulong maxCouplesPerUnitSurface;
             public readonly ConstULongArray resPerChild;
             public readonly TimeSpan birthDuration;
 
-            public Params(string name, ulong energyPriority, UFloat reqSkillPerUnitSurface, ulong reqWattsPerChild, ulong maxCouples, ConstULongArray resPerChild, TimeSpan birthDuration)
+            public Params(string name, ulong energyPriority, UFloat reqSkillPerUnitSurface, ulong reqWattsPerChild, ulong maxCouplesPerUnitSurface, ConstULongArray resPerChild, TimeSpan birthDuration)
                 : base
                 (
                     industryType: IndustryType.Reproduction,
                     name: name,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface,
-                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(reqWattsPerChild)} {reqWattsPerChild}\n{nameof(maxCouples)} {maxCouples}\n{nameof(resPerChild)} {resPerChild}\n{nameof(birthDuration)} {birthDuration.TotalSeconds:0.#} s"
+                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(reqWattsPerChild)} {reqWattsPerChild}\n{nameof(maxCouplesPerUnitSurface)} {maxCouplesPerUnitSurface}\n{nameof(resPerChild)} {resPerChild}\n{nameof(birthDuration)} {birthDuration.TotalSeconds:0.#} s"
                 )
             {
                 this.reqWattsPerChild = reqWattsPerChild;
-                this.maxCouples = maxCouples;
+                this.maxCouplesPerUnitSurface = maxCouplesPerUnitSurface;
                 this.resPerChild = resPerChild;
                 this.birthDuration = birthDuration;
             }
@@ -42,17 +39,17 @@ namespace Game1.Industries
         {
             public readonly Queue<Person> unpairedPeople;
 
-            private readonly Params parameters;
+            private readonly IReadOnlyChangingULong maxCouples;
 
-            public ReprodCenter(NodeState state, Params parameters)
-                : base(activityType: ActivityType.Reproduction, energyPriority: parameters.energyPriority, state: state)
+            public ReprodCenter(NodeState state, ulong energyPriority, IReadOnlyChangingULong maxCouples)
+                : base(activityType: ActivityType.Reproduction, energyPriority: energyPriority, state: state)
             {
-                this.parameters = parameters;
+                this.maxCouples = maxCouples;
                 unpairedPeople = new();
             }
             
             public override bool IsFull()
-                => (ulong)allPeople.Count >= 2 * parameters.maxCouples;
+                => (ulong)allPeople.Count >= 2 * maxCouples.Value;
 
             public override bool IsPersonSuitable(Person person)
                 // could disalow far travel
@@ -83,6 +80,7 @@ namespace Game1.Industries
             => base.PeopleHere.Concat(reprodCenter.PeopleHere);
 
         private readonly Params parameters;
+        private readonly IReadOnlyChangingULong maxCouples;
         private readonly ReprodCenter reprodCenter;
         private readonly TimedQueue<(Person, Person)> birthQueue;
 
@@ -90,17 +88,19 @@ namespace Game1.Industries
             : base(state: state, parameters: parameters)
         {
             this.parameters = parameters;
+            maxCouples = state.approxSurfaceLength * parameters.maxCouplesPerUnitSurface;
             reprodCenter = new
             (
                 state: state,
-                parameters: parameters
+                energyPriority: parameters.energyPriority,
+                maxCouples: maxCouples
             );
 
             birthQueue = new(duration: parameters.birthDuration);
         }
 
         public override ULongArray TargetStoredResAmounts()
-            => parameters.maxCouples * parameters.resPerChild * state.maxBatchDemResStored;
+            => maxCouples.Value * parameters.resPerChild * state.maxBatchDemResStored;
 
         protected override bool IsBusy()
             => birthQueue.Count > 0;

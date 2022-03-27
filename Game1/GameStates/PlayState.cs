@@ -1,16 +1,15 @@
-﻿using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using System;
+﻿using Game1.Delegates;
+
 using static Game1.WorldManager;
 
 namespace Game1.GameStates
 {
+    [Serializable]
     public class PlayState : GameState
     {
         private static KeyButton switchToPauseMenuButton;
 
-        public static void Initialize(Action switchToPauseMenu)
+        public static void Initialize(IAction switchToPauseMenu)
             => switchToPauseMenuButton = new
             (
                 key: Keys.Escape,

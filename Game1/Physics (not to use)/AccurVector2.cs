@@ -1,8 +1,6 @@
-﻿using Microsoft.Xna.Framework;
-using System;
-
-namespace Game1.Physics
+﻿namespace Game1.Physics
 {
+    [Serializable]
     public readonly struct AccurVector2
     {
         //private double X

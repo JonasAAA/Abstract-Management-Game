@@ -1,9 +1,5 @@
-﻿using Game1.Events;
+﻿using Game1.Delegates;
 using Game1.Shapes;
-using Microsoft.Xna.Framework;
-using System;
-using System.Collections.Generic;
-
 
 namespace Game1.UI
 {
@@ -11,7 +7,7 @@ namespace Game1.UI
     public class HUDPosSetter
     {
         [Serializable]
-        private record HUDElementSizeOrPosChangedListener(HorizPos HorizPos, VertPos VertPos) : ISizeOrPosChangedListener
+        private readonly record struct HUDElementSizeOrPosChangedListener(HorizPos HorizPos, VertPos VertPos) : ISizeOrPosChangedListener
         {
             public void SizeOrPosChangedResponse(Shape shape)
             {

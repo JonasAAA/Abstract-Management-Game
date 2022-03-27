@@ -1,9 +1,7 @@
-﻿using Microsoft.Xna.Framework;
-using System;
-
-namespace Game1.PrimitiveTypeWrappers
+﻿namespace Game1.PrimitiveTypeWrappers
 {
     // TODO: could change into UDouble
+    [Serializable]
     public readonly struct UFloat
     {
         public static readonly UFloat pi;

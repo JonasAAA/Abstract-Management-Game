@@ -1,7 +1,4 @@
-﻿using System;
-
-
-namespace Game1.Events
+﻿namespace Game1.Delegates
 {
     [Serializable]
     public class Event<T> : IEvent<T>

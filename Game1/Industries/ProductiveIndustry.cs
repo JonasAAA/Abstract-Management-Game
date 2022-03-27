@@ -1,10 +1,5 @@
 ﻿using Game1.PrimitiveTypeWrappers;
-using Microsoft.Xna.Framework;
 using Priority_Queue;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 
 using static Game1.WorldManager;
 

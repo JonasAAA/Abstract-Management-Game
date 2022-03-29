@@ -71,7 +71,7 @@ namespace Game1
         private readonly HouseOld unemploymentCenter;
         private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
         private ConstULongArray targetStoredResAmounts;
-        private ULongArray undecidedResAmounts, resTravelHereAmounts;
+        private ConstULongArray undecidedResAmounts, resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
         private double remainingLocalWatts;
 
@@ -262,7 +262,7 @@ namespace Game1
             => state.waitingPeople.Add(person);
 
         public void AddResTravelHere(int resInd, ulong resAmount)
-            => resTravelHereAmounts[resInd] += resAmount;
+            => resTravelHereAmounts = resTravelHereAmounts.WithAdd(index: resInd, value: resAmount);
 
         public ulong TotalQueuedRes(int resInd)
             => state.storedRes[resInd] + resTravelHereAmounts[resInd];
@@ -395,11 +395,15 @@ namespace Game1
 
             var resSplitter = resSplittersToDestins[resInd];
             if (resSplitter.Empty)
-                state.storedRes[resInd] += undecidedResAmounts[resInd];
+                state.AddToStoredRes(resInd: resInd, resAmount: undecidedResAmounts[resInd]);
+            // TODO: cleanup
+            //state.storedRes[resInd] += undecidedResAmounts[resInd];
             else
             {
                 var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResAmounts[resInd], maxAmountsFunc: maxExtraResFunc);
-                state.storedRes[resInd] += unsplitResAmount;
+                state.AddToStoredRes(resInd: resInd, unsplitResAmount);
+                // TODO: cleanup
+                //state.storedRes[resInd] += unsplitResAmount;
                 foreach (var (destination, resAmount) in splitResAmounts)
                 {
                     state.waitingResAmountsPackets.Add
@@ -411,8 +415,8 @@ namespace Game1
                     posToNode[destination].AddResTravelHere(resInd: resInd, resAmount: resAmount);
                 }
             }
-
-            undecidedResAmounts[resInd] = 0;
+            // TODO: cleanup
+            //undecidedResAmounts[resInd] = 0;
         }
 
         /// <summary>

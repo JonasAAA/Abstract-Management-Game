@@ -226,7 +226,7 @@ namespace Game1
                 knownTypesSet.UnionWith(PrimitiveTypeWrappers.ExtensionMethods.GetRelatedGenericTypes(type: type));
             }
             if (unserializedTypeList.Count > 0)
-                throw new Exception($"Every non-static, non-interface, non-enum type (except for Game1) must have attribute Serializable. The following types don't comply {unserializedTypeList}.");
+                throw new Exception($"Every non-static, non-interface, non-enum type (except for Game1) must have attribute Serializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
             knownTypes = knownTypesSet.ToArray();
         }
 

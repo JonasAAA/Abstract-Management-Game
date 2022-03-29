@@ -42,7 +42,7 @@ namespace Game1.Industries
             CurWorldManager.AddEnergyProducer(energyProducer: this);
         }
 
-        public override ULongArray TargetStoredResAmounts()
+        public override ConstULongArray TargetStoredResAmounts()
             => new();
 
         protected override bool IsBusy()

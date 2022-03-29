@@ -17,7 +17,7 @@ namespace Game1
         public readonly IReadOnlyChangingUFloat radius;
         public readonly Vector2 position;
         public readonly ulong maxBatchDemResStored;
-        public ULongArray storedRes;
+        public ConstULongArray storedRes;
         public ResAmountsPacketsByDestin waitingResAmountsPackets;
         public readonly MySet<Person> waitingPeople;
 
@@ -37,7 +37,10 @@ namespace Game1
             waitingPeople = new();
         }
 
-        public float SetRadius(UFloat radius)
+        public void SetRadius(UFloat radius)
             => changingRadius.Value = radius;
+        
+        public void AddToStoredRes(int resInd, ulong resAmount)
+            => storedRes = storedRes.WithAdd(index: resInd, value: resAmount);
     }
 }

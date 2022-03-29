@@ -52,11 +52,11 @@ namespace Game1.Industries
             constrTimeLeft = TimeSpan.MaxValue;
         }
 
-        public override ULongArray TargetStoredResAmounts()
+        public override ConstULongArray TargetStoredResAmounts()
             => IsBusy() switch
             {
                 true => new(),
-                false => parameters.cost.ToULongArray(),
+                false => parameters.cost,
             };
 
         protected override bool IsBusy()

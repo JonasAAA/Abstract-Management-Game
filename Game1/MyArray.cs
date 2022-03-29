@@ -1,5 +1,6 @@
 ﻿namespace Game1
 {
+    // may delete this
     [Serializable]
     public class MyArray<T> : ConstArray<T>
     {

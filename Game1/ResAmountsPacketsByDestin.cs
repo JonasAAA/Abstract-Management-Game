@@ -53,7 +53,7 @@ namespace Game1
             TotalWeight += CurResConfig.resources[resInd].weight * resAmount;
         }
 
-        public ULongArray ReturnAndRemove(Vector2 destination)
+        public ConstULongArray ReturnAndRemove(Vector2 destination)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 return new();
@@ -61,13 +61,13 @@ namespace Game1
             var resAmountsPacket = resAmountsPacketsByDestin[destination];
             resAmountsPacketsByDestin.Remove(destination);
             TotalWeight -= resAmountsPacket.TotalWeight;
-            return resAmountsPacket.ResAmounts.ToULongArray();
+            return resAmountsPacket.ResAmounts;
         }
 
-        public ULongArray ResToDestinAmounts(Vector2 destination)
+        public ConstULongArray ResToDestinAmounts(Vector2 destination)
             => resAmountsPacketsByDestin.ContainsKey(destination) switch
             {
-                true => resAmountsPacketsByDestin[destination].ResAmounts.ToULongArray(),
+                true => resAmountsPacketsByDestin[destination].ResAmounts,
                 false => new()
             };
 

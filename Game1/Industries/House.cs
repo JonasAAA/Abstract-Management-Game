@@ -88,7 +88,7 @@ namespace Game1.Industries
             housing = new(state: state, parameters: parameters);
         }
 
-        public override ULongArray TargetStoredResAmounts()
+        public override ConstULongArray TargetStoredResAmounts()
             => new();
 
         protected override House InternalUpdate()

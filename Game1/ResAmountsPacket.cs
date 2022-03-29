@@ -12,7 +12,7 @@ namespace Game1
         public bool Empty
             => TotalWeight is 0;
 
-        private ULongArray resAmounts;
+        private ConstULongArray resAmounts;
 
         public ResAmountsPacket(Vector2 destination)
             : this(destination: destination, resAmounts: new())
@@ -21,7 +21,7 @@ namespace Game1
         public ResAmountsPacket(Vector2 destination, ConstULongArray resAmounts)
         {
             this.destination = destination;
-            this.resAmounts = resAmounts.ToULongArray();
+            this.resAmounts = resAmounts;
             TotalWeight = resAmounts.TotalWeight();
         }
 
@@ -41,7 +41,9 @@ namespace Game1
 
         public void Add(int resInd, ulong resAmount)
         {
-            resAmounts[resInd] += resAmount;
+            resAmounts = resAmounts.WithAdd(index: resInd, value: resAmount);
+            // TODO: cleanup
+            //resAmounts[resInd] += resAmount;
             TotalWeight += CurResConfig.resources[resInd].weight * resAmount;
         }
     }

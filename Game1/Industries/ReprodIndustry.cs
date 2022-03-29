@@ -99,7 +99,7 @@ namespace Game1.Industries
             birthQueue = new(duration: parameters.birthDuration);
         }
 
-        public override ULongArray TargetStoredResAmounts()
+        public override ConstULongArray TargetStoredResAmounts()
             => maxCouples.Value * parameters.resPerChild * state.maxBatchDemResStored;
 
         protected override bool IsBusy()

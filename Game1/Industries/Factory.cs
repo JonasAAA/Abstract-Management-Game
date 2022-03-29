@@ -51,7 +51,7 @@ namespace Game1.Industries
             prodTimeLeft = TimeSpan.MaxValue;
         }
 
-        public override ULongArray TargetStoredResAmounts()
+        public override ConstULongArray TargetStoredResAmounts()
         {
             if (CanStartProduction)
                 return parameters.demand * state.maxBatchDemResStored;

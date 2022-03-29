@@ -3,12 +3,12 @@
 namespace Game1
 {
     [Serializable]
-    public class ConstArray<T> : ConstArray, IEnumerable<T>
+    public class ConstArray<T> : IMyArray, IEnumerable<T>
     {
         protected readonly T[] array;
 
         public ConstArray()
-            => array = new T[length];
+            => array = new T[IMyArray.length];
 
         public ConstArray(T value)
             : this()
@@ -17,7 +17,7 @@ namespace Game1
         public ConstArray(IEnumerable<T> values)
         {
             array = values.ToArray();
-            if (array.Length != length)
+            if (array.Length != IMyArray.length)
                 throw new ArgumentException();
         }
 
@@ -29,17 +29,11 @@ namespace Game1
 
         public IEnumerator<T> GetEnumerator()
         {
-            for (int i = 0; i < length; i++)
+            for (int i = 0; i < IMyArray.length; i++)
                 yield return array[i];
         }
 
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
-    }
-
-    [Serializable]
-    public class ConstArray
-    {
-        public const int length = (int)WorldManager.MaxRes + 1;
     }
 }

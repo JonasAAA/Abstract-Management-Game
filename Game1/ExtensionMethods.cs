@@ -1,4 +1,6 @@
-﻿namespace Game1
+﻿using System.Text;
+
+namespace Game1
 {
     public static class ExtensionMethods
     {
@@ -43,5 +45,18 @@
 
         public static bool Transparent(this Color color)
             => color.A is 0;
+
+        public static string ToDebugString(this IEnumerable<object> source)
+        {
+            StringBuilder stringBuilder = new();
+            stringBuilder.Append("{ ");
+            foreach (var item in source)
+            {
+                stringBuilder.Append(item.ToString());
+                stringBuilder.Append(", ");
+            }
+            stringBuilder.Append('}');
+            return stringBuilder.ToString();
+        }
     }
 }

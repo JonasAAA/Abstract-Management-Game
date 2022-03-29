@@ -13,7 +13,7 @@ namespace Game1
     public class Node : WorldUIElement
     {
         [Serializable]
-        private readonly record struct ResDesinArrowEventListener(Node Node, int ResInd) : IDeletedListener, INumberChangedListener
+        private readonly record struct ResDesinArrowEventListener(Node Node, ResInd ResInd) : IDeletedListener, INumberChangedListener
         {
             public void SyncSplittersWithArrows()
             {
@@ -98,7 +98,7 @@ namespace Game1
 
             resSplittersToDestins = new
             (
-                values: from ind in Enumerable.Range(0, CurResConfig.ResCount)
+                values: from ind in Enumerable.Range(0, ResInd.ResCount)
                         select new ProporSplitter<Vector2>()
             );
             targetStoredResAmounts = new();
@@ -189,7 +189,7 @@ namespace Game1
                     childHorizPos: HorizPos.Left
                 );
             storeToggleButtons = new();
-            for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
+            foreach (var resInd in ResInd.All)
             {
                 storeToggleButtons[resInd] = new ToggleButton
                 (
@@ -234,7 +234,7 @@ namespace Game1
             );
 
             resDistribArrows = new();
-            for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
+            foreach (var resInd in ResInd.All)
                 resDistribArrows[resInd] = new();
         }
 
@@ -261,22 +261,22 @@ namespace Game1
         public void Arrive(Person person)
             => state.waitingPeople.Add(person);
 
-        public void AddResTravelHere(int resInd, ulong resAmount)
+        public void AddResTravelHere(ResInd resInd, ulong resAmount)
             => resTravelHereAmounts = resTravelHereAmounts.WithAdd(index: resInd, value: resAmount);
 
-        public ulong TotalQueuedRes(int resInd)
+        public ulong TotalQueuedRes(ResInd resInd)
             => state.storedRes[resInd] + resTravelHereAmounts[resInd];
 
-        public bool IfStore(int resInd)
+        public bool IfStore(ResInd resInd)
             => storeToggleButtons[resInd].On;
 
-        public IEnumerable<Vector2> ResDestins(int resInd)
+        public IEnumerable<Vector2> ResDestins(ResInd resInd)
             => resSplittersToDestins[resInd].Keys;
 
-        public ulong TargetStoredResAmount(int resInd)
+        public ulong TargetStoredResAmount(ResInd resInd)
             => targetStoredResAmounts[resInd];
 
-        public ulong StoredResAmount(int resInd)
+        public ulong StoredResAmount(ResInd resInd)
             => state.storedRes[resInd];
 
         public bool CanHaveDestin(Vector2 destination)
@@ -284,7 +284,7 @@ namespace Game1
             if (!Active || !CurWorldManager.ArrowDrawingModeOn)
                 throw new InvalidOperationException();
 
-            return destination != Position && !resSplittersToDestins[(int)CurWorldManager.Overlay].ContainsKey(destination);
+            return destination != Position && !resSplittersToDestins[(ResInd)CurWorldManager.Overlay].ContainsKey(destination);
         }
 
         public void AddResDestin(Vector2 destination)
@@ -292,9 +292,7 @@ namespace Game1
             if (!CanHaveDestin(destination: destination))
                 throw new ArgumentException();
 
-            int resInd = (int)CurWorldManager.Overlay;
-            if (resInd is < 0 or > (int)MaxRes)
-                throw new ArgumentOutOfRangeException();
+            ResInd resInd = (ResInd)CurWorldManager.Overlay;
             if (resSplittersToDestins[resInd].ContainsKey(key: destination))
                 throw new ArgumentException();
 
@@ -388,7 +386,7 @@ namespace Game1
         /// <summary>
         /// MUST call StartSplitRes first
         /// </summary>
-        public void SplitRes(IReadOnlyDictionary<Vector2, Node> posToNode, int resInd, Func<Vector2, ulong> maxExtraResFunc)
+        public void SplitRes(IReadOnlyDictionary<Vector2, Node> posToNode, ResInd resInd, Func<Vector2, ulong> maxExtraResFunc)
         {
             if (undecidedResAmounts[resInd] is 0)
                 return;
@@ -444,7 +442,7 @@ namespace Game1
             switch (CurWorldManager.Overlay)
             {
                 case <= MaxRes:
-                    int resInd = (int)CurWorldManager.Overlay;
+                    ResInd resInd = (ResInd)CurWorldManager.Overlay;
                     if (IfStore(resInd: resInd))
                         textBox.Text += "store\n";
                     if (state.storedRes[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)

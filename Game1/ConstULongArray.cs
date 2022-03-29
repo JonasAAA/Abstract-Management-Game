@@ -1,15 +1,14 @@
-﻿using System.Collections;
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1
 {
     [Serializable]
-    public readonly struct ConstULongArray : IMyArray, IEnumerable<ulong>
+    public readonly struct ConstULongArray : IMyArray<ulong>
     {
         private readonly ulong[] array;
 
         public ConstULongArray()
-            => array = new ulong[IMyArray.length];
+            => array = new ulong[ResInd.ResCount];
 
         public ConstULongArray(ulong value)
             : this()
@@ -18,24 +17,15 @@ namespace Game1
         public ConstULongArray(IEnumerable<ulong> values)
         {
             array = values.ToArray();
-            if (array.Length != IMyArray.length)
+            if (array.Length != ResInd.ResCount)
                 throw new ArgumentException();
         }
 
-        public ulong this[int index]
+        public ulong this[ResInd resInd]
         {
-            get => array[index];
-            init => array[index] = value;
+            get => array[(int)resInd];
+            init => array[(int)resInd] = value;
         }
-
-        public IEnumerator<ulong> GetEnumerator()
-        {
-            for (int i = 0; i < IMyArray.length; i++)
-                yield return array[i];
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
 
         public bool IsEmpty()
             => array.Sum() is 0;
@@ -49,26 +39,24 @@ namespace Game1
             //=> Enumerable.Range(start: 0, count: IMyArray.length).Sum(i => CurResConfig.resources[i].weight * array[i]);
 
         // analogous to with expression from https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/with-expression
-        public ConstULongArray With(int index, ulong value)
-        {
-            ConstULongArray result = new(array);
-            result.array[index] = value;
-            return result;
-        }
+        public ConstULongArray With(ResInd index, ulong value)
+            => new(this)
+            {
+                [index] = value
+            };
 
-        public ConstULongArray WithAdd(int index, ulong value)
-        {
-            ConstULongArray result = new(array);
-            result.array[index] += value;
-            return result;
-        }
+        public ConstULongArray WithAdd(ResInd index, ulong value)
+            => new(this)
+            {
+                [index] = this[index] + value
+            };
 
         public override string ToString()
         {
             if (array.All(value => value is 0))
                 return "None";
             string result = "";
-            for (int resInd = 0; resInd < IMyArray.length; resInd++)
+            for (int resInd = 0; resInd < ResInd.ResCount; resInd++)
                 if (array[resInd] > 0)
                     result += $"res{resInd}: {array[resInd]}, ";
             return result.Trim(' ', ',');

@@ -39,7 +39,7 @@ namespace Game1.Industries
                         reqWattsPerUnitSurface: 10,
                         supply: new()
                         {
-                            [0] = 10,
+                            [(ResInd)0] = 10,
                         },
                         demand: new(),
                         prodDuration: TimeSpan.FromSeconds(value: 2)
@@ -61,7 +61,7 @@ namespace Game1.Industries
                         reqWattsPerUnitSurface: 10,
                         supply: new()
                         {
-                            [1] = 10,
+                            [(ResInd)1] = 10,
                         },
                         demand: new(),
                         prodDuration: TimeSpan.FromSeconds(value: 2)
@@ -83,7 +83,7 @@ namespace Game1.Industries
                         reqWattsPerUnitSurface: 10,
                         supply: new()
                         {
-                            [2] = 10,
+                            [(ResInd)2] = 10,
                         },
                         demand: new(),
                         prodDuration: TimeSpan.FromSeconds(value: 2)
@@ -120,19 +120,19 @@ namespace Game1.Industries
                         reqWattsPerUnitSurface: 10,
                         supply: new()
                         {
-                            [0] = 100,
+                            [(ResInd)0] = 100,
                         },
                         demand: new()
                         {
-                            [1] = 50,
+                            [(ResInd)1] = 50,
                         },
                         prodDuration: TimeSpan.FromSeconds(value: 2)
                     ),
                     duration: TimeSpan.FromSeconds(5),
                     cost: new()
                     {
-                        [1] = 20,
-                        [2] = 10
+                        [(ResInd)1] = 20,
+                        [(ResInd)2] = 10
                     }
                 ),
                 new
@@ -150,7 +150,7 @@ namespace Game1.Industries
                         maxCouplesPerUnitSurface: 10,
                         resPerChild: new()
                         {
-                            [0] = 10,
+                            [(ResInd)0] = 10,
                         },
                         birthDuration: TimeSpan.FromSeconds(1)
                     ),

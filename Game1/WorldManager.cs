@@ -345,10 +345,10 @@ namespace Game1
         private void Initialize(GraphicsDevice graphicsDevice)
             => lightManager.Initialize(graphicsDevice: graphicsDevice);
 
-        public void AddResDestinArrow(int resInd, ResDestinArrow resDestinArrow)
+        public void AddResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
             => graph.AddResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
-        public void RemoveResDestinArrow(int resInd, ResDestinArrow resDestinArrow)
+        public void RemoveResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
             => graph.RemoveResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
         public void AddHUDElement(IHUDElement HUDElement, HorizPos horizPos, VertPos vertPos)

@@ -39,7 +39,7 @@ namespace Game1
             TotalWeight += resAmounts.TotalWeight();
         }
 
-        public void Add(int resInd, ulong resAmount)
+        public void Add(ResInd resInd, ulong resAmount)
         {
             resAmounts = resAmounts.WithAdd(index: resInd, value: resAmount);
             // TODO: cleanup

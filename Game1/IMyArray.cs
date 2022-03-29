@@ -1,7 +1,16 @@
-﻿namespace Game1
+﻿using System.Collections;
+
+namespace Game1
 {
-    public interface IMyArray
+    public interface IMyArray<T> : IEnumerable<T>
     {
-        public const int length = (int)WorldManager.MaxRes + 1;
+        public T this[ResInd resInd] { get; init; }
+
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            => (from resInd in ResInd.All
+                select this[resInd]).GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 }

@@ -1,14 +1,12 @@
-﻿using System.Collections;
-
-namespace Game1
+﻿namespace Game1
 {
     [Serializable]
-    public class ConstArray<T> : IMyArray, IEnumerable<T>
+    public class ConstArray<T> : IMyArray<T>
     {
         protected readonly T[] array;
 
         public ConstArray()
-            => array = new T[IMyArray.length];
+            => array = new T[ResInd.ResCount];
 
         public ConstArray(T value)
             : this()
@@ -17,23 +15,14 @@ namespace Game1
         public ConstArray(IEnumerable<T> values)
         {
             array = values.ToArray();
-            if (array.Length != IMyArray.length)
+            if (array.Length != ResInd.ResCount)
                 throw new ArgumentException();
         }
 
-        public T this[int index]
+        public T this[ResInd resInd]
         {
-            get => array[index];
-            init => array[index] = value;
+            get => array[(int)resInd];
+            init => array[(int)resInd] = value;
         }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            for (int i = 0; i < IMyArray.length; i++)
-                yield return array[i];
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-            => GetEnumerator();
     }
 }

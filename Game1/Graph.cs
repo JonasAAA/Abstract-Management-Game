@@ -12,9 +12,9 @@ namespace Game1
         [Serializable]
         private class NodeInfo
         {
-            private static int resInd;
+            private static ResInd resInd;
 
-            public static void Init(int resInd)
+            public static void Init(ResInd resInd)
                 => NodeInfo.resInd = resInd;
 
             public readonly Node node;
@@ -92,9 +92,13 @@ namespace Game1
                     yield return node;
                 foreach (var link in links)
                     yield return link;
-                for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
-                    foreach (var resDestinArrow in resDestinArrows[resInd])
+                foreach (var resDestinArrowsByRes in resDestinArrows)
+                    foreach (var resDestinArrow in resDestinArrowsByRes)
                         yield return resDestinArrow;
+                // TODO: cleanup
+                //for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
+                //    foreach (var resDestinArrow in resDestinArrows[resInd])
+                //        yield return resDestinArrow;
             }
         }
 
@@ -148,12 +152,13 @@ namespace Game1
                 AddChild(child: link, layer: CurWorldConfig.linkLayer);
 
             resDestinArrows = new();
-            for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
+            foreach (var resInd in ResInd.All)
                 resDestinArrows[resInd] = new();
-            if (CurWorldManager.Overlay <= MaxRes)
+            ResInd? curResInd = ResInd.MakeFrom(overlay: CurWorldManager.Overlay);
+            if (curResInd.HasValue)
                 AddChild
                 (
-                    child: resDestinArrows[(int)CurWorldManager.Overlay],
+                    child: resDestinArrows[curResInd.Value],
                     layer: CurWorldConfig.resDistribArrowsUILayer
                 );
 
@@ -227,7 +232,7 @@ namespace Game1
             return (dists: new(distsDict), firstLinks: new(firstLinksDict));
         }
 
-        public void AddResDestinArrow(int resInd, ResDestinArrow resDestinArrow)
+        public void AddResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
         {
             resDestinArrow.activeChanged.Add(listener: this);
             resDestinArrows[resInd].AddChild(child: resDestinArrow);
@@ -244,7 +249,7 @@ namespace Game1
             }
         }
 
-        public void RemoveResDestinArrow(int resInd, ResDestinArrow resDestinArrow)
+        public void RemoveResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
         {
             resDestinArrow.activeChanged.Remove(listener: this);
             resDestinArrows[resInd].RemoveChild(child: resDestinArrow);
@@ -261,7 +266,7 @@ namespace Game1
 
             nodes.ForEach(node => node.StartSplitRes());
 
-            for (int resInd = 0; resInd < CurResConfig.ResCount; resInd++)
+            foreach (var resInd in ResInd.All)
                 SplitRes(resInd: resInd);
 
             foreach (var node in nodes)
@@ -272,7 +277,7 @@ namespace Game1
         /// TODO:
         /// choose random leafs
         /// </summary>
-        public void SplitRes(int resInd)
+        public void SplitRes(ResInd resInd)
         {
             NodeInfo.Init(resInd: resInd);
             Dictionary<Vector2, NodeInfo> nodeInfos = nodes.ToDictionary
@@ -353,12 +358,14 @@ namespace Game1
 
         void IChoiceChangedListener<Overlay>.ChoiceChangedResponse(Overlay prevOverlay)
         {
-            if (prevOverlay <= MaxRes)
-                RemoveChild(child: resDestinArrows[(int)prevOverlay]);
-            if (CurWorldManager.Overlay <= MaxRes)
+            ResInd? prevResInd = ResInd.MakeFrom(overlay: prevOverlay);
+            if (prevResInd.HasValue)
+                RemoveChild(child: resDestinArrows[prevResInd.Value]);
+            ResInd? resInd = ResInd.MakeFrom(overlay: CurWorldManager.Overlay);
+            if (resInd.HasValue)
                 AddChild
                 (
-                    child: resDestinArrows[(int)CurWorldManager.Overlay],
+                    child: resDestinArrows[resInd.Value],
                     layer:CurWorldConfig.resDistribArrowsUILayer
                 );
         }

@@ -45,7 +45,7 @@ namespace Game1
             TotalWeight += resAmounts.TotalWeight();
         }
 
-        public void Add(Vector2 destination, int resInd, ulong resAmount)
+        public void Add(Vector2 destination, ResInd resInd, ulong resAmount)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);

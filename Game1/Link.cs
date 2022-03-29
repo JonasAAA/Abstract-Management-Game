@@ -70,7 +70,7 @@ namespace Game1
             public ulong GetTravellingAmount()
                 => CurWorldManager.Overlay switch
                 {
-                    <= MaxRes => timedPacketQueue.TotalResAmounts[(int)CurWorldManager.Overlay],
+                    <= MaxRes => timedPacketQueue.TotalResAmounts[(ResInd)CurWorldManager.Overlay],
                     Overlay.AllRes => timedPacketQueue.TotalResAmounts.TotalWeight(),
                     Overlay.People => (ulong)timedPacketQueue.PeopleCount,
                     _ => throw new InvalidOperationException()
@@ -103,8 +103,9 @@ namespace Game1
                 switch (CurWorldManager.Overlay)
                 {
                     case <= MaxRes:
+                        ResInd resInd = (ResInd)CurWorldManager.Overlay;
                         foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts[(int)CurWorldManager.Overlay]);
+                            DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts[resInd]);
                         break;
                     case Overlay.AllRes:
                         foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
@@ -176,7 +177,7 @@ namespace Game1
             link2To1 = new(startNode: node2, endNode: node1, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
 
             resTextBoxes = new();
-            for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
+            foreach (var resInd in ResInd.All)
             {
                 resTextBoxes[resInd] = new();
                 resTextBoxes[resInd].Shape.Color = Color.White;
@@ -244,7 +245,7 @@ namespace Game1
             switch (CurWorldManager.Overlay)
             {
                 case <= MaxRes:
-                    resTextBoxes[(int)CurWorldManager.Overlay].Text = $"{travellingAmount} of {CurWorldManager.Overlay} is travelling";
+                    resTextBoxes[(ResInd)CurWorldManager.Overlay].Text = $"{travellingAmount} of {CurWorldManager.Overlay} is travelling";
                     break;
                 case Overlay.AllRes:
                     allResTextBox.Text = $"{travellingAmount} kg of resources are travelling";

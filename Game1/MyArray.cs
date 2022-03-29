@@ -16,10 +16,10 @@
             : base(values: values)
         { }
 
-        public new T this[int index]
+        public new T this[ResInd resInd]
         {
-            get => array[index];
-            set => array[index] = value;
+            get => array[(int)resInd];
+            set => array[(int)resInd] = value;
         }
     }
 }

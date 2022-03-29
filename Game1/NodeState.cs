@@ -40,7 +40,7 @@ namespace Game1
         public void SetRadius(UFloat radius)
             => changingRadius.Value = radius;
         
-        public void AddToStoredRes(int resInd, ulong resAmount)
+        public void AddToStoredRes(ResInd resInd, ulong resAmount)
             => storedRes = storedRes.WithAdd(index: resInd, value: resAmount);
     }
 }

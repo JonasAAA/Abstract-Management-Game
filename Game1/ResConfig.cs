@@ -5,9 +5,7 @@ namespace Game1
     [Serializable]
     public class ResConfig
     {
-        public int ResCount
-            => resources.Count;
-        public readonly ReadOnlyCollection<Resource> resources;
+        public readonly ConstArray<Resource> resources;
 
         public ResConfig()
         {
@@ -30,8 +28,8 @@ namespace Game1
                 ),
             });
 
-            Debug.Assert((int)MaxRes == ResCount - 1);
-            Debug.Assert(ResCount + 3 == Enum.GetValues<Overlay>().Length);
+            Debug.Assert((int)MaxRes == ResInd.ResCount - 1);
+            Debug.Assert(ResInd.ResCount + 3 == Enum.GetValues<Overlay>().Length);
         }
     }
 }

@@ -15,11 +15,11 @@ namespace Game1
     [Serializable]
     public class WorldManager : IDeletedListener, IClickedNowhereListener
     {
-        public const Overlay MaxRes = (Overlay)2;
+        //public const Overlay MaxRes = (Overlay)2;
 
         public static WorldManager CurWorldManager { get; private set; }
 
-        public static IEvent<IChoiceChangedListener<Overlay>> CurOverlayChanged
+        public static IEvent<IChoiceChangedListener<IOverlay>> CurOverlayChanged
             => CurWorldManager.overlayChoicePanel.choiceChanged;
 
         public static WorldConfig CurWorldConfig
@@ -201,13 +201,13 @@ namespace Game1
                 typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
                 typeof(MultipleChoicePanel<string>),
                 typeof(MultipleChoicePanel<string>.ChoiceEventListener),
-                typeof(MultipleChoicePanel<Overlay>),
-                typeof(MultipleChoicePanel<Overlay>.ChoiceEventListener),
+                typeof(MultipleChoicePanel<IOverlay>),
+                typeof(MultipleChoicePanel<IOverlay>.ChoiceEventListener),
                 typeof(UIRectHorizPanel<IHUDElement>),
                 typeof(UIRectHorizPanel<SelectButton>),
                 typeof(UIRectVertPanel<IHUDElement>),
                 typeof(UITransparentPanel<ResDestinArrow>),
-                typeof(Dictionary<Overlay, IHUDElement>)
+                typeof(Dictionary<IOverlay, IHUDElement>)
             };
             List<Type> unserializedTypeList = new();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
@@ -230,7 +230,7 @@ namespace Game1
             knownTypes = knownTypesSet.ToArray();
         }
 
-        public Overlay Overlay
+        public IOverlay Overlay
             => overlayChoicePanel.SelectedChoiceLabel;
 
         public TimeSpan CurTime { get; private set; }
@@ -257,7 +257,7 @@ namespace Game1
                 arrowDrawingModeOn = value;
                 if (arrowDrawingModeOn)
                 {
-                    if (CurWorldManager.Overlay > MaxRes)
+                    if (CurWorldManager.Overlay is not ResInd)
                         throw new Exception();
                     activeUIManager.DisableAllUIElements();
                     if (graph.ActiveWorldElement is Node activeNode)
@@ -287,7 +287,7 @@ namespace Game1
         private readonly ActiveUIManager activeUIManager;
         private readonly TextBox globalTextBox;
         private readonly ToggleButton pauseButton;
-        private readonly MultipleChoicePanel<Overlay> overlayChoicePanel;
+        private readonly MultipleChoicePanel<IOverlay> overlayChoicePanel;
         private readonly WorldCamera worldCamera;
 
         private Graph graph;
@@ -323,7 +323,7 @@ namespace Game1
                 deselectedColor: Color.Gray,
                 backgroundColor: Color.White
             );
-            foreach (var posOverlay in Enum.GetValues<Overlay>())
+            foreach (var posOverlay in IOverlay.all)
                 overlayChoicePanel.AddChoice(choiceLabel: posOverlay);
             
             pauseButton = new

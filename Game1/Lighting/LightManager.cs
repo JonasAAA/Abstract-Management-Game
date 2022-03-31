@@ -97,7 +97,7 @@ namespace Game1.Lighting
                     worldToScreenTransform: worldToScreenTransform,
                     basicEffect: CurWorldManager.Overlay switch
                     {
-                        Overlay.Power => brightEffect,
+                        IPowerOverlay => brightEffect,
                         _ => dimEffect
                     },
                     actualScreenWidth: actualScreenWidth,

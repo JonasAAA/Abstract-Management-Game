@@ -70,9 +70,9 @@ namespace Game1
             public ulong GetTravellingAmount()
                 => CurWorldManager.Overlay switch
                 {
-                    <= MaxRes => timedPacketQueue.TotalResAmounts[(ResInd)CurWorldManager.Overlay],
-                    Overlay.AllRes => timedPacketQueue.TotalResAmounts.TotalWeight(),
-                    Overlay.People => (ulong)timedPacketQueue.PeopleCount,
+                    ResInd resInd => timedPacketQueue.TotalResAmounts[resInd],
+                    IAllResOverlay => timedPacketQueue.TotalResAmounts.TotalWeight(),
+                    IPeopleOverlay => (ulong)timedPacketQueue.PeopleCount,
                     _ => throw new InvalidOperationException()
                 };
 
@@ -102,16 +102,15 @@ namespace Game1
                 // temporary
                 switch (CurWorldManager.Overlay)
                 {
-                    case <= MaxRes:
-                        ResInd resInd = (ResInd)CurWorldManager.Overlay;
+                    case ResInd resInd:
                         foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
                             DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts[resInd]);
                         break;
-                    case Overlay.AllRes:
+                    case IAllResOverlay:
                         foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
                             DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts.TotalWeight());
                         break;
-                    case Overlay.People:
+                    case IPeopleOverlay:
                         foreach (var (complProp, (_, people)) in timedPacketQueue.GetData())
                             DrawDisk(complProp: complProp, size: people.Count());
                         break;
@@ -181,16 +180,16 @@ namespace Game1
             {
                 resTextBoxes[resInd] = new();
                 resTextBoxes[resInd].Shape.Color = Color.White;
-                SetPopup(HUDElement: resTextBoxes[resInd], overlay: (Overlay)resInd);
+                SetPopup(HUDElement: resTextBoxes[resInd], overlay: resInd);
             }
 
             allResTextBox = new();
             allResTextBox.Shape.Color = Color.White;
-            SetPopup(HUDElement: allResTextBox, overlay: Overlay.AllRes);
+            SetPopup(HUDElement: allResTextBox, overlay: IOverlay.allRes);
 
             peopleTextBox = new();
             peopleTextBox.Shape.Color = Color.White;
-            SetPopup(HUDElement: peopleTextBox, overlay: Overlay.People);
+            SetPopup(HUDElement: peopleTextBox, overlay: IOverlay.people);
         }
 
         public Node OtherNode(Node node)
@@ -232,25 +231,25 @@ namespace Game1
                 value2: Color.Green,
                 amount: CurWorldManager.Overlay switch
                 {
-                    Overlay.People => (float)(TravelTime / CurWorldManager.MaxLinkTravelTime),
+                    IPeopleOverlay => (float)(TravelTime / CurWorldManager.MaxLinkTravelTime),
                     _ => (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
                 }
             );
 
-            if (CurWorldManager.Overlay is Overlay.Power)
+            if (CurWorldManager.Overlay is IPowerOverlay)
                 return;
 
             ulong travellingAmount = link1To2.GetTravellingAmount() + link2To1.GetTravellingAmount();
 
             switch (CurWorldManager.Overlay)
             {
-                case <= MaxRes:
-                    resTextBoxes[(ResInd)CurWorldManager.Overlay].Text = $"{travellingAmount} of {CurWorldManager.Overlay} is travelling";
+                case ResInd resInd:
+                    resTextBoxes[resInd].Text = $"{travellingAmount} of {CurWorldManager.Overlay} is travelling";
                     break;
-                case Overlay.AllRes:
+                case IAllResOverlay:
                     allResTextBox.Text = $"{travellingAmount} kg of resources are travelling";
                     break;
-                case Overlay.People:
+                case IPeopleOverlay:
                     peopleTextBox.Text = $"{travellingAmount} of people are travelling";
                     break;
             }

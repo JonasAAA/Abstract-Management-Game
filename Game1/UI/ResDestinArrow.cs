@@ -56,7 +56,7 @@ namespace Game1.UI
                 color: Color.White,
                 childHorizPos: HorizPos.Left
             );
-            SetPopup(HUDElement: popup, overlay: (Overlay)resInd);
+            SetPopup(HUDElement: popup, overlay: (IOverlay)resInd);
 
             UIRectHorizPanel<IHUDElement> line1 = new
             (

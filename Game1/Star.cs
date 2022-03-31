@@ -26,7 +26,7 @@ namespace Game1
             SetPopup
             (
                 HUDElement: popupTextBox,
-                overlays: Enum.GetValues<Overlay>()
+                overlays: IOverlay.all
             );
 
             CurWorldManager.AddLightSource(lightSource: this);

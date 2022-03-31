@@ -80,7 +80,7 @@ namespace Game1
         private readonly MyArray<ToggleButton> storeToggleButtons;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
         private readonly UIRectPanel<IHUDElement> infoPanel, buildButtonPannel;
-        private readonly Dictionary<Overlay, UIRectPanel<IHUDElement>> overlayTabPanels;
+        private readonly Dictionary<IOverlay, UIRectPanel<IHUDElement>> overlayTabPanels;
         private readonly TextBox infoTextBox;
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
@@ -182,7 +182,7 @@ namespace Game1
             overlayTabLabel = "overlay tab";
             overlayTabPanels = new();
 
-            foreach (var overlay in Enum.GetValues<Overlay>())
+            foreach (var overlay in IOverlay.all)
                 overlayTabPanels[overlay] = new UIRectVertPanel<IHUDElement>
                 (
                     color: Color.White,
@@ -204,7 +204,7 @@ namespace Game1
                     deselectedColor: Color.Gray
                 );
 
-                overlayTabPanels[(Overlay)resInd].AddChild(child: storeToggleButtons[resInd]);
+                overlayTabPanels[resInd].AddChild(child: storeToggleButtons[resInd]);
 
                 Button addResourceDestinationButton = new
                 (
@@ -216,7 +216,7 @@ namespace Game1
                 );
                 addResourceDestinationButton.clicked.Add(listener: new AddResourceDestinationButtonClickedListener());
 
-                overlayTabPanels[(Overlay)resInd].AddChild
+                overlayTabPanels[resInd].AddChild
                 (
                     child: addResourceDestinationButton
                 );
@@ -230,7 +230,7 @@ namespace Game1
             SetPopup
             (
                 HUDElement: UITabPanel,
-                overlays: Enum.GetValues<Overlay>()
+                overlays: IOverlay.all
             );
 
             resDistribArrows = new();
@@ -441,8 +441,7 @@ namespace Game1
 
             switch (CurWorldManager.Overlay)
             {
-                case <= MaxRes:
-                    ResInd resInd = (ResInd)CurWorldManager.Overlay;
+                case ResInd resInd:
                     if (IfStore(resInd: resInd))
                         textBox.Text += "store\n";
                     if (state.storedRes[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
@@ -452,15 +451,15 @@ namespace Game1
                             false => $"have {(double)state.storedRes[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
                         };
                     break;
-                case Overlay.AllRes:
+                case IAllResOverlay:
                     ulong totalStoredWeight = state.storedRes.TotalWeight();
                     if (totalStoredWeight > 0)
                         textBox.Text += $"stored total res weight {totalStoredWeight}";
                     break;
-                case Overlay.Power:
+                case IPowerOverlay:
                     textBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {shape.Watts - remainingLocalWatts:.##} W is used";
                     break;
-                case Overlay.People:
+                case IPeopleOverlay:
                     textBox.Text += unemploymentCenter.GetInfo();
                     break;
                 default:
@@ -489,7 +488,7 @@ namespace Game1
         public void SetRemainingLocalWatts(double remainingLocalWatts)
             => this.remainingLocalWatts = remainingLocalWatts;
 
-        public override void ChoiceChangedResponse(Overlay prevOverlay)
+        public override void ChoiceChangedResponse(IOverlay prevOverlay)
         {
             base.ChoiceChangedResponse(prevOverlay: prevOverlay);
 

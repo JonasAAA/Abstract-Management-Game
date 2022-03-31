@@ -41,5 +41,8 @@
 
         public static UFloat operator /(UFloat UFloatA, UFloat UFloatB)
            => new(UFloatA.value / UFloatB.value);
+
+        public override string ToString()
+            => value.ToString();
     }
 }

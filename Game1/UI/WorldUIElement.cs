@@ -6,7 +6,7 @@ using static Game1.WorldManager;
 namespace Game1.UI
 {
     [Serializable]
-    public class WorldUIElement : UIElement<IUIElement>, IDeletable, IChoiceChangedListener<Overlay>
+    public class WorldUIElement : UIElement<IUIElement>, IDeletable, IChoiceChangedListener<IOverlay>
     {
         public IEvent<IDeletedListener> Deleted
             => deleted;
@@ -68,7 +68,7 @@ namespace Game1.UI
         private readonly Event<IDeletedListener> deleted;
         private bool active;
 
-        private readonly Dictionary<Overlay, IHUDElement> popups;
+        private readonly Dictionary<IOverlay, IHUDElement> popups;
 
         public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
             : base(shape: shape)
@@ -82,7 +82,7 @@ namespace Game1.UI
             SetShapeColor();
             deleted = new();
 
-            popups = Enum.GetValues<Overlay>().ToDictionary
+            popups = IOverlay.all.ToDictionary
             (
                 keySelector: overlay => overlay,
                 elementSelector: overlay => (IHUDElement)null
@@ -90,10 +90,10 @@ namespace Game1.UI
             CurOverlayChanged.Add(listener: this);
         }
 
-        protected void SetPopup(IHUDElement HUDElement, Overlay overlay)
+        protected void SetPopup(IHUDElement HUDElement, IOverlay overlay)
             => popups[overlay] = HUDElement;
 
-        protected void SetPopup(IHUDElement HUDElement, IEnumerable<Overlay> overlays)
+        protected void SetPopup(IHUDElement HUDElement, IEnumerable<IOverlay> overlays)
         {
             foreach (var overlay in overlays)
                 SetPopup(HUDElement: HUDElement, overlay: overlay);
@@ -115,7 +115,7 @@ namespace Game1.UI
                 false => inactiveColor
             };
 
-        public virtual void ChoiceChangedResponse(Overlay prevOverlay)
+        public virtual void ChoiceChangedResponse(IOverlay prevOverlay)
         {
             if (!Active)
                 return;

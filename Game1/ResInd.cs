@@ -1,9 +1,9 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public readonly struct ResInd
+    public readonly struct ResInd : IOverlay
     {
-        public const int ResCount = (int)WorldManager.MaxRes + 1;
+        public const int ResCount = 3;
 
         private static readonly ResInd[] allInds;
 
@@ -13,9 +13,6 @@
                 return new(resInd: resInd);
             return null;
         }
-
-        public static ResInd? MakeFrom(Overlay overlay)
-            => MakeFrom((int)overlay);
 
         static ResInd()
         {
@@ -37,14 +34,8 @@
         public static explicit operator ResInd(int resInd)
             => MakeFrom(resInd: resInd).Value;
         
-        public static explicit operator Overlay(ResInd resInd)
-            => (Overlay)(int)resInd;
-
-        public static explicit operator ResInd(Overlay overlay)
-            => (ResInd)(int)overlay;
-
         public override string ToString()
-            => resInd.ToString();
+            => "Res" + resInd.ToString();
 
         private static bool IsInRange(int resInd)
             => 0 <= resInd && resInd < ResCount;

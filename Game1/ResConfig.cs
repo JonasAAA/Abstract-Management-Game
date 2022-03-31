@@ -27,9 +27,6 @@ namespace Game1
                     weight: 10
                 ),
             });
-
-            Debug.Assert((int)MaxRes == ResInd.ResCount - 1);
-            Debug.Assert(ResInd.ResCount + 3 == Enum.GetValues<Overlay>().Length);
         }
     }
 }

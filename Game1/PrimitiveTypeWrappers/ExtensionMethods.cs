@@ -18,6 +18,9 @@
         {
             public UFloat Value
                 => Transform.Transform(param: Param);
+
+            public override string ToString()
+                => Value.ToString();
         }
 
         [Serializable]
@@ -25,6 +28,9 @@
         {
             public ulong Value
                 => Transform.Transform(param: Param);
+
+            public override string ToString()
+                => Value.ToString();
         }
 
         public static IReadOnlyChangingUFloat TransformIntoReadOnlyChangingUFloat<TParam>(this ITransformer<TParam, UFloat> transformer, TParam param)

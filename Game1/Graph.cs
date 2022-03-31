@@ -7,7 +7,7 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [Serializable]
-    public class Graph : UIElement<IUIElement>, IChoiceChangedListener<Overlay>, IActiveChangedListener
+    public class Graph : UIElement<IUIElement>, IChoiceChangedListener<IOverlay>, IActiveChangedListener
     {
         [Serializable]
         private class NodeInfo
@@ -154,11 +154,11 @@ namespace Game1
             resDestinArrows = new();
             foreach (var resInd in ResInd.All)
                 resDestinArrows[resInd] = new();
-            ResInd? curResInd = ResInd.MakeFrom(overlay: CurWorldManager.Overlay);
-            if (curResInd.HasValue)
+
+            if (CurWorldManager.Overlay is ResInd singleResInd)
                 AddChild
                 (
-                    child: resDestinArrows[curResInd.Value],
+                    child: resDestinArrows[singleResInd],
                     layer: CurWorldConfig.resDistribArrowsUILayer
                 );
 
@@ -356,16 +356,15 @@ namespace Game1
         public override void Draw()
             => throw new InvalidOperationException();
 
-        void IChoiceChangedListener<Overlay>.ChoiceChangedResponse(Overlay prevOverlay)
+        void IChoiceChangedListener<IOverlay>.ChoiceChangedResponse(IOverlay prevOverlay)
         {
-            ResInd? prevResInd = ResInd.MakeFrom(overlay: prevOverlay);
-            if (prevResInd.HasValue)
-                RemoveChild(child: resDestinArrows[prevResInd.Value]);
-            ResInd? resInd = ResInd.MakeFrom(overlay: CurWorldManager.Overlay);
-            if (resInd.HasValue)
+            if (prevOverlay is ResInd prevResInd)
+                RemoveChild(child: resDestinArrows[prevResInd]);
+            
+            if (CurWorldManager.Overlay is ResInd resInd)
                 AddChild
                 (
-                    child: resDestinArrows[resInd.Value],
+                    child: resDestinArrows[resInd],
                     layer:CurWorldConfig.resDistribArrowsUILayer
                 );
         }

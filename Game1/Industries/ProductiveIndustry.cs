@@ -241,10 +241,10 @@ namespace Game1.Industries
         public override string GetInfo()
             => CurWorldManager.Overlay switch
             {
-                <= MaxRes => "",
-                Overlay.AllRes => "",
-                Overlay.Power => "",
-                Overlay.People => employer.GetInfo(),
+                ResInd => "",
+                IAllResOverlay => "",
+                IPowerOverlay => "",
+                IPeopleOverlay => employer.GetInfo(),
                 _ => throw new Exception(),
             };
 

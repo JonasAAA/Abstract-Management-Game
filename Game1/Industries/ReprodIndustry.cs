@@ -144,7 +144,7 @@ namespace Game1.Industries
         public override string GetInfo()
         {
             string text = base.GetInfo() + $"{parameters.name}\n";
-            if (CurWorldManager.Overlay is Overlay.People)
+            if (CurWorldManager.Overlay is IPeopleOverlay)
             {
                 text += $"{birthQueue.Count} children are being born\n";
                 text += reprodCenter.GetInfo();

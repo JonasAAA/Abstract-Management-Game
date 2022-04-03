@@ -57,7 +57,7 @@ namespace Game1.Industries
                 => true;
 
             public override double PersonScoreOfThis(Person person)
-                => .9 * Math.Tanh((CurWorldManager.CurTime - person.LastActivityTimes[ActivityType]).TotalSeconds / 100)
+                => .9 * MathHelper.Tanh((CurWorldManager.CurTime - person.LastActivityTimes[ActivityType]).TotalSeconds / 100)
                 + .1 * DistanceToHere(person: person);
 
             public override void TakePerson(Person person)

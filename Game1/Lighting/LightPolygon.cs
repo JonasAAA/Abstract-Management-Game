@@ -1,4 +1,5 @@
-﻿using static Game1.WorldManager;
+﻿using Game1.PrimitiveTypeWrappers;
+using static Game1.WorldManager;
 
 namespace Game1.Lighting
 {
@@ -10,11 +11,11 @@ namespace Game1.Lighting
         private VertexPositionColorTexture[] vertPosTexs;
         private ushort[] inds;
 
-        private readonly float strength;
+        private readonly UFloat strength;
         private readonly Color color;
 
         /// <param name="strength">a positive float which determins the radius of the lit area</param>
-        public LightPolygon(float strength, Color color)
+        public LightPolygon(UFloat strength, Color color)
             : this(strength: strength, color: color, center: Vector2.Zero, vertices: new())
         {
             vertices = new List<Vector2>();
@@ -26,7 +27,7 @@ namespace Game1.Lighting
             this.color = color;
         }
 
-        public LightPolygon(float strength, Color color, Vector2 center, List<Vector2> vertices)
+        public LightPolygon(UFloat strength, Color color, Vector2 center, List<Vector2> vertices)
         {
             if (strength <= 0)
                 throw new ArgumentOutOfRangeException();

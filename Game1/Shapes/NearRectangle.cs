@@ -1,4 +1,5 @@
 ﻿using Game1.Delegates;
+using Game1.PrimitiveTypeWrappers;
 
 namespace Game1.Shapes
 {
@@ -81,14 +82,12 @@ namespace Game1.Shapes
                 vertOrigin: VertPos.Bottom
             );
         }
-        public virtual float Width
+        public virtual UFloat Width
         {
             get => width;
             set
             {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException();
-                value = Math.Max(value, minWidth);
+                value = MathHelper.Max(value, minWidth);
                 if (!C.IsTiny(value: width - value))
                 {
                     width = value;
@@ -96,14 +95,14 @@ namespace Game1.Shapes
                 }
             }
         }
-        public virtual float Height
+        public virtual UFloat Height
         {
             get => height;
             set
             {
                 if (value < 0)
                     throw new ArgumentOutOfRangeException();
-                value = Math.Max(value, minHeight);
+                value = MathHelper.Max(value, minHeight);
                 if (!C.IsTiny(value: height - value))
                 {
                     height = value;
@@ -111,7 +110,7 @@ namespace Game1.Shapes
                 }
             }
         }
-        public float MinWidth
+        public UFloat MinWidth
         {
             get => minWidth;
             set
@@ -123,7 +122,7 @@ namespace Game1.Shapes
                     Width = minWidth;
             }
         }
-        public float MinHeight
+        public UFloat MinHeight
         {
             get => minHeight;
             set
@@ -136,9 +135,9 @@ namespace Game1.Shapes
             }
         }
 
-        private float width, height, minWidth, minHeight;
+        private UFloat width, height, minWidth, minHeight;
 
-        protected NearRectangle(float width, float height)
+        protected NearRectangle(UFloat width, UFloat height)
         {
             if (width < 0)
                 throw new ArgumentOutOfRangeException();
@@ -162,13 +161,13 @@ namespace Game1.Shapes
         public void ClampPosition(float left, float right, float top, float bottom)
             => Center = new Vector2
             (
-                x: Math.Clamp
+                x: MathHelper.Clamp
                 (
                     value: Center.X,
                     min: left + Width * .5f,
                     max: right - Width * .5f
                 ),
-                y: Math.Clamp
+                y: MathHelper.Clamp
                 (
                     value: Center.Y,
                     min: top + Height * .5f,

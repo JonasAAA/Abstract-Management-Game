@@ -42,8 +42,6 @@ namespace Game1
         public void Add(ResInd resInd, ulong resAmount)
         {
             resAmounts = resAmounts.WithAdd(index: resInd, value: resAmount);
-            // TODO: cleanup
-            //resAmounts[resInd] += resAmount;
             TotalWeight += CurResConfig.resources[resInd].weight * resAmount;
         }
     }

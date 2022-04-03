@@ -1,4 +1,5 @@
 ﻿using Game1.Lighting;
+using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
 
@@ -14,7 +15,7 @@ namespace Game1
 
         private readonly TextBox popupTextBox;
 
-        public Star(float radius, Vector2 center, double prodWatts, Color color)
+        public Star(UFloat radius, Vector2 center, double prodWatts, Color color)
             : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             shape.Center = center;
@@ -53,7 +54,7 @@ namespace Game1
 
             // prepare angles
             for (int i = 0; i < 4; i++)
-                angles.Add(i * MathHelper.TwoPi / 4);
+                angles.Add(i * 2 * MathHelper.pi / 4);
 
             angles = new SortedSet<float>
             (
@@ -63,7 +64,8 @@ namespace Game1
 
             List<Vector2> vertices = new();
             List<ILightCatchingObject> rayCatchingObjects = new();
-            const float maxDist = 2000;
+            // TODO: consider moving this to constants class
+            UFloat maxDist = 2000;
             foreach (float angle in angles)
             {
                 Vector2 rayDir = C.Direction(rotation: angle);
@@ -96,7 +98,7 @@ namespace Game1
             for (int i = 0; i < rayCatchingObjects.Count; i++)
                 if (rayCatchingObjects[i] is not null && rayCatchingObjects[i] == rayCatchingObjects[(i + 1) % rayCatchingObjects.Count])
                 {
-                    double curPowerProportion = Math.Abs(MathHelper.WrapAngle(angles[i] - angles[(i + 1) % angles.Count])) / MathHelper.TwoPi;
+                    double curPowerProportion = MathHelper.Abs(MathHelper.WrapAngle(angles[i] - angles[(i + 1) % angles.Count])) / (2 * MathHelper.pi);
                     powerPropsForObjects[rayCatchingObjects[i]] += curPowerProportion;
                     usedPowerProportion += curPowerProportion;
                 }

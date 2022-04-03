@@ -43,7 +43,7 @@ namespace Game1.Lighting
                             value2: new Vector2(i + .5f, j + .5f)
                         );
                         double a = CurWorldConfig.standardStarRadius + brightness;
-                        float factor = (float)Math.Min(1, a / (brightness + distFromLight));
+                        float factor = (float)MathHelper.Min(1, a / (brightness + distFromLight));
                         colorData[i * CurWorldConfig.lightTextureWidth + j] = Color.White * factor;
                     }
                 texture.SetData(colorData);

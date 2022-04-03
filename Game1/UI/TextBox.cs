@@ -1,4 +1,5 @@
-﻿using Game1.Shapes;
+﻿using Game1.PrimitiveTypeWrappers;
+using Game1.Shapes;
 
 namespace Game1.UI
 {
@@ -24,8 +25,8 @@ namespace Game1.UI
                         null => Vector2.Zero,
                         not null => MeasureText(text: text),
                     };
-                    Shape.Width = textDims.X;
-                    Shape.Height = textDims.Y;
+                    Shape.Width = (UFloat)textDims.X;
+                    Shape.Height = (UFloat)textDims.Y;
                 }
             }
         }

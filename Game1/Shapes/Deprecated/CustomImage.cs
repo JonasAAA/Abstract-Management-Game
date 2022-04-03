@@ -1,4 +1,6 @@
-﻿namespace Game1.Shapes.Deprecated
+﻿using Game1.PrimitiveTypeWrappers;
+
+namespace Game1.Shapes.Deprecated
 {
     [Serializable]
     public class CustomImage : BaseImage
@@ -37,7 +39,7 @@
         //    layer: 20
         //);
 
-        public CustomImage(string imageName, Vector2? origin = null, float? width = null, float? height = null)
+        public CustomImage(string imageName, Vector2? origin = null, UFloat? width = null, UFloat? height = null)
             : base(texture: new CustomTexture(textureName: imageName), origin: origin, width: width, height: height)
         {
             texture = (CustomTexture)base.texture;

@@ -1,4 +1,5 @@
-﻿using Game1.Shapes;
+﻿using Game1.PrimitiveTypeWrappers;
+using Game1.Shapes;
 
 namespace Game1.UI
 {
@@ -20,7 +21,7 @@ namespace Game1.UI
 
             Shape.Width = 2 * ActiveUIManager.RectOutlineWidth + children.Count switch
             {
-                0 => 0,
+                0 => (UFloat)0,
                 not 0 => children.Max(child => child.Shape.Width)
             };
             
@@ -30,7 +31,7 @@ namespace Game1.UI
                 not 0 => children.Sum(child => child.Shape.Height)
             };
 
-            float curHeightSum = 0;
+            UFloat curHeightSum = 0;
             foreach (var child in children)
             {
                 child.Shape.SetPosition

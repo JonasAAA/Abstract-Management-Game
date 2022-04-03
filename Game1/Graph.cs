@@ -95,10 +95,6 @@ namespace Game1
                 foreach (var resDestinArrowsByRes in resDestinArrows)
                     foreach (var resDestinArrow in resDestinArrowsByRes)
                         yield return resDestinArrow;
-                // TODO: cleanup
-                //for (int resInd = 0; resInd <= (int)MaxRes; resInd++)
-                //    foreach (var resDestinArrow in resDestinArrows[resInd])
-                //        yield return resDestinArrow;
             }
         }
 

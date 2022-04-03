@@ -200,7 +200,7 @@ namespace Game1
                 // if person has higher priority then activityCenter,
                 // then activityCenter most likely will can't work at full capacity
                 // so will not use all the available energyicity
-                not null => EnergyPriority.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority)
+                not null => MathHelper.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority)
             };
 
         Vector2 IEnergyConsumer.NodePos

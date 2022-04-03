@@ -1,6 +1,6 @@
 ﻿using ClipperLib;
 using LibTessDotNet;
-using Microsoft.Xna.Framework;
+
 namespace Game1.OldGeometry
 {
     [Serializable]

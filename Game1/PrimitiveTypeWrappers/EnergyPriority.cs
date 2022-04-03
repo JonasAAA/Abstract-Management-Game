@@ -1,7 +1,7 @@
 ﻿namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly struct EnergyPriority : IEquatable<EnergyPriority>, IComparable<EnergyPriority>
+    public readonly struct EnergyPriority : IEquatable<EnergyPriority>, IComparable<EnergyPriority>, IMinable<EnergyPriority>
     {
         public static readonly EnergyPriority maximal, minimal;
 
@@ -15,9 +15,6 @@
 
         public EnergyPriority(ulong energyPriority)
             => this.energyPriority = energyPriority;
-
-        public static EnergyPriority Min(EnergyPriority energyPriority1, EnergyPriority energyPriority2)
-            => new(energyPriority: Math.Min(energyPriority1.energyPriority, energyPriority2.energyPriority));
 
         public static bool operator ==(EnergyPriority energyPriority1, EnergyPriority energyPriority2)
             => energyPriority1.energyPriority == energyPriority2.energyPriority;
@@ -36,5 +33,11 @@
 
         public int CompareTo(EnergyPriority other)
             => energyPriority.CompareTo(other.energyPriority);
+
+        public override string ToString()
+            => energyPriority.ToString();
+
+        EnergyPriority IMinable<EnergyPriority>.Min(EnergyPriority other)
+            => new (energyPriority: MathHelper.Min(energyPriority, other.energyPriority));
     }
 }

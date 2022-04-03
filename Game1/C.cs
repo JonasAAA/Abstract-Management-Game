@@ -44,10 +44,10 @@ namespace Game1
         }
 
         public static Vector2 Direction(float rotation)
-            => new((float)Math.Cos(rotation), (float)Math.Sin(rotation));
+            => new((float)MathHelper.Cos(rotation), (float)MathHelper.Sin(rotation));
 
         public static float Rotation(Vector2 vector)
-            => (float)Math.Atan2(vector.Y, vector.X);
+            => (float)MathHelper.Atan2(vector.Y, vector.X);
 
         /// <summary>
         /// 90 degrees to the left
@@ -59,10 +59,10 @@ namespace Game1
             => prev && !cur;
 
         public static bool IsTiny(double value)
-            => Math.Abs(value) < minPosDouble;
+            => MathHelper.Abs(value) < minPosDouble;
 
         public static bool IsTiny(decimal value)
-            => Math.Abs(value) < minPosDecimal;
+            => MathHelper.Abs(value) < minPosDecimal;
 
         public static double DonePart(TimeSpan timeLeft, TimeSpan duration)
         {
@@ -70,7 +70,7 @@ namespace Game1
                 throw new ArgumentOutOfRangeException();
             if (timeLeft > duration)
                 throw new ArgumentException();
-            return Math.Min(1, 1 - timeLeft / duration);
+            return MathHelper.Min(1, 1 - timeLeft / duration);
         }
 
         public static bool IsInSuitableRange(double value)

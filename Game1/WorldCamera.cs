@@ -42,7 +42,7 @@ namespace Game1
             }
 
             // temporary
-            double scaleChange = Math.Pow(.5, elapsed.TotalSeconds);
+            double scaleChange = MathHelper.Pow(.5, elapsed.TotalSeconds);
             if (Keyboard.GetState().IsKeyDown(Keys.O))
                 scale *= scaleChange;
             if (Keyboard.GetState().IsKeyDown(Keys.I))

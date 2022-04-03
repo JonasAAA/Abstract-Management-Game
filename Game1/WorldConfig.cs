@@ -7,7 +7,7 @@ namespace Game1
     {
         public readonly double personJobEnjoymentCoeff, personTalentCoeff, personSkillCoeff, jobDesperationCoeff, playerToJobDistCoeff, minAcceptablePersonScore, personTimeSkillCoeff, jobVacDespCoeff;
         public readonly EnergyPriority linkEnergyPriority;
-        public readonly float standardStarRadius, scrollSpeed;
+        public readonly UFloat standardStarRadius, scrollSpeed;
         public readonly double personMomentumCoeff, personMinReqWatts, personMaxReqWatts, randConrtribToChild, parentContribToChild;
         /// <summary>
         /// MUST always be the same for all people
@@ -21,7 +21,7 @@ namespace Game1
         public readonly double brightStarTextureBrigthness, dimStarTextureBrightness;
         public readonly double startingWorldScale;
         public readonly float screenBoundWidthForMapMoving;
-        public readonly float minSafeDist;
+        public readonly UFloat minSafeDist;
         public readonly ulong resDistribArrowsUILayer;
         public readonly UFloat linkWidth;
         public readonly double planetMassPerUnitArea;

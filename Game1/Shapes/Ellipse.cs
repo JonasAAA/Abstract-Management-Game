@@ -1,4 +1,6 @@
-﻿namespace Game1.Shapes
+﻿using Game1.PrimitiveTypeWrappers;
+
+namespace Game1.Shapes
 {
     [Serializable]
     public class Ellipse : NearRectangle
@@ -8,7 +10,7 @@
         static Ellipse()
             => diskTexture = C.LoadTexture(name: "big disk");
 
-        public Ellipse(float width, float height)
+        public Ellipse(UFloat width, UFloat height)
             : base(width: width, height: height)
         { }
 

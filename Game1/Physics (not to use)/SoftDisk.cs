@@ -254,7 +254,7 @@ namespace Game1.Physics
             this.center = center;
             this.radius = radius;
             this.defaultColor = defaultColor;
-            amount = MathHelper.TwoPi * radius * radius;
+            amount = 2 * MathHelper.pi * radius * radius;
             boundary = Array.Empty<Vector2>();
             radiusSpeed = 1;
             area = amount;
@@ -332,7 +332,7 @@ namespace Game1.Physics
             area = Area();
             var density = amount / area;
             //color = Color.Lerp(Color.Black, defaultColor, (float)relArea);
-            radiusSpeed *= Math.Min(10, (float)Math.Pow(100 * density / radius, .001));
+            radiusSpeed *= (float)MathHelper.Min(10, MathHelper.Pow(100 * density / radius, .001));
             const float radiusDrag = 1.0001f;
             // this currently works as surface friction, probably better if it worked like air drag
             radiusSpeed = radiusSpeed switch
@@ -421,14 +421,14 @@ namespace Game1.Physics
                     pointA: boundary[ind],
                     pointB: boundary[(ind + 1) % boundary.Length]
                 );
-            return Math.Max(0, area);
+            return MathHelper.Max(0, area);
 
             double SignedSegmentInterArea(Vector2 pointA, Vector2 pointB)
             {
-                int areaSign = Math.Sign(pointA.X * pointB.Y - pointB.X * pointA.Y);
+                int areaSign = MathHelper.Sign(pointA.X * pointB.Y - pointB.X * pointA.Y);
                 Vector2 segmentDir = pointB - pointA;
                 segmentDir.Normalize();
-                double centerLeg = Math.Abs(Vector2.Dot(pointA, C.OrthDir(segmentDir))),
+                double centerLeg = MathHelper.Abs(Vector2.Dot(pointA, C.OrthDir(segmentDir))),
                     signedLegToA = Vector2.Dot(-pointA, segmentDir),
                     signedLegToB = Vector2.Dot(pointB, segmentDir);
 
@@ -441,17 +441,17 @@ namespace Game1.Physics
                 if (centerLeg is 0)
                     return 0;
                 Debug.Assert(centerLeg > 0);
-                int areaSign = Math.Sign(signedOtherLeg);
-                double otherLeg = Math.Abs(signedOtherLeg),
+                int areaSign = MathHelper.Sign(signedOtherLeg);
+                double otherLeg = MathHelper.Abs(signedOtherLeg),
                     potInsideLegSquared = radius * radius - centerLeg * centerLeg,
                     insideLegPart = potInsideLegSquared switch
                     {
-                        > 0 => Math.Min(Math.Sqrt(potInsideLegSquared), otherLeg),
+                        > 0 => MathHelper.Min(MathHelper.Sqrt(potInsideLegSquared), otherLeg),
                         _ => 0
                     },
                     insideInterArea = centerLeg * insideLegPart / 2,
-                    outsideAngle = Math.Atan(otherLeg / centerLeg) - Math.Atan(insideLegPart / centerLeg),
-                    outsideInterArea = Math.Max(0, outsideAngle) * radius * radius;
+                    outsideAngle = MathHelper.Atan2(otherLeg, centerLeg) - MathHelper.Atan2(insideLegPart, centerLeg),
+                    outsideInterArea = MathHelper.Max(0, outsideAngle) * radius * radius;
 
                 return areaSign * (insideInterArea + outsideInterArea);
             }

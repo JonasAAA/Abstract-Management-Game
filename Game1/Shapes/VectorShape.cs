@@ -27,7 +27,7 @@ namespace Game1.Shapes
             Vector2 orthDir = new(-direction.Y, direction.X);
             float distance = Vector2.Distance(startPos, endPos),
                 dirProp = Vector2.Dot(relPos, direction) / distance,
-                orthDirProp = Math.Abs(Vector2.Dot(relPos, orthDir) / (width.Value * .5f));
+                orthDirProp = MathHelper.Abs(Vector2.Dot(relPos, orthDir) / (width.Value * .5f));
             if (dirProp is < 0 or >= 1 || orthDirProp >= 1)
                 return false;
             return Contains(dirProp: dirProp, orthDirProp: orthDirProp);

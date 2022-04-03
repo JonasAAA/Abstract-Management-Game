@@ -2,6 +2,7 @@
 using Game1.Delegates;
 using Game1.Industries;
 using Game1.Lighting;
+using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
 
@@ -61,7 +62,7 @@ namespace Game1
 
         public Vector2 Position
             => state.position;
-        public readonly float radius;
+        public readonly UFloat radius;
         public double LocallyProducedWatts
             => shape.Watts;
 
@@ -394,14 +395,10 @@ namespace Game1
             var resSplitter = resSplittersToDestins[resInd];
             if (resSplitter.Empty)
                 state.AddToStoredRes(resInd: resInd, resAmount: undecidedResAmounts[resInd]);
-            // TODO: cleanup
-            //state.storedRes[resInd] += undecidedResAmounts[resInd];
             else
             {
                 var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResAmounts[resInd], maxAmountsFunc: maxExtraResFunc);
                 state.AddToStoredRes(resInd: resInd, unsplitResAmount);
-                // TODO: cleanup
-                //state.storedRes[resInd] += unsplitResAmount;
                 foreach (var (destination, resAmount) in splitResAmounts)
                 {
                     state.waitingResAmountsPackets.Add
@@ -413,8 +410,6 @@ namespace Game1
                     posToNode[destination].AddResTravelHere(resInd: resInd, resAmount: resAmount);
                 }
             }
-            // TODO: cleanup
-            //undecidedResAmounts[resInd] = 0;
         }
 
         /// <summary>

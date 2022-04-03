@@ -1,4 +1,5 @@
 ﻿using Game1.Delegates;
+using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 
 namespace Game1.UI
@@ -28,7 +29,7 @@ namespace Game1.UI
                 not null => tabs[tabChoicePanel.SelectedChoiceLabel]
             };
 
-        public UIHorizTabPanel(float tabLabelWidth, float tabLabelHeight, Color color, Color inactiveTabLabelColor)
+        public UIHorizTabPanel(UFloat tabLabelWidth, UFloat tabLabelHeight, Color color, Color inactiveTabLabelColor)
             : base(shape: new MyRectangle())
         {
             Shape.Color = color;
@@ -51,12 +52,12 @@ namespace Game1.UI
         {
             base.PartOfRecalcSizeAndPos();
 
-            float innerWidth = Math.Max(tabChoicePanel.Shape.Width, tabs.Count switch
+            UFloat innerWidth = MathHelper.Max(tabChoicePanel.Shape.Width, tabs.Count switch
             {
                 0 => 0,
                 not 0 => tabs.Values.Max(tab => tab.Shape.Width)
             });
-            float tabHeight = tabs.Count switch
+            UFloat tabHeight = tabs.Count switch
             {
                 0 => 0,
                 not 0 => tabs.Values.Max(tab => tab.Shape.Height)

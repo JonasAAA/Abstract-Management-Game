@@ -129,7 +129,7 @@ namespace Game1
                         color: Color.Black,
                         rotation: 0,
                         origin: new Vector2(diskTexture.Width * .5f, diskTexture.Height * .5f),
-                        scale: (float)Math.Sqrt(size) * 2 / diskTexture.Width
+                        scale: (float)MathHelper.Sqrt(size) * 2 / diskTexture.Width
                     );
             }
 

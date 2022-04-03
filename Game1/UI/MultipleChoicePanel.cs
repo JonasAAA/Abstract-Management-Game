@@ -1,4 +1,5 @@
 ﻿using Game1.Delegates;
+using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 
 namespace Game1.UI
@@ -54,11 +55,11 @@ namespace Game1.UI
 
         private readonly UIRectPanel<SelectButton> choicePanel;
         private readonly Dictionary<TChoice, SelectButton> choices;
-        private readonly float choiceWidth, choiceHeight;
+        private readonly UFloat choiceWidth, choiceHeight;
         private readonly Color selectedColor, deselectedColor;
         private TChoice selectedChoiceLabel;
 
-        public MultipleChoicePanel(bool horizontal, float choiceWidth, float choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
+        public MultipleChoicePanel(bool horizontal, UFloat choiceWidth, UFloat choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
             : base(shape: new MyRectangle())
         {
             choiceChanged = new();

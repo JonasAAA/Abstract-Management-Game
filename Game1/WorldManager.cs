@@ -101,7 +101,7 @@ namespace Game1
                             state: new
                             (
                                 position: new Vector2(i - (width - 1) * .5f, j - (height - 1) * .5f) * dist,
-                                radius: (UFloat)Math.Pow(2, C.Random(min: 3, max: 6)),
+                                radius: (UFloat)MathHelper.Pow(2, C.Random(min: 3, max: 6)),
                                 maxBatchDemResStored: 2
                             ),
                             activeColor: Color.White,

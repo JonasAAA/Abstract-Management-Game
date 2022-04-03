@@ -43,14 +43,14 @@ namespace Game1.Lighting
                 yield break;
 
             float a = radius.Value / Vector2.Distance(lightPos, Center),
-                  b = (float)Math.Sqrt(1 - a * a);
+                  b = (float)MathHelper.Sqrt(1 - a * a);
             Vector2 center = Center * b * b + lightPos * a * a,
                     diff = Center - lightPos,
                     orth = new(diff.Y, -diff.X),
                     point1 = center + orth * a * b - lightPos,
                     point2 = center - orth * a * b - lightPos;
-            yield return (float)Math.Atan2(point1.Y, point1.X);
-            yield return (float)Math.Atan2(point2.Y, point2.X);
+            yield return (float)MathHelper.Atan2(point1.Y, point1.X);
+            yield return (float)MathHelper.Atan2(point2.Y, point2.X);
         }
 
         IEnumerable<float> ILightCatchingObject.InterPoints(Vector2 lightPos, Vector2 lightDir)
@@ -60,7 +60,7 @@ namespace Game1.Lighting
             if (g < 0)
                 yield break;
 
-            float h = (float)Math.Sqrt(g);
+            float h = (float)MathHelper.Sqrt(g);
 
             if (float.IsNaN(h))
                 yield break;

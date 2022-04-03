@@ -13,7 +13,7 @@ namespace Game1
         //    => MathHelper.Pi * radius * radius * CurWorldConfig.planetMassPerUnitArea;
         public readonly IReadOnlyChangingULong approxSurfaceLength;
         //public double SurfaceGravitationalAccel
-        //    => CurWorldConfig.gravitConst * Mass / Math.Pow(radius, CurWorldConfig.gravitPower);
+        //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
 
         public readonly IReadOnlyChangingUFloat radius;
         public readonly Vector2 position;

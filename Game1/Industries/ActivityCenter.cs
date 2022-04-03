@@ -94,6 +94,6 @@ namespace Game1.Industries
         // must be between 0 and 1 or double.NegativeInfinity
         // should later be changed to graph distance (either time or energy cost)
         protected double DistanceToHere(Person person)
-            => 1 - Math.Tanh(Vector2.Distance(person.ClosestNodePos, Position) / 100);
+            => 1 - MathHelper.Tanh(Vector2.Distance(person.ClosestNodePos, Position) / 100);
     }
 }

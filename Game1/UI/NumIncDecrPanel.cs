@@ -1,4 +1,5 @@
 ﻿using Game1.Delegates;
+using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 
 namespace Game1.UI
@@ -46,7 +47,7 @@ namespace Game1.UI
         private readonly UIRectVertPanel<IHUDElement> panel;
         private readonly TextBox textBox;
 
-        public NumIncDecrPanel(int minNum, int number, float incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
+        public NumIncDecrPanel(int minNum, int number, UFloat incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
             : base(shape: new MyRectangle())
         {
             numberChanged = new();
@@ -61,7 +62,7 @@ namespace Game1.UI
             );
             textBox = new();
             textBox.Text = number.ToString();
-            float width = textBox.MeasureText(text: "00").X;
+            UFloat width = (UFloat)textBox.MeasureText(text: "00").X;
             textBox.Shape.MinWidth = width;
 
             Button numIncrButton = new

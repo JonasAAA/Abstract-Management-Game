@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Game1.PrimitiveTypeWrappers;
+using System.Text;
 
 namespace Game1
 {
@@ -12,12 +13,36 @@ namespace Game1
             return sum;
         }
 
+        public static UFloat Sum(this IEnumerable<UFloat> source)
+        {
+            UFloat sum = 0;
+            foreach (var value in source)
+                sum += value;
+            return sum;
+        }
+
         // could be optimized a la https://stackoverflow.com/questions/11030109/aggregate-vs-sum-performance-in-linq
         public static ulong Sum<T>(this IEnumerable<T> source, Func<T, ulong> selector)
             => source.Select(selector).Sum();
 
+        public static UFloat Sum<T>(this IEnumerable<T> source, Func<T, UFloat> selector)
+            => source.Select(selector).Sum();
+
         public static ulong TotalWeight(this IEnumerable<Person> people)
             => people.Sum(person => person.weight);
+
+        public static TResult Max<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+            where TResult : IMaxable<TResult>
+        {
+            using var enumerator = source.GetEnumerator();
+            if (!enumerator.MoveNext())
+                throw new InvalidOperationException();
+
+            TResult max = selector(enumerator.Current);
+            while (enumerator.MoveNext())
+                max = MathHelper.Max(max, selector(enumerator.Current));
+            return max;
+        }
 
         public static IEnumerable<T> Clone<T>(this IEnumerable<T> source)
             => source.ToArray();
@@ -32,7 +57,7 @@ namespace Game1
             => dictionary.ToDictionary
             (
                 keySelector: a => a.Key,
-                elementSelector: a => Math.Clamp(a.Value, min, max)
+                elementSelector: a => MathHelper.Clamp(a.Value, min, max)
             );
 
         public static MySet<T> ToMyHashSet<T>(this IEnumerable<T> source)

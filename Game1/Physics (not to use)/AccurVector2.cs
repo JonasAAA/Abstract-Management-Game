@@ -20,7 +20,7 @@
         //public static double Distance(AccurVector2 valueA, AccurVector2 valueB)
         //{
         //    var relative = valueA - valueB;
-        //    return Math.Sqrt(relative.X * relative.X + relative.Y * relative.Y);
+        //    return MathHelper.Sqrt(relative.X * relative.X + relative.Y * relative.Y);
         //}
 
         // on implicit type conversion https://softwareengineering.stackexchange.com/questions/284359/when-should-i-use-cs-implicit-type-conversion-operator

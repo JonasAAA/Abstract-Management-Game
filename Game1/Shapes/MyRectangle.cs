@@ -1,4 +1,5 @@
-﻿using Game1.UI;
+﻿using Game1.PrimitiveTypeWrappers;
+using Game1.UI;
 
 namespace Game1.Shapes
 {
@@ -43,7 +44,7 @@ namespace Game1.Shapes
             : this(width: 2 * ActiveUIManager.RectOutlineWidth, height: 2 * ActiveUIManager.RectOutlineWidth)
         { }
 
-        public MyRectangle(float width, float height)
+        public MyRectangle(UFloat width, UFloat height)
             : base(width: width, height: height)
         {
             MinWidth = 2 * ActiveUIManager.RectOutlineWidth;
@@ -53,7 +54,7 @@ namespace Game1.Shapes
         public override bool Contains(Vector2 position)
         {
             Vector2 relPos = position - Center;
-            return Math.Abs(relPos.X) < Width * .5f && Math.Abs(relPos.Y) < Height * .5f;
+            return MathHelper.Abs(relPos.X) < Width * .5f && MathHelper.Abs(relPos.Y) < Height * .5f;
         }
 
         protected override void Draw(Color color)

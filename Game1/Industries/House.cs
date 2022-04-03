@@ -49,7 +49,7 @@ namespace Game1.Industries
                 => PersonalSpace(peopleCount: peopleHere.Count);
 
             private double PersonalSpace(int peopleCount)
-                => Math.Tanh(floorSpace.Value / peopleCount);
+                => MathHelper.Tanh(floorSpace.Value / peopleCount);
 
             public override double PersonScoreOfThis(Person person)
                 => CurWorldConfig.personMomentumCoeff * (IsPersonHere(person: person) ? 1 : 0)

@@ -96,7 +96,7 @@ namespace Game1.Industries
             public void EndUpdate()
             {
                 curUnboundedSkillPropor = peopleHere.Sum(person => person.skills[parameters.industryType]) / reqSkill.Value;
-                CurSkillPropor = Math.Min(1, curUnboundedSkillPropor);
+                CurSkillPropor = MathHelper.Min(1, curUnboundedSkillPropor);
             }
 
             public override bool IsFull()
@@ -120,7 +120,7 @@ namespace Game1.Industries
                     throw new ArgumentOutOfRangeException();
 
                 Debug.Assert(C.IsInSuitableRange(value: person.skills[parameters.industryType]));
-                person.skills[parameters.industryType] = 1 - (1 - person.skills[parameters.industryType]) * Math.Pow(1 - person.talents[parameters.industryType], CurWorldManager.Elapsed.TotalSeconds * workingPropor * CurWorldConfig.personTimeSkillCoeff);
+                person.skills[parameters.industryType] = 1 - (1 - person.skills[parameters.industryType]) * MathHelper.Pow(1 - person.talents[parameters.industryType], CurWorldManager.Elapsed.TotalSeconds * workingPropor * CurWorldConfig.personTimeSkillCoeff);
                 Debug.Assert(C.IsInSuitableRange(value: person.skills[parameters.industryType]));
             }
 
@@ -131,7 +131,7 @@ namespace Game1.Industries
             {
                 if (!C.IsInSuitableRange(value: energyPropor))
                     throw new ArgumentOutOfRangeException();
-                workingPropor = energyPropor / Math.Max(1, curUnboundedSkillPropor);
+                workingPropor = energyPropor / MathHelper.Max(1, curUnboundedSkillPropor);
             }
 
             public string GetInfo()
@@ -156,7 +156,7 @@ namespace Game1.Industries
                 double openSpace = OpenSpace();
                 if (openSpace is double.NegativeInfinity)
                     return double.NegativeInfinity;
-                return Math.Tanh(avgVacancyDuration.TotalSeconds * openSpace * CurWorldConfig.jobVacDespCoeff);
+                return MathHelper.Tanh(avgVacancyDuration.TotalSeconds * openSpace * CurWorldConfig.jobVacDespCoeff);
             }
 
             // each parameter must be between 0 and 1 or double.NegativeInfinity

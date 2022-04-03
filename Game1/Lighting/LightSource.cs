@@ -75,7 +75,7 @@
 //            foreach (float angle in angles)
 //            {
 //                float prepAngle = MathHelper.WrapAngle(angle - mainAngle);
-//                if (Math.Abs(prepAngle) <= maxAngleDiff)
+//                if (MathHelper.Abs(prepAngle) <= maxAngleDiff)
 //                    prepAngles.Add(prepAngle + mainAngle);
 //            }
 //            prepAngles.Add(mainAngle + MathHelper.WrapAngle(maxAngleDiff));

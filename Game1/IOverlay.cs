@@ -23,7 +23,6 @@
                 => "People";
         }
 
-        // TODO: rename to lower case
         public static readonly IAllResOverlay allRes;
         public static readonly IPowerOverlay power;
         public static readonly IPeopleOverlay people;

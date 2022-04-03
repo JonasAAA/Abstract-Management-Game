@@ -52,10 +52,10 @@ namespace Game1
 
             int xDiff = pos2.X - pos1.X,
                 yDiff = pos2.Y - pos1.Y;
-            if (Math.Abs(xDiff) >= Math.Abs(yDiff))
+            if (MathHelper.Abs(xDiff) >= MathHelper.Abs(yDiff))
             {
                 // x increment
-                int xIncr = Math.Sign(xDiff);
+                int xIncr = MathHelper.Sign(xDiff);
                 for (int x = pos1.X; ; x += xIncr)
                 {
                     int y = Convert.ToInt32(pos1.Y + (double)(pos2.Y - pos1.Y) * (x - pos1.X) / xDiff);
@@ -67,7 +67,7 @@ namespace Game1
             else
             {
                 // y increment
-                int yIncr = Math.Sign(yDiff);
+                int yIncr = MathHelper.Sign(yDiff);
                 for (int y = pos1.Y; ; y += yIncr)
                 {
                     int x = Convert.ToInt32(pos1.X + (double)(pos2.X - pos1.X) * (y - pos1.Y) / yDiff);
@@ -82,10 +82,10 @@ namespace Game1
         {
             if (!editing)
                 throw new InvalidOperationException();
-            minEditX = Math.Min(minEditX, pos.X);
-            maxEditX = Math.Max(maxEditX, pos.X);
-            minEditY = Math.Min(minEditY, pos.Y);
-            maxEditY = Math.Max(maxEditY, pos.Y);
+            minEditX = MathHelper.Min(minEditX, pos.X);
+            maxEditX = MathHelper.Max(maxEditX, pos.X);
+            minEditY = MathHelper.Min(minEditY, pos.Y);
+            maxEditY = MathHelper.Max(maxEditY, pos.Y);
             colorData[pos.X][pos.Y] = color;
         }
 

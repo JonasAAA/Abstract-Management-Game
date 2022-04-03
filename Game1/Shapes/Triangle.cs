@@ -1,4 +1,6 @@
-﻿namespace Game1.Shapes
+﻿using Game1.PrimitiveTypeWrappers;
+
+namespace Game1.Shapes
 {
     [Serializable]
     public class Triangle : NearRectangle
@@ -17,13 +19,13 @@
 
         private Vector2 BasePos
             => Center - dirVector * MainAltitudeLength * .5f;
-        private float BaseLength
+        private UFloat BaseLength
             => ((int)direction % 2) switch
             {
                 0 => Height,
                 not 0 => Width
             };
-        private float MainAltitudeLength
+        private UFloat MainAltitudeLength
             => ((int)direction % 2) switch
             {
                 0 => Width,
@@ -34,11 +36,11 @@
         private readonly float rotation;
         private readonly Vector2 origin, dirVector, orthDir, scale;
 
-        public Triangle(float width, float height, Direction direction)
+        public Triangle(UFloat width, UFloat height, Direction direction)
             : base(width: width, height: height)
         {
             this.direction = direction;
-            rotation = (int)direction * MathHelper.PiOver2;
+            rotation = (int)direction * MathHelper.pi / 2;
             origin = new Vector2(triangleTexture.Width, triangleTexture.Height) * .5f;
             dirVector = C.Direction(rotation: rotation);
             orthDir = new Vector2(-dirVector.Y, dirVector.X);
@@ -53,7 +55,7 @@
         {
             Vector2 relPos = position - BasePos;
             float dirProp = Vector2.Dot(relPos, dirVector) / MainAltitudeLength,
-                orthDirProp = Math.Abs(Vector2.Dot(relPos, orthDir) / (BaseLength * .5f));
+                orthDirProp = MathHelper.Abs(Vector2.Dot(relPos, orthDir) / (BaseLength * .5f));
             if (dirProp is < 0 or >= 1 || orthDirProp >= 1)
                 return false;
             return dirProp + orthDirProp < 1;

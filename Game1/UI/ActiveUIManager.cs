@@ -1,4 +1,5 @@
 ﻿using Game1.Delegates;
+using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 
 namespace Game1.UI
@@ -12,7 +13,7 @@ namespace Game1.UI
             => CurUIConfig.standardScreenHeight;
         public static Vector2 MouseHUDPos
             => HUDCamera.HUDPos(screenPos: Mouse.GetState().Position.ToVector2());
-        public static float RectOutlineWidth
+        public static UFloat RectOutlineWidth
             => CurUIConfig.rectOutlineWidth;
 
         private static HUDCamera HUDCamera;

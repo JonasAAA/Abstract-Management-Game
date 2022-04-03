@@ -31,12 +31,10 @@ namespace Game1
             => array.Sum() is 0;
 
         public ResAmounts Min(ResAmounts resAmounts)
-            => new(array.Zip(resAmounts, (a, b) => Math.Min(a, b)));
+            => new(array.Zip(resAmounts, (a, b) => MathHelper.Min(a, b)));
 
         public ulong TotalWeight()
             => CurResConfig.resources.Zip(array).Sum(item => item.First.weight * item.Second);
-        // TODO: cleanup
-            //=> Enumerable.Range(start: 0, count: IMyArray.length).Sum(i => CurResConfig.resources[i].weight * array[i]);
 
         // analogous to with expression from https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/with-expression
         public ResAmounts With(ResInd index, ulong value)

@@ -239,14 +239,13 @@ namespace Game1.Industries
         }
 
         public override string GetInfo()
-            => CurWorldManager.Overlay switch
-            {
-                ResInd => "",
-                IAllResOverlay => "",
-                IPowerOverlay => "",
-                IPeopleOverlay => employer.GetInfo(),
-                _ => throw new Exception(),
-            };
+            => CurWorldManager.Overlay.SwitchExpression
+            (
+                singleResCase: resInd => "",
+                allResCase: () => "",
+                powerCase: () => "",
+                peopleCase: () => employer.GetInfo()
+            );
 
         public abstract double ReqWatts();
 

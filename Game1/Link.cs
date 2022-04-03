@@ -68,13 +68,13 @@ namespace Game1
                 => waitingPeople.Add(person);
 
             public ulong GetTravellingAmount()
-                => CurWorldManager.Overlay switch
-                {
-                    ResInd resInd => timedPacketQueue.TotalResAmounts[resInd],
-                    IAllResOverlay => timedPacketQueue.TotalResAmounts.TotalWeight(),
-                    IPeopleOverlay => (ulong)timedPacketQueue.PeopleCount,
-                    _ => throw new InvalidOperationException()
-                };
+                => CurWorldManager.Overlay.SwitchExpression
+                (
+                    singleResCase: resInd => timedPacketQueue.TotalResAmounts[resInd],
+                    allResCase: () => timedPacketQueue.TotalResAmounts.TotalWeight(),
+                    peopleCase: () => (ulong)timedPacketQueue.PeopleCount,
+                    powerCase: () => throw new InvalidOperationException()
+                );
 
             public void Update()
             {
@@ -100,21 +100,25 @@ namespace Game1
             public void DrawTravelingRes()
             {
                 // temporary
-                switch (CurWorldManager.Overlay)
-                {
-                    case ResInd resInd:
+                CurWorldManager.Overlay.SwitchStatement
+                (
+                    singleResCase: resInd =>
+                    {
                         foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
                             DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts[resInd]);
-                        break;
-                    case IAllResOverlay:
+                    },
+                    allResCase: () =>
+                    {
                         foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
                             DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts.TotalWeight());
-                        break;
-                    case IPeopleOverlay:
+                    },
+                    powerCase: () => { },
+                    peopleCase: () =>
+                    {
                         foreach (var (complProp, (_, people)) in timedPacketQueue.GetData())
                             DrawDisk(complProp: complProp, size: people.Count());
-                        break;
-                }
+                    }
+                );
 
                 void DrawDisk(double complProp, double size)
                     => C.Draw
@@ -239,20 +243,17 @@ namespace Game1
             if (CurWorldManager.Overlay is IPowerOverlay)
                 return;
 
+            // TODO: It may be more appropriate for link1To2.GetTravellingAmount() to return a dictionary from Overlay cases to amounts
+            // in order to not have two switch statements mirroring each other
             ulong travellingAmount = link1To2.GetTravellingAmount() + link2To1.GetTravellingAmount();
 
-            switch (CurWorldManager.Overlay)
-            {
-                case ResInd resInd:
-                    resTextBoxes[resInd].Text = $"{travellingAmount} of {CurWorldManager.Overlay} is travelling";
-                    break;
-                case IAllResOverlay:
-                    allResTextBox.Text = $"{travellingAmount} kg of resources are travelling";
-                    break;
-                case IPeopleOverlay:
-                    peopleTextBox.Text = $"{travellingAmount} of people are travelling";
-                    break;
-            }
+            CurWorldManager.Overlay.SwitchStatement
+            (
+                singleResCase: resInd => resTextBoxes[resInd].Text = $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",
+                allResCase: () => allResTextBox.Text = $"{travellingAmount} kg of resources are travelling",
+                peopleCase: () => peopleTextBox.Text = $"{travellingAmount} of people are travelling",
+                powerCase: () => throw new ArgumentOutOfRangeException()
+            );
         }
 
         public void UpdatePeople()

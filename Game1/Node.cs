@@ -439,9 +439,10 @@ namespace Game1
             if (industry is not null)
                 textBox.Text += industry.GetInfo();
 
-            switch (CurWorldManager.Overlay)
-            {
-                case ResInd resInd:
+            CurWorldManager.Overlay.SwitchStatement
+            (
+                singleResCase: resInd =>
+                {
                     if (IfStore(resInd: resInd))
                         textBox.Text += "store\n";
                     if (state.storedRes[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
@@ -450,21 +451,16 @@ namespace Game1
                             true => $"have {state.storedRes[resInd] - targetStoredResAmounts[resInd]} extra resources",
                             false => $"have {(double)state.storedRes[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
                         };
-                    break;
-                case IAllResOverlay:
+                },
+                allResCase: () =>
+                {
                     ulong totalStoredWeight = state.storedRes.TotalWeight();
                     if (totalStoredWeight > 0)
                         textBox.Text += $"stored total res weight {totalStoredWeight}";
-                    break;
-                case IPowerOverlay:
-                    textBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {shape.Watts - remainingLocalWatts:.##} W is used";
-                    break;
-                case IPeopleOverlay:
-                    textBox.Text += unemploymentCenter.GetInfo();
-                    break;
-                default:
-                    throw new Exception();
-            };
+                },
+                powerCase: () => textBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {shape.Watts - remainingLocalWatts:.##} W is used",
+                peopleCase: () => textBox.Text += unemploymentCenter.GetInfo()
+            );
 
             textBox.Text = textBox.Text.Trim();
         }

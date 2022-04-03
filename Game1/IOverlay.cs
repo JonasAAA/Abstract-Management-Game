@@ -50,6 +50,37 @@
 
             all = allTemp;
         }
+
+        public void SwitchStatement(Action<ResInd> singleResCase, Action allResCase, Action powerCase, Action peopleCase)
+        {
+            switch (this)
+            {
+                case ResInd resInd:
+                    singleResCase(resInd);
+                    break;
+                case IAllResOverlay:
+                    allResCase();
+                    break;
+                case IPowerOverlay:
+                    powerCase();
+                    break;
+                case IPeopleOverlay:
+                    peopleCase();
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        public T SwitchExpression<T>(Func<ResInd, T> singleResCase, Func<T> allResCase, Func<T> powerCase, Func<T> peopleCase)
+            => this switch
+            {
+                ResInd resInd => singleResCase(resInd),
+                IAllResOverlay => allResCase(),
+                IPowerOverlay => powerCase(),
+                IPeopleOverlay => peopleCase(),
+                _ => throw new ArgumentOutOfRangeException()
+            };
     }
 
     public interface IAllResOverlay : IOverlay

@@ -8,7 +8,7 @@ namespace Game1.ChangingValues
         private readonly struct ScaleULong :
             ITransformer<(ulong, IReadOnlyChangingULong), ulong>,
             ITransformer<(UFloat, IReadOnlyChangingULong), UFloat>,
-            ITransformer<(IReadOnlyChangingULong, ReadOnlyULongArray), ReadOnlyULongArray>
+            ITransformer<(IReadOnlyChangingULong, ResAmounts), ResAmounts>
         {
             public ulong Transform((ulong, IReadOnlyChangingULong) param)
                 => param.Item1 * param.Item2.Value;
@@ -16,7 +16,7 @@ namespace Game1.ChangingValues
             public UFloat Transform((UFloat, IReadOnlyChangingULong) param)
                 => param.Item1 * param.Item2.Value;
 
-            public ReadOnlyULongArray Transform((IReadOnlyChangingULong, ReadOnlyULongArray) param)
+            public ResAmounts Transform((IReadOnlyChangingULong, ResAmounts) param)
                 => param.Item1.Value * param.Item2;
         }
 
@@ -32,10 +32,10 @@ namespace Game1.ChangingValues
         public static IReadOnlyChangingUFloat operator *(IReadOnlyChangingULong readOnlyChangingULong, UFloat scalar)
             => scalar * readOnlyChangingULong;
 
-        public static IReadOnlyChangingULongArray operator *(IReadOnlyChangingULong changingScalar, ReadOnlyULongArray readOnlyULongArray)
-            => new ScaleULong().TransformIntoReadOnlyChangingUlongArray(param: (changingScalar, readOnlyULongArray));
+        public static IReadOnlyChangingResAmounts operator *(IReadOnlyChangingULong changingScalar, ResAmounts resAmounts)
+            => new ScaleULong().TransformIntoReadOnlyChangingResAmounts(param: (changingScalar, resAmounts));
 
-        public static IReadOnlyChangingULongArray operator *(ReadOnlyULongArray readOnlyULongArray, IReadOnlyChangingULong changingScalar)
-            => changingScalar * readOnlyULongArray;
+        public static IReadOnlyChangingResAmounts operator *(ResAmounts resAmounts, IReadOnlyChangingULong changingScalar)
+            => changingScalar * resAmounts;
     }
 }

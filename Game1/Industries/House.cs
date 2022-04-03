@@ -89,7 +89,7 @@ namespace Game1.Industries
             housing = new(state: state, parameters: parameters);
         }
 
-        public override ReadOnlyULongArray TargetStoredResAmounts()
+        public override ResAmounts TargetStoredResAmounts()
             => new();
 
         protected override House InternalUpdate()

@@ -70,8 +70,8 @@ namespace Game1
         private Industry industry;
         private readonly HouseOld unemploymentCenter;
         private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
-        private ReadOnlyULongArray targetStoredResAmounts;
-        private ReadOnlyULongArray undecidedResAmounts, resTravelHereAmounts;
+        private ResAmounts targetStoredResAmounts;
+        private ResAmounts undecidedResAmounts, resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
         private double remainingLocalWatts;
 
@@ -379,7 +379,7 @@ namespace Game1
             undecidedResAmounts = state.storedRes + state.waitingResAmountsPackets.ReturnAndRemove(destination: Position);
             state.storedRes = new();
 
-            state.storedRes = undecidedResAmounts.Min(ulongArray: targetStoredResAmounts);
+            state.storedRes = undecidedResAmounts.Min(resAmounts: targetStoredResAmounts);
             undecidedResAmounts -= state.storedRes;
         }
 

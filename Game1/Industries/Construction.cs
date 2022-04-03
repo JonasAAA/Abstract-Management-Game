@@ -14,9 +14,9 @@ namespace Game1.Industries
             public readonly UFloat reqWattsPerUnitSurface;
             public readonly Industry.Params industryParams;
             public readonly TimeSpan duration;
-            public readonly ReadOnlyULongArray costPerUnitSurface;
+            public readonly ResAmounts costPerUnitSurface;
             
-            public Params(string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, UFloat reqWattsPerUnitSurface, Industry.Params industryParams, TimeSpan duration, ReadOnlyULongArray costPerUnitSurface)
+            public Params(string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, UFloat reqWattsPerUnitSurface, Industry.Params industryParams, TimeSpan duration, ResAmounts costPerUnitSurface)
                 : base
                 (
                     industryType: IndustryType.Construction,
@@ -42,7 +42,7 @@ namespace Game1.Industries
 
         private readonly Params parameters;
         private readonly IReadOnlyChangingUFloat reqWatts;
-        private readonly IReadOnlyChangingULongArray cost;
+        private readonly IReadOnlyChangingResAmounts cost;
         private TimeSpan constrTimeLeft;
 
         private Construction(NodeState state, Params parameters)
@@ -54,7 +54,7 @@ namespace Game1.Industries
             constrTimeLeft = TimeSpan.MaxValue;
         }
 
-        public override ReadOnlyULongArray TargetStoredResAmounts()
+        public override ResAmounts TargetStoredResAmounts()
             => IsBusy() switch
             {
                 true => new(),

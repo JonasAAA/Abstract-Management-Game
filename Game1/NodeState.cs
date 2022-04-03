@@ -18,7 +18,7 @@ namespace Game1
         public readonly IReadOnlyChangingUFloat radius;
         public readonly Vector2 position;
         public readonly ulong maxBatchDemResStored;
-        public ReadOnlyULongArray storedRes;
+        public ResAmounts storedRes;
         public ResAmountsPacketsByDestin waitingResAmountsPackets;
         public readonly MySet<Person> waitingPeople;
 

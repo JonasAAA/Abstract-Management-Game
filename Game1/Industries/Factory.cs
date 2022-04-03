@@ -12,10 +12,10 @@ namespace Game1.Industries
         public new class Params : ProductiveIndustry.Params
         {
             public readonly UFloat reqWattsPerUnitSurface;
-            public readonly ReadOnlyULongArray supplyPerUnitSurface, demandPerUnitSurface;
+            public readonly ResAmounts supplyPerUnitSurface, demandPerUnitSurface;
             public readonly TimeSpan prodDuration;
             
-            public Params(string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, UFloat reqWattsPerUnitSurface, ReadOnlyULongArray supplyPerUnitSurface, ReadOnlyULongArray demandPerUnitSurface, TimeSpan prodDuration)
+            public Params(string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, UFloat reqWattsPerUnitSurface, ResAmounts supplyPerUnitSurface, ResAmounts demandPerUnitSurface, TimeSpan prodDuration)
                 : base
                 (
                     industryType: IndustryType.Production,
@@ -41,7 +41,7 @@ namespace Game1.Industries
 
         private readonly Params parameters;
         private readonly IReadOnlyChangingUFloat reqWatts;
-        private readonly IReadOnlyChangingULongArray supply, demand;
+        private readonly IReadOnlyChangingResAmounts supply, demand;
         private TimeSpan prodTimeLeft;
 
         private Factory(NodeState state, Params parameters)
@@ -54,7 +54,7 @@ namespace Game1.Industries
             prodTimeLeft = TimeSpan.MaxValue;
         }
 
-        public override ReadOnlyULongArray TargetStoredResAmounts()
+        public override ResAmounts TargetStoredResAmounts()
         {
             if (CanStartProduction)
                 return demand.Value * state.maxBatchDemResStored;

@@ -12,7 +12,7 @@ namespace Game1.ChangingValues
             {
                 [typeof(UFloat)] = typeof(ReadOnlyChangingUFloatFromTransform<>),
                 [typeof(ulong)] = typeof(ReadOnlyChangingULongFromTransform<>),
-                [typeof(ReadOnlyULongArray)] = typeof(ReadOnlyChangingULongArrayFromTransform<>),
+                [typeof(ResAmounts)] = typeof(ReadOnlyChangingResAmountsFromTransform<>),
             };
         }
 
@@ -58,9 +58,9 @@ namespace Game1.ChangingValues
         }
 
         [Serializable]
-        private readonly record struct ReadOnlyChangingULongArrayFromTransform<TParam>(ITransformer<TParam, ReadOnlyULongArray> Transform, TParam Param) : IReadOnlyChangingULongArray
+        private readonly record struct ReadOnlyChangingResAmountsFromTransform<TParam>(ITransformer<TParam, ResAmounts> Transform, TParam Param) : IReadOnlyChangingResAmounts
         {
-            public ReadOnlyULongArray Value
+            public ResAmounts Value
                 => Transform.Transform(param: Param);
 
             public override string ToString()
@@ -73,7 +73,7 @@ namespace Game1.ChangingValues
         public static IReadOnlyChangingULong TransformIntoReadOnlyChangingULong<TParam>(this ITransformer<TParam, ulong> transformer, TParam param)
             => new ReadOnlyChangingULongFromTransform<TParam>(Transform: transformer, Param: param);
     
-        public static IReadOnlyChangingULongArray TransformIntoReadOnlyChangingUlongArray<TParam>(this ITransformer<TParam, ReadOnlyULongArray> transformer, TParam param)
-            => new ReadOnlyChangingULongArrayFromTransform<TParam>(Transform: transformer, Param: param);
+        public static IReadOnlyChangingResAmounts TransformIntoReadOnlyChangingResAmounts<TParam>(this ITransformer<TParam, ResAmounts> transformer, TParam param)
+            => new ReadOnlyChangingResAmountsFromTransform<TParam>(Transform: transformer, Param: param);
     }
 }

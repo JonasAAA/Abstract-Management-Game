@@ -12,10 +12,10 @@ namespace Game1.Industries
         {
             public readonly double reqWattsPerChild;
             public readonly ulong maxCouplesPerUnitSurface;
-            public readonly ReadOnlyULongArray resPerChild;
+            public readonly ResAmounts resPerChild;
             public readonly TimeSpan birthDuration;
 
-            public Params(string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, ulong reqWattsPerChild, ulong maxCouplesPerUnitSurface, ReadOnlyULongArray resPerChild, TimeSpan birthDuration)
+            public Params(string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, ulong reqWattsPerChild, ulong maxCouplesPerUnitSurface, ResAmounts resPerChild, TimeSpan birthDuration)
                 : base
                 (
                     industryType: IndustryType.Reproduction,
@@ -100,7 +100,7 @@ namespace Game1.Industries
             birthQueue = new(duration: parameters.birthDuration);
         }
 
-        public override ReadOnlyULongArray TargetStoredResAmounts()
+        public override ResAmounts TargetStoredResAmounts()
             => maxCouples.Value * parameters.resPerChild * state.maxBatchDemResStored;
 
         protected override bool IsBusy()

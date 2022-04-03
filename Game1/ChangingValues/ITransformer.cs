@@ -1,4 +1,4 @@
-﻿namespace Game1.PrimitiveTypeWrappers
+﻿namespace Game1.ChangingValues
 {
     public interface ITransformer<TParam, TResult>
     {

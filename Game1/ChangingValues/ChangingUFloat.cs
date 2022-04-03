@@ -1,4 +1,6 @@
-﻿namespace Game1.PrimitiveTypeWrappers
+﻿using Game1.PrimitiveTypeWrappers;
+
+namespace Game1.ChangingValues
 {
     [Serializable]
     public class ChangingUFloat : IReadOnlyChangingUFloat

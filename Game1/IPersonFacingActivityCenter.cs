@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.PrimitiveTypeWrappers;
 
 namespace Game1
 {
@@ -8,7 +8,7 @@ namespace Game1
 
         public Vector2 Position { get; }
 
-        public ulong EnergyPriority { get; }
+        public EnergyPriority EnergyPriority { get; }
 
         /// <summary>
         /// can include some randomness, but repeated measurements should give the same score

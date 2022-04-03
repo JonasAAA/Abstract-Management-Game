@@ -1,7 +1,7 @@
-﻿using Game1.Delegates;
+﻿using Game1.ChangingValues;
+using Game1.Delegates;
 using Game1.Industries;
 using Game1.Lighting;
-using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
 
@@ -70,8 +70,8 @@ namespace Game1
         private Industry industry;
         private readonly HouseOld unemploymentCenter;
         private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
-        private ConstULongArray targetStoredResAmounts;
-        private ConstULongArray undecidedResAmounts, resTravelHereAmounts;
+        private ReadOnlyULongArray targetStoredResAmounts;
+        private ReadOnlyULongArray undecidedResAmounts, resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
         private double remainingLocalWatts;
 

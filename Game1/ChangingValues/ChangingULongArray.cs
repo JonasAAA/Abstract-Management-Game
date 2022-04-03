@@ -1,8 +1,8 @@
-﻿namespace Game1.PrimitiveTypeWrappers
+﻿namespace Game1.ChangingValues
 {
     [Serializable]
     public class ChangingULongArray : IReadOnlyChangingULongArray
     {
-        public ConstULongArray Value { get; set; }
+        public ReadOnlyULongArray Value { get; set; }
     }
 }

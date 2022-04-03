@@ -1,4 +1,5 @@
-﻿using Game1.PrimitiveTypeWrappers;
+﻿using Game1.ChangingValues;
+using Game1.PrimitiveTypeWrappers;
 using Priority_Queue;
 
 using static Game1.WorldManager;
@@ -12,15 +13,15 @@ namespace Game1.Industries
         public abstract new class Params : Industry.Params
         {
             public readonly IndustryType industryType;
-            public readonly ulong energyPriority;
+            public readonly EnergyPriority energyPriority;
             public readonly UFloat reqSkillPerUnitSurface;
 
-            protected Params(IndustryType industryType, string name, ulong energyPriority, UFloat reqSkillPerUnitSurface, string explanation)
+            protected Params(IndustryType industryType, string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, string explanation)
                 : base(name: name, explanation: explanation)
             {
                 this.industryType = industryType;
-                if ((industryType is IndustryType.PowerPlant && energyPriority is not 0)
-                    || (industryType is not IndustryType.PowerPlant && energyPriority is 0))
+                if ((industryType is IndustryType.PowerPlant && energyPriority != EnergyPriority.minimal)
+                    || (industryType is not IndustryType.PowerPlant && energyPriority == EnergyPriority.minimal))
                     throw new ArgumentException();
                 this.energyPriority = energyPriority;
                 if (reqSkillPerUnitSurface <= 0)
@@ -42,7 +43,7 @@ namespace Game1.Industries
             private TimeSpan avgVacancyDuration;
             private double curUnboundedSkillPropor, workingPropor;
 
-            public Employer(ulong energyPriority, NodeState state, Params parameters)
+            public Employer(EnergyPriority energyPriority, NodeState state, Params parameters)
                 : base(activityType: ActivityType.Working, energyPriority: energyPriority, state: state)
             {
                 this.parameters = parameters;
@@ -178,11 +179,11 @@ namespace Game1.Industries
             }
         }
 
-        public ulong EnergyPriority
+        public EnergyPriority EnergyPriority
             => IsBusy() switch
             {
                 true => parameters.energyPriority,
-                false => ulong.MaxValue
+                false => EnergyPriority.maximal
             };
 
         Vector2 IEnergyConsumer.NodePos

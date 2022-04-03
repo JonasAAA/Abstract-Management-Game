@@ -1,4 +1,5 @@
-﻿using Game1.PrimitiveTypeWrappers;
+﻿using Game1.ChangingValues;
+using Game1.PrimitiveTypeWrappers;
 
 using static Game1.WorldManager;
 
@@ -11,25 +12,24 @@ namespace Game1.Industries
         public new class Params : ProductiveIndustry.Params
         {
             public readonly UFloat reqWattsPerUnitSurface;
-            public readonly ConstULongArray supply, demand;
+            public readonly ReadOnlyULongArray supplyPerUnitSurface, demandPerUnitSurface;
             public readonly TimeSpan prodDuration;
             
-            // TODO: make supply, demand depend on the size of the planet
-            public Params(string name, ulong energyPriority, UFloat reqSkillPerUnitSurface, UFloat reqWattsPerUnitSurface, ConstULongArray supply, ConstULongArray demand, TimeSpan prodDuration)
+            public Params(string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, UFloat reqWattsPerUnitSurface, ReadOnlyULongArray supplyPerUnitSurface, ReadOnlyULongArray demandPerUnitSurface, TimeSpan prodDuration)
                 : base
                 (
                     industryType: IndustryType.Production,
                     name: name,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface,
-                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(supply)} {supply}\n{nameof(demand)} {demand}"
+                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(supplyPerUnitSurface)} {supplyPerUnitSurface}\n{nameof(demandPerUnitSurface)} {demandPerUnitSurface}"
                 )
             {
                 if (reqWattsPerUnitSurface <= 0)
                     throw new ArgumentOutOfRangeException();
                 this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
-                this.supply = supply;
-                this.demand = demand;
+                this.supplyPerUnitSurface = supplyPerUnitSurface;
+                this.demandPerUnitSurface = demandPerUnitSurface;
                 if (prodDuration < TimeSpan.Zero)
                     throw new ArgumentException();
                 this.prodDuration = prodDuration;
@@ -41,6 +41,7 @@ namespace Game1.Industries
 
         private readonly Params parameters;
         private readonly IReadOnlyChangingUFloat reqWatts;
+        private readonly IReadOnlyChangingULongArray supply, demand;
         private TimeSpan prodTimeLeft;
 
         private Factory(NodeState state, Params parameters)
@@ -48,13 +49,15 @@ namespace Game1.Industries
         {
             this.parameters = parameters;
             reqWatts = parameters.reqWattsPerUnitSurface * state.approxSurfaceLength;
+            supply = parameters.supplyPerUnitSurface * state.approxSurfaceLength;
+            demand = parameters.demandPerUnitSurface * state.approxSurfaceLength;
             prodTimeLeft = TimeSpan.MaxValue;
         }
 
-        public override ConstULongArray TargetStoredResAmounts()
+        public override ReadOnlyULongArray TargetStoredResAmounts()
         {
             if (CanStartProduction)
-                return parameters.demand * state.maxBatchDemResStored;
+                return demand.Value * state.maxBatchDemResStored;
             return new();
         }
 
@@ -66,15 +69,15 @@ namespace Game1.Industries
             if (IsBusy())
                 prodTimeLeft -= workingPropor * CurWorldManager.Elapsed;
 
-            if (CanStartProduction && !IsBusy() && state.storedRes >= parameters.demand)
+            if (CanStartProduction && !IsBusy() && state.storedRes >= demand.Value)
             {
-                state.storedRes -= parameters.demand;
+                state.storedRes -= demand.Value;
                 prodTimeLeft = parameters.prodDuration;
             }
 
             if (prodTimeLeft <= TimeSpan.Zero)
             {
-                state.waitingResAmountsPackets.Add(destination: state.position, resAmounts: parameters.supply);
+                state.waitingResAmountsPackets.Add(destination: state.position, resAmounts: supply.Value);
                 prodTimeLeft = TimeSpan.MaxValue;
             }
 

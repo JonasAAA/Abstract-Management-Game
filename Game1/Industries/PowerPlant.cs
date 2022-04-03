@@ -1,4 +1,5 @@
-﻿using Game1.PrimitiveTypeWrappers;
+﻿using Game1.ChangingValues;
+using Game1.PrimitiveTypeWrappers;
 
 using static Game1.WorldManager;
 
@@ -16,7 +17,7 @@ namespace Game1.Industries
                 : base
                 (
                     industryType: IndustryType.PowerPlant,
-                    energyPriority: 0,
+                    energyPriority: EnergyPriority.minimal,
                     name: name,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface,
                     explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(prodWattsPerUnitSurface)} {prodWattsPerUnitSurface}"
@@ -42,7 +43,7 @@ namespace Game1.Industries
             CurWorldManager.AddEnergyProducer(energyProducer: this);
         }
 
-        public override ConstULongArray TargetStoredResAmounts()
+        public override ReadOnlyULongArray TargetStoredResAmounts()
             => new();
 
         protected override bool IsBusy()

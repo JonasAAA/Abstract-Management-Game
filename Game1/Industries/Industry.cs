@@ -74,7 +74,7 @@ namespace Game1.Industries
             UIPanel.AddChild(child: deleteButton);
         }
 
-        public abstract ConstULongArray TargetStoredResAmounts();
+        public abstract ReadOnlyULongArray TargetStoredResAmounts();
 
         public Industry Update()
         {

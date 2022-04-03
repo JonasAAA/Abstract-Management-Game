@@ -1,5 +1,5 @@
 ﻿using Game1.Delegates;
-
+using Game1.PrimitiveTypeWrappers;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
@@ -15,7 +15,7 @@ namespace Game1.Industries
         public Vector2 Position
             => state.position;
 
-        public ulong EnergyPriority { get; private set; }
+        public EnergyPriority EnergyPriority { get; private set; }
 
         public IEnumerable<Person> PeopleHere
             => peopleHere;
@@ -26,7 +26,7 @@ namespace Game1.Industries
         private readonly Event<IDeletedListener> deleted;
         private readonly HashSet<Person> peopleInProcessOfRemoving;
 
-        protected ActivityCenter(ActivityType activityType, ulong energyPriority, NodeState state)
+        protected ActivityCenter(ActivityType activityType, EnergyPriority energyPriority, NodeState state)
         {
             ActivityType = activityType;
             EnergyPriority = energyPriority;

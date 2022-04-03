@@ -5,7 +5,7 @@ namespace Game1
     [Serializable]
     public class ResAmountsPacketsByDestin
     {
-        public ConstULongArray ResAmounts { get; private set; }
+        public ReadOnlyULongArray ResAmounts { get; private set; }
         public ulong TotalWeight { get; private set; }
         public bool Empty
             => TotalWeight is 0;
@@ -37,7 +37,7 @@ namespace Game1
             TotalWeight += resAmountsPacket.TotalWeight;
         }
 
-        public void Add(Vector2 destination, ConstULongArray resAmounts)
+        public void Add(Vector2 destination, ReadOnlyULongArray resAmounts)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
@@ -53,7 +53,7 @@ namespace Game1
             TotalWeight += CurResConfig.resources[resInd].weight * resAmount;
         }
 
-        public ConstULongArray ReturnAndRemove(Vector2 destination)
+        public ReadOnlyULongArray ReturnAndRemove(Vector2 destination)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 return new();
@@ -64,7 +64,7 @@ namespace Game1
             return resAmountsPacket.ResAmounts;
         }
 
-        public ConstULongArray ResToDestinAmounts(Vector2 destination)
+        public ReadOnlyULongArray ResToDestinAmounts(Vector2 destination)
             => resAmountsPacketsByDestin.ContainsKey(destination) switch
             {
                 true => resAmountsPacketsByDestin[destination].ResAmounts,

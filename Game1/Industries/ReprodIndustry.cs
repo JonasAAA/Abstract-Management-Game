@@ -1,4 +1,5 @@
-﻿using Game1.PrimitiveTypeWrappers;
+﻿using Game1.ChangingValues;
+using Game1.PrimitiveTypeWrappers;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
@@ -11,10 +12,10 @@ namespace Game1.Industries
         {
             public readonly double reqWattsPerChild;
             public readonly ulong maxCouplesPerUnitSurface;
-            public readonly ConstULongArray resPerChild;
+            public readonly ReadOnlyULongArray resPerChild;
             public readonly TimeSpan birthDuration;
 
-            public Params(string name, ulong energyPriority, UFloat reqSkillPerUnitSurface, ulong reqWattsPerChild, ulong maxCouplesPerUnitSurface, ConstULongArray resPerChild, TimeSpan birthDuration)
+            public Params(string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, ulong reqWattsPerChild, ulong maxCouplesPerUnitSurface, ReadOnlyULongArray resPerChild, TimeSpan birthDuration)
                 : base
                 (
                     industryType: IndustryType.Reproduction,
@@ -41,7 +42,7 @@ namespace Game1.Industries
 
             private readonly IReadOnlyChangingULong maxCouples;
 
-            public ReprodCenter(NodeState state, ulong energyPriority, IReadOnlyChangingULong maxCouples)
+            public ReprodCenter(NodeState state, EnergyPriority energyPriority, IReadOnlyChangingULong maxCouples)
                 : base(activityType: ActivityType.Reproduction, energyPriority: energyPriority, state: state)
             {
                 this.maxCouples = maxCouples;
@@ -99,7 +100,7 @@ namespace Game1.Industries
             birthQueue = new(duration: parameters.birthDuration);
         }
 
-        public override ConstULongArray TargetStoredResAmounts()
+        public override ReadOnlyULongArray TargetStoredResAmounts()
             => maxCouples.Value * parameters.resPerChild * state.maxBatchDemResStored;
 
         protected override bool IsBusy()

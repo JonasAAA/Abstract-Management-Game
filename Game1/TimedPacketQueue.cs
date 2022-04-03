@@ -8,7 +8,7 @@
         public IEnumerable<Person> People
             => people;
 
-        public ConstULongArray TotalResAmounts { get; private set; }
+        public ReadOnlyULongArray TotalResAmounts { get; private set; }
         public ulong TotalWeight { get; private set; }
 
         private readonly MySet<Person> people;

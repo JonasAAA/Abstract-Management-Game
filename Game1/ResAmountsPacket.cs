@@ -6,19 +6,19 @@ namespace Game1
     public class ResAmountsPacket
     {
         public readonly Vector2 destination;
-        public ConstULongArray ResAmounts
+        public ReadOnlyULongArray ResAmounts
             => resAmounts;
         public ulong TotalWeight { get; private set; }
         public bool Empty
             => TotalWeight is 0;
 
-        private ConstULongArray resAmounts;
+        private ReadOnlyULongArray resAmounts;
 
         public ResAmountsPacket(Vector2 destination)
             : this(destination: destination, resAmounts: new())
         { }
 
-        public ResAmountsPacket(Vector2 destination, ConstULongArray resAmounts)
+        public ResAmountsPacket(Vector2 destination, ReadOnlyULongArray resAmounts)
         {
             this.destination = destination;
             this.resAmounts = resAmounts;
@@ -33,7 +33,7 @@ namespace Game1
             TotalWeight += resAmountsPacket.TotalWeight;
         }
 
-        public void Add(ConstULongArray resAmounts)
+        public void Add(ReadOnlyULongArray resAmounts)
         {
             this.resAmounts += resAmounts;
             TotalWeight += resAmounts.TotalWeight();

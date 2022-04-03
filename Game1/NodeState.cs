@@ -1,4 +1,5 @@
-﻿using Game1.PrimitiveTypeWrappers;
+﻿using Game1.ChangingValues;
+using Game1.PrimitiveTypeWrappers;
 
 using static Game1.WorldManager;
 
@@ -17,7 +18,7 @@ namespace Game1
         public readonly IReadOnlyChangingUFloat radius;
         public readonly Vector2 position;
         public readonly ulong maxBatchDemResStored;
-        public ConstULongArray storedRes;
+        public ReadOnlyULongArray storedRes;
         public ResAmountsPacketsByDestin waitingResAmountsPackets;
         public readonly MySet<Person> waitingPeople;
 

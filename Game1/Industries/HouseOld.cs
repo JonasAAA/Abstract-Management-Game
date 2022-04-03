@@ -1,4 +1,6 @@
-﻿using static Game1.WorldManager;
+﻿using Game1.PrimitiveTypeWrappers;
+
+using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -6,7 +8,7 @@ namespace Game1.Industries
     public class HouseOld : ActivityCenter
     {
         public HouseOld(NodeState state)
-            : base(activityType: ActivityType.Unemployed, energyPriority: ulong.MaxValue, state: state)
+            : base(activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.maximal, state: state)
         { }
 
         public override bool IsFull()

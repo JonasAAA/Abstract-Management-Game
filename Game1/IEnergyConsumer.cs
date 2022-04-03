@@ -1,4 +1,4 @@
-﻿using Microsoft.Xna.Framework;
+﻿using Game1.PrimitiveTypeWrappers;
 
 namespace Game1
 {
@@ -10,7 +10,7 @@ namespace Game1
         /// <summary>
         /// the lower, the more important
         /// </summary>
-        public ulong EnergyPriority { get; }
+        public EnergyPriority EnergyPriority { get; }
 
         /// <summary>
         /// node position from which consume energy

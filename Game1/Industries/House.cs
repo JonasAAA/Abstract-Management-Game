@@ -1,4 +1,5 @@
-﻿using Game1.PrimitiveTypeWrappers;
+﻿using Game1.ChangingValues;
+using Game1.PrimitiveTypeWrappers;
 
 using static Game1.WorldManager;
 
@@ -35,7 +36,7 @@ namespace Game1.Industries
             private readonly IReadOnlyChangingUFloat floorSpace;
 
             public Housing(NodeState state, Params parameters)
-                : base(activityType: ActivityType.Unemployed, energyPriority: ulong.MaxValue, state: state)
+                : base(activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.maximal, state: state)
             {
                 this.parameters = parameters;
                 floorSpace = parameters.floorSpacePerUnitSurface * state.approxSurfaceLength;
@@ -88,7 +89,7 @@ namespace Game1.Industries
             housing = new(state: state, parameters: parameters);
         }
 
-        public override ConstULongArray TargetStoredResAmounts()
+        public override ReadOnlyULongArray TargetStoredResAmounts()
             => new();
 
         protected override House InternalUpdate()

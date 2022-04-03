@@ -1,18 +1,20 @@
-﻿namespace Game1.PrimitiveTypeWrappers
+﻿using Game1.PrimitiveTypeWrappers;
+
+namespace Game1.ChangingValues
 {
     public interface IReadOnlyChangingUFloat : IReadOnlyChangingValue<UFloat>
     {
         [Serializable]
         private readonly struct ScaleUFloatByUFloat : ITransformer<(IReadOnlyChangingUFloat, UFloat), UFloat>
         {
-            public readonly UFloat Transform((IReadOnlyChangingUFloat, UFloat) param)
+            public UFloat Transform((IReadOnlyChangingUFloat, UFloat) param)
                 => param.Item1.Value * param.Item2;
         }
 
         [Serializable]
         private readonly struct RoundUFloatDown : ITransformer<IReadOnlyChangingUFloat, ulong>
         {
-            public readonly ulong Transform(IReadOnlyChangingUFloat param)
+            public ulong Transform(IReadOnlyChangingUFloat param)
                 => (ulong)param.Value;
         }
 

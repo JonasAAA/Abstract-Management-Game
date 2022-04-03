@@ -6,14 +6,14 @@ namespace Game1
     public class WorldConfig
     {
         public readonly double personJobEnjoymentCoeff, personTalentCoeff, personSkillCoeff, jobDesperationCoeff, playerToJobDistCoeff, minAcceptablePersonScore, personTimeSkillCoeff, jobVacDespCoeff;
-        public readonly ulong linkEnergyPriority;
+        public readonly EnergyPriority linkEnergyPriority;
         public readonly float standardStarRadius, scrollSpeed;
         public readonly double personMomentumCoeff, personMinReqWatts, personMaxReqWatts, randConrtribToChild, parentContribToChild;
         /// <summary>
         /// MUST always be the same for all people
         /// as the way industry deals with required energy requires that
         /// </summary>
-        public readonly ulong personDefaultEnergyPriority;
+        public readonly EnergyPriority personDefaultEnergyPriority;
         public readonly TimeSpan personMinSeekChangeTime, personMaxSeekChangeTime;
         public readonly double personDistanceTimeCoeff, personDistanceEnergyCoeff, resDistanceTimeCoeff, resDistanceEnergyCoeff;
         public readonly int lightTextureWidth;
@@ -38,7 +38,7 @@ namespace Game1
             minAcceptablePersonScore = .2;
             personTimeSkillCoeff = .1;
             jobVacDespCoeff = .1;
-            linkEnergyPriority = 10;
+            linkEnergyPriority = new EnergyPriority(energyPriority: 10);
             standardStarRadius = 50;
             scrollSpeed = 60;
 
@@ -47,7 +47,7 @@ namespace Game1
             personMaxReqWatts = 1;
             randConrtribToChild = .1;
             parentContribToChild = 1 - randConrtribToChild;
-            personDefaultEnergyPriority = 100;
+            personDefaultEnergyPriority = new EnergyPriority(energyPriority: 100);
             personMinSeekChangeTime = TimeSpan.FromSeconds(5);
             personMaxSeekChangeTime = TimeSpan.FromSeconds(30);
 

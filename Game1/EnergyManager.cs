@@ -1,4 +1,5 @@
 ﻿using Game1.Delegates;
+using Game1.PrimitiveTypeWrappers;
 
 namespace Game1
 {
@@ -96,7 +97,7 @@ namespace Game1
                     energyPropor = 1;
                 Debug.Assert(C.IsInSuitableRange(value: energyPropor));
 
-                if (energyConsumer.EnergyPriority is 0 && !C.IsTiny(energyPropor - 1))
+                if (energyConsumer.EnergyPriority == EnergyPriority.minimal && !C.IsTiny(energyPropor - 1))
                     throw new Exception();
                 energyConsumer.ConsumeEnergy(energyPropor: energyPropor);
             }
@@ -104,10 +105,10 @@ namespace Game1
             // returns remaining watts
             double DistributePartOfEnergy(IEnumerable<IEnergyConsumer> energyConsumers, double availableWatts)
             {
-                SortedDictionary<ulong, MySet<IEnergyConsumer>> energyConsumersByPriority = new();
+                SortedDictionary<EnergyPriority, MySet<IEnergyConsumer>> energyConsumersByPriority = new();
                 foreach (var energyConsumer in energyConsumers)
                 {
-                    ulong priority = energyConsumer.EnergyPriority;
+                    EnergyPriority priority = energyConsumer.EnergyPriority;
                     if (!energyConsumersByPriority.ContainsKey(key: priority))
                         energyConsumersByPriority[priority] = new();
                     energyConsumersByPriority[priority].Add(energyConsumer);

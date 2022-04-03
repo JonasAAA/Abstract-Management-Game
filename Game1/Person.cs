@@ -1,6 +1,6 @@
 ﻿using Game1.Delegates;
 using Game1.Industries;
-
+using Game1.PrimitiveTypeWrappers;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -193,14 +193,14 @@ namespace Game1
         public void LetGoFromActivityCenter()
             => SetActivityCenter(newActivityCenter: null);
 
-        ulong IEnergyConsumer.EnergyPriority
+        EnergyPriority IEnergyConsumer.EnergyPriority
             => activityCenter switch
             {
                 null => CurWorldConfig.personDefaultEnergyPriority,
                 // if person has higher priority then activityCenter,
                 // then activityCenter most likely will can't work at full capacity
                 // so will not use all the available energyicity
-                not null => Math.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority)
+                not null => EnergyPriority.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority)
             };
 
         Vector2 IEnergyConsumer.NodePos

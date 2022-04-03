@@ -1,4 +1,4 @@
-﻿namespace Game1.PrimitiveTypeWrappers
+﻿namespace Game1.ChangingValues
 {
     [Serializable]
     public class ChangingULong : IReadOnlyChangingULong

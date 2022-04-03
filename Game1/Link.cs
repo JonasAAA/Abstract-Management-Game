@@ -1,4 +1,5 @@
-﻿using Game1.Delegates;
+﻿using Game1.ChangingValues;
+using Game1.Delegates;
 using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
@@ -132,7 +133,7 @@ namespace Game1
                     );
             }
 
-            ulong IEnergyConsumer.EnergyPriority
+            EnergyPriority IEnergyConsumer.EnergyPriority
                 => CurWorldConfig.linkEnergyPriority;
 
             Vector2 IEnergyConsumer.NodePos

@@ -38,6 +38,6 @@
             => energyPriority.ToString();
 
         EnergyPriority IMinable<EnergyPriority>.Min(EnergyPriority other)
-            => new (energyPriority: MathHelper.Min(energyPriority, other.energyPriority));
+            => new (energyPriority: MyMathHelper.Min(energyPriority, other.energyPriority));
     }
 }

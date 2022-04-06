@@ -6,19 +6,19 @@ namespace Game1.Lighting
     [Serializable]
     public class LightPolygon
     {
-        private Vector2 center;
-        private List<Vector2> vertices;
+        private MyVector2 center;
+        private List<MyVector2> vertices;
         private VertexPositionColorTexture[] vertPosTexs;
         private ushort[] inds;
 
-        private readonly UFloat strength;
+        private readonly UDouble strength;
         private readonly Color color;
 
-        /// <param name="strength">a positive float which determins the radius of the lit area</param>
-        public LightPolygon(UFloat strength, Color color)
-            : this(strength: strength, color: color, center: Vector2.Zero, vertices: new())
+        /// <param name="strength">a positive double which determins the radius of the lit area</param>
+        public LightPolygon(UDouble strength, Color color)
+            : this(strength: strength, color: color, center: MyVector2.zero, vertices: new())
         {
-            vertices = new List<Vector2>();
+            vertices = new List<MyVector2>();
             vertPosTexs = Array.Empty<VertexPositionColorTexture>();
             inds = Array.Empty<ushort>();
             if (strength <= 0)
@@ -27,7 +27,7 @@ namespace Game1.Lighting
             this.color = color;
         }
 
-        public LightPolygon(UFloat strength, Color color, Vector2 center, List<Vector2> vertices)
+        public LightPolygon(UDouble strength, Color color, MyVector2 center, List<MyVector2> vertices)
         {
             if (strength <= 0)
                 throw new ArgumentOutOfRangeException();
@@ -40,7 +40,7 @@ namespace Game1.Lighting
             Update(center: center, vertices: vertices);
         }
 
-        public void Update(Vector2 center, List<Vector2> vertices)
+        public void Update(MyVector2 center, List<MyVector2> vertices)
         {
             this.center = center;
             this.vertices = vertices;
@@ -61,11 +61,11 @@ namespace Game1.Lighting
         {
             if (vertices.Count is 0)
                 return;
-            Vector2 textureCenter = new(.5f);
+            MyVector2 textureCenter = new(xAndY: .5);
             int centerInd = vertices.Count;
-            vertPosTexs[centerInd] = new VertexPositionColorTexture(Transform(pos: center), color, textureCenter);
+            vertPosTexs[centerInd] = new VertexPositionColorTexture(Transform(pos: center), color, (Vector2)textureCenter);
             for (int i = 0; i < centerInd; i++)
-                vertPosTexs[i] = new VertexPositionColorTexture(Transform(vertices[i]), color, textureCenter + (vertices[i] - center) / CurWorldConfig.lightTextureWidth / strength);
+                vertPosTexs[i] = new VertexPositionColorTexture(Transform(vertices[i]), color, (Vector2)(textureCenter + (vertices[i] - center) / CurWorldConfig.lightTextureWidth / (double)strength));
             if (vertPosTexs.Length == 0)
                 return;
 
@@ -91,10 +91,10 @@ namespace Game1.Lighting
                 //graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertPosTexs, 0, vertPosTexs.Length, inds, 0, inds.Length / 3);
             }
 
-            Vector3 Transform(Vector2 pos)
+            Vector3 Transform(MyVector2 pos)
             {
-                Vector2 transPos = Vector2.Transform(pos, worldToScreenTransform);
-                return new Vector3(2 * transPos.X / actualScreenWidth - 1, 1 - 2 * transPos.Y / actualScreenHeight, 0);
+                MyVector2 transPos = MyVector2.Transform(pos, worldToScreenTransform);
+                return new Vector3((float)(2 * transPos.X / actualScreenWidth - 1), (float)(1 - 2 * transPos.Y / actualScreenHeight), 0);
             }
         }
     }

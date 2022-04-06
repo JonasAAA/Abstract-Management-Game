@@ -72,21 +72,21 @@ namespace Game1
                     new
                     (
                         radius: 20,
-                        center: new Vector2(0, -300),
+                        center: new MyVector2(0, -300),
                         prodWatts: 200,
                         color: Color.Lerp(Color.White, Color.Red, .3f)
                     ),
                     new
                     (
                         radius: 10,
-                        center: new Vector2(200, 300),
+                        center: new MyVector2(200, 300),
                         prodWatts: 100,
                         color: Color.Lerp(Color.White, Color.Blue, .3f)
                     ),
                     new
                     (
                         radius: 40,
-                        center: new Vector2(-200, 100),
+                        center: new MyVector2(-200, 100),
                         prodWatts: 400,
                         color: Color.Lerp(Color.White, new Color(0f, 1f, 0f), .3f)
                     ),
@@ -100,8 +100,8 @@ namespace Game1
                         (
                             state: new
                             (
-                                position: new Vector2(i - (width - 1) * .5f, j - (height - 1) * .5f) * dist,
-                                radius: (UFloat)MathHelper.Pow(2, C.Random(min: 3, max: 6)),
+                                position: new MyVector2(i - (width - 1) * .5, j - (height - 1) * .5) * dist,
+                                radius: MyMathHelper.Pow((UDouble)2, C.Random(min: (double)3, max: 6)),
                                 maxBatchDemResStored: 2
                             ),
                             activeColor: Color.White,
@@ -109,7 +109,7 @@ namespace Game1
                             startPersonCount: 5
                         );
 
-                const double distScale = .1;
+                UDouble distScale = (UDouble).1;
 
                 List<Link> links = new();
                 for (int i = 0; i < width; i++)
@@ -120,8 +120,8 @@ namespace Game1
                             (
                                 node1: nodes[i, j],
                                 node2: nodes[i, j + 1],
-                                travelTime: TimeSpan.FromSeconds((i + 1) * distScale),
-                                wattsPerKg: (j + 1.5) * distScale,
+                                travelTime: TimeSpan.FromSeconds((i + 1) * (double)distScale),
+                                wattsPerKg: (UDouble)(j + 1.5) * distScale,
                                 minSafeDist: CurWorldConfig.minSafeDist
                             )
                         );
@@ -134,8 +134,8 @@ namespace Game1
                             (
                                 node1: nodes[i, j],
                                 node2: nodes[i + 1, j],
-                                travelTime: TimeSpan.FromSeconds((i + 1.5) * distScale),
-                                wattsPerKg: (j + 1) * distScale,
+                                travelTime: TimeSpan.FromSeconds((i + 1.5) * (double)distScale),
+                                wattsPerKg: (UDouble)(j + 1) * distScale,
                                 minSafeDist: CurWorldConfig.minSafeDist
                             )
                         );
@@ -237,13 +237,13 @@ namespace Game1
 
         public TimeSpan Elapsed { get; private set; }
 
-        public Vector2 MouseWorldPos
-            => worldCamera.WorldPos(screenPos: Mouse.GetState().Position.ToVector2());
+        public MyVector2 MouseWorldPos
+            => worldCamera.WorldPos(screenPos: (MyVector2)Mouse.GetState().Position);
 
         public TimeSpan MaxLinkTravelTime
             => graph.maxLinkTravelTime;
 
-        public double MaxLinkJoulesPerKg
+        public UDouble MaxLinkJoulesPerKg
             => graph.maxLinkJoulesPerKg;
 
         public bool ArrowDrawingModeOn

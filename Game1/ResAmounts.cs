@@ -31,7 +31,7 @@ namespace Game1
             => array.Sum() is 0;
 
         public ResAmounts Min(ResAmounts resAmounts)
-            => new(array.Zip(resAmounts, (a, b) => MathHelper.Min(a, b)));
+            => new(array.Zip(resAmounts, (a, b) => MyMathHelper.Min(a, b)));
 
         public ulong TotalWeight()
             => CurResConfig.resources.Zip(array).Sum(item => item.First.weight * item.Second);

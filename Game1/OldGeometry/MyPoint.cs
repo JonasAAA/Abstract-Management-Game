@@ -6,7 +6,7 @@ namespace Game1.OldGeometry
     [Serializable]
     public readonly struct MyPoint
     {
-        // power of two to make float / scale and float * scale lossless
+        // power of two to make double / scale and double * scale lossless
         private const long scale = (long)1 << 31;
 
         private readonly long x, y;

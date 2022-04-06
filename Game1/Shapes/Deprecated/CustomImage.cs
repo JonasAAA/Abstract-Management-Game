@@ -15,14 +15,14 @@ namespace Game1.Shapes.Deprecated
         //    height: 500
         //)
         //{
-        //    Center = new Vector2(-200, -300),
-        //    rotation = 1.235f,
+        //    Center = new MyVector2(-200, -300),
+        //    rotation = 1.235,
         //};
         //customImage.StartEdit();
         //customImage.DrawLineInImage
         //(
         //    worldPos1: customImage.Center,
-        //    worldPos2: customImage.Center + new Vector2(20, 10),
+        //    worldPos2: customImage.Center + new MyVector2(20, 10),
         //    color: Color.Transparent
         //);
         //customImage.EndEdit();
@@ -39,7 +39,7 @@ namespace Game1.Shapes.Deprecated
         //    layer: 20
         //);
 
-        public CustomImage(string imageName, Vector2? origin = null, UFloat? width = null, UFloat? height = null)
+        public CustomImage(string imageName, MyVector2? origin = null, UDouble? width = null, UDouble? height = null)
             : base(texture: new CustomTexture(textureName: imageName), origin: origin, width: width, height: height)
         {
             texture = (CustomTexture)base.texture;
@@ -48,11 +48,11 @@ namespace Game1.Shapes.Deprecated
         public void StartEdit()
             => texture.StartEdit();
 
-        public void DrawLineInImage(Vector2 worldPos1, Vector2 worldPos2, Color color)
+        public void DrawLineInImage(MyVector2 worldPos1, MyVector2 worldPos2, Color color)
             => texture.DrawLineInTexture
             (
-                pos1: TexturePos(position: worldPos1).ToPoint(),
-                pos2: TexturePos(position: worldPos2).ToPoint(),
+                pos1: (Point)TexturePos(position: worldPos1),
+                pos2: (Point)TexturePos(position: worldPos2),
                 color: color
             );
 

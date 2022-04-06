@@ -75,9 +75,9 @@ namespace Game1
         public IEnumerable<Node> Nodes
             => nodes;
 
-        public readonly ReadOnlyDictionary<Vector2, Node> posToNode;
+        public readonly ReadOnlyDictionary<MyVector2, Node> posToNode;
         public readonly TimeSpan maxLinkTravelTime;
-        public readonly double maxLinkJoulesPerKg;
+        public readonly UDouble maxLinkJoulesPerKg;
 
         public override bool CanBeClicked
             => true;
@@ -98,14 +98,14 @@ namespace Game1
             }
         }
 
-        //private readonly ReadOnlyDictionary<(Vector2, Vector2), double> personDists;
-        //private readonly ReadOnlyDictionary<(Vector2, Vector2), double> resDists;
+        //private readonly ReadOnlyDictionary<(MyVector2, MyVector2), double> personDists;
+        //private readonly ReadOnlyDictionary<(MyVector2, MyVector2), double> resDists;
 
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> personFirstLinks;
-        private readonly ReadOnlyDictionary<(Vector2, Vector2), Link> resFirstLinks;
+        private readonly ReadOnlyDictionary<(MyVector2, MyVector2), Link> personFirstLinks;
+        private readonly ReadOnlyDictionary<(MyVector2, MyVector2), Link> resFirstLinks;
 
         private readonly List<Star> stars;
         private readonly List<Node> nodes;
@@ -168,20 +168,15 @@ namespace Game1
 
         // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
-        private (ReadOnlyDictionary<(Vector2, Vector2), double> dists, ReadOnlyDictionary<(Vector2, Vector2), Link> firstLinks) FindShortestPaths(double distTimeCoeff, double distEnergyCoeff)
+        private (ReadOnlyDictionary<(MyVector2, MyVector2), UDouble> dists, ReadOnlyDictionary<(MyVector2, MyVector2), Link> firstLinks) FindShortestPaths(UDouble distTimeCoeff, UDouble distEnergyCoeff)
         {
-            if (distTimeCoeff < 0)
-                throw new ArgumentOutOfRangeException();
-            if (distEnergyCoeff < 0)
-                throw new ArgumentOutOfRangeException();
-
-            double[,] distsArray = new double[nodes.Count, nodes.Count];
+            UDouble[,] distsArray = new UDouble[nodes.Count, nodes.Count];
             Link[,] firstLinksArray = new Link[nodes.Count, nodes.Count];
 
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)
                 {
-                    distsArray[i, j] = double.PositiveInfinity;
+                    distsArray[i, j] = UDouble.positiveInfinity;
                     firstLinksArray[i, j] = null;
                 }
 
@@ -192,7 +187,7 @@ namespace Game1
             {
                 int i = nodes.IndexOf(link.node1), j = nodes.IndexOf(link.node2);
                 Debug.Assert(i >= 0 && j >= 0);
-                distsArray[i, j] = distTimeCoeff * link.TravelTime.TotalSeconds + distEnergyCoeff * link.JoulesPerKg;
+                distsArray[i, j] = distTimeCoeff * (UDouble)link.TravelTime.TotalSeconds + distEnergyCoeff * link.JoulesPerKg;
                 distsArray[j, i] = distsArray[i, j];
                 firstLinksArray[i, j] = link;
                 firstLinksArray[j, i] = link;
@@ -208,8 +203,8 @@ namespace Game1
                             Debug.Assert(firstLinksArray[i, j] is not null);
                         }
 
-            Dictionary<(Vector2, Vector2), double> distsDict = new();
-            Dictionary<(Vector2, Vector2), Link> firstLinksDict = new();
+            Dictionary<(MyVector2, MyVector2), UDouble> distsDict = new();
+            Dictionary<(MyVector2, MyVector2), Link> firstLinksDict = new();
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)
                 {
@@ -276,7 +271,7 @@ namespace Game1
         public void SplitRes(ResInd resInd)
         {
             NodeInfo.Init(resInd: resInd);
-            Dictionary<Vector2, NodeInfo> nodeInfos = nodes.ToDictionary
+            Dictionary<MyVector2, NodeInfo> nodeInfos = nodes.ToDictionary
             (
                 keySelector: node => node.Position,
                 elementSelector: node => new NodeInfo(node: node)
@@ -301,7 +296,7 @@ namespace Game1
                 select nodeInfo
             );
 
-            ulong MaxExtraRes(Vector2 position)
+            ulong MaxExtraRes(MyVector2 position)
                 => nodeInfos[position].MaxExtraRes();
 
             while (sinks.Count > 0)

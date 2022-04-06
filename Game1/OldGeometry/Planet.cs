@@ -70,7 +70,7 @@ namespace Game1.OldGeometry
     //                vertexBuffer.SetData
     //                (
     //                    data: (from vertex in tessellator.Vertices
-    //                           select new VertexPositionColor(new Vector3(vertex.Position.X, vertex.Position.Y, 0), new Color((float)C.Random(0, 1), (float)C.Random(0, 1), (float)C.Random(0, 1), 1) /*Color.Red*/)).ToArray()
+    //                           select new VertexPositionColor(new Vector3(vertex.Position.X, vertex.Position.Y, 0), new Color((double)C.Random(0, 1), (double)C.Random(0, 1), (double)C.Random(0, 1), 1) /*Color.Red*/)).ToArray()
     //                );
     //                indexBuffer = new(C.graphicsDevice, typeof(int), tessellator.ElementCount * 3, BufferUsage.WriteOnly);
     //                indexBuffer.SetData(tessellator.Elements);

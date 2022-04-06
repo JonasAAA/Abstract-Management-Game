@@ -9,16 +9,16 @@ namespace Game1.Shapes
         // can do:
         //public abstract class Params
         //{
-        //    public abstract void Make(float width, float height);
+        //    public abstract void Make(double width, double height);
         //}
         public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; }
 
-        public override Vector2 Center
+        public override MyVector2 Center
         {
             get => base.Center;
             set
             {
-                if (!C.IsTiny(value: Vector2.Distance(base.Center, value)))
+                if (!MyMathHelper.IsTiny(value: MyVector2.Distance(base.Center, value)))
                 {
                     base.Center = value;
                     RaiseSizeOrPosChanged();
@@ -26,7 +26,7 @@ namespace Game1.Shapes
             }
         }
 
-        public Vector2 TopLeftCorner
+        public MyVector2 TopLeftCorner
         {
             get => GetPosition
             (
@@ -40,7 +40,7 @@ namespace Game1.Shapes
                 vertOrigin: VertPos.Top
             );
         }
-        public Vector2 TopRightCorner
+        public MyVector2 TopRightCorner
         {
             get => GetPosition
             (
@@ -54,7 +54,7 @@ namespace Game1.Shapes
                 vertOrigin: VertPos.Top
             );
         }
-        public Vector2 BottomLeftCorner
+        public MyVector2 BottomLeftCorner
         {
             get => GetPosition
             (
@@ -68,7 +68,7 @@ namespace Game1.Shapes
                 vertOrigin: VertPos.Bottom
             );
         }
-        public Vector2 BottomRightCorner
+        public MyVector2 BottomRightCorner
         {
             get => GetPosition
             (
@@ -82,35 +82,35 @@ namespace Game1.Shapes
                 vertOrigin: VertPos.Bottom
             );
         }
-        public virtual UFloat Width
+        public virtual UDouble Width
         {
             get => width;
             set
             {
-                value = MathHelper.Max(value, minWidth);
-                if (!C.IsTiny(value: width - value))
+                value = MyMathHelper.Max(value, minWidth);
+                if (!MyMathHelper.AreClose(width, value))
                 {
                     width = value;
                     RaiseSizeOrPosChanged();
                 }
             }
         }
-        public virtual UFloat Height
+        public virtual UDouble Height
         {
             get => height;
             set
             {
                 if (value < 0)
                     throw new ArgumentOutOfRangeException();
-                value = MathHelper.Max(value, minHeight);
-                if (!C.IsTiny(value: height - value))
+                value = MyMathHelper.Max(value, minHeight);
+                if (!MyMathHelper.AreClose(height, value))
                 {
                     height = value;
                     RaiseSizeOrPosChanged();
                 }
             }
         }
-        public UFloat MinWidth
+        public UDouble MinWidth
         {
             get => minWidth;
             set
@@ -122,7 +122,7 @@ namespace Game1.Shapes
                     Width = minWidth;
             }
         }
-        public UFloat MinHeight
+        public UDouble MinHeight
         {
             get => minHeight;
             set
@@ -135,9 +135,9 @@ namespace Game1.Shapes
             }
         }
 
-        private UFloat width, height, minWidth, minHeight;
+        private UDouble width, height, minWidth, minHeight;
 
-        protected NearRectangle(UFloat width, UFloat height)
+        protected NearRectangle(UDouble width, UDouble height)
         {
             if (width < 0)
                 throw new ArgumentOutOfRangeException();
@@ -152,26 +152,26 @@ namespace Game1.Shapes
             SizeOrPosChanged = new();
         }
 
-        public Vector2 GetPosition(HorizPos horizOrigin, VertPos vertOrigin)
-            => Center + new Vector2((int)horizOrigin * Width, (int)vertOrigin * Height) * .5f;
+        public MyVector2 GetPosition(HorizPos horizOrigin, VertPos vertOrigin)
+            => Center + new MyVector2((int)horizOrigin * (double)Width, (int)vertOrigin * (double)Height) * .5;
 
-        public void SetPosition(Vector2 position, HorizPos horizOrigin, VertPos vertOrigin)
-            => Center = position - new Vector2((int)horizOrigin * Width, (int)vertOrigin * Height) * .5f;
+        public void SetPosition(MyVector2 position, HorizPos horizOrigin, VertPos vertOrigin)
+            => Center = position - new MyVector2((int)horizOrigin * (double)Width, (int)vertOrigin * (double)Height) * .5;
 
-        public void ClampPosition(float left, float right, float top, float bottom)
-            => Center = new Vector2
+        public void ClampPosition(double left, double right, double top, double bottom)
+            => Center = new MyVector2
             (
-                x: MathHelper.Clamp
+                x: MyMathHelper.Clamp
                 (
                     value: Center.X,
-                    min: left + Width * .5f,
-                    max: right - Width * .5f
+                    min: left + (double)Width * .5,
+                    max: right - (double)Width * .5
                 ),
-                y: MathHelper.Clamp
+                y: MyMathHelper.Clamp
                 (
                     value: Center.Y,
-                    min: top + Height * .5f,
-                    max: bottom - Height * .5f
+                    min: top + (double)Height * .5,
+                    max: bottom - (double)Height * .5
                 )
             );
 

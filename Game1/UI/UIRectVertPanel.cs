@@ -21,7 +21,7 @@ namespace Game1.UI
 
             Shape.Width = 2 * ActiveUIManager.RectOutlineWidth + children.Count switch
             {
-                0 => (UFloat)0,
+                0 => (UDouble)0,
                 not 0 => children.Max(child => child.Shape.Width)
             };
             
@@ -31,13 +31,13 @@ namespace Game1.UI
                 not 0 => children.Sum(child => child.Shape.Height)
             };
 
-            UFloat curHeightSum = 0;
+            UDouble curHeightSum = 0;
             foreach (var child in children)
             {
                 child.Shape.SetPosition
                 (
                     position: Shape.GetPosition(horizOrigin: childHorizPos, vertOrigin: VertPos.Top)
-                        + new Vector2(-(int)childHorizPos * ActiveUIManager.RectOutlineWidth, curHeightSum + ActiveUIManager.RectOutlineWidth),
+                        + new MyVector2(-(int)childHorizPos * (double)ActiveUIManager.RectOutlineWidth, (double)curHeightSum + (double)ActiveUIManager.RectOutlineWidth),
                     horizOrigin: childHorizPos,
                     vertOrigin: VertPos.Top
                 );

@@ -26,14 +26,14 @@ namespace Game1.UI
             set
             {
                 totalImportance = value;
-                float relImportance = (float)((double)Importance / totalImportance);
-                InactiveColor = defaultInactiveColor * relImportance;
-                ActiveColor = defaultActiveColor * relImportance;
+                double relImportance = (double)((double)Importance / totalImportance);
+                InactiveColor = defaultInactiveColor * (float)relImportance;
+                ActiveColor = defaultActiveColor * (float)relImportance;
                 line2.Text = $"total importance {totalImportance}";
             }
         }
 
-        public Vector2 EndPos
+        public MyVector2 EndPos
             => shape.endPos;
 
         public Event<INumberChangedListener> ImportanceNumberChanged

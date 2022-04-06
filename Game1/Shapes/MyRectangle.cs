@@ -14,23 +14,23 @@ namespace Game1.Shapes
                 => pixelTexture = C.LoadTexture(name: "pixel");
             
             /// <param name="toLeft">is start top, end is bottom</param>
-            public static void Draw(Vector2 Start, Vector2 End, Color Color, bool toLeft = false)
+            public static void Draw(MyVector2 Start, MyVector2 End, Color Color, bool toLeft = false)
             {
-                Vector2 direction = End - Start;
-                direction.Normalize();
-                Vector2 origin = toLeft switch
+                MyVector2 direction = MyVector2.Normalized(End - Start);
+                MyVector2 origin = toLeft switch
                 {
-                    true => new Vector2(.5f, 1),
-                    false => new Vector2(.5f, 0)
+                    true => new MyVector2(.5, 1),
+                    false => new MyVector2(.5, 0)
                 };
                 C.Draw
                 (
                     texture: pixelTexture,
                     position: (Start + End) / 2,
                     color: Color,
-                    rotation: C.Rotation(vector: direction),
+                    rotation: MyMathHelper.Rotation(vector: direction),
                     origin: origin,
-                    scale: new Vector2(Vector2.Distance(Start, End), ActiveUIManager.RectOutlineWidth)
+                    scaleX: MyVector2.Distance(Start, End),
+                    scaleY: ActiveUIManager.RectOutlineWidth
                 );
             }
         }
@@ -44,17 +44,17 @@ namespace Game1.Shapes
             : this(width: 2 * ActiveUIManager.RectOutlineWidth, height: 2 * ActiveUIManager.RectOutlineWidth)
         { }
 
-        public MyRectangle(UFloat width, UFloat height)
+        public MyRectangle(UDouble width, UDouble height)
             : base(width: width, height: height)
         {
             MinWidth = 2 * ActiveUIManager.RectOutlineWidth;
             MinHeight = 2 * ActiveUIManager.RectOutlineWidth;
         }
 
-        public override bool Contains(Vector2 position)
+        public override bool Contains(MyVector2 position)
         {
-            Vector2 relPos = position - Center;
-            return MathHelper.Abs(relPos.X) < Width * .5f && MathHelper.Abs(relPos.Y) < Height * .5f;
+            MyVector2 relPos = position - Center;
+            return MyMathHelper.Abs(relPos.X) < Width * (UDouble).5 && MyMathHelper.Abs(relPos.Y) < Height * (UDouble).5;
         }
 
         protected override void Draw(Color color)
@@ -65,8 +65,9 @@ namespace Game1.Shapes
                 position: TopLeftCorner,
                 color: color,
                 rotation: 0,
-                origin: Vector2.Zero,
-                scale: new Vector2(Width, Height)
+                origin: MyVector2.zero,
+                scaleX: Width,
+                scaleY: Height
             );
 
             Color outlineColor = Color.Black;

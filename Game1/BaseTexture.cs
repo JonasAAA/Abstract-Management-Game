@@ -35,7 +35,7 @@
         public Color Color(Point pos)
             => colorData[pos.X][pos.Y];
 
-        public void Draw(Vector2 position, Color color, float rotation, Vector2 origin, float scale)
+        public void Draw(MyVector2 position, Color color, double rotation, MyVector2 origin, UDouble scale)
             => C.Draw
             (
                 texture: texture,
@@ -46,7 +46,7 @@
                 scale: scale
             );
 
-        public void Draw(Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale)
+        public void Draw(MyVector2 position, Color color, double rotation, MyVector2 origin, UDouble scaleX, UDouble scaleY)
             => C.Draw
             (
                 texture: texture,
@@ -54,7 +54,8 @@
                 color: color,
                 rotation: rotation,
                 origin: origin,
-                scale: scale
+                scaleX: scaleX,
+                scaleY: scaleY
             );
 
         protected static int Ind1D(int x, int y, int width)

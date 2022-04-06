@@ -5,37 +5,38 @@ namespace Game1.Shapes
     [Serializable]
     public abstract class VectorShape : Shape
     {
-        public readonly Vector2 startPos, endPos;
+        public readonly MyVector2 startPos, endPos;
 
         protected abstract Texture2D Texture { get; }
-        protected readonly IReadOnlyChangingUFloat width;
+        protected readonly IReadOnlyChangingUDouble width;
 
-        protected VectorShape(Vector2 startPos, Vector2 endPos, IReadOnlyChangingUFloat width)
+        // TODO: consider creating unsigned variables for texture width and height (or maybe extension methods for that)
+        protected VectorShape(MyVector2 startPos, MyVector2 endPos, IReadOnlyChangingUDouble width)
         {
-            if (C.IsTiny(Vector2.Distance(startPos, endPos)))
+            if (MyMathHelper.IsTiny(MyVector2.Distance(startPos, endPos)))
                 throw new ArgumentException();
             this.startPos = startPos;
             this.endPos = endPos;
             this.width = width;
         }
 
-        public override bool Contains(Vector2 position)
+        public override bool Contains(MyVector2 position)
         {
-            Vector2 relPos = position - startPos,
-                direction = endPos - startPos;
-            direction.Normalize();
-            Vector2 orthDir = new(-direction.Y, direction.X);
-            float distance = Vector2.Distance(startPos, endPos),
-                dirProp = Vector2.Dot(relPos, direction) / distance,
-                orthDirProp = MathHelper.Abs(Vector2.Dot(relPos, orthDir) / (width.Value * .5f));
-            if (dirProp is < 0 or >= 1 || orthDirProp >= 1)
-                return false;
-            return Contains(dirProp: dirProp, orthDirProp: orthDirProp);
+            MyVector2 relPos = position - startPos,
+                direction = MyVector2.Normalized(endPos - startPos);
+            MyVector2 orthDir = new(-direction.Y, direction.X);
+            double distance = (double)MyVector2.Distance(startPos, endPos),
+                dirProp = MyVector2.Dot(relPos, direction) / distance;
+            return (Propor.Create(propor: dirProp), Propor.Create(part: MyMathHelper.Abs(MyVector2.Dot(relPos, orthDir)), whole: width.Value * (UDouble).5)) switch
+            {
+                (Propor dirPropor, Propor orthDirPropor) => Contains(dirPropor: dirPropor, orthDirPropor: orthDirPropor),
+                _ => false
+            };
         }
 
-        /// <param name="dirProp">0 to 1</param>
-        /// <param name="orthDirProp">0 to 1</param>
-        protected abstract bool Contains(float dirProp, float orthDirProp);
+        /// <param name="dirPropor">0 to 1</param>
+        /// <param name="orthDirPropor">0 to 1</param>
+        protected abstract bool Contains(Propor dirPropor, Propor orthDirPropor);
 
         protected override void Draw(Color color)
             => C.Draw
@@ -43,9 +44,10 @@ namespace Game1.Shapes
                 texture: Texture,
                 position: (startPos + endPos) / 2,
                 color: color,
-                rotation: C.Rotation(vector: endPos - startPos),
-                origin: new Vector2(Texture.Width, Texture.Height) * .5f,
-                scale: new Vector2(Vector2.Distance(startPos, endPos) / Texture.Width, width.Value / Texture.Height)
+                rotation: MyMathHelper.Rotation(vector: endPos - startPos),
+                origin: new MyVector2(Texture.Width, Texture.Height) * .5,
+                scaleX: MyVector2.Distance(startPos, endPos) / (UDouble)Texture.Width,
+                scaleY: width.Value / (UDouble)Texture.Height
             );
     }
 }

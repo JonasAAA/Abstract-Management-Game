@@ -16,7 +16,7 @@ namespace Game1.Shapes
         public InfinitePlane(Color color)
             => Color = color;
 
-        public override bool Contains(Vector2 position)
+        public override bool Contains(MyVector2 position)
             => true;
 
         protected override void Draw(Color color)
@@ -25,11 +25,12 @@ namespace Game1.Shapes
                 C.Draw
                 (
                     texture: pixelTexture,
-                    position: Vector2.Zero,
+                    position: MyVector2.zero,
                     color: color,
                     rotation: 0,
-                    origin: Vector2.Zero,
-                    scale: new Vector2((float)ActiveUIManager.ScreenWidth, (float)ActiveUIManager.ScreenHeight)
+                    origin: MyVector2.zero,
+                    scaleX: ActiveUIManager.ScreenWidth,
+                    scaleY: ActiveUIManager.ScreenHeight
                 );
         }
     }

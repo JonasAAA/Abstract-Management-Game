@@ -6,12 +6,12 @@
         public bool Transparent
            => Color.Transparent();
         public Color Color { get; set; }
-        public virtual Vector2 Center { get; set; }
+        public virtual MyVector2 Center { get; set; }
 
         protected Shape()
             => Color = Color.Transparent;
 
-        public abstract bool Contains(Vector2 position);
+        public abstract bool Contains(MyVector2 position);
 
         protected abstract void Draw(Color color);
 
@@ -21,9 +21,9 @@
                 Draw(color: Color);
         }
 
-        public void Draw(Color otherColor, float otherColorProp)
+        public void Draw(Color otherColor, Propor otherColorPropor)
         {
-            Color color = Color.Lerp(Color, otherColor, amount: otherColorProp);
+            Color color = Color.Lerp(Color, otherColor, amount: (float)otherColorPropor);
             color.A = Color.A;
             if (!color.Transparent())
                 Draw(color: color);

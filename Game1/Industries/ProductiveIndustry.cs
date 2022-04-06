@@ -1,5 +1,4 @@
 ﻿using Game1.ChangingValues;
-using Game1.PrimitiveTypeWrappers;
 using Priority_Queue;
 
 using static Game1.WorldManager;
@@ -14,9 +13,9 @@ namespace Game1.Industries
         {
             public readonly IndustryType industryType;
             public readonly EnergyPriority energyPriority;
-            public readonly UFloat reqSkillPerUnitSurface;
+            public readonly UDouble reqSkillPerUnitSurface;
 
-            protected Params(IndustryType industryType, string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, string explanation)
+            protected Params(IndustryType industryType, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, string explanation)
                 : base(name: name, explanation: explanation)
             {
                 this.industryType = industryType;
@@ -35,13 +34,13 @@ namespace Game1.Industries
         [Serializable]
         private class Employer : ActivityCenter
         {
-            public double CurSkillPropor { get; private set; }
+            public Propor CurSkillPropor { get; private set; }
 
             private readonly Params parameters;
-            private readonly IReadOnlyChangingUFloat reqSkill;
-            // must be >= 0
-            private TimeSpan avgVacancyDuration;
-            private double curUnboundedSkillPropor, workingPropor;
+            private readonly IReadOnlyChangingUDouble reqSkill;
+            private Score desperationScore;
+            private UDouble curUnboundedSkillPropor;
+            private Propor workingPropor;
 
             public Employer(EnergyPriority energyPriority, NodeState state, Params parameters)
                 : base(activityType: ActivityType.Working, energyPriority: energyPriority, state: state)
@@ -49,21 +48,25 @@ namespace Game1.Industries
                 this.parameters = parameters;
 
                 reqSkill = state.approxSurfaceLength * parameters.reqSkillPerUnitSurface;
-                CurSkillPropor = 0;
+                CurSkillPropor = Propor.empty;
                 curUnboundedSkillPropor = 0;
-                avgVacancyDuration = TimeSpan.Zero;
-                workingPropor = 0;
+                // TODO: could initialize to some other value
+                desperationScore = Score.worst;
+                workingPropor = Propor.empty;
             }
 
             public void StartUpdate()
             {
-                double totalHiredSkill = HiredSkill();
+                // TODO: reconsider this method
+                UDouble totalHiredSkill = HiredSkill();
                 if (totalHiredSkill >= reqSkill.Value)
                 {
                     // if can, fire the worst people
-                    double oldOpenSpace = OpenSpace();
 
-                    SimplePriorityQueue<Person, double> allEmployeesPriorQueue = new();
+                    // TODO: delete
+                    //Propor oldOpenSpace = OpenSpacePropor();
+
+                    SimplePriorityQueue<Person, Score> allEmployeesPriorQueue = new();
                     foreach (var person in allPeople)
                         allEmployeesPriorQueue.Enqueue
                         (
@@ -71,40 +74,66 @@ namespace Game1.Industries
                             priority: CurrentEmploymentScore(person: person)
                         );
 
-                    while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill - allEmployeesPriorQueue.First.skills[parameters.industryType] >= reqSkill.Value)
+                    while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill >= (UDouble)allEmployeesPriorQueue.First.skills[parameters.industryType] + reqSkill.Value)
                     {
                         var person = allEmployeesPriorQueue.Dequeue();
-                        totalHiredSkill -= person.skills[parameters.industryType];
+                        totalHiredSkill = (UDouble)((double)totalHiredSkill - (double)person.skills[parameters.industryType]);
                         RemovePerson(person: person);
                     }
 
-                    double curOpenSpace = OpenSpace();
-                    if (oldOpenSpace is double.NegativeInfinity)
-                        avgVacancyDuration = TimeSpan.Zero;
-                    else
-                        avgVacancyDuration *= oldOpenSpace / curOpenSpace;
+                    // TODO: delete
+                    //Propor curOpenSpace = OpenSpacePropor();
+                    //if (oldOpenSpace is double.NegativeInfinity)
+                    //    avgVacancyDuration = TimeSpan.Zero;
+                    //else
+                    //    // TODO: I think this clause is never used
+                    //    // Also would want this logic to be slightly different, i.e. oldOpenSpace should be open space from the previous frame
+                    //    avgVacancyDuration *= (UDouble)oldOpenSpace / (UDouble)curOpenSpace;
 
                     Debug.Assert(HiredSkill() >= reqSkill.Value);
                 }
-
-                if (IsFull())
-                    avgVacancyDuration = TimeSpan.Zero;
-                else
-                    avgVacancyDuration += CurWorldManager.Elapsed;
+                // The problem here is that it depends on the frame-rate, not the time
+                desperationScore = Score.BringCloser
+                (
+                    current: desperationScore,
+                    target: IsFull() ? Score.worst : Score.CombineTwo
+                    (
+                        score1: (Score)OpenSpacePropor(),
+                        score2: Score.best,
+                        // TODO: get rid of hard-coded constant
+                        score1Propor: (Propor).5
+                    ),
+                    elapsed: CurWorldManager.Elapsed,
+                    // TODO: get rid of hard-coded constant
+                    halvingDifferenceDuration: TimeSpan.FromSeconds(20)
+                );
+                // TODO: delete
+                //if (IsFull())
+                //    avgVacancyDuration = TimeSpan.Zero;
+                //else
+                //    avgVacancyDuration += CurWorldManager.Elapsed;
             }
 
             public void EndUpdate()
             {
-                curUnboundedSkillPropor = peopleHere.Sum(person => person.skills[parameters.industryType]) / reqSkill.Value;
-                CurSkillPropor = MathHelper.Min(1, curUnboundedSkillPropor);
+                curUnboundedSkillPropor = peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / reqSkill.Value;
+                CurSkillPropor = (Propor)MyMathHelper.Min((UDouble)1, curUnboundedSkillPropor);
             }
 
             public override bool IsFull()
-                => OpenSpace() is double.NegativeInfinity;
+                => OpenSpacePropor().IsCloseTo(other: Propor.empty);
 
-            public override double PersonScoreOfThis(Person person)
-                => CurWorldConfig.personMomentumCoeff * (IsPersonHere(person: person) ? 1 : 0)
-                + (.9 * person.enjoyments[parameters.industryType] + .1 * DistanceToHere(person: person)) * (1 - CurWorldConfig.personMomentumCoeff);
+            public override Score PersonScoreOfThis(Person person)
+                => Score.CombineTwo
+                (
+                    score1: IsPersonHere(person: person) ? Score.best : Score.worst,
+                    score2: Score.Combine
+                    (
+                        (weight: 9, score: person.enjoyments[parameters.industryType]),
+                        (weight: 1, score: DistanceToHere(person: person))
+                    ),
+                    score1Propor: CurWorldConfig.personMomentumPropor
+                );
 
             public override bool IsPersonSuitable(Person person)
             {
@@ -115,67 +144,85 @@ namespace Game1.Industries
             }
 
             public override void UpdatePerson(Person person)
-            {
-                if (!C.IsInSuitableRange(value: workingPropor))
-                    throw new ArgumentOutOfRangeException();
-
-                Debug.Assert(C.IsInSuitableRange(value: person.skills[parameters.industryType]));
-                person.skills[parameters.industryType] = 1 - (1 - person.skills[parameters.industryType]) * MathHelper.Pow(1 - person.talents[parameters.industryType], CurWorldManager.Elapsed.TotalSeconds * workingPropor * CurWorldConfig.personTimeSkillCoeff);
-                Debug.Assert(C.IsInSuitableRange(value: person.skills[parameters.industryType]));
-            }
+                => person.skills[parameters.industryType] = Score.BringCloser
+                (
+                    current: person.skills[parameters.industryType],
+                    target: Score.best,
+                    elapsed: CurWorldManager.Elapsed * workingPropor,
+                    // TODO: get rid of hard-coded constant
+                    halvingDifferenceDuration: TimeSpan.FromSeconds(20)
+                );
+            // TODO: delete
+            //=> person.skills[parameters.industryType] = 1 - (1 - person.skills[parameters.industryType]) * MyMathHelper.Pow(1 - person.talents[parameters.industryType], (UDouble)CurWorldManager.Elapsed.TotalSeconds * workingPropor * CurWorldConfig.personTimeSkillCoeff);
 
             public override bool CanPersonLeave(Person person)
                 => true;
 
-            public void SetEnergyPropor(double energyPropor)
-            {
-                if (!C.IsInSuitableRange(value: energyPropor))
-                    throw new ArgumentOutOfRangeException();
-                workingPropor = energyPropor / MathHelper.Max(1, curUnboundedSkillPropor);
-            }
+            public void SetEnergyPropor(Propor energyPropor)
+                => workingPropor = Propor.Create((UDouble)energyPropor, MyMathHelper.Max((UDouble)1, curUnboundedSkillPropor)).Value;
 
             public string GetInfo()
-                => $"have {peopleHere.Sum(person => person.skills[parameters.industryType]) / reqSkill.Value * 100:0.}% skill\ndesperation {(IsFull() ? 0 : Desperation() * 100):0.}%\nemployed {peopleHere.Count}\n";
+                => $"have {peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / reqSkill.Value * 100:0.}% skill\ndesperation {(IsFull() ? 0 : (UDouble)desperationScore * 100):0.}%\nemployed {peopleHere.Count}\n";
 
-            private double HiredSkill()
-                => allPeople.Sum(person => person.skills[parameters.industryType]);
+            private UDouble HiredSkill()
+                => allPeople.Sum(person => (UDouble)person.skills[parameters.industryType]);
 
-            private double OpenSpace()
-            {
-                double hiredSkill = HiredSkill();
-                if (hiredSkill >= reqSkill.Value)
-                    return double.NegativeInfinity;
-                double result = 1 - hiredSkill / reqSkill.Value;
-                Debug.Assert(C.IsInSuitableRange(result));
-                return result;
-            }
+            private Propor OpenSpacePropor()
+                => Propor.Create(part: HiredSkill(), whole: reqSkill.Value) switch
+                {
+                    Propor hiredPropor => hiredPropor.Opposite(),
+                    null => Propor.empty
+                };
 
-            private double Desperation()
-            {
-                Debug.Assert(avgVacancyDuration >= TimeSpan.Zero);
-                double openSpace = OpenSpace();
-                if (openSpace is double.NegativeInfinity)
-                    return double.NegativeInfinity;
-                return MathHelper.Tanh(avgVacancyDuration.TotalSeconds * openSpace * CurWorldConfig.jobVacDespCoeff);
-            }
+            // TODO: delete
+            //private Score DesperationScore()
+            //{
+            //    // TODO:
+            //    //Debug.Assert(avgVacancyDuration >= TimeSpan.Zero);
+            //    return Score.FromUnboundedUDouble
+            //    (
+            //        value: (UDouble)avgVacancyDuration.TotalSeconds * OpenSpacePropor(),
+            //        valueGettingAverageScore: CurWorldConfig.jobVacDespValueConsideredAverage
+            //    );
+            //    //Propor openSpace = OpenSpacePropor();
+            //    //if (openSpace is double.NegativeInfinity)
+            //    //    return double.NegativeInfinity;
+            //    //return MyMathHelper.Tanh(avgVacancyDuration.TotalSeconds * openSpace * CurWorldConfig.jobVacDespCoeff);
+            //}
 
             // each parameter must be between 0 and 1 or double.NegativeInfinity
             // larger means this pair is more likely to work
             // must be between 0 and 1 or double.NegativeInfinity
-            private double NewEmploymentScore(Person person)
-                => CurWorldConfig.personJobEnjoymentCoeff * PersonScoreOfThis(person: person)
-                + CurWorldConfig.personTalentCoeff * person.talents[parameters.industryType]
-                + CurWorldConfig.personSkillCoeff * person.skills[parameters.industryType]
-                + CurWorldConfig.jobDesperationCoeff * Desperation()
-                + CurWorldConfig.playerToJobDistCoeff * DistanceToHere(person: person);
+            private Score NewEmploymentScore(Person person)
+                => Score.Combine
+                (
+                    (weight: CurWorldConfig.personJobEnjoymentWeight, score: PersonScoreOfThis(person: person)),
+                    (weight: CurWorldConfig.personTalentWeight, score: person.talents[parameters.industryType]),
+                    (weight: CurWorldConfig.personSkillWeight, score: person.skills[parameters.industryType]),
+                    (weight: CurWorldConfig.jobDesperationWeight, score: desperationScore),
+                    (weight: CurWorldConfig.playerToJobDistWeight, score: DistanceToHere(person: person))
+                );
+                // TODO: delete
+                //=> CurWorldConfig.personJobEnjoymentCoeff * PersonScoreOfThis(person: person)
+                //+ CurWorldConfig.personTalentCoeff * person.talents[parameters.industryType]
+                //+ CurWorldConfig.personSkillCoeff * person.skills[parameters.industryType]
+                //+ CurWorldConfig.jobDesperationCoeff * Desperation()
+                //+ CurWorldConfig.playerToJobDistCoeff * DistanceToHere(person: person);
 
-            private double CurrentEmploymentScore(Person person)
+            private Score CurrentEmploymentScore(Person person)
             {
                 if (!IsPersonQueuedOrHere(person: person))
                     throw new ArgumentException();
-                return CurWorldConfig.personJobEnjoymentCoeff * PersonScoreOfThis(person: person)
-                    + CurWorldConfig.personTalentCoeff * person.talents[parameters.industryType]
-                    + CurWorldConfig.personSkillCoeff * person.skills[parameters.industryType];
+                return Score.Combine
+                    (
+                        (weight: CurWorldConfig.personJobEnjoymentWeight, score: PersonScoreOfThis(person: person)),
+                        (weight: CurWorldConfig.personTalentWeight, score: person.talents[parameters.industryType]),
+                        (weight: CurWorldConfig.personSkillWeight, score: person.skills[parameters.industryType])
+                    );
+                    // TODO: delete
+                    //CurWorldConfig.personJobEnjoymentWeight * PersonScoreOfThis(person: person)
+                    //+CurWorldConfig.personTalentWeight * person.talents[parameters.industryType]
+                    //+ CurWorldConfig.personSkillWeight * person.skills[parameters.industryType];
             }
         }
 
@@ -186,19 +233,19 @@ namespace Game1.Industries
                 false => EnergyPriority.maximal
             };
 
-        Vector2 IEnergyConsumer.NodePos
+        MyVector2 IEnergyConsumer.NodePos
             => state.position;
 
         public override IEnumerable<Person> PeopleHere
             => employer.PeopleHere;
         
         protected bool CanStartProduction { get; private set; }
-        protected double CurSkillPropor
+        protected Propor CurSkillPropor
             => employer.CurSkillPropor;
 
         private readonly Params parameters;
         private readonly Employer employer;
-        private double energyPropor;
+        private Propor energyPropor;
 
         protected ProductiveIndustry(NodeState state, Params parameters)
             : base(state: state)
@@ -213,7 +260,7 @@ namespace Game1.Industries
             );
 
             CanStartProduction = true;
-            energyPropor = 0;
+            energyPropor = Propor.empty;
 
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
         }
@@ -231,7 +278,7 @@ namespace Game1.Industries
             return result;
         }
 
-        protected abstract Industry InternalUpdate(double workingPropor);
+        protected abstract Industry InternalUpdate(Propor workingPropor);
 
         protected override void Delete()
         {
@@ -248,12 +295,10 @@ namespace Game1.Industries
                 peopleCase: () => employer.GetInfo()
             );
 
-        public abstract double ReqWatts();
+        public abstract UDouble ReqWatts();
 
-        void IEnergyConsumer.ConsumeEnergy(double energyPropor)
+        void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
         {
-            if (!C.IsInSuitableRange(value: energyPropor))
-                throw new ArgumentOutOfRangeException();
             this.energyPropor = energyPropor;
             employer.SetEnergyPropor(energyPropor: energyPropor);
         }

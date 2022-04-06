@@ -32,7 +32,7 @@ namespace Game1
                 (from person in people
                  where person.IfSeeksNewActivity()
                  select person)
-                .OrderBy(person => C.Random(min: 0, max: 1))
+                .OrderBy(person => C.Random(min: (double)0, max: 1))
             );
 
             while (availablePeople.Count > 0)

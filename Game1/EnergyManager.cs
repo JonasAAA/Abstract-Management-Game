@@ -8,7 +8,7 @@ namespace Game1
     {
         private readonly MySet<IEnergyProducer> energyProducers;
         private readonly MySet<IEnergyConsumer> energyConsumers;
-        private double totReqWatts, totProdWatts, totUsedLocalWatts, totUsedPowerPlantWatts;
+        private UDouble totReqWatts, totProdWatts, totUsedLocalWatts, totUsedPowerPlantWatts;
 
         public EnergyManager()
         {
@@ -36,14 +36,14 @@ namespace Game1
                 energyConsumer.Deleted.Add(listener: this);
         }
 
-        public void DistributeEnergy(IEnumerable<Vector2> nodePositions, IReadOnlyDictionary<Vector2, Node> posToNode)
+        public void DistributeEnergy(IEnumerable<MyVector2> nodePositions, IReadOnlyDictionary<MyVector2, Node> posToNode)
         {
-            Dictionary<IEnergyConsumer, double> reqWattsByConsumer = energyConsumers.ToDictionary
+            Dictionary<IEnergyConsumer, UDouble> reqWattsByConsumer = energyConsumers.ToDictionary
             (
                 keySelector: energyConsumer => energyConsumer,
                 elementSelector: energyConsumer =>
                 {
-                    double curReqWatts = energyConsumer.ReqWatts();
+                    UDouble curReqWatts = energyConsumer.ReqWatts();
                     if (curReqWatts < 0)
                         throw new Exception();
                     return curReqWatts;
@@ -55,7 +55,7 @@ namespace Game1
             totUsedLocalWatts = 0;
             totUsedPowerPlantWatts = 0;
 
-            Dictionary<Vector2, MySet<IEnergyConsumer>> energyConsumersByNode = new();
+            Dictionary<MyVector2, MySet<IEnergyConsumer>> energyConsumersByNode = new();
             foreach (var nodePos in nodePositions)
                 energyConsumersByNode[nodePos] = new();
             foreach (var energyConsumer in energyConsumers)
@@ -64,46 +64,38 @@ namespace Game1
             foreach (var (nodePos, sameNodeEnergyConsumers) in energyConsumersByNode)
             {
                 var node = posToNode[nodePos];
-                double availableWatts = DistributePartOfEnergy
+                UDouble availableWatts = DistributePartOfEnergy
                 (
                     energyConsumers: sameNodeEnergyConsumers,
                     availableWatts: node.LocallyProducedWatts
                 );
                 node.SetRemainingLocalWatts(remainingLocalWatts: availableWatts);
-                totUsedLocalWatts += node.LocallyProducedWatts - availableWatts;
+                totUsedLocalWatts += (UDouble)((double)node.LocallyProducedWatts - (double)availableWatts);
             }
 
-            double totAvailableWatts = DistributePartOfEnergy
+            UDouble totAvailableWatts = DistributePartOfEnergy
             (
                 energyConsumers: energyConsumers,
                 availableWatts: totProdWatts
             );
 
-            totUsedPowerPlantWatts = totProdWatts - totAvailableWatts;
+            totUsedPowerPlantWatts = (UDouble)((double)totProdWatts - (double)totAvailableWatts);
 
             foreach (var energyConsumer in energyConsumers)
             {
-                double curReqWatts = energyConsumer.ReqWatts();
-                if (C.IsTiny(value: curReqWatts))
-                    curReqWatts = 0;
-                double energyPropor = curReqWatts switch
+                UDouble curReqWatts = energyConsumer.ReqWatts();
+                Propor energyPropor = MyMathHelper.IsTiny(value: curReqWatts) switch
                 {
-                    0 => 1,
-                    not 0 => 1 - reqWattsByConsumer[energyConsumer] / curReqWatts
+                    true => Propor.full,
+                    false => Propor.Create(reqWattsByConsumer[energyConsumer], curReqWatts).Value.Opposite()
                 };
-                if (C.IsTiny(value: energyPropor))
-                    energyPropor = 0;
-                if (C.IsTiny(value: energyPropor - 1))
-                    energyPropor = 1;
-                Debug.Assert(C.IsInSuitableRange(value: energyPropor));
-
-                if (energyConsumer.EnergyPriority == EnergyPriority.minimal && !C.IsTiny(energyPropor - 1))
+                if (energyConsumer.EnergyPriority == EnergyPriority.minimal && !energyPropor.IsCloseTo(other: Propor.full))
                     throw new Exception();
                 energyConsumer.ConsumeEnergy(energyPropor: energyPropor);
             }
 
             // returns remaining watts
-            double DistributePartOfEnergy(IEnumerable<IEnergyConsumer> energyConsumers, double availableWatts)
+            UDouble DistributePartOfEnergy(IEnumerable<IEnergyConsumer> energyConsumers, UDouble availableWatts)
             {
                 SortedDictionary<EnergyPriority, MySet<IEnergyConsumer>> energyConsumersByPriority = new();
                 foreach (var energyConsumer in energyConsumers)
@@ -116,24 +108,23 @@ namespace Game1
 
                 foreach (var (priority, samePriorEnergyConsumers) in energyConsumersByPriority)
                 {
-                    double reqWatts = samePriorEnergyConsumers.Sum(energyConsumer => reqWattsByConsumer[energyConsumer]),
-                        energyPropor;
+                    UDouble reqWatts = samePriorEnergyConsumers.Sum(energyConsumer => reqWattsByConsumer[energyConsumer]);
+                    Propor energyPropor;
 
                     if (availableWatts < reqWatts)
                     {
-                        energyPropor = availableWatts / reqWatts;
+                        energyPropor = (Propor)(availableWatts / reqWatts);
                         availableWatts = 0;
                     }
                     else
                     {
-                        energyPropor = 1;
-                        availableWatts -= reqWatts;
+                        energyPropor = Propor.full;
+                        availableWatts = (UDouble)((double)availableWatts - (double)reqWatts);
                     }
-                    Debug.Assert(C.IsInSuitableRange(value: energyPropor));
 
                     foreach (var energyConsumer in samePriorEnergyConsumers)
                     {
-                        reqWattsByConsumer[energyConsumer] *= 1 - energyPropor;
+                        reqWattsByConsumer[energyConsumer] *= energyPropor.Opposite();
                         Debug.Assert(reqWattsByConsumer[energyConsumer] >= 0);
                     }
                 }

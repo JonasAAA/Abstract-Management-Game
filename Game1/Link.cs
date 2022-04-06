@@ -26,34 +26,36 @@ namespace Game1
                 => deleted;
 
             public readonly Node startNode, endNode;
-            public double JoulesPerKg
-                => timedPacketQueue.duration.TotalSeconds * reqWattsPerKg;
+            public UDouble JoulesPerKg
+                => (UDouble)timedPacketQueue.duration.TotalSeconds * reqWattsPerKg;
             public TimeSpan TravelTime
                 => timedPacketQueue.duration;
 
             private readonly TimedPacketQueue timedPacketQueue;
-            private readonly double minSafePropor;
+            private readonly Propor minSafePropor;
             private ResAmountsPacketsByDestin waitingResAmountsPackets;
             private readonly MySet<Person> waitingPeople;
-            private readonly double reqWattsPerKg;
-            private double energyPropor;
+            private readonly UDouble reqWattsPerKg;
+            private Propor energyPropor;
             private readonly Event<IDeletedListener> deleted;
 
-            public DirLink(Node startNode, Node endNode, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
+            public DirLink(Node startNode, Node endNode, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
             {
                 this.startNode = startNode;
                 this.endNode = endNode;
 
                 timedPacketQueue = new(duration: travelTime);
-                minSafePropor = minSafeDist / Vector2.Distance(startNode.Position, endNode.Position);
-                if (!C.IsInSuitableRange(value: minSafePropor))
-                    throw new ArgumentOutOfRangeException();
+                minSafePropor = Propor.Create(part: minSafeDist, whole: MyVector2.Distance(startNode.Position, endNode.Position)) switch
+                {
+                    Propor propor => propor,
+                    null => throw new ArgumentException()
+                };
                 waitingResAmountsPackets = new();
                 waitingPeople = new();
                 if (wattsPerKg <= 0)
                     throw new ArgumentOutOfRangeException();
-                reqWattsPerKg = wattsPerKg / travelTime.TotalSeconds;
-                energyPropor = 0;
+                reqWattsPerKg = wattsPerKg / (UDouble)travelTime.TotalSeconds;
+                energyPropor = Propor.empty;
                 deleted = new();
 
                 CurWorldManager.AddEnergyConsumer(energyConsumer: this);
@@ -80,16 +82,17 @@ namespace Game1
             public void Update()
             {
                 timedPacketQueue.Update(workingPropor: energyPropor);
+                var (resAmountsPackets, people) = timedPacketQueue.DonePacketsAndPeople();
+                endNode.Arrive(resAmountsPackets: resAmountsPackets);
+                endNode.Arrive(people: people);
+
                 if ((!waitingResAmountsPackets.Empty || waitingPeople.Count > 0)
-                    && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionProp() >= minSafePropor))
+                    && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionPropor() >= minSafePropor))
                 {
                     timedPacketQueue.Enqueue(resAmountsPackets: waitingResAmountsPackets, people: waitingPeople);
                     waitingResAmountsPackets = new();
                     waitingPeople.Clear();
                 }
-                var (resAmountsPackets, people) = timedPacketQueue.DonePacketsAndPeople();
-                endNode.Arrive(resAmountsPackets: resAmountsPackets);
-                endNode.Arrive(people: people);
             }
 
             public void UpdatePeople()
@@ -117,37 +120,37 @@ namespace Game1
                     peopleCase: () =>
                     {
                         foreach (var (complProp, (_, people)) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: people.Count());
+                            DrawDisk(complProp: complProp, size: (UDouble)people.Count());
                     }
                 );
 
-                void DrawDisk(double complProp, double size)
+                void DrawDisk(Propor complProp, UDouble size)
                     => C.Draw
                     (
                         texture: diskTexture,
-                        position: startNode.Position + (float)complProp * (endNode.Position - startNode.Position),
+                        position: startNode.Position + (double)complProp * (endNode.Position - startNode.Position),
                         color: Color.Black,
                         rotation: 0,
-                        origin: new Vector2(diskTexture.Width * .5f, diskTexture.Height * .5f),
-                        scale: (float)MathHelper.Sqrt(size) * 2 / diskTexture.Width
+                        origin: new MyVector2(diskTexture.Width * .5, diskTexture.Height * .5),
+                        scale: MyMathHelper.Sqrt(size) * 2 / (UDouble)diskTexture.Width
                     );
             }
 
             EnergyPriority IEnergyConsumer.EnergyPriority
                 => CurWorldConfig.linkEnergyPriority;
 
-            Vector2 IEnergyConsumer.NodePos
+            MyVector2 IEnergyConsumer.NodePos
                 => startNode.Position;
 
-            double IEnergyConsumer.ReqWatts()
+            UDouble IEnergyConsumer.ReqWatts()
                 => timedPacketQueue.TotalWeight * reqWattsPerKg;
 
-            void IEnergyConsumer.ConsumeEnergy(double energyPropor)
+            void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
                 => this.energyPropor = energyPropor;
         }
 
         public readonly Node node1, node2;
-        public double JoulesPerKg
+        public UDouble JoulesPerKg
             => link1To2.JoulesPerKg;
         public TimeSpan TravelTime
             => link1To2.TravelTime;
@@ -156,14 +159,14 @@ namespace Game1
         private readonly MyArray<TextBox> resTextBoxes;
         private readonly TextBox allResTextBox, peopleTextBox;
 
-        public Link(Node node1, Node node2, TimeSpan travelTime, double wattsPerKg, double minSafeDist)
+        public Link(Node node1, Node node2, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
             : base
             (
                 shape: new LineSegment
                 (
                     startPos: node1.Position,
                     endPos: node2.Position,
-                    width: new ChangingUFloat(CurWorldConfig.linkWidth)
+                    width: new ChangingUDouble(CurWorldConfig.linkWidth)
                 ),
                 activeColor: Color.White,
                 inactiveColor: Color.Green,

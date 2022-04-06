@@ -9,48 +9,49 @@ namespace Game1
     public class WorldCamera : Camera, IPosTransformer
     {
         private Matrix worldToScreen, screenToWorld;
-        private double scale;
-        private Vector2 worldCenter, screenCenter;
+        private UDouble scale;
+        private MyVector2 worldCenter;
+        private readonly MyVector2 screenCenter;
 
-        public WorldCamera(double startingWorldScale)
+        public WorldCamera(UDouble startingWorldScale)
         {
             scale = startingWorldScale;
             worldCenter = new(0, 0);
-            screenCenter = new((float)(ActiveUIManager.ScreenWidth * .5), (float)(ActiveUIManager.ScreenHeight * .5));
+            screenCenter = new((double)ActiveUIManager.ScreenWidth * .5, (double)ActiveUIManager.ScreenHeight * .5);
             Update(elapsed: TimeSpan.Zero, canScroll: false);
         }
 
-        public Vector2 WorldPos(Vector2 screenPos)
-            => Vector2.Transform(position: screenPos, matrix: screenToWorld);
+        public MyVector2 WorldPos(MyVector2 screenPos)
+            => MyVector2.Transform(position: screenPos, matrix: screenToWorld);
 
-        public Vector2 ScreenPos(Vector2 worldPos)
-            => Vector2.Transform(position: worldPos, matrix: worldToScreen);
+        public MyVector2 ScreenPos(MyVector2 worldPos)
+            => MyVector2.Transform(position: worldPos, matrix: worldToScreen);
 
         public void Update(TimeSpan elapsed, bool canScroll)
         {
             if (canScroll)
             {
-                float scrollDist = CurWorldConfig.scrollSpeed * (float)elapsed.TotalSeconds;
-                if (ActiveUIManager.MouseHUDPos.X <= CurWorldConfig.screenBoundWidthForMapMoving)
-                    worldCenter.X -= scrollDist;
-                if (ActiveUIManager.MouseHUDPos.X >= ActiveUIManager.ScreenWidth - CurWorldConfig.screenBoundWidthForMapMoving)
-                    worldCenter.X += scrollDist;
-                if (ActiveUIManager.MouseHUDPos.Y <= CurWorldConfig.screenBoundWidthForMapMoving)
-                    worldCenter.Y -= scrollDist;
-                if (ActiveUIManager.MouseHUDPos.Y >= ActiveUIManager.ScreenHeight - CurWorldConfig.screenBoundWidthForMapMoving)
-                    worldCenter.Y += scrollDist;
+                double scrollDist = (double)CurWorldConfig.scrollSpeed * elapsed.TotalSeconds;
+                if (ActiveUIManager.MouseHUDPos.X <= (double)CurWorldConfig.screenBoundWidthForMapMoving)
+                    worldCenter = worldCenter with { X = worldCenter.X - scrollDist };
+                if (ActiveUIManager.MouseHUDPos.X >= (double)ActiveUIManager.ScreenWidth - (double)CurWorldConfig.screenBoundWidthForMapMoving)
+                    worldCenter = worldCenter with { X = worldCenter.X + scrollDist };
+                if (ActiveUIManager.MouseHUDPos.Y <= (double)CurWorldConfig.screenBoundWidthForMapMoving)
+                    worldCenter = worldCenter with { Y = worldCenter.Y - scrollDist };
+                if (ActiveUIManager.MouseHUDPos.Y >= (double)ActiveUIManager.ScreenHeight - (double)CurWorldConfig.screenBoundWidthForMapMoving)
+                    worldCenter = worldCenter with { Y = worldCenter.Y + scrollDist };
             }
 
             // temporary
-            double scaleChange = MathHelper.Pow(.5, elapsed.TotalSeconds);
+            UDouble scaleChange = MyMathHelper.Pow((UDouble).5, elapsed.TotalSeconds);
             if (Keyboard.GetState().IsKeyDown(Keys.O))
                 scale *= scaleChange;
             if (Keyboard.GetState().IsKeyDown(Keys.I))
                 scale /= scaleChange;
 
-            worldToScreen = Matrix.CreateTranslation(-worldCenter.X * (float)ScreenScale, -worldCenter.Y * (float)ScreenScale, 0) *
+            worldToScreen = Matrix.CreateTranslation((float)(-worldCenter.X * ScreenScale), (float)(-worldCenter.Y * ScreenScale), 0) *
                 Matrix.CreateScale((float)scale) *
-                Matrix.CreateTranslation(screenCenter.X, screenCenter.Y, 0) *
+                Matrix.CreateTranslation((float)screenCenter.X, (float)screenCenter.Y, 0) *
                 Matrix.CreateScale((float)ScreenScale);
 
             screenToWorld = Matrix.Invert(worldToScreen);
@@ -59,7 +60,7 @@ namespace Game1
         public override Matrix GetToScreenTransform()
             => worldToScreen;
 
-        Vector2 IPosTransformer.Transform(Vector2 screenPos)
+        MyVector2 IPosTransformer.Transform(MyVector2 screenPos)
             => WorldPos(screenPos: screenPos);
     }
 }

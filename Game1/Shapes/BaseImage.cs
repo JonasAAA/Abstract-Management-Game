@@ -1,40 +1,43 @@
-﻿namespace Game1.Shapes
+﻿using Game1.PrimitiveTypeWrappers;
+
+namespace Game1.Shapes
 {
     // about texture.GetData and texture.SetData https://gamedev.stackexchange.com/questions/89567/texture2d-setdata-method-overload
     [Serializable]
     public abstract class BaseImage : Shape
     {
-        public float rotation;
+        public double rotation;
 
         protected readonly BaseTexture texture;
 
-        private readonly Vector2 origin, scale;
+        private readonly MyVector2 origin;
+        private readonly UDouble scaleX, scaleY;
 
-        protected BaseImage(BaseTexture texture, Vector2? origin = null, float? width = null, float? height = null)
+        protected BaseImage(BaseTexture texture, MyVector2? origin = null, UDouble? width = null, UDouble? height = null)
         {
             this.texture = texture;
             
-            this.origin = origin ?? new(this.texture.Width * .5f, this.texture.Height * .5f);
-            scale = new(1);
+            this.origin = origin ?? new(this.texture.Width * .5, this.texture.Height * .5);
+            scaleX = 1;
+            scaleY = 1;
             if (width.HasValue)
             {
-                scale.X = width.Value / this.texture.Width;
+                scaleX = width.Value / (UDouble)this.texture.Width;
                 if (!height.HasValue)
-                    scale.Y = scale.X;
+                    scaleY = scaleX;
             }
             if (height.HasValue)
             {
-                scale.Y = height.Value / this.texture.Height;
+                scaleY = height.Value / (UDouble)this.texture.Height;
                 if (!width.HasValue)
-                    scale.X = scale.Y;
+                    scaleX = scaleY;
             }
-
             Color = Color.White;
         }
 
-        public override bool Contains(Vector2 position)
+        public override bool Contains(MyVector2 position)
         {
-            Point texturePos = TexturePos(position: position).ToPoint();
+            Point texturePos = (Point)TexturePos(position: position);
 
             if (!texture.Contains(pos: texturePos))
                 return false;
@@ -48,17 +51,18 @@
                 color: color,
                 rotation: rotation,
                 origin: origin,
-                scale: scale
+                scaleX: scaleX,
+                scaleY: scaleY
             );
 
-        protected Vector2 TexturePos(Vector2 position)
+        protected MyVector2 TexturePos(MyVector2 position)
         {
-            Matrix transform = Matrix.CreateTranslation(-Center.X, -Center.Y, 0) *
-                Matrix.CreateRotationZ(-rotation) *
-                Matrix.CreateScale(1 / scale.X, 1 / scale.Y, 1) *
-                Matrix.CreateTranslation(origin.X, origin.Y, 0);
+            Matrix transform = Matrix.CreateTranslation((float)-Center.X, (float)-Center.Y, 0) *
+                Matrix.CreateRotationZ((float)-rotation) *
+                Matrix.CreateScale((float)(1 / scaleX), (float)(1 / scaleY), 1) *
+                Matrix.CreateTranslation((float)origin.X, (float)origin.Y, 0);
 
-            return Vector2.Transform(position, transform);
+            return MyVector2.Transform(position, transform);
         }
     }
 }

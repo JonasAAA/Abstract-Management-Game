@@ -15,7 +15,7 @@ namespace Game1.Industries
                 (
                     name: "house construction",
                     energyPriority: new(energyPriority: 20),
-                    reqSkillPerUnitSurface: (UFloat).1,
+                    reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 10,
                     industryParams: new House.Params
                     (
@@ -29,13 +29,13 @@ namespace Game1.Industries
                 (
                     name: "factory costruction",
                     energyPriority: new(energyPriority: 10),
-                    reqSkillPerUnitSurface: (UFloat).1,
+                    reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 100,
                     industryParams: new Factory.Params
                     (
                         name: "factory0_lvl1",
                         energyPriority: new(energyPriority: 20),
-                        reqSkillPerUnitSurface: (UFloat).1,
+                        reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerUnitSurface: 10,
                         supplyPerUnitSurface: new()
                         {
@@ -51,13 +51,13 @@ namespace Game1.Industries
                 (
                     name: "factory costruction",
                     energyPriority: new(energyPriority: 10),
-                    reqSkillPerUnitSurface: (UFloat).1,
+                    reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 100,
                     industryParams: new Factory.Params
                     (
                         name: "factory1_lvl1",
                         energyPriority: new(energyPriority: 20),
-                        reqSkillPerUnitSurface: (UFloat).1,
+                        reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerUnitSurface: 10,
                         supplyPerUnitSurface: new()
                         {
@@ -73,13 +73,13 @@ namespace Game1.Industries
                 (
                     name: "factory costruction",
                     energyPriority: new(energyPriority: 10),
-                    reqSkillPerUnitSurface: (UFloat).1,
+                    reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 100,
                     industryParams: new Factory.Params
                     (
                         name: "factory2_lvl1",
                         energyPriority: new(energyPriority: 20),
-                        reqSkillPerUnitSurface: (UFloat).1,
+                        reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerUnitSurface: 10,
                         supplyPerUnitSurface: new()
                         {
@@ -95,12 +95,12 @@ namespace Game1.Industries
                 (
                     name: "power plant costruction",
                     energyPriority: new(energyPriority: 10),
-                    reqSkillPerUnitSurface: (UFloat).3,
+                    reqSkillPerUnitSurface: (UDouble).3,
                     reqWattsPerUnitSurface: 100,
                     industryParams: new PowerPlant.Params
                     (
                         name: "power_plant_lvl1",
-                        reqSkillPerUnitSurface: (UFloat).2,
+                        reqSkillPerUnitSurface: (UDouble).2,
                         prodWattsPerUnitSurface: 1000
                     ),
                     duration: TimeSpan.FromSeconds(5),
@@ -110,13 +110,13 @@ namespace Game1.Industries
                 (
                     name: "factory costruction",
                     energyPriority: new(energyPriority: 10),
-                    reqSkillPerUnitSurface: (UFloat).1,
+                    reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 100,
                     industryParams: new Factory.Params
                     (
                         name: "factory0_lvl2",
                         energyPriority: new(energyPriority: 20),
-                        reqSkillPerUnitSurface: (UFloat).1,
+                        reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerUnitSurface: 10,
                         supplyPerUnitSurface: new()
                         {
@@ -139,13 +139,13 @@ namespace Game1.Industries
                 (
                     name: "reprod. ind. constr.",
                     energyPriority: new(energyPriority: 10),
-                    reqSkillPerUnitSurface: (UFloat).05,
+                    reqSkillPerUnitSurface: (UDouble).05,
                     reqWattsPerUnitSurface: 200,
                     industryParams: new ReprodIndustry.Params
                     (
                         name: "reprod. ind.",
                         energyPriority: new(energyPriority: 11),
-                        reqSkillPerUnitSurface: (UFloat).1,
+                        reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerChild: 10,
                         maxCouplesPerUnitSurface: 10,
                         resPerChild: new()

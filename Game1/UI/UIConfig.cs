@@ -5,9 +5,9 @@ namespace Game1.UI
     [Serializable]
     public class UIConfig
     {
-        public readonly int standardScreenHeight;
-        public readonly UFloat rectOutlineWidth;
-        public readonly UFloat letterHeight;
+        public readonly uint standardScreenHeight;
+        public readonly UDouble rectOutlineWidth;
+        public readonly UDouble letterHeight;
         public readonly Color mouseOnColor;
 
         public UIConfig()

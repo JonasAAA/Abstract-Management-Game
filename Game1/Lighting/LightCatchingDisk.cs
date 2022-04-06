@@ -1,5 +1,6 @@
 ﻿using Game1.ChangingValues;
 using Game1.Delegates;
+using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 
 using static Game1.WorldManager;
@@ -11,23 +12,24 @@ namespace Game1.Lighting
     {
         public IEvent<IDeletedListener> Deleted
             => deleted;
-        public IReadOnlyDictionary<Vector2, double> StarPosToWatts
+        public IReadOnlyDictionary<MyVector2, UDouble> StarPosToWatts
             => starPosToWatts;
 
-        public IReadOnlyDictionary<Vector2, double> StarPosToPowerProp
-            => starPosToPowerProp;
+        public IReadOnlyDictionary<MyVector2, Propor> StarPosToPowerPropor
+            => starPosToPowerPropor;
 
-        public double Watts
+        public UDouble Watts
             => starPosToWatts.Values.DefaultIfEmpty().Sum();
 
-        private readonly Dictionary<Vector2, double> starPosToWatts, starPosToPowerProp;
+        private readonly Dictionary<MyVector2, UDouble> starPosToWatts;
+        private readonly Dictionary<MyVector2, Propor> starPosToPowerPropor;
         private readonly Event<IDeletedListener> deleted;
 
-        public LightCatchingDisk(IReadOnlyChangingUFloat radius)
+        public LightCatchingDisk(IReadOnlyChangingUDouble radius)
             : base(radius: radius)
         {
             starPosToWatts = new();
-            starPosToPowerProp = new();
+            starPosToPowerPropor = new();
             deleted = new();
 
             CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
@@ -36,48 +38,49 @@ namespace Game1.Lighting
         public void Delete()
             => deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
 
-        IEnumerable<float> ILightCatchingObject.RelAngles(Vector2 lightPos)
+        IEnumerable<double> ILightCatchingObject.RelAngles(MyVector2 lightPos)
         {
-            float dist = Vector2.Distance(lightPos, Center);
+            UDouble dist = MyVector2.Distance(lightPos, Center);
             if (dist <= radius.Value)
                 yield break;
 
-            float a = radius.Value / Vector2.Distance(lightPos, Center),
-                  b = (float)MathHelper.Sqrt(1 - a * a);
-            Vector2 center = Center * b * b + lightPos * a * a,
+            double a = (double)(radius.Value / MyVector2.Distance(lightPos, Center)),
+                  b = (double)MyMathHelper.Sqrt((UDouble)(1 - a * a));
+            MyVector2 center = Center * b * b + lightPos * a * a,
                     diff = Center - lightPos,
                     orth = new(diff.Y, -diff.X),
                     point1 = center + orth * a * b - lightPos,
                     point2 = center - orth * a * b - lightPos;
-            yield return (float)MathHelper.Atan2(point1.Y, point1.X);
-            yield return (float)MathHelper.Atan2(point2.Y, point2.X);
+            yield return (double)MyMathHelper.Atan2(point1.Y, point1.X);
+            yield return (double)MyMathHelper.Atan2(point2.Y, point2.X);
         }
 
-        IEnumerable<float> ILightCatchingObject.InterPoints(Vector2 lightPos, Vector2 lightDir)
+        IEnumerable<double> ILightCatchingObject.InterPoints(MyVector2 lightPos, MyVector2 lightDir)
         {
-            Vector2 d = lightPos - Center;
-            float e = Vector2.Dot(lightDir, d), f = Vector2.Dot(d, d) - radius.Value * radius.Value, g = e * e - f;
-            if (g < 0)
-                yield break;
+            MyVector2 d = lightPos - Center;
+            double e = MyVector2.Dot(lightDir, d), 
+                f = MyVector2.Dot(d, d) - (double)(radius.Value * radius.Value),
+                g = e * e - f;
+            
+            switch (UDouble.Create(value: g))
+            {
+                case null:
+                    yield break;
+                case UDouble nonnegG:
+                    double h = (double)MyMathHelper.Sqrt(nonnegG);
+                    if (double.IsNaN(h))
+                        yield break;
 
-            float h = (float)MathHelper.Sqrt(g);
-
-            if (float.IsNaN(h))
-                yield break;
-
-            yield return -e + h + 1f;
-            yield return -e - h + 1f;
+                    yield return -e + h + 1;
+                    yield return -e - h + 1;
+                    break;
+            }
         }
 
-        void ILightCatchingObject.SetWatts(Vector2 starPos, double watts, double powerPropor)
+        void ILightCatchingObject.SetWatts(MyVector2 starPos, UDouble watts, Propor powerPropor)
         {
-            if (watts < 0)
-                throw new ArgumentOutOfRangeException();
-            if (powerPropor < 0)
-                throw new ArgumentOutOfRangeException();
-
             starPosToWatts[starPos] = watts;
-            starPosToPowerProp[starPos] = powerPropor;
+            starPosToPowerPropor[starPos] = powerPropor;
         }
     }
 }

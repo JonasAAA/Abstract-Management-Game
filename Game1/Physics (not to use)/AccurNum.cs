@@ -8,10 +8,10 @@
         private AccurNum(long num)
             => this.num = num;
 
-        public static explicit operator float(AccurNum a)
-            => (float)a.num / C.accurScale;
+        public static explicit operator double(AccurNum a)
+            => (double)a.num / C.accurScale;
 
-        public static explicit operator AccurNum(float a)
+        public static explicit operator AccurNum(double a)
             => new(Convert.ToInt64(a * C.accurScale));
 
         public static AccurNum operator -(AccurNum a)

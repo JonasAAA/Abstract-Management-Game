@@ -12,7 +12,7 @@ namespace Game1.Industries
 
         public ActivityType ActivityType { get; }
 
-        public Vector2 Position
+        public MyVector2 Position
             => state.position;
 
         public EnergyPriority EnergyPriority { get; private set; }
@@ -44,7 +44,7 @@ namespace Game1.Industries
 
         public abstract bool IsPersonSuitable(Person person);
 
-        public abstract double PersonScoreOfThis(Person person);
+        public abstract Score PersonScoreOfThis(Person person);
 
         public void QueuePerson(Person person)
             => allPeople.Add(person);
@@ -93,7 +93,9 @@ namespace Game1.Industries
 
         // must be between 0 and 1 or double.NegativeInfinity
         // should later be changed to graph distance (either time or energy cost)
-        protected double DistanceToHere(Person person)
-            => 1 - MathHelper.Tanh(Vector2.Distance(person.ClosestNodePos, Position) / 100);
+        protected Score DistanceToHere(Person person)
+            // TODO: get rid of hard-coded constant
+            => Score.FromUnboundedUDouble(value: MyVector2.Distance(person.ClosestNodePos, Position), valueGettingAverageScore: 100).Opposite();
+            //1 - MyMathHelper.Tanh(MyVector2.Distance(person.ClosestNodePos, Position) / 100);
     }
 }

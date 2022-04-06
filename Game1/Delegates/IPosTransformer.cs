@@ -4,6 +4,6 @@ namespace Game1.Delegates
 {
     public interface IPosTransformer
     {
-        public Vector2 Transform(Vector2 screenPos);
+        public MyVector2 Transform(MyVector2 screenPos);
     }
 }

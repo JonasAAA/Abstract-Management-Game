@@ -25,12 +25,8 @@ namespace Game1
             queue = new();
         }
 
-        public void Update(double workingPropor)
-        {
-            if (!C.IsInSuitableRange(value: workingPropor))
-                throw new ArgumentOutOfRangeException();
-            currentLocalTime += CurWorldManager.Elapsed * workingPropor;
-        }
+        public void Update(Propor workingPropor)
+            => currentLocalTime += CurWorldManager.Elapsed * workingPropor;
 
         public virtual void Enqueue(T element)
         {
@@ -48,23 +44,23 @@ namespace Game1
             }
         }
 
-        public IEnumerable<(double complProp, T element)> GetData()
+        public IEnumerable<(Propor complPropor, T element)> GetData()
         {
             Debug.Assert(endTimeQueue.Count == queue.Count);
 
             foreach (var (endTime, element) in endTimeQueue.Zip(queue))
                 yield return
                 (
-                    complProp: C.DonePart(timeLeft: endTime - currentLocalTime, duration: duration),
+                    complPropor: C.DonePropor(timeLeft: endTime - currentLocalTime, duration: duration),
                     element: element
                 );
         }
 
-        public double LastCompletionProp()
+        public Propor LastCompletionPropor()
         {
             if (Count is 0)
                 throw new InvalidOperationException();
-            return C.DonePart(timeLeft: lastEndTime - currentLocalTime, duration: duration);
+            return C.DonePropor(timeLeft: lastEndTime - currentLocalTime, duration: duration);
         }
     }
 }

@@ -7,7 +7,7 @@
             : base(width: 0, height: 0)
         { }
 
-        public override bool Contains(Vector2 position)
+        public override bool Contains(MyVector2 position)
             => false;
 
         protected override void Draw(Color color)

@@ -2,10 +2,10 @@
 {
     public interface ILightCatchingObject : IDeletable
     {
-        public IEnumerable<float> RelAngles(Vector2 lightPos);
+        public IEnumerable<double> RelAngles(MyVector2 lightPos);
 
-        public IEnumerable<float> InterPoints(Vector2 lightPos, Vector2 lightDir);
+        public IEnumerable<double> InterPoints(MyVector2 lightPos, MyVector2 lightDir);
 
-        public void SetWatts(Vector2 starPos, double watts, double powerPropor);
+        public void SetWatts(MyVector2 starPos, UDouble watts, Propor powerPropor);
     }
 }

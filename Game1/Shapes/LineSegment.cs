@@ -13,11 +13,11 @@ namespace Game1.Shapes
         protected override Texture2D Texture
             => pixelTexture;
 
-        public LineSegment(Vector2 startPos, Vector2 endPos, IReadOnlyChangingUFloat width)
+        public LineSegment(MyVector2 startPos, MyVector2 endPos, IReadOnlyChangingUDouble width)
             : base(startPos: startPos, endPos: endPos, width: width)
         { }
 
-        protected override bool Contains(float dirProp, float orthDirProp)
+        protected override bool Contains(Propor dirPropor, Propor orthDirPropor)
             => true;
     }
 }

@@ -66,7 +66,7 @@ namespace Game1
             ActiveUIManager.Initialize(graphicsDevice: GraphicsDevice);
 
             // TODO: consider moving this to a constants class or similar
-            UFloat buttonWidth = 200, buttonHeight = 30;
+            UDouble buttonWidth = 200, buttonHeight = 30;
             MenuState mainMenu = new
             (
                 actionButtons: new List<ActionButton>()

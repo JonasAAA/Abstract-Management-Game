@@ -11,12 +11,12 @@ namespace Game1.Industries
         [Serializable]
         public new class Params : ProductiveIndustry.Params
         {
-            public readonly UFloat reqWattsPerUnitSurface;
+            public readonly UDouble reqWattsPerUnitSurface;
             public readonly Industry.Params industryParams;
             public readonly TimeSpan duration;
             public readonly ResAmounts costPerUnitSurface;
             
-            public Params(string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, UFloat reqWattsPerUnitSurface, Industry.Params industryParams, TimeSpan duration, ResAmounts costPerUnitSurface)
+            public Params(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, Industry.Params industryParams, TimeSpan duration, ResAmounts costPerUnitSurface)
                 : base
                 (
                     industryType: IndustryType.Construction,
@@ -26,7 +26,7 @@ namespace Game1.Industries
                     explanation: $"construction stats:\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(duration)} {duration.TotalSeconds:0.}s\n{nameof(costPerUnitSurface)} {costPerUnitSurface}\n\nbuilding stats:\n{industryParams.explanation}"
                 )
             {
-                if (reqWattsPerUnitSurface <= 0)
+                if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
                     throw new ArgumentOutOfRangeException();
                 this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
                 this.industryParams = industryParams;
@@ -41,7 +41,7 @@ namespace Game1.Industries
         }
 
         private readonly Params parameters;
-        private readonly IReadOnlyChangingUFloat reqWatts;
+        private readonly IReadOnlyChangingUDouble reqWatts;
         private readonly IReadOnlyChangingResAmounts cost;
         private TimeSpan constrTimeLeft;
 
@@ -64,7 +64,7 @@ namespace Game1.Industries
         protected override bool IsBusy()
             => constrTimeLeft < TimeSpan.MaxValue;
 
-        protected override Industry InternalUpdate(double workingPropor)
+        protected override Industry InternalUpdate(Propor workingPropor)
         {
             if (IsBusy())
                 constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;
@@ -98,13 +98,13 @@ namespace Game1.Industries
         {
             string text = base.GetInfo();
             if (IsBusy())
-                text += $"constructing {C.DonePart(timeLeft: constrTimeLeft, duration: parameters.duration) * 100: 0.}%\n";
+                text += $"constructing {C.DonePropor(timeLeft: constrTimeLeft, duration: parameters.duration) * 100.0: 0.}%\n";
             else
                 text += "waiting to start costruction\n";
             return text;
         }
 
-        public override double ReqWatts()
+        public override UDouble ReqWatts()
             // this is correct as if more important people get full energy, this works
             // and if they don't, then the industry will get 0 energy anyway
             => IsBusy() switch

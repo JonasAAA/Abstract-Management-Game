@@ -13,11 +13,11 @@ namespace Game1.Shapes
         protected override Texture2D Texture
             => triangleTexture;
 
-        public Arrow(Vector2 startPos, Vector2 endPos, IReadOnlyChangingUFloat baseWidth)
+        public Arrow(MyVector2 startPos, MyVector2 endPos, IReadOnlyChangingUDouble baseWidth)
             : base(startPos: startPos, endPos: endPos, width: baseWidth)
         { }
 
-        protected override bool Contains(float dirProp, float orthDirProp)
-            => dirProp + orthDirProp < 1;
+        protected override bool Contains(Propor dirPropor, Propor orthDirPropor)
+            => (UDouble)dirPropor + (UDouble)orthDirPropor < 1;
     }
 }

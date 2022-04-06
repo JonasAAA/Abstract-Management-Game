@@ -8,7 +8,7 @@
 //        private readonly HUDPosSetter HUDPosSetter;
 
 //        public WorldHUD()
-//            : base(shape: new MyRectangle(width: (float)ActiveUIManager.ScreenWidth, height: (float)ActiveUIManager.ScreenHeight))
+//            : base(shape: new MyRectangle(width: (double)ActiveUIManager.ScreenWidth, height: (double)ActiveUIManager.ScreenHeight))
 //        {
 //            HUDPosSetter = new();
 //        }

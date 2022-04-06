@@ -10,12 +10,12 @@ namespace Game1
     [Serializable]
     public class Star : WorldUIElement, ILightSource
     {
-        private readonly double prodWatts;
+        private readonly UDouble prodWatts;
         private readonly LightPolygon polygon;
 
         private readonly TextBox popupTextBox;
 
-        public Star(UFloat radius, Vector2 center, double prodWatts, Color color)
+        public Star(UDouble radius, MyVector2 center, UDouble prodWatts, Color color)
             : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
             shape.Center = center;
@@ -39,11 +39,11 @@ namespace Game1
         // could maybe get the time down to O(N log N) by using modified interval tree
         void ILightSource.GiveWattsToObjects(IEnumerable<ILightCatchingObject> lightCatchingObjects)
         {
-            List<float> angles = new();
+            List<double> angles = new();
             foreach (var lightCatchingObject in lightCatchingObjects)
                 angles.AddRange(lightCatchingObject.RelAngles(lightPos: shape.Center));
 
-            const float small = 0.0001f;
+            const double small = .0001;
             int oldAngleCount = angles.Count;
 
             for (int i = 0; i < oldAngleCount; i++)
@@ -54,64 +54,68 @@ namespace Game1
 
             // prepare angles
             for (int i = 0; i < 4; i++)
-                angles.Add(i * 2 * MathHelper.pi / 4);
+                angles.Add(i * 2 * (double)MyMathHelper.pi / 4);
 
-            angles = new SortedSet<float>
+            angles = new SortedSet<double>
             (
                 from angle in angles
-                select MathHelper.WrapAngle(angle)
+                select MyMathHelper.WrapAngle(angle)
             ).ToList();
 
-            List<Vector2> vertices = new();
+            List<MyVector2> vertices = new();
             List<ILightCatchingObject> rayCatchingObjects = new();
             // TODO: consider moving this to constants class
-            UFloat maxDist = 2000;
-            foreach (float angle in angles)
+            UDouble maxDist = 2000;
+            foreach (double angle in angles)
             {
-                Vector2 rayDir = C.Direction(rotation: angle);
-                float minDist = maxDist;
+                MyVector2 rayDir = MyMathHelper.Direction(rotation: angle);
+                UDouble minDist = maxDist;
                 ILightCatchingObject rayCatchingObject = null;
                 foreach (var lightCatchingObject in lightCatchingObjects)
                 {
                     var dists = lightCatchingObject.InterPoints(lightPos: shape.Center, lightDir: rayDir);
                     foreach (var dist in dists)
-                        if (0 <= dist && dist < minDist)
+                        if (UDouble.Create(value: dist) is UDouble nonnegDist && nonnegDist < minDist)
                         {
-                            minDist = dist;
+                            minDist = nonnegDist;
                             rayCatchingObject = lightCatchingObject;
                         }
                 }
                 rayCatchingObjects.Add(rayCatchingObject);
-                vertices.Add(shape.Center + minDist * rayDir);
+                vertices.Add(shape.Center + (double)minDist * rayDir);
             }
 
             Debug.Assert(rayCatchingObjects.Count == angles.Count && vertices.Count == angles.Count);
 
             polygon.Update(center: shape.Center, vertices: vertices);
 
-            Dictionary<ILightCatchingObject, double> powerPropsForObjects = lightCatchingObjects.ToDictionary
+            Dictionary<ILightCatchingObject, UDouble> arcsForObjects = lightCatchingObjects.ToDictionary
             (
                 keySelector: lightCatchingObject => lightCatchingObject,
-                elementSelector: lightCatchingObject => .0
+                elementSelector: lightCatchingObject => (UDouble)0
             );
-            double usedPowerProportion = 0;
+            UDouble usedArc = 0;
             for (int i = 0; i < rayCatchingObjects.Count; i++)
                 if (rayCatchingObjects[i] is not null && rayCatchingObjects[i] == rayCatchingObjects[(i + 1) % rayCatchingObjects.Count])
                 {
-                    double curPowerProportion = MathHelper.Abs(MathHelper.WrapAngle(angles[i] - angles[(i + 1) % angles.Count])) / (2 * MathHelper.pi);
-                    powerPropsForObjects[rayCatchingObjects[i]] += curPowerProportion;
-                    usedPowerProportion += curPowerProportion;
+                    // TODO: delete comments
+                    UDouble curArc = MyMathHelper.Abs(MyMathHelper.WrapAngle(angles[i] - angles[(i + 1) % angles.Count]));// / (2 * MyMathHelper.pi);
+                    arcsForObjects[rayCatchingObjects[i]] += curArc;
+                    usedArc += curArc;
                 }
 
-            popupTextBox.Text = $"generates {prodWatts} power\n{usedPowerProportion * 100:0.}% of it is used";
+            popupTextBox.Text = $"generates {prodWatts} power\n{usedArc / (2 * MyMathHelper.pi) * 100:0.}% of it is used";
 
             foreach (var lightCatchingObject in lightCatchingObjects)
+            {
+                Propor powerPropor = Propor.Create(part: arcsForObjects[lightCatchingObject], whole: 2 * MyMathHelper.pi).Value;
                 lightCatchingObject.SetWatts
                 (
                     starPos: shape.Center,
-                    watts: powerPropsForObjects[lightCatchingObject] * prodWatts,
-                    powerPropor: powerPropsForObjects[lightCatchingObject]
+                    watts: powerPropor * prodWatts,
+                    powerPropor: powerPropor
                 );
+            }
         }
 
         void ILightSource.Draw(GraphicsDevice graphicsDevice, Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)

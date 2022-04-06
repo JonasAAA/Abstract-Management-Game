@@ -55,11 +55,11 @@ namespace Game1.UI
 
         private readonly UIRectPanel<SelectButton> choicePanel;
         private readonly Dictionary<TChoice, SelectButton> choices;
-        private readonly UFloat choiceWidth, choiceHeight;
+        private readonly UDouble choiceWidth, choiceHeight;
         private readonly Color selectedColor, deselectedColor;
         private TChoice selectedChoiceLabel;
 
-        public MultipleChoicePanel(bool horizontal, UFloat choiceWidth, UFloat choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
+        public MultipleChoicePanel(bool horizontal, UDouble choiceWidth, UDouble choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
             : base(shape: new MyRectangle())
         {
             choiceChanged = new();

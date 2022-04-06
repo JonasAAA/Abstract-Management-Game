@@ -60,23 +60,23 @@ namespace Game1
                 => CurWorldManager.ArrowDrawingModeOn = true;
         }
 
-        public Vector2 Position
+        public MyVector2 Position
             => state.position;
-        public readonly UFloat radius;
-        public double LocallyProducedWatts
+        public readonly UDouble radius;
+        public UDouble LocallyProducedWatts
             => shape.Watts;
 
         private readonly NodeState state;
         private readonly List<Link> links;
         private Industry industry;
         private readonly HouseOld unemploymentCenter;
-        private readonly MyArray<ProporSplitter<Vector2>> resSplittersToDestins;
+        private readonly MyArray<ProporSplitter<MyVector2>> resSplittersToDestins;
         private ResAmounts targetStoredResAmounts;
         private ResAmounts undecidedResAmounts, resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
-        private double remainingLocalWatts;
+        private UDouble remainingLocalWatts;
 
-        private readonly IReadOnlyChangingUFloat resDestinArrowWidth;
+        private readonly IReadOnlyChangingUDouble resDestinArrowWidth;
         private readonly TextBox textBox;
         private readonly MyArray<ToggleButton> storeToggleButtons;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
@@ -100,7 +100,7 @@ namespace Game1
             resSplittersToDestins = new
             (
                 values: from ind in Enumerable.Range(0, ResInd.ResCount)
-                        select new ProporSplitter<Vector2>()
+                        select new ProporSplitter<MyVector2>()
             );
             targetStoredResAmounts = new();
             undecidedResAmounts = new();
@@ -271,7 +271,7 @@ namespace Game1
         public bool IfStore(ResInd resInd)
             => storeToggleButtons[resInd].On;
 
-        public IEnumerable<Vector2> ResDestins(ResInd resInd)
+        public IEnumerable<MyVector2> ResDestins(ResInd resInd)
             => resSplittersToDestins[resInd].Keys;
 
         public ulong TargetStoredResAmount(ResInd resInd)
@@ -280,7 +280,7 @@ namespace Game1
         public ulong StoredResAmount(ResInd resInd)
             => state.storedRes[resInd];
 
-        public bool CanHaveDestin(Vector2 destination)
+        public bool CanHaveDestin(MyVector2 destination)
         {
             if (!Active || !CurWorldManager.ArrowDrawingModeOn)
                 throw new InvalidOperationException();
@@ -288,7 +288,7 @@ namespace Game1
             return destination != Position && !resSplittersToDestins[(ResInd)CurWorldManager.Overlay].ContainsKey(destination);
         }
 
-        public void AddResDestin(Vector2 destination)
+        public void AddResDestin(MyVector2 destination)
         {
             if (!CanHaveDestin(destination: destination))
                 throw new ArgumentException();
@@ -333,11 +333,11 @@ namespace Game1
             }
         }
 
-        public void Update(IReadOnlyDictionary<(Vector2, Vector2), Link> personFirstLinks)
+        public void Update(IReadOnlyDictionary<(MyVector2, MyVector2), Link> personFirstLinks)
         {
             // TODO: delete
             // temporary
-            // state.SetRadius((float)C.Random(0.99, 1.01) * state.radius.Value);
+            // state.SetRadius((double)C.Random(0.99, 1.01) * state.radius.Value);
 
             if (industry is not null)
                 SetIndustry(newIndustry: industry.Update());
@@ -387,7 +387,7 @@ namespace Game1
         /// <summary>
         /// MUST call StartSplitRes first
         /// </summary>
-        public void SplitRes(IReadOnlyDictionary<Vector2, Node> posToNode, ResInd resInd, Func<Vector2, ulong> maxExtraResFunc)
+        public void SplitRes(IReadOnlyDictionary<MyVector2, Node> posToNode, ResInd resInd, Func<MyVector2, ulong> maxExtraResFunc)
         {
             if (undecidedResAmounts[resInd] is 0)
                 return;
@@ -415,13 +415,13 @@ namespace Game1
         /// <summary>
         /// MUST call SplitRes first
         /// </summary>
-        public void EndSplitRes(IReadOnlyDictionary<(Vector2, Vector2), Link> resFirstLinks)
+        public void EndSplitRes(IReadOnlyDictionary<(MyVector2, MyVector2), Link> resFirstLinks)
         {
             undecidedResAmounts = new();
 
             foreach (var resAmountsPacket in state.waitingResAmountsPackets.DeconstructAndClear())
             {
-                Vector2 destination = resAmountsPacket.destination;
+                MyVector2 destination = resAmountsPacket.destination;
                 Debug.Assert(destination != Position);
 
                 resFirstLinks[(Position, destination)].Add(start: this, resAmountsPacket: resAmountsPacket);
@@ -453,7 +453,7 @@ namespace Game1
                     if (totalStoredWeight > 0)
                         textBox.Text += $"stored total res weight {totalStoredWeight}";
                 },
-                powerCase: () => textBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {shape.Watts - remainingLocalWatts:.##} W is used",
+                powerCase: () => textBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {(double)shape.Watts - (double)remainingLocalWatts:.##} W is used",
                 peopleCase: () => textBox.Text += unemploymentCenter.GetInfo()
             );
 
@@ -476,7 +476,7 @@ namespace Game1
                 }.Draw();
         }
         
-        public void SetRemainingLocalWatts(double remainingLocalWatts)
+        public void SetRemainingLocalWatts(UDouble remainingLocalWatts)
             => this.remainingLocalWatts = remainingLocalWatts;
 
         public override void ChoiceChangedResponse(IOverlay prevOverlay)

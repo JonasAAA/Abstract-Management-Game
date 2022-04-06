@@ -10,7 +10,7 @@ namespace Game1
         public bool Empty
             => TotalWeight is 0;
 
-        private Dictionary<Vector2, ResAmountsPacket> resAmountsPacketsByDestin;
+        private Dictionary<MyVector2, ResAmountsPacket> resAmountsPacketsByDestin;
 
         public ResAmountsPacketsByDestin()
         {
@@ -37,7 +37,7 @@ namespace Game1
             TotalWeight += resAmountsPacket.TotalWeight;
         }
 
-        public void Add(Vector2 destination, ResAmounts resAmounts)
+        public void Add(MyVector2 destination, ResAmounts resAmounts)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
@@ -45,7 +45,7 @@ namespace Game1
             TotalWeight += resAmounts.TotalWeight();
         }
 
-        public void Add(Vector2 destination, ResInd resInd, ulong resAmount)
+        public void Add(MyVector2 destination, ResInd resInd, ulong resAmount)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
@@ -53,7 +53,7 @@ namespace Game1
             TotalWeight += CurResConfig.resources[resInd].weight * resAmount;
         }
 
-        public ResAmounts ReturnAndRemove(Vector2 destination)
+        public ResAmounts ReturnAndRemove(MyVector2 destination)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 return new();
@@ -64,7 +64,7 @@ namespace Game1
             return resAmountsPacket.ResAmounts;
         }
 
-        public ResAmounts ResToDestinAmounts(Vector2 destination)
+        public ResAmounts ResToDestinAmounts(MyVector2 destination)
             => resAmountsPacketsByDestin.ContainsKey(destination) switch
             {
                 true => resAmountsPacketsByDestin[destination].ResAmounts,

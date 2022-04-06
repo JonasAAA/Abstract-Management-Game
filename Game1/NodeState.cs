@@ -15,21 +15,21 @@ namespace Game1
         //public double SurfaceGravitationalAccel
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
 
-        public readonly IReadOnlyChangingUFloat radius;
-        public readonly Vector2 position;
+        public readonly IReadOnlyChangingUDouble radius;
+        public readonly MyVector2 position;
         public readonly ulong maxBatchDemResStored;
         public ResAmounts storedRes;
         public ResAmountsPacketsByDestin waitingResAmountsPackets;
         public readonly MySet<Person> waitingPeople;
 
-        private readonly ChangingUFloat changingRadius;
+        private readonly ChangingUDouble changingRadius;
 
-        public NodeState(Vector2 position, UFloat radius, ulong maxBatchDemResStored)
+        public NodeState(MyVector2 position, UDouble radius, ulong maxBatchDemResStored)
         {
             this.position = position;
             changingRadius = new(radius);
             this.radius = changingRadius;
-            approxSurfaceLength = (2 * UFloat.pi * this.radius).RoundDown();
+            approxSurfaceLength = (2 * MyMathHelper.pi * this.radius).RoundDown();
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             storedRes = new();
@@ -38,7 +38,7 @@ namespace Game1
             waitingPeople = new();
         }
 
-        public void SetRadius(UFloat radius)
+        public void SetRadius(UDouble radius)
             => changingRadius.Value = radius;
         
         public void AddToStoredRes(ResInd resInd, ulong resAmount)

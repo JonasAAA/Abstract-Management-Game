@@ -8,12 +8,12 @@ namespace Game1.UI
     public class ActiveUIManager
     {
         public static UIConfig CurUIConfig { get; private set; }
-        public static double ScreenWidth { get; private set; }
-        public static double ScreenHeight
+        public static UDouble ScreenWidth { get; private set; }
+        public static UDouble ScreenHeight
             => CurUIConfig.standardScreenHeight;
-        public static Vector2 MouseHUDPos
-            => HUDCamera.HUDPos(screenPos: Mouse.GetState().Position.ToVector2());
-        public static UFloat RectOutlineWidth
+        public static MyVector2 MouseHUDPos
+            => HUDCamera.HUDPos(screenPos: (MyVector2)Mouse.GetState().Position);
+        public static UDouble RectOutlineWidth
             => CurUIConfig.rectOutlineWidth;
 
         private static HUDCamera HUDCamera;
@@ -22,7 +22,7 @@ namespace Game1.UI
         {
             CurUIConfig = new();
             Camera.Initialize(graphicsDevice: graphicsDevice);
-            ScreenWidth = (double)graphicsDevice.Viewport.Width * CurUIConfig.standardScreenHeight / graphicsDevice.Viewport.Height;
+            ScreenWidth = (UDouble)graphicsDevice.Viewport.Width * CurUIConfig.standardScreenHeight / (UDouble)graphicsDevice.Viewport.Height;
             HUDCamera = new();
         }
 
@@ -111,13 +111,13 @@ namespace Game1.UI
             MouseState mouseState = Mouse.GetState();
             prevLeftDown = leftDown;
             leftDown = mouseState.LeftButton == ButtonState.Pressed;
-            Vector2 mouseScreenPos = mouseState.Position.ToVector2(),
+            MyVector2 mouseScreenPos = (MyVector2)mouseState.Position,
                 mouseHUDPos = HUDCamera.HUDPos(screenPos: mouseScreenPos);
 
             contMouse = null;
             foreach (var UIElement in Enumerable.Reverse(activeUIElements))
             {
-                Vector2 mousePos = nonHUDElementsToTransform.ContainsKey(UIElement) switch
+                MyVector2 mousePos = nonHUDElementsToTransform.ContainsKey(UIElement) switch
                 {
                     true => nonHUDElementsToTransform[UIElement].Transform(screenPos: mouseScreenPos),
                     false => mouseHUDPos
@@ -142,9 +142,9 @@ namespace Game1.UI
                     explanationTextBox.Shape.ClampPosition
                     (
                         left: 0,
-                        right: (float)ScreenWidth,
+                        right: (double)ScreenWidth,
                         top: 0,
-                        bottom: (float)ScreenHeight
+                        bottom: (double)ScreenHeight
                     );
                 }
             }

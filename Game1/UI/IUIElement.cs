@@ -19,9 +19,9 @@ namespace Game1.UI
 
         public Event<IEnabledChangedListener> EnabledChanged { get; }
 
-        public bool Contains(Vector2 position);
+        public bool Contains(MyVector2 position);
 
-        public IUIElement CatchUIElement(Vector2 mousePos);
+        public IUIElement CatchUIElement(MyVector2 mousePos);
 
         public virtual void OnClick()
         { }

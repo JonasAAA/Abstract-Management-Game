@@ -29,7 +29,7 @@ namespace Game1.UI
                 not null => tabs[tabChoicePanel.SelectedChoiceLabel]
             };
 
-        public UIHorizTabPanel(UFloat tabLabelWidth, UFloat tabLabelHeight, Color color, Color inactiveTabLabelColor)
+        public UIHorizTabPanel(UDouble tabLabelWidth, UDouble tabLabelHeight, Color color, Color inactiveTabLabelColor)
             : base(shape: new MyRectangle())
         {
             Shape.Color = color;
@@ -52,12 +52,12 @@ namespace Game1.UI
         {
             base.PartOfRecalcSizeAndPos();
 
-            UFloat innerWidth = MathHelper.Max(tabChoicePanel.Shape.Width, tabs.Count switch
+            UDouble innerWidth = MyMathHelper.Max(tabChoicePanel.Shape.Width, tabs.Count switch
             {
                 0 => 0,
                 not 0 => tabs.Values.Max(tab => tab.Shape.Width)
             });
-            UFloat tabHeight = tabs.Count switch
+            UDouble tabHeight = tabs.Count switch
             {
                 0 => 0,
                 not 0 => tabs.Values.Max(tab => tab.Shape.Height)
@@ -74,9 +74,9 @@ namespace Game1.UI
                 tab.Shape.MinHeight = tabHeight;
 
             // recalc children positions
-            tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(ActiveUIManager.RectOutlineWidth);
+            tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new MyVector2((double)ActiveUIManager.RectOutlineWidth);
             foreach (var tab in tabs.Values)
-                tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2(ActiveUIManager.RectOutlineWidth) + new Vector2(0, tabChoicePanel.Shape.Height);
+                tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new MyVector2((double)ActiveUIManager.RectOutlineWidth) + new MyVector2(0, (double)tabChoicePanel.Shape.Height);
         }
 
         public void AddTab(string tabLabelText, TTab tab)
@@ -102,7 +102,7 @@ namespace Game1.UI
             AddChild(child: tab);
         }
 
-        public override IUIElement CatchUIElement(Vector2 mousePos)
+        public override IUIElement CatchUIElement(MyVector2 mousePos)
         {
             if (!Shape.Contains(position: mousePos))
                 return null;

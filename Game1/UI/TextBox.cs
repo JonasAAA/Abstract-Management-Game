@@ -20,31 +20,33 @@ namespace Game1.UI
                 if (text != value)
                 {
                     text = value;
-                    Vector2 textDims = text switch
+                    MyVector2 textDims = text switch
                     {
-                        null => Vector2.Zero,
+                        null => MyVector2.zero,
                         not null => MeasureText(text: text),
                     };
-                    Shape.Width = (UFloat)textDims.X;
-                    Shape.Height = (UFloat)textDims.Y;
+                    Shape.Width = (UDouble)textDims.X;
+                    Shape.Height = (UDouble)textDims.Y;
                 }
             }
         }
 
         private string text;
-        private readonly float scale;
+        private readonly UDouble scale;
 
         public TextBox()
             : base(shape: new MyRectangle())
         {
             Shape.Color = Color.Transparent;
-            scale = ActiveUIManager.CurUIConfig.letterHeight / font.MeasureString("F").Y;
+            // TODO: look up where font.MeasureString(...) is called, there should probably be a static readonly variable
+            // storing what the height of a capital letter is
+            scale = ActiveUIManager.CurUIConfig.letterHeight / (UDouble)font.MeasureString("F").Y;
             TextColor = Color.Black;
             Text = null;
         }
 
-        public Vector2 MeasureText(string text)
-            => font.MeasureString(text) * scale;
+        public MyVector2 MeasureText(string text)
+            => (MyVector2)font.MeasureString(text) * (double)scale;
 
         public override void Draw()
         {
@@ -61,7 +63,7 @@ namespace Game1.UI
                     true => TextColor,
                     false => TextColor * .5f
                 },
-                origin: Vector2.Zero,
+                origin: MyVector2.zero,
                 scale: scale
             );
         }

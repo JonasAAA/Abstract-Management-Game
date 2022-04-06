@@ -15,10 +15,10 @@ namespace Game1
         /// <summary>
         /// node position from which consume energy
         /// </summary>
-        public Vector2 NodePos { get; }
+        public MyVector2 NodePos { get; }
 
-        public double ReqWatts();
+        public UDouble ReqWatts();
 
-        public void ConsumeEnergy(double energyPropor);
+        public void ConsumeEnergy(Propor energyPropor);
     }
 }

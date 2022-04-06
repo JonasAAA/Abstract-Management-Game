@@ -7,13 +7,13 @@ namespace Game1.ChangingValues
         [Serializable]
         private readonly struct ScaleULong :
             ITransformer<(ulong, IReadOnlyChangingULong), ulong>,
-            ITransformer<(UFloat, IReadOnlyChangingULong), UFloat>,
+            ITransformer<(UDouble, IReadOnlyChangingULong), UDouble>,
             ITransformer<(IReadOnlyChangingULong, ResAmounts), ResAmounts>
         {
             public ulong Transform((ulong, IReadOnlyChangingULong) param)
                 => param.Item1 * param.Item2.Value;
 
-            public UFloat Transform((UFloat, IReadOnlyChangingULong) param)
+            public UDouble Transform((UDouble, IReadOnlyChangingULong) param)
                 => param.Item1 * param.Item2.Value;
 
             public ResAmounts Transform((IReadOnlyChangingULong, ResAmounts) param)
@@ -23,13 +23,13 @@ namespace Game1.ChangingValues
         public static IReadOnlyChangingULong operator *(ulong scalar, IReadOnlyChangingULong readOnlyChangingULong)
             => new ScaleULong().TransformIntoReadOnlyChangingULong(param: (scalar, readOnlyChangingULong));
 
-        public static IReadOnlyChangingULong operator *(IReadOnlyChangingULong readOnlyChangingUFloat, ulong scalar)
-            => scalar * readOnlyChangingUFloat;
+        public static IReadOnlyChangingULong operator *(IReadOnlyChangingULong readOnlyChangingUDouble, ulong scalar)
+            => scalar * readOnlyChangingUDouble;
 
-        public static IReadOnlyChangingUFloat operator *(UFloat scalar, IReadOnlyChangingULong readOnlyChangingULong)
-            => new ScaleULong().TransformIntoReadOnlyChangingUFloat(param: (scalar, readOnlyChangingULong));
+        public static IReadOnlyChangingUDouble operator *(UDouble scalar, IReadOnlyChangingULong readOnlyChangingULong)
+            => new ScaleULong().TransformIntoReadOnlyChangingUDouble(param: (scalar, readOnlyChangingULong));
 
-        public static IReadOnlyChangingUFloat operator *(IReadOnlyChangingULong readOnlyChangingULong, UFloat scalar)
+        public static IReadOnlyChangingUDouble operator *(IReadOnlyChangingULong readOnlyChangingULong, UDouble scalar)
             => scalar * readOnlyChangingULong;
 
         public static IReadOnlyChangingResAmounts operator *(IReadOnlyChangingULong changingScalar, ResAmounts resAmounts)

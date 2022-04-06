@@ -10,12 +10,12 @@ namespace Game1.Industries
         [Serializable]
         public new class Params : ProductiveIndustry.Params
         {
-            public readonly double reqWattsPerChild;
+            public readonly UDouble reqWattsPerChild;
             public readonly ulong maxCouplesPerUnitSurface;
             public readonly ResAmounts resPerChild;
             public readonly TimeSpan birthDuration;
 
-            public Params(string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, ulong reqWattsPerChild, ulong maxCouplesPerUnitSurface, ResAmounts resPerChild, TimeSpan birthDuration)
+            public Params(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerChild, ulong maxCouplesPerUnitSurface, ResAmounts resPerChild, TimeSpan birthDuration)
                 : base
                 (
                     industryType: IndustryType.Reproduction,
@@ -56,9 +56,20 @@ namespace Game1.Industries
                 // could disalow far travel
                 => true;
 
-            public override double PersonScoreOfThis(Person person)
-                => .9 * MathHelper.Tanh((CurWorldManager.CurTime - person.LastActivityTimes[ActivityType]).TotalSeconds / 100)
-                + .1 * DistanceToHere(person: person);
+            public override Score PersonScoreOfThis(Person person)
+                => Score.Combine
+                (
+                    (
+                        weight: 9,
+                        // TODO: get rid of hard-coded constant
+                        score: Score.FromUnboundedUDouble
+                        (
+                            value: (UDouble)(CurWorldManager.CurTime - person.LastActivityTimes[ActivityType]).TotalSeconds,
+                            valueGettingAverageScore: 100
+                        )
+                    ),
+                    (weight: 1, score: DistanceToHere(person: person))
+                );
 
             public override void TakePerson(Person person)
             {
@@ -106,7 +117,7 @@ namespace Game1.Industries
         protected override bool IsBusy()
             => birthQueue.Count > 0;
 
-        protected override ReprodIndustry InternalUpdate(double workingPropor)
+        protected override ReprodIndustry InternalUpdate(Propor workingPropor)
         {
             birthQueue.Update(workingPropor: workingPropor);
 
@@ -139,8 +150,8 @@ namespace Game1.Industries
             throw new NotImplementedException();
         }
 
-        public override double ReqWatts()
-            => birthQueue.Count * parameters.reqWattsPerChild * CurSkillPropor;
+        public override UDouble ReqWatts()
+            => (UDouble)birthQueue.Count * parameters.reqWattsPerChild * CurSkillPropor;
 
         public override string GetInfo()
         {

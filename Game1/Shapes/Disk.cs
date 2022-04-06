@@ -10,13 +10,13 @@ namespace Game1.Shapes
         static Disk()
             => diskTexture = C.LoadTexture(name: "big disk");
 
-        public readonly IReadOnlyChangingUFloat radius;
+        public readonly IReadOnlyChangingUDouble radius;
 
-        public Disk(IReadOnlyChangingUFloat radius)
+        public Disk(IReadOnlyChangingUDouble radius)
             => this.radius = radius;
 
-        public override bool Contains(Vector2 position)
-            => Vector2.Distance(position, Center) < radius.Value;
+        public override bool Contains(MyVector2 position)
+            => MyVector2.Distance(position, Center) < radius.Value;
 
         protected override void Draw(Color color)
             => C.Draw
@@ -25,8 +25,8 @@ namespace Game1.Shapes
                 position: Center,
                 color: color,
                 rotation: 0,
-                origin: new Vector2(diskTexture.Width, diskTexture.Height) * .5f,
-                scale: 2 * radius.Value / diskTexture.Width
+                origin: new MyVector2(diskTexture.Width, diskTexture.Height) * .5,
+                scale: 2 * radius.Value / (UDouble)diskTexture.Width
             );
     }
 }

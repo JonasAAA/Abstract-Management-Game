@@ -12,77 +12,85 @@ namespace Game1
     [Serializable]
     public class Person : IEnergyConsumer
     {
-        public static Person GeneratePerson(Vector2 nodePos)
+        public static Person GeneratePerson(MyVector2 nodePos)
             => new
             (
                 nodePos: nodePos,
                 enjoyments: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
-                    elementSelector: indType => C.Random(min: 0, max: 1)
+                    elementSelector: indType => Score.GenerateRandom()
                 ),
                 talents: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
-                    elementSelector: indType => C.Random(min: 0, max: 1)
+                    elementSelector: indType => Score.GenerateRandom()
                 ),
                 skills: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
-                    elementSelector: indType => C.Random(min: 0, max: 1)
+                    elementSelector: indType => Score.GenerateRandom()
                 ),
+                // TODO: get rid of hard-coded constant
                 weight: 10,
                 reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                 seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime)
             );
 
-        public static Person GenerateChild(Person person1, Person person2, Vector2 nodePos)
-            => new
+        public static Person GenerateChild(Person person1, Person person2, MyVector2 nodePos)
+        {
+            return new Person
             (
                 nodePos: nodePos,
-                enjoyments: Enum.GetValues<IndustryType>().ToDictionary
+                enjoyments: CreateIndustryScoreDict
                 (
-                    keySelector: indType => indType,
-                    elementSelector: indType
-                        => CurWorldConfig.parentContribToChild * (person1.enjoyments[indType] + person2.enjoyments[indType]) * .5
-                        + CurWorldConfig.randConrtribToChild * C.Random(min: 0, max: 1)
+                    personalScore: (person, indType) => person.enjoyments[indType]
                 ),
-                talents: Enum.GetValues<IndustryType>().ToDictionary
+                talents: CreateIndustryScoreDict
                 (
-                    keySelector: indType => indType,
-                    elementSelector: indType
-                        => CurWorldConfig.parentContribToChild * (person1.talents[indType] + person2.talents[indType]) * .5
-                        + CurWorldConfig.randConrtribToChild * C.Random(min: 0, max: 1)
+                    personalScore: (person, indType) => person.talents[indType]
                 ),
                 skills: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
-                    elementSelector: indType => 0.0
+                    elementSelector: indType => Score.worst
                 ),
+                // TODO: get rid of hard-coded constant
                 weight: 10,
                 reqWatts:
-                    CurWorldConfig.parentContribToChild * (person1.reqWatts + person2.reqWatts) * .5
-                    + CurWorldConfig.randConrtribToChild * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
+                    CurWorldConfig.parentContribToChildPropor * (person1.reqWatts + person2.reqWatts) * (UDouble).5
+                    + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                 seekChangeTime:
-                    CurWorldConfig.parentContribToChild * (person1.seekChangeTime + person2.seekChangeTime) * .5
-                    + CurWorldConfig.randConrtribToChild * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime)
+                    CurWorldConfig.parentContribToChildPropor * (person1.seekChangeTime + person2.seekChangeTime) * (UDouble).5
+                    + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime)
             );
 
-        // between 0 and 1
-        public readonly ReadOnlyDictionary<IndustryType, double> enjoyments;
-        // between 0 and 1
-        public readonly ReadOnlyDictionary<IndustryType, double> talents;
-        // between 0 and 1
-        public readonly Dictionary<IndustryType, double> skills;
+            Dictionary<IndustryType, Score> CreateIndustryScoreDict(Func<Person, IndustryType, Score> personalScore)
+                => Enum.GetValues<IndustryType>().ToDictionary
+                (
+                    keySelector: indType => indType,
+                    elementSelector: indType
+                        => Score.CombineTwo
+                        (
+                            score1: Score.Average(personalScore(person1, indType), personalScore(person2, indType)),
+                            score2: Score.GenerateRandom(),
+                            score1Propor: CurWorldConfig.parentContribToChildPropor
+                        )
+                );
+        }
+
+        public readonly ReadOnlyDictionary<IndustryType, Score> enjoyments;
+        public readonly ReadOnlyDictionary<IndustryType, Score> talents;
+        public readonly Dictionary<IndustryType, Score> skills;
         
-        public Vector2? ActivityCenterPosition
+        public MyVector2? ActivityCenterPosition
             => activityCenter?.Position;
-        public Vector2 ClosestNodePos { get; private set; }
-        public double EnergyPropor { get; private set; }
+        public MyVector2 ClosestNodePos { get; private set; }
+        public Propor EnergyPropor { get; private set; }
         public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
             => lastActivityTimes;
         public readonly ulong weight;
-        public readonly double reqWatts;
+        public readonly UDouble reqWatts;
 
         /// <summary>
         /// CURRENTLY UNUSED
@@ -97,23 +105,15 @@ namespace Game1
         private readonly TimeSpan seekChangeTime;
         private TimeSpan timeSinceActivitySearch;
         private readonly Dictionary<ActivityType, TimeSpan> lastActivityTimes;
-        private Vector2 prevNodePos;
+        private MyVector2 prevNodePos;
         private readonly Event<IDeletedListener> deleted;
 
-        private Person(Vector2 nodePos, Dictionary<IndustryType, double> enjoyments, Dictionary<IndustryType, double> talents, Dictionary<IndustryType, double> skills, ulong weight, double reqWatts, TimeSpan seekChangeTime)
+        private Person(MyVector2 nodePos, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, ulong weight, UDouble reqWatts, TimeSpan seekChangeTime)
         {
             prevNodePos = nodePos;
             ClosestNodePos = nodePos;
-            if (!enjoyments.Values.All(C.IsInSuitableRange))
-                throw new ArgumentException();
             this.enjoyments = new(enjoyments);
-
-            if (!talents.Values.Any(C.IsInSuitableRange))
-                throw new ArgumentException();
             this.talents = new(talents);
-
-            if (!skills.Values.All(C.IsInSuitableRange))
-                throw new ArgumentException();
             this.skills = new(skills);
 
             activityCenter = null;
@@ -123,7 +123,7 @@ namespace Game1
                 throw new ArgumentOutOfRangeException();
             this.reqWatts = reqWatts;
 
-            EnergyPropor = 0;
+            EnergyPropor = Propor.empty;
 
             if (seekChangeTime < CurWorldConfig.personMinSeekChangeTime || seekChangeTime > CurWorldConfig.personMaxSeekChangeTime)
                 throw new ArgumentOutOfRangeException();
@@ -144,7 +144,7 @@ namespace Game1
         public void Arrived()
             => activityCenter.TakePerson(person: this);
 
-        public void Update(Vector2 prevNodePos, Vector2 closestNodePos)
+        public void Update(MyVector2 prevNodePos, MyVector2 closestNodePos)
         {
             this.prevNodePos = prevNodePos;
             ClosestNodePos = closestNodePos;
@@ -158,10 +158,10 @@ namespace Game1
                 IActivityCenter.UpdatePersonDefault(person: this);
         }
 
-        double IEnergyConsumer.ReqWatts()
+        UDouble IEnergyConsumer.ReqWatts()
             => reqWatts;
 
-        void IEnergyConsumer.ConsumeEnergy(double energyPropor)
+        void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
             => EnergyPropor = energyPropor;
 
         public bool IfSeeksNewActivity()
@@ -200,10 +200,10 @@ namespace Game1
                 // if person has higher priority then activityCenter,
                 // then activityCenter most likely will can't work at full capacity
                 // so will not use all the available energyicity
-                not null => MathHelper.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority)
+                not null => MyMathHelper.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority)
             };
 
-        Vector2 IEnergyConsumer.NodePos
+        MyVector2 IEnergyConsumer.NodePos
             => prevNodePos;
     }
 }

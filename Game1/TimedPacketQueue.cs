@@ -3,7 +3,7 @@
     [Serializable]
     public class TimedPacketQueue : TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, IEnumerable<Person> people)>
     {
-        public int PeopleCount
+        public ulong PeopleCount
             => people.Count;
         public IEnumerable<Person> People
             => people;

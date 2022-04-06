@@ -28,7 +28,7 @@ namespace Game1.Lighting
             brightEffect = GetBasicEffect(brightness: CurWorldConfig.brightStarTextureBrigthness);
             dimEffect = GetBasicEffect(brightness: CurWorldConfig.dimStarTextureBrightness);
 
-            BasicEffect GetBasicEffect(double brightness)
+            BasicEffect GetBasicEffect(UDouble brightness)
             {
                 if (brightness <= 0)
                     throw new ArgumentOutOfRangeException();
@@ -37,14 +37,14 @@ namespace Game1.Lighting
                 for (int i = 0; i < CurWorldConfig.lightTextureWidth; i++)
                     for (int j = 0; j < CurWorldConfig.lightTextureWidth; j++)
                     {
-                        float distFromLight = Vector2.Distance
+                        UDouble distFromLight = MyVector2.Distance
                         (
-                            value1: new Vector2(CurWorldConfig.lightTextureWidth * .5f),
-                            value2: new Vector2(i + .5f, j + .5f)
+                            value1: CurWorldConfig.lightTextureWidth * .5 * new MyVector2(xAndY: 1),
+                            value2: new MyVector2(i + .5, j + .5)
                         );
-                        double a = CurWorldConfig.standardStarRadius + brightness;
-                        float factor = (float)MathHelper.Min(1, a / (brightness + distFromLight));
-                        colorData[i * CurWorldConfig.lightTextureWidth + j] = Color.White * factor;
+                        UDouble a = CurWorldConfig.standardStarRadius + brightness;
+                        UDouble factor = MyMathHelper.Min((UDouble)1, a / (brightness + distFromLight));
+                        colorData[i * CurWorldConfig.lightTextureWidth + j] = Color.White * (float)factor;
                     }
                 texture.SetData(colorData);
 
@@ -107,7 +107,7 @@ namespace Game1.Lighting
             graphicsDevice.SetRenderTarget(null);
 
             C.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
-            C.SpriteBatch.Draw(renderTarget, Vector2.Zero, Color.White);
+            C.SpriteBatch.Draw(renderTarget, (Vector2)MyVector2.zero, Color.White);
             C.SpriteBatch.End();
         }
 

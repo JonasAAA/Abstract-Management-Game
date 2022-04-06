@@ -11,11 +11,11 @@ namespace Game1.Industries
         [Serializable]
         public new class Params : ProductiveIndustry.Params
         {
-            public readonly UFloat reqWattsPerUnitSurface;
+            public readonly UDouble reqWattsPerUnitSurface;
             public readonly ResAmounts supplyPerUnitSurface, demandPerUnitSurface;
             public readonly TimeSpan prodDuration;
             
-            public Params(string name, EnergyPriority energyPriority, UFloat reqSkillPerUnitSurface, UFloat reqWattsPerUnitSurface, ResAmounts supplyPerUnitSurface, ResAmounts demandPerUnitSurface, TimeSpan prodDuration)
+            public Params(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, ResAmounts supplyPerUnitSurface, ResAmounts demandPerUnitSurface, TimeSpan prodDuration)
                 : base
                 (
                     industryType: IndustryType.Production,
@@ -25,7 +25,7 @@ namespace Game1.Industries
                     explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(supplyPerUnitSurface)} {supplyPerUnitSurface}\n{nameof(demandPerUnitSurface)} {demandPerUnitSurface}"
                 )
             {
-                if (reqWattsPerUnitSurface <= 0)
+                if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
                     throw new ArgumentOutOfRangeException();
                 this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
                 this.supplyPerUnitSurface = supplyPerUnitSurface;
@@ -40,7 +40,7 @@ namespace Game1.Industries
         }
 
         private readonly Params parameters;
-        private readonly IReadOnlyChangingUFloat reqWatts;
+        private readonly IReadOnlyChangingUDouble reqWatts;
         private readonly IReadOnlyChangingResAmounts supply, demand;
         private TimeSpan prodTimeLeft;
 
@@ -64,7 +64,7 @@ namespace Game1.Industries
         protected override bool IsBusy()
             => prodTimeLeft < TimeSpan.MaxValue;
 
-        protected override Factory InternalUpdate(double workingPropor)
+        protected override Factory InternalUpdate(Propor workingPropor)
         {
             if (IsBusy())
                 prodTimeLeft -= workingPropor * CurWorldManager.Elapsed;
@@ -88,7 +88,7 @@ namespace Game1.Industries
         {
             string text = base.GetInfo() + $"{parameters.name}\n";
             if (IsBusy())
-                text += $"producing {C.DonePart(timeLeft: prodTimeLeft, duration: parameters.prodDuration) * 100: 0.}%\n";
+                text += $"producing {C.DonePropor(timeLeft: prodTimeLeft, duration: parameters.prodDuration) * 100.0: 0.}%\n";
             else
                 text += "idle\n";
             if (!CanStartProduction)
@@ -96,7 +96,7 @@ namespace Game1.Industries
             return text;
         }
 
-        public override double ReqWatts()
+        public override UDouble ReqWatts()
             // this is correct as if more important people get full energy, this works
             // and if they don't, then the industry will get 0 energy anyway
             => IsBusy() switch

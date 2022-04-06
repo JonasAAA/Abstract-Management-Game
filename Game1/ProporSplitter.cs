@@ -81,7 +81,7 @@
             {
                 decimal oldSum = sum;
                 sum = necNotLockedAdds.Values.Sum();
-                Debug.Assert(C.IsTiny(sum - oldSum));
+                Debug.Assert(MyMathHelper.AreClose(sum, oldSum));
 
                 necNotLockedAdds = necNotLockedAdds.Keys.ToDictionary
                 (
@@ -90,7 +90,7 @@
                 );
                 sum = necNotLockedAdds.Values.Sum();
 
-                Debug.Assert(C.IsTiny(sum));
+                Debug.Assert(MyMathHelper.IsTiny(sum));
                 Debug.Assert(necNotLockedAdds.Count is 0 || necNotLockedAdds.Values.Max() - necNotLockedAdds.Values.Min() < 1);
             }
         }

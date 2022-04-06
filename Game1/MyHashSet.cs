@@ -9,8 +9,8 @@ namespace Game1
     [Serializable]
     public class MySet<T> : IEnumerable<T>
     {
-        public int Count
-            => set.Count;
+        public ulong Count
+            => (ulong)set.Count;
 
         private readonly HashSet<T> set;
         

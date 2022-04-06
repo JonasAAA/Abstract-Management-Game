@@ -47,7 +47,7 @@ namespace Game1.UI
         private readonly UIRectVertPanel<IHUDElement> panel;
         private readonly TextBox textBox;
 
-        public NumIncDecrPanel(int minNum, int number, UFloat incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
+        public NumIncDecrPanel(int minNum, int number, UDouble incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
             : base(shape: new MyRectangle())
         {
             numberChanged = new();
@@ -62,7 +62,7 @@ namespace Game1.UI
             );
             textBox = new();
             textBox.Text = number.ToString();
-            UFloat width = (UFloat)textBox.MeasureText(text: "00").X;
+            UDouble width = (UDouble)textBox.MeasureText(text: "00").X;
             textBox.Shape.MinWidth = width;
 
             Button numIncrButton = new

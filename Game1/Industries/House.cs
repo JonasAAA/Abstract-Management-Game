@@ -11,9 +11,9 @@ namespace Game1.Industries
         [Serializable]
         public new class Params : Industry.Params
         {
-            public readonly UFloat floorSpacePerUnitSurface;
+            public readonly UDouble floorSpacePerUnitSurface;
 
-            public Params(string name, UFloat floorSpacePerUnitSurface)
+            public Params(string name, UDouble floorSpacePerUnitSurface)
                 : base
                 (
                     name: name,
@@ -33,7 +33,7 @@ namespace Game1.Industries
         private class Housing : ActivityCenter
         {
             private readonly Params parameters;
-            private readonly IReadOnlyChangingUFloat floorSpace;
+            private readonly IReadOnlyChangingUDouble floorSpace;
 
             public Housing(NodeState state, Params parameters)
                 : base(activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.maximal, state: state)
@@ -45,16 +45,26 @@ namespace Game1.Industries
             public override bool IsFull()
                 => false;
 
-            public double PersonalSpace()
+            public Score PersonalSpace()
                 => PersonalSpace(peopleCount: peopleHere.Count);
 
-            private double PersonalSpace(int peopleCount)
-                => MathHelper.Tanh(floorSpace.Value / peopleCount);
+            private Score PersonalSpace(ulong peopleCount)
+                // TODO: get rid of hard-coded constant
+                => Score.FromUnboundedUDouble(value: floorSpace.Value / peopleCount, valueGettingAverageScore: 10);
 
-            public override double PersonScoreOfThis(Person person)
-                => CurWorldConfig.personMomentumCoeff * (IsPersonHere(person: person) ? 1 : 0)
-                + (.7 * PersonalSpace(peopleCount: allPeople.Count + 1) + .3 * DistanceToHere(person: person)) * (1 - CurWorldConfig.personMomentumCoeff);
-
+            public override Score PersonScoreOfThis(Person person)
+                => Score.CombineTwo
+                (
+                    score1: (IsPersonHere(person: person) ? Score.best : Score.worst),
+                    // TODO: get rid of hard-coded constants
+                    score2: Score.Combine
+                    (
+                        (weight: 7, score: PersonalSpace(peopleCount: allPeople.Count + 1)),
+                        (weight: 3, score: DistanceToHere(person: person))
+                    ),
+                    score1Propor: CurWorldConfig.personMomentumPropor
+                );
+            
             public override bool IsPersonSuitable(Person person)
                 // may disallow far travel
                 => true;

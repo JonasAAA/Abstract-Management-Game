@@ -16,10 +16,10 @@
 
 //        private readonly NearRectangle collider;
 //        private readonly Texture2D texture;
-//        private readonly Vector2 origin, scale;
-//        private readonly float rotation;
+//        private readonly MyVector2 origin, scale;
+//        private readonly double rotation;
 
-//        public Image(bool isRectangle, string imageName, float? width = null, float? height = null, Rotation rotation = Rotation.None)
+//        public Image(bool isRectangle, string imageName, double? width = null, double? height = null, Rotation rotation = Rotation.None)
 //            : base(width: 0, height: 0)
 //        {
 //            texture = C.LoadTexture(name: imageName);
@@ -57,7 +57,7 @@
 //            };
 //        }
 
-//        public override bool Contains(Vector2 position)
+//        public override bool Contains(MyVector2 position)
 //            => collider.Contains(position: position);
 
 //        protected override void Draw(Color color)

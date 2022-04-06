@@ -2,25 +2,20 @@
 
 namespace Game1
 {
+    // TODO: could rename this to Helper
     public static class C
     {
-        // power of two to make float / scale and float * scale lossless
+        // power of two to make double / scale and double * scale lossless
         public const long accurScale = (long)1 << 10;
         public static ContentManager contentManager { get; private set; }
         public static GraphicsDevice graphicsDevice { get; private set; }
         public static SpriteBatch SpriteBatch { get; private set; }
         //private static ContentManager contentManager;
-        private static readonly double minPosDouble;
-        private static readonly decimal minPosDecimal;
+        
         private static readonly Random random;
 
         static C()
-        {
-            minPosDecimal = 1e-6m;
-            //minPosDouble = (double)minPosDecimal;
-            minPosDouble = .0001;
-            random = new();
-        }
+            => random = new();
 
         public static void Initialize(ContentManager contentManager, GraphicsDevice graphicsDevice)
         {
@@ -36,6 +31,13 @@ namespace Game1
             return min + random.NextDouble() * (max - min);
         }
 
+        public static UDouble Random(UDouble min, UDouble max)
+        {
+            if (min > max)
+                throw new ArgumentException();
+            return min + (UDouble)random.NextDouble() * (UDouble)((double)max - (double)min);
+        }
+
         public static TimeSpan Random(TimeSpan min, TimeSpan max)
         {
             if (min > max)
@@ -43,38 +45,25 @@ namespace Game1
             return min + random.NextDouble() * (max - min);
         }
 
-        public static Vector2 Direction(float rotation)
-            => new((float)MathHelper.Cos(rotation), (float)MathHelper.Sin(rotation));
-
-        public static float Rotation(Vector2 vector)
-            => (float)MathHelper.Atan2(vector.Y, vector.X);
-
-        /// <summary>
-        /// 90 degrees to the left
-        /// </summary>
-        public static Vector2 OrthDir(Vector2 direction)
-            => new(direction.Y, -direction.X);
-
         public static bool Click(bool prev, bool cur)
             => prev && !cur;
 
-        public static bool IsTiny(double value)
-            => MathHelper.Abs(value) < minPosDouble;
-
-        public static bool IsTiny(decimal value)
-            => MathHelper.Abs(value) < minPosDecimal;
-
-        public static double DonePart(TimeSpan timeLeft, TimeSpan duration)
+        public static Propor DonePropor(TimeSpan timeLeft, TimeSpan duration)
         {
             if (duration <= TimeSpan.Zero)
                 throw new ArgumentOutOfRangeException();
-            if (timeLeft > duration)
-                throw new ArgumentException();
-            return MathHelper.Min(1, 1 - timeLeft / duration);
+            return Propor.Create(1 - timeLeft / duration) switch
+            {
+                Propor donePropor => donePropor,
+                null => throw new ArgumentException()
+            };
         }
 
         public static bool IsInSuitableRange(double value)
             => value is >= 0 and <= 1;
+
+        public static bool IsInSuitableRange(UDouble value)
+            => value <= 1;
 
         public static bool IsSuitable(double value)
             => value is double.NegativeInfinity || IsInSuitableRange(value: value);
@@ -88,44 +77,44 @@ namespace Game1
         public static SpriteFont LoadFont(string name)
             => contentManager.Load<SpriteFont>(name);
 
-        public static void Draw(Texture2D texture, Vector2 position, Color color, float rotation, Vector2 origin, float scale)
+        public static void Draw(Texture2D texture, MyVector2 position, Color color, double rotation, MyVector2 origin, UDouble scale)
             => SpriteBatch.Draw
             (
                 texture: texture,
-                position: position,
+                position: (Vector2)position,
                 sourceRectangle: null,
                 color: color,
-                rotation: rotation,
-                origin: origin,
-                scale: scale,
+                rotation: (float)rotation,
+                origin: (Vector2)origin,
+                scale: (float)scale,
                 effects: SpriteEffects.None,
                 layerDepth: 0
             );
 
-        public static void Draw(Texture2D texture, Vector2 position, Color color, float rotation, Vector2 origin, Vector2 scale)
+        public static void Draw(Texture2D texture, MyVector2 position, Color color, double rotation, MyVector2 origin, UDouble scaleX, UDouble scaleY)
             => SpriteBatch.Draw
             (
                 texture: texture,
-                position: position,
+                position: (Vector2)position,
                 sourceRectangle: null,
                 color: color,
-                rotation: rotation,
-                origin: origin,
-                scale: scale,
+                rotation: (float)rotation,
+                origin: (Vector2)origin,
+                scale: new Vector2((float)scaleX, (float)scaleY),
                 effects: SpriteEffects.None,
                 layerDepth: 0
             );
 
-        public static void DrawString(SpriteFont spriteFont, string text, Vector2 position, Color color, Vector2 origin, float scale)
+        public static void DrawString(SpriteFont spriteFont, string text, MyVector2 position, Color color, MyVector2 origin, UDouble scale)
             => SpriteBatch.DrawString
             (
                 spriteFont: spriteFont,
                 text: text,
-                position: position,
+                position: (Vector2)position,
                 color: color,
                 rotation: 0,
-                origin: origin,
-                scale: scale,
+                origin: (Vector2)origin,
+                scale: (float)scale,
                 effects: SpriteEffects.None,
                 layerDepth: 0
             );

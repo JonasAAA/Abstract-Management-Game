@@ -17,15 +17,15 @@ namespace Game1.Shapes
         static Triangle()
             => triangleTexture = C.LoadTexture(name: "triangle");
 
-        private Vector2 BasePos
-            => Center - dirVector * MainAltitudeLength * .5f;
-        private UFloat BaseLength
+        private MyVector2 BasePos
+            => Center - dirVector * (double)MainAltitudeLength * .5;
+        private UDouble BaseLength
             => ((int)direction % 2) switch
             {
                 0 => Height,
                 not 0 => Width
             };
-        private UFloat MainAltitudeLength
+        private UDouble MainAltitudeLength
             => ((int)direction % 2) switch
             {
                 0 => Width,
@@ -33,29 +33,27 @@ namespace Game1.Shapes
             };
 
         private readonly Direction direction;
-        private readonly float rotation;
-        private readonly Vector2 origin, dirVector, orthDir, scale;
+        private readonly double rotation;
+        private readonly MyVector2 origin, dirVector, orthDir;
+        private readonly UDouble scaleX, scaleY;
 
-        public Triangle(UFloat width, UFloat height, Direction direction)
+        public Triangle(UDouble width, UDouble height, Direction direction)
             : base(width: width, height: height)
         {
             this.direction = direction;
-            rotation = (int)direction * MathHelper.pi / 2;
-            origin = new Vector2(triangleTexture.Width, triangleTexture.Height) * .5f;
-            dirVector = C.Direction(rotation: rotation);
-            orthDir = new Vector2(-dirVector.Y, dirVector.X);
-            scale = new
-            (
-                x: MainAltitudeLength / triangleTexture.Height,
-                y: BaseLength / triangleTexture.Width
-            );
+            rotation = (int)direction * (double)MyMathHelper.pi / 2;
+            origin = new MyVector2(triangleTexture.Width, triangleTexture.Height) * .5;
+            dirVector = MyMathHelper.Direction(rotation: rotation);
+            orthDir = new MyVector2(-dirVector.Y, dirVector.X);
+            scaleX = MainAltitudeLength / (UDouble)triangleTexture.Height;
+            scaleY = BaseLength / (UDouble)triangleTexture.Width;
         }
 
-        public override bool Contains(Vector2 position)
+        public override bool Contains(MyVector2 position)
         {
-            Vector2 relPos = position - BasePos;
-            float dirProp = Vector2.Dot(relPos, dirVector) / MainAltitudeLength,
-                orthDirProp = MathHelper.Abs(Vector2.Dot(relPos, orthDir) / (BaseLength * .5f));
+            MyVector2 relPos = position - BasePos;
+            double dirProp = MyVector2.Dot(relPos, dirVector) / (double)MainAltitudeLength,
+                orthDirProp = (double)MyMathHelper.Abs(MyVector2.Dot(relPos, orthDir) / ((double)BaseLength * .5));
             if (dirProp is < 0 or >= 1 || orthDirProp >= 1)
                 return false;
             return dirProp + orthDirProp < 1;
@@ -69,7 +67,8 @@ namespace Game1.Shapes
                 color: color,
                 rotation: rotation,
                 origin: origin,
-                scale: scale
+                scaleX: scaleX,
+                scaleY: scaleY
             );
     }
 }

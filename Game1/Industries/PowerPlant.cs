@@ -11,9 +11,9 @@ namespace Game1.Industries
         [Serializable]
         public new class Params : ProductiveIndustry.Params
         {
-            public readonly UFloat prodWattsPerUnitSurface;
+            public readonly UDouble prodWattsPerUnitSurface;
             
-            public Params(string name, UFloat reqSkillPerUnitSurface, UFloat prodWattsPerUnitSurface)
+            public Params(string name, UDouble reqSkillPerUnitSurface, UDouble prodWattsPerUnitSurface)
                 : base
                 (
                     industryType: IndustryType.PowerPlant,
@@ -33,7 +33,7 @@ namespace Game1.Industries
         }
 
         private readonly Params parameters;
-        private readonly IReadOnlyChangingUFloat prodWatts;
+        private readonly IReadOnlyChangingUDouble prodWatts;
 
         private PowerPlant(NodeState state, Params parameters)
             : base(state: state, parameters: parameters)
@@ -49,9 +49,9 @@ namespace Game1.Industries
         protected override bool IsBusy()
             => true;
 
-        protected override PowerPlant InternalUpdate(double workingPropor)
+        protected override PowerPlant InternalUpdate(Propor workingPropor)
         {
-            if (!C.IsTiny(value: workingPropor - CurSkillPropor))
+            if (!MyMathHelper.AreClose(workingPropor, CurSkillPropor))
                 throw new Exception();
             return this;
         }
@@ -59,10 +59,10 @@ namespace Game1.Industries
         public override string GetInfo()
             => base.GetInfo() + parameters.name + "\n";
 
-        public override double ReqWatts()
+        public override UDouble ReqWatts()
             => 0;
 
-        double IEnergyProducer.ProdWatts()
+        UDouble IEnergyProducer.ProdWatts()
             => IsBusy() switch
             {
                 true => prodWatts.Value * CurSkillPropor,

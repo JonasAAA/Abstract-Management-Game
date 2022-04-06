@@ -10,15 +10,15 @@ namespace Game1.Shapes
         static Ellipse()
             => diskTexture = C.LoadTexture(name: "big disk");
 
-        public Ellipse(UFloat width, UFloat height)
+        public Ellipse(UDouble width, UDouble height)
             : base(width: width, height: height)
         { }
 
-        public override bool Contains(Vector2 position)
+        public override bool Contains(MyVector2 position)
         {
-            Vector2 relPos = position - Center;
-            float propX = 2 * relPos.X / Width,
-                propY = 2 * relPos.Y / Height;
+            MyVector2 relPos = position - Center;
+            double propX = 2 * relPos.X / (double)Width,
+                propY = 2 * relPos.Y / (double)Height;
             return propX * propX + propY * propY < 1;
         }
 
@@ -29,8 +29,9 @@ namespace Game1.Shapes
                 position: Center,
                 color: color,
                 rotation: 0,
-                origin: new Vector2(diskTexture.Width, diskTexture.Height) * .5f,
-                scale: new Vector2(Width / diskTexture.Width, Height / diskTexture.Height)
+                origin: new MyVector2(diskTexture.Width, diskTexture.Height) * .5,
+                scaleX: Width / (UDouble)diskTexture.Width,
+                scaleY: Height / (UDouble)diskTexture.Height
             );
     }
 }

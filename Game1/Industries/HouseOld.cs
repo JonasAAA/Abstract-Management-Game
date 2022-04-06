@@ -14,9 +14,19 @@ namespace Game1.Industries
         public override bool IsFull()
             => false;
 
-        public override double PersonScoreOfThis(Person person)
-            => CurWorldConfig.personMomentumCoeff * (IsPersonHere(person: person) ? 1 : 0)
-            + (.7 * C.Random(min: 0, max: 1) + .3 * DistanceToHere(person: person)) * (1 - CurWorldConfig.personMomentumCoeff);
+        public override Score PersonScoreOfThis(Person person)
+            => Score.CombineTwo
+            (
+                score1: (IsPersonHere(person: person) ? Score.best : Score.worst),
+                // TODO: get rid of hard-coded constants
+                score2: Score.Combine
+                (
+                    // TODO: make it so that multiple samples generate the same value
+                    (weight: 7, score: Score.GenerateRandom()),
+                    (weight: 3, score: DistanceToHere(person: person))
+                ),
+                score1Propor: CurWorldConfig.personMomentumPropor
+            );
 
         public override bool IsPersonSuitable(Person person)
             // may disallow far travel

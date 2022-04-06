@@ -107,10 +107,10 @@ namespace Game1.UI
                 layerToChildren.Remove(layer);
         }
 
-        public bool Contains(Vector2 position)
+        public bool Contains(MyVector2 position)
             => shape.Contains(position: position);
 
-        public virtual IUIElement CatchUIElement(Vector2 mousePos)
+        public virtual IUIElement CatchUIElement(MyVector2 mousePos)
         {
             if (!Contains(position: mousePos))
                 return null;
@@ -139,10 +139,10 @@ namespace Game1.UI
             shape.Draw
             (
                 otherColor: ActiveUIManager.CurUIConfig.mouseOnColor,
-                otherColorProp: (CanBeClicked && MouseOn) switch
+                otherColorPropor: (CanBeClicked && MouseOn) switch
                 {
-                    true => .5f,
-                    false => 0
+                    true => (Propor).5,
+                    false => (Propor)0
                 }
             );
             foreach (var child in Children())

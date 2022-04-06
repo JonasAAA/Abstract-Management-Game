@@ -1,6 +1,4 @@
-﻿using Game1.PrimitiveTypeWrappers;
-
-namespace Game1.Shapes.Deprecated
+﻿namespace Game1.Shapes.Deprecated
 {
     [Serializable]
     public class CustomImage : BaseImage

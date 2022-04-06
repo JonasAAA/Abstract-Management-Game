@@ -1,5 +1,4 @@
 ﻿using Game1.ChangingValues;
-using Game1.PrimitiveTypeWrappers;
 
 using static Game1.WorldManager;
 
@@ -23,7 +22,7 @@ namespace Game1.Industries
                     explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(prodWattsPerUnitSurface)} {prodWattsPerUnitSurface}"
                 )
             {
-                if (prodWattsPerUnitSurface <= 0)
+                if (prodWattsPerUnitSurface.IsCloseTo(other: 0))
                     throw new ArgumentOutOfRangeException();
                 this.prodWattsPerUnitSurface = prodWattsPerUnitSurface;
             }

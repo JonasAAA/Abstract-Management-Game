@@ -1,9 +1,5 @@
-﻿using Game1.PrimitiveTypeWrappers;
-
-namespace Game1.ChangingValues
+﻿namespace Game1.ChangingValues
 {
-    // TODO: rename to IReadOnlyChangingUDouble
-    // Also rename all related types accordingly
     public interface IReadOnlyChangingUDouble : IReadOnlyChangingValue<UDouble>
     {
         [Serializable]

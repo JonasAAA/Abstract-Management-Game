@@ -1,6 +1,4 @@
-﻿using Game1.PrimitiveTypeWrappers;
-
-namespace Game1.Shapes
+﻿namespace Game1.Shapes
 {
     // about texture.GetData and texture.SetData https://gamedev.stackexchange.com/questions/89567/texture2d-setdata-method-overload
     [Serializable]
@@ -20,16 +18,16 @@ namespace Game1.Shapes
             this.origin = origin ?? new(this.texture.Width * .5, this.texture.Height * .5);
             scaleX = 1;
             scaleY = 1;
-            if (width.HasValue)
+            if (width is UDouble widthValue)
             {
-                scaleX = width.Value / (UDouble)this.texture.Width;
-                if (!height.HasValue)
+                scaleX = widthValue / (UDouble)this.texture.Width;
+                if (height is null)
                     scaleY = scaleX;
             }
-            if (height.HasValue)
+            if (height is UDouble heightValue)
             {
-                scaleY = height.Value / (UDouble)this.texture.Height;
-                if (!width.HasValue)
+                scaleY = heightValue / (UDouble)this.texture.Height;
+                if (width is null)
                     scaleX = scaleY;
             }
             Color = Color.White;

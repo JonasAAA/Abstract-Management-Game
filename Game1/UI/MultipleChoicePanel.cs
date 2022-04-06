@@ -1,5 +1,4 @@
 ﻿using Game1.Delegates;
-using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 
 namespace Game1.UI

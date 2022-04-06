@@ -27,15 +27,13 @@ namespace Game1.Shapes
             MyVector2 orthDir = new(-direction.Y, direction.X);
             double distance = (double)MyVector2.Distance(startPos, endPos),
                 dirProp = MyVector2.Dot(relPos, direction) / distance;
-            return (Propor.Create(propor: dirProp), Propor.Create(part: MyMathHelper.Abs(MyVector2.Dot(relPos, orthDir)), whole: width.Value * (UDouble).5)) switch
+            return (Propor.Create(value: dirProp), Propor.Create(part: MyMathHelper.Abs(MyVector2.Dot(relPos, orthDir)), whole: width.Value * (UDouble).5)) switch
             {
                 (Propor dirPropor, Propor orthDirPropor) => Contains(dirPropor: dirPropor, orthDirPropor: orthDirPropor),
                 _ => false
             };
         }
 
-        /// <param name="dirPropor">0 to 1</param>
-        /// <param name="orthDirPropor">0 to 1</param>
         protected abstract bool Contains(Propor dirPropor, Propor orthDirPropor);
 
         protected override void Draw(Color color)

@@ -1,6 +1,4 @@
-﻿using Game1.PrimitiveTypeWrappers;
-
-namespace Game1
+﻿namespace Game1
 {
     [Serializable]
     public class WorldConfig

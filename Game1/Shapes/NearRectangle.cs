@@ -1,5 +1,4 @@
 ﻿using Game1.Delegates;
-using Game1.PrimitiveTypeWrappers;
 
 namespace Game1.Shapes
 {
@@ -100,8 +99,6 @@ namespace Game1.Shapes
             get => height;
             set
             {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException();
                 value = MyMathHelper.Max(value, minHeight);
                 if (!MyMathHelper.AreClose(height, value))
                 {
@@ -115,8 +112,6 @@ namespace Game1.Shapes
             get => minWidth;
             set
             {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException();
                 minWidth = value;
                 if (Width < minWidth)
                     Width = minWidth;
@@ -127,8 +122,6 @@ namespace Game1.Shapes
             get => minHeight;
             set
             {
-                if (value < 0)
-                    throw new ArgumentOutOfRangeException();
                 minHeight = value;
                 if (Height < minHeight)
                     Height = minHeight;
@@ -139,11 +132,7 @@ namespace Game1.Shapes
 
         protected NearRectangle(UDouble width, UDouble height)
         {
-            if (width < 0)
-                throw new ArgumentOutOfRangeException();
             this.width = width;
-            if (height < 0)
-                throw new ArgumentOutOfRangeException();
             this.height = height;
 
             minWidth = 0;

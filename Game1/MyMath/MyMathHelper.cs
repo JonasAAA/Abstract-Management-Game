@@ -3,8 +3,7 @@
     public static class MyMathHelper
     {
         public static readonly UDouble pi = (UDouble)Math.PI;
-        // TODO: I think this should be much smaller, e.g. 1e-6
-        private static readonly UDouble minPosDouble = (UDouble).0001;
+        private static readonly UDouble minPosDouble = (UDouble)1e-6;
         private static readonly decimal minPosDecimal = 1e-6m;
 
         public static bool AreClose<T>(T value1, T value2) where T : IClose<T>
@@ -67,9 +66,6 @@
 
         public static double Pow(double @base, double exponent)
             => Math.Pow(@base, exponent);
-
-        //public static UDouble Pow(UDouble @base, double exponent)
-        //    => (UDouble)Pow((double)@base, exponent);
 
         /// <summary>
         /// Returns equivalent angle between -pi and pi

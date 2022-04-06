@@ -1,5 +1,4 @@
-﻿using Game1.PrimitiveTypeWrappers;
-using Game1.UI;
+﻿using Game1.UI;
 
 namespace Game1.Shapes
 {

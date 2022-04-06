@@ -1,5 +1,4 @@
 ﻿using Game1.Lighting;
-using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
 
@@ -98,8 +97,7 @@ namespace Game1
             for (int i = 0; i < rayCatchingObjects.Count; i++)
                 if (rayCatchingObjects[i] is not null && rayCatchingObjects[i] == rayCatchingObjects[(i + 1) % rayCatchingObjects.Count])
                 {
-                    // TODO: delete comments
-                    UDouble curArc = MyMathHelper.Abs(MyMathHelper.WrapAngle(angles[i] - angles[(i + 1) % angles.Count]));// / (2 * MyMathHelper.pi);
+                    UDouble curArc = MyMathHelper.Abs(MyMathHelper.WrapAngle(angles[i] - angles[(i + 1) % angles.Count]));
                     arcsForObjects[rayCatchingObjects[i]] += curArc;
                     usedArc += curArc;
                 }

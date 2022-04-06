@@ -7,11 +7,14 @@
         public static readonly Propor empty = new(value: 0);
 
         public static Propor? Create(UDouble part, UDouble whole)
-            => Create(propor: (double)(part / whole));
+            => Create(value: (double)(part / whole));
 
-        public static Propor? Create(double propor)
+        public static Propor? Create(double value)
         {
-            double value = Snap(propor);
+            if (value < 0 && MyMathHelper.AreClose(value, 0))
+                value = 0;
+            if (value > 1 && MyMathHelper.AreClose(value, 1))
+                value = 1;
             if (value is >= 0 and <= 1)
                 return new(value: value);
             return null;
@@ -21,13 +24,12 @@
 
         private Propor(double value)
         {
-            value = Snap(value);
             Debug.Assert(value is >= 0 and <= 1);
             this.value = (UDouble)value;
         }
 
         public Propor Opposite()
-            => new(value: 1 - (double)value);
+            => (Propor)(1 - (double)value);
 
         public bool IsCloseTo(Propor other)
             => MyMathHelper.AreClose(value, other.value);
@@ -36,7 +38,7 @@
             => (Propor)MyMathHelper.Pow(value, (double)exponent);
 
         public static explicit operator Propor(double propor)
-            => Create(propor: propor) switch
+            => Create(value: propor) switch
             {
                 Propor proportion => proportion,
                 null => throw new InvalidCastException()
@@ -78,14 +80,5 @@
 
         public static bool operator >=(Propor propor1, Propor propor2)
             => propor1.value >= propor2.value;
-
-        private static double Snap(double value)
-        {
-            if (MyMathHelper.AreClose(value, 0))
-                value = 0;
-            if (MyMathHelper.AreClose(value, 1))
-                value = 1;
-            return value;
-        }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using Game1.Delegates;
 using Game1.Industries;
 using Game1.Lighting;
-using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
 using System.IO;
@@ -15,8 +14,6 @@ namespace Game1
     [Serializable]
     public class WorldManager : IDeletedListener, IClickedNowhereListener
     {
-        //public const Overlay MaxRes = (Overlay)2;
-
         public static WorldManager CurWorldManager { get; private set; }
 
         public static IEvent<IChoiceChangedListener<IOverlay>> CurOverlayChanged
@@ -399,8 +396,6 @@ namespace Game1
                                select node.Position,
                 posToNode: graph.posToNode
             );
-
-            //planet.InternalUpdate();
 
             graph.Update();
 

@@ -1,6 +1,4 @@
-﻿using Game1.PrimitiveTypeWrappers;
-
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -15,11 +13,11 @@ namespace Game1.Industries
             => false;
 
         public override Score PersonScoreOfThis(Person person)
-            => Score.CombineTwo
+            => Score.WightedAverageOfTwo
             (
-                score1: (IsPersonHere(person: person) ? Score.best : Score.worst),
+                score1: (IsPersonHere(person: person) ? Score.highest : Score.lowest),
                 // TODO: get rid of hard-coded constants
-                score2: Score.Combine
+                score2: Score.WeightedAverage
                 (
                     // TODO: make it so that multiple samples generate the same value
                     (weight: 7, score: Score.GenerateRandom()),

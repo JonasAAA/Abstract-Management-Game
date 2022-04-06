@@ -1,6 +1,4 @@
-﻿using Game1.PrimitiveTypeWrappers;
-
-namespace Game1.UI
+﻿namespace Game1.UI
 {
     [Serializable]
     public class UIConfig

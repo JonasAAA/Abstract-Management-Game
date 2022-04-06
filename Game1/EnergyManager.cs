@@ -1,5 +1,4 @@
 ﻿using Game1.Delegates;
-using Game1.PrimitiveTypeWrappers;
 
 namespace Game1
 {
@@ -41,13 +40,7 @@ namespace Game1
             Dictionary<IEnergyConsumer, UDouble> reqWattsByConsumer = energyConsumers.ToDictionary
             (
                 keySelector: energyConsumer => energyConsumer,
-                elementSelector: energyConsumer =>
-                {
-                    UDouble curReqWatts = energyConsumer.ReqWatts();
-                    if (curReqWatts < 0)
-                        throw new Exception();
-                    return curReqWatts;
-                }
+                elementSelector: energyConsumer => energyConsumer.ReqWatts()
             );
 
             totProdWatts = energyProducers.Sum(energyProducer => energyProducer.ProdWatts());
@@ -123,10 +116,7 @@ namespace Game1
                     }
 
                     foreach (var energyConsumer in samePriorEnergyConsumers)
-                    {
                         reqWattsByConsumer[energyConsumer] *= energyPropor.Opposite();
-                        Debug.Assert(reqWattsByConsumer[energyConsumer] >= 0);
-                    }
                 }
 
                 return availableWatts;

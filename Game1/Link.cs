@@ -1,6 +1,5 @@
 ﻿using Game1.ChangingValues;
 using Game1.Delegates;
-using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
 
@@ -52,7 +51,7 @@ namespace Game1
                 };
                 waitingResAmountsPackets = new();
                 waitingPeople = new();
-                if (wattsPerKg <= 0)
+                if (wattsPerKg.IsCloseTo(other: 0))
                     throw new ArgumentOutOfRangeException();
                 reqWattsPerKg = wattsPerKg / (UDouble)travelTime.TotalSeconds;
                 energyPropor = Propor.empty;

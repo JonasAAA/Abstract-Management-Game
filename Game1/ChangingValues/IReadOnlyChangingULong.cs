@@ -1,6 +1,4 @@
-﻿using Game1.PrimitiveTypeWrappers;
-
-namespace Game1.ChangingValues
+﻿namespace Game1.ChangingValues
 {
     public interface IReadOnlyChangingULong : IReadOnlyChangingValue<ulong>
     {

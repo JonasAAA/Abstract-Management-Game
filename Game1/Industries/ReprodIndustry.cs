@@ -1,5 +1,4 @@
 ﻿using Game1.ChangingValues;
-using Game1.PrimitiveTypeWrappers;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
@@ -57,7 +56,7 @@ namespace Game1.Industries
                 => true;
 
             public override Score PersonScoreOfThis(Person person)
-                => Score.Combine
+                => Score.WeightedAverage
                 (
                     (
                         weight: 9,

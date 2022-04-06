@@ -1,6 +1,4 @@
-﻿using Game1.PrimitiveTypeWrappers;
-
-namespace Game1
+﻿namespace Game1
 {
     /// <summary>
     /// MUST call EnergyManager.AddEnergyConsumer() for each instance

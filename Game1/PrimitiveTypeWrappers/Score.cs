@@ -3,9 +3,19 @@
     [Serializable]
     public readonly struct Score : IClose<Score>, IComparable<Score>
     {
-        // TODO: should probably rename those to highest and lowest
-        public static readonly Score best = new(value: 1);
-        public static readonly Score worst = new(value: 0);
+        public static readonly Score highest = new(value: 1);
+        public static readonly Score lowest = new(value: 0);
+
+        public static Score? Create(double value)
+        {
+            if (value < 0 && MyMathHelper.AreClose(value, 0))
+                value = 0;
+            if (value > 1 && MyMathHelper.AreClose(value, 1))
+                value = 1;
+            if (value is >= 0 and <= 1)
+                return new(value: value);
+            return null;
+        }
 
         private readonly UDouble value;
 
@@ -19,7 +29,7 @@
             => MyMathHelper.AreClose(value, other.value);
 
         public Score Opposite()
-            => new(value: 1 - (double)value);
+            => (Score)(1 - (double)value);
 
         public static Score FromUnboundedUDouble(UDouble value, UDouble valueGettingAverageScore)
         {
@@ -29,23 +39,22 @@
         }
 
         public static Score GenerateRandom()
-            => new(value: C.Random(min: (double)0, max: 1));
+            => (Score)C.Random(min: (double)0, max: 1);
 
-        // TODO: could rename this to WeightedAverage
-        public static Score Combine(params (ulong weight, Score score)[] weightsAndScores)
+        public static Score WeightedAverage(params (ulong weight, Score score)[] weightsAndScores)
             => (Score)(weightsAndScores.Sum(weightAndScore => weightAndScore.weight * (UDouble)weightAndScore.score) / weightsAndScores.Sum(weightAndScore => weightAndScore.weight));
 
-        public static Score CombineTwo(Score score1, Score score2, Propor score1Propor)
+        public static Score WightedAverageOfTwo(Score score1, Score score2, Propor score1Propor)
             => (Score)((UDouble)score1 * score1Propor + (UDouble)score2 * score1Propor.Opposite());
 
         public static Score Average(params Score[] scores)
-            => Combine
+            => WeightedAverage
             (
                 weightsAndScores:
                     (from score in scores
                      select (weight: 1UL, score: score)).ToArray()
             );
-        
+
         // Assuming target is constant, this method is frame-rate independent
         public static Score BringCloser(Score current, Score target, TimeSpan elapsed, TimeSpan halvingDifferenceDuration)
         {
@@ -54,7 +63,7 @@
             if (halvingDifferenceDuration <= TimeSpan.Zero)
                 throw new ArgumentOutOfRangeException();
 
-            return CombineTwo
+            return WightedAverageOfTwo
             (
                 score1: current,
                 score2: target,
@@ -62,12 +71,11 @@
             );
         }
 
-        // TODO: give the checks some leeway : accept slightly negative and slightly above 1 values
         public static explicit operator Score(double value)
-            => value switch
+            => Create(value: value) switch
             {
-                >= 0 and <= 1 => new(value: value),
-                _ => throw new InvalidCastException()
+                Score score => score,
+                null => throw new InvalidCastException()
             };
 
         public static explicit operator Score(UDouble value)

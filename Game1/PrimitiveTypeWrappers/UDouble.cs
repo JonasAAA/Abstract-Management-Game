@@ -1,14 +1,17 @@
 ﻿namespace Game1.PrimitiveTypeWrappers
 {
     // TODO: could rename to MyUFloat
-    // TODO: numbers which are a tiny bit negative should be treated as 0 in this struct probably
     [Serializable]
     public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>, IMinable<UDouble>, IMaxable<UDouble>
     {
         public static readonly UDouble positiveInfinity = new(value: double.PositiveInfinity);
 
         public static UDouble? Create(double value)
-            => value >= 0 ? new(value: value) : null;
+        {
+            if (value < 0 && MyMathHelper.AreClose(value, 0))
+                value = 0;
+            return value >= 0 ? new(value: value) : null;
+        }
 
         private readonly double value;
 

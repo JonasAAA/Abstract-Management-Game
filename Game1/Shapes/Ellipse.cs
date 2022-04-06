@@ -1,6 +1,4 @@
-﻿using Game1.PrimitiveTypeWrappers;
-
-namespace Game1.Shapes
+﻿namespace Game1.Shapes
 {
     [Serializable]
     public class Ellipse : NearRectangle

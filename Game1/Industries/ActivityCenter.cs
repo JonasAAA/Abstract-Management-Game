@@ -1,5 +1,4 @@
 ﻿using Game1.Delegates;
-using Game1.PrimitiveTypeWrappers;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
@@ -91,11 +90,8 @@ namespace Game1.Industries
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 
-        // must be between 0 and 1 or double.NegativeInfinity
-        // should later be changed to graph distance (either time or energy cost)
         protected Score DistanceToHere(Person person)
             // TODO: get rid of hard-coded constant
             => Score.FromUnboundedUDouble(value: MyVector2.Distance(person.ClosestNodePos, Position), valueGettingAverageScore: 100).Opposite();
-            //1 - MyMathHelper.Tanh(MyVector2.Distance(person.ClosestNodePos, Position) / 100);
     }
 }

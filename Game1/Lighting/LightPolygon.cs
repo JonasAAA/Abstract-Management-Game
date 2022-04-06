@@ -1,5 +1,4 @@
-﻿using Game1.PrimitiveTypeWrappers;
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1.Lighting
 {
@@ -21,7 +20,7 @@ namespace Game1.Lighting
             vertices = new List<MyVector2>();
             vertPosTexs = Array.Empty<VertexPositionColorTexture>();
             inds = Array.Empty<ushort>();
-            if (strength <= 0)
+            if (strength.IsCloseTo(other: 0))
                 throw new ArgumentOutOfRangeException();
             this.strength = strength;
             this.color = color;
@@ -29,7 +28,7 @@ namespace Game1.Lighting
 
         public LightPolygon(UDouble strength, Color color, MyVector2 center, List<MyVector2> vertices)
         {
-            if (strength <= 0)
+            if (strength.IsCloseTo(other: 0))
                 throw new ArgumentOutOfRangeException();
             this.strength = strength;
             this.color = color;
@@ -88,7 +87,6 @@ namespace Game1.Lighting
                     startIndex: 0,
                     primitiveCount: inds.Length / 3
                 );
-                //graphicsDevice.DrawUserIndexedPrimitives(PrimitiveType.TriangleList, vertPosTexs, 0, vertPosTexs.Length, inds, 0, inds.Length / 3);
             }
 
             Vector3 Transform(MyVector2 pos)

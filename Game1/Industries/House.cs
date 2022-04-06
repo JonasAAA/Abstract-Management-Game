@@ -1,5 +1,4 @@
 ﻿using Game1.ChangingValues;
-using Game1.PrimitiveTypeWrappers;
 
 using static Game1.WorldManager;
 
@@ -20,8 +19,6 @@ namespace Game1.Industries
                     explanation: $"{nameof(floorSpacePerUnitSurface)} {floorSpacePerUnitSurface}"
                 )
             {
-                if (floorSpacePerUnitSurface < 0)
-                    throw new ArgumentException();
                 this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
             }
 
@@ -53,11 +50,11 @@ namespace Game1.Industries
                 => Score.FromUnboundedUDouble(value: floorSpace.Value / peopleCount, valueGettingAverageScore: 10);
 
             public override Score PersonScoreOfThis(Person person)
-                => Score.CombineTwo
+                => Score.WightedAverageOfTwo
                 (
-                    score1: (IsPersonHere(person: person) ? Score.best : Score.worst),
+                    score1: (IsPersonHere(person: person) ? Score.highest : Score.lowest),
                     // TODO: get rid of hard-coded constants
-                    score2: Score.Combine
+                    score2: Score.WeightedAverage
                     (
                         (weight: 7, score: PersonalSpace(peopleCount: allPeople.Count + 1)),
                         (weight: 3, score: DistanceToHere(person: person))

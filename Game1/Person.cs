@@ -1,6 +1,5 @@
 ﻿using Game1.Delegates;
 using Game1.Industries;
-using Game1.PrimitiveTypeWrappers;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -53,7 +52,7 @@ namespace Game1
                 skills: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
-                    elementSelector: indType => Score.worst
+                    elementSelector: indType => Score.lowest
                 ),
                 // TODO: get rid of hard-coded constant
                 weight: 10,
@@ -70,7 +69,7 @@ namespace Game1
                 (
                     keySelector: indType => indType,
                     elementSelector: indType
-                        => Score.CombineTwo
+                        => Score.WightedAverageOfTwo
                         (
                             score1: Score.Average(personalScore(person1, indType), personalScore(person2, indType)),
                             score2: Score.GenerateRandom(),

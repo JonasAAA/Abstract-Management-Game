@@ -2,7 +2,6 @@
 using Game1.Delegates;
 using Game1.Industries;
 using Game1.Lighting;
-using Game1.PrimitiveTypeWrappers;
 using Game1.Shapes;
 using Game1.UI;
 

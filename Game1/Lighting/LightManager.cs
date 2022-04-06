@@ -30,7 +30,7 @@ namespace Game1.Lighting
 
             BasicEffect GetBasicEffect(UDouble brightness)
             {
-                if (brightness <= 0)
+                if (brightness.IsCloseTo(other: 0))
                     throw new ArgumentOutOfRangeException();
                 Texture2D texture = new(graphicsDevice, CurWorldConfig.lightTextureWidth, CurWorldConfig.lightTextureWidth);
                 Color[] colorData = new Color[CurWorldConfig.lightTextureWidth * CurWorldConfig.lightTextureWidth];

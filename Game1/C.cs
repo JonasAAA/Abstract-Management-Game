@@ -10,7 +10,6 @@ namespace Game1
         public static ContentManager contentManager { get; private set; }
         public static GraphicsDevice graphicsDevice { get; private set; }
         public static SpriteBatch SpriteBatch { get; private set; }
-        //private static ContentManager contentManager;
         
         private static readonly Random random;
 

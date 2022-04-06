@@ -23,7 +23,7 @@ namespace Game1.Industries
                     || (industryType is not IndustryType.PowerPlant && energyPriority == EnergyPriority.minimal))
                     throw new ArgumentException();
                 this.energyPriority = energyPriority;
-                if (reqSkillPerUnitSurface <= 0)
+                if (reqSkillPerUnitSurface.IsCloseTo(other: 0))
                     throw new ArgumentOutOfRangeException();
                 this.reqSkillPerUnitSurface = reqSkillPerUnitSurface;
             }
@@ -51,20 +51,16 @@ namespace Game1.Industries
                 CurSkillPropor = Propor.empty;
                 curUnboundedSkillPropor = 0;
                 // TODO: could initialize to some other value
-                desperationScore = Score.worst;
+                desperationScore = Score.lowest;
                 workingPropor = Propor.empty;
             }
 
             public void StartUpdate()
             {
-                // TODO: reconsider this method
                 UDouble totalHiredSkill = HiredSkill();
                 if (totalHiredSkill >= reqSkill.Value)
                 {
                     // if can, fire the worst people
-
-                    // TODO: delete
-                    //Propor oldOpenSpace = OpenSpacePropor();
 
                     SimplePriorityQueue<Person, Score> allEmployeesPriorQueue = new();
                     foreach (var person in allPeople)
@@ -81,25 +77,16 @@ namespace Game1.Industries
                         RemovePerson(person: person);
                     }
 
-                    // TODO: delete
-                    //Propor curOpenSpace = OpenSpacePropor();
-                    //if (oldOpenSpace is double.NegativeInfinity)
-                    //    avgVacancyDuration = TimeSpan.Zero;
-                    //else
-                    //    // TODO: I think this clause is never used
-                    //    // Also would want this logic to be slightly different, i.e. oldOpenSpace should be open space from the previous frame
-                    //    avgVacancyDuration *= (UDouble)oldOpenSpace / (UDouble)curOpenSpace;
-
                     Debug.Assert(HiredSkill() >= reqSkill.Value);
                 }
-                // The problem here is that it depends on the frame-rate, not the time
+                
                 desperationScore = Score.BringCloser
                 (
                     current: desperationScore,
-                    target: IsFull() ? Score.worst : Score.CombineTwo
+                    target: IsFull() ? Score.lowest : Score.WightedAverageOfTwo
                     (
                         score1: (Score)OpenSpacePropor(),
-                        score2: Score.best,
+                        score2: Score.highest,
                         // TODO: get rid of hard-coded constant
                         score1Propor: (Propor).5
                     ),
@@ -107,11 +94,6 @@ namespace Game1.Industries
                     // TODO: get rid of hard-coded constant
                     halvingDifferenceDuration: TimeSpan.FromSeconds(20)
                 );
-                // TODO: delete
-                //if (IsFull())
-                //    avgVacancyDuration = TimeSpan.Zero;
-                //else
-                //    avgVacancyDuration += CurWorldManager.Elapsed;
             }
 
             public void EndUpdate()
@@ -124,10 +106,10 @@ namespace Game1.Industries
                 => OpenSpacePropor().IsCloseTo(other: Propor.empty);
 
             public override Score PersonScoreOfThis(Person person)
-                => Score.CombineTwo
+                => Score.WightedAverageOfTwo
                 (
-                    score1: IsPersonHere(person: person) ? Score.best : Score.worst,
-                    score2: Score.Combine
+                    score1: IsPersonHere(person: person) ? Score.highest : Score.lowest,
+                    score2: Score.WeightedAverage
                     (
                         (weight: 9, score: person.enjoyments[parameters.industryType]),
                         (weight: 1, score: DistanceToHere(person: person))
@@ -147,14 +129,12 @@ namespace Game1.Industries
                 => person.skills[parameters.industryType] = Score.BringCloser
                 (
                     current: person.skills[parameters.industryType],
-                    target: Score.best,
+                    target: Score.highest,
                     elapsed: CurWorldManager.Elapsed * workingPropor,
                     // TODO: get rid of hard-coded constant
                     halvingDifferenceDuration: TimeSpan.FromSeconds(20)
                 );
-            // TODO: delete
-            //=> person.skills[parameters.industryType] = 1 - (1 - person.skills[parameters.industryType]) * MyMathHelper.Pow(1 - person.talents[parameters.industryType], (UDouble)CurWorldManager.Elapsed.TotalSeconds * workingPropor * CurWorldConfig.personTimeSkillCoeff);
-
+            
             public override bool CanPersonLeave(Person person)
                 => true;
 
@@ -174,27 +154,8 @@ namespace Game1.Industries
                     null => Propor.empty
                 };
 
-            // TODO: delete
-            //private Score DesperationScore()
-            //{
-            //    // TODO:
-            //    //Debug.Assert(avgVacancyDuration >= TimeSpan.Zero);
-            //    return Score.FromUnboundedUDouble
-            //    (
-            //        value: (UDouble)avgVacancyDuration.TotalSeconds * OpenSpacePropor(),
-            //        valueGettingAverageScore: CurWorldConfig.jobVacDespValueConsideredAverage
-            //    );
-            //    //Propor openSpace = OpenSpacePropor();
-            //    //if (openSpace is double.NegativeInfinity)
-            //    //    return double.NegativeInfinity;
-            //    //return MyMathHelper.Tanh(avgVacancyDuration.TotalSeconds * openSpace * CurWorldConfig.jobVacDespCoeff);
-            //}
-
-            // each parameter must be between 0 and 1 or double.NegativeInfinity
-            // larger means this pair is more likely to work
-            // must be between 0 and 1 or double.NegativeInfinity
             private Score NewEmploymentScore(Person person)
-                => Score.Combine
+                => Score.WeightedAverage
                 (
                     (weight: CurWorldConfig.personJobEnjoymentWeight, score: PersonScoreOfThis(person: person)),
                     (weight: CurWorldConfig.personTalentWeight, score: person.talents[parameters.industryType]),
@@ -202,27 +163,17 @@ namespace Game1.Industries
                     (weight: CurWorldConfig.jobDesperationWeight, score: desperationScore),
                     (weight: CurWorldConfig.playerToJobDistWeight, score: DistanceToHere(person: person))
                 );
-                // TODO: delete
-                //=> CurWorldConfig.personJobEnjoymentCoeff * PersonScoreOfThis(person: person)
-                //+ CurWorldConfig.personTalentCoeff * person.talents[parameters.industryType]
-                //+ CurWorldConfig.personSkillCoeff * person.skills[parameters.industryType]
-                //+ CurWorldConfig.jobDesperationCoeff * Desperation()
-                //+ CurWorldConfig.playerToJobDistCoeff * DistanceToHere(person: person);
 
             private Score CurrentEmploymentScore(Person person)
             {
                 if (!IsPersonQueuedOrHere(person: person))
                     throw new ArgumentException();
-                return Score.Combine
+                return Score.WeightedAverage
                     (
                         (weight: CurWorldConfig.personJobEnjoymentWeight, score: PersonScoreOfThis(person: person)),
                         (weight: CurWorldConfig.personTalentWeight, score: person.talents[parameters.industryType]),
                         (weight: CurWorldConfig.personSkillWeight, score: person.skills[parameters.industryType])
                     );
-                    // TODO: delete
-                    //CurWorldConfig.personJobEnjoymentWeight * PersonScoreOfThis(person: person)
-                    //+CurWorldConfig.personTalentWeight * person.talents[parameters.industryType]
-                    //+ CurWorldConfig.personSkillWeight * person.skills[parameters.industryType];
             }
         }
 

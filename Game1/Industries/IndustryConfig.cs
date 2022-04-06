@@ -1,6 +1,4 @@
-﻿using Game1.PrimitiveTypeWrappers;
-
-namespace Game1.Industries
+﻿namespace Game1.Industries
 {
     [Serializable]
     public class IndustryConfig

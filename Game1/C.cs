@@ -34,7 +34,7 @@ namespace Game1
         {
             if (min > max)
                 throw new ArgumentException();
-            return min + (UDouble)random.NextDouble() * (UDouble)((double)max - (double)min);
+            return min + (UDouble)random.NextDouble() * (UDouble)(max - min);
         }
 
         public static TimeSpan Random(TimeSpan min, TimeSpan max)

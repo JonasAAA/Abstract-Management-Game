@@ -426,12 +426,13 @@ namespace Game1
                 resFirstLinks[(Position, destination)].Add(start: this, resAmountsPacket: resAmountsPacket);
             }
 
-            infoTextBox.Text = $"stores {state.storedRes}\ntarget {targetStoredResAmounts}";
+            // TODO: look at this
+            infoTextBox.Text = $"stores {state.storedRes}\ntarget {targetStoredResAmounts}\n";
 
             // update text
-            textBox.Text = $"";
-            if (industry is not null)
-                textBox.Text += industry.GetInfo();
+            textBox.Text = "";
+            //if (industry is not null)
+            //    textBox.Text += industry.GetInfo();
 
             CurWorldManager.Overlay.SwitchStatement
             (
@@ -452,11 +453,12 @@ namespace Game1
                     if (totalStoredWeight > 0)
                         textBox.Text += $"stored total res weight {totalStoredWeight}";
                 },
-                powerCase: () => textBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {(double)shape.Watts - (double)remainingLocalWatts:.##} W is used",
+                powerCase: () => textBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {shape.Watts - remainingLocalWatts:.##} W is used",
                 peopleCase: () => textBox.Text += unemploymentCenter.GetInfo()
             );
 
             textBox.Text = textBox.Text.Trim();
+            infoTextBox.Text += textBox.Text;
         }
 
         public override void Draw()

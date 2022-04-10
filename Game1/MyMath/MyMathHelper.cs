@@ -58,7 +58,7 @@
             => (UDouble)(value * value);
 
         public static UDouble Sqrt(UDouble value)
-            => (UDouble)Math.Sqrt((double)value);
+            => (UDouble)Math.Sqrt(value);
 
         public static TBase Pow<TBase, TExponent>(TBase @base, TExponent exponent)
             where TBase : IExponentiable<TExponent, TBase>
@@ -72,9 +72,9 @@
         /// </summary>
         public static double WrapAngle(double angle)
         {
-            double twoPi = 2 * (double)pi;
+            double twoPi = 2 * pi;
             angle = (angle % twoPi + twoPi) % twoPi;
-            if (angle > (double)pi)
+            if (angle > pi)
                 angle -= twoPi;
             return angle;
         }
@@ -101,10 +101,10 @@
             => (UDouble)Atanh((double)propor);
 
         public static MyVector2 Direction(double rotation)
-            => new((double)Cos(rotation), (double)Sin(rotation));
+            => new(Cos(rotation), Sin(rotation));
 
         public static double Rotation(MyVector2 vector)
-            => (double)Atan2(vector.Y, vector.X);
+            => Atan2(vector.Y, vector.X);
 
         /// <summary>
         /// 90 degrees to the left

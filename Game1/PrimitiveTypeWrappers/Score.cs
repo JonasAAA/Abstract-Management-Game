@@ -1,7 +1,7 @@
 ﻿namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly struct Score : IClose<Score>, IComparable<Score>
+    public readonly struct Score : IClose<Score>, IComparable<Score>, IPrimitiveTypeWrapper
     {
         public static readonly Score highest = new(value: 1);
         public static readonly Score lowest = new(value: 0);
@@ -29,7 +29,7 @@
             => MyMathHelper.AreClose(value, other.value);
 
         public Score Opposite()
-            => (Score)(1 - (double)value);
+            => (Score)(1 - value);
 
         public static Score FromUnboundedUDouble(UDouble value, UDouble valueGettingAverageScore)
         {
@@ -88,7 +88,7 @@
             => score.value;
 
         public static explicit operator double(Score score)
-            => (double)score.value;
+            => score.value;
 
         public static bool operator <=(Score score1, Score score2)
             => score1.value <= score2.value;
@@ -98,5 +98,8 @@
 
         int IComparable<Score>.CompareTo(Score other)
             => ((double)this).CompareTo((double)other);
+
+        public string ToString(string format, IFormatProvider formatProvider)
+            => $"score {value.ToString(format, formatProvider)}";
     }
 }

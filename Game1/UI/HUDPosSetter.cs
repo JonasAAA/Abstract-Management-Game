@@ -13,7 +13,7 @@ namespace Game1.UI
             {
                 if (shape is NearRectangle nearRectangle)
                 {
-                    MyVector2 HUDCenter = new((double)ActiveUIManager.ScreenWidth * .5, (double)ActiveUIManager.ScreenHeight * .5);
+                    MyVector2 HUDCenter = new(ActiveUIManager.ScreenWidth * .5, ActiveUIManager.ScreenHeight * .5);
                     nearRectangle.SetPosition
                     (
                         position: HUDCenter + new MyVector2((int)HorizPos * HUDCenter.X, (int)VertPos * HUDCenter.Y),

@@ -73,11 +73,12 @@ namespace Game1.Industries
                     while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill >= (UDouble)allEmployeesPriorQueue.First.skills[parameters.industryType] + reqSkill.Value)
                     {
                         var person = allEmployeesPriorQueue.Dequeue();
-                        totalHiredSkill = (UDouble)((double)totalHiredSkill - (double)person.skills[parameters.industryType]);
+                        totalHiredSkill = (UDouble)(totalHiredSkill - (double)person.skills[parameters.industryType]);
                         RemovePerson(person: person);
                     }
 
                     Debug.Assert(HiredSkill() >= reqSkill.Value);
+                    Debug.Assert(IsFull());
                 }
                 
                 desperationScore = Score.BringCloser
@@ -142,7 +143,7 @@ namespace Game1.Industries
                 => workingPropor = Propor.Create((UDouble)energyPropor, MyMathHelper.Max((UDouble)1, curUnboundedSkillPropor)).Value;
 
             public string GetInfo()
-                => $"have {peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / reqSkill.Value * 100:0.}% skill\ndesperation {(IsFull() ? 0 : (UDouble)desperationScore * 100):0.}%\nemployed {peopleHere.Count}\n";
+                => $"have {peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / reqSkill.Value * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\nemployed {peopleHere.Count}\n";
 
             private UDouble HiredSkill()
                 => allPeople.Sum(person => (UDouble)person.skills[parameters.industryType]);
@@ -242,7 +243,7 @@ namespace Game1.Industries
             (
                 singleResCase: resInd => "",
                 allResCase: () => "",
-                powerCase: () => "",
+                powerCase: () => $"have {energyPropor * 100.0:0.}% of required energy\n",
                 peopleCase: () => employer.GetInfo()
             );
 

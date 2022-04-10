@@ -45,7 +45,7 @@ namespace Game1.UI
         }
 
         public MyVector2 MeasureText(string text)
-            => (MyVector2)font.MeasureString(text) * (double)scale;
+            => (MyVector2)font.MeasureString(text) * scale;
 
         public override void Draw()
         {

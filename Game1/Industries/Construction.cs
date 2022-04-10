@@ -76,6 +76,7 @@ namespace Game1.Industries
 
             if (constrTimeLeft <= TimeSpan.Zero)
             {
+                constrTimeLeft = TimeSpan.Zero;
                 Delete();
                 return parameters.industryParams.MakeIndustry(state: state);
             }

@@ -53,7 +53,7 @@ namespace Game1
 
             // prepare angles
             for (int i = 0; i < 4; i++)
-                angles.Add(i * 2 * (double)MyMathHelper.pi / 4);
+                angles.Add(i * 2 * MyMathHelper.pi / 4);
 
             angles = new SortedSet<double>
             (
@@ -81,7 +81,7 @@ namespace Game1
                         }
                 }
                 rayCatchingObjects.Add(rayCatchingObject);
-                vertices.Add(shape.Center + (double)minDist * rayDir);
+                vertices.Add(shape.Center + minDist * rayDir);
             }
 
             Debug.Assert(rayCatchingObjects.Count == angles.Count && vertices.Count == angles.Count);

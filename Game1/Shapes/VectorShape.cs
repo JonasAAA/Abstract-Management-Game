@@ -25,7 +25,7 @@ namespace Game1.Shapes
             MyVector2 relPos = position - startPos,
                 direction = MyVector2.Normalized(endPos - startPos);
             MyVector2 orthDir = new(-direction.Y, direction.X);
-            double distance = (double)MyVector2.Distance(startPos, endPos),
+            double distance = MyVector2.Distance(startPos, endPos),
                 dirProp = MyVector2.Dot(relPos, direction) / distance;
             return (Propor.Create(value: dirProp), Propor.Create(part: MyMathHelper.Abs(MyVector2.Dot(relPos, orthDir)), whole: width.Value * (UDouble).5)) switch
             {

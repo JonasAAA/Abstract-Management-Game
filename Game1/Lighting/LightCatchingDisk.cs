@@ -43,22 +43,22 @@ namespace Game1.Lighting
             if (dist <= radius.Value)
                 yield break;
 
-            double a = (double)(radius.Value / MyVector2.Distance(lightPos, Center)),
-                  b = (double)MyMathHelper.Sqrt((UDouble)(1 - a * a));
+            double a = radius.Value / MyVector2.Distance(lightPos, Center),
+                  b = MyMathHelper.Sqrt((UDouble)(1 - a * a));
             MyVector2 center = Center * b * b + lightPos * a * a,
                     diff = Center - lightPos,
                     orth = new(diff.Y, -diff.X),
                     point1 = center + orth * a * b - lightPos,
                     point2 = center - orth * a * b - lightPos;
-            yield return (double)MyMathHelper.Atan2(point1.Y, point1.X);
-            yield return (double)MyMathHelper.Atan2(point2.Y, point2.X);
+            yield return MyMathHelper.Atan2(point1.Y, point1.X);
+            yield return MyMathHelper.Atan2(point2.Y, point2.X);
         }
 
         IEnumerable<double> ILightCatchingObject.InterPoints(MyVector2 lightPos, MyVector2 lightDir)
         {
             MyVector2 d = lightPos - Center;
             double e = MyVector2.Dot(lightDir, d), 
-                f = MyVector2.Dot(d, d) - (double)(radius.Value * radius.Value),
+                f = MyVector2.Dot(d, d) - radius.Value * radius.Value,
                 g = e * e - f;
             
             switch (UDouble.Create(value: g))
@@ -66,7 +66,7 @@ namespace Game1.Lighting
                 case null:
                     yield break;
                 case UDouble nonnegG:
-                    double h = (double)MyMathHelper.Sqrt(nonnegG);
+                    double h = MyMathHelper.Sqrt(nonnegG);
                     if (double.IsNaN(h))
                         yield break;
 

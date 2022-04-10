@@ -1,23 +1,23 @@
 ﻿namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly struct EnergyPriority : IEquatable<EnergyPriority>, IComparable<EnergyPriority>, IMinable<EnergyPriority>
+    public readonly struct EnergyPriority : IEquatable<EnergyPriority>, IComparable<EnergyPriority>, IMinable<EnergyPriority>, IPrimitiveTypeWrapper
     {
         public static readonly EnergyPriority maximal, minimal;
 
         static EnergyPriority()
         {
-            maximal = new(energyPriority: ulong.MaxValue);
-            minimal = new(energyPriority: 0);
+            maximal = new(value: ulong.MaxValue);
+            minimal = new(value: 0);
         }
 
-        private readonly ulong energyPriority;
+        private readonly ulong value;
 
-        public EnergyPriority(ulong energyPriority)
-            => this.energyPriority = energyPriority;
+        public EnergyPriority(ulong value)
+            => this.value = value;
 
         public static bool operator ==(EnergyPriority energyPriority1, EnergyPriority energyPriority2)
-            => energyPriority1.energyPriority == energyPriority2.energyPriority;
+            => energyPriority1.value == energyPriority2.value;
 
         public static bool operator !=(EnergyPriority energyPriority1, EnergyPriority energyPriority2)
             => !(energyPriority1 == energyPriority2);
@@ -29,15 +29,15 @@
             => obj is EnergyPriority energyPriority && Equals(energyPriority);
 
         public override int GetHashCode()
-            => energyPriority.GetHashCode();
+            => value.GetHashCode();
 
         public int CompareTo(EnergyPriority other)
-            => energyPriority.CompareTo(other.energyPriority);
-
-        public override string ToString()
-            => energyPriority.ToString();
+            => value.CompareTo(other.value);
 
         EnergyPriority IMinable<EnergyPriority>.Min(EnergyPriority other)
-            => new (energyPriority: MyMathHelper.Min(energyPriority, other.energyPriority));
+            => new(value: MyMathHelper.Min(value, other.value));
+
+        public string ToString(string format, IFormatProvider formatProvider)
+            =>$"energy priority {value.ToString(format, formatProvider)}";
     }
 }

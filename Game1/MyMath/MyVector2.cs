@@ -37,7 +37,7 @@
             var length = value.Length();
             if (MyMathHelper.IsTiny(value: length))
                 throw new ArgumentException();
-            return value / (double)value.Length();
+            return value / value.Length();
         }
 
         public static MyVector2 operator +(MyVector2 value)

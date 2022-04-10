@@ -36,7 +36,7 @@ namespace Game1.UI
                 child.Shape.SetPosition
                 (
                     position: Shape.GetPosition(horizOrigin: childHorizPos, vertOrigin: VertPos.Top)
-                        + new MyVector2(-(int)childHorizPos * (double)ActiveUIManager.RectOutlineWidth, (double)curHeightSum + (double)ActiveUIManager.RectOutlineWidth),
+                        + new MyVector2(-(int)childHorizPos * ActiveUIManager.RectOutlineWidth, curHeightSum + ActiveUIManager.RectOutlineWidth),
                     horizOrigin: childHorizPos,
                     vertOrigin: VertPos.Top
                 );

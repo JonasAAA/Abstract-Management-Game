@@ -73,9 +73,9 @@ namespace Game1.UI
                 tab.Shape.MinHeight = tabHeight;
 
             // recalc children positions
-            tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new MyVector2((double)ActiveUIManager.RectOutlineWidth);
+            tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new MyVector2(ActiveUIManager.RectOutlineWidth);
             foreach (var tab in tabs.Values)
-                tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new MyVector2((double)ActiveUIManager.RectOutlineWidth) + new MyVector2(0, (double)tabChoicePanel.Shape.Height);
+                tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new MyVector2(ActiveUIManager.RectOutlineWidth) + new MyVector2(0, tabChoicePanel.Shape.Height);
         }
 
         public void AddTab(string tabLabelText, TTab tab)

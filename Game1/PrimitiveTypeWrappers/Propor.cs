@@ -1,13 +1,13 @@
 ﻿namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly struct Propor : IClose<Propor>, IExponentiable<UDouble, Propor>
+    public readonly struct Propor : IClose<Propor>, IExponentiable<UDouble, Propor>, IPrimitiveTypeWrapper
     {
         public static readonly Propor full = new(value: 1);
         public static readonly Propor empty = new(value: 0);
 
         public static Propor? Create(UDouble part, UDouble whole)
-            => Create(value: (double)(part / whole));
+            => Create(value: part / whole);
 
         public static Propor? Create(double value)
         {
@@ -29,13 +29,13 @@
         }
 
         public Propor Opposite()
-            => (Propor)(1 - (double)value);
+            => (Propor)(1 - value);
 
         public bool IsCloseTo(Propor other)
             => MyMathHelper.AreClose(value, other.value);
 
         public Propor Pow(UDouble exponent)
-            => (Propor)MyMathHelper.Pow(value, (double)exponent);
+            => (Propor)MyMathHelper.Pow(value, exponent);
 
         public static explicit operator Propor(double propor)
             => Create(value: propor) switch
@@ -48,7 +48,7 @@
             => (Propor)(double)propor;
 
         public static explicit operator double(Propor propor)
-            => (double)propor.value;
+            => propor.value;
 
         public static explicit operator UDouble(Propor propor)
             => propor.value;
@@ -80,5 +80,8 @@
 
         public static bool operator >=(Propor propor1, Propor propor2)
             => propor1.value >= propor2.value;
+
+        public string ToString(string format, IFormatProvider formatProvider)
+            => $"proportion {value.ToString(format, formatProvider)}";
     }
 }

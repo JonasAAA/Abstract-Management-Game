@@ -41,7 +41,7 @@
 
             jobVacDespValueConsideredAverage = 10;
             minAcceptablePersonScore = (Score).2;
-            linkEnergyPriority = new EnergyPriority(energyPriority: 10);
+            linkEnergyPriority = new EnergyPriority(value: 10);
             standardStarRadius = 50;
             scrollSpeed = 60;
 
@@ -49,7 +49,7 @@
             personMinReqWatts = (UDouble).1;
             personMaxReqWatts = 1;
             parentContribToChildPropor = (Propor).9;
-            personDefaultEnergyPriority = new EnergyPriority(energyPriority: 100);
+            personDefaultEnergyPriority = new EnergyPriority(value: 100);
             personMinSeekChangeTime = TimeSpan.FromSeconds(5);
             personMaxSeekChangeTime = TimeSpan.FromSeconds(30);
 

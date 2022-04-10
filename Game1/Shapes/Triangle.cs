@@ -16,7 +16,7 @@
             => triangleTexture = C.LoadTexture(name: "triangle");
 
         private MyVector2 BasePos
-            => Center - dirVector * (double)MainAltitudeLength * .5;
+            => Center - dirVector * MainAltitudeLength * .5;
         private UDouble BaseLength
             => ((int)direction % 2) switch
             {
@@ -39,7 +39,7 @@
             : base(width: width, height: height)
         {
             this.direction = direction;
-            rotation = (int)direction * (double)MyMathHelper.pi / 2;
+            rotation = (int)direction * MyMathHelper.pi / 2;
             origin = new MyVector2(triangleTexture.Width, triangleTexture.Height) * .5;
             dirVector = MyMathHelper.Direction(rotation: rotation);
             orthDir = new MyVector2(-dirVector.Y, dirVector.X);
@@ -50,8 +50,8 @@
         public override bool Contains(MyVector2 position)
         {
             MyVector2 relPos = position - BasePos;
-            double dirProp = MyVector2.Dot(relPos, dirVector) / (double)MainAltitudeLength,
-                orthDirProp = (double)MyMathHelper.Abs(MyVector2.Dot(relPos, orthDir) / ((double)BaseLength * .5));
+            double dirProp = MyVector2.Dot(relPos, dirVector) / MainAltitudeLength,
+                orthDirProp = MyMathHelper.Abs(MyVector2.Dot(relPos, orthDir) / (BaseLength * .5));
             if (dirProp is < 0 or >= 1 || orthDirProp >= 1)
                 return false;
             return dirProp + orthDirProp < 1;

@@ -12,7 +12,7 @@
                 new
                 (
                     name: "house construction",
-                    energyPriority: new(energyPriority: 20),
+                    energyPriority: new(value: 20),
                     reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 10,
                     industryParams: new House.Params
@@ -26,13 +26,13 @@
                 new
                 (
                     name: "factory costruction",
-                    energyPriority: new(energyPriority: 10),
+                    energyPriority: new(value: 10),
                     reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 100,
                     industryParams: new Factory.Params
                     (
                         name: "factory0_lvl1",
-                        energyPriority: new(energyPriority: 20),
+                        energyPriority: new(value: 20),
                         reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerUnitSurface: 10,
                         supplyPerUnitSurface: new()
@@ -48,13 +48,13 @@
                 new
                 (
                     name: "factory costruction",
-                    energyPriority: new(energyPriority: 10),
+                    energyPriority: new(value: 10),
                     reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 100,
                     industryParams: new Factory.Params
                     (
                         name: "factory1_lvl1",
-                        energyPriority: new(energyPriority: 20),
+                        energyPriority: new(value: 20),
                         reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerUnitSurface: 10,
                         supplyPerUnitSurface: new()
@@ -70,13 +70,13 @@
                 new
                 (
                     name: "factory costruction",
-                    energyPriority: new(energyPriority: 10),
+                    energyPriority: new(value: 10),
                     reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 100,
                     industryParams: new Factory.Params
                     (
                         name: "factory2_lvl1",
-                        energyPriority: new(energyPriority: 20),
+                        energyPriority: new(value: 20),
                         reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerUnitSurface: 10,
                         supplyPerUnitSurface: new()
@@ -92,14 +92,14 @@
                 new
                 (
                     name: "power plant costruction",
-                    energyPriority: new(energyPriority: 10),
+                    energyPriority: new(value: 10),
                     reqSkillPerUnitSurface: (UDouble).3,
-                    reqWattsPerUnitSurface: 100,
+                    reqWattsPerUnitSurface: 1,
                     industryParams: new PowerPlant.Params
                     (
                         name: "power_plant_lvl1",
                         reqSkillPerUnitSurface: (UDouble).2,
-                        prodWattsPerUnitSurface: 1000
+                        prodWattsPerUnitSurface: 10
                     ),
                     duration: TimeSpan.FromSeconds(5),
                     costPerUnitSurface: new()
@@ -107,13 +107,13 @@
                 new
                 (
                     name: "factory costruction",
-                    energyPriority: new(energyPriority: 10),
+                    energyPriority: new(value: 10),
                     reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 100,
                     industryParams: new Factory.Params
                     (
                         name: "factory0_lvl2",
-                        energyPriority: new(energyPriority: 20),
+                        energyPriority: new(value: 20),
                         reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerUnitSurface: 10,
                         supplyPerUnitSurface: new()
@@ -136,16 +136,16 @@
                 new
                 (
                     name: "reprod. ind. constr.",
-                    energyPriority: new(energyPriority: 10),
+                    energyPriority: new(value: 10),
                     reqSkillPerUnitSurface: (UDouble).05,
                     reqWattsPerUnitSurface: 200,
                     industryParams: new ReprodIndustry.Params
                     (
                         name: "reprod. ind.",
-                        energyPriority: new(energyPriority: 11),
+                        energyPriority: new(value: 11),
                         reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerChild: 10,
-                        maxCouplesPerUnitSurface: 10,
+                        maxCouplesPerUnitSurface: 1,
                         resPerChild: new()
                         {
                             [(ResInd)0] = 10,

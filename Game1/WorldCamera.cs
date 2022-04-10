@@ -17,7 +17,7 @@ namespace Game1
         {
             scale = startingWorldScale;
             worldCenter = new(0, 0);
-            screenCenter = new((double)ActiveUIManager.ScreenWidth * .5, (double)ActiveUIManager.ScreenHeight * .5);
+            screenCenter = new(ActiveUIManager.ScreenWidth * .5, ActiveUIManager.ScreenHeight * .5);
             Update(elapsed: TimeSpan.Zero, canScroll: false);
         }
 
@@ -31,14 +31,14 @@ namespace Game1
         {
             if (canScroll)
             {
-                double scrollDist = (double)CurWorldConfig.scrollSpeed * elapsed.TotalSeconds;
-                if (ActiveUIManager.MouseHUDPos.X <= (double)CurWorldConfig.screenBoundWidthForMapMoving)
+                double scrollDist = CurWorldConfig.scrollSpeed * elapsed.TotalSeconds;
+                if (ActiveUIManager.MouseHUDPos.X <= CurWorldConfig.screenBoundWidthForMapMoving)
                     worldCenter = worldCenter with { X = worldCenter.X - scrollDist };
-                if (ActiveUIManager.MouseHUDPos.X >= (double)ActiveUIManager.ScreenWidth - (double)CurWorldConfig.screenBoundWidthForMapMoving)
+                if (ActiveUIManager.MouseHUDPos.X >= ActiveUIManager.ScreenWidth - CurWorldConfig.screenBoundWidthForMapMoving)
                     worldCenter = worldCenter with { X = worldCenter.X + scrollDist };
-                if (ActiveUIManager.MouseHUDPos.Y <= (double)CurWorldConfig.screenBoundWidthForMapMoving)
+                if (ActiveUIManager.MouseHUDPos.Y <= CurWorldConfig.screenBoundWidthForMapMoving)
                     worldCenter = worldCenter with { Y = worldCenter.Y - scrollDist };
-                if (ActiveUIManager.MouseHUDPos.Y >= (double)ActiveUIManager.ScreenHeight - (double)CurWorldConfig.screenBoundWidthForMapMoving)
+                if (ActiveUIManager.MouseHUDPos.Y >= ActiveUIManager.ScreenHeight - CurWorldConfig.screenBoundWidthForMapMoving)
                     worldCenter = worldCenter with { Y = worldCenter.Y + scrollDist };
             }
 

@@ -141,9 +141,9 @@ namespace Game1.UI
                     explanationTextBox.Shape.ClampPosition
                     (
                         left: 0,
-                        right: (double)ScreenWidth,
+                        right: ScreenWidth,
                         top: 0,
-                        bottom: (double)ScreenHeight
+                        bottom: ScreenHeight
                     );
                 }
             }

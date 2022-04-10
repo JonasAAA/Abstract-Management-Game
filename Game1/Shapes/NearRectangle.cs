@@ -142,10 +142,10 @@ namespace Game1.Shapes
         }
 
         public MyVector2 GetPosition(HorizPos horizOrigin, VertPos vertOrigin)
-            => Center + new MyVector2((int)horizOrigin * (double)Width, (int)vertOrigin * (double)Height) * .5;
+            => Center + new MyVector2((int)horizOrigin * Width, (int)vertOrigin * Height) * .5;
 
         public void SetPosition(MyVector2 position, HorizPos horizOrigin, VertPos vertOrigin)
-            => Center = position - new MyVector2((int)horizOrigin * (double)Width, (int)vertOrigin * (double)Height) * .5;
+            => Center = position - new MyVector2((int)horizOrigin * Width, (int)vertOrigin * Height) * .5;
 
         public void ClampPosition(double left, double right, double top, double bottom)
             => Center = new MyVector2
@@ -153,14 +153,14 @@ namespace Game1.Shapes
                 x: MyMathHelper.Clamp
                 (
                     value: Center.X,
-                    min: left + (double)Width * .5,
-                    max: right - (double)Width * .5
+                    min: left + Width * .5,
+                    max: right - Width * .5
                 ),
                 y: MyMathHelper.Clamp
                 (
                     value: Center.Y,
-                    min: top + (double)Height * .5,
-                    max: bottom - (double)Height * .5
+                    min: top + Height * .5,
+                    max: bottom - Height * .5
                 )
             );
 

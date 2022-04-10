@@ -2,7 +2,7 @@
 {
     // TODO: could rename to MyUFloat
     [Serializable]
-    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>, IMinable<UDouble>, IMaxable<UDouble>
+    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>, IMinable<UDouble>, IMaxable<UDouble>, IPrimitiveTypeWrapper
     {
         public static readonly UDouble positiveInfinity = new(value: double.PositiveInfinity);
 
@@ -39,8 +39,7 @@
         public static bool operator >=(UDouble value1, UDouble value2)
             => value1.value >= value2.value;
 
-        // TODO: consider making conversion implicit
-        public static explicit operator double(UDouble value)
+        public static implicit operator double(UDouble value)
             => value.value;
 
         public static implicit operator UDouble(uint value)
@@ -71,13 +70,13 @@
         public static UDouble operator /(UDouble value1, UDouble value2)
            => new(value1.value / value2.value);
 
-        public override string ToString()
-            => value.ToString();
-
         UDouble IMinable<UDouble>.Min(UDouble other)
             => new(MyMathHelper.Min(value, other.value));
 
         UDouble IMaxable<UDouble>.Max(UDouble other)
             => new(MyMathHelper.Max(value, other.value));
+
+        public string ToString(string format, IFormatProvider formatProvider)
+            => value.ToString(format, formatProvider);
     }
 }

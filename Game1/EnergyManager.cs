@@ -63,7 +63,7 @@ namespace Game1
                     availableWatts: node.LocallyProducedWatts
                 );
                 node.SetRemainingLocalWatts(remainingLocalWatts: availableWatts);
-                totUsedLocalWatts += (UDouble)((double)node.LocallyProducedWatts - (double)availableWatts);
+                totUsedLocalWatts += (UDouble)(node.LocallyProducedWatts - availableWatts);
             }
 
             UDouble totAvailableWatts = DistributePartOfEnergy
@@ -72,7 +72,7 @@ namespace Game1
                 availableWatts: totProdWatts
             );
 
-            totUsedPowerPlantWatts = (UDouble)((double)totProdWatts - (double)totAvailableWatts);
+            totUsedPowerPlantWatts = (UDouble)(totProdWatts - totAvailableWatts);
 
             foreach (var energyConsumer in energyConsumers)
             {
@@ -112,7 +112,7 @@ namespace Game1
                     else
                     {
                         energyPropor = Propor.full;
-                        availableWatts = (UDouble)((double)availableWatts - (double)reqWatts);
+                        availableWatts = (UDouble)(availableWatts - reqWatts);
                     }
 
                     foreach (var energyConsumer in samePriorEnergyConsumers)

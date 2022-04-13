@@ -5,10 +5,10 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public class Construction : ProductiveIndustry
+    public sealed class Construction : ProductiveIndustry
     {
         [Serializable]
-        public new class Params : ProductiveIndustry.Params
+        public new sealed class Params : ProductiveIndustry.Params, IBuildableParams
         {
             public readonly UDouble reqWattsPerUnitSurface;
             public readonly Industry.Params industryParams;
@@ -22,7 +22,7 @@ namespace Game1.Industries
                     name: name,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface,
-                    explanation: $"construction stats:\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(duration)} {duration.TotalSeconds:0.}s\n{nameof(costPerUnitSurface)} {costPerUnitSurface}\n\nbuilding stats:\n{industryParams.explanation}"
+                    explanation: $"construction stats:\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(duration)} {duration.TotalSeconds:0.}s\n{nameof(costPerUnitSurface)} {costPerUnitSurface}\n\nbuilding stats:\n{industryParams.Explanation}"
                 )
             {
                 if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
@@ -35,8 +35,14 @@ namespace Game1.Industries
                 this.costPerUnitSurface = costPerUnitSurface;
             }
 
-            public override Construction MakeIndustry(NodeState state)
+            public override bool CanCreateWith(NodeState state)
+                => industryParams.CanCreateWith(state: state);
+
+            protected override Construction InternalCreateIndustry(NodeState state)
                 => new(state: state, parameters: this);
+
+            string IBuildableParams.ButtonName
+                => $"build {industryParams.name}";
         }
 
         private readonly Params parameters;
@@ -78,7 +84,7 @@ namespace Game1.Industries
             {
                 constrTimeLeft = TimeSpan.Zero;
                 Delete();
-                return parameters.industryParams.MakeIndustry(state: state);
+                return parameters.industryParams.CreateIndustry(state: state);
             }
             return this;
         }

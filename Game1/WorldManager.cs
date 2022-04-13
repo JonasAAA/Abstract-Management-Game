@@ -99,6 +99,7 @@ namespace Game1
                             (
                                 position: new MyVector2(i - (width - 1) * .5, j - (height - 1) * .5) * dist,
                                 radius: MyMathHelper.Pow((UDouble)2, C.Random(min: (double)3, max: 6)),
+                                consistsOf: BasicResInd.Random(),
                                 maxBatchDemResStored: 2
                             ),
                             activeColor: Color.White,

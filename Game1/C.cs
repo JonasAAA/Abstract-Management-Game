@@ -23,6 +23,18 @@ namespace Game1
             SpriteBatch = new(graphicsDevice);
         }
 
+        /// <summary>
+        /// inclusive min, exclusive max
+        /// </summary>
+        public static ulong Random(ulong min, ulong max)
+            => (ulong)Random((int)min, (int)max);
+
+        /// <summary>
+        /// inclusive min, exclusive max
+        /// </summary>
+        public static int Random(int min, int max)
+            => random.Next(min, max);
+
         public static double Random(double min, double max)
         {
             if (min > max)

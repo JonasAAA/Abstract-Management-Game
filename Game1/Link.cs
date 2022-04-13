@@ -7,6 +7,7 @@ using static Game1.WorldManager;
 
 namespace Game1
 {
+    // TODO: consider making this record class, but see comment below (where operator == is commented out)
     [Serializable]
     public class Link : WorldUIElement
     {

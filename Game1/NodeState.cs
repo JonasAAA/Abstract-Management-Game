@@ -20,18 +20,20 @@ namespace Game1
         public ResAmounts storedRes;
         public ResAmountsPacketsByDestin waitingResAmountsPackets;
         public readonly MySet<Person> waitingPeople;
+        public readonly BasicResInd consistsOf;
 
         private readonly ChangingUDouble changingRadius;
 
-        public NodeState(MyVector2 position, UDouble radius, ulong maxBatchDemResStored)
+        public NodeState(MyVector2 position, UDouble radius, BasicResInd consistsOf, ulong maxBatchDemResStored)
         {
             this.position = position;
             changingRadius = new(radius);
             this.radius = changingRadius;
             approxSurfaceLength = (2 * MyMathHelper.pi * this.radius).RoundDown();
+            this.consistsOf = consistsOf;
+            storedRes = new();
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
-            storedRes = new();
             this.maxBatchDemResStored = maxBatchDemResStored;
             waitingResAmountsPackets = new();
             waitingPeople = new();

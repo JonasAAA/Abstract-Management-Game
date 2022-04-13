@@ -3,7 +3,8 @@
     public enum IndustryType
     {
         Construction,
-        Production,
+        Mining,
+        Factory,
         PowerPlant,
         Reproduction,
     }

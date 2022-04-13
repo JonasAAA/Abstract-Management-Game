@@ -12,15 +12,24 @@ namespace Game1.Industries
         public abstract class Params
         {
             public readonly string name;
-            public readonly string explanation;
+            public string Explanation { get; }
 
             protected Params(string name, string explanation)
             {
                 this.name = name;
-                this.explanation = explanation;
+                Explanation = explanation;
             }
 
-            public abstract Industry MakeIndustry(NodeState state);
+            public abstract bool CanCreateWith(NodeState state);
+
+            public Industry CreateIndustry(NodeState state)
+            {
+                if (!CanCreateWith(state: state))
+                    throw new InvalidOperationException();
+                return InternalCreateIndustry(state: state);
+            }
+
+            protected abstract Industry InternalCreateIndustry(NodeState state);
         }
 
         [Serializable]
@@ -39,7 +48,7 @@ namespace Game1.Industries
             => UIPanel;
 
         protected readonly NodeState state;
-        //implement deletion behaviour, then make all buildings subclasses of this
+        //TODO: implement deletion behaviour, then make all buildings subclasses of this
         //consider turning this into an intherface (though that would lead to deletion code duplication)
         private bool isDeleted;
         private readonly Event<IDeletedListener> deleted;

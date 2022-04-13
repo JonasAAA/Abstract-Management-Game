@@ -28,7 +28,7 @@ namespace Game1.Industries
                 this.reqSkillPerUnitSurface = reqSkillPerUnitSurface;
             }
 
-            public abstract override ProductiveIndustry MakeIndustry(NodeState state);
+            protected abstract override ProductiveIndustry InternalCreateIndustry(NodeState state);
         }
 
         [Serializable]
@@ -190,8 +190,7 @@ namespace Game1.Industries
 
         public override IEnumerable<Person> PeopleHere
             => employer.PeopleHere;
-        
-        protected bool CanStartProduction { get; private set; }
+
         protected Propor CurSkillPropor
             => employer.CurSkillPropor;
 
@@ -211,7 +210,6 @@ namespace Game1.Industries
                 parameters: parameters
             );
 
-            CanStartProduction = true;
             energyPropor = Propor.empty;
 
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);

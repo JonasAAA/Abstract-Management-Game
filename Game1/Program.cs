@@ -8,6 +8,7 @@ global using System.Diagnostics;
 global using System.Linq;
 global using Game1.MyMath;
 global using Game1.PrimitiveTypeWrappers;
+global using Game1.Resources;
 
 namespace Game1
 {

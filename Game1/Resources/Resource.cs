@@ -1,14 +1,14 @@
-﻿namespace Game1
+﻿namespace Game1.Resources
 {
     [Serializable]
     public class Resource
     {
-        public readonly int id;
+        public readonly ResInd resInd;
         public readonly ulong weight;
 
-        public Resource(int id, ulong weight)
+        public Resource(ResInd resInd, ulong weight)
         {
-            this.id = id;
+            this.resInd = resInd;
             if (weight is 0)
                 throw new ArgumentOutOfRangeException();
             this.weight = weight;

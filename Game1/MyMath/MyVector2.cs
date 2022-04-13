@@ -1,7 +1,7 @@
 ﻿namespace Game1.MyMath
 {
     [Serializable]
-    public readonly struct MyVector2 : IEquatable<MyVector2>
+    public readonly record struct MyVector2 : IEquatable<MyVector2>
     {
         public static readonly MyVector2 zero = new(xAndY: 0);
 
@@ -72,21 +72,5 @@
 
         public static explicit operator MyVector2(Point point)
             => new(x: point.X, y: point.Y);
-
-        public static bool operator ==(MyVector2 value1, MyVector2 value2)
-            => value1.X == value2.X && value1.Y == value2.Y;
-
-        public static bool operator !=(MyVector2 value1, MyVector2 value2)
-            => !(value1 == value2);
-
-        public bool Equals(MyVector2 other)
-            => this == other;
-
-        public override bool Equals(object obj)
-            => obj is MyVector2 value && Equals(value);
-        
-        public override int GetHashCode()
-            // Idea taken from https://stackoverflow.com/a/5929567/16500683
-            => unchecked((X.GetHashCode() * 5839) ^ (Y.GetHashCode() * 4159));
     }
 }

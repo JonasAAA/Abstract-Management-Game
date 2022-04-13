@@ -3,13 +3,13 @@
     [Serializable]
     public class IndustryConfig
     {
-        public readonly ReadOnlyCollection<Construction.Params> constrBuildingParams;
+        public readonly ReadOnlyCollection<IBuildableParams> constrBuildingParams;
 
         public IndustryConfig()
         {
-            constrBuildingParams = new(list: new Construction.Params[]
+            constrBuildingParams = new(list: new IBuildableParams[]
             {
-                new
+                new Construction.Params
                 (
                     name: "house construction",
                     energyPriority: new(value: 20),
@@ -23,51 +23,27 @@
                     duration: TimeSpan.FromSeconds(5),
                     costPerUnitSurface: new()
                 ),
-                new
+                new Mining.Params
                 (
-                    name: "factory costruction",
-                    energyPriority: new(value: 10),
+                    name: "Res0_mine_lvl1",
+                    energyPriority: new(value: 20),
                     reqSkillPerUnitSurface: (UDouble).1,
-                    reqWattsPerUnitSurface: 100,
-                    industryParams: new Factory.Params
-                    (
-                        name: "factory0_lvl1",
-                        energyPriority: new(value: 20),
-                        reqSkillPerUnitSurface: (UDouble).1,
-                        reqWattsPerUnitSurface: 10,
-                        supplyPerUnitSurface: new()
-                        {
-                            [(ResInd)0] = 10,
-                        },
-                        demandPerUnitSurface: new(),
-                        prodDuration: TimeSpan.FromSeconds(value: 2)
-                    ),
-                    duration: TimeSpan.FromSeconds(5),
-                    costPerUnitSurface: new()
+                    reqWattsPerUnitSurface: 10,
+                    minedRes: (BasicResInd)0,
+                    minedResPerUnitSurface: 10,
+                    miningDuration: TimeSpan.FromSeconds(value: 2)
                 ),
-                new
+                new Mining.Params
                 (
-                    name: "factory costruction",
-                    energyPriority: new(value: 10),
+                    name: "Res1_mine_lvl1",
+                    energyPriority: new(value: 20),
                     reqSkillPerUnitSurface: (UDouble).1,
-                    reqWattsPerUnitSurface: 100,
-                    industryParams: new Factory.Params
-                    (
-                        name: "factory1_lvl1",
-                        energyPriority: new(value: 20),
-                        reqSkillPerUnitSurface: (UDouble).1,
-                        reqWattsPerUnitSurface: 10,
-                        supplyPerUnitSurface: new()
-                        {
-                            [(ResInd)1] = 10,
-                        },
-                        demandPerUnitSurface: new(),
-                        prodDuration: TimeSpan.FromSeconds(value: 2)
-                    ),
-                    duration: TimeSpan.FromSeconds(5),
-                    costPerUnitSurface: new()
+                    reqWattsPerUnitSurface: 10,
+                    minedRes: (BasicResInd)1,
+                    minedResPerUnitSurface: 10,
+                    miningDuration: TimeSpan.FromSeconds(value: 2)
                 ),
-                new
+                new Construction.Params
                 (
                     name: "factory costruction",
                     energyPriority: new(value: 10),
@@ -83,13 +59,21 @@
                         {
                             [(ResInd)2] = 10,
                         },
-                        demandPerUnitSurface: new(),
+                        demandPerUnitSurface: new()
+                        {
+                            [(ResInd)0] = 5,
+                            [(ResInd)1] = 5
+                        },
                         prodDuration: TimeSpan.FromSeconds(value: 2)
                     ),
                     duration: TimeSpan.FromSeconds(5),
                     costPerUnitSurface: new()
+                    {
+                        [(ResInd)0] = 20,
+                        [(ResInd)1] = 20
+                    }
                 ),
-                new
+                new Construction.Params
                 (
                     name: "power plant costruction",
                     energyPriority: new(value: 10),
@@ -104,36 +88,37 @@
                     duration: TimeSpan.FromSeconds(5),
                     costPerUnitSurface: new()
                 ),
-                new
-                (
-                    name: "factory costruction",
-                    energyPriority: new(value: 10),
-                    reqSkillPerUnitSurface: (UDouble).1,
-                    reqWattsPerUnitSurface: 100,
-                    industryParams: new Factory.Params
-                    (
-                        name: "factory0_lvl2",
-                        energyPriority: new(value: 20),
-                        reqSkillPerUnitSurface: (UDouble).1,
-                        reqWattsPerUnitSurface: 10,
-                        supplyPerUnitSurface: new()
-                        {
-                            [(ResInd)0] = 100,
-                        },
-                        demandPerUnitSurface: new()
-                        {
-                            [(ResInd)1] = 50,
-                        },
-                        prodDuration: TimeSpan.FromSeconds(value: 2)
-                    ),
-                    duration: TimeSpan.FromSeconds(5),
-                    costPerUnitSurface: new()
-                    {
-                        [(ResInd)1] = 20,
-                        [(ResInd)2] = 10
-                    }
-                ),
-                new
+                // TODO: consider deleting
+                //new Construction.Params
+                //(
+                //    name: "factory costruction",
+                //    energyPriority: new(value: 10),
+                //    reqSkillPerUnitSurface: (UDouble).1,
+                //    reqWattsPerUnitSurface: 100,
+                //    industryParams: new Production.Params
+                //    (
+                //        name: "factory0_lvl2",
+                //        energyPriority: new(value: 20),
+                //        reqSkillPerUnitSurface: (UDouble).1,
+                //        reqWattsPerUnitSurface: 10,
+                //        supplyPerUnitSurface: new()
+                //        {
+                //            [(ResInd)0] = 100,
+                //        },
+                //        demandPerUnitSurface: new()
+                //        {
+                //            [(ResInd)1] = 50,
+                //        },
+                //        prodDuration: TimeSpan.FromSeconds(value: 2)
+                //    ),
+                //    duration: TimeSpan.FromSeconds(5),
+                //    costPerUnitSurface: new()
+                //    {
+                //        [(ResInd)1] = 20,
+                //        [(ResInd)2] = 10
+                //    }
+                //),
+                new Construction.Params
                 (
                     name: "reprod. ind. constr.",
                     energyPriority: new(value: 10),

@@ -5,10 +5,10 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public class House : Industry
+    public sealed class House : Industry
     {
         [Serializable]
-        public new class Params : Industry.Params
+        public new sealed class Params : Industry.Params
         {
             public readonly UDouble floorSpacePerUnitSurface;
 
@@ -22,7 +22,10 @@ namespace Game1.Industries
                 this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
             }
 
-            public override House MakeIndustry(NodeState state)
+            public override bool CanCreateWith(NodeState state)
+                => true;
+
+            protected override House InternalCreateIndustry(NodeState state)
                 => new(state: state, parameters: this);
         }
 

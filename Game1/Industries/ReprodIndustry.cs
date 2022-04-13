@@ -4,10 +4,10 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public class ReprodIndustry : ProductiveIndustry
+    public sealed class ReprodIndustry : ProductiveIndustry
     {
         [Serializable]
-        public new class Params : ProductiveIndustry.Params
+        public new sealed class Params : ProductiveIndustry.Params
         {
             public readonly UDouble reqWattsPerChild;
             public readonly ulong maxCouplesPerUnitSurface;
@@ -30,7 +30,10 @@ namespace Game1.Industries
                 this.birthDuration = birthDuration;
             }
 
-            public override ReprodIndustry MakeIndustry(NodeState state)
+            public override bool CanCreateWith(NodeState state)
+                => true;
+
+            protected override ReprodIndustry InternalCreateIndustry(NodeState state)
                 => new(state: state, parameters: this);
         }
 

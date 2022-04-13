@@ -1,107 +1,58 @@
 ﻿using Game1.ChangingValues;
 
-using static Game1.WorldManager;
-
 namespace Game1.Industries
 {
     [Serializable]
-    public class Factory : ProductiveIndustry
+    public sealed class Factory : Production
     {
         [Serializable]
-        public new class Params : ProductiveIndustry.Params
+        public new sealed class Params : Production.Params
         {
-            public readonly UDouble reqWattsPerUnitSurface;
-            public readonly ResAmounts supplyPerUnitSurface, demandPerUnitSurface;
-            public readonly TimeSpan prodDuration;
-            
+            public readonly ResAmounts demandPerUnitSurface;
+
             public Params(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, ResAmounts supplyPerUnitSurface, ResAmounts demandPerUnitSurface, TimeSpan prodDuration)
                 : base
                 (
-                    industryType: IndustryType.Production,
+                    industryType: IndustryType.Factory,
                     name: name,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface,
-                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(supplyPerUnitSurface)} {supplyPerUnitSurface}\n{nameof(demandPerUnitSurface)} {demandPerUnitSurface}"
+                    reqWattsPerUnitSurface: reqWattsPerUnitSurface,
+                    supplyPerUnitSurface: supplyPerUnitSurface,
+                    prodDuration: prodDuration,
+                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(supplyPerUnitSurface)} {supplyPerUnitSurface}\n{nameof(demandPerUnitSurface)} {demandPerUnitSurface}\n{nameof(prodDuration)} {prodDuration}"
                 )
             {
-                if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
-                    throw new ArgumentOutOfRangeException();
-                this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
-                this.supplyPerUnitSurface = supplyPerUnitSurface;
                 this.demandPerUnitSurface = demandPerUnitSurface;
-                if (prodDuration < TimeSpan.Zero)
-                    throw new ArgumentException();
-                this.prodDuration = prodDuration;
             }
 
-            public override Factory MakeIndustry(NodeState state)
+            public override bool CanCreateWith(NodeState state)
+                => true;
+
+            protected override Factory InternalCreateIndustry(NodeState state)
                 => new(state: state, parameters: this);
         }
 
         private readonly Params parameters;
-        private readonly IReadOnlyChangingUDouble reqWatts;
-        private readonly IReadOnlyChangingResAmounts supply, demand;
-        private TimeSpan prodTimeLeft;
+        private readonly IReadOnlyChangingResAmounts demand;
 
         private Factory(NodeState state, Params parameters)
             : base(state: state, parameters: parameters)
         {
             this.parameters = parameters;
-            reqWatts = parameters.reqWattsPerUnitSurface * state.approxSurfaceLength;
-            supply = parameters.supplyPerUnitSurface * state.approxSurfaceLength;
             demand = parameters.demandPerUnitSurface * state.approxSurfaceLength;
-            prodTimeLeft = TimeSpan.MaxValue;
         }
 
         public override ResAmounts TargetStoredResAmounts()
-        {
-            if (CanStartProduction)
-                return demand.Value * state.maxBatchDemResStored;
-            return new();
-        }
+            => demand.Value * state.maxBatchDemResStored;
 
-        protected override bool IsBusy()
-            => prodTimeLeft < TimeSpan.MaxValue;
+        protected override bool CanStartProduction()
+            => state.storedRes >= demand.Value;
 
-        protected override Factory InternalUpdate(Propor workingPropor)
-        {
-            if (IsBusy())
-                prodTimeLeft -= workingPropor * CurWorldManager.Elapsed;
+        protected override void StartProduction()
+            => state.storedRes -= demand.Value;
 
-            if (CanStartProduction && !IsBusy() && state.storedRes >= demand.Value)
-            {
-                state.storedRes -= demand.Value;
-                prodTimeLeft = parameters.prodDuration;
-            }
-
-            if (prodTimeLeft <= TimeSpan.Zero)
-            {
-                state.waitingResAmountsPackets.Add(destination: state.position, resAmounts: supply.Value);
-                prodTimeLeft = TimeSpan.MaxValue;
-            }
-
-            return this;
-        }
-
-        public override string GetInfo()
-        {
-            string text = base.GetInfo() + $"{parameters.name}\n";
-            if (IsBusy())
-                text += $"producing {C.DonePropor(timeLeft: prodTimeLeft, duration: parameters.prodDuration) * 100.0: 0.}%\n";
-            else
-                text += "idle\n";
-            if (!CanStartProduction)
-                text += "will not start new\n";
-            return text;
-        }
-
-        public override UDouble ReqWatts()
-            // this is correct as if more important people get full energy, this works
-            // and if they don't, then the industry will get 0 energy anyway
-            => IsBusy() switch
-            {
-                true => reqWatts.Value * CurSkillPropor,
-                false => 0
-            };
+        protected override void StopProduction()
+        { }
     }
 }

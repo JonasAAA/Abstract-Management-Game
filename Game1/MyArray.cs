@@ -12,7 +12,11 @@
             : base(value: value)
         { }
 
-        public MyArray(IEnumerable<T> values)
+        public MyArray(Func<ResInd, T> selector)
+            : base(selector: selector)
+        { }
+
+        protected MyArray(IEnumerable<T> values)
             : base(values: values)
         { }
 

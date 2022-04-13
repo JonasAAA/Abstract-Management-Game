@@ -8,7 +8,7 @@
 
         public EnergyPriority EnergyPriority { get; }
 
-        // TODO: Make sure that repeated measurments actually give the same score/rethink if that should be the case
+        // TODO: Make sure that repeated measurements actually give the same score/rethink if that should be the case
         /// <summary>
         /// can include some randomness, but repeated measurements should give the same score
         /// gives higher/lower score to the current place of the person depending on

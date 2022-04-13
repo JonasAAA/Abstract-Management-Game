@@ -1,6 +1,6 @@
 ﻿using static Game1.WorldManager;
 
-namespace Game1
+namespace Game1.Resources
 {
     [Serializable]
     public readonly struct ResAmounts : IMyArray<ulong>
@@ -8,7 +8,7 @@ namespace Game1
         private readonly ulong[] array;
 
         public ResAmounts()
-            => array = new ulong[ResInd.ResCount];
+            => array = new ulong[ResInd.count];
 
         public ResAmounts(ulong value)
             : this()
@@ -17,7 +17,7 @@ namespace Game1
         public ResAmounts(IEnumerable<ulong> values)
         {
             array = values.ToArray();
-            if (array.Length != ResInd.ResCount)
+            if (array.Length != (int)ResInd.count)
                 throw new ArgumentException();
         }
 
@@ -54,9 +54,9 @@ namespace Game1
             if (array.All(value => value is 0))
                 return "None";
             string result = "";
-            for (int resInd = 0; resInd < ResInd.ResCount; resInd++)
-                if (array[resInd] > 0)
-                    result += $"res{resInd}: {array[resInd]}, ";
+            foreach (var resInd in ResInd.All)
+                if (this[resInd] > 0)
+                    result += $"res{resInd}: {this[resInd]}, ";
             return result.Trim(' ', ',');
         }
 
@@ -75,9 +75,9 @@ namespace Game1
         public static ResAmounts operator /(ResAmounts resAmounts, ulong value)
             => new(from a in resAmounts select a / value);
 
-        /// <returns> some elements can be None </returns>
-        public static ConstArray<double> operator /(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => new(resAmounts1.Zip(resAmounts2, (a, b) => (double)a / b));
+        ///// <returns> some elements can be None </returns>
+        //public static ConstArray<UDouble> operator /(ResAmounts resAmounts1, ResAmounts resAmounts2)
+        //    => new(resAmounts1.Zip(resAmounts2, (a, b) => (UDouble)a / b));
 
         public static bool operator <=(ResAmounts resAmounts1, ResAmounts resAmounts2)
             => resAmounts1.Zip(resAmounts2).All(a => a.First <= a.Second);

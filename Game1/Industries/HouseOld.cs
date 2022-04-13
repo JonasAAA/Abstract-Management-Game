@@ -3,7 +3,7 @@
 namespace Game1.Industries
 {
     [Serializable]
-    public class HouseOld : ActivityCenter
+    public sealed class HouseOld : ActivityCenter
     {
         public HouseOld(NodeState state)
             : base(activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.maximal, state: state)

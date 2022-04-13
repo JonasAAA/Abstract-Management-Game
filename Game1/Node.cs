@@ -9,6 +9,7 @@ using static Game1.WorldManager;
 
 namespace Game1
 {
+    // TODO: could rename to Planet
     [Serializable]
     public class Node : WorldUIElement
     {
@@ -46,10 +47,10 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct BuildIndustryButtonClickedListener(Node Node, Construction.Params ConstrParams) : IClickedListener
+        private readonly record struct BuildIndustryButtonClickedListener(Node Node, IBuildableParams BuildableParams) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
-                => Node.SetIndustry(newIndustry: ConstrParams.MakeIndustry(state: Node.state));
+                => Node.SetIndustry(newIndustry: BuildableParams.CreateIndustry(state: Node.state));
         }
 
         [Serializable]
@@ -98,8 +99,7 @@ namespace Game1
 
             resSplittersToDestins = new
             (
-                values: from ind in Enumerable.Range(0, ResInd.ResCount)
-                        select new ProporSplitter<MyVector2>()
+                selector: resInd => new ProporSplitter<MyVector2>()
             );
             targetStoredResAmounts = new();
             undecidedResAmounts = new();
@@ -152,7 +152,7 @@ namespace Game1
                 tabLabelText: "build",
                 tab: buildButtonPannel
             );
-            foreach (var constrParams in CurIndustryConfig.constrBuildingParams)
+            foreach (var buildableParams in CurIndustryConfig.constrBuildingParams)
             {
                 Button buildIndustryButton = new
                 (
@@ -164,15 +164,15 @@ namespace Game1
                     {
                         Color = Color.White
                     },
-                    explanation: constrParams.explanation,
-                    text: "build " + constrParams.industryParams.name
+                    explanation: buildableParams.Explanation,
+                    text: buildableParams.ButtonName
                 );
                 buildIndustryButton.clicked.Add
                 (
                     listener: new BuildIndustryButtonClickedListener
                     (
                         Node: this,
-                        ConstrParams: constrParams
+                        BuildableParams: buildableParams
                     )
                 );
 
@@ -427,12 +427,10 @@ namespace Game1
             }
 
             // TODO: look at this
-            infoTextBox.Text = $"stores {state.storedRes}\ntarget {targetStoredResAmounts}\n";
+            infoTextBox.Text = $"consists of {state.consistsOf}\nstores {state.storedRes}\ntarget {targetStoredResAmounts}\n";
 
             // update text
             textBox.Text = "";
-            //if (industry is not null)
-            //    textBox.Text += industry.GetInfo();
 
             CurWorldManager.Overlay.SwitchStatement
             (

@@ -5,10 +5,10 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public class PowerPlant : ProductiveIndustry, IEnergyProducer
+    public sealed class PowerPlant : ProductiveIndustry, IEnergyProducer
     {
         [Serializable]
-        public new class Params : ProductiveIndustry.Params
+        public new sealed class Params : ProductiveIndustry.Params
         {
             public readonly UDouble prodWattsPerUnitSurface;
             
@@ -27,7 +27,12 @@ namespace Game1.Industries
                 this.prodWattsPerUnitSurface = prodWattsPerUnitSurface;
             }
 
-            public override PowerPlant MakeIndustry(NodeState state)
+            // TODO: could return false when the power plant can't provide enough power for its workers
+            // though that can't be calculated easily as getting the same overall skill may require different amounts of energy
+            public override bool CanCreateWith(NodeState state)
+                => true;
+
+            protected override PowerPlant InternalCreateIndustry(NodeState state)
                 => new(state: state, parameters: this);
         }
 

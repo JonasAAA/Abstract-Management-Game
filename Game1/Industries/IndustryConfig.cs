@@ -25,21 +25,10 @@
                 ),
                 new Mining.Params
                 (
-                    name: "Res0_mine_lvl1",
+                    name: "mine_lvl1",
                     energyPriority: new(value: 20),
                     reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 10,
-                    minedRes: (BasicResInd)0,
-                    minedResPerUnitSurface: 10,
-                    miningDuration: TimeSpan.FromSeconds(value: 2)
-                ),
-                new Mining.Params
-                (
-                    name: "Res1_mine_lvl1",
-                    energyPriority: new(value: 20),
-                    reqSkillPerUnitSurface: (UDouble).1,
-                    reqWattsPerUnitSurface: 10,
-                    minedRes: (BasicResInd)1,
                     minedResPerUnitSurface: 10,
                     miningDuration: TimeSpan.FromSeconds(value: 2)
                 ),

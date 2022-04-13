@@ -11,10 +11,10 @@ namespace Game1.Industries
         public new abstract class Params : ProductiveIndustry.Params
         {
             public readonly UDouble reqWattsPerUnitSurface;
-            public readonly ResAmounts supplyPerUnitSurface;
+            //public readonly ResAmounts supplyPerUnitSurface;
             public readonly TimeSpan prodDuration;
-            
-            public Params(IndustryType industryType, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, ResAmounts supplyPerUnitSurface, TimeSpan prodDuration, string explanation)
+
+            public Params(IndustryType industryType, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, TimeSpan prodDuration, string explanation)
                 : base
                 (
                     industryType: industryType,
@@ -27,7 +27,6 @@ namespace Game1.Industries
                 if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
                     throw new ArgumentOutOfRangeException();
                 this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
-                this.supplyPerUnitSurface = supplyPerUnitSurface;
                 if (prodDuration < TimeSpan.Zero)
                     throw new ArgumentException();
                 this.prodDuration = prodDuration;
@@ -41,12 +40,15 @@ namespace Game1.Industries
         private readonly IReadOnlyChangingResAmounts supply;
         private TimeSpan prodTimeLeft;
 
-        protected Production(NodeState state, Params parameters)
+        protected Production(NodeState state, Params parameters, IReadOnlyChangingUDouble reqWatts, IReadOnlyChangingResAmounts supply)
             : base(state: state, parameters: parameters)
         {
             this.parameters = parameters;
-            reqWatts = parameters.reqWattsPerUnitSurface * state.approxSurfaceLength;
-            supply = parameters.supplyPerUnitSurface * state.approxSurfaceLength;
+            this.reqWatts = reqWatts;
+            this.supply = supply;
+            // TODO: delete
+            //reqWatts = parameters.reqWattsPerUnitSurface * state.approxSurfaceLength;
+            //supply = parameters.supplyPerUnitSurface * state.approxSurfaceLength;
             prodTimeLeft = TimeSpan.MaxValue;
         }
 

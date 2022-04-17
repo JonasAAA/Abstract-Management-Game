@@ -18,6 +18,13 @@
                 => param.Item1.Value * param.Item2;
         }
 
+        [Serializable]
+        private readonly struct ULongToUDouble : ITransformer<IReadOnlyChangingULong, UDouble>
+        {
+            public UDouble Transform(IReadOnlyChangingULong param)
+                => param.Value;
+        }
+
         public static IReadOnlyChangingULong operator *(ulong scalar, IReadOnlyChangingULong readOnlyChangingULong)
             => new ScaleULong().TransformIntoReadOnlyChangingULong(param: (scalar, readOnlyChangingULong));
 
@@ -35,5 +42,8 @@
 
         public static IReadOnlyChangingResAmounts operator *(ResAmounts resAmounts, IReadOnlyChangingULong changingScalar)
             => changingScalar * resAmounts;
+
+        public IReadOnlyChangingUDouble ToReadOnlyChangingUDouble()
+            => new ULongToUDouble().TransformIntoReadOnlyChangingUDouble(param: this);
     }
 }

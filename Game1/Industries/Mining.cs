@@ -34,7 +34,8 @@ namespace Game1.Industries
             protected override Params CreateParams(NodeState state)
                 => new
                 (
-                    baseParams: base.CreateParams(state: state)
+                    baseParams: base.CreateParams(state: state),
+                    minedRes: state.approxSurfaceLength * minedResPerUnitSurface
                 );
 
             public override Mining CreateIndustry(NodeState state)
@@ -47,9 +48,13 @@ namespace Game1.Industries
         [Serializable]
         public new sealed record Params : Production.Params
         {
-            public Params(Production.Params baseParams)
+            public readonly IReadOnlyChangingULong minedRes;
+
+            public Params(Production.Params baseParams, IReadOnlyChangingULong minedRes)
                 : base(baseParams)
-            { }
+            {
+                this.minedRes = minedRes;
+            }
         }
 
         private readonly Params parameters;
@@ -63,13 +68,17 @@ namespace Game1.Industries
         public override ResAmounts TargetStoredResAmounts()
             => new();
 
+        // TODO: could mine less if not enough resources remaining for 
         protected override bool CanStartProduction()
-            => throw new NotImplementedException();
+            => parameters.state.CanRemove(resAmount: parameters.minedRes.Value);
 
         protected override void StartProduction()
-            => throw new NotImplementedException();
+        { }
 
         protected override void StopProduction()
-            => throw new NotImplementedException();
+        {
+            parameters.state.Remove(resAmount: parameters.minedRes.Value);
+            parameters.state.storedRes += parameters.supply.Value;
+        }
     }
 }

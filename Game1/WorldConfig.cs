@@ -26,10 +26,10 @@
         public readonly UDouble minSafeDist;
         public readonly ulong resDistribArrowsUILayer;
         public readonly UDouble linkWidth;
-        public readonly UDouble planetMassPerUnitArea;
         // So gravitational force between masses M1 and M2 at distance R is gravitConst * M1 * M2 / (R ^ gravitPower)
         public readonly UDouble gravitPower, gravitConst;
         public readonly Propor desperationMemoryPropor;
+        public readonly ulong minResAmountInPlanet;
 
         public WorldConfig()
         {
@@ -74,12 +74,12 @@
 
             linkWidth = 10;
 
-            planetMassPerUnitArea = 1;
-
             gravitPower = (UDouble)1.5;
             gravitConst = 1;
 
             desperationMemoryPropor = (Propor).9;
+
+            minResAmountInPlanet = 10;
         }
     }
 }

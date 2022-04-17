@@ -4,14 +4,15 @@
     public class Resource
     {
         public readonly ResInd resInd;
-        public readonly ulong weight;
+        public readonly ulong mass, area;
 
-        public Resource(ResInd resInd, ulong weight)
+        public Resource(ResInd resInd, ulong mass, ulong area)
         {
             this.resInd = resInd;
-            if (weight is 0)
+            if (mass is 0)
                 throw new ArgumentOutOfRangeException();
-            this.weight = weight;
+            this.mass = mass;
+            this.area = area;
         }
     }
 }

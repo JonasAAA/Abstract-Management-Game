@@ -57,6 +57,10 @@
         public static UDouble Square(double value)
             => (UDouble)(value * value);
 
+        public static T Sqrt<T>(T value)
+            where T : ISquareRootable<T>
+            => value.Sqrt();
+
         public static UDouble Sqrt(UDouble value)
             => (UDouble)Math.Sqrt(value);
 

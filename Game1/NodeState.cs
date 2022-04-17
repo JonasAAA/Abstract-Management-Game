@@ -13,8 +13,9 @@ namespace Game1
         public readonly IReadOnlyChangingULong approxSurfaceLength;
         //public double SurfaceGravitationalAccel
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
-
+        public readonly IReadOnlyChangingULong mass, area;
         public readonly IReadOnlyChangingUDouble radius;
+        public readonly IReadOnlyChangingULong mainResAmount;
         public readonly MyVector2 position;
         public readonly ulong maxBatchDemResStored;
         public ResAmounts storedRes;
@@ -22,14 +23,18 @@ namespace Game1
         public readonly MySet<Person> waitingPeople;
         public readonly BasicResInd consistsOf;
 
-        private readonly ChangingUDouble changingRadius;
+        private readonly ChangingULong changingResAmount;
 
-        public NodeState(MyVector2 position, UDouble radius, BasicResInd consistsOf, ulong maxBatchDemResStored)
+        public NodeState(MyVector2 position, UDouble approxRadius, BasicResInd consistsOf, ulong maxBatchDemResStored)
         {
             this.position = position;
-            changingRadius = new(radius);
-            this.radius = changingRadius;
-            approxSurfaceLength = (2 * MyMathHelper.pi * this.radius).RoundDown();
+            Resource consistsOfRes = CurResConfig.resources[consistsOf];
+            changingResAmount = new(value: Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / consistsOfRes.area));
+            mainResAmount = changingResAmount;
+            mass = mainResAmount * consistsOfRes.mass;
+            area = mainResAmount * consistsOfRes.area;
+            radius = MyMathHelper.Sqrt(value: area.ToReadOnlyChangingUDouble() / MyMathHelper.pi);
+            approxSurfaceLength = (2 * MyMathHelper.pi * radius).RoundDown();
             this.consistsOf = consistsOf;
             storedRes = new();
             if (maxBatchDemResStored is 0)
@@ -39,8 +44,15 @@ namespace Game1
             waitingPeople = new();
         }
 
-        public void SetRadius(UDouble radius)
-            => changingRadius.Value = radius;
+        public bool CanRemove(ulong resAmount)
+            => changingResAmount.Value >= resAmount + CurWorldConfig.minResAmountInPlanet;
+
+        public void Remove(ulong resAmount)
+        {
+            if (!CanRemove(resAmount: resAmount))
+                throw new ArgumentException();
+            changingResAmount.Value -= resAmount;
+        }
         
         public void AddToStoredRes(ResInd resInd, ulong resAmount)
             => storedRes = storedRes.WithAdd(index: resInd, value: resAmount);

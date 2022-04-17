@@ -1,4 +1,4 @@
-﻿namespace Game1
+﻿namespace Game1.MyMath
 {
     public interface IMaxable<T>
     {

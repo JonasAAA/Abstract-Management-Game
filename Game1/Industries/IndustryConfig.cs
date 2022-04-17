@@ -29,7 +29,7 @@
                     energyPriority: new(value: 20),
                     reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 10,
-                    minedResPerUnitSurface: 10,
+                    minedResPerUnitSurface: 1,
                     miningDuration: TimeSpan.FromSeconds(value: 2)
                 ),
                 new Construction.Factory

@@ -50,7 +50,7 @@ namespace Game1
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
             resAmountsPacketsByDestin[destination].Add(resInd: resInd, resAmount: resAmount);
-            TotalWeight += CurResConfig.resources[resInd].weight * resAmount;
+            TotalWeight += CurResConfig.resources[resInd].mass * resAmount;
         }
 
         public ResAmounts ReturnAndRemove(MyVector2 destination)

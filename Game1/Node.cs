@@ -427,7 +427,7 @@ namespace Game1
             }
 
             // TODO: look at this
-            infoTextBox.Text = $"consists of {state.consistsOf}\nstores {state.storedRes}\ntarget {targetStoredResAmounts}\n";
+            infoTextBox.Text = $"consists of {state.mainResAmount.Value} {state.consistsOf}\nstores {state.storedRes}\ntarget {targetStoredResAmounts}\n";
 
             // update text
             textBox.Text = "";

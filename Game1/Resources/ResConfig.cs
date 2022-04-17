@@ -12,11 +12,18 @@
                 selector: resInd => new
                 (
                     resInd: resInd,
-                    weight: (ulong)resInd switch
+                    mass: (ulong)resInd switch
                     {
                         0 => 1,
                         1 => 2,
                         2 => 10,
+                        _ => throw new ArgumentOutOfRangeException()
+                    },
+                    area: (ulong)resInd switch
+                    {
+                        0 => 10,
+                        1 => 2,
+                        2 => 1,
                         _ => throw new ArgumentOutOfRangeException()
                     }
                 )

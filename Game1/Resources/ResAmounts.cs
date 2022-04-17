@@ -34,7 +34,7 @@ namespace Game1.Resources
             => new(array.Zip(resAmounts, (a, b) => MyMathHelper.Min(a, b)));
 
         public ulong TotalWeight()
-            => CurResConfig.resources.Zip(array).Sum(item => item.First.weight * item.Second);
+            => CurResConfig.resources.Zip(array).Sum(item => item.First.mass * item.Second);
 
         // analogous to with expression from https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/with-expression
         public ResAmounts With(ResInd index, ulong value)

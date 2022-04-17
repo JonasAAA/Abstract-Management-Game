@@ -8,11 +8,11 @@ namespace Game1.Industries
     public sealed class PowerPlant : ProductiveIndustry, IEnergyProducer
     {
         [Serializable]
-        public new sealed class Params : ProductiveIndustry.Params
+        public new sealed class Factory : ProductiveIndustry.Factory
         {
             public readonly UDouble prodWattsPerUnitSurface;
             
-            public Params(string name, UDouble reqSkillPerUnitSurface, UDouble prodWattsPerUnitSurface)
+            public Factory(string name, UDouble reqSkillPerUnitSurface, UDouble prodWattsPerUnitSurface)
                 : base
                 (
                     industryType: IndustryType.PowerPlant,
@@ -27,23 +27,35 @@ namespace Game1.Industries
                 this.prodWattsPerUnitSurface = prodWattsPerUnitSurface;
             }
 
-            // TODO: could return false when the power plant can't provide enough power for its workers
-            // though that can't be calculated easily as getting the same overall skill may require different amounts of energy
-            public override bool CanCreateWith(NodeState state)
-                => true;
+            protected override Params CreateParams(NodeState state)
+                => new
+                (
+                    baseParams: base.CreateParams(state),
+                    prodWatts: state.approxSurfaceLength * prodWattsPerUnitSurface
+                );
 
-            protected override PowerPlant InternalCreateIndustry(NodeState state)
-                => new(state: state, parameters: this);
+            public override PowerPlant CreateIndustry(NodeState state)
+                => new(parameters: CreateParams(state: state));
+        }
+
+        [Serializable]
+        public new sealed record Params : ProductiveIndustry.Params
+        {
+            public readonly IReadOnlyChangingUDouble prodWatts;
+
+            public Params(ProductiveIndustry.Params baseParams, IReadOnlyChangingUDouble prodWatts)
+                : base(baseParams)
+            {
+                this.prodWatts = prodWatts;
+            }
         }
 
         private readonly Params parameters;
-        private readonly IReadOnlyChangingUDouble prodWatts;
 
-        private PowerPlant(NodeState state, Params parameters)
-            : base(state: state, parameters: parameters)
+        private PowerPlant(Params parameters)
+            : base(parameters: parameters)
         {
             this.parameters = parameters;
-            prodWatts = parameters.prodWattsPerUnitSurface * state.approxSurfaceLength;
             CurWorldManager.AddEnergyProducer(energyProducer: this);
         }
 
@@ -69,7 +81,7 @@ namespace Game1.Industries
         UDouble IEnergyProducer.ProdWatts()
             => IsBusy() switch
             {
-                true => prodWatts.Value * CurSkillPropor,
+                true => parameters.prodWatts.Value * CurSkillPropor,
                 false => 0
             };
     }

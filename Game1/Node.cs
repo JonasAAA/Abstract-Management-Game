@@ -47,7 +47,7 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct BuildIndustryButtonClickedListener(Node Node, IBuildableParams BuildableParams) : IClickedListener
+        private readonly record struct BuildIndustryButtonClickedListener(Node Node, IBuildableFactory BuildableParams) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => Node.SetIndustry(newIndustry: BuildableParams.CreateIndustry(state: Node.state));

@@ -6,11 +6,11 @@ namespace Game1.Industries
     public sealed class Mining : Production
     {
         [Serializable]
-        public new sealed class Params : Production.Params, IBuildableParams
+        public new sealed class Factory : Production.Factory, IBuildableFactory
         {
             private readonly ulong minedResPerUnitSurface;
 
-            public Params(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, ulong minedResPerUnitSurface, TimeSpan miningDuration)
+            public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, ulong minedResPerUnitSurface, TimeSpan miningDuration)
                 : base
                 (
                     industryType: IndustryType.Factory,
@@ -25,30 +25,37 @@ namespace Game1.Industries
                 this.minedResPerUnitSurface = minedResPerUnitSurface;
             }
 
-            // TODO: get rid of this if always return true
-            public override bool CanCreateWith(NodeState state)
-                => true;
+            protected override ResAmounts SupplyPerUnitSurface(NodeState state)
+                => new()
+                {
+                    [state.consistsOf] = minedResPerUnitSurface
+                };
 
-            protected override Mining InternalCreateIndustry(NodeState state)
+            protected override Params CreateParams(NodeState state)
                 => new
                 (
-                    state: state,
-                    parameters: this,
-                    reqWatts: state.approxSurfaceLength * reqSkillPerUnitSurface,
-                    supply: state.approxSurfaceLength * new ResAmounts()
-                    {
-                        [state.consistsOf] = minedResPerUnitSurface
-                    }
+                    baseParams: base.CreateParams(state: state)
                 );
 
-            string IBuildableParams.ButtonName
+            public override Mining CreateIndustry(NodeState state)
+                => new(parameters: CreateParams(state: state));
+
+            string IBuildableFactory.ButtonName
                 => name;
+        }
+
+        [Serializable]
+        public new sealed record Params : Production.Params
+        {
+            public Params(Production.Params baseParams)
+                : base(baseParams)
+            { }
         }
 
         private readonly Params parameters;
 
-        private Mining(NodeState state, Params parameters, IReadOnlyChangingUDouble reqWatts, IReadOnlyChangingResAmounts supply)
-            : base(state: state, parameters: parameters, reqWatts: reqWatts, supply: supply)
+        private Mining(Params parameters)
+            : base(parameters: parameters)
         {
             this.parameters = parameters;
         }

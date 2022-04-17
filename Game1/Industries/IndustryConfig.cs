@@ -3,19 +3,19 @@
     [Serializable]
     public class IndustryConfig
     {
-        public readonly ReadOnlyCollection<IBuildableParams> constrBuildingParams;
+        public readonly ReadOnlyCollection<IBuildableFactory> constrBuildingParams;
 
         public IndustryConfig()
         {
-            constrBuildingParams = new(list: new IBuildableParams[]
+            constrBuildingParams = new(list: new IBuildableFactory[]
             {
-                new Construction.Params
+                new Construction.Factory
                 (
                     name: "house construction",
                     energyPriority: new(value: 20),
                     reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 10,
-                    industryParams: new House.Params
+                    industryFactory: new House.Factory
                     (
                         name: "house",
                         floorSpacePerUnitSurface: 100
@@ -23,7 +23,7 @@
                     duration: TimeSpan.FromSeconds(5),
                     costPerUnitSurface: new()
                 ),
-                new Mining.Params
+                new Mining.Factory
                 (
                     name: "mine_lvl1",
                     energyPriority: new(value: 20),
@@ -32,13 +32,13 @@
                     minedResPerUnitSurface: 10,
                     miningDuration: TimeSpan.FromSeconds(value: 2)
                 ),
-                new Construction.Params
+                new Construction.Factory
                 (
                     name: "factory costruction",
                     energyPriority: new(value: 10),
                     reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 100,
-                    industryParams: new Factory.Params
+                    industryFactory: new Manufacturing.Factory
                     (
                         name: "factory2_lvl1",
                         energyPriority: new(value: 20),
@@ -62,13 +62,13 @@
                         [(ResInd)1] = 20
                     }
                 ),
-                new Construction.Params
+                new Construction.Factory
                 (
                     name: "power plant costruction",
                     energyPriority: new(value: 10),
                     reqSkillPerUnitSurface: (UDouble).3,
                     reqWattsPerUnitSurface: 1,
-                    industryParams: new PowerPlant.Params
+                    industryFactory: new PowerPlant.Factory
                     (
                         name: "power_plant_lvl1",
                         reqSkillPerUnitSurface: (UDouble).2,
@@ -107,13 +107,13 @@
                 //        [(ResInd)2] = 10
                 //    }
                 //),
-                new Construction.Params
+                new Construction.Factory
                 (
                     name: "reprod. ind. constr.",
                     energyPriority: new(value: 10),
                     reqSkillPerUnitSurface: (UDouble).05,
                     reqWattsPerUnitSurface: 200,
-                    industryParams: new ReprodIndustry.Params
+                    industryFactory: new ReprodIndustry.Factory
                     (
                         name: "reprod. ind.",
                         energyPriority: new(value: 11),

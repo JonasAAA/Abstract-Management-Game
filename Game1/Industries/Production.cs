@@ -8,13 +8,12 @@ namespace Game1.Industries
     public abstract class Production : ProductiveIndustry
     {
         [Serializable]
-        public new abstract class Params : ProductiveIndustry.Params
+        public new abstract class Factory : ProductiveIndustry.Factory
         {
             public readonly UDouble reqWattsPerUnitSurface;
-            //public readonly ResAmounts supplyPerUnitSurface;
             public readonly TimeSpan prodDuration;
 
-            public Params(IndustryType industryType, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, TimeSpan prodDuration, string explanation)
+            public Factory(IndustryType industryType, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, TimeSpan prodDuration, string explanation)
                 : base
                 (
                     industryType: industryType,
@@ -32,20 +31,44 @@ namespace Game1.Industries
                 this.prodDuration = prodDuration;
             }
 
-            protected abstract override Production InternalCreateIndustry(NodeState state);
+            protected abstract ResAmounts SupplyPerUnitSurface(NodeState state);
+
+            public abstract override Production CreateIndustry(NodeState state);
+
+            protected override Params CreateParams(NodeState state)
+                => new
+                (
+                    baseParams: base.CreateParams(state: state),
+                    reqWatts: state.approxSurfaceLength * reqWattsPerUnitSurface,
+                    supply: state.approxSurfaceLength * SupplyPerUnitSurface(state: state),
+                    prodDuration: prodDuration
+                );
+            
+        }
+
+        [Serializable]
+        public new record Params : ProductiveIndustry.Params
+        {
+            public readonly IReadOnlyChangingUDouble reqWatts;
+            public readonly IReadOnlyChangingResAmounts supply;
+            public readonly TimeSpan prodDuration;
+
+            public Params(ProductiveIndustry.Params baseParams, IReadOnlyChangingUDouble reqWatts, IReadOnlyChangingResAmounts supply, TimeSpan prodDuration)
+                : base(baseParams)
+            {
+                this.reqWatts = reqWatts;
+                this.supply = supply;
+                this.prodDuration = prodDuration;
+            }
         }
 
         private readonly Params parameters;
-        private readonly IReadOnlyChangingUDouble reqWatts;
-        private readonly IReadOnlyChangingResAmounts supply;
         private TimeSpan prodTimeLeft;
 
-        protected Production(NodeState state, Params parameters, IReadOnlyChangingUDouble reqWatts, IReadOnlyChangingResAmounts supply)
-            : base(state: state, parameters: parameters)
+        protected Production(Params parameters)
+            : base(parameters: parameters)
         {
             this.parameters = parameters;
-            this.reqWatts = reqWatts;
-            this.supply = supply;
             // TODO: delete
             //reqWatts = parameters.reqWattsPerUnitSurface * state.approxSurfaceLength;
             //supply = parameters.supplyPerUnitSurface * state.approxSurfaceLength;
@@ -74,7 +97,7 @@ namespace Game1.Industries
 
             if (prodTimeLeft <= TimeSpan.Zero)
             {
-                state.waitingResAmountsPackets.Add(destination: state.position, resAmounts: supply.Value);
+                parameters.state.waitingResAmountsPackets.Add(destination: parameters.state.position, resAmounts: parameters.supply.Value);
                 prodTimeLeft = TimeSpan.MaxValue;
                 StopProduction();
             }
@@ -99,7 +122,7 @@ namespace Game1.Industries
             // and if they don't, then the industry will get 0 energy anyway
             => IsBusy() switch
             {
-                true => reqWatts.Value * CurSkillPropor,
+                true => parameters.reqWatts.Value * CurSkillPropor,
                 false => 0
             };
     }

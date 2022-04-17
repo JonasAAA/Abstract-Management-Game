@@ -8,54 +8,75 @@ namespace Game1.Industries
     public sealed class Construction : ProductiveIndustry
     {
         [Serializable]
-        public new sealed class Params : ProductiveIndustry.Params, IBuildableParams
+        public new sealed class Factory : ProductiveIndustry.Factory, IBuildableFactory
         {
             public readonly UDouble reqWattsPerUnitSurface;
-            public readonly Industry.Params industryParams;
+            public readonly Industry.Factory industryFactory;
             public readonly TimeSpan duration;
             public readonly ResAmounts costPerUnitSurface;
             
-            public Params(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, Industry.Params industryParams, TimeSpan duration, ResAmounts costPerUnitSurface)
+            public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, Industry.Factory industryFactory, TimeSpan duration, ResAmounts costPerUnitSurface)
                 : base
                 (
                     industryType: IndustryType.Construction,
                     name: name,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface,
-                    explanation: $"construction stats:\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(duration)} {duration.TotalSeconds:0.}s\n{nameof(costPerUnitSurface)} {costPerUnitSurface}\n\nbuilding stats:\n{industryParams.Explanation}"
+                    explanation: $"construction stats:\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(duration)} {duration.TotalSeconds:0.}s\n{nameof(costPerUnitSurface)} {costPerUnitSurface}\n\nbuilding stats:\n{industryFactory.Explanation}"
                 )
             {
                 if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
                     throw new ArgumentOutOfRangeException();
                 this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
-                this.industryParams = industryParams;
+                this.industryFactory = industryFactory;
                 if (duration < TimeSpan.Zero || duration == TimeSpan.MaxValue)
                     throw new ArgumentException();
                 this.duration = duration;
                 this.costPerUnitSurface = costPerUnitSurface;
             }
 
-            public override bool CanCreateWith(NodeState state)
-                => industryParams.CanCreateWith(state: state);
+            protected override Params CreateParams(NodeState state)
+                => new
+                (
+                    baseParams: base.CreateParams(state: state),
+                    reqWatts: state.approxSurfaceLength * reqWattsPerUnitSurface,
+                    industryFactory: industryFactory,
+                    duration: duration,
+                    cost: state.approxSurfaceLength * costPerUnitSurface
+                );
 
-            protected override Construction InternalCreateIndustry(NodeState state)
-                => new(state: state, parameters: this);
+            public override Construction CreateIndustry(NodeState state)
+                => new(parameters: CreateParams(state: state));
 
-            string IBuildableParams.ButtonName
-                => $"build {industryParams.name}";
+            string IBuildableFactory.ButtonName
+                => $"build {industryFactory.name}";
+        }
+
+        [Serializable]
+        public new sealed record Params : ProductiveIndustry.Params
+        {
+            public readonly IReadOnlyChangingUDouble reqWatts;
+            public readonly Industry.Factory industryFactory;
+            public readonly TimeSpan duration;
+            public readonly IReadOnlyChangingResAmounts cost;
+
+            public Params(ProductiveIndustry.Params baseParams, IReadOnlyChangingUDouble reqWatts, Industry.Factory industryFactory, TimeSpan duration, IReadOnlyChangingResAmounts cost)
+                : base(baseParams)
+            {
+                this.reqWatts = reqWatts;
+                this.industryFactory = industryFactory;
+                this.duration = duration;
+                this.cost = cost;
+            }
         }
 
         private readonly Params parameters;
-        private readonly IReadOnlyChangingUDouble reqWatts;
-        private readonly IReadOnlyChangingResAmounts cost;
         private TimeSpan constrTimeLeft;
 
-        private Construction(NodeState state, Params parameters)
-            : base(state: state, parameters: parameters)
+        private Construction(Params parameters)
+            : base(parameters: parameters)
         {
             this.parameters = parameters;
-            reqWatts = parameters.reqWattsPerUnitSurface * state.approxSurfaceLength;
-            cost = parameters.costPerUnitSurface * state.approxSurfaceLength;
             constrTimeLeft = TimeSpan.MaxValue;
         }
 
@@ -63,7 +84,7 @@ namespace Game1.Industries
             => IsBusy() switch
             {
                 true => new(),
-                false => cost.Value,
+                false => parameters.cost.Value,
             };
 
         protected override bool IsBusy()
@@ -74,9 +95,9 @@ namespace Game1.Industries
             if (IsBusy())
                 constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;
 
-            if (!IsBusy() && state.storedRes >= cost.Value)
+            if (!IsBusy() && parameters.state.storedRes >= parameters.cost.Value)
             {
-                state.storedRes -= cost.Value;
+                parameters.state.storedRes -= parameters.cost.Value;
                 constrTimeLeft = parameters.duration;
             }
 
@@ -84,7 +105,7 @@ namespace Game1.Industries
             {
                 constrTimeLeft = TimeSpan.Zero;
                 Delete();
-                return parameters.industryParams.CreateIndustry(state: state);
+                return parameters.industryFactory.CreateIndustry(state: parameters.state);
             }
             return this;
         }
@@ -93,10 +114,10 @@ namespace Game1.Industries
         {
             base.PlayerDelete();
 
-            state.storedRes += IsBusy() switch
+            parameters.state.storedRes += IsBusy() switch
             {
-                true => cost.Value / 2,
-                false => cost.Value
+                true => parameters.cost.Value / 2,
+                false => parameters.cost.Value
             };
         }
 
@@ -115,7 +136,7 @@ namespace Game1.Industries
             // and if they don't, then the industry will get 0 energy anyway
             => IsBusy() switch
             {
-                true => reqWatts.Value * CurSkillPropor,
+                true => parameters.reqWatts.Value * CurSkillPropor,
                 false => 0
             };
     }

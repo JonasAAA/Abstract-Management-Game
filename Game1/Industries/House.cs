@@ -8,11 +8,11 @@ namespace Game1.Industries
     public sealed class House : Industry
     {
         [Serializable]
-        public new sealed class Params : Industry.Params
+        public new sealed class Factory : Industry.Factory
         {
             public readonly UDouble floorSpacePerUnitSurface;
 
-            public Params(string name, UDouble floorSpacePerUnitSurface)
+            public Factory(string name, UDouble floorSpacePerUnitSurface)
                 : base
                 (
                     name: name,
@@ -22,24 +22,38 @@ namespace Game1.Industries
                 this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
             }
 
-            public override bool CanCreateWith(NodeState state)
-                => true;
+            protected override Params CreateParams(NodeState state)
+                => new
+                (
+                    baseParams: base.CreateParams(state: state),
+                    floorSpace: state.approxSurfaceLength * floorSpacePerUnitSurface
+                );
 
-            protected override House InternalCreateIndustry(NodeState state)
-                => new(state: state, parameters: this);
+            public override House CreateIndustry(NodeState state)
+                => new(parameters: CreateParams(state: state));
+        }
+
+        [Serializable]
+        public new sealed record Params : Industry.Params
+        {
+            public readonly IReadOnlyChangingUDouble floorSpace;
+
+            public Params(Industry.Params baseParams, IReadOnlyChangingUDouble floorSpace)
+                : base(baseParams)
+            {
+                this.floorSpace = floorSpace;
+            }
         }
 
         [Serializable]
         private class Housing : ActivityCenter
         {
             private readonly Params parameters;
-            private readonly IReadOnlyChangingUDouble floorSpace;
 
-            public Housing(NodeState state, Params parameters)
-                : base(activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.maximal, state: state)
+            public Housing(Params parameters)
+                : base(activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.maximal, state: parameters.state)
             {
                 this.parameters = parameters;
-                floorSpace = parameters.floorSpacePerUnitSurface * state.approxSurfaceLength;
             }
             
             public override bool IsFull()
@@ -50,7 +64,7 @@ namespace Game1.Industries
 
             private Score PersonalSpace(ulong peopleCount)
                 // TODO: get rid of hard-coded constant
-                => Score.FromUnboundedUDouble(value: floorSpace.Value / peopleCount, valueGettingAverageScore: 10);
+                => Score.FromUnboundedUDouble(value: parameters.floorSpace.Value / peopleCount, valueGettingAverageScore: 10);
 
             public override Score PersonScoreOfThis(Person person)
                 => Score.WightedAverageOfTwo
@@ -92,11 +106,11 @@ namespace Game1.Industries
         private readonly Params parameters;
         private readonly Housing housing;
 
-        public House(NodeState state, Params parameters)
-            : base(state: state)
+        public House(Params parameters)
+            : base(parameters: parameters)
         {
             this.parameters = parameters;
-            housing = new(state: state, parameters: parameters);
+            housing = new(parameters: parameters);
         }
 
         public override ResAmounts TargetStoredResAmounts()

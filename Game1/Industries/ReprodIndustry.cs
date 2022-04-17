@@ -7,14 +7,14 @@ namespace Game1.Industries
     public sealed class ReprodIndustry : ProductiveIndustry
     {
         [Serializable]
-        public new sealed class Params : ProductiveIndustry.Params
+        public new sealed class Factory : ProductiveIndustry.Factory
         {
             public readonly UDouble reqWattsPerChild;
             public readonly ulong maxCouplesPerUnitSurface;
             public readonly ResAmounts resPerChild;
             public readonly TimeSpan birthDuration;
 
-            public Params(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerChild, ulong maxCouplesPerUnitSurface, ResAmounts resPerChild, TimeSpan birthDuration)
+            public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerChild, ulong maxCouplesPerUnitSurface, ResAmounts resPerChild, TimeSpan birthDuration)
                 : base
                 (
                     industryType: IndustryType.Reproduction,
@@ -30,11 +30,36 @@ namespace Game1.Industries
                 this.birthDuration = birthDuration;
             }
 
-            public override bool CanCreateWith(NodeState state)
-                => true;
+            protected override Params CreateParams(NodeState state)
+                => new
+                (
+                    baseParams: base.CreateParams(state: state),
+                    reqWattsPerChild: reqWattsPerChild,
+                    maxCouples: state.approxSurfaceLength * maxCouplesPerUnitSurface,
+                    resPerChild: resPerChild,
+                    birthDuration: birthDuration
+                );
 
-            protected override ReprodIndustry InternalCreateIndustry(NodeState state)
-                => new(state: state, parameters: this);
+            public override ReprodIndustry CreateIndustry(NodeState state)
+                => new(parameters: CreateParams(state: state));
+        }
+
+        [Serializable]
+        public new sealed record Params : ProductiveIndustry.Params
+        {
+            public readonly UDouble reqWattsPerChild;
+            public readonly IReadOnlyChangingULong maxCouples;
+            public readonly ResAmounts resPerChild;
+            public readonly TimeSpan birthDuration;
+
+            public Params(ProductiveIndustry.Params baseParams, UDouble reqWattsPerChild, IReadOnlyChangingULong maxCouples, ResAmounts resPerChild, TimeSpan birthDuration)
+                : base(baseParams)
+            {
+                this.reqWattsPerChild = reqWattsPerChild;
+                this.maxCouples = maxCouples;
+                this.resPerChild = resPerChild;
+                this.birthDuration = birthDuration;
+            }
         }
 
         [Serializable]
@@ -42,17 +67,17 @@ namespace Game1.Industries
         {
             public readonly Queue<Person> unpairedPeople;
 
-            private readonly IReadOnlyChangingULong maxCouples;
+            private readonly Params parameters;
 
-            public ReprodCenter(NodeState state, EnergyPriority energyPriority, IReadOnlyChangingULong maxCouples)
-                : base(activityType: ActivityType.Reproduction, energyPriority: energyPriority, state: state)
+            public ReprodCenter(Params parameters)
+                : base(activityType: ActivityType.Reproduction, energyPriority: parameters.energyPriority, state: parameters.state)
             {
-                this.maxCouples = maxCouples;
+                this.parameters = parameters;
                 unpairedPeople = new();
             }
             
             public override bool IsFull()
-                => (ulong)allPeople.Count >= 2 * maxCouples.Value;
+                => allPeople.Count >= 2 * parameters.maxCouples.Value;
 
             public override bool IsPersonSuitable(Person person)
                 // could disalow far travel
@@ -94,27 +119,20 @@ namespace Game1.Industries
             => base.PeopleHere.Concat(reprodCenter.PeopleHere);
 
         private readonly Params parameters;
-        private readonly IReadOnlyChangingULong maxCouples;
         private readonly ReprodCenter reprodCenter;
         private readonly TimedQueue<(Person, Person)> birthQueue;
 
-        public ReprodIndustry(NodeState state, Params parameters)
-            : base(state: state, parameters: parameters)
+        public ReprodIndustry(Params parameters)
+            : base(parameters: parameters)
         {
             this.parameters = parameters;
-            maxCouples = state.approxSurfaceLength * parameters.maxCouplesPerUnitSurface;
-            reprodCenter = new
-            (
-                state: state,
-                energyPriority: parameters.energyPriority,
-                maxCouples: maxCouples
-            );
+            reprodCenter = new(parameters: parameters);
 
             birthQueue = new(duration: parameters.birthDuration);
         }
 
         public override ResAmounts TargetStoredResAmounts()
-            => maxCouples.Value * parameters.resPerChild * state.maxBatchDemResStored;
+            => parameters.maxCouples.Value * parameters.resPerChild * parameters.state.maxBatchDemResStored;
 
         protected override bool IsBusy()
             => birthQueue.Count > 0;
@@ -125,19 +143,19 @@ namespace Game1.Industries
 
             foreach (var (person1, person2) in birthQueue.DoneElements())
             {
-                var newPerson = Person.GenerateChild(nodePos: state.position, person1: person1, person2: person2);
-                state.waitingPeople.Add(newPerson);
+                var newPerson = Person.GenerateChild(nodePos: parameters.state.position, person1: person1, person2: person2);
+                parameters.state.waitingPeople.Add(newPerson);
 
                 reprodCenter.RemovePerson(person: person1);
                 reprodCenter.RemovePerson(person: person2);
             }
 
-            while (reprodCenter.unpairedPeople.Count >= 2 && state.storedRes >= parameters.resPerChild)
+            while (reprodCenter.unpairedPeople.Count >= 2 && parameters.state.storedRes >= parameters.resPerChild)
             {
                 Person person1 = reprodCenter.unpairedPeople.Dequeue(),
                     person2 = reprodCenter.unpairedPeople.Dequeue();
                 birthQueue.Enqueue((person1, person2));
-                state.storedRes -= parameters.resPerChild;
+                parameters.state.storedRes -= parameters.resPerChild;
             }
 
             return this;

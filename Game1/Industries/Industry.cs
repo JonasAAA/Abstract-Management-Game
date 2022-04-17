@@ -9,27 +9,36 @@ namespace Game1.Industries
     {
         // all fields and properties in this and derived classes must have unchangeable state
         [Serializable]
-        public abstract class Params
+        public abstract class Factory
         {
             public readonly string name;
             public string Explanation { get; }
 
-            protected Params(string name, string explanation)
+            protected Factory(string name, string explanation)
             {
                 this.name = name;
                 Explanation = explanation;
             }
 
-            public abstract bool CanCreateWith(NodeState state);
+            public abstract Industry CreateIndustry(NodeState state);
 
-            public Industry CreateIndustry(NodeState state)
+            protected virtual Params CreateParams(NodeState state)
+                => new(state: state, name: name, explanation: Explanation);
+        }
+
+        [Serializable]
+        public record Params
+        {
+            public readonly NodeState state;
+            public readonly string name;
+            public readonly string explanation;
+
+            public Params(NodeState state, string name, string explanation)
             {
-                if (!CanCreateWith(state: state))
-                    throw new InvalidOperationException();
-                return InternalCreateIndustry(state: state);
+                this.state = state;
+                this.name = name;
+                this.explanation = explanation;
             }
-
-            protected abstract Industry InternalCreateIndustry(NodeState state);
         }
 
         [Serializable]
@@ -47,7 +56,6 @@ namespace Game1.Industries
         public IHUDElement UIElement
             => UIPanel;
 
-        protected readonly NodeState state;
         //TODO: implement deletion behaviour, then make all buildings subclasses of this
         //consider turning this into an intherface (though that would lead to deletion code duplication)
         private bool isDeleted;
@@ -55,11 +63,11 @@ namespace Game1.Industries
 
         protected readonly UIRectPanel<IHUDElement> UIPanel;
         private readonly TextBox textBox;
+        private readonly Params parameters;
 
-        protected Industry(NodeState state)
+        protected Industry(Params parameters)
         {
-            this.state = state;
-
+            this.parameters = parameters;
             isDeleted = false;
             deleted = new();
 

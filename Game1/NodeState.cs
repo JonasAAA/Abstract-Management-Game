@@ -1,6 +1,4 @@
-﻿using Game1.ChangingValues;
-
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1
 {

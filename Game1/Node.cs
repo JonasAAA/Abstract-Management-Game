@@ -1,5 +1,4 @@
-﻿using Game1.ChangingValues;
-using Game1.Delegates;
+﻿using Game1.Delegates;
 using Game1.Industries;
 using Game1.Lighting;
 using Game1.Shapes;
@@ -60,6 +59,24 @@ namespace Game1
                 => CurWorldManager.ArrowDrawingModeOn = true;
         }
 
+        private readonly record struct ShapeParams(NodeState State) : Disk.IParams
+        {
+            public UDouble radius
+                => State.radius;
+        }
+
+        private readonly record struct ArrowParams(NodeState State, Node Destination) : VectorShape.IParams
+        {
+            public MyVector2 startPos
+                => State.position;
+
+            public MyVector2 endPos
+                => Destination.Position;
+
+            public UDouble width
+                => 2 * State.radius;
+        }
+
         public MyVector2 Position
             => state.position;
         public readonly UDouble radius;
@@ -76,7 +93,6 @@ namespace Game1
         private readonly new LightCatchingDisk shape;
         private UDouble remainingLocalWatts;
 
-        private readonly IReadOnlyChangingUDouble resDestinArrowWidth;
         private readonly TextBox textBox;
         private readonly MyArray<ToggleButton> storeToggleButtons;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
@@ -87,7 +103,14 @@ namespace Game1
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
         public Node(NodeState state, Color activeColor, Color inactiveColor, int startPersonCount = 0)
-            : base(shape: new LightCatchingDisk(radius: state.radius), activeColor: activeColor, inactiveColor: inactiveColor, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
+            : base
+            (
+                shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
+                activeColor: activeColor,
+                inactiveColor: inactiveColor,
+                popupHorizPos: HorizPos.Right,
+                popupVertPos: VertPos.Top
+            )
         {
             this.state = state;
             shape = (LightCatchingDisk)base.shape;
@@ -112,7 +135,6 @@ namespace Game1
                 state.waitingPeople.Add(person);
             }
 
-            resDestinArrowWidth = 2 * state.radius;
             textBox = new()
             {
                 Text = "",
@@ -298,7 +320,7 @@ namespace Game1
 
             ResDestinArrow resDestinArrow = new
             (
-                shape: new Arrow(startPos: Position, endPos: destination, baseWidth: resDestinArrowWidth),
+                shape: new Arrow(parameters: new ArrowParams(State: state, Destination: destination)),
                 defaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
                 defaultInactiveColor: Color.White * .5f,
                 popupHorizPos: HorizPos.Right,

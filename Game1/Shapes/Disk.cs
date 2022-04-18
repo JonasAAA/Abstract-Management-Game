@@ -1,22 +1,25 @@
-﻿using Game1.ChangingValues;
-
-namespace Game1.Shapes
+﻿namespace Game1.Shapes
 {
     [Serializable]
     public class Disk : Shape
     {
+        public interface IParams
+        {
+            public UDouble radius { get; }
+        }
+
         private static readonly Texture2D diskTexture;
 
         static Disk()
             => diskTexture = C.LoadTexture(name: "big disk");
 
-        public readonly IReadOnlyChangingUDouble radius;
+        protected readonly IParams parameters;
 
-        public Disk(IReadOnlyChangingUDouble radius)
-            => this.radius = radius;
+        public Disk(IParams parameters)
+            => this.parameters = parameters;
 
         public override bool Contains(MyVector2 position)
-            => MyVector2.Distance(position, Center) < radius.Value;
+            => MyVector2.Distance(position, Center) < parameters.radius;
 
         protected override void Draw(Color color)
             => C.Draw
@@ -26,7 +29,7 @@ namespace Game1.Shapes
                 color: color,
                 rotation: 0,
                 origin: new MyVector2(diskTexture.Width, diskTexture.Height) * .5,
-                scale: 2 * radius.Value / (UDouble)diskTexture.Width
+                scale: 2 * parameters.radius / (UDouble)diskTexture.Width
             );
     }
 }

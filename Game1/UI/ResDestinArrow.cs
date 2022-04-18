@@ -1,8 +1,6 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
 
-using static Game1.WorldManager;
-
 namespace Game1.UI
 {
     [Serializable]

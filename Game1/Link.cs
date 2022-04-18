@@ -1,5 +1,4 @@
-﻿using Game1.ChangingValues;
-using Game1.Delegates;
+﻿using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
 
@@ -149,6 +148,18 @@ namespace Game1
                 => this.energyPropor = energyPropor;
         }
 
+        private readonly record struct ShapeParams(Node Node1, Node Node2) : VectorShape.IParams
+        {
+            public MyVector2 startPos
+                => Node1.Position;
+
+            public MyVector2 endPos
+                => Node2.Position;
+
+            public UDouble width
+                => CurWorldConfig.linkWidth;
+        }
+
         public readonly Node node1, node2;
         public UDouble JoulesPerKg
             => link1To2.JoulesPerKg;
@@ -164,9 +175,7 @@ namespace Game1
             (
                 shape: new LineSegment
                 (
-                    startPos: node1.Position,
-                    endPos: node2.Position,
-                    width: new ChangingUDouble(CurWorldConfig.linkWidth)
+                    parameters: new ShapeParams(Node1: node1, Node2: node2)
                 ),
                 activeColor: Color.White,
                 inactiveColor: Color.Green,

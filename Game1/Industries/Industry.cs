@@ -12,6 +12,7 @@ namespace Game1.Industries
         public abstract class Factory
         {
             public readonly string name;
+            // TODO: turn this into readonly property
             public string Explanation { get; }
 
             protected Factory(string name, string explanation)
@@ -21,23 +22,21 @@ namespace Game1.Industries
             }
 
             public abstract Industry CreateIndustry(NodeState state);
-
-            protected virtual Params CreateParams(NodeState state)
-                => new(state: state, name: name, explanation: Explanation);
         }
 
         [Serializable]
-        public record Params
+        public abstract class Params
         {
             public readonly NodeState state;
             public readonly string name;
             public readonly string explanation;
 
-            public Params(NodeState state, string name, string explanation)
+            public Params(NodeState state, Factory factory)
             {
                 this.state = state;
-                this.name = name;
-                this.explanation = explanation;
+
+                name = factory.name;
+                explanation = factory.Explanation;
             }
         }
 

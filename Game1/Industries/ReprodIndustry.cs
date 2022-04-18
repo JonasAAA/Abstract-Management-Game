@@ -30,35 +30,29 @@ namespace Game1.Industries
                 this.birthDuration = birthDuration;
             }
 
-            protected override Params CreateParams(NodeState state)
-                => new
-                (
-                    baseParams: base.CreateParams(state: state),
-                    reqWattsPerChild: reqWattsPerChild,
-                    maxCouples: state.approxSurfaceLength * maxCouplesPerUnitSurface,
-                    resPerChild: resPerChild,
-                    birthDuration: birthDuration
-                );
-
             public override ReprodIndustry CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
+                => new(parameters: new(state: state, factory: this));
         }
 
         [Serializable]
-        public new sealed record Params : ProductiveIndustry.Params
+        public new sealed class Params : ProductiveIndustry.Params
         {
             public readonly UDouble reqWattsPerChild;
-            public readonly IReadOnlyChangingULong maxCouples;
+            public ulong maxCouples
+                => state.approxSurfaceLength * factory.maxCouplesPerUnitSurface;
             public readonly ResAmounts resPerChild;
             public readonly TimeSpan birthDuration;
 
-            public Params(ProductiveIndustry.Params baseParams, UDouble reqWattsPerChild, IReadOnlyChangingULong maxCouples, ResAmounts resPerChild, TimeSpan birthDuration)
-                : base(baseParams)
+            private readonly Factory factory;
+
+            public Params(NodeState state, Factory factory)
+                : base(state: state, factory: factory)
             {
-                this.reqWattsPerChild = reqWattsPerChild;
-                this.maxCouples = maxCouples;
-                this.resPerChild = resPerChild;
-                this.birthDuration = birthDuration;
+                this.factory = factory;
+
+                reqWattsPerChild = factory.reqWattsPerChild;
+                resPerChild = factory.resPerChild;
+                birthDuration = factory.birthDuration;
             }
         }
 
@@ -77,7 +71,7 @@ namespace Game1.Industries
             }
             
             public override bool IsFull()
-                => allPeople.Count >= 2 * parameters.maxCouples.Value;
+                => allPeople.Count >= 2 * parameters.maxCouples;
 
             public override bool IsPersonSuitable(Person person)
                 // could disalow far travel
@@ -132,7 +126,7 @@ namespace Game1.Industries
         }
 
         public override ResAmounts TargetStoredResAmounts()
-            => parameters.maxCouples.Value * parameters.resPerChild * parameters.state.maxBatchDemResStored;
+            => parameters.maxCouples * parameters.resPerChild * parameters.state.maxBatchDemResStored;
 
         protected override bool IsBusy()
             => birthQueue.Count > 0;

@@ -1,6 +1,4 @@
-﻿using Game1.ChangingValues;
-
-namespace Game1.Industries
+﻿namespace Game1.Industries
 {
     [Serializable]
     public sealed class Manufacturing : Production
@@ -8,9 +6,7 @@ namespace Game1.Industries
         [Serializable]
         public new sealed class Factory : Production.Factory
         {
-            public readonly ResAmounts demandPerUnitSurface;
-
-            private readonly ResAmounts supplyPerUnitSurface;
+            public readonly ResAmounts demandPerUnitSurface, supplyPerUnitSurface;
 
             public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, ResAmounts supplyPerUnitSurface, ResAmounts demandPerUnitSurface, TimeSpan prodDuration)
                 : base
@@ -28,29 +24,25 @@ namespace Game1.Industries
                 this.supplyPerUnitSurface = supplyPerUnitSurface;
             }
 
-            protected override ResAmounts SupplyPerUnitSurface(NodeState state)
-                => supplyPerUnitSurface;
-
-            protected override Params CreateParams(NodeState state)
-                => new
-                (
-                    baseParams: base.CreateParams(state),
-                    demand: state.approxSurfaceLength * demandPerUnitSurface
-                );
-
             public override Manufacturing CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
+                => new(parameters: new(state: state, factory: this));
         }
 
         [Serializable]
-        public new sealed record Params : Production.Params
+        public new sealed class Params : Production.Params
         {
-            public readonly IReadOnlyChangingResAmounts demand;
+            public ResAmounts demand
+                => state.approxSurfaceLength * factory.demandPerUnitSurface;
 
-            public Params(Production.Params baseParams, IReadOnlyChangingResAmounts demand)
-                : base(baseParams)
+            protected override ResAmounts SupplyPerUnitSurface
+                => factory.supplyPerUnitSurface;
+
+            private readonly Factory factory;
+
+            public Params(NodeState state, Factory factory)
+                : base(state: state, factory: factory)
             {
-                this.demand = demand;
+                this.factory = factory;
             }
         }
 
@@ -63,13 +55,13 @@ namespace Game1.Industries
         }
 
         public override ResAmounts TargetStoredResAmounts()
-            => parameters.demand.Value * parameters.state.maxBatchDemResStored;
+            => parameters.demand * parameters.state.maxBatchDemResStored;
 
         protected override bool CanStartProduction()
-            => parameters.state.storedRes >= parameters.demand.Value;
+            => parameters.state.storedRes >= parameters.demand;
 
         protected override void StartProduction()
-            => parameters.state.storedRes -= parameters.demand.Value;
+            => parameters.state.storedRes -= parameters.demand;
 
         protected override void StopProduction()
         { }

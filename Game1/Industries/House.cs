@@ -22,26 +22,22 @@ namespace Game1.Industries
                 this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
             }
 
-            protected override Params CreateParams(NodeState state)
-                => new
-                (
-                    baseParams: base.CreateParams(state: state),
-                    floorSpace: state.approxSurfaceLength * floorSpacePerUnitSurface
-                );
-
             public override House CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
+                => new(parameters: new(state: state, factory: this));
         }
 
         [Serializable]
-        public new sealed record Params : Industry.Params
+        public new sealed class Params : Industry.Params
         {
-            public readonly IReadOnlyChangingUDouble floorSpace;
+            public UDouble floorSpace
+                => state.approxSurfaceLength * factory.floorSpacePerUnitSurface;
 
-            public Params(Industry.Params baseParams, IReadOnlyChangingUDouble floorSpace)
-                : base(baseParams)
+            private readonly Factory factory;
+
+            public Params(NodeState state, Factory factory)
+                : base(state: state, factory: factory)
             {
-                this.floorSpace = floorSpace;
+                this.factory = factory;
             }
         }
 
@@ -64,7 +60,7 @@ namespace Game1.Industries
 
             private Score PersonalSpace(ulong peopleCount)
                 // TODO: get rid of hard-coded constant
-                => Score.FromUnboundedUDouble(value: parameters.floorSpace.Value / peopleCount, valueGettingAverageScore: 10);
+                => Score.FromUnboundedUDouble(value: parameters.floorSpace / peopleCount, valueGettingAverageScore: 10);
 
             public override Score PersonScoreOfThis(Person person)
                 => Score.WightedAverageOfTwo

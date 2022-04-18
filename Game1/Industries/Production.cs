@@ -1,6 +1,4 @@
-﻿using Game1.ChangingValues;
-
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -31,34 +29,28 @@ namespace Game1.Industries
                 this.prodDuration = prodDuration;
             }
 
-            protected abstract ResAmounts SupplyPerUnitSurface(NodeState state);
-
             public abstract override Production CreateIndustry(NodeState state);
-
-            protected override Params CreateParams(NodeState state)
-                => new
-                (
-                    baseParams: base.CreateParams(state: state),
-                    reqWatts: state.approxSurfaceLength * reqWattsPerUnitSurface,
-                    supply: state.approxSurfaceLength * SupplyPerUnitSurface(state: state),
-                    prodDuration: prodDuration
-                );
-            
         }
 
         [Serializable]
-        public new record Params : ProductiveIndustry.Params
+        public new abstract class Params : ProductiveIndustry.Params
         {
-            public readonly IReadOnlyChangingUDouble reqWatts;
-            public readonly IReadOnlyChangingResAmounts supply;
+            public UDouble reqWatts
+                => state.approxSurfaceLength * factory.reqWattsPerUnitSurface;
+            public ResAmounts supply
+                => state.approxSurfaceLength * SupplyPerUnitSurface;
             public readonly TimeSpan prodDuration;
 
-            public Params(ProductiveIndustry.Params baseParams, IReadOnlyChangingUDouble reqWatts, IReadOnlyChangingResAmounts supply, TimeSpan prodDuration)
-                : base(baseParams)
+            protected abstract ResAmounts SupplyPerUnitSurface { get; }
+
+            private readonly Factory factory;
+
+            public Params(NodeState state, Factory factory)
+                : base(state: state, factory: factory)
             {
-                this.reqWatts = reqWatts;
-                this.supply = supply;
-                this.prodDuration = prodDuration;
+                this.factory = factory;
+
+                prodDuration = factory.prodDuration;
             }
         }
 
@@ -97,7 +89,7 @@ namespace Game1.Industries
 
             if (prodTimeLeft <= TimeSpan.Zero)
             {
-                parameters.state.waitingResAmountsPackets.Add(destination: parameters.state.position, resAmounts: parameters.supply.Value);
+                parameters.state.waitingResAmountsPackets.Add(destination: parameters.state.position, resAmounts: parameters.supply);
                 prodTimeLeft = TimeSpan.MaxValue;
                 StopProduction();
             }
@@ -122,7 +114,7 @@ namespace Game1.Industries
             // and if they don't, then the industry will get 0 energy anyway
             => IsBusy() switch
             {
-                true => parameters.reqWatts.Value * CurSkillPropor,
+                true => parameters.reqWatts * CurSkillPropor,
                 false => 0
             };
     }

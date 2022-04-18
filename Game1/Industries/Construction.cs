@@ -35,38 +35,32 @@ namespace Game1.Industries
                 this.costPerUnitSurface = costPerUnitSurface;
             }
 
-            protected override Params CreateParams(NodeState state)
-                => new
-                (
-                    baseParams: base.CreateParams(state: state),
-                    reqWatts: state.approxSurfaceLength * reqWattsPerUnitSurface,
-                    industryFactory: industryFactory,
-                    duration: duration,
-                    cost: state.approxSurfaceLength * costPerUnitSurface
-                );
-
             public override Construction CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
+                => new(parameters: new(state: state, factory: this));
 
             string IBuildableFactory.ButtonName
                 => $"build {industryFactory.name}";
         }
 
         [Serializable]
-        public new sealed record Params : ProductiveIndustry.Params
+        public new sealed class Params : ProductiveIndustry.Params
         {
-            public readonly IReadOnlyChangingUDouble reqWatts;
+            public UDouble reqWatts
+                => state.approxSurfaceLength * factory.reqWattsPerUnitSurface;
             public readonly Industry.Factory industryFactory;
             public readonly TimeSpan duration;
-            public readonly IReadOnlyChangingResAmounts cost;
+            public ResAmounts cost
+                => state.approxSurfaceLength * factory.costPerUnitSurface;
 
-            public Params(ProductiveIndustry.Params baseParams, IReadOnlyChangingUDouble reqWatts, Industry.Factory industryFactory, TimeSpan duration, IReadOnlyChangingResAmounts cost)
-                : base(baseParams)
+            private readonly Factory factory;
+
+            public Params(NodeState state, Factory factory)
+                : base(state: state, factory: factory)
             {
-                this.reqWatts = reqWatts;
-                this.industryFactory = industryFactory;
-                this.duration = duration;
-                this.cost = cost;
+                this.factory = factory;
+                
+                industryFactory = factory.industryFactory;
+                duration = factory.duration;
             }
         }
 
@@ -84,7 +78,7 @@ namespace Game1.Industries
             => IsBusy() switch
             {
                 true => new(),
-                false => parameters.cost.Value,
+                false => parameters.cost,
             };
 
         protected override bool IsBusy()
@@ -95,9 +89,9 @@ namespace Game1.Industries
             if (IsBusy())
                 constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;
 
-            if (!IsBusy() && parameters.state.storedRes >= parameters.cost.Value)
+            if (!IsBusy() && parameters.state.storedRes >= parameters.cost)
             {
-                parameters.state.storedRes -= parameters.cost.Value;
+                parameters.state.storedRes -= parameters.cost;
                 constrTimeLeft = parameters.duration;
             }
 
@@ -116,8 +110,8 @@ namespace Game1.Industries
 
             parameters.state.storedRes += IsBusy() switch
             {
-                true => parameters.cost.Value / 2,
-                false => parameters.cost.Value
+                true => parameters.cost / 2,
+                false => parameters.cost
             };
         }
 
@@ -136,7 +130,7 @@ namespace Game1.Industries
             // and if they don't, then the industry will get 0 energy anyway
             => IsBusy() switch
             {
-                true => parameters.reqWatts.Value * CurSkillPropor,
+                true => parameters.reqWatts * CurSkillPropor,
                 false => 0
             };
     }

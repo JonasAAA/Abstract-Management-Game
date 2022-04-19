@@ -8,9 +8,11 @@ namespace Game1
         // TODO: define using the new notation
         //public double Mass
         //    => MathHelper.Pi * radius * radius * CurWorldConfig.planetMassPerUnitArea;
-        
+
         //public double SurfaceGravitationalAccel
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
+        public readonly NodeId nodeId;
+
         public ulong mass
             => mainResAmount * consistsOfRes.mass;
         public ulong area
@@ -28,8 +30,9 @@ namespace Game1
         public readonly BasicResInd consistsOfResInd;
         public readonly Resource consistsOfRes;
 
-        public NodeState(MyVector2 position, UDouble approxRadius, BasicResInd consistsOfResInd, ulong maxBatchDemResStored)
+        public NodeState(NodeId nodeId, MyVector2 position, UDouble approxRadius, BasicResInd consistsOfResInd, ulong maxBatchDemResStored)
         {
+            this.nodeId = nodeId;
             this.position = position;
             consistsOfRes = CurResConfig.resources[consistsOfResInd];
             mainResAmount = Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / consistsOfRes.area);

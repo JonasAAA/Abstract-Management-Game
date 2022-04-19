@@ -11,9 +11,10 @@
         public EnergyPriority EnergyPriority { get; }
 
         /// <summary>
-        /// node position from which consume energy
+        /// node from which consume energy
         /// </summary>
-        public MyVector2 NodePos { get; }
+        // TODO: rename to Node
+        public NodeId NodeId { get; }
 
         public UDouble ReqWatts();
 

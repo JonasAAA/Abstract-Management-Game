@@ -88,7 +88,7 @@ namespace Game1.Industries
                             valueGettingAverageScore: 100
                         )
                     ),
-                    (weight: 1, score: DistanceToHere(person: person))
+                    (weight: 1, score: DistanceToHereAsPerson(person: person))
                 );
 
             public override void TakePerson(Person person)
@@ -136,7 +136,7 @@ namespace Game1.Industries
 
             foreach (var (person1, person2) in birthQueue.DoneElements())
             {
-                var newPerson = Person.GenerateChild(nodePos: parameters.state.position, person1: person1, person2: person2);
+                var newPerson = Person.GenerateChild(nodeId: parameters.state.nodeId, person1: person1, person2: person2);
                 parameters.state.waitingPeople.Add(newPerson);
 
                 reprodCenter.RemovePerson(person: person1);

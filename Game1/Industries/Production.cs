@@ -89,7 +89,7 @@ namespace Game1.Industries
 
             if (prodTimeLeft <= TimeSpan.Zero)
             {
-                parameters.state.waitingResAmountsPackets.Add(destination: parameters.state.position, resAmounts: parameters.supply);
+                parameters.state.waitingResAmountsPackets.Add(destination: parameters.state.nodeId, resAmounts: parameters.supply);
                 prodTimeLeft = TimeSpan.MaxValue;
                 StopProduction();
             }

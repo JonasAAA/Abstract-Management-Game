@@ -75,12 +75,24 @@ namespace Game1
         public IEnumerable<Node> Nodes
             => nodes;
 
-        public readonly ReadOnlyDictionary<MyVector2, Node> posToNode;
+        public readonly IReadOnlyDictionary<NodeId, Node> nodeIdToNode;
+        // TODO: delete
+        //public readonly ReadOnlyDictionary<NodeId, INodeAsLocalEnergyProducer> nodeIdToNodeAsLocalEnergyProducer;
+        //private readonly ReadOnlyDictionary<NodeId, INodeAsResDestin> nodeIdToNodeAsResDestin;
         public readonly TimeSpan maxLinkTravelTime;
         public readonly UDouble maxLinkJoulesPerKg;
 
         public override bool CanBeClicked
             => true;
+        
+        private readonly ReadOnlyDictionary<(NodeId, NodeId), UDouble> personDists;
+        private readonly ReadOnlyDictionary<(NodeId, NodeId), UDouble> resDists;
+
+        /// <summary>
+        /// if both key nodes are the same, value is null
+        /// </summary>
+        private readonly ReadOnlyDictionary<(NodeId, NodeId), Link> personFirstLinks;
+        private readonly ReadOnlyDictionary<(NodeId, NodeId), Link> resFirstLinks;
 
         private IEnumerable<WorldUIElement> WorldUIElements
         {
@@ -98,14 +110,6 @@ namespace Game1
             }
         }
 
-        //private readonly ReadOnlyDictionary<(MyVector2, MyVector2), double> personDists;
-        //private readonly ReadOnlyDictionary<(MyVector2, MyVector2), double> resDists;
-
-        /// <summary>
-        /// if both key nodes are the same, value is null
-        /// </summary>
-        private readonly ReadOnlyDictionary<(MyVector2, MyVector2), Link> personFirstLinks;
-        private readonly ReadOnlyDictionary<(MyVector2, MyVector2), Link> resFirstLinks;
 
         private readonly List<Star> stars;
         private readonly List<Node> nodes;
@@ -130,15 +134,14 @@ namespace Game1
             maxLinkTravelTime = this.links.Max(link => link.TravelTime);
             maxLinkJoulesPerKg = this.links.Max(link => link.JoulesPerKg);
 
-            (_, personFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.personDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.personDistanceEnergyCoeff);
-            (_, resFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.resDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.resDistanceEnergyCoeff);
-            posToNode = new
-            (
-                dictionary: nodes.ToDictionary
-                (
-                    keySelector: nodes => nodes.Position
-                )
-            );
+            (personDists, personFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.personDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.personDistanceEnergyCoeff);
+            (resDists, resFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.resDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.resDistanceEnergyCoeff);
+
+            // TODO: don't have CreateNodeIdDict function
+            nodeIdToNode = CreateNodeIdDict(elementSelector: node => node);
+            // TODO: delete
+            //nodeIdToNodeAsLocalEnergyProducer = CreateNodeIdDict(elementSelector: node => (INodeAsLocalEnergyProducer)node);
+            //nodeIdToNodeAsResDestin = CreateNodeIdDict(elementSelector: node => (INodeAsResDestin)node);
 
             foreach (var star in stars)
                 AddChild(child: star, layer: CurWorldConfig.lightLayer);
@@ -164,11 +167,23 @@ namespace Game1
             ActiveWorldElement = null;
 
             CurOverlayChanged.Add(listener: this);
+
+            return;
+
+            ReadOnlyDictionary<NodeId, T> CreateNodeIdDict<T>(Func<Node, T> elementSelector)
+                => new
+                (
+                    dictionary: nodes.ToDictionary
+                    (
+                        keySelector: node => node.NodeId,
+                        elementSelector: elementSelector
+                    )
+                );
         }
 
         // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
-        private (ReadOnlyDictionary<(MyVector2, MyVector2), UDouble> dists, ReadOnlyDictionary<(MyVector2, MyVector2), Link> firstLinks) FindShortestPaths(UDouble distTimeCoeff, UDouble distEnergyCoeff)
+        private (ReadOnlyDictionary<(NodeId, NodeId), UDouble> dists, ReadOnlyDictionary<(NodeId, NodeId), Link> firstLinks) FindShortestPaths(UDouble distTimeCoeff, UDouble distEnergyCoeff)
         {
             UDouble[,] distsArray = new UDouble[nodes.Count, nodes.Count];
             Link[,] firstLinksArray = new Link[nodes.Count, nodes.Count];
@@ -203,25 +218,34 @@ namespace Game1
                             Debug.Assert(firstLinksArray[i, j] is not null);
                         }
 
-            Dictionary<(MyVector2, MyVector2), UDouble> distsDict = new();
-            Dictionary<(MyVector2, MyVector2), Link> firstLinksDict = new();
+            Dictionary<(NodeId, NodeId), UDouble> distsDict = new();
+            Dictionary<(NodeId, NodeId), Link> firstLinksDict = new();
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)
                 {
                     distsDict.Add
                     (
-                        key: (nodes[i].Position, nodes[j].Position),
+                        key: (nodes[i].NodeId, nodes[j].NodeId),
                         value: distsArray[i, j]
                     );
                     firstLinksDict.Add
                     (
-                        key: (nodes[i].Position, nodes[j].Position),
+                        key: (nodes[i].NodeId, nodes[j].NodeId),
                         value: firstLinksArray[i, j]
                     );
                 }
 
             return (dists: new(distsDict), firstLinks: new(firstLinksDict));
         }
+
+        public UDouble PersonDist(NodeId nodeId1, NodeId nodeId2)
+            => personDists[(nodeId1, nodeId2)];
+
+        public UDouble ResDist(NodeId nodeId1, NodeId nodeId2)
+            => resDists[(nodeId1, nodeId2)];
+
+        public MyVector2 NodePosition(NodeId nodeId)
+            => nodeIdToNode[nodeId].Position;
 
         public void AddResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
         {
@@ -271,9 +295,9 @@ namespace Game1
         public void SplitRes(ResInd resInd)
         {
             NodeInfo.Init(resInd: resInd);
-            Dictionary<MyVector2, NodeInfo> nodeInfos = nodes.ToDictionary
+            Dictionary<NodeId, NodeInfo> nodeInfos = nodes.ToDictionary
             (
-                keySelector: node => node.Position,
+                keySelector: node => node.NodeId,
                 elementSelector: node => new NodeInfo(node: node)
             );
 
@@ -296,8 +320,8 @@ namespace Game1
                 select nodeInfo
             );
 
-            ulong MaxExtraRes(MyVector2 position)
-                => nodeInfos[position].MaxExtraRes();
+            ulong MaxExtraRes(NodeId nodeId)
+                => nodeInfos[nodeId].MaxExtraRes();
 
             while (sinks.Count > 0)
             {
@@ -305,7 +329,7 @@ namespace Game1
                 NodeInfo sink = sinks.Dequeue();
                 sink.node.SplitRes
                 (
-                    posToNode: posToNode,
+                    nodeIdToNode: nodeId => nodeIdToNode[nodeId],
                     resInd: resInd,
                     maxExtraResFunc: MaxExtraRes
                 );
@@ -324,7 +348,7 @@ namespace Game1
                 {
                     nodeInfo.node.SplitRes
                     (
-                        posToNode: posToNode,
+                        nodeIdToNode: nodeId => nodeIdToNode[nodeId],
                         resInd: resInd,
                         maxExtraResFunc: MaxExtraRes
                     );
@@ -366,7 +390,7 @@ namespace Game1
             {
                 if (worldUIElement.Active)
                 {
-                    ((Node)ActiveWorldElement).AddResDestin(destination: ((Node)worldUIElement).Position);
+                    ((Node)ActiveWorldElement).AddResDestin(destinationId: ((Node)worldUIElement).NodeId);
                     worldUIElement.Active = false;
                 }
                 return;

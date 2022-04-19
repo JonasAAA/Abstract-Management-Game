@@ -11,10 +11,10 @@ namespace Game1
     [Serializable]
     public class Person : IEnergyConsumer
     {
-        public static Person GeneratePerson(MyVector2 nodePos)
+        public static Person GeneratePerson(NodeId nodeId)
             => new
             (
-                nodePos: nodePos,
+                nodeId: nodeId,
                 enjoyments: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
@@ -36,11 +36,11 @@ namespace Game1
                 seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime)
             );
 
-        public static Person GenerateChild(Person person1, Person person2, MyVector2 nodePos)
+        public static Person GenerateChild(Person person1, Person person2, NodeId nodeId)
         {
             return new Person
             (
-                nodePos: nodePos,
+                nodeId: nodeId,
                 enjoyments: CreateIndustryScoreDict
                 (
                     personalScore: (person, indType) => person.enjoyments[indType]
@@ -82,9 +82,9 @@ namespace Game1
         public readonly ReadOnlyDictionary<IndustryType, Score> talents;
         public readonly Dictionary<IndustryType, Score> skills;
         
-        public MyVector2? ActivityCenterPosition
-            => activityCenter?.Position;
-        public MyVector2 ClosestNodePos { get; private set; }
+        public NodeId? ActivityCenterNodeId
+            => activityCenter?.NodeId;
+        public NodeId ClosestNodeId { get; private set; }
         public Propor EnergyPropor { get; private set; }
         public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
             => lastActivityTimes;
@@ -104,13 +104,13 @@ namespace Game1
         private readonly TimeSpan seekChangeTime;
         private TimeSpan timeSinceActivitySearch;
         private readonly Dictionary<ActivityType, TimeSpan> lastActivityTimes;
-        private MyVector2 prevNodePos;
+        private NodeId lastNodeId;
         private readonly Event<IDeletedListener> deleted;
 
-        private Person(MyVector2 nodePos, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, ulong weight, UDouble reqWatts, TimeSpan seekChangeTime)
+        private Person(NodeId nodeId, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, ulong weight, UDouble reqWatts, TimeSpan seekChangeTime)
         {
-            prevNodePos = nodePos;
-            ClosestNodePos = nodePos;
+            lastNodeId = nodeId;
+            ClosestNodeId = nodeId;
             this.enjoyments = new(enjoyments);
             this.talents = new(talents);
             this.skills = new(skills);
@@ -143,10 +143,10 @@ namespace Game1
         public void Arrived()
             => activityCenter.TakePerson(person: this);
 
-        public void Update(MyVector2 prevNodePos, MyVector2 closestNodePos)
+        public void Update(NodeId lastNodeId, NodeId closestNodeId)
         {
-            this.prevNodePos = prevNodePos;
-            ClosestNodePos = closestNodePos;
+            this.lastNodeId = lastNodeId;
+            ClosestNodeId = closestNodeId;
             if (activityCenter is not null && activityCenter.IsPersonHere(person: this))
             {
                 activityCenter.UpdatePerson(person: this);
@@ -202,7 +202,7 @@ namespace Game1
                 not null => MyMathHelper.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority)
             };
 
-        MyVector2 IEnergyConsumer.NodePos
-            => prevNodePos;
+        NodeId IEnergyConsumer.NodeId
+            => lastNodeId;
     }
 }

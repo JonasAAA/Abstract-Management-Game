@@ -68,7 +68,7 @@ namespace Game1.Industries
                     score2: Score.WeightedAverage
                     (
                         (weight: 7, score: PersonalSpace(peopleCount: allPeople.Count + 1)),
-                        (weight: 3, score: DistanceToHere(person: person))
+                        (weight: 3, score: DistanceToHereAsPerson(person: person))
                     ),
                     score1Propor: CurWorldConfig.personMomentumPropor
                 );

@@ -97,6 +97,7 @@ namespace Game1
                         (
                             state: new
                             (
+                                nodeId: NodeId.Create(),
                                 position: new MyVector2(i - (width - 1) * .5, j - (height - 1) * .5) * dist,
                                 approxRadius: MyMathHelper.Pow((UDouble)2, C.Random(min: (double)3, max: 6)),
                                 consistsOfResInd: BasicResInd.Random(),
@@ -205,7 +206,8 @@ namespace Game1
                 typeof(UIRectHorizPanel<SelectButton>),
                 typeof(UIRectVertPanel<IHUDElement>),
                 typeof(UITransparentPanel<ResDestinArrow>),
-                typeof(Dictionary<IOverlay, IHUDElement>)
+                typeof(Dictionary<IOverlay, IHUDElement>),
+                typeof(ReadOnlyDictionary<NodeId, Node>)
             };
             List<Type> unserializedTypeList = new();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
@@ -261,7 +263,7 @@ namespace Game1
                     if (graph.ActiveWorldElement is Node activeNode)
                     {
                         foreach (var node in graph.Nodes)
-                            if (activeNode.CanHaveDestin(destination: node.Position))
+                            if (activeNode.CanHaveDestin(destinationId: node.NodeId))
                                 node.HasDisabledAncestor = false;
                     }
                     else
@@ -343,6 +345,15 @@ namespace Game1
         private void Initialize(GraphicsDevice graphicsDevice)
             => lightManager.Initialize(graphicsDevice: graphicsDevice);
 
+        public UDouble PersonDist(NodeId nodeId1, NodeId nodeId2)
+            => graph.PersonDist(nodeId1: nodeId1, nodeId2: nodeId2);
+
+        public UDouble ResDist(NodeId nodeId1, NodeId nodeId2)
+            => graph.ResDist(nodeId1: nodeId1, nodeId2: nodeId2);
+
+        public MyVector2 NodePosition(NodeId nodeId)
+            => graph.NodePosition(nodeId: nodeId);
+
         public void AddResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
             => graph.AddResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
@@ -393,9 +404,9 @@ namespace Game1
 
             energyManager.DistributeEnergy
             (
-                nodePositions: from node in graph.Nodes
-                               select node.Position,
-                posToNode: graph.posToNode
+                nodeIds: from node in graph.Nodes
+                         select node.NodeId,
+                nodeIdToNode: nodeId => graph.nodeIdToNode[nodeId]
             );
 
             graph.Update();

@@ -129,7 +129,7 @@ namespace Game1.Industries
                     score2: Score.WeightedAverage
                     (
                         (weight: 9, score: person.enjoyments[parameters.industryType]),
-                        (weight: 1, score: DistanceToHere(person: person))
+                        (weight: 1, score: DistanceToHereAsPerson(person: person))
                     ),
                     score1Propor: CurWorldConfig.personMomentumPropor
                 );
@@ -178,7 +178,7 @@ namespace Game1.Industries
                     (weight: CurWorldConfig.personTalentWeight, score: person.talents[parameters.industryType]),
                     (weight: CurWorldConfig.personSkillWeight, score: person.skills[parameters.industryType]),
                     (weight: CurWorldConfig.jobDesperationWeight, score: desperationScore),
-                    (weight: CurWorldConfig.playerToJobDistWeight, score: DistanceToHere(person: person))
+                    (weight: CurWorldConfig.personToJobDistWeight, score: DistanceToHereAsRes(person: person))
                 );
 
             private Score CurrentEmploymentScore(Person person)
@@ -201,8 +201,8 @@ namespace Game1.Industries
                 false => EnergyPriority.maximal
             };
 
-        MyVector2 IEnergyConsumer.NodePos
-            => parameters.state.position;
+        NodeId IEnergyConsumer.NodeId
+            => parameters.state.nodeId;
 
         public override IEnumerable<Person> PeopleHere
             => employer.PeopleHere;

@@ -10,7 +10,7 @@ namespace Game1
 {
     // TODO: could rename to Planet
     [Serializable]
-    public class Node : WorldUIElement
+    public class Node : WorldUIElement, INodeAsLocalEnergyProducer, INodeAsResDestin
     {
         [Serializable]
         private readonly record struct ResDesinArrowEventListener(Node Node, ResInd ResInd) : IDeletedListener, INumberChangedListener
@@ -20,7 +20,7 @@ namespace Game1
                 foreach (var resDestinArrow in Node.resDistribArrows[ResInd])
                     Node.resSplittersToDestins[ResInd].SetImportance
                     (
-                        key: resDestinArrow.EndPos,
+                        key: resDestinArrow.DestinationId,
                         importance: (ulong)resDestinArrow.Importance
                     );
                 int totalImportance = Node.resDistribArrows[ResInd].Sum(resDestinArrow => resDestinArrow.Importance);
@@ -34,7 +34,7 @@ namespace Game1
                 {
                     Node.resDistribArrows[ResInd].RemoveChild(child: resDestinArrow);
                     CurWorldManager.RemoveResDestinArrow(resInd: ResInd, resDestinArrow: resDestinArrow);
-                    Node.resSplittersToDestins[ResInd].RemoveKey(key: resDestinArrow.EndPos);
+                    Node.resSplittersToDestins[ResInd].RemoveKey(key: resDestinArrow.DestinationId);
                     SyncSplittersWithArrows();
                 }
                 else
@@ -59,24 +59,41 @@ namespace Game1
                 => CurWorldManager.ArrowDrawingModeOn = true;
         }
 
+        [Serializable]
         private readonly record struct ShapeParams(NodeState State) : Disk.IParams
         {
             public UDouble radius
                 => State.radius;
         }
 
-        private readonly record struct ArrowParams(NodeState State, Node Destination) : VectorShape.IParams
+        [Serializable]
+        private readonly record struct ResDestinArrowParams(NodeState State, NodeId DestinationId, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int importance, ResInd resInd) : ResDestinArrow.IParams
         {
             public MyVector2 startPos
                 => State.position;
 
             public MyVector2 endPos
-                => Destination.Position;
+                => CurWorldManager.NodePosition(nodeId: DestinationId);
+
+            public UDouble width
+                => 2 * State.radius;
+
+            public NodeId SourceId
+                => State.nodeId;
+        }
+
+        [Serializable]
+        private readonly record struct SingleFrameArrowParams(NodeState State, MyVector2 endPos) : VectorShape.IParams
+        {
+            public MyVector2 startPos
+                => State.position;
 
             public UDouble width
                 => 2 * State.radius;
         }
 
+        public NodeId NodeId
+            => state.nodeId;
         public MyVector2 Position
             => state.position;
         public readonly UDouble radius;
@@ -87,7 +104,7 @@ namespace Game1
         private readonly List<Link> links;
         private Industry industry;
         private readonly HouseOld unemploymentCenter;
-        private readonly MyArray<ProporSplitter<MyVector2>> resSplittersToDestins;
+        private readonly MyArray<ProporSplitter<NodeId>> resSplittersToDestins;
         private ResAmounts targetStoredResAmounts;
         private ResAmounts undecidedResAmounts, resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
@@ -122,7 +139,7 @@ namespace Game1
 
             resSplittersToDestins = new
             (
-                selector: resInd => new ProporSplitter<MyVector2>()
+                selector: resInd => new ProporSplitter<NodeId>()
             );
             targetStoredResAmounts = new();
             undecidedResAmounts = new();
@@ -131,7 +148,7 @@ namespace Game1
 
             for (int i = 0; i < startPersonCount; i++)
             {
-                Person person = Person.GeneratePerson(nodePos: Position);
+                Person person = Person.GeneratePerson(nodeId: NodeId);
                 state.waitingPeople.Add(person);
             }
 
@@ -270,7 +287,7 @@ namespace Game1
         public void Arrive(ResAmountsPacketsByDestin resAmountsPackets)
         {
             state.waitingResAmountsPackets.Add(resAmountsPackets: resAmountsPackets);
-            resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: Position);
+            resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeId);
         }
 
         public void Arrive(IEnumerable<Person> people)
@@ -292,7 +309,7 @@ namespace Game1
         public bool IfStore(ResInd resInd)
             => storeToggleButtons[resInd].On;
 
-        public IEnumerable<MyVector2> ResDestins(ResInd resInd)
+        public IEnumerable<NodeId> ResDestins(ResInd resInd)
             => resSplittersToDestins[resInd].Keys;
 
         public ulong TargetStoredResAmount(ResInd resInd)
@@ -301,33 +318,37 @@ namespace Game1
         public ulong StoredResAmount(ResInd resInd)
             => state.storedRes[resInd];
 
-        public bool CanHaveDestin(MyVector2 destination)
+        public bool CanHaveDestin(NodeId destinationId)
         {
             if (!Active || !CurWorldManager.ArrowDrawingModeOn)
                 throw new InvalidOperationException();
 
-            return destination != Position && !resSplittersToDestins[(ResInd)CurWorldManager.Overlay].ContainsKey(destination);
+            return destinationId != NodeId && !resSplittersToDestins[(ResInd)CurWorldManager.Overlay].ContainsKey(destinationId);
         }
 
-        public void AddResDestin(MyVector2 destination)
+        public void AddResDestin(NodeId destinationId)
         {
-            if (!CanHaveDestin(destination: destination))
+            if (!CanHaveDestin(destinationId: destinationId))
                 throw new ArgumentException();
 
             ResInd resInd = (ResInd)CurWorldManager.Overlay;
-            if (resSplittersToDestins[resInd].ContainsKey(key: destination))
+            if (resSplittersToDestins[resInd].ContainsKey(key: destinationId))
                 throw new ArgumentException();
 
             ResDestinArrow resDestinArrow = new
             (
-                shape: new Arrow(parameters: new ArrowParams(State: state, Destination: destination)),
-                defaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
-                defaultInactiveColor: Color.White * .5f,
-                popupHorizPos: HorizPos.Right,
-                popupVertPos: VertPos.Top,
-                minImportance: 1,
-                importance: 1,
-                resInd: resInd
+                parameters: new ResDestinArrowParams
+                (
+                    State: state,
+                    DestinationId: destinationId,
+                    defaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
+                    defaultInactiveColor: Color.White * .5f,
+                    popupHorizPos: HorizPos.Right,
+                    popupVertPos: VertPos.Top,
+                    minImportance: 1,
+                    importance: 1,
+                    resInd: resInd
+                )
             );
             ResDesinArrowEventListener resDesinArrowEventListener = new(Node: this, ResInd: resInd);
             resDestinArrow.ImportanceNumberChanged.Add(listener: resDesinArrowEventListener);
@@ -354,7 +375,7 @@ namespace Game1
             }
         }
 
-        public void Update(IReadOnlyDictionary<(MyVector2, MyVector2), Link> personFirstLinks)
+        public void Update(IReadOnlyDictionary<(NodeId, NodeId), Link> personFirstLinks)
         {
             // TODO: delete
             // temporary
@@ -365,17 +386,14 @@ namespace Game1
 
             // deal with people
             foreach (var person in state.waitingPeople.Clone())
-            {
-                if (person.ActivityCenterPosition is null)
-                    continue;
-
-                var activityCenterPosition = person.ActivityCenterPosition.Value;
-                if (activityCenterPosition == Position)
-                    person.Arrived();
-                else
-                    personFirstLinks[(Position, activityCenterPosition)].Add(start: this, person: person);
-                state.waitingPeople.Remove(person);
-            }
+                if (person.ActivityCenterNodeId is NodeId activityCenterPosition)
+                {
+                    if (activityCenterPosition == NodeId)
+                        person.Arrived();
+                    else
+                        personFirstLinks[(NodeId, activityCenterPosition)].Add(start: this, person: person);
+                    state.waitingPeople.Remove(person);
+                }
         }
 
         public void UpdatePeople()
@@ -386,7 +404,7 @@ namespace Game1
                 not null => industry.PeopleHere
             };
             foreach (var person in state.waitingPeople.Concat(unemploymentCenter.PeopleHere).Concat(peopleInIndustry))
-                person.Update(prevNodePos: Position, closestNodePos: Position);
+                person.Update(lastNodeId: NodeId, closestNodeId: NodeId);
         }
 
         public void StartSplitRes()
@@ -398,7 +416,7 @@ namespace Game1
             };
 
             // deal with resources
-            undecidedResAmounts = state.storedRes + state.waitingResAmountsPackets.ReturnAndRemove(destination: Position);
+            undecidedResAmounts = state.storedRes + state.waitingResAmountsPackets.ReturnAndRemove(destination: NodeId);
             state.storedRes = new();
 
             state.storedRes = undecidedResAmounts.Min(resAmounts: targetStoredResAmounts);
@@ -408,7 +426,7 @@ namespace Game1
         /// <summary>
         /// MUST call StartSplitRes first
         /// </summary>
-        public void SplitRes(IReadOnlyDictionary<MyVector2, Node> posToNode, ResInd resInd, Func<MyVector2, ulong> maxExtraResFunc)
+        public void SplitRes(Func<NodeId, INodeAsResDestin> nodeIdToNode, ResInd resInd, Func<NodeId, ulong> maxExtraResFunc)
         {
             if (undecidedResAmounts[resInd] is 0)
                 return;
@@ -428,7 +446,7 @@ namespace Game1
                         resInd: resInd,
                         resAmount: resAmount
                     );
-                    posToNode[destination].AddResTravelHere(resInd: resInd, resAmount: resAmount);
+                    nodeIdToNode(destination).AddResTravelHere(resInd: resInd, resAmount: resAmount);
                 }
             }
         }
@@ -436,16 +454,16 @@ namespace Game1
         /// <summary>
         /// MUST call SplitRes first
         /// </summary>
-        public void EndSplitRes(IReadOnlyDictionary<(MyVector2, MyVector2), Link> resFirstLinks)
+        public void EndSplitRes(IReadOnlyDictionary<(NodeId, NodeId), Link> resFirstLinks)
         {
             undecidedResAmounts = new();
 
             foreach (var resAmountsPacket in state.waitingResAmountsPackets.DeconstructAndClear())
             {
-                MyVector2 destination = resAmountsPacket.destination;
-                Debug.Assert(destination != Position);
+                NodeId destinationId = resAmountsPacket.destination;
+                Debug.Assert(destinationId != NodeId);
 
-                resFirstLinks[(Position, destination)].Add(start: this, resAmountsPacket: resAmountsPacket);
+                resFirstLinks[(NodeId, destinationId)].Add(start: this, resAmountsPacket: resAmountsPacket);
             }
 
             // TODO: look at this
@@ -486,11 +504,14 @@ namespace Game1
             base.Draw();
 
             if (Active && CurWorldManager.ArrowDrawingModeOn)
+                // TODO: could create the arrow once with endPos calculated from mouse position
                 new Arrow
                 (
-                    startPos: Position,
-                    endPos: CurWorldManager.MouseWorldPos,
-                    baseWidth: resDestinArrowWidth
+                    parameters: new SingleFrameArrowParams
+                    (
+                        State: state,
+                        endPos: CurWorldManager.MouseWorldPos
+                    )
                 )
                 {
                     Color = Color.White * .25f

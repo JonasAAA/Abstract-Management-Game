@@ -1,5 +1,4 @@
-﻿using Game1.ChangingValues;
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -30,35 +29,29 @@ namespace Game1.Industries
                 this.birthDuration = birthDuration;
             }
 
-            protected override Params CreateParams(NodeState state)
-                => new
-                (
-                    baseParams: base.CreateParams(state: state),
-                    reqWattsPerChild: reqWattsPerChild,
-                    maxCouples: state.approxSurfaceLength * maxCouplesPerUnitSurface,
-                    resPerChild: resPerChild,
-                    birthDuration: birthDuration
-                );
-
             public override ReprodIndustry CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
+                => new(parameters: new(state: state, factory: this));
         }
 
         [Serializable]
-        public new sealed record Params : ProductiveIndustry.Params
+        public new sealed class Params : ProductiveIndustry.Params
         {
             public readonly UDouble reqWattsPerChild;
-            public readonly IReadOnlyChangingULong maxCouples;
+            public ulong MaxCouples
+                => state.ApproxSurfaceLength * factory.maxCouplesPerUnitSurface;
             public readonly ResAmounts resPerChild;
             public readonly TimeSpan birthDuration;
 
-            public Params(ProductiveIndustry.Params baseParams, UDouble reqWattsPerChild, IReadOnlyChangingULong maxCouples, ResAmounts resPerChild, TimeSpan birthDuration)
-                : base(baseParams)
+            private readonly Factory factory;
+
+            public Params(NodeState state, Factory factory)
+                : base(state: state, factory: factory)
             {
-                this.reqWattsPerChild = reqWattsPerChild;
-                this.maxCouples = maxCouples;
-                this.resPerChild = resPerChild;
-                this.birthDuration = birthDuration;
+                this.factory = factory;
+
+                reqWattsPerChild = factory.reqWattsPerChild;
+                resPerChild = factory.resPerChild;
+                birthDuration = factory.birthDuration;
             }
         }
 
@@ -77,7 +70,7 @@ namespace Game1.Industries
             }
             
             public override bool IsFull()
-                => allPeople.Count >= 2 * parameters.maxCouples.Value;
+                => allPeople.Count >= 2 * parameters.MaxCouples;
 
             public override bool IsPersonSuitable(Person person)
                 // could disalow far travel
@@ -95,7 +88,7 @@ namespace Game1.Industries
                             valueGettingAverageScore: 100
                         )
                     ),
-                    (weight: 1, score: DistanceToHere(person: person))
+                    (weight: 1, score: DistanceToHereAsPerson(person: person))
                 );
 
             public override void TakePerson(Person person)
@@ -132,7 +125,7 @@ namespace Game1.Industries
         }
 
         public override ResAmounts TargetStoredResAmounts()
-            => parameters.maxCouples.Value * parameters.resPerChild * parameters.state.maxBatchDemResStored;
+            => parameters.MaxCouples * parameters.resPerChild * parameters.state.maxBatchDemResStored;
 
         protected override bool IsBusy()
             => birthQueue.Count > 0;
@@ -143,7 +136,7 @@ namespace Game1.Industries
 
             foreach (var (person1, person2) in birthQueue.DoneElements())
             {
-                var newPerson = Person.GenerateChild(nodePos: parameters.state.position, person1: person1, person2: person2);
+                var newPerson = Person.GenerateChild(nodeId: parameters.state.nodeId, person1: person1, person2: person2);
                 parameters.state.waitingPeople.Add(newPerson);
 
                 reprodCenter.RemovePerson(person: person1);

@@ -1,6 +1,4 @@
-﻿using Game1.ChangingValues;
-
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -10,32 +8,41 @@ namespace Game1
         // TODO: define using the new notation
         //public double Mass
         //    => MathHelper.Pi * radius * radius * CurWorldConfig.planetMassPerUnitArea;
-        public readonly IReadOnlyChangingULong approxSurfaceLength;
+
         //public double SurfaceGravitationalAccel
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
-        public readonly IReadOnlyChangingULong mass, area;
-        public readonly IReadOnlyChangingUDouble radius;
-        public readonly IReadOnlyChangingULong mainResAmount;
-        public readonly MyVector2 position;
+        public readonly NodeId nodeId;
+
+        public ulong Mass
+            => MainResAmount * consistsOfRes.mass;
+        public ulong Area
+            => MainResAmount * consistsOfRes.area;
+        public UDouble Radius
+            => MyMathHelper.Sqrt(value: Area / MyMathHelper.pi);
+        public ulong ApproxSurfaceLength
+            => (ulong)(2 * MyMathHelper.pi * Radius);
+        public ulong MainResAmount { get; private set; }
+        public MyVector2 position;
         public readonly ulong maxBatchDemResStored;
         public ResAmounts storedRes;
         public ResAmountsPacketsByDestin waitingResAmountsPackets;
         public readonly MySet<Person> waitingPeople;
-        public readonly BasicResInd consistsOf;
+        public readonly BasicResInd consistsOfResInd;
+        public readonly Resource consistsOfRes;
 
-        private readonly ChangingULong changingResAmount;
-
-        public NodeState(MyVector2 position, UDouble approxRadius, BasicResInd consistsOf, ulong maxBatchDemResStored)
+        public NodeState(NodeId nodeId, MyVector2 position, UDouble approxRadius, BasicResInd consistsOfResInd, ulong maxBatchDemResStored)
         {
+            this.nodeId = nodeId;
             this.position = position;
-            Resource consistsOfRes = CurResConfig.resources[consistsOf];
-            changingResAmount = new(value: Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / consistsOfRes.area));
-            mainResAmount = changingResAmount;
-            mass = mainResAmount * consistsOfRes.mass;
-            area = mainResAmount * consistsOfRes.area;
-            radius = MyMathHelper.Sqrt(value: area.ToReadOnlyChangingUDouble() / MyMathHelper.pi);
-            approxSurfaceLength = (2 * MyMathHelper.pi * radius).RoundDown();
-            this.consistsOf = consistsOf;
+            consistsOfRes = CurResConfig.resources[consistsOfResInd];
+            MainResAmount = Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / consistsOfRes.area);
+            // TODO: delete
+            //mainResAmount = changingResAmount;
+            //mass = mainResAmount * consistsOfRes.mass;
+            //area = mainResAmount * consistsOfRes.area;
+            //radius = MyMathHelper.Sqrt(value: area.ToReadOnlyChangingUDouble() / MyMathHelper.pi);
+            //approxSurfaceLength = (2 * MyMathHelper.pi * radius).RoundDown();
+            this.consistsOfResInd = consistsOfResInd;
             storedRes = new();
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
@@ -45,13 +52,13 @@ namespace Game1
         }
 
         public bool CanRemove(ulong resAmount)
-            => changingResAmount.Value >= resAmount + CurWorldConfig.minResAmountInPlanet;
+            => MainResAmount >= resAmount + CurWorldConfig.minResAmountInPlanet;
 
         public void Remove(ulong resAmount)
         {
             if (!CanRemove(resAmount: resAmount))
                 throw new ArgumentException();
-            changingResAmount.Value -= resAmount;
+            MainResAmount -= resAmount;
         }
         
         public void AddToStoredRes(ResInd resInd, ulong resAmount)

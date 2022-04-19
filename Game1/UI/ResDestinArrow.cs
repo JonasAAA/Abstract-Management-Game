@@ -1,13 +1,24 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
 
-using static Game1.WorldManager;
-
 namespace Game1.UI
 {
     [Serializable]
     public class ResDestinArrow : WorldUIElement
     {
+        public interface IParams : VectorShape.IParams
+        {
+            public NodeId SourceId { get; }
+            public NodeId DestinationId { get; }
+            public Color DefaultActiveColor { get; }
+            public Color DefaultInactiveColor { get; }
+            public HorizPos PopupHorizPos { get; }
+            public VertPos PopupVertPos { get; }
+            public int MinImportance { get; }
+            public int Importance { get; }
+            public ResInd ResInd { get; }
+        }
+
         [Serializable]
         private readonly record struct DeleteButtonClickedListener(ResDestinArrow ResDestinArrow) : IClickedListener
         {
@@ -26,37 +37,41 @@ namespace Game1.UI
             set
             {
                 totalImportance = value;
-                double relImportance = (double)((double)Importance / totalImportance);
-                InactiveColor = defaultInactiveColor * (float)relImportance;
-                ActiveColor = defaultActiveColor * (float)relImportance;
+                double relImportance = (double)Importance / totalImportance;
+                InactiveColor = parameters.DefaultInactiveColor * (float)relImportance;
+                ActiveColor = parameters.DefaultActiveColor * (float)relImportance;
                 line2.Text = $"total importance {totalImportance}";
             }
         }
 
-        public MyVector2 EndPos
-            => shape.endPos;
+        public NodeId DestinationId
+            => parameters.DestinationId;
 
         public Event<INumberChangedListener> ImportanceNumberChanged
             => importanceIncDecrPanel.numberChanged;
 
-        private new readonly Arrow shape;
+        private readonly IParams parameters;
         private int totalImportance;
-        private readonly Color defaultActiveColor, defaultInactiveColor;
         private readonly NumIncDecrPanel importanceIncDecrPanel;
         private readonly TextBox line2;
 
-        public ResDestinArrow(Arrow shape, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int importance, ResInd resInd)
-            : base(shape: shape, activeColor: defaultActiveColor, inactiveColor: defaultInactiveColor, popupHorizPos: popupHorizPos, popupVertPos: popupVertPos)
+        public ResDestinArrow(IParams parameters)
+            : base
+            (
+                shape: new Arrow(parameters: parameters),
+                activeColor: parameters.DefaultActiveColor,
+                inactiveColor: parameters.DefaultInactiveColor,
+                popupHorizPos: parameters.PopupHorizPos,
+                popupVertPos: parameters.PopupVertPos
+            )
         {
-            this.shape = shape;
-            this.defaultActiveColor = defaultActiveColor;
-            this.defaultInactiveColor = defaultInactiveColor;
+            this.parameters = parameters;
             UIRectPanel<IHUDElement> popup = new UIRectVertPanel<IHUDElement>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
             );
-            SetPopup(HUDElement: popup, overlay: (IOverlay)resInd);
+            SetPopup(HUDElement: popup, overlay: parameters.ResInd);
 
             UIRectHorizPanel<IHUDElement> line1 = new
             (
@@ -73,8 +88,8 @@ namespace Game1.UI
             );
             importanceIncDecrPanel = new
             (
-                minNum: minImportance,
-                number: importance,
+                minNum: parameters.MinImportance,
+                number: parameters.Importance,
                 incrDecrButtonHeight: 20,
                 shapeColor: Color.White,
                 incrDecrButtonColor: Color.Blue

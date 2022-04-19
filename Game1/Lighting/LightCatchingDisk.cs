@@ -1,5 +1,4 @@
-﻿using Game1.ChangingValues;
-using Game1.Delegates;
+﻿using Game1.Delegates;
 using Game1.Shapes;
 
 using static Game1.WorldManager;
@@ -11,21 +10,21 @@ namespace Game1.Lighting
     {
         public IEvent<IDeletedListener> Deleted
             => deleted;
-        public IReadOnlyDictionary<MyVector2, UDouble> StarPosToWatts
+        public IReadOnlyDictionary<StarId, UDouble> StarPosToWatts
             => starPosToWatts;
 
-        public IReadOnlyDictionary<MyVector2, Propor> StarPosToPowerPropor
+        public IReadOnlyDictionary<StarId, Propor> StarPosToPowerPropor
             => starPosToPowerPropor;
 
         public UDouble Watts
             => starPosToWatts.Values.DefaultIfEmpty().Sum();
 
-        private readonly Dictionary<MyVector2, UDouble> starPosToWatts;
-        private readonly Dictionary<MyVector2, Propor> starPosToPowerPropor;
+        private readonly Dictionary<StarId, UDouble> starPosToWatts;
+        private readonly Dictionary<StarId, Propor> starPosToPowerPropor;
         private readonly Event<IDeletedListener> deleted;
 
-        public LightCatchingDisk(IReadOnlyChangingUDouble radius)
-            : base(radius: radius)
+        public LightCatchingDisk(IParams parameters)
+            : base(parameters: parameters)
         {
             starPosToWatts = new();
             starPosToPowerPropor = new();
@@ -40,10 +39,10 @@ namespace Game1.Lighting
         IEnumerable<double> ILightCatchingObject.RelAngles(MyVector2 lightPos)
         {
             UDouble dist = MyVector2.Distance(lightPos, Center);
-            if (dist <= radius.Value)
+            if (dist <= parameters.Radius)
                 yield break;
 
-            double a = radius.Value / MyVector2.Distance(lightPos, Center),
+            double a = parameters.Radius / MyVector2.Distance(lightPos, Center),
                   b = MyMathHelper.Sqrt((UDouble)(1 - a * a));
             MyVector2 center = Center * b * b + lightPos * a * a,
                     diff = Center - lightPos,
@@ -58,7 +57,7 @@ namespace Game1.Lighting
         {
             MyVector2 d = lightPos - Center;
             double e = MyVector2.Dot(lightDir, d), 
-                f = MyVector2.Dot(d, d) - radius.Value * radius.Value,
+                f = MyVector2.Dot(d, d) - parameters.Radius * parameters.Radius,
                 g = e * e - f;
             
             switch (UDouble.Create(value: g))
@@ -76,7 +75,7 @@ namespace Game1.Lighting
             }
         }
 
-        void ILightCatchingObject.SetWatts(MyVector2 starPos, UDouble watts, Propor powerPropor)
+        void ILightCatchingObject.SetWatts(StarId starPos, UDouble watts, Propor powerPropor)
         {
             starPosToWatts[starPos] = watts;
             starPosToPowerPropor[starPos] = powerPropor;

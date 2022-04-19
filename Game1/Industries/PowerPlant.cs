@@ -1,6 +1,4 @@
-﻿using Game1.ChangingValues;
-
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -27,26 +25,22 @@ namespace Game1.Industries
                 this.prodWattsPerUnitSurface = prodWattsPerUnitSurface;
             }
 
-            protected override Params CreateParams(NodeState state)
-                => new
-                (
-                    baseParams: base.CreateParams(state),
-                    prodWatts: state.approxSurfaceLength * prodWattsPerUnitSurface
-                );
-
             public override PowerPlant CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
+                => new(parameters: new(state: state, factory: this));
         }
 
         [Serializable]
-        public new sealed record Params : ProductiveIndustry.Params
+        public new sealed class Params : ProductiveIndustry.Params
         {
-            public readonly IReadOnlyChangingUDouble prodWatts;
+            public UDouble ProdWatts
+                => state.ApproxSurfaceLength * factory.prodWattsPerUnitSurface;
 
-            public Params(ProductiveIndustry.Params baseParams, IReadOnlyChangingUDouble prodWatts)
-                : base(baseParams)
+            private readonly Factory factory;
+
+            public Params(NodeState state, Factory factory)
+                : base(state: state, factory: factory)
             {
-                this.prodWatts = prodWatts;
+                this.factory = factory;
             }
         }
 
@@ -81,7 +75,7 @@ namespace Game1.Industries
         UDouble IEnergyProducer.ProdWatts()
             => IsBusy() switch
             {
-                true => parameters.prodWatts.Value * CurSkillPropor,
+                true => parameters.ProdWatts * CurSkillPropor,
                 false => 0
             };
     }

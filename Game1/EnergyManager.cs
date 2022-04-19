@@ -35,7 +35,7 @@ namespace Game1
                 energyConsumer.Deleted.Add(listener: this);
         }
 
-        public void DistributeEnergy(IEnumerable<MyVector2> nodePositions, IReadOnlyDictionary<MyVector2, Node> posToNode)
+        public void DistributeEnergy(IEnumerable<NodeId> nodeIds, Func<NodeId, INodeAsLocalEnergyProducer> nodeIdToNode)
         {
             Dictionary<IEnergyConsumer, UDouble> reqWattsByConsumer = energyConsumers.ToDictionary
             (
@@ -48,15 +48,15 @@ namespace Game1
             totUsedLocalWatts = 0;
             totUsedPowerPlantWatts = 0;
 
-            Dictionary<MyVector2, MySet<IEnergyConsumer>> energyConsumersByNode = new();
-            foreach (var nodePos in nodePositions)
-                energyConsumersByNode[nodePos] = new();
+            Dictionary<NodeId, MySet<IEnergyConsumer>> energyConsumersByNode = new();
+            foreach (var nodeId in nodeIds)
+                energyConsumersByNode[nodeId] = new();
             foreach (var energyConsumer in energyConsumers)
-                energyConsumersByNode[energyConsumer.NodePos].Add(energyConsumer);
+                energyConsumersByNode[energyConsumer.NodeId].Add(energyConsumer);
             
-            foreach (var (nodePos, sameNodeEnergyConsumers) in energyConsumersByNode)
+            foreach (var (nodeId, sameNodeEnergyConsumers) in energyConsumersByNode)
             {
-                var node = posToNode[nodePos];
+                var node = nodeIdToNode(nodeId);
                 UDouble availableWatts = DistributePartOfEnergy
                 (
                     energyConsumers: sameNodeEnergyConsumers,
@@ -86,6 +86,8 @@ namespace Game1
                     throw new Exception();
                 energyConsumer.ConsumeEnergy(energyPropor: energyPropor);
             }
+
+            return;
 
             // returns remaining watts
             UDouble DistributePartOfEnergy(IEnumerable<IEnergyConsumer> energyConsumers, UDouble availableWatts)

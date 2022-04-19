@@ -1,5 +1,4 @@
-﻿using Game1.ChangingValues;
-using Priority_Queue;
+﻿using Priority_Queue;
 
 using static Game1.WorldManager;
 
@@ -29,30 +28,25 @@ namespace Game1.Industries
             }
 
             public abstract override ProductiveIndustry CreateIndustry(NodeState state);
-
-            protected override Params CreateParams(NodeState state)
-                => new
-                (
-                    baseParams: base.CreateParams(state: state),
-                    industryType: industryType,
-                    energyPriority: energyPriority,
-                    reqSkill: state.approxSurfaceLength * reqSkillPerUnitSurface
-                );
         }
 
         [Serializable]
-        public new record Params : Industry.Params
+        public new abstract class Params : Industry.Params
         {
             public readonly IndustryType industryType;
             public readonly EnergyPriority energyPriority;
-            public readonly IReadOnlyChangingUDouble reqSkill;
+            public UDouble ReqSkill
+                => state.ApproxSurfaceLength * factory.reqSkillPerUnitSurface;
 
-            public Params(Industry.Params baseParams, IndustryType industryType, EnergyPriority energyPriority, IReadOnlyChangingUDouble reqSkill)
-                : base(baseParams)
+            private readonly Factory factory;
+
+            public Params(NodeState state, Factory factory)
+                : base(state: state, factory: factory)
             {
-                this.industryType = industryType;
-                this.energyPriority = energyPriority;
-                this.reqSkill = reqSkill;
+                this.factory = factory;
+
+                industryType = factory.industryType;
+                energyPriority = factory.energyPriority;
             }
         }
 
@@ -80,7 +74,7 @@ namespace Game1.Industries
             public void StartUpdate()
             {
                 UDouble totalHiredSkill = HiredSkill();
-                if (totalHiredSkill >= parameters.reqSkill.Value)
+                if (totalHiredSkill >= parameters.ReqSkill)
                 {
                     // if can, fire the worst people
 
@@ -92,14 +86,14 @@ namespace Game1.Industries
                             priority: CurrentEmploymentScore(person: person)
                         );
 
-                    while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill >= (UDouble)allEmployeesPriorQueue.First.skills[parameters.industryType] + parameters.reqSkill.Value)
+                    while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill >= (UDouble)allEmployeesPriorQueue.First.skills[parameters.industryType] + parameters.ReqSkill)
                     {
                         var person = allEmployeesPriorQueue.Dequeue();
                         totalHiredSkill = (UDouble)(totalHiredSkill - (double)person.skills[parameters.industryType]);
                         RemovePerson(person: person);
                     }
 
-                    Debug.Assert(HiredSkill() >= parameters.reqSkill.Value);
+                    Debug.Assert(HiredSkill() >= parameters.ReqSkill);
                     Debug.Assert(IsFull());
                 }
                 
@@ -121,7 +115,7 @@ namespace Game1.Industries
 
             public void EndUpdate()
             {
-                curUnboundedSkillPropor = peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / parameters.reqSkill.Value;
+                curUnboundedSkillPropor = peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / parameters.ReqSkill;
                 CurSkillPropor = (Propor)MyMathHelper.Min((UDouble)1, curUnboundedSkillPropor);
             }
 
@@ -135,7 +129,7 @@ namespace Game1.Industries
                     score2: Score.WeightedAverage
                     (
                         (weight: 9, score: person.enjoyments[parameters.industryType]),
-                        (weight: 1, score: DistanceToHere(person: person))
+                        (weight: 1, score: DistanceToHereAsPerson(person: person))
                     ),
                     score1Propor: CurWorldConfig.personMomentumPropor
                 );
@@ -165,13 +159,13 @@ namespace Game1.Industries
                 => workingPropor = Propor.Create((UDouble)energyPropor, MyMathHelper.Max((UDouble)1, curUnboundedSkillPropor)).Value;
 
             public string GetInfo()
-                => $"have {peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) /  parameters.reqSkill.Value * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\nemployed {peopleHere.Count}\n";
+                => $"have {peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / parameters.ReqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\nemployed {peopleHere.Count}\n";
 
             private UDouble HiredSkill()
                 => allPeople.Sum(person => (UDouble)person.skills[parameters.industryType]);
 
             private Propor OpenSpacePropor()
-                => Propor.Create(part: HiredSkill(), whole:  parameters.reqSkill.Value) switch
+                => Propor.Create(part: HiredSkill(), whole:  parameters.ReqSkill) switch
                 {
                     Propor hiredPropor => hiredPropor.Opposite(),
                     null => Propor.empty
@@ -184,7 +178,7 @@ namespace Game1.Industries
                     (weight: CurWorldConfig.personTalentWeight, score: person.talents[parameters.industryType]),
                     (weight: CurWorldConfig.personSkillWeight, score: person.skills[parameters.industryType]),
                     (weight: CurWorldConfig.jobDesperationWeight, score: desperationScore),
-                    (weight: CurWorldConfig.playerToJobDistWeight, score: DistanceToHere(person: person))
+                    (weight: CurWorldConfig.personToJobDistWeight, score: DistanceToHereAsRes(person: person))
                 );
 
             private Score CurrentEmploymentScore(Person person)
@@ -207,8 +201,8 @@ namespace Game1.Industries
                 false => EnergyPriority.maximal
             };
 
-        MyVector2 IEnergyConsumer.NodePos
-            => parameters.state.position;
+        NodeId IEnergyConsumer.NodeId
+            => parameters.state.nodeId;
 
         public override IEnumerable<Person> PeopleHere
             => employer.PeopleHere;

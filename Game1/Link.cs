@@ -1,5 +1,4 @@
-﻿using Game1.ChangingValues;
-using Game1.Delegates;
+﻿using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
 
@@ -98,7 +97,7 @@ namespace Game1
             public void UpdatePeople()
             {
                 foreach (var person in waitingPeople.Concat(timedPacketQueue.People))
-                    person.Update(prevNodePos: startNode.Position, closestNodePos: endNode.Position);
+                    person.Update(lastNodeId: startNode.NodeId, closestNodeId: endNode.NodeId);
             }
 
             public void DrawTravelingRes()
@@ -139,14 +138,27 @@ namespace Game1
             EnergyPriority IEnergyConsumer.EnergyPriority
                 => CurWorldConfig.linkEnergyPriority;
 
-            MyVector2 IEnergyConsumer.NodePos
-                => startNode.Position;
+            NodeId IEnergyConsumer.NodeId
+                => startNode.NodeId;
 
             UDouble IEnergyConsumer.ReqWatts()
                 => timedPacketQueue.TotalWeight * reqWattsPerKg;
 
             void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
                 => this.energyPropor = energyPropor;
+        }
+
+        [Serializable]
+        private readonly record struct ShapeParams(Node Node1, Node Node2) : VectorShape.IParams
+        {
+            public MyVector2 StartPos
+                => Node1.Position;
+
+            public MyVector2 EndPos
+                => Node2.Position;
+
+            public UDouble Width
+                => CurWorldConfig.linkWidth;
         }
 
         public readonly Node node1, node2;
@@ -164,9 +176,7 @@ namespace Game1
             (
                 shape: new LineSegment
                 (
-                    startPos: node1.Position,
-                    endPos: node2.Position,
-                    width: new ChangingUDouble(CurWorldConfig.linkWidth)
+                    parameters: new ShapeParams(Node1: node1, Node2: node2)
                 ),
                 activeColor: Color.White,
                 inactiveColor: Color.Green,

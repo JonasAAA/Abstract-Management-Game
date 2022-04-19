@@ -1,6 +1,4 @@
-﻿using Game1.ChangingValues;
-
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -22,26 +20,22 @@ namespace Game1.Industries
                 this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
             }
 
-            protected override Params CreateParams(NodeState state)
-                => new
-                (
-                    baseParams: base.CreateParams(state: state),
-                    floorSpace: state.approxSurfaceLength * floorSpacePerUnitSurface
-                );
-
             public override House CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
+                => new(parameters: new(state: state, factory: this));
         }
 
         [Serializable]
-        public new sealed record Params : Industry.Params
+        public new sealed class Params : Industry.Params
         {
-            public readonly IReadOnlyChangingUDouble floorSpace;
+            public UDouble FloorSpace
+                => state.ApproxSurfaceLength * factory.floorSpacePerUnitSurface;
 
-            public Params(Industry.Params baseParams, IReadOnlyChangingUDouble floorSpace)
-                : base(baseParams)
+            private readonly Factory factory;
+
+            public Params(NodeState state, Factory factory)
+                : base(state: state, factory: factory)
             {
-                this.floorSpace = floorSpace;
+                this.factory = factory;
             }
         }
 
@@ -64,7 +58,7 @@ namespace Game1.Industries
 
             private Score PersonalSpace(ulong peopleCount)
                 // TODO: get rid of hard-coded constant
-                => Score.FromUnboundedUDouble(value: parameters.floorSpace.Value / peopleCount, valueGettingAverageScore: 10);
+                => Score.FromUnboundedUDouble(value: parameters.FloorSpace / peopleCount, valueGettingAverageScore: 10);
 
             public override Score PersonScoreOfThis(Person person)
                 => Score.WightedAverageOfTwo
@@ -74,7 +68,7 @@ namespace Game1.Industries
                     score2: Score.WeightedAverage
                     (
                         (weight: 7, score: PersonalSpace(peopleCount: allPeople.Count + 1)),
-                        (weight: 3, score: DistanceToHere(person: person))
+                        (weight: 3, score: DistanceToHereAsPerson(person: person))
                     ),
                     score1Propor: CurWorldConfig.personMomentumPropor
                 );

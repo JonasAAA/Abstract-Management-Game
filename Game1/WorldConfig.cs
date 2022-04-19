@@ -3,7 +3,7 @@
     [Serializable]
     public class WorldConfig
     {
-        public readonly ulong personJobEnjoymentWeight, personTalentWeight, personSkillWeight, jobDesperationWeight, playerToJobDistWeight;
+        public readonly ulong personJobEnjoymentWeight, personTalentWeight, personSkillWeight, jobDesperationWeight, personToJobDistWeight;
         public readonly UDouble jobVacDespValueConsideredAverage;
         public readonly Score minAcceptablePersonScore;
         public readonly EnergyPriority linkEnergyPriority;
@@ -37,7 +37,7 @@
             personTalentWeight = 3;
             personSkillWeight = 2;
             jobDesperationWeight = 2;
-            playerToJobDistWeight = 1;
+            personToJobDistWeight = 1;
 
             jobVacDespValueConsideredAverage = 10;
             minAcceptablePersonScore = (Score).2;

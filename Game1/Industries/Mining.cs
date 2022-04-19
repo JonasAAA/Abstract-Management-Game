@@ -1,6 +1,4 @@
-﻿using Game1.ChangingValues;
-
-namespace Game1.Industries
+﻿namespace Game1.Industries
 {
     [Serializable]
     public sealed class Mining : Production
@@ -8,7 +6,7 @@ namespace Game1.Industries
         [Serializable]
         public new sealed class Factory : Production.Factory, IBuildableFactory
         {
-            private readonly ulong minedResPerUnitSurface;
+            public readonly ulong minedResPerUnitSurface;
 
             public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, ulong minedResPerUnitSurface, TimeSpan miningDuration)
                 : base
@@ -25,35 +23,32 @@ namespace Game1.Industries
                 this.minedResPerUnitSurface = minedResPerUnitSurface;
             }
 
-            protected override ResAmounts SupplyPerUnitSurface(NodeState state)
-                => new()
-                {
-                    [state.consistsOf] = minedResPerUnitSurface
-                };
-
-            protected override Params CreateParams(NodeState state)
-                => new
-                (
-                    baseParams: base.CreateParams(state: state),
-                    minedRes: state.approxSurfaceLength * minedResPerUnitSurface
-                );
-
             public override Mining CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
+                => new(parameters: new(state: state, factory: this));
 
             string IBuildableFactory.ButtonName
                 => name;
         }
 
         [Serializable]
-        public new sealed record Params : Production.Params
+        public new sealed class Params : Production.Params
         {
-            public readonly IReadOnlyChangingULong minedRes;
+            public ulong minedRes
+                => state.ApproxSurfaceLength * factory.minedResPerUnitSurface;
 
-            public Params(Production.Params baseParams, IReadOnlyChangingULong minedRes)
-                : base(baseParams)
+            // TODO(optimization) could have supplyPerUnitSurface redonly field and return it here
+            protected override ResAmounts SupplyPerUnitSurface
+                => new()
+                {
+                    [state.consistsOfResInd] = factory.minedResPerUnitSurface
+                };
+
+            private readonly Factory factory;
+
+            public Params(NodeState state, Factory factory)
+                : base(state: state, factory: factory)
             {
-                this.minedRes = minedRes;
+                this.factory = factory;
             }
         }
 
@@ -70,15 +65,15 @@ namespace Game1.Industries
 
         // TODO: could mine less if not enough resources remaining for 
         protected override bool CanStartProduction()
-            => parameters.state.CanRemove(resAmount: parameters.minedRes.Value);
+            => parameters.state.CanRemove(resAmount: parameters.minedRes);
 
         protected override void StartProduction()
         { }
 
         protected override void StopProduction()
         {
-            parameters.state.Remove(resAmount: parameters.minedRes.Value);
-            parameters.state.storedRes += parameters.supply.Value;
+            parameters.state.Remove(resAmount: parameters.minedRes);
+            parameters.state.storedRes += parameters.Supply;
         }
     }
 }

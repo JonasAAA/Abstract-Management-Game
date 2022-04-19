@@ -11,8 +11,8 @@ namespace Game1.Industries
 
         public ActivityType ActivityType { get; }
 
-        public MyVector2 Position
-            => state.position;
+        public NodeId NodeId
+            => state.nodeId;
 
         public EnergyPriority EnergyPriority { get; private set; }
 
@@ -90,8 +90,18 @@ namespace Game1.Industries
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 
-        protected Score DistanceToHere(Person person)
+        /// <summary>
+        /// Used this to calculate personal score
+        /// </summary>
+        protected Score DistanceToHereAsPerson(Person person)
             // TODO: get rid of hard-coded constant
-            => Score.FromUnboundedUDouble(value: MyVector2.Distance(person.ClosestNodePos, Position), valueGettingAverageScore: 100).Opposite();
+            => Score.FromUnboundedUDouble(value: CurWorldManager.PersonDist(nodeId1: person.ClosestNodeId, nodeId2: NodeId), valueGettingAverageScore: 100).Opposite();
+
+        /// <summary>
+        /// Used this to calculate suitability of person
+        /// </summary>
+        protected Score DistanceToHereAsRes(Person person)
+            // TODO: get rid of hard-coded constant
+            => Score.FromUnboundedUDouble(value: CurWorldManager.ResDist(nodeId1: person.ClosestNodeId, nodeId2: NodeId), valueGettingAverageScore: 100).Opposite();
     }
 }

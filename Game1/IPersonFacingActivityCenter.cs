@@ -4,7 +4,7 @@
     {
         public ActivityType ActivityType { get; }
 
-        public MyVector2 Position { get; }
+        public NodeId NodeId { get; }
 
         public EnergyPriority EnergyPriority { get; }
 

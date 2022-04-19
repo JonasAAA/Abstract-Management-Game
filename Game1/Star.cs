@@ -9,6 +9,7 @@ namespace Game1
     [Serializable]
     public class Star : WorldUIElement, ILightSource
     {
+        private readonly StarId starId;
         private readonly UDouble prodWatts;
         private readonly LightPolygon polygon;
 
@@ -17,6 +18,7 @@ namespace Game1
         public Star(UDouble radius, MyVector2 center, UDouble prodWatts, Color color)
             : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
         {
+            starId = StarId.Create();
             shape.Center = center;
             this.prodWatts = prodWatts;
             polygon = new LightPolygon(strength: radius / CurWorldConfig.standardStarRadius, color: color);
@@ -109,7 +111,7 @@ namespace Game1
                 Propor powerPropor = Propor.Create(part: arcsForObjects[lightCatchingObject], whole: 2 * MyMathHelper.pi).Value;
                 lightCatchingObject.SetWatts
                 (
-                    starPos: shape.Center,
+                    starPos: starId,
                     watts: powerPropor * prodWatts,
                     powerPropor: powerPropor
                 );

@@ -1,6 +1,4 @@
-﻿using Game1.ChangingValues;
-
-namespace Game1.Shapes
+﻿namespace Game1.Shapes
 {
     [Serializable]
     public class LineSegment : VectorShape
@@ -13,8 +11,8 @@ namespace Game1.Shapes
         protected override Texture2D Texture
             => pixelTexture;
 
-        public LineSegment(MyVector2 startPos, MyVector2 endPos, IReadOnlyChangingUDouble width)
-            : base(startPos: startPos, endPos: endPos, width: width)
+        public LineSegment(IParams parameters)
+            : base(parameters: parameters)
         { }
 
         protected override bool Contains(Propor dirPropor, Propor orthDirPropor)

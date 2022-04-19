@@ -5,7 +5,7 @@ namespace Game1
     [Serializable]
     public class ResAmountsPacket
     {
-        public readonly MyVector2 destination;
+        public readonly NodeId destination;
         public ResAmounts ResAmounts
             => resAmounts;
         public ulong TotalWeight { get; private set; }
@@ -14,11 +14,11 @@ namespace Game1
 
         private ResAmounts resAmounts;
 
-        public ResAmountsPacket(MyVector2 destination)
+        public ResAmountsPacket(NodeId destination)
             : this(destination: destination, resAmounts: new())
         { }
 
-        public ResAmountsPacket(MyVector2 destination, ResAmounts resAmounts)
+        public ResAmountsPacket(NodeId destination, ResAmounts resAmounts)
         {
             this.destination = destination;
             this.resAmounts = resAmounts;

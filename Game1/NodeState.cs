@@ -22,7 +22,7 @@ namespace Game1
         public ulong ApproxSurfaceLength
             => (ulong)(2 * MyMathHelper.pi * Radius);
         public ulong MainResAmount { get; private set; }
-        public readonly MyVector2 position;
+        public MyVector2 position;
         public readonly ulong maxBatchDemResStored;
         public ResAmounts storedRes;
         public ResAmountsPacketsByDestin waitingResAmountsPackets;

@@ -5,6 +5,8 @@
     {
         public interface IParams
         {
+            public MyVector2 Center { get; }
+
             public UDouble Radius { get; }
         }
 
@@ -12,6 +14,13 @@
 
         static Disk()
             => diskTexture = C.LoadTexture(name: "big disk");
+
+        public override MyVector2 Center
+        {
+            get => parameters.Center;
+            // TODO: get rid of this hack
+            set => throw new InvalidOperationException();
+        }
 
         protected readonly IParams parameters;
 

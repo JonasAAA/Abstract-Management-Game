@@ -62,6 +62,9 @@ namespace Game1
         [Serializable]
         private readonly record struct ShapeParams(NodeState State) : Disk.IParams
         {
+            public MyVector2 Center
+                => State.position;
+
             public UDouble Radius
                 => State.Radius;
         }
@@ -131,7 +134,6 @@ namespace Game1
         {
             this.state = state;
             shape = (LightCatchingDisk)base.shape;
-            shape.Center = Position;
             
             links = new();
             industry = null;
@@ -380,6 +382,8 @@ namespace Game1
             // TODO: delete
             // temporary
             // state.SetRadius((double)C.Random(0.99, 1.01) * state.radius.Value);
+            // temporary
+            // state.position += new MyVector2(x: C.Random(min: -1.0, max: 1), y: C.Random(min: -1.0, max: 1));
 
             if (industry is not null)
                 SetIndustry(newIndustry: industry.Update());

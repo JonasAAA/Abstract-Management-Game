@@ -37,8 +37,8 @@ namespace Game1.Industries
         public new sealed class Params : ProductiveIndustry.Params
         {
             public readonly UDouble reqWattsPerChild;
-            public ulong maxCouples
-                => state.approxSurfaceLength * factory.maxCouplesPerUnitSurface;
+            public ulong MaxCouples
+                => state.ApproxSurfaceLength * factory.maxCouplesPerUnitSurface;
             public readonly ResAmounts resPerChild;
             public readonly TimeSpan birthDuration;
 
@@ -70,7 +70,7 @@ namespace Game1.Industries
             }
             
             public override bool IsFull()
-                => allPeople.Count >= 2 * parameters.maxCouples;
+                => allPeople.Count >= 2 * parameters.MaxCouples;
 
             public override bool IsPersonSuitable(Person person)
                 // could disalow far travel
@@ -125,7 +125,7 @@ namespace Game1.Industries
         }
 
         public override ResAmounts TargetStoredResAmounts()
-            => parameters.maxCouples * parameters.resPerChild * parameters.state.maxBatchDemResStored;
+            => parameters.MaxCouples * parameters.resPerChild * parameters.state.maxBatchDemResStored;
 
         protected override bool IsBusy()
             => birthQueue.Count > 0;

@@ -32,7 +32,7 @@
         public new sealed class Params : Production.Params
         {
             public ResAmounts demand
-                => state.approxSurfaceLength * factory.demandPerUnitSurface;
+                => state.ApproxSurfaceLength * factory.demandPerUnitSurface;
 
             protected override ResAmounts SupplyPerUnitSurface
                 => factory.supplyPerUnitSurface;

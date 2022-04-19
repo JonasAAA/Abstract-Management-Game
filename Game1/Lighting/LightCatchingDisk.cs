@@ -39,10 +39,10 @@ namespace Game1.Lighting
         IEnumerable<double> ILightCatchingObject.RelAngles(MyVector2 lightPos)
         {
             UDouble dist = MyVector2.Distance(lightPos, Center);
-            if (dist <= parameters.radius)
+            if (dist <= parameters.Radius)
                 yield break;
 
-            double a = parameters.radius / MyVector2.Distance(lightPos, Center),
+            double a = parameters.Radius / MyVector2.Distance(lightPos, Center),
                   b = MyMathHelper.Sqrt((UDouble)(1 - a * a));
             MyVector2 center = Center * b * b + lightPos * a * a,
                     diff = Center - lightPos,
@@ -57,7 +57,7 @@ namespace Game1.Lighting
         {
             MyVector2 d = lightPos - Center;
             double e = MyVector2.Dot(lightDir, d), 
-                f = MyVector2.Dot(d, d) - parameters.radius * parameters.radius,
+                f = MyVector2.Dot(d, d) - parameters.Radius * parameters.Radius,
                 g = e * e - f;
             
             switch (UDouble.Create(value: g))

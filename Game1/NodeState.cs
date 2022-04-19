@@ -13,15 +13,15 @@ namespace Game1
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
         public readonly NodeId nodeId;
 
-        public ulong mass
-            => mainResAmount * consistsOfRes.mass;
-        public ulong area
-            => mainResAmount * consistsOfRes.area;
-        public UDouble radius
-            => MyMathHelper.Sqrt(value: area / MyMathHelper.pi);
-        public ulong approxSurfaceLength
-            => (ulong)(2 * MyMathHelper.pi * radius);
-        public ulong mainResAmount { get; private set; }
+        public ulong Mass
+            => MainResAmount * consistsOfRes.mass;
+        public ulong Area
+            => MainResAmount * consistsOfRes.area;
+        public UDouble Radius
+            => MyMathHelper.Sqrt(value: Area / MyMathHelper.pi);
+        public ulong ApproxSurfaceLength
+            => (ulong)(2 * MyMathHelper.pi * Radius);
+        public ulong MainResAmount { get; private set; }
         public readonly MyVector2 position;
         public readonly ulong maxBatchDemResStored;
         public ResAmounts storedRes;
@@ -35,7 +35,7 @@ namespace Game1
             this.nodeId = nodeId;
             this.position = position;
             consistsOfRes = CurResConfig.resources[consistsOfResInd];
-            mainResAmount = Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / consistsOfRes.area);
+            MainResAmount = Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / consistsOfRes.area);
             // TODO: delete
             //mainResAmount = changingResAmount;
             //mass = mainResAmount * consistsOfRes.mass;
@@ -52,13 +52,13 @@ namespace Game1
         }
 
         public bool CanRemove(ulong resAmount)
-            => mainResAmount >= resAmount + CurWorldConfig.minResAmountInPlanet;
+            => MainResAmount >= resAmount + CurWorldConfig.minResAmountInPlanet;
 
         public void Remove(ulong resAmount)
         {
             if (!CanRemove(resAmount: resAmount))
                 throw new ArgumentException();
-            mainResAmount -= resAmount;
+            MainResAmount -= resAmount;
         }
         
         public void AddToStoredRes(ResInd resInd, ulong resAmount)

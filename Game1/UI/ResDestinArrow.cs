@@ -10,13 +10,13 @@ namespace Game1.UI
         {
             public NodeId SourceId { get; }
             public NodeId DestinationId { get; }
-            public Color defaultActiveColor { get; }
-            public Color defaultInactiveColor { get; }
-            public HorizPos popupHorizPos { get; }
-            public VertPos popupVertPos { get; }
-            public int minImportance { get; }
-            public int importance { get; }
-            public ResInd resInd { get; }
+            public Color DefaultActiveColor { get; }
+            public Color DefaultInactiveColor { get; }
+            public HorizPos PopupHorizPos { get; }
+            public VertPos PopupVertPos { get; }
+            public int MinImportance { get; }
+            public int Importance { get; }
+            public ResInd ResInd { get; }
         }
 
         [Serializable]
@@ -38,8 +38,8 @@ namespace Game1.UI
             {
                 totalImportance = value;
                 double relImportance = (double)Importance / totalImportance;
-                InactiveColor = parameters.defaultInactiveColor * (float)relImportance;
-                ActiveColor = parameters.defaultActiveColor * (float)relImportance;
+                InactiveColor = parameters.DefaultInactiveColor * (float)relImportance;
+                ActiveColor = parameters.DefaultActiveColor * (float)relImportance;
                 line2.Text = $"total importance {totalImportance}";
             }
         }
@@ -51,7 +51,6 @@ namespace Game1.UI
             => importanceIncDecrPanel.numberChanged;
 
         private readonly IParams parameters;
-        private new readonly Arrow shape;
         private int totalImportance;
         private readonly NumIncDecrPanel importanceIncDecrPanel;
         private readonly TextBox line2;
@@ -60,20 +59,19 @@ namespace Game1.UI
             : base
             (
                 shape: new Arrow(parameters: parameters),
-                activeColor: parameters.defaultActiveColor,
-                inactiveColor: parameters.defaultInactiveColor,
-                popupHorizPos: parameters.popupHorizPos,
-                popupVertPos: parameters.popupVertPos
+                activeColor: parameters.DefaultActiveColor,
+                inactiveColor: parameters.DefaultInactiveColor,
+                popupHorizPos: parameters.PopupHorizPos,
+                popupVertPos: parameters.PopupVertPos
             )
         {
             this.parameters = parameters;
-            shape = (Arrow)base.shape;
             UIRectPanel<IHUDElement> popup = new UIRectVertPanel<IHUDElement>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
             );
-            SetPopup(HUDElement: popup, overlay: parameters.resInd);
+            SetPopup(HUDElement: popup, overlay: parameters.ResInd);
 
             UIRectHorizPanel<IHUDElement> line1 = new
             (
@@ -90,8 +88,8 @@ namespace Game1.UI
             );
             importanceIncDecrPanel = new
             (
-                minNum: parameters.minImportance,
-                number: parameters.importance,
+                minNum: parameters.MinImportance,
+                number: parameters.Importance,
                 incrDecrButtonHeight: 20,
                 shapeColor: Color.White,
                 incrDecrButtonColor: Color.Blue

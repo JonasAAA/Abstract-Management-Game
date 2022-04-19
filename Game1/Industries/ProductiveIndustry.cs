@@ -35,8 +35,8 @@ namespace Game1.Industries
         {
             public readonly IndustryType industryType;
             public readonly EnergyPriority energyPriority;
-            public UDouble reqSkill
-                => state.approxSurfaceLength * factory.reqSkillPerUnitSurface;
+            public UDouble ReqSkill
+                => state.ApproxSurfaceLength * factory.reqSkillPerUnitSurface;
 
             private readonly Factory factory;
 
@@ -74,7 +74,7 @@ namespace Game1.Industries
             public void StartUpdate()
             {
                 UDouble totalHiredSkill = HiredSkill();
-                if (totalHiredSkill >= parameters.reqSkill)
+                if (totalHiredSkill >= parameters.ReqSkill)
                 {
                     // if can, fire the worst people
 
@@ -86,14 +86,14 @@ namespace Game1.Industries
                             priority: CurrentEmploymentScore(person: person)
                         );
 
-                    while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill >= (UDouble)allEmployeesPriorQueue.First.skills[parameters.industryType] + parameters.reqSkill)
+                    while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill >= (UDouble)allEmployeesPriorQueue.First.skills[parameters.industryType] + parameters.ReqSkill)
                     {
                         var person = allEmployeesPriorQueue.Dequeue();
                         totalHiredSkill = (UDouble)(totalHiredSkill - (double)person.skills[parameters.industryType]);
                         RemovePerson(person: person);
                     }
 
-                    Debug.Assert(HiredSkill() >= parameters.reqSkill);
+                    Debug.Assert(HiredSkill() >= parameters.ReqSkill);
                     Debug.Assert(IsFull());
                 }
                 
@@ -115,7 +115,7 @@ namespace Game1.Industries
 
             public void EndUpdate()
             {
-                curUnboundedSkillPropor = peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / parameters.reqSkill;
+                curUnboundedSkillPropor = peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / parameters.ReqSkill;
                 CurSkillPropor = (Propor)MyMathHelper.Min((UDouble)1, curUnboundedSkillPropor);
             }
 
@@ -159,13 +159,13 @@ namespace Game1.Industries
                 => workingPropor = Propor.Create((UDouble)energyPropor, MyMathHelper.Max((UDouble)1, curUnboundedSkillPropor)).Value;
 
             public string GetInfo()
-                => $"have {peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / parameters.reqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\nemployed {peopleHere.Count}\n";
+                => $"have {peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / parameters.ReqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\nemployed {peopleHere.Count}\n";
 
             private UDouble HiredSkill()
                 => allPeople.Sum(person => (UDouble)person.skills[parameters.industryType]);
 
             private Propor OpenSpacePropor()
-                => Propor.Create(part: HiredSkill(), whole:  parameters.reqSkill) switch
+                => Propor.Create(part: HiredSkill(), whole:  parameters.ReqSkill) switch
                 {
                     Propor hiredPropor => hiredPropor.Opposite(),
                     null => Propor.empty

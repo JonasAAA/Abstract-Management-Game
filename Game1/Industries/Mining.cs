@@ -34,7 +34,7 @@
         public new sealed class Params : Production.Params
         {
             public ulong minedRes
-                => state.approxSurfaceLength * factory.minedResPerUnitSurface;
+                => state.ApproxSurfaceLength * factory.minedResPerUnitSurface;
 
             // TODO(optimization) could have supplyPerUnitSurface redonly field and return it here
             protected override ResAmounts SupplyPerUnitSurface
@@ -73,7 +73,7 @@
         protected override void StopProduction()
         {
             parameters.state.Remove(resAmount: parameters.minedRes);
-            parameters.state.storedRes += parameters.supply;
+            parameters.state.storedRes += parameters.Supply;
         }
     }
 }

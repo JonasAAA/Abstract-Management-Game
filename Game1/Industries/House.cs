@@ -27,8 +27,8 @@ namespace Game1.Industries
         [Serializable]
         public new sealed class Params : Industry.Params
         {
-            public UDouble floorSpace
-                => state.approxSurfaceLength * factory.floorSpacePerUnitSurface;
+            public UDouble FloorSpace
+                => state.ApproxSurfaceLength * factory.floorSpacePerUnitSurface;
 
             private readonly Factory factory;
 
@@ -58,7 +58,7 @@ namespace Game1.Industries
 
             private Score PersonalSpace(ulong peopleCount)
                 // TODO: get rid of hard-coded constant
-                => Score.FromUnboundedUDouble(value: parameters.floorSpace / peopleCount, valueGettingAverageScore: 10);
+                => Score.FromUnboundedUDouble(value: parameters.FloorSpace / peopleCount, valueGettingAverageScore: 10);
 
             public override Score PersonScoreOfThis(Person person)
                 => Score.WightedAverageOfTwo

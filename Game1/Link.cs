@@ -151,13 +151,13 @@ namespace Game1
         [Serializable]
         private readonly record struct ShapeParams(Node Node1, Node Node2) : VectorShape.IParams
         {
-            public MyVector2 startPos
+            public MyVector2 StartPos
                 => Node1.Position;
 
-            public MyVector2 endPos
+            public MyVector2 EndPos
                 => Node2.Position;
 
-            public UDouble width
+            public UDouble Width
                 => CurWorldConfig.linkWidth;
         }
 

@@ -62,34 +62,34 @@ namespace Game1
         [Serializable]
         private readonly record struct ShapeParams(NodeState State) : Disk.IParams
         {
-            public UDouble radius
-                => State.radius;
+            public UDouble Radius
+                => State.Radius;
         }
 
         [Serializable]
-        private readonly record struct ResDestinArrowParams(NodeState State, NodeId DestinationId, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int importance, ResInd resInd) : ResDestinArrow.IParams
+        private readonly record struct ResDestinArrowParams(NodeState State, NodeId DestinationId, Color DefaultActiveColor, Color DefaultInactiveColor, HorizPos PopupHorizPos, VertPos PopupVertPos, int MinImportance, int Importance, ResInd ResInd) : ResDestinArrow.IParams
         {
-            public MyVector2 startPos
+            public MyVector2 StartPos
                 => State.position;
 
-            public MyVector2 endPos
+            public MyVector2 EndPos
                 => CurWorldManager.NodePosition(nodeId: DestinationId);
 
-            public UDouble width
-                => 2 * State.radius;
+            public UDouble Width
+                => 2 * State.Radius;
 
             public NodeId SourceId
                 => State.nodeId;
         }
 
         [Serializable]
-        private readonly record struct SingleFrameArrowParams(NodeState State, MyVector2 endPos) : VectorShape.IParams
+        private readonly record struct SingleFrameArrowParams(NodeState State, MyVector2 EndPos) : VectorShape.IParams
         {
-            public MyVector2 startPos
+            public MyVector2 StartPos
                 => State.position;
 
-            public UDouble width
-                => 2 * State.radius;
+            public UDouble Width
+                => 2 * State.Radius;
         }
 
         public NodeId NodeId
@@ -341,13 +341,13 @@ namespace Game1
                 (
                     State: state,
                     DestinationId: destinationId,
-                    defaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
-                    defaultInactiveColor: Color.White * .5f,
-                    popupHorizPos: HorizPos.Right,
-                    popupVertPos: VertPos.Top,
-                    minImportance: 1,
-                    importance: 1,
-                    resInd: resInd
+                    DefaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
+                    DefaultInactiveColor: Color.White * .5f,
+                    PopupHorizPos: HorizPos.Right,
+                    PopupVertPos: VertPos.Top,
+                    MinImportance: 1,
+                    Importance: 1,
+                    ResInd: resInd
                 )
             );
             ResDesinArrowEventListener resDesinArrowEventListener = new(Node: this, ResInd: resInd);
@@ -386,14 +386,16 @@ namespace Game1
 
             // deal with people
             foreach (var person in state.waitingPeople.Clone())
-                if (person.ActivityCenterNodeId is NodeId activityCenterPosition)
-                {
-                    if (activityCenterPosition == NodeId)
-                        person.Arrived();
-                    else
-                        personFirstLinks[(NodeId, activityCenterPosition)].Add(start: this, person: person);
-                    state.waitingPeople.Remove(person);
-                }
+            {
+                NodeId activityCenterPosition = person.ActivityCenterNodeId;
+                if (activityCenterPosition is null)
+                    continue;
+                if (activityCenterPosition == NodeId)
+                    person.Arrived();
+                else
+                    personFirstLinks[(NodeId, activityCenterPosition)].Add(start: this, person: person);
+                state.waitingPeople.Remove(person);
+            }
         }
 
         public void UpdatePeople()
@@ -467,7 +469,7 @@ namespace Game1
             }
 
             // TODO: look at this
-            infoTextBox.Text = $"consists of {state.mainResAmount} {state.consistsOfResInd}\nstores {state.storedRes}\ntarget {targetStoredResAmounts}\n";
+            infoTextBox.Text = $"consists of {state.MainResAmount} {state.consistsOfResInd}\nstores {state.storedRes}\ntarget {targetStoredResAmounts}\n";
 
             // update text
             textBox.Text = "";
@@ -510,7 +512,7 @@ namespace Game1
                     parameters: new SingleFrameArrowParams
                     (
                         State: state,
-                        endPos: CurWorldManager.MouseWorldPos
+                        EndPos: CurWorldManager.MouseWorldPos
                     )
                 )
                 {

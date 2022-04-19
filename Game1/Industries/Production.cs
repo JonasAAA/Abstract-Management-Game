@@ -35,10 +35,10 @@ namespace Game1.Industries
         [Serializable]
         public new abstract class Params : ProductiveIndustry.Params
         {
-            public UDouble reqWatts
-                => state.approxSurfaceLength * factory.reqWattsPerUnitSurface;
-            public ResAmounts supply
-                => state.approxSurfaceLength * SupplyPerUnitSurface;
+            public UDouble ReqWatts
+                => state.ApproxSurfaceLength * factory.reqWattsPerUnitSurface;
+            public ResAmounts Supply
+                => state.ApproxSurfaceLength * SupplyPerUnitSurface;
             public readonly TimeSpan prodDuration;
 
             protected abstract ResAmounts SupplyPerUnitSurface { get; }
@@ -89,7 +89,7 @@ namespace Game1.Industries
 
             if (prodTimeLeft <= TimeSpan.Zero)
             {
-                parameters.state.waitingResAmountsPackets.Add(destination: parameters.state.nodeId, resAmounts: parameters.supply);
+                parameters.state.waitingResAmountsPackets.Add(destination: parameters.state.nodeId, resAmounts: parameters.Supply);
                 prodTimeLeft = TimeSpan.MaxValue;
                 StopProduction();
             }
@@ -114,7 +114,7 @@ namespace Game1.Industries
             // and if they don't, then the industry will get 0 energy anyway
             => IsBusy() switch
             {
-                true => parameters.reqWatts * CurSkillPropor,
+                true => parameters.ReqWatts * CurSkillPropor,
                 false => 0
             };
     }

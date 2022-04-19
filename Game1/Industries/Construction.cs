@@ -43,12 +43,12 @@ namespace Game1.Industries
         [Serializable]
         public new sealed class Params : ProductiveIndustry.Params
         {
-            public UDouble reqWatts
-                => state.approxSurfaceLength * factory.reqWattsPerUnitSurface;
+            public UDouble ReqWatts
+                => state.ApproxSurfaceLength * factory.reqWattsPerUnitSurface;
             public readonly Industry.Factory industryFactory;
             public readonly TimeSpan duration;
-            public ResAmounts cost
-                => state.approxSurfaceLength * factory.costPerUnitSurface;
+            public ResAmounts Cost
+                => state.ApproxSurfaceLength * factory.costPerUnitSurface;
 
             private readonly Factory factory;
 
@@ -76,7 +76,7 @@ namespace Game1.Industries
             => IsBusy() switch
             {
                 true => new(),
-                false => parameters.cost,
+                false => parameters.Cost,
             };
 
         protected override bool IsBusy()
@@ -87,9 +87,9 @@ namespace Game1.Industries
             if (IsBusy())
                 constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;
 
-            if (!IsBusy() && parameters.state.storedRes >= parameters.cost)
+            if (!IsBusy() && parameters.state.storedRes >= parameters.Cost)
             {
-                parameters.state.storedRes -= parameters.cost;
+                parameters.state.storedRes -= parameters.Cost;
                 constrTimeLeft = parameters.duration;
             }
 
@@ -108,8 +108,8 @@ namespace Game1.Industries
 
             parameters.state.storedRes += IsBusy() switch
             {
-                true => parameters.cost / 2,
-                false => parameters.cost
+                true => parameters.Cost / 2,
+                false => parameters.Cost
             };
         }
 
@@ -128,7 +128,7 @@ namespace Game1.Industries
             // and if they don't, then the industry will get 0 energy anyway
             => IsBusy() switch
             {
-                true => parameters.reqWatts * CurSkillPropor,
+                true => parameters.ReqWatts * CurSkillPropor,
                 false => 0
             };
     }

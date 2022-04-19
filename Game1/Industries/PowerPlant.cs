@@ -32,8 +32,8 @@ namespace Game1.Industries
         [Serializable]
         public new sealed class Params : ProductiveIndustry.Params
         {
-            public UDouble prodWatts
-                => state.approxSurfaceLength * factory.prodWattsPerUnitSurface;
+            public UDouble ProdWatts
+                => state.ApproxSurfaceLength * factory.prodWattsPerUnitSurface;
 
             private readonly Factory factory;
 
@@ -75,7 +75,7 @@ namespace Game1.Industries
         UDouble IEnergyProducer.ProdWatts()
             => IsBusy() switch
             {
-                true => parameters.prodWatts * CurSkillPropor,
+                true => parameters.ProdWatts * CurSkillPropor,
                 false => 0
             };
     }

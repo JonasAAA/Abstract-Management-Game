@@ -222,8 +222,6 @@ namespace Game1
                 else
                     if (type != typeof(Game1) && !(type.IsAbstract && type.IsSealed) && !type.IsInterface)
                         unserializedTypeList.Add(type);
-                // TODO: delete ONLY if no longer use ChangingValues
-                //knownTypesSet.UnionWith(ChangingValues.ExtensionMethods.GetRelatedGenericTypes(type: type));
             }
             if (unserializedTypeList.Count > 0)
                 throw new Exception($"Every non-static, non-interface, non-enum type (except for Game1) must have attribute Serializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");

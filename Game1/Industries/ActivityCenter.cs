@@ -95,13 +95,13 @@ namespace Game1.Industries
         /// </summary>
         protected Score DistanceToHereAsPerson(Person person)
             // TODO: get rid of hard-coded constant
-            => Score.FromUnboundedUDouble(value: CurWorldManager.PersonDist(nodeId1: person.ClosestNodeId, nodeId2: NodeId), valueGettingAverageScore: 100).Opposite();
+            => Score.FromUnboundedUDouble(value: CurWorldManager.PersonDist(nodeId1: person.ClosestNodeId, nodeId2: NodeId), valueGettingAverageScore: 2).Opposite();
 
         /// <summary>
         /// Used this to calculate suitability of person
         /// </summary>
         protected Score DistanceToHereAsRes(Person person)
             // TODO: get rid of hard-coded constant
-            => Score.FromUnboundedUDouble(value: CurWorldManager.ResDist(nodeId1: person.ClosestNodeId, nodeId2: NodeId), valueGettingAverageScore: 100).Opposite();
+            => Score.FromUnboundedUDouble(value: CurWorldManager.ResDist(nodeId1: person.ClosestNodeId, nodeId2: NodeId), valueGettingAverageScore: 2).Opposite();
     }
 }

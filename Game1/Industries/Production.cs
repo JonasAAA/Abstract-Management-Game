@@ -61,9 +61,6 @@ namespace Game1.Industries
             : base(parameters: parameters)
         {
             this.parameters = parameters;
-            // TODO: delete
-            //reqWatts = parameters.reqWattsPerUnitSurface * state.approxSurfaceLength;
-            //supply = parameters.supplyPerUnitSurface * state.approxSurfaceLength;
             prodTimeLeft = TimeSpan.MaxValue;
         }
 

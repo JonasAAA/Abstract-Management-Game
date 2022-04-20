@@ -2,7 +2,7 @@
 {
     // TODO: could rename to MyUFloat
     [Serializable]
-    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>, IMinable<UDouble>, IMaxable<UDouble>, IPrimitiveTypeWrapper
+    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>, IMinable<UDouble>, IMaxable<UDouble>, IComparable<UDouble>, IPrimitiveTypeWrapper
     {
         public static readonly UDouble positiveInfinity = new(value: double.PositiveInfinity);
 
@@ -78,5 +78,8 @@
 
         public string ToString(string format, IFormatProvider formatProvider)
             => value.ToString(format, formatProvider);
+
+        int IComparable<UDouble>.CompareTo(UDouble other)
+            => value.CompareTo(other.value);
     }
 }

@@ -75,10 +75,7 @@ namespace Game1
         public IEnumerable<Node> Nodes
             => nodes;
 
-        public readonly IReadOnlyDictionary<NodeId, Node> nodeIdToNode;
-        // TODO: delete
-        //public readonly ReadOnlyDictionary<NodeId, INodeAsLocalEnergyProducer> nodeIdToNodeAsLocalEnergyProducer;
-        //private readonly ReadOnlyDictionary<NodeId, INodeAsResDestin> nodeIdToNodeAsResDestin;
+        public readonly ReadOnlyDictionary<NodeId, Node> nodeIdToNode;
         public readonly TimeSpan maxLinkTravelTime;
         public readonly UDouble maxLinkJoulesPerKg;
 
@@ -138,10 +135,13 @@ namespace Game1
             (resDists, resFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.resDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.resDistanceEnergyCoeff);
 
             // TODO: don't have CreateNodeIdDict function
-            nodeIdToNode = CreateNodeIdDict(elementSelector: node => node);
-            // TODO: delete
-            //nodeIdToNodeAsLocalEnergyProducer = CreateNodeIdDict(elementSelector: node => (INodeAsLocalEnergyProducer)node);
-            //nodeIdToNodeAsResDestin = CreateNodeIdDict(elementSelector: node => (INodeAsResDestin)node);
+            nodeIdToNode = new
+            (
+                dictionary: nodes.ToDictionary
+                (
+                    keySelector: node => node.NodeId
+                )
+            );
 
             foreach (var star in stars)
                 AddChild(child: star, layer: CurWorldConfig.lightLayer);
@@ -167,18 +167,6 @@ namespace Game1
             ActiveWorldElement = null;
 
             CurOverlayChanged.Add(listener: this);
-
-            return;
-
-            ReadOnlyDictionary<NodeId, T> CreateNodeIdDict<T>(Func<Node, T> elementSelector)
-                => new
-                (
-                    dictionary: nodes.ToDictionary
-                    (
-                        keySelector: node => node.NodeId,
-                        elementSelector: elementSelector
-                    )
-                );
         }
 
         // currently uses Floyd-Warshall;

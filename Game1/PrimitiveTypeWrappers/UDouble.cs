@@ -76,7 +76,7 @@
         UDouble IMaxable<UDouble>.Max(UDouble other)
             => new(MyMathHelper.Max(value, other.value));
 
-        public string ToString(string format, IFormatProvider formatProvider)
+        public string ToString(string? format, IFormatProvider? formatProvider)
             => value.ToString(format, formatProvider);
 
         int IComparable<UDouble>.CompareTo(UDouble other)

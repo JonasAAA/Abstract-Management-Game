@@ -105,7 +105,7 @@ namespace Game1
 
         private readonly NodeState state;
         private readonly List<Link> links;
-        private Industry industry;
+        private Industry? industry;
         private readonly HouseOld unemploymentCenter;
         private readonly MyArray<ProporSplitter<NodeId>> resSplittersToDestins;
         private ResAmounts targetStoredResAmounts;
@@ -162,24 +162,18 @@ namespace Game1
             textBox.Shape.Center = Position;
             AddChild(child: textBox);
 
-            UITabPanel = new
-            (
-                tabLabelWidth: 100,
-                tabLabelHeight: 30,
-                color: Color.White,
-                inactiveTabLabelColor: Color.Gray
-            );
+            List<(string tabLabelText, IHUDElement tab)> UITabs = new();
 
             infoPanel = new UIRectVertPanel<IHUDElement>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
             );
-            UITabPanel.AddTab
-            (
+            UITabs.Add
+            ((
                 tabLabelText: "info",
                 tab: infoPanel
-            );
+            ));
             infoTextBox = new();
             infoPanel.AddChild(child: infoTextBox);
 
@@ -188,11 +182,11 @@ namespace Game1
                 color: Color.White,
                 childHorizPos: HorizPos.Left
             );
-            UITabPanel.AddTab
-            (
+            UITabs.Add
+            ((
                 tabLabelText: "build",
                 tab: buildButtonPannel
-            );
+            ));
             foreach (var buildableParams in CurIndustryConfig.constrBuildingParams)
             {
                 Button buildIndustryButton = new
@@ -262,10 +256,19 @@ namespace Game1
                     child: addResourceDestinationButton
                 );
             }
-            UITabPanel.AddTab
-            (
+            UITabs.Add
+            ((
                 tabLabelText: overlayTabLabel,
                 tab: overlayTabPanels[CurWorldManager.Overlay]
+            ));
+
+            UITabPanel = new
+            (
+                tabLabelWidth: 100,
+                tabLabelHeight: 30,
+                color: Color.White,
+                inactiveTabLabelColor: Color.Gray,
+                tabs: UITabs
             );
 
             SetPopup

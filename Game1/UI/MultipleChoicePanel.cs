@@ -1,10 +1,12 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Game1.UI
 {
     [Serializable]
     public class MultipleChoicePanel<TChoice> : HUDElement
+        where TChoice : notnull
     {
         // it is public to easily add it to knownTypes
         [Serializable]
@@ -41,14 +43,13 @@ namespace Game1.UI
         public TChoice SelectedChoiceLabel
         {
             get => selectedChoiceLabel;
+            [MemberNotNull(nameof(selectedChoiceLabel))]
             private set
             {
-                if (!C.Equals(selectedChoiceLabel, value))
-                {
-                    var prevSelectedChoiceLabel = selectedChoiceLabel;
-                    selectedChoiceLabel = value;
+                var prevSelectedChoiceLabel = selectedChoiceLabel;
+                selectedChoiceLabel = value;
+                if (prevSelectedChoiceLabel is not null && !C.Equals(prevSelectedChoiceLabel, selectedChoiceLabel))
                     choiceChanged.Raise(action: listener => listener.ChoiceChangedResponse(prevChoice: prevSelectedChoiceLabel));
-                }
             }
         }
 
@@ -58,7 +59,7 @@ namespace Game1.UI
         private readonly Color selectedColor, deselectedColor;
         private TChoice selectedChoiceLabel;
 
-        public MultipleChoicePanel(bool horizontal, UDouble choiceWidth, UDouble choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor)
+        public MultipleChoicePanel(bool horizontal, UDouble choiceWidth, UDouble choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor, IEnumerable<TChoice> choiceLabels)
             : base(shape: new MyRectangle())
         {
             choiceChanged = new();
@@ -75,15 +76,21 @@ namespace Game1.UI
                     childHorizPos: HorizPos.Left
                 )
             };
-            
-            Shape.Color = backgroundColor;
-            selectedChoiceLabel = default;
-            choices = new();
 
             this.choiceWidth = choiceWidth;
             this.choiceHeight = choiceHeight;
             this.selectedColor = selectedColor;
             this.deselectedColor = deselectedColor;
+
+            Shape.Color = backgroundColor;
+            var choiceLabelsArray = choiceLabels.ToArray();
+            if (choiceLabelsArray.Length is 0)
+                throw new ArgumentException($"must provide at least one choice to start with");
+            choices = new();
+            foreach (var choiceLabel in choiceLabelsArray)
+                AddChoice(choiceLabel: choiceLabel);
+
+            SelectedChoiceLabel = choiceLabelsArray[0];
 
             AddChild(child: choicePanel);
         }
@@ -110,13 +117,10 @@ namespace Game1.UI
                     height: choiceHeight
                 ),
                 on: choicePanel.Count is 0,
-                text: choiceLabel.ToString(),
+                text: choiceLabel.ToString() ?? throw new Exception("The label text must be not null"),
                 selectedColor: selectedColor,
                 deselectedColor: deselectedColor
             );
-
-            if (choicePanel.Count is 0)
-                SelectedChoiceLabel = choiceLabel;
 
             ChoiceEventListener choiceEventListener = new
             (

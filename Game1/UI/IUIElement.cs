@@ -1,5 +1,4 @@
 ﻿using Game1.Delegates;
-using Microsoft.Xna.Framework;
 
 namespace Game1.UI
 {
@@ -21,7 +20,7 @@ namespace Game1.UI
 
         public bool Contains(MyVector2 position);
 
-        public IUIElement CatchUIElement(MyVector2 mousePos);
+        public IUIElement? CatchUIElement(MyVector2 mousePos);
 
         public virtual void OnClick()
         { }

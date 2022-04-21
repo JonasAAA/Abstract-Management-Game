@@ -68,7 +68,7 @@ namespace Game1.UI
         private readonly Event<IDeletedListener> deleted;
         private bool active;
 
-        private readonly Dictionary<IOverlay, IHUDElement> popups;
+        private readonly Dictionary<IOverlay, IHUDElement?> popups;
 
         public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
             : base(shape: shape)
@@ -85,7 +85,7 @@ namespace Game1.UI
             popups = IOverlay.all.ToDictionary
             (
                 keySelector: overlay => overlay,
-                elementSelector: overlay => (IHUDElement)null
+                elementSelector: overlay => (IHUDElement?)null
             );
             CurOverlayChanged.Add(listener: this);
         }

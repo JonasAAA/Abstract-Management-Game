@@ -22,7 +22,7 @@
         EnergyPriority IMinable<EnergyPriority>.Min(EnergyPriority other)
             => new(value: MyMathHelper.Min(value, other.value));
 
-        public string ToString(string format, IFormatProvider formatProvider)
+        public string ToString(string? format, IFormatProvider? formatProvider)
             =>$"energy priority {value.ToString(format, formatProvider)}";
     }
 }

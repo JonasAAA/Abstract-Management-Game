@@ -11,7 +11,7 @@ namespace Game1.UI
             => font = C.LoadFont(name: "font");
 
         public Color TextColor { private get; set; }
-        public string Text
+        public string? Text
         {
             get => text;
             set
@@ -30,7 +30,7 @@ namespace Game1.UI
             }
         }
 
-        private string text;
+        private string? text;
         private readonly UDouble scale;
 
         public TextBox()
@@ -39,7 +39,7 @@ namespace Game1.UI
             Shape.Color = Color.Transparent;
             // TODO: look up where font.MeasureString(...) is called, there should probably be a static readonly variable
             // storing what the height of a capital letter is
-            scale = ActiveUIManager.CurUIConfig.letterHeight / (UDouble)font.MeasureString("F").Y;
+            scale = ActiveUIManager.curUIConfig.letterHeight / (UDouble)font.MeasureString("F").Y;
             TextColor = Color.Black;
             Text = null;
         }
@@ -49,7 +49,7 @@ namespace Game1.UI
 
         public override void Draw()
         {
-            if (Text is null)
+            if (text is null)
                 return;
             base.Draw();
             C.DrawString

@@ -110,7 +110,7 @@ namespace Game1.UI
         public bool Contains(MyVector2 position)
             => shape.Contains(position: position);
 
-        public virtual IUIElement CatchUIElement(MyVector2 mousePos)
+        public virtual IUIElement? CatchUIElement(MyVector2 mousePos)
         {
             if (!Contains(position: mousePos))
                 return null;
@@ -138,7 +138,7 @@ namespace Game1.UI
         {
             shape.Draw
             (
-                otherColor: ActiveUIManager.CurUIConfig.mouseOnColor,
+                otherColor: ActiveUIManager.curUIConfig.mouseOnColor,
                 otherColorPropor: (CanBeClicked && MouseOn) switch
                 {
                     true => (Propor).5,

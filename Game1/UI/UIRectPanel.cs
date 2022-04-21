@@ -19,7 +19,7 @@ namespace Game1.UI
             children = new();
         }
 
-        public void AddChild(TChild child)
+        public void AddChild(TChild? child)
         {
             if (child is null)
                 return;
@@ -28,7 +28,7 @@ namespace Game1.UI
             base.AddChild(child: child);
         }
 
-        public void RemoveChild(TChild child)
+        public void RemoveChild(TChild? child)
         {
             if (child is null)
                 return;

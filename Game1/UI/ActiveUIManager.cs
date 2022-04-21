@@ -6,22 +6,21 @@ namespace Game1.UI
     [Serializable]
     public class ActiveUIManager
     {
-        public static UIConfig CurUIConfig { get; private set; }
-        public static UDouble ScreenWidth { get; private set; }
-        public static UDouble ScreenHeight
-            => CurUIConfig.standardScreenHeight;
+        public static readonly UIConfig curUIConfig;
+        public static readonly UDouble screenWidth, screenHeight;
         public static MyVector2 MouseHUDPos
             => HUDCamera.HUDPos(screenPos: (MyVector2)Mouse.GetState().Position);
         public static UDouble RectOutlineWidth
-            => CurUIConfig.rectOutlineWidth;
+            => curUIConfig.rectOutlineWidth;
 
-        private static HUDCamera HUDCamera;
+        private static readonly HUDCamera HUDCamera;
 
-        public static void Initialize(GraphicsDevice graphicsDevice)
+        static ActiveUIManager()
         {
-            CurUIConfig = new();
-            Camera.Initialize(graphicsDevice: graphicsDevice);
-            ScreenWidth = (UDouble)graphicsDevice.Viewport.Width * CurUIConfig.standardScreenHeight / (UDouble)graphicsDevice.Viewport.Height;
+            curUIConfig = new();
+            Camera.Initialize(graphicsDevice: C.graphicsDevice);
+            screenWidth = (UDouble)C.graphicsDevice.Viewport.Width * curUIConfig.standardScreenHeight / (UDouble)C.graphicsDevice.Viewport.Height;
+            screenHeight = curUIConfig.standardScreenHeight;
             HUDCamera = new();
         }
 
@@ -31,7 +30,7 @@ namespace Game1.UI
         private readonly HashSet<IHUDElement> HUDElements;
         private readonly Dictionary<IUIElement, IPosTransformer> nonHUDElementsToTransform;
         private bool leftDown, prevLeftDown;
-        private IUIElement halfClicked, contMouse;
+        private IUIElement? halfClicked, contMouse;
         private readonly TimeSpan minDurationToGetExplanation;
         private TimeSpan hoverDuration;
         private readonly TextBox explanationTextBox;
@@ -69,7 +68,7 @@ namespace Game1.UI
             nonHUDElementsToTransform.Remove(UIElement);
         }
 
-        public void AddHUDElement(IHUDElement HUDElement, HorizPos horizPos, VertPos vertPos)
+        public void AddHUDElement(IHUDElement? HUDElement, HorizPos horizPos, VertPos vertPos)
         {
             if (HUDElement is null)
                 return;
@@ -81,7 +80,7 @@ namespace Game1.UI
                 throw new ArgumentException();
         }
 
-        public void RemoveHUDElement(IHUDElement HUDElement)
+        public void RemoveHUDElement(IHUDElement? HUDElement)
         {
             if (HUDElement is null)
                 return;
@@ -105,7 +104,7 @@ namespace Game1.UI
 
         public void Update(TimeSpan elapsed)
         {
-            IUIElement prevContMouse = contMouse;
+            IUIElement? prevContMouse = contMouse;
 
             MouseState mouseState = Mouse.GetState();
             prevLeftDown = leftDown;
@@ -122,7 +121,7 @@ namespace Game1.UI
                     false => mouseHUDPos
                 };
 
-                IUIElement catchingUIElement = UIElement.CatchUIElement(mousePos: mousePos);
+                IUIElement? catchingUIElement = UIElement.CatchUIElement(mousePos: mousePos);
 
                 if (catchingUIElement is not null)
                 {
@@ -141,9 +140,9 @@ namespace Game1.UI
                     explanationTextBox.Shape.ClampPosition
                     (
                         left: 0,
-                        right: ScreenWidth,
+                        right: screenWidth,
                         top: 0,
-                        bottom: ScreenHeight
+                        bottom: screenHeight
                     );
                 }
             }
@@ -162,7 +161,7 @@ namespace Game1.UI
 
             if (!leftDown && prevLeftDown)
             {
-                IUIElement otherHalfClicked = contMouse;
+                IUIElement? otherHalfClicked = contMouse;
                 if (halfClicked == otherHalfClicked && otherHalfClicked is not null && otherHalfClicked.Enabled && otherHalfClicked.CanBeClicked)
                     otherHalfClicked.OnClick();
                 else

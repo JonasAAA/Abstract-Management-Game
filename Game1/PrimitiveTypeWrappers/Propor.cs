@@ -81,7 +81,7 @@
         public static bool operator >=(Propor propor1, Propor propor2)
             => propor1.value >= propor2.value;
 
-        public string ToString(string format, IFormatProvider formatProvider)
+        public string ToString(string? format, IFormatProvider? formatProvider)
             => $"proportion {value.ToString(format, formatProvider)}";
     }
 }

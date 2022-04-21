@@ -29,8 +29,8 @@ namespace Game1.Shapes
                     color: color,
                     rotation: 0,
                     origin: MyVector2.zero,
-                    scaleX: ActiveUIManager.ScreenWidth,
-                    scaleY: ActiveUIManager.ScreenHeight
+                    scaleX: ActiveUIManager.screenWidth,
+                    scaleY: ActiveUIManager.screenHeight
                 );
         }
     }

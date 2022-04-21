@@ -22,16 +22,17 @@ namespace Game1.UI
         private readonly Dictionary<string, TTab> tabs;
         private readonly Dictionary<string, TabEnabledChangedListener> tabEnabledChangedListeners;
         private TTab ActiveTab
-            => tabChoicePanel.SelectedChoiceLabel switch
-            {
-                null => null,
-                not null => tabs[tabChoicePanel.SelectedChoiceLabel]
-            };
+            => tabs[tabChoicePanel.SelectedChoiceLabel];
 
-        public UIHorizTabPanel(UDouble tabLabelWidth, UDouble tabLabelHeight, Color color, Color inactiveTabLabelColor)
+        public UIHorizTabPanel(UDouble tabLabelWidth, UDouble tabLabelHeight, Color color, Color inactiveTabLabelColor, IEnumerable<(string tabLabelText, TTab tab)> tabs)
             : base(shape: new MyRectangle())
         {
             Shape.Color = color;
+
+            this.tabs = new();
+            tabEnabledChangedListeners = new();
+            foreach ((string tabLabelText, TTab tab) in tabs)
+                AddTab(tabLabelText: tabLabelText, tab: tab);
 
             tabChoicePanel = new
             (
@@ -40,11 +41,15 @@ namespace Game1.UI
                 choiceHeight: tabLabelHeight,
                 selectedColor: color,
                 deselectedColor: inactiveTabLabelColor,
-                backgroundColor: inactiveTabLabelColor
+                backgroundColor: inactiveTabLabelColor,
+                choiceLabels: this.tabs.Keys
             );
-            tabs = new();
-            tabEnabledChangedListeners = new();
+
+            // This must be before adding tabs as children because otherwise tabChoicePanel choices are personally disabled for whatever reason
             AddChild(child: tabChoicePanel);
+
+            foreach (var tab in this.tabs.Values)
+                AddChild(tab);
         }
 
         protected override void PartOfRecalcSizeAndPos()
@@ -78,17 +83,19 @@ namespace Game1.UI
                 tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new MyVector2(ActiveUIManager.RectOutlineWidth) + new MyVector2(0, tabChoicePanel.Shape.Height);
         }
 
-        public void AddTab(string tabLabelText, TTab tab)
+        private void AddTab(string tabLabelText, TTab tab)
         {
-            tabChoicePanel.AddChoice(choiceLabel: tabLabelText);
-
             tabs.Add(tabLabelText, tab);
 
             tabEnabledChangedListeners[tabLabelText] = new TabEnabledChangedListener(UIHorizTabPanel: this, TabLabelText: tabLabelText);
 
             tab.EnabledChanged.Add(listener: tabEnabledChangedListeners[tabLabelText]);
 
-            AddChild(child: tab);
+            if (tabChoicePanel is not null)
+            {
+                tabChoicePanel.AddChoice(choiceLabel: tabLabelText);
+                AddChild(child: tab);
+            }
         }
         
         public void ReplaceTab(string tabLabelText, TTab tab)
@@ -101,7 +108,7 @@ namespace Game1.UI
             AddChild(child: tab);
         }
 
-        public override IUIElement CatchUIElement(MyVector2 mousePos)
+        public override IUIElement? CatchUIElement(MyVector2 mousePos)
         {
             if (!Shape.Contains(position: mousePos))
                 return null;

@@ -8,7 +8,7 @@ namespace Game1
     public class Game1 : Game
     {
         private readonly GraphicsDeviceManager graphics;
-        private PlayState playState;
+        private PlayState? playState;
         private GameState gameState;
         
         public Game1()
@@ -37,7 +37,7 @@ namespace Game1
             graphics.PreferredBackBufferHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             //graphics.IsFullScreen = true;
 
-            static void SetToPreserve(object sender, PreparingDeviceSettingsEventArgs eventargs)
+            static void SetToPreserve(object? sender, PreparingDeviceSettingsEventArgs eventargs)
                 => eventargs.GraphicsDeviceInformation.PresentationParameters.RenderTargetUsage = RenderTargetUsage.PreserveContents;
 
             graphics.PreparingDeviceSettings += new EventHandler<PreparingDeviceSettingsEventArgs>(SetToPreserve);
@@ -61,8 +61,6 @@ namespace Game1
                 contentManager: Content,
                 graphicsDevice: GraphicsDevice
             );
-
-            ActiveUIManager.Initialize(graphicsDevice: GraphicsDevice);
 
             // TODO: consider moving this to a constants class or similar
             UDouble buttonWidth = 200, buttonHeight = 30;

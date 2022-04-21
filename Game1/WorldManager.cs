@@ -172,7 +172,7 @@ namespace Game1
                         MaxDepth = 1024
                     }
                 );
-                return (WorldManager)serializer.ReadObject(reader, true);
+                return (WorldManager)(serializer.ReadObject(reader, true) ?? throw new ArgumentNullException());
             }
         }
 
@@ -309,9 +309,11 @@ namespace Game1
             activeUIManager.clickedNowhere.Add(listener: this);
 
             globalTextBox = new();
+            // TODO: move these constants to a contants file
             globalTextBox.Shape.MinWidth = 300;
             globalTextBox.Shape.Color = Color.White;
-            
+
+            // TODO: move these constants to a contants file
             overlayChoicePanel = new
             (
                 horizontal: true,
@@ -319,10 +321,9 @@ namespace Game1
                 choiceHeight: 30,
                 selectedColor: Color.White,
                 deselectedColor: Color.Gray,
-                backgroundColor: Color.White
+                backgroundColor: Color.White,
+                choiceLabels: IOverlay.all
             );
-            foreach (var posOverlay in IOverlay.all)
-                overlayChoicePanel.AddChoice(choiceLabel: posOverlay);
             
             pauseButton = new
             (
@@ -358,10 +359,10 @@ namespace Game1
         public void RemoveResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
             => graph.RemoveResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
-        public void AddHUDElement(IHUDElement HUDElement, HorizPos horizPos, VertPos vertPos)
+        public void AddHUDElement(IHUDElement? HUDElement, HorizPos horizPos, VertPos vertPos)
             => activeUIManager.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
             
-        public void RemoveHUDElement(IHUDElement HUDElement)
+        public void RemoveHUDElement(IHUDElement? HUDElement)
             => activeUIManager.RemoveHUDElement(HUDElement: HUDElement);
 
         public void AddEnergyProducer(IEnergyProducer energyProducer)

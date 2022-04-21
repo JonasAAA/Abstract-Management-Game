@@ -114,7 +114,7 @@ namespace Game1
 
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDestinArrows;
 
-        public WorldUIElement ActiveWorldElement { get; private set; }
+        public WorldUIElement? ActiveWorldElement { get; private set; }
 
         public Graph(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links)
             : base(shape: new InfinitePlane(color: Color.Black))
@@ -378,7 +378,10 @@ namespace Game1
             {
                 if (worldUIElement.Active)
                 {
-                    ((Node)ActiveWorldElement).AddResDestin(destinationId: ((Node)worldUIElement).NodeId);
+                    var sourceNode = ActiveWorldElement as Node;
+                    var destinationNode = worldUIElement as Node;
+                    Debug.Assert(sourceNode is not null && destinationNode is not null);
+                    sourceNode.AddResDestin(destinationId: destinationNode.NodeId);
                     worldUIElement.Active = false;
                 }
                 return;

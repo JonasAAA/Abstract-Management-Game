@@ -46,13 +46,14 @@ namespace Game1
         public static IEnumerable<T> Clone<T>(this IEnumerable<T> source)
             => source.ToArray();
 
-        public static TSource ArgMaxOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
+        public static TSource? ArgMaxOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
             => source.OrderBy(value => selector(value)).LastOrDefault();
 
-        public static TSource ArgMinOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
+        public static TSource? ArgMinOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
             => source.OrderBy(value => selector(value)).FirstOrDefault();
 
         public static Dictionary<TKey, double> ClampValues<TKey>(this IReadOnlyDictionary<TKey, double> dictionary, double min, double max)
+            where TKey : notnull
             => dictionary.ToDictionary
             (
                 keySelector: a => a.Key,

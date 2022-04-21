@@ -2,6 +2,7 @@
 {
     [Serializable]
     public class ProporSplitter<TKey>
+        where TKey : notnull
     {
         /// <summary>
         /// TODO:
@@ -221,7 +222,7 @@
             );
         }
 
-        private Dictionary<TKey, TValue> MakeDictionary<TValue>(Func<TKey, TValue> func, IEnumerable<TKey> keys = null)
+        private Dictionary<TKey, TValue> MakeDictionary<TValue>(Func<TKey, TValue> func, IEnumerable<TKey>? keys = null)
             => (keys ?? Keys).ToDictionary
             (
                 keySelector: key => key,

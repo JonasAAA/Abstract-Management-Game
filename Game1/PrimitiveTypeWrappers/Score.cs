@@ -99,7 +99,7 @@
         int IComparable<Score>.CompareTo(Score other)
             => ((double)this).CompareTo((double)other);
 
-        public string ToString(string format, IFormatProvider formatProvider)
+        public string ToString(string? format, IFormatProvider? formatProvider)
             => $"score {value.ToString(format, formatProvider)}";
     }
 }

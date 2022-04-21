@@ -18,7 +18,7 @@ namespace Game1
         private static double screenScale;
 
         public static void Initialize(GraphicsDevice graphicsDevice)
-            => screenScale = (double)graphicsDevice.Viewport.Height / ActiveUIManager.CurUIConfig.standardScreenHeight;
+            => screenScale = (double)graphicsDevice.Viewport.Height / ActiveUIManager.curUIConfig.standardScreenHeight;
 
         public void BeginDraw()
             => C.SpriteBatch.Begin

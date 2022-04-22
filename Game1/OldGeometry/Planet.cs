@@ -1,8 +1,4 @@
-﻿using ClipperLib;
-using LibTessDotNet;
-using static Game1.WorldManager;
-
-namespace Game1.OldGeometry
+﻿namespace Game1.OldGeometry
 {
     //[Serializable]
     //public class Planet
@@ -61,7 +57,7 @@ namespace Game1.OldGeometry
     //                    vertices = null;
     //                    return;
     //                }
-                    
+
     //                tessellator.AddContour((from vertex in vertices
     //                                        select new ContourVertex(new Vec3(vertex.X, vertex.Y, 0), Color.Red)).ToArray());
     //                tessellator.Tessellate();

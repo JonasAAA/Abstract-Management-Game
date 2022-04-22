@@ -13,7 +13,6 @@
         /// <summary>
         /// node from which consume energy
         /// </summary>
-        // TODO: rename to Node
         public NodeId NodeId { get; }
 
         public UDouble ReqWatts();

@@ -31,7 +31,7 @@
         [Serializable]
         public new sealed class Params : Production.Params
         {
-            public ResAmounts demand
+            public ResAmounts Demand
                 => state.ApproxSurfaceLength * factory.demandPerUnitSurface;
 
             protected override ResAmounts SupplyPerUnitSurface
@@ -55,13 +55,13 @@
         }
 
         public override ResAmounts TargetStoredResAmounts()
-            => parameters.demand * parameters.state.maxBatchDemResStored;
+            => parameters.Demand * parameters.state.maxBatchDemResStored;
 
         protected override bool CanStartProduction()
-            => parameters.state.storedRes >= parameters.demand;
+            => parameters.state.storedRes >= parameters.Demand;
 
         protected override void StartProduction()
-            => parameters.state.storedRes -= parameters.demand;
+            => parameters.state.storedRes -= parameters.Demand;
 
         protected override void StopProduction()
         { }

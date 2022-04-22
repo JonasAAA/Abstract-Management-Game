@@ -16,7 +16,7 @@
 //        private readonly List<List<MyPoint>> holes;
 //        private VertexPositionColor[] vertices;
 //        private int[] triangleIndices;
-        
+
 //        ///// <param name="boundary">must have clocwise orientation</param>
 //        ///// <param name="holes">each hole must have counterclockwise orientation</param>
 //        public MyPolygon(List<MyPoint> boundary, List<List<MyPoint>> holes)

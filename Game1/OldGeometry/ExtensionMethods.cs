@@ -1,5 +1,4 @@
 ﻿using LibTessDotNet;
-using Microsoft.Xna.Framework;
 
 namespace Game1.OldGeometry
 {

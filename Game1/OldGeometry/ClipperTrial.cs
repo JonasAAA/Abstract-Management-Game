@@ -2,10 +2,10 @@
 
 namespace Game1.OldGeometry
 {
-	using Polygon = List<IntPoint>;
-	using Polygons = List<List<IntPoint>>;
+    using Polygon = List<IntPoint>;
+    using Polygons = List<List<IntPoint>>;
 
-	[Serializable]
+    [Serializable]
 	public class ClipperTrial
     {
 		public static void TryCommonPerimeter()

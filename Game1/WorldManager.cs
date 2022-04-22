@@ -102,7 +102,7 @@ namespace Game1
                 };
 
                 const int width = 8, height = 5, dist = 200;
-                Node[,] nodes = new Node[width, height];
+                Planet[,] nodes = new Planet[width, height];
                 for (int i = 0; i < width; i++)
                     for (int j = 0; j < height; j++)
                         nodes[i, j] = new
@@ -154,7 +154,7 @@ namespace Game1
                 return new
                 (
                     stars: stars,
-                    nodes: from Node node in nodes
+                    nodes: from Planet node in nodes
                            select node,
                     links: links
                 );
@@ -220,7 +220,7 @@ namespace Game1
                 typeof(UIRectVertPanel<IHUDElement>),
                 typeof(UITransparentPanel<ResDestinArrow>),
                 typeof(Dictionary<IOverlay, IHUDElement>),
-                typeof(ReadOnlyDictionary<NodeId, Node>)
+                typeof(ReadOnlyDictionary<NodeId, Planet>)
             };
             List<Type> unserializedTypeList = new();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
@@ -271,7 +271,7 @@ namespace Game1
                     if (CurWorldManager.Overlay is not ResInd)
                         throw new Exception();
                     activeUIManager.DisableAllUIElements();
-                    if (CurGraph.ActiveWorldElement is Node activeNode)
+                    if (CurGraph.ActiveWorldElement is Planet activeNode)
                     {
                         foreach (var node in CurGraph.Nodes)
                             if (activeNode.CanHaveDestin(destinationId: node.NodeId))

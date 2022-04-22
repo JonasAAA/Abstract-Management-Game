@@ -24,7 +24,7 @@ namespace Game1
             public IEvent<IDeletedListener> Deleted
                 => deleted;
 
-            public readonly Node startNode, endNode;
+            public readonly Planet startNode, endNode;
             public UDouble JoulesPerKg
                 => (UDouble)timedPacketQueue.duration.TotalSeconds * reqWattsPerKg;
             public TimeSpan TravelTime
@@ -38,7 +38,7 @@ namespace Game1
             private Propor energyPropor;
             private readonly Event<IDeletedListener> deleted;
 
-            public DirLink(Node startNode, Node endNode, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
+            public DirLink(Planet startNode, Planet endNode, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
             {
                 this.startNode = startNode;
                 this.endNode = endNode;
@@ -74,7 +74,7 @@ namespace Game1
                 (
                     singleResCase: resInd => timedPacketQueue.TotalResAmounts[resInd],
                     allResCase: () => timedPacketQueue.TotalResAmounts.TotalWeight(),
-                    peopleCase: () => (ulong)timedPacketQueue.PeopleCount,
+                    peopleCase: () => timedPacketQueue.PeopleCount,
                     powerCase: () => throw new InvalidOperationException()
                 );
 
@@ -149,7 +149,7 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct ShapeParams(Node Node1, Node Node2) : VectorShape.IParams
+        private readonly record struct ShapeParams(Planet Node1, Planet Node2) : VectorShape.IParams
         {
             public MyVector2 StartPos
                 => Node1.Position;
@@ -161,7 +161,7 @@ namespace Game1
                 => CurWorldConfig.linkWidth;
         }
 
-        public readonly Node node1, node2;
+        public readonly Planet node1, node2;
         public UDouble JoulesPerKg
             => link1To2.JoulesPerKg;
         public TimeSpan TravelTime
@@ -171,7 +171,7 @@ namespace Game1
         private readonly MyArray<TextBox> resTextBoxes;
         private readonly TextBox allResTextBox, peopleTextBox;
 
-        public Link(Node node1, Node node2, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
+        public Link(Planet node1, Planet node2, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
             : base
             (
                 shape: new LineSegment
@@ -210,17 +210,17 @@ namespace Game1
             SetPopup(HUDElement: peopleTextBox, overlay: IOverlay.people);
         }
 
-        public Node OtherNode(Node node)
+        public Planet OtherNode(Planet node)
         {
             if (!Contains(node))
                 throw new ArgumentException();
             return node == node1 ? node2 : node1;
         }
 
-        public bool Contains(Node node)
+        public bool Contains(Planet node)
             => node == node1 || node == node2;
 
-        private DirLink GetDirLink(Node start)
+        private DirLink GetDirLink(Planet start)
         {
             if (start == node1)
                 return link1To2;
@@ -229,13 +229,13 @@ namespace Game1
             throw new ArgumentException();
         }
 
-        public void Add(Node start, ResAmountsPacket resAmountsPacket)
+        public void Add(Planet start, ResAmountsPacket resAmountsPacket)
             => GetDirLink(start: start).Add(resAmountsPacket: resAmountsPacket);
 
-        public void Add(Node start, IEnumerable<Person> people)
+        public void Add(Planet start, IEnumerable<Person> people)
             => GetDirLink(start: start).Add(people: people);
 
-        public void Add(Node start, Person person)
+        public void Add(Planet start, Person person)
             => GetDirLink(start: start).Add(person: person);
 
         public void Update()

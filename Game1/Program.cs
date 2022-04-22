@@ -1,4 +1,7 @@
-﻿global using Microsoft.Xna.Framework;
+﻿global using Game1.MyMath;
+global using Game1.PrimitiveTypeWrappers;
+global using Game1.Resources;
+global using Microsoft.Xna.Framework;
 global using Microsoft.Xna.Framework.Graphics;
 global using Microsoft.Xna.Framework.Input;
 global using System;
@@ -6,9 +9,6 @@ global using System.Collections.Generic;
 global using System.Collections.ObjectModel;
 global using System.Diagnostics;
 global using System.Linq;
-global using Game1.MyMath;
-global using Game1.PrimitiveTypeWrappers;
-global using Game1.Resources;
 
 namespace Game1
 {

@@ -2,7 +2,7 @@
 
 namespace Game1.GameStates
 {
-// This class has almost no static members as it is singleton.
+    // This class has almost no static members as it is singleton.
 #pragma warning disable CA1822 // Mark members as static
     [Serializable]
     public class PlayState : GameState

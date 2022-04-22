@@ -50,7 +50,7 @@
 //        /// <summary>
 //        /// Open half plane, i.e. if a point is on the separating line, it it considered not in the half-plane
 //        /// </summary>
-        
+
 //        [Serializable]
 //        private readonly struct HalfPlane
 //        {
@@ -137,7 +137,7 @@
 
 //            vertices = new();
 //            indices = new();
-            
+
 //            dynamicVertexBuffer = new(C.graphicsDevice, SoftDiskVertexFormat.vertexDeclaration, defaultDynamicBufferSize, BufferUsage.WriteOnly);
 //            dynamicIndexBuffer = new(C.graphicsDevice, typeof(int), defaultDynamicBufferSize, BufferUsage.WriteOnly);
 //        }

@@ -56,7 +56,6 @@
         public static Propor operator *(Propor propor1, Propor propor2)
             => (Propor)(propor1.value * propor2.value);
 
-        // TODO: consider if this is needed or if implicit conversion to double and UDouble is better
         public static double operator *(Propor propor, double value)
             => (double)propor * value;
 

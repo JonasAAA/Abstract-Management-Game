@@ -1,6 +1,5 @@
 ﻿using Game1.Delegates;
 using Game1.Industries;
-using System.Diagnostics.CodeAnalysis;
 using static Game1.WorldManager;
 
 namespace Game1

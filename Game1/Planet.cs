@@ -8,12 +8,11 @@ using static Game1.WorldManager;
 
 namespace Game1
 {
-    // TODO: could rename to Planet
     [Serializable]
-    public class Node : WorldUIElement, INodeAsLocalEnergyProducer, INodeAsResDestin
+    public class Planet : WorldUIElement, INodeAsLocalEnergyProducer, INodeAsResDestin
     {
         [Serializable]
-        private readonly record struct ResDesinArrowEventListener(Node Node, ResInd ResInd) : IDeletedListener, INumberChangedListener
+        private readonly record struct ResDesinArrowEventListener(Planet Node, ResInd ResInd) : IDeletedListener, INumberChangedListener
         {
             public void SyncSplittersWithArrows()
             {
@@ -46,7 +45,7 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct BuildIndustryButtonClickedListener(Node Node, IBuildableFactory BuildableParams) : IClickedListener
+        private readonly record struct BuildIndustryButtonClickedListener(Planet Node, IBuildableFactory BuildableParams) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => Node.SetIndustry(newIndustry: BuildableParams.CreateIndustry(state: Node.state));
@@ -122,7 +121,7 @@ namespace Game1
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
-        public Node(NodeState state, Color activeColor, Color inactiveColor, int startPersonCount = 0)
+        public Planet(NodeState state, Color activeColor, Color inactiveColor, int startPersonCount = 0)
             : base
             (
                 shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),

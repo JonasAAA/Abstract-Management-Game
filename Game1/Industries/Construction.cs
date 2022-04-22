@@ -20,7 +20,7 @@ namespace Game1.Industries
                     name: name,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface,
-                    explanation: $"construction stats:\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(duration)} {duration.TotalSeconds:0.}s\n{nameof(costPerUnitSurface)} {costPerUnitSurface}\n\nbuilding stats:\n{industryFactory.Explanation}"
+                    explanation: $"construction stats:\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(duration)} {duration.TotalSeconds:0.}s\n{nameof(costPerUnitSurface)} {costPerUnitSurface}\n\nbuilding stats:\n{industryFactory.explanation}"
                 )
             {
                 if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
@@ -38,6 +38,9 @@ namespace Game1.Industries
 
             string IBuildableFactory.ButtonName
                 => $"build {industryFactory.name}";
+
+            string IBuildableFactory.Explanation
+                => explanation;
         }
 
         [Serializable]

@@ -28,12 +28,15 @@
 
             string IBuildableFactory.ButtonName
                 => name;
+
+            string IBuildableFactory.Explanation
+                => explanation;
         }
 
         [Serializable]
         public new sealed class Params : Production.Params
         {
-            public ulong minedRes
+            public ulong MinedRes
                 => state.ApproxSurfaceLength * factory.minedResPerUnitSurface;
 
             // TODO(optimization) could have supplyPerUnitSurface redonly field and return it here
@@ -65,14 +68,14 @@
 
         // TODO: could mine less if not enough resources remaining for 
         protected override bool CanStartProduction()
-            => parameters.state.CanRemove(resAmount: parameters.minedRes);
+            => parameters.state.CanRemove(resAmount: parameters.MinedRes);
 
         protected override void StartProduction()
         { }
 
         protected override void StopProduction()
         {
-            parameters.state.Remove(resAmount: parameters.minedRes);
+            parameters.state.Remove(resAmount: parameters.MinedRes);
             parameters.state.storedRes += parameters.Supply;
         }
     }

@@ -12,13 +12,12 @@ namespace Game1.Industries
         public abstract class Factory
         {
             public readonly string name;
-            // TODO: turn this into readonly property
-            public string Explanation { get; }
+            public readonly string explanation;
 
             protected Factory(string name, string explanation)
             {
                 this.name = name;
-                Explanation = explanation;
+                this.explanation = explanation;
             }
 
             public abstract Industry CreateIndustry(NodeState state);
@@ -36,7 +35,7 @@ namespace Game1.Industries
                 this.state = state;
 
                 name = factory.name;
-                explanation = factory.Explanation;
+                explanation = factory.explanation;
             }
         }
 

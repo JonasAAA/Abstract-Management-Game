@@ -17,12 +17,12 @@ namespace Game1
             public static void Init(ResInd resInd)
                 => NodeInfo.resInd = resInd;
 
-            public readonly Node node;
+            public readonly Planet node;
             public readonly List<NodeInfo> nodesIn, nodesOut;
             public uint unvisitedDestinsCount;
             public bool isSplitAleady;
 
-            public NodeInfo(Node node)
+            public NodeInfo(Planet node)
             {
                 this.node = node;
                 nodesIn = new();
@@ -72,10 +72,10 @@ namespace Game1
             }
         }
 
-        public IEnumerable<Node> Nodes
+        public IEnumerable<Planet> Nodes
             => nodes;
 
-        public readonly ReadOnlyDictionary<NodeId, Node> nodeIdToNode;
+        public readonly ReadOnlyDictionary<NodeId, Planet> nodeIdToNode;
         public readonly TimeSpan maxLinkTravelTime;
         public readonly UDouble maxLinkJoulesPerKg;
 
@@ -109,14 +109,14 @@ namespace Game1
 
 
         private readonly List<Star> stars;
-        private readonly List<Node> nodes;
+        private readonly List<Planet> nodes;
         private readonly List<Link> links;
 
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDestinArrows;
 
         public WorldUIElement? ActiveWorldElement { get; private set; }
 
-        public Graph(IEnumerable<Star> stars, IEnumerable<Node> nodes, IEnumerable<Link> links)
+        public Graph(IEnumerable<Star> stars, IEnumerable<Planet> nodes, IEnumerable<Link> links)
             : base(shape: new InfinitePlane(color: Color.Black))
         {
             this.stars = stars.ToMyHashSet().ToList();
@@ -134,7 +134,6 @@ namespace Game1
             (personDists, personFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.personDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.personDistanceEnergyCoeff);
             (resDists, resFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.resDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.resDistanceEnergyCoeff);
 
-            // TODO: don't have CreateNodeIdDict function
             nodeIdToNode = new
             (
                 dictionary: nodes.ToDictionary
@@ -378,8 +377,8 @@ namespace Game1
             {
                 if (worldUIElement.Active)
                 {
-                    var sourceNode = ActiveWorldElement as Node;
-                    var destinationNode = worldUIElement as Node;
+                    var sourceNode = ActiveWorldElement as Planet;
+                    var destinationNode = worldUIElement as Planet;
                     Debug.Assert(sourceNode is not null && destinationNode is not null);
                     sourceNode.AddResDestin(destinationId: destinationNode.NodeId);
                     worldUIElement.Active = false;

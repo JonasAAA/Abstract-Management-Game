@@ -77,36 +77,6 @@
                     duration: TimeSpan.FromSeconds(5),
                     costPerUnitSurface: new()
                 ),
-                // TODO: consider deleting
-                //new Construction.Params
-                //(
-                //    name: "factory costruction",
-                //    energyPriority: new(value: 10),
-                //    reqSkillPerUnitSurface: (UDouble).1,
-                //    reqWattsPerUnitSurface: 100,
-                //    industryParams: new Production.Params
-                //    (
-                //        name: "factory0_lvl2",
-                //        energyPriority: new(value: 20),
-                //        reqSkillPerUnitSurface: (UDouble).1,
-                //        reqWattsPerUnitSurface: 10,
-                //        supplyPerUnitSurface: new()
-                //        {
-                //            [(ResInd)0] = 100,
-                //        },
-                //        demandPerUnitSurface: new()
-                //        {
-                //            [(ResInd)1] = 50,
-                //        },
-                //        prodDuration: TimeSpan.FromSeconds(value: 2)
-                //    ),
-                //    duration: TimeSpan.FromSeconds(5),
-                //    costPerUnitSurface: new()
-                //    {
-                //        [(ResInd)1] = 20,
-                //        [(ResInd)2] = 10
-                //    }
-                //),
                 new Construction.Factory
                 (
                     name: "reprod. ind. constr.",

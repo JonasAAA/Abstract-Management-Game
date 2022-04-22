@@ -1,5 +1,6 @@
 ﻿using Game1.Delegates;
 using Game1.Industries;
+using System.Diagnostics.CodeAnalysis;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -82,7 +83,7 @@ namespace Game1
         public readonly ReadOnlyDictionary<IndustryType, Score> talents;
         public readonly Dictionary<IndustryType, Score> skills;
         
-        public NodeId ActivityCenterNodeId
+        public NodeId? ActivityCenterNodeId
             => activityCenter?.NodeId;
         public NodeId ClosestNodeId { get; private set; }
         public Propor EnergyPropor { get; private set; }
@@ -100,7 +101,7 @@ namespace Game1
         /// <summary>
         /// is null just been let go from activity center
         /// </summary>
-        private IPersonFacingActivityCenter activityCenter;
+        private IPersonFacingActivityCenter? activityCenter;
         private readonly TimeSpan seekChangeTime;
         private TimeSpan timeSinceActivitySearch;
         private readonly Dictionary<ActivityType, TimeSpan> lastActivityTimes;
@@ -141,7 +142,7 @@ namespace Game1
         }
 
         public void Arrived()
-            => activityCenter.TakePerson(person: this);
+            => (activityCenter ?? throw new InvalidOperationException()).TakePerson(person: this);
 
         public void Update(NodeId lastNodeId, NodeId closestNodeId)
         {
@@ -175,10 +176,11 @@ namespace Game1
             if (bestActivityCenter is null)
                 throw new ArgumentException();
             SetActivityCenter(newActivityCenter: bestActivityCenter);
+            Debug.Assert(activityCenter is not null);
             return activityCenter;
         }
 
-        private void SetActivityCenter(IPersonFacingActivityCenter newActivityCenter)
+        private void SetActivityCenter(IPersonFacingActivityCenter? newActivityCenter)
         {
             timeSinceActivitySearch = TimeSpan.Zero;
             if (activityCenter == newActivityCenter)

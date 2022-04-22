@@ -36,7 +36,11 @@
             => (int)(ulong)resInd;
 
         public static explicit operator ResInd(ulong value)
-            => MakeFrom(value: value).Value;
+            => MakeFrom(value: value) switch
+            {
+                ResInd resInd => resInd,
+                null => throw new InvalidCastException()
+            };
 
         public override string ToString()
             => "Res" + value.ToString();

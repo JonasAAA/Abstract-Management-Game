@@ -7,12 +7,27 @@ namespace Game1.Lighting
     [Serializable]
     public class LightManager : IDeletedListener
     {
+        private static readonly int actualScreenWidth, actualScreenHeight;
+
+        static LightManager()
+        {
+            actualScreenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+            actualScreenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
+        }
+
         private readonly MySet<ILightCatchingObject> lightCatchingObjects;
         private readonly MySet<ILightSource> lightSources;
 
-        [NonSerialized] private int actualScreenWidth, actualScreenHeight;
-        [NonSerialized] private RenderTarget2D renderTarget;
-        [NonSerialized] private BasicEffect brightEffect, dimEffect;
+        private RenderTarget2D RenderTarget
+            => renderTarget ?? throw new InvalidOperationException(mustInitializeMessage);
+        private BasicEffect BrightEffect
+            => brightEffect ?? throw new InvalidOperationException(mustInitializeMessage);
+        private BasicEffect DimEffect
+            => dimEffect ?? throw new InvalidOperationException(mustInitializeMessage);
+
+        private const string mustInitializeMessage = $"must initialize {nameof(LightManager)} first by calling {nameof(Initialize)}";
+        [NonSerialized] private RenderTarget2D? renderTarget;
+        [NonSerialized] private BasicEffect? brightEffect, dimEffect;
 
         public LightManager()
         {
@@ -22,11 +37,11 @@ namespace Game1.Lighting
 
         public void Initialize(GraphicsDevice graphicsDevice)
         {
-            actualScreenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
-            actualScreenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
             renderTarget = new(graphicsDevice, actualScreenWidth, actualScreenHeight);
             brightEffect = GetBasicEffect(brightness: CurWorldConfig.brightStarTextureBrigthness);
             dimEffect = GetBasicEffect(brightness: CurWorldConfig.dimStarTextureBrightness);
+
+            return;
 
             BasicEffect GetBasicEffect(UDouble brightness)
             {
@@ -80,7 +95,7 @@ namespace Game1.Lighting
 
         public void Draw(GraphicsDevice graphicsDevice, Matrix worldToScreenTransform)
         {
-            graphicsDevice.SetRenderTarget(renderTarget);
+            graphicsDevice.SetRenderTarget(RenderTarget);
             graphicsDevice.Clear(Color.Transparent);
 
             graphicsDevice.BlendState = BlendState.Additive;
@@ -97,8 +112,8 @@ namespace Game1.Lighting
                     worldToScreenTransform: worldToScreenTransform,
                     basicEffect: CurWorldManager.Overlay switch
                     {
-                        IPowerOverlay => brightEffect,
-                        _ => dimEffect
+                        IPowerOverlay => BrightEffect,
+                        _ => DimEffect
                     },
                     actualScreenWidth: actualScreenWidth,
                     actualScreenHeight: actualScreenHeight
@@ -107,7 +122,7 @@ namespace Game1.Lighting
             graphicsDevice.SetRenderTarget(null);
 
             C.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
-            C.SpriteBatch.Draw(renderTarget, (Vector2)MyVector2.zero, Color.White);
+            C.SpriteBatch.Draw(RenderTarget, (Vector2)MyVector2.zero, Color.White);
             C.SpriteBatch.End();
         }
 

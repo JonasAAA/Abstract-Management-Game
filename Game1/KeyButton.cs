@@ -8,10 +8,10 @@ namespace Game1
         public bool Click { get; private set; }
         public bool Hold { get; private set; }
         private readonly Keys key;
-        private readonly IAction action;
+        private readonly IAction? action;
         private bool prev;
 
-        public KeyButton(Keys key, IAction action = null)
+        public KeyButton(Keys key, IAction? action = null)
         {
             this.key = key;
             this.action = action;

@@ -3,6 +3,7 @@ using Game1.Industries;
 using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -14,10 +15,17 @@ namespace Game1
     [Serializable]
     public class WorldManager : IDeletedListener, IClickedNowhereListener
     {
-        public static WorldManager CurWorldManager { get; private set; }
+        public static event Action? OnCreate;
+
+        public static WorldManager CurWorldManager
+            => Initialized ? curWorldManager : throw new InvalidOperationException($"must initialize {nameof(WorldManager)} first by calling {nameof(CreateWorldManager)} or {nameof(LoadWorldManager)}");
 
         public static IEvent<IChoiceChangedListener<IOverlay>> CurOverlayChanged
             => CurWorldManager.overlayChoicePanel.choiceChanged;
+
+        [MemberNotNullWhen(returnValue: true, member: nameof(curWorldManager))]
+        public static bool Initialized
+            => curWorldManager is not null;
 
         public static WorldConfig CurWorldConfig
             => CurWorldManager.worldConfig;
@@ -28,11 +36,15 @@ namespace Game1
         public static IndustryConfig CurIndustryConfig
             => CurWorldManager.industryConfig;
 
+        public static bool SaveFileExists
+            => File.Exists(GetSaveFilePath);
+        
+        private static WorldManager? curWorldManager;
         private static readonly Type[] knownTypes;
 
         public static ActiveUIManager CreateWorldManager(GraphicsDevice graphicsDevice)
         {
-            CurWorldManager = new();
+            curWorldManager = new();
             CurWorldManager.graph = CreateGraph();
             AddUIElements();
             CurWorldManager.Initialize(graphicsDevice: graphicsDevice);
@@ -41,7 +53,7 @@ namespace Game1
 
             static void AddUIElements()
             {
-                CurWorldManager.activeUIManager.AddNonHUDElement(UIElement: CurWorldManager.graph, posTransformer: CurWorldManager.worldCamera);
+                CurWorldManager.activeUIManager.AddNonHUDElement(UIElement: CurWorldManager.CurGraph, posTransformer: CurWorldManager.worldCamera);
                 CurWorldManager.AddHUDElement
                 (
                     HUDElement: CurWorldManager.globalTextBox,
@@ -151,11 +163,11 @@ namespace Game1
 
         public static ActiveUIManager LoadWorldManager(GraphicsDevice graphicsDevice)
         {
-            if (CurWorldManager is not null)
+            if (curWorldManager is not null || !SaveFileExists)
                 throw new InvalidOperationException();
 
-            CurWorldManager = Deserialize();
-            CurWorldManager.Initialize(graphicsDevice: graphicsDevice);
+            curWorldManager = Deserialize();
+            CurWorldManager!.Initialize(graphicsDevice: graphicsDevice);
 
             return CurWorldManager.activeUIManager;
 
@@ -172,10 +184,11 @@ namespace Game1
                         MaxDepth = 1024
                     }
                 );
-                return (WorldManager)(serializer.ReadObject(reader, true) ?? throw new ArgumentNullException());
+                return (WorldManager)(serializer.ReadObject(reader, verifyObjectName: true) ?? throw new ArgumentNullException());
             }
         }
 
+        // TODO: make this work not only on my machine
         private static string GetSaveFilePath
             => @"C:\Users\Jonas\Desktop\Abstract Management Game\save.bin";
 
@@ -239,10 +252,10 @@ namespace Game1
             => worldCamera.WorldPos(screenPos: (MyVector2)Mouse.GetState().Position);
 
         public TimeSpan MaxLinkTravelTime
-            => graph.maxLinkTravelTime;
+            => CurGraph.maxLinkTravelTime;
 
         public UDouble MaxLinkJoulesPerKg
-            => graph.maxLinkJoulesPerKg;
+            => CurGraph.maxLinkJoulesPerKg;
 
         public bool ArrowDrawingModeOn
         {
@@ -258,9 +271,9 @@ namespace Game1
                     if (CurWorldManager.Overlay is not ResInd)
                         throw new Exception();
                     activeUIManager.DisableAllUIElements();
-                    if (graph.ActiveWorldElement is Node activeNode)
+                    if (CurGraph.ActiveWorldElement is Node activeNode)
                     {
-                        foreach (var node in graph.Nodes)
+                        foreach (var node in CurGraph.Nodes)
                             if (activeNode.CanHaveDestin(destinationId: node.NodeId))
                                 node.HasDisabledAncestor = false;
                     }
@@ -288,7 +301,9 @@ namespace Game1
         private readonly MultipleChoicePanel<IOverlay> overlayChoicePanel;
         private readonly WorldCamera worldCamera;
 
-        private Graph graph;
+        private Graph CurGraph
+            => graph ?? throw new InvalidOperationException($"must initialize {nameof(graph)} first");
+        private Graph? graph;
         private bool arrowDrawingModeOn;
 
         private WorldManager()
@@ -342,22 +357,25 @@ namespace Game1
         }
 
         private void Initialize(GraphicsDevice graphicsDevice)
-            => lightManager.Initialize(graphicsDevice: graphicsDevice);
+        {
+            lightManager.Initialize(graphicsDevice: graphicsDevice);
+            OnCreate?.Invoke();
+        }
 
         public UDouble PersonDist(NodeId nodeId1, NodeId nodeId2)
-            => graph.PersonDist(nodeId1: nodeId1, nodeId2: nodeId2);
+            => CurGraph.PersonDist(nodeId1: nodeId1, nodeId2: nodeId2);
 
         public UDouble ResDist(NodeId nodeId1, NodeId nodeId2)
-            => graph.ResDist(nodeId1: nodeId1, nodeId2: nodeId2);
+            => CurGraph.ResDist(nodeId1: nodeId1, nodeId2: nodeId2);
 
         public MyVector2 NodePosition(NodeId nodeId)
-            => graph.NodePosition(nodeId: nodeId);
+            => CurGraph.NodePosition(nodeId: nodeId);
 
         public void AddResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
-            => graph.AddResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
+            => CurGraph.AddResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
         public void RemoveResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
-            => graph.RemoveResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
+            => CurGraph.RemoveResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
         public void AddHUDElement(IHUDElement? HUDElement, HorizPos horizPos, VertPos vertPos)
             => activeUIManager.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
@@ -397,18 +415,18 @@ namespace Game1
             Elapsed = elapsed;
             CurTime += Elapsed;
 
-            worldCamera.Update(elapsed: elapsed, canScroll: graph.MouseOn);
+            worldCamera.Update(elapsed: elapsed, canScroll: CurGraph.MouseOn);
 
             lightManager.Update();
 
             energyManager.DistributeEnergy
             (
-                nodeIds: from node in graph.Nodes
+                nodeIds: from node in CurGraph.Nodes
                          select node.NodeId,
-                nodeIdToNode: nodeId => graph.nodeIdToNode[nodeId]
+                nodeIdToNode: nodeId => CurGraph.nodeIdToNode[nodeId]
             );
 
-            graph.Update();
+            CurGraph.Update();
 
             activityManager.ManageActivities(people: people);
 
@@ -420,13 +438,13 @@ namespace Game1
         public void Draw(GraphicsDevice graphicsDevice)
         {
             worldCamera.BeginDraw();
-            graph.DrawBeforeLight();
+            CurGraph.DrawBeforeLight();
             worldCamera.EndDraw();
 
             lightManager.Draw(graphicsDevice: graphicsDevice, worldToScreenTransform: worldCamera.GetToScreenTransform());
 
             worldCamera.BeginDraw();
-            graph.DrawAfterLight();
+            CurGraph.DrawAfterLight();
             worldCamera.EndDraw();
 
             activeUIManager.DrawHUD();

@@ -7,12 +7,19 @@ namespace Game1
     {
         // power of two to make double / scale and double * scale lossless
         public const long accurScale = (long)1 << 10;
-        public static ContentManager contentManager { get; private set; }
-        public static GraphicsDevice graphicsDevice { get; private set; }
-        public static SpriteBatch SpriteBatch { get; private set; }
-        
-        private static readonly Random random;
+        public static ContentManager ContentManager
+            => contentManager ?? throw new InvalidOperationException(mustInitializeMessage);
+        public static GraphicsDevice GraphicsDevice
+            => graphicsDevice ?? throw new InvalidOperationException(mustInitializeMessage);
+        public static SpriteBatch SpriteBatch
+            => spriteBatch ?? throw new InvalidOperationException(mustInitializeMessage);
 
+        private const string mustInitializeMessage = $"must initialize {nameof(C)} first";
+        private static ContentManager? contentManager;
+        private static GraphicsDevice? graphicsDevice;
+        private static SpriteBatch? spriteBatch;
+        private static readonly Random random;
+        
         static C()
             => random = new();
 
@@ -20,7 +27,7 @@ namespace Game1
         {
             C.contentManager = contentManager;
             C.graphicsDevice = graphicsDevice;
-            SpriteBatch = new(graphicsDevice);
+            spriteBatch = new(graphicsDevice);
         }
 
         /// <summary>
@@ -83,10 +90,10 @@ namespace Game1
         //    => color.A is 0;
 
         public static Texture2D LoadTexture(string name)
-            => contentManager.Load<Texture2D>(name);
+            => ContentManager.Load<Texture2D>(name);
 
         public static SpriteFont LoadFont(string name)
-            => contentManager.Load<SpriteFont>(name);
+            => ContentManager.Load<SpriteFont>(name);
 
         public static void Draw(Texture2D texture, MyVector2 position, Color color, double rotation, MyVector2 origin, UDouble scale)
             => SpriteBatch.Draw

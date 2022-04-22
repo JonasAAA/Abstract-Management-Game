@@ -13,7 +13,7 @@ namespace Game1.UI
 
         protected readonly TextBox textBox;
 
-        public Button(NearRectangle shape, string text = null, string explanation = defaultExplanation)
+        public Button(NearRectangle shape, string? text = null, string explanation = defaultExplanation)
             : base(shape: shape, explanation)
         {
             clicked = new();

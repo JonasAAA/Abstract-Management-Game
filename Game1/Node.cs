@@ -364,7 +364,7 @@ namespace Game1
             resDesinArrowEventListener.SyncSplittersWithArrows();
         }
 
-        private void SetIndustry(Industry newIndustry)
+        private void SetIndustry(Industry? newIndustry)
         {
             if (industry == newIndustry)
                 return;
@@ -380,7 +380,7 @@ namespace Game1
             }
         }
 
-        public void Update(IReadOnlyDictionary<(NodeId, NodeId), Link> personFirstLinks)
+        public void Update(IReadOnlyDictionary<(NodeId, NodeId), Link?> personFirstLinks)
         {
             // TODO: delete
             // temporary
@@ -394,13 +394,13 @@ namespace Game1
             // deal with people
             foreach (var person in state.waitingPeople.Clone())
             {
-                NodeId activityCenterPosition = person.ActivityCenterNodeId;
+                NodeId? activityCenterPosition = person.ActivityCenterNodeId;
                 if (activityCenterPosition is null)
                     continue;
                 if (activityCenterPosition == NodeId)
                     person.Arrived();
                 else
-                    personFirstLinks[(NodeId, activityCenterPosition)].Add(start: this, person: person);
+                    personFirstLinks[(NodeId, activityCenterPosition)]!.Add(start: this, person: person);
                 state.waitingPeople.Remove(person);
             }
         }
@@ -463,7 +463,7 @@ namespace Game1
         /// <summary>
         /// MUST call SplitRes first
         /// </summary>
-        public void EndSplitRes(IReadOnlyDictionary<(NodeId, NodeId), Link> resFirstLinks)
+        public void EndSplitRes(IReadOnlyDictionary<(NodeId, NodeId), Link?> resFirstLinks)
         {
             undecidedResAmounts = new();
 
@@ -472,7 +472,7 @@ namespace Game1
                 NodeId destinationId = resAmountsPacket.destination;
                 Debug.Assert(destinationId != NodeId);
 
-                resFirstLinks[(NodeId, destinationId)].Add(start: this, resAmountsPacket: resAmountsPacket);
+                resFirstLinks[(NodeId, destinationId)]!.Add(start: this, resAmountsPacket: resAmountsPacket);
             }
 
             // TODO: look at this

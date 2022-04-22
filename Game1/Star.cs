@@ -64,14 +64,14 @@ namespace Game1
             ).ToList();
 
             List<MyVector2> vertices = new();
-            List<ILightCatchingObject> rayCatchingObjects = new();
+            List<ILightCatchingObject?> rayCatchingObjects = new();
             // TODO: consider moving this to constants class
             UDouble maxDist = 2000;
             foreach (double angle in angles)
             {
                 MyVector2 rayDir = MyMathHelper.Direction(rotation: angle);
                 UDouble minDist = maxDist;
-                ILightCatchingObject rayCatchingObject = null;
+                ILightCatchingObject? rayCatchingObject = null;
                 foreach (var lightCatchingObject in lightCatchingObjects)
                 {
                     var dists = lightCatchingObject.InterPoints(lightPos: shape.Center, lightDir: rayDir);
@@ -97,18 +97,25 @@ namespace Game1
             );
             UDouble usedArc = 0;
             for (int i = 0; i < rayCatchingObjects.Count; i++)
-                if (rayCatchingObjects[i] is not null && rayCatchingObjects[i] == rayCatchingObjects[(i + 1) % rayCatchingObjects.Count])
+            {
+                UDouble curArc = MyMathHelper.Abs(MyMathHelper.WrapAngle(angles[i] - angles[(i + 1) % angles.Count]));
+                UseArc(rayCatchingObject: rayCatchingObjects[i]);
+                UseArc(rayCatchingObject: rayCatchingObjects[(i + 1) % rayCatchingObjects.Count]);
+                void UseArc(ILightCatchingObject? rayCatchingObject)
                 {
-                    UDouble curArc = MyMathHelper.Abs(MyMathHelper.WrapAngle(angles[i] - angles[(i + 1) % angles.Count]));
-                    arcsForObjects[rayCatchingObjects[i]] += curArc;
-                    usedArc += curArc;
+                    if (rayCatchingObject is not null)
+                    {
+                        arcsForObjects[rayCatchingObject] += curArc / 2;
+                        usedArc += curArc / 2;
+                    }
                 }
+            }
 
             popupTextBox.Text = $"generates {prodWatts} power\n{usedArc / (2 * MyMathHelper.pi) * 100:0.}% of it is used";
 
             foreach (var lightCatchingObject in lightCatchingObjects)
             {
-                Propor powerPropor = Propor.Create(part: arcsForObjects[lightCatchingObject], whole: 2 * MyMathHelper.pi).Value;
+                Propor powerPropor = Propor.Create(part: arcsForObjects[lightCatchingObject], whole: 2 * MyMathHelper.pi)!.Value;
                 lightCatchingObject.SetWatts
                 (
                     starPos: starId,

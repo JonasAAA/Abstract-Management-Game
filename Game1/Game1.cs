@@ -8,9 +8,10 @@ namespace Game1
     public class Game1 : Game
     {
         private readonly GraphicsDeviceManager graphics;
-        private PlayState? playState;
+        private readonly PlayState playState;
         private GameState gameState;
-        
+        private ActionButton continueButton;
+
         public Game1()
         {
             graphics = new(this);
@@ -26,6 +27,11 @@ namespace Game1
                 graphics.PreferMultiSampling = true;
                 e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 8;
             };
+
+            playState = PlayState.curPlayState;
+            // I know that continueButton and gameState will be initialized in LoadContent and will not be used before then
+            continueButton = null!;
+            gameState = null!;
         }
 
         protected override void Initialize()
@@ -64,10 +70,32 @@ namespace Game1
 
             // TODO: consider moving this to a constants class or similar
             UDouble buttonWidth = 200, buttonHeight = 30;
+            continueButton = new
+            (
+                shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                {
+                    Color = Color.White
+                },
+                action: () =>
+                {
+                    playState.ContinueGame(graphicsDevice: GraphicsDevice);
+                    SetGameState(newGameState: playState);
+                },
+                text: "Continue"
+            )
+            {
+                PersonallyEnabled = playState.CanContinueGame()
+            };
+            playState.OnCreate += () =>
+            {
+                continueButton.PersonallyEnabled = playState.CanContinueGame();
+                Debug.Assert(continueButton.PersonallyEnabled);
+            };
             MenuState mainMenu = new
             (
                 actionButtons: new List<ActionButton>()
                 {
+                    continueButton,
                     new
                     (
                         shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
@@ -76,21 +104,7 @@ namespace Game1
                         },
                         action: () =>
                         {
-                            if (playState is null)
-                                playState = PlayState.LoadGame(graphicsDevice: GraphicsDevice);
-                            SetGameState(newGameState: playState);
-                        },
-                        text: "Continue"
-                    ),
-                    new
-                    (
-                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
-                        {
-                            Color = Color.White
-                        },
-                        action: () =>
-                        {
-                            playState = PlayState.StartNewGame(graphicsDevice: GraphicsDevice);
+                            playState.StartNewGame(graphicsDevice: GraphicsDevice);
                             SetGameState(newGameState: playState);
                         },
                         text: "New game"
@@ -146,7 +160,7 @@ namespace Game1
                     ),
                 }
             );
-            PlayState.Initialize
+            playState.Initialize
             (
                 switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: pauseMenu)
             );

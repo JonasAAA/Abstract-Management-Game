@@ -80,7 +80,7 @@ namespace Game1
                 Propor energyPropor = MyMathHelper.IsTiny(value: curReqWatts) switch
                 {
                     true => Propor.full,
-                    false => Propor.Create(reqWattsByConsumer[energyConsumer], curReqWatts).Value.Opposite()
+                    false => Propor.Create(reqWattsByConsumer[energyConsumer], curReqWatts)!.Value.Opposite()
                 };
                 if (energyConsumer.EnergyPriority == EnergyPriority.minimal && !energyPropor.IsCloseTo(other: Propor.full))
                     throw new Exception();

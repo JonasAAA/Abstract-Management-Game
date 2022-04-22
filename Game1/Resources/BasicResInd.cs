@@ -45,6 +45,10 @@
             => (ResInd)(ulong)basicResInd;
 
         public static explicit operator BasicResInd(ulong value)
-            => MakeFrom(value: value).Value;
+            => MakeFrom(value: value) switch
+            {
+                BasicResInd basicResInd => basicResInd,
+                null => throw new InvalidCastException()
+            };
     }
 }

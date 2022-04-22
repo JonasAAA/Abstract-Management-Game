@@ -11,7 +11,7 @@ namespace Game1.UI
         private readonly Action action;
         private readonly TextBox textBox;
 
-        public ActionButton(NearRectangle shape, Action action, string text = null, string explanation = defaultExplanation)
+        public ActionButton(NearRectangle shape, Action action, string? text = null, string explanation = defaultExplanation)
             : base(shape: shape, explanation: explanation)
         {
             this.action = action;

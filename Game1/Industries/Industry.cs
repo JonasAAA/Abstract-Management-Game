@@ -92,7 +92,7 @@ namespace Game1.Industries
 
         public abstract ResAmounts TargetStoredResAmounts();
 
-        public Industry Update()
+        public Industry? Update()
         {
             if (isDeleted)
             {

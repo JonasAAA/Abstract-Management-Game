@@ -11,7 +11,7 @@ namespace Game1
             Color[] colorData1D = new Color[copyFromTexture.Width * copyFromTexture.Height];
             copyFromTexture.GetData(colorData1D);
 
-            Texture2D copyToTexture = new(C.graphicsDevice, width: copyFromTexture.Width, copyFromTexture.Height);
+            Texture2D copyToTexture = new(C.GraphicsDevice, width: copyFromTexture.Width, copyFromTexture.Height);
             copyToTexture.SetData(colorData1D);
 
             return copyToTexture;
@@ -118,7 +118,7 @@ namespace Game1
         {
             int width = colorData.Length,
                 height = colorData[0].Length;
-            texture = new(C.graphicsDevice, width, height);
+            texture = new(C.GraphicsDevice, width, height);
             Color[] colorData1D = new Color[width * height];
             for (int x = 0; x < width; x++)
                 for (int y = 0; y < height; y++)

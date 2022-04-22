@@ -88,8 +88,8 @@ namespace Game1
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        private readonly ReadOnlyDictionary<(NodeId, NodeId), Link> personFirstLinks;
-        private readonly ReadOnlyDictionary<(NodeId, NodeId), Link> resFirstLinks;
+        private readonly ReadOnlyDictionary<(NodeId, NodeId), Link?> personFirstLinks;
+        private readonly ReadOnlyDictionary<(NodeId, NodeId), Link?> resFirstLinks;
 
         private IEnumerable<WorldUIElement> WorldUIElements
         {
@@ -171,10 +171,10 @@ namespace Game1
 
         // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
-        private (ReadOnlyDictionary<(NodeId, NodeId), UDouble> dists, ReadOnlyDictionary<(NodeId, NodeId), Link> firstLinks) FindShortestPaths(UDouble distTimeCoeff, UDouble distEnergyCoeff)
+        private (ReadOnlyDictionary<(NodeId, NodeId), UDouble> dists, ReadOnlyDictionary<(NodeId, NodeId), Link?> firstLinks) FindShortestPaths(UDouble distTimeCoeff, UDouble distEnergyCoeff)
         {
             UDouble[,] distsArray = new UDouble[nodes.Count, nodes.Count];
-            Link[,] firstLinksArray = new Link[nodes.Count, nodes.Count];
+            Link?[,] firstLinksArray = new Link[nodes.Count, nodes.Count];
 
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)
@@ -207,7 +207,7 @@ namespace Game1
                         }
 
             Dictionary<(NodeId, NodeId), UDouble> distsDict = new();
-            Dictionary<(NodeId, NodeId), Link> firstLinksDict = new();
+            Dictionary<(NodeId, NodeId), Link?> firstLinksDict = new();
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)
                 {

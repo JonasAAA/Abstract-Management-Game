@@ -11,6 +11,6 @@
 
         public abstract void Update(TimeSpan elapsed);
 
-        public abstract void Draw(GraphicsDevice graphicsDevice);
+        public abstract void Draw();
     }
 }

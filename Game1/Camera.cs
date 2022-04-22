@@ -1,4 +1,5 @@
 ﻿using Game1.UI;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Game1
 {
@@ -17,8 +18,8 @@ namespace Game1
 
         private static double screenScale;
 
-        public static void Initialize(GraphicsDevice graphicsDevice)
-            => screenScale = (double)graphicsDevice.Viewport.Height / ActiveUIManager.curUIConfig.standardScreenHeight;
+        public static void Initialize()
+            => screenScale = (double)C.GraphicsDevice.Viewport.Height / ActiveUIManager.curUIConfig.standardScreenHeight;
 
         public void BeginDraw()
             => C.SpriteBatch.Begin
@@ -34,6 +35,7 @@ namespace Game1
 
         public abstract Matrix GetToScreenTransform();
 
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "Want to keep consistent signature with BeginDraw method")]
         public void EndDraw()
             => C.SpriteBatch.End();
     }

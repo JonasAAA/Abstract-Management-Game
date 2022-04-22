@@ -27,17 +27,17 @@ namespace Game1.GameStates
                 action: switchToPauseMenu
             );
 
-        public void StartNewGame(GraphicsDevice graphicsDevice)
-            => WorldManager.CreateWorldManager(graphicsDevice: graphicsDevice);
+        public void StartNewGame()
+            => WorldManager.CreateWorldManager();
 
         public bool CanContinueGame()
             => WorldManager.Initialized || WorldManager.SaveFileExists;
 
-        public void ContinueGame(GraphicsDevice graphicsDevice)
+        public void ContinueGame()
         {
             if (WorldManager.Initialized)
                 return;
-            WorldManager.LoadWorldManager(graphicsDevice: graphicsDevice);
+            WorldManager.LoadWorldManager();
         }
 
         public override void Update(TimeSpan elapsed)
@@ -51,10 +51,10 @@ namespace Game1.GameStates
         public void SaveGame()
             => WorldManager.CurWorldManager.Save();
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
-            graphicsDevice.Clear(Color.Transparent);
-            WorldManager.CurWorldManager.Draw(graphicsDevice: graphicsDevice);
+            C.GraphicsDevice.Clear(Color.Transparent);
+            WorldManager.CurWorldManager.Draw();
         }
     }
 #pragma warning restore CA1822 // Mark members as static

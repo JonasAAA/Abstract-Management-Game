@@ -42,12 +42,12 @@ namespace Game1
         private static WorldManager? curWorldManager;
         private static readonly Type[] knownTypes;
 
-        public static ActiveUIManager CreateWorldManager(GraphicsDevice graphicsDevice)
+        public static ActiveUIManager CreateWorldManager()
         {
             curWorldManager = new();
             CurWorldManager.graph = CreateGraph();
             AddUIElements();
-            CurWorldManager.Initialize(graphicsDevice: graphicsDevice);
+            CurWorldManager.Initialize();
 
             return CurWorldManager.activeUIManager;
 
@@ -161,13 +161,13 @@ namespace Game1
             }
         }
 
-        public static ActiveUIManager LoadWorldManager(GraphicsDevice graphicsDevice)
+        public static ActiveUIManager LoadWorldManager()
         {
             if (curWorldManager is not null || !SaveFileExists)
                 throw new InvalidOperationException();
 
             curWorldManager = Deserialize();
-            CurWorldManager!.Initialize(graphicsDevice: graphicsDevice);
+            CurWorldManager!.Initialize();
 
             return CurWorldManager.activeUIManager;
 
@@ -356,9 +356,9 @@ namespace Game1
             arrowDrawingModeOn = false;
         }
 
-        private void Initialize(GraphicsDevice graphicsDevice)
+        private void Initialize()
         {
-            lightManager.Initialize(graphicsDevice: graphicsDevice);
+            lightManager.Initialize();
             OnCreate?.Invoke();
         }
 
@@ -435,13 +435,13 @@ namespace Game1
             activeUIManager.Update(elapsed: elapsed);
         }
 
-        public void Draw(GraphicsDevice graphicsDevice)
+        public void Draw()
         {
             worldCamera.BeginDraw();
             CurGraph.DrawBeforeLight();
             worldCamera.EndDraw();
 
-            lightManager.Draw(graphicsDevice: graphicsDevice, worldToScreenTransform: worldCamera.GetToScreenTransform());
+            lightManager.Draw(worldToScreenTransform: worldCamera.GetToScreenTransform());
 
             worldCamera.BeginDraw();
             CurGraph.DrawAfterLight();

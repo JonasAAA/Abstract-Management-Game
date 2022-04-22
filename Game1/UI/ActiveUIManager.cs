@@ -18,7 +18,7 @@ namespace Game1.UI
         static ActiveUIManager()
         {
             curUIConfig = new();
-            Camera.Initialize(graphicsDevice: C.GraphicsDevice);
+            Camera.Initialize();
             screenWidth = (UDouble)C.GraphicsDevice.Viewport.Width * curUIConfig.standardScreenHeight / (UDouble)C.GraphicsDevice.Viewport.Height;
             screenHeight = curUIConfig.standardScreenHeight;
             HUDCamera = new();

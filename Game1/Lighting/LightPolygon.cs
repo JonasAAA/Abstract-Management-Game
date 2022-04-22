@@ -56,7 +56,7 @@ namespace Game1.Lighting
             }
         }
 
-        public void Draw(GraphicsDevice graphicsDevice, Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
+        public void Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
         {
             if (vertices.Count is 0)
                 return;
@@ -68,19 +68,19 @@ namespace Game1.Lighting
             if (vertPosTexs.Length == 0)
                 return;
 
-            VertexBuffer vertexBuffer = new(graphicsDevice, typeof(VertexPositionColorTexture), vertPosTexs.Length, BufferUsage.WriteOnly);
-            IndexBuffer indexBuffer = new(graphicsDevice, typeof(ushort), inds.Length, BufferUsage.WriteOnly);
+            VertexBuffer vertexBuffer = new(C.GraphicsDevice, typeof(VertexPositionColorTexture), vertPosTexs.Length, BufferUsage.WriteOnly);
+            IndexBuffer indexBuffer = new(C.GraphicsDevice, typeof(ushort), inds.Length, BufferUsage.WriteOnly);
 
             vertexBuffer.SetData(vertPosTexs);
             indexBuffer.SetData(inds);
 
-            graphicsDevice.SetVertexBuffer(vertexBuffer);
-            graphicsDevice.Indices = indexBuffer;
+            C.GraphicsDevice.SetVertexBuffer(vertexBuffer);
+            C.GraphicsDevice.Indices = indexBuffer;
 
             foreach (var effectPass in basicEffect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
-                graphicsDevice.DrawIndexedPrimitives
+                C.GraphicsDevice.DrawIndexedPrimitives
                 (
                     primitiveType: PrimitiveType.TriangleList,
                     baseVertex: 0,

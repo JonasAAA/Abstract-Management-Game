@@ -22,9 +22,9 @@ namespace Game1.GameStates
         public override void Update(TimeSpan elapsed)
             => activeUIManager.Update(elapsed: elapsed);
 
-        public override void Draw(GraphicsDevice graphicsDevice)
+        public override void Draw()
         {
-            graphicsDevice.Clear(color: Color.Black);
+            C.GraphicsDevice.Clear(color: Color.Black);
             activeUIManager.DrawHUD();
         }
     }

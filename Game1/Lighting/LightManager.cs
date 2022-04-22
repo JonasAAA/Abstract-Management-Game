@@ -35,19 +35,19 @@ namespace Game1.Lighting
             lightSources = new();
         }
 
-        public void Initialize(GraphicsDevice graphicsDevice)
+        public void Initialize()
         {
-            renderTarget = new(graphicsDevice, actualScreenWidth, actualScreenHeight);
+            renderTarget = new(C.GraphicsDevice, actualScreenWidth, actualScreenHeight);
             brightEffect = GetBasicEffect(brightness: CurWorldConfig.brightStarTextureBrigthness);
             dimEffect = GetBasicEffect(brightness: CurWorldConfig.dimStarTextureBrightness);
 
             return;
 
-            BasicEffect GetBasicEffect(UDouble brightness)
+            static BasicEffect GetBasicEffect(UDouble brightness)
             {
                 if (brightness.IsCloseTo(other: 0))
                     throw new ArgumentOutOfRangeException();
-                Texture2D texture = new(graphicsDevice, CurWorldConfig.lightTextureWidth, CurWorldConfig.lightTextureWidth);
+                Texture2D texture = new(C.GraphicsDevice, CurWorldConfig.lightTextureWidth, CurWorldConfig.lightTextureWidth);
                 Color[] colorData = new Color[CurWorldConfig.lightTextureWidth * CurWorldConfig.lightTextureWidth];
                 for (int i = 0; i < CurWorldConfig.lightTextureWidth; i++)
                     for (int j = 0; j < CurWorldConfig.lightTextureWidth; j++)
@@ -63,7 +63,7 @@ namespace Game1.Lighting
                     }
                 texture.SetData(colorData);
 
-                return new(graphicsDevice)
+                return new(C.GraphicsDevice)
                 {
                     TextureEnabled = true,
                     VertexColorEnabled = true,
@@ -93,14 +93,14 @@ namespace Game1.Lighting
                 lightSource.GiveWattsToObjects(lightCatchingObjects: lightCatchingObjects);
         }
 
-        public void Draw(GraphicsDevice graphicsDevice, Matrix worldToScreenTransform)
+        public void Draw(Matrix worldToScreenTransform)
         {
-            graphicsDevice.SetRenderTarget(RenderTarget);
-            graphicsDevice.Clear(Color.Transparent);
+            C.GraphicsDevice.SetRenderTarget(RenderTarget);
+            C.GraphicsDevice.Clear(Color.Transparent);
 
-            graphicsDevice.BlendState = BlendState.Additive;
+            C.GraphicsDevice.BlendState = BlendState.Additive;
             // to correctly draw clockwise and counterclocwise triangles
-            graphicsDevice.RasterizerState = new()
+            C.GraphicsDevice.RasterizerState = new()
             {
                 CullMode = CullMode.None
             };
@@ -108,7 +108,6 @@ namespace Game1.Lighting
             foreach (var lightSource in lightSources)
                 lightSource.Draw
                 (
-                    graphicsDevice: graphicsDevice,
                     worldToScreenTransform: worldToScreenTransform,
                     basicEffect: CurWorldManager.Overlay switch
                     {
@@ -119,7 +118,7 @@ namespace Game1.Lighting
                     actualScreenHeight: actualScreenHeight
                 );
 
-            graphicsDevice.SetRenderTarget(null);
+            C.GraphicsDevice.SetRenderTarget(null);
 
             C.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
             C.SpriteBatch.Draw(RenderTarget, (Vector2)MyVector2.zero, Color.White);

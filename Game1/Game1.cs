@@ -78,7 +78,7 @@ namespace Game1
                 },
                 action: () =>
                 {
-                    playState.ContinueGame(graphicsDevice: GraphicsDevice);
+                    playState.ContinueGame();
                     SetGameState(newGameState: playState);
                 },
                 text: "Continue"
@@ -104,7 +104,7 @@ namespace Game1
                         },
                         action: () =>
                         {
-                            playState.StartNewGame(graphicsDevice: GraphicsDevice);
+                            playState.StartNewGame();
                             SetGameState(newGameState: playState);
                         },
                         text: "New game"
@@ -185,7 +185,7 @@ namespace Game1
 
         protected override void Draw(GameTime gameTime)
         {
-            gameState.Draw(graphicsDevice: GraphicsDevice);
+            gameState.Draw();
 
             base.Draw(gameTime);
         }

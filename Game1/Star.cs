@@ -125,10 +125,9 @@ namespace Game1
             }
         }
 
-        void ILightSource.Draw(GraphicsDevice graphicsDevice, Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
+        void ILightSource.Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
             => polygon.Draw
             (
-                graphicsDevice: graphicsDevice,
                 worldToScreenTransform: worldToScreenTransform,
                 basicEffect: basicEffect,
                 actualScreenWidth: actualScreenWidth,

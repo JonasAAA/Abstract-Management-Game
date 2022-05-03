@@ -40,6 +40,31 @@ namespace Game1.Industries
         }
 
         [Serializable]
+        private readonly record struct TextBoxParams(Industry Industry) : TextBox.IParams
+        {
+            public string? Text
+                => Industry.GetInfo();
+
+            public Color BackgroundColor
+                => Color.Transparent;
+        }
+
+        private readonly record struct DeleteButtonParams(Industry Industry) : Button.IParams, MyRectangle.IParams
+        {
+            public string? Text
+                => "delete";
+
+            public string? Explanation
+                => "delete the industry from this planet";
+
+            public Color Color
+                => Industry.DeleteButtonColor;
+
+            public Color BackgroundColor
+                => Industry.DeleteButtonColor;
+        }
+
+        [Serializable]
         private readonly record struct DeleteButtonClickedListener(Industry Industry) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
@@ -69,21 +94,27 @@ namespace Game1.Industries
             isDeleted = false;
             deleted = new();
 
-            textBox = new();
-            UIPanel = new UIRectVertPanel<IHUDElement>(color: Color.White, childHorizPos: HorizPos.Left);
+            UIPanel = new UIRectVertPanel<IHUDElement>
+            (
+                parameters: new UIRectVertPanel<IHUDElement>.ImmutableParams
+                (
+                    backgroundColor: Color.White
+                ),
+                childHorizPos: HorizPos.Left
+            );
+            textBox = new(parameters: new TextBoxParams(Industry: this));
             UIPanel.AddChild(child: textBox);
+            DeleteButtonParams deleteButtonParams = new(Industry: this);
             Button deleteButton = new
             (
+                // TODO: move the constants to appropriate file
                 shape: new MyRectangle
                 (
                     width: 60,
-                    height: 30
-                )
-                {
-                    Color = Color.Red
-                },
-                explanation: "deletes this industry",
-                text: "delete"
+                    height: 30,
+                    parameters: deleteButtonParams
+                ),
+                parameters: deleteButtonParams
             );
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(Industry: this));
             UIPanel.AddChild(child: deleteButton);
@@ -98,12 +129,14 @@ namespace Game1.Industries
                 PlayerDelete();
                 return null;
             }
+            return InternalUpdate();
 
-            var result = InternalUpdate();
+            // TODO: delete
+            //var result = InternalUpdate();
 
-            textBox.Text = GetInfo();
+            //textBox.Text = GetInfo();
 
-            return result;
+            //return result;
         }
 
         protected abstract Industry InternalUpdate();
@@ -115,5 +148,8 @@ namespace Game1.Industries
             => deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
 
         public abstract string GetInfo();
+
+        protected virtual Color DeleteButtonColor
+            => Color.Red;
     }
 }

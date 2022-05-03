@@ -17,50 +17,86 @@ namespace Game1.UI
         private readonly record struct NumDecrButtonClickedListener(NumIncDecrPanel NumIncDecrPanel) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
-            {
-                if (NumIncDecrPanel.Number > NumIncDecrPanel.minNum)
-                    NumIncDecrPanel.Number--;
-            }
+                => NumIncDecrPanel.Number--;
         }
 
-        public int Number
+        public interface IParamsAndState : MyRectangle.IParams, UIRectVertPanel<IHUDElement>.IParams, TextBox.IParams
         {
-            get => number;
-            private set
-            {
-                if (value < minNum)
-                    throw new ArgumentException();
-                if (number == value)
-                    return;
+            public int MinNumber { get; }
+            public int MaxNumber { get; }
+            public Color IncrAndDecrButtonColor { get; }
 
-                number = value;
-                textBox.Text = number.ToString();
-                numberChanged.Raise(action: listener => listener.NumberChangedResponse());
+            public int Number { get; set; }
+
+            string? TextBox.IParams.Text
+                => Number.ToString();
+        }
+
+        private readonly record struct NumIncrOrDecrButtonShapeParams(IParamsAndState ParamsAndState, bool Increase) : Triangle.IParams
+        {
+            public Color Color
+                => ParamsAndState.IncrAndDecrButtonColor;
+        }
+
+        private readonly record struct NumIncrOrDecrButtonParams(bool Increase) : Button.IParams
+        {
+            public string? Text
+                => null;
+
+            public string? Explanation
+                => Increase ? "Increase importance to route a\nbigger proportion of resources through here" : "Decrease importance to route a \nsmaller proportion of resources through here";
+        }
+
+        private int Number
+        {
+            get => paramsAndState.Number;
+            set
+            {
+                if (value < paramsAndState.MinNumber || value > paramsAndState.MaxNumber)
+                    return;
+                paramsAndState.Number = value;
             }
         }
 
-        public Event<INumberChangedListener> numberChanged;
+        // TODO: delete
+        //public int Number
+        //{
+        //    get => number;
+        //    private set
+        //    {
+        //        if (value < minNum)
+        //            throw new ArgumentException();
+        //        if (number == value)
+        //            return;
 
-        private int number;
-        private readonly int minNum;
+        //        number = value;
+        //        textBox.Text = number.ToString();
+        //        numberChanged.Raise(action: listener => listener.NumberChangedResponse());
+        //    }
+        //}
+
+        //public Event<INumberChangedListener> numberChanged;
+
+        private readonly IParamsAndState paramsAndState;
         private readonly UIRectVertPanel<IHUDElement> panel;
         private readonly TextBox textBox;
 
-        public NumIncDecrPanel(int minNum, int number, UDouble incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
-            : base(shape: new MyRectangle())
+        public NumIncDecrPanel(UDouble incrDecrButtonHeight, IParamsAndState paramsAndState)
+            : base(shape: new MyRectangle(parameters: paramsAndState), parameters: paramsAndState)
         {
-            numberChanged = new();
-            if (number < minNum)
-                throw new ArgumentException();
-            this.minNum = minNum;
-            this.number = number;
+            this.paramsAndState = paramsAndState;
+            // TODO: delete
+            //numberChanged = new();
+            //if (number < minNum)
+            //    throw new ArgumentException();
+            //this.minNum = minNum;
+            //this.number = number;
             panel = new
             (
-                color: shapeColor,
+                parameters: paramsAndState,
                 childHorizPos: HorizPos.Middle
             );
-            textBox = new();
-            textBox.Text = number.ToString();
+            textBox = new(parameters: paramsAndState);
             UDouble width = (UDouble)textBox.MeasureText(text: "00").X;
             textBox.Shape.MinWidth = width;
 
@@ -70,11 +106,10 @@ namespace Game1.UI
                 (
                     width: width,
                     height: incrDecrButtonHeight,
+                    parameters: new NumIncrOrDecrButtonShapeParams(ParamsAndState: paramsAndState, Increase: true),
                     direction: Triangle.Direction.Up
-                )
-                {
-                    Color = incrDecrButtonColor
-                }
+                ),
+                parameters: new NumIncrOrDecrButtonParams(Increase: true)
             );
             numIncrButton.clicked.Add(listener: new NumIncrButtonClickedListener(NumIncDecrPanel: this));
             panel.AddChild(child: numIncrButton);
@@ -87,16 +122,14 @@ namespace Game1.UI
                 (
                     width: width,
                     height: incrDecrButtonHeight,
+                    parameters: new NumIncrOrDecrButtonShapeParams(ParamsAndState: paramsAndState, Increase: false),
                     direction: Triangle.Direction.Down
-                )
-                {
-                    Color = Color.Blue
-                }
+                ),
+                parameters: new NumIncrOrDecrButtonParams(Increase: false)
             );
             numDecrButton.clicked.Add(listener: new NumDecrButtonClickedListener(NumIncDecrPanel: this));
             panel.AddChild(child: numDecrButton);
 
-            Shape.Color = shapeColor;
             Shape.Width = panel.Shape.Width;
             Shape.Height = panel.Shape.Height;
 

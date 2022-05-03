@@ -3,13 +3,23 @@
     [Serializable]
     public class Ellipse : NearRectangle
     {
+        public new class ImmutableParams : NearRectangle.ImmutableParams, IParams
+        {
+            public ImmutableParams(Color color)
+                : base(color: color)
+            { }
+        }
+
+        public new interface IParams : NearRectangle.IParams
+        { }
+
         private static readonly Texture2D diskTexture;
 
         static Ellipse()
             => diskTexture = C.LoadTexture(name: "big disk");
 
-        public Ellipse(UDouble width, UDouble height)
-            : base(width: width, height: height)
+        public Ellipse(UDouble width, UDouble height, IParams parameters)
+            : base(width: width, height: height, parameters: parameters)
         { }
 
         public override bool Contains(MyVector2 position)

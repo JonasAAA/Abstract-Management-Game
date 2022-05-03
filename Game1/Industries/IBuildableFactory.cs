@@ -1,7 +1,7 @@
 ﻿namespace Game1.Industries
 {
     /// <summary>
-    /// Signifies that these parameters can be used straight-up, no need to be built first
+    /// Signifies that the associated industrtry can be used straight-up, no need to be built first
     /// </summary>
     public interface IBuildableFactory
     {

@@ -6,10 +6,13 @@ namespace Game1.UI
     public class UIRectHorizPanel<TChild> : UIRectPanel<TChild>
         where TChild : IHUDElement
     {
+        public new interface IParams : UIRectPanel<TChild>.IParams
+        { }
+
         private readonly VertPos childVertPos;
 
-        public UIRectHorizPanel(Color color, VertPos childVertPos)
-            : base(color: color)
+        public UIRectHorizPanel(IParams parameters, VertPos childVertPos)
+            : base(parameters: parameters)
         {
             this.childVertPos = childVertPos;
         }

@@ -74,6 +74,12 @@
         public static TimeSpan operator *(TimeSpan timeSpan, Propor propor)
             => propor * timeSpan;
 
+        public static Color operator *(Propor propor, Color color)
+            => (float)propor * color;
+
+        public static Color operator *(Color color, Propor propor)
+            => propor * color;
+
         public static bool operator <=(Propor propor1, Propor propor2)
             => propor1.value <= propor2.value;
 

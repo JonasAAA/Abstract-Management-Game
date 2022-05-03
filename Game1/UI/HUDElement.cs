@@ -13,8 +13,8 @@ namespace Game1.UI
 
         private bool inRecalcSizeAndPos;
 
-        public HUDElement(NearRectangle shape, string explanation = defaultExplanation)
-            : base(shape: shape, explanation: explanation)
+        public HUDElement(NearRectangle shape)
+            : base(shape: shape)
         {
             Shape = shape;
             SizeOrPosChanged.Add(listener: this);

@@ -6,10 +6,21 @@ namespace Game1.UI
     public class UIRectVertPanel<TChild> : UIRectPanel<TChild>
         where TChild : IHUDElement
     {
+        [Serializable]
+        public new class ImmutableParams : UIRectPanel<TChild>.ImmutableParams, IParams
+        {
+            public ImmutableParams(Color backgroundColor)
+                : base(backgroundColor: backgroundColor)
+            { }
+        }
+
+        public new interface IParams : UIRectPanel<TChild>.IParams
+        { }
+
         private readonly HorizPos childHorizPos;
 
-        public UIRectVertPanel(Color color, HorizPos childHorizPos)
-            : base(color: color)
+        public UIRectVertPanel(IParams parameters, HorizPos childHorizPos)
+            : base(parameters: parameters)
         {
             this.childHorizPos = childHorizPos;
         }

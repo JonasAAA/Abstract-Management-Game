@@ -2,23 +2,32 @@
 
 namespace Game1.UI
 {
+    // TODO: may rename this and other names which mention ActionButton as it no longer requires action
     [Serializable]
-    public class ActionButton : HUDElement
+    public class ActionButton : HUDElement, IExplainableUIElement
     {
+        public interface IParams : IExplainableParams, TextBox.IParams
+        {
+            public void OnClick();
+
+            Color IPanelParams.BackgroundColor
+                => Color.Transparent;
+        }
+
+        public string? Explanation
+            => parameters.Explanation;
+
         public override bool CanBeClicked
             => true;
 
-        private readonly Action action;
+        private readonly IParams parameters;
         private readonly TextBox textBox;
 
-        public ActionButton(NearRectangle shape, Action action, string? text = null, string explanation = defaultExplanation)
-            : base(shape: shape, explanation: explanation)
+        public ActionButton(NearRectangle shape, IParams parameters)
+            : base(shape: shape)
         {
-            this.action = action;
-            textBox = new()
-            {
-                Text = text
-            };
+            this.parameters = parameters;
+            textBox = new(parameters: parameters);
             AddChild(child: textBox);
         }
 
@@ -31,7 +40,7 @@ namespace Game1.UI
         public override void OnClick()
         {
             base.OnClick();
-            action();
+            parameters.OnClick();
         }
     }
 }

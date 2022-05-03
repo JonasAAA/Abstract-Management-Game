@@ -30,6 +30,7 @@
         public readonly UDouble gravitPower, gravitConst;
         public readonly Propor desperationMemoryPropor;
         public readonly ulong minResAmountInPlanet;
+        public readonly Color defaultActiveColor, defaultInactiveColor;
 
         public WorldConfig()
         {
@@ -80,6 +81,9 @@
             desperationMemoryPropor = (Propor).9;
 
             minResAmountInPlanet = 10;
+
+            defaultActiveColor = Color.White;
+            defaultInactiveColor = Color.Gray;
         }
     }
 }

@@ -3,6 +3,18 @@
     [Serializable]
     public class Triangle : NearRectangle
     {
+        // TODO: delete if not needed
+        //public readonly struct ImmutableParams : IParams
+        //{
+        //    public Color Color { get; }
+
+        //    public ImmutableParams(Color color)
+        //        => Color = color;
+        //}
+
+        public new interface IParams : NearRectangle.IParams
+        { }
+
         public enum Direction
         {
             Up = -1,
@@ -16,42 +28,38 @@
             => triangleTexture = C.LoadTexture(name: "triangle");
 
         private MyVector2 BasePos
-            => Center - dirVector * MainAltitudeLength * .5;
-        private UDouble BaseLength
-            => ((int)direction % 2) switch
-            {
-                0 => Height,
-                not 0 => Width
-            };
-        private UDouble MainAltitudeLength
-            => ((int)direction % 2) switch
-            {
-                0 => Width,
-                not 0 => Height
-            };
+            => Center - dirVector * mainAltitudeLength * .5;
 
-        private readonly Direction direction;
         private readonly double rotation;
         private readonly MyVector2 origin, dirVector, orthDir;
-        private readonly UDouble scaleX, scaleY;
+        private readonly UDouble baseLength, mainAltitudeLength, scaleX, scaleY;
 
-        public Triangle(UDouble width, UDouble height, Direction direction)
-            : base(width: width, height: height)
+        public Triangle(UDouble width, UDouble height, IParams parameters, Direction direction)
+            : base(width: width, height: height, parameters: parameters)
         {
-            this.direction = direction;
             rotation = (int)direction * MyMathHelper.pi / 2;
             origin = new MyVector2(triangleTexture.Width, triangleTexture.Height) * .5;
             dirVector = MyMathHelper.Direction(rotation: rotation);
             orthDir = new MyVector2(-dirVector.Y, dirVector.X);
-            scaleX = MainAltitudeLength / (UDouble)triangleTexture.Height;
-            scaleY = BaseLength / (UDouble)triangleTexture.Width;
+            baseLength = ((int)direction % 2) switch
+            {
+                0 => Height,
+                not 0 => Width
+            };
+            mainAltitudeLength = ((int)direction % 2) switch
+            {
+                0 => Width,
+                not 0 => Height
+            };
+            scaleX = mainAltitudeLength / (UDouble)triangleTexture.Height;
+            scaleY = baseLength / (UDouble)triangleTexture.Width;
         }
 
         public override bool Contains(MyVector2 position)
         {
             MyVector2 relPos = position - BasePos;
-            double dirProp = MyVector2.Dot(relPos, dirVector) / MainAltitudeLength,
-                orthDirProp = MyMathHelper.Abs(MyVector2.Dot(relPos, orthDir) / (BaseLength * .5));
+            double dirProp = MyVector2.Dot(relPos, dirVector) / mainAltitudeLength,
+                orthDirProp = MyMathHelper.Abs(MyVector2.Dot(relPos, orthDir) / (baseLength * .5));
             if (dirProp is < 0 or >= 1 || orthDirProp >= 1)
                 return false;
             return dirProp + orthDirProp < 1;

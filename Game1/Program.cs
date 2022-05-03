@@ -9,6 +9,7 @@ global using System.Collections.Generic;
 global using System.Collections.ObjectModel;
 global using System.Diagnostics;
 global using System.Linq;
+using System.Runtime;
 
 namespace Game1
 {
@@ -17,6 +18,7 @@ namespace Game1
         [STAThread]
         static void Main()
         {
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
             using var game = new Game1();
             game.Run();
         }

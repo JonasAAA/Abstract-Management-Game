@@ -3,22 +3,25 @@
 namespace Game1.UI
 {
     [Serializable]
-    public class ActionButton : HUDElement
+    public class ActionButton : HUDElement, IWithTooltip
     {
+        public ITooltip Tooltip { get; }
+
         public override bool CanBeClicked
             => true;
 
         private readonly Action action;
         private readonly TextBox textBox;
 
-        public ActionButton(NearRectangle shape, Action action, string? text = null, string explanation = defaultExplanation)
-            : base(shape: shape, explanation: explanation)
+        public ActionButton(NearRectangle shape, Action action, ITooltip tooltip, string? text = null)
+            : base(shape: shape)
         {
             this.action = action;
             textBox = new()
             {
                 Text = text
             };
+            Tooltip = tooltip;
             AddChild(child: textBox);
         }
 

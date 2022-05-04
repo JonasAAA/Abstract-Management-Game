@@ -4,7 +4,7 @@ using Game1.Shapes;
 namespace Game1.UI
 {
     [Serializable]
-    public class Button : HUDElement
+    public class Button : HUDElement/*, IWithTooltip*/
     {
         public readonly Event<IClickedListener> clicked;
 
@@ -13,8 +13,8 @@ namespace Game1.UI
 
         protected readonly TextBox textBox;
 
-        public Button(NearRectangle shape, string? text = null, string explanation = defaultExplanation)
-            : base(shape: shape, explanation)
+        public Button(NearRectangle shape, string? text = null)
+            : base(shape: shape)
         {
             clicked = new();
             textBox = new()

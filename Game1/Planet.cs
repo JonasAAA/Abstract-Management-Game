@@ -198,7 +198,7 @@ namespace Game1
                     {
                         Color = Color.White
                     },
-                    explanation: buildableParams.Explanation,
+                    //explanation: buildableParams.Explanation,
                     text: buildableParams.ButtonName
                 );
                 buildIndustryButton.clicked.Add

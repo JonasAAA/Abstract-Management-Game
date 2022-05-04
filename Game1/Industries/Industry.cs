@@ -82,7 +82,7 @@ namespace Game1.Industries
                 {
                     Color = Color.Red
                 },
-                explanation: "deletes this industry",
+                //explanation: "deletes this industry",
                 text: "delete"
             );
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(Industry: this));

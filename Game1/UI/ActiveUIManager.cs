@@ -33,7 +33,7 @@ namespace Game1.UI
         private IUIElement? halfClicked, contMouse;
         private readonly TimeSpan minDurationToGetExplanation;
         private TimeSpan hoverDuration;
-        private readonly TextBox explanationTextBox;
+        private ITooltip? tooltip;
         private readonly HUDPosSetter HUDPosSetter;
 
         public ActiveUIManager()
@@ -52,8 +52,7 @@ namespace Game1.UI
             HUDPosSetter = new();
             nonHUDElementsToTransform = new();
 
-            explanationTextBox = new();
-            explanationTextBox.Shape.Color = Color.LightPink;
+            tooltip = null;
         }
 
         public void AddNonHUDElement(IUIElement UIElement, IPosTransformer posTransformer)
@@ -133,11 +132,11 @@ namespace Game1.UI
             if (contMouse == prevContMouse)
             {
                 hoverDuration += elapsed;
-                if (contMouse is not null && contMouse.Enabled && hoverDuration >= minDurationToGetExplanation && explanationTextBox.Text is null)
+                if (contMouse is not null && contMouse.Enabled && hoverDuration >= minDurationToGetExplanation && tooltip is null && contMouse is IWithTooltip UIElementWithTooltip)
                 {
-                    explanationTextBox.Text = contMouse.Explanation;
-                    explanationTextBox.Shape.TopLeftCorner = mouseHUDPos;
-                    explanationTextBox.Shape.ClampPosition
+                    tooltip = UIElementWithTooltip.Tooltip;
+                    tooltip.Shape.TopLeftCorner = mouseHUDPos;
+                    tooltip.Shape.ClampPosition
                     (
                         left: 0,
                         right: screenWidth,
@@ -149,7 +148,7 @@ namespace Game1.UI
             else
             {
                 hoverDuration = TimeSpan.Zero;
-                explanationTextBox.Text = null;
+                tooltip = null;
                 if (prevContMouse is not null && prevContMouse.Enabled)
                     prevContMouse.MouseOn = false;
                 if (contMouse is not null && contMouse.Enabled)
@@ -176,7 +175,7 @@ namespace Game1.UI
             HUDCamera.BeginDraw();
             foreach (var UIElement in HUDElements)
                 UIElement.Draw();
-            explanationTextBox.Draw();
+            tooltip?.Draw();
             HUDCamera.EndDraw();
         }
     }

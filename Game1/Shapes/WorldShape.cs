@@ -4,7 +4,7 @@ namespace Game1.Shapes
 {
     public abstract class WorldShape : Shape
     {
-        public new interface IParams : Shape.IParams
+        public new interface IParams : Shape.IState
         {
             public Color ActiveColor
                 => CurWorldConfig.defaultActiveColor;
@@ -12,7 +12,7 @@ namespace Game1.Shapes
                 => CurWorldConfig.defaultInactiveColor;
             public bool Active { get; }
 
-            Color Shape.IParams.Color
+            Color Shape.IState.Color
                 => Active switch
                 {
                     true => ActiveColor,
@@ -20,16 +20,8 @@ namespace Game1.Shapes
                 };
         }
 
-        // TODO: delete
-        //public sealed override Color Color
-        //    => parameters.Active switch
-        //    {
-        //        true => parameters.ActiveColor,
-        //        false => parameters.InactiveColor
-        //    };
-
         protected WorldShape(IParams parameters)
-            : base(parameters: parameters)
+            : base(state: parameters)
         { }
     }
 }

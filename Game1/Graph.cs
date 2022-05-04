@@ -72,7 +72,7 @@ namespace Game1
             }
         }
 
-        private readonly record struct BackgroundParams : Shape.IParams
+        private readonly record struct BackgroundParams : Shape.IState
         {
             public Color Color
                 => Color.Black;

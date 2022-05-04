@@ -14,7 +14,7 @@ namespace Game1.UI
         }
 
         [Serializable]
-        private record ShapeParams : LateInitializer<OnOffButton>, NearRectangle.IParams
+        private record ShapeParams : LateInitializer<OnOffButton>, NearRectangle.IState
         {
             public Color Color
                 => Param.On switch

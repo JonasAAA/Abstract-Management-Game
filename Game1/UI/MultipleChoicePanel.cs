@@ -10,7 +10,7 @@ namespace Game1.UI
     {
         public interface IParams : IPanelParams, MyRectangle.IParams, UIRectHorizPanel<SelectButton>.IParams, UIRectVertPanel<SelectButton>.IParams
         {
-            sealed Color Shape.IParams.Color
+            sealed Color Shape.IState.Color
                 => BackgroundColor;
         }
 

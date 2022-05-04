@@ -10,8 +10,8 @@ namespace Game1.Shapes
         static InfinitePlane()
             => pixelTexture = C.LoadTexture(name: "pixel");
 
-        public InfinitePlane(IParams parameters)
-            : base(parameters: parameters)
+        public InfinitePlane(IState parameters)
+            : base(state: parameters)
         { }
 
         public override bool Contains(MyVector2 position)

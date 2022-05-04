@@ -7,32 +7,28 @@ namespace Game1.Shapes
     {
         public new class Factory : NearRectangle.Factory
         {
-            private readonly record struct MyRectangeParams(NearRectangle.IParams Parameters) : IParams
+            private readonly record struct MyRectangeParams(UDouble InitWidth, UDouble InitHeight, Shape.IState Parameters) : IParams
             {
                 public Color Color
                     => Parameters.Color;
             }
 
-            private readonly UDouble width, height;
+            private readonly UDouble initWidth, initHeight;
 
-            public Factory(UDouble width, UDouble height)
+            public Factory(UDouble initWidth, UDouble initHeight)
             {
-                this.width = width;
-                this.height = height;
+                this.initWidth = initWidth;
+                this.initHeight = initHeight;
             }
 
-            public override MyRectangle CreateNearRectangle(NearRectangle.IParams parameters)
-                => new(width: width, height: height, parameters: new MyRectangeParams(Parameters: parameters));
+            public override MyRectangle CreateNearRectangle(Shape.IState parameters)
+                => new(parameters: new MyRectangeParams(InitWidth: initWidth, InitHeight: initHeight, Parameters: parameters));
         }
 
-        public new class ImmutableParams : NearRectangle.ImmutableParams, IParams
-        {
-            public ImmutableParams(Color color)
-                : base(color: color)
-            { }
-        }
+        public new record ImmutableParams(UDouble InitWidth, UDouble InitHeight, Color Color) : NearRectangle.ImmutableParams(InitWidth: InitWidth, InitHeight: InitHeight, Color: Color), IParams
+        { }
 
-        public new interface IParams : NearRectangle.IParams
+        public new interface IParams : NearRectangle.IState
         { }
 
         private static class OutlineDrawer
@@ -69,12 +65,13 @@ namespace Game1.Shapes
         static MyRectangle()
             => pixelTexture = C.LoadTexture(name: "pixel");
 
-        public MyRectangle(IParams parameters)
-            : this(width: 2 * ActiveUIManager.RectOutlineWidth, height: 2 * ActiveUIManager.RectOutlineWidth, parameters: parameters)
-        { }
+        // TODO: delete
+        //public MyRectangle(IParams parameters)
+        //    : this(width: 2 * ActiveUIManager.RectOutlineWidth, height: 2 * ActiveUIManager.RectOutlineWidth, parameters: parameters)
+        //{ }
 
-        public MyRectangle(UDouble width, UDouble height, IParams parameters)
-            : base(width: width, height: height, parameters: parameters)
+        public MyRectangle(IParams parameters)
+            : base(state: parameters)
         {
             MinWidth = 2 * ActiveUIManager.RectOutlineWidth;
             MinHeight = 2 * ActiveUIManager.RectOutlineWidth;

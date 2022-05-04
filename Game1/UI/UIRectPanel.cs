@@ -17,7 +17,7 @@ namespace Game1.UI
 
         public interface IParams : MyRectangle.IParams, IPanelParams
         {
-            Color Shape.IParams.Color
+            Color Shape.IState.Color
                 => BackgroundColor;
         }
 

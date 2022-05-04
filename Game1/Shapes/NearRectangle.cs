@@ -7,30 +7,32 @@ namespace Game1.Shapes
     {
         public abstract class Factory
         {
-            public abstract NearRectangle CreateNearRectangle(IParams parameters);
+            public abstract NearRectangle CreateNearRectangle(Shape.IState parameters);
         }
 
-        public abstract class ImmutableParams : IParams
-        {
-            public Color Color { get; }
-
-            protected ImmutableParams(Color color)
-                => Color = color;
-        }
-
-        public new interface IParams : Shape.IParams
+        public abstract record ImmutableParams(UDouble InitWidth, UDouble InitHeight, Color Color) : IState
         { }
+
+        public new interface IState : Shape.IState
+        {
+            public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; }
+            public MyVector2 Center { get; set; }
+            public UDouble Width { get; set; }
+            public UDouble Height { get; set; }
+            public UDouble MinWidth { get; set; }
+            public UDouble MaxWidth { get; set; }
+        }
 
         public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; }
 
         public MyVector2 Center
         {
-            get => center;
+            get => state.Center;
             set
             {
-                if (!MyMathHelper.IsTiny(value: MyVector2.Distance(center, value)))
+                if (!MyMathHelper.IsTiny(value: MyVector2.Distance(state.Center, value)))
                 {
-                    center = value;
+                    state.Center = value;
                     RaiseSizeOrPosChanged();
                 }
             }
@@ -92,40 +94,40 @@ namespace Game1.Shapes
                 vertOrigin: VertPos.Bottom
             );
         }
-        public virtual UDouble Width
+        public UDouble Width
         {
-            get => width;
+            get => state.Width;
             set
             {
-                value = MyMathHelper.Max(value, minWidth);
-                if (!MyMathHelper.AreClose(width, value))
+                value = MyMathHelper.Max(value, state.MinWidth);
+                if (!MyMathHelper.AreClose(state.Width, value))
                 {
-                    width = value;
+                    state.Width = value;
                     RaiseSizeOrPosChanged();
                 }
             }
         }
         public virtual UDouble Height
         {
-            get => height;
+            get => state.Height;
             set
             {
-                value = MyMathHelper.Max(value, minHeight);
-                if (!MyMathHelper.AreClose(height, value))
+                value = MyMathHelper.Max(value, state.MinHeight);
+                if (!MyMathHelper.AreClose(state.Height, value))
                 {
-                    height = value;
+                    state.Height = value;
                     RaiseSizeOrPosChanged();
                 }
             }
         }
         public UDouble MinWidth
         {
-            get => minWidth;
+            get => state.MinWidth;
             set
             {
-                minWidth = value;
-                if (Width < minWidth)
-                    Width = minWidth;
+                state.MinWidth = value;
+                if (Width < state.MinWidth)
+                    Width = state.MinWidth;
             }
         }
         public UDouble MinHeight
@@ -139,17 +141,20 @@ namespace Game1.Shapes
             }
         }
 
-        private MyVector2 center;
-        private UDouble width, height, minWidth, minHeight;
+        private readonly IState state;
 
-        protected NearRectangle(UDouble width, UDouble height, IParams parameters)
-            : base(parameters: parameters)
+        //private MyVector2 center;
+        //private UDouble width, height, minWidth, minHeight;
+
+        protected NearRectangle(IState state)
+            : base(state: state)
         {
-            this.width = width;
-            this.height = height;
+            this.state = state;
+            //width = parameters.InitWidth;
+            //height = parameters.InitHeight;
 
-            minWidth = 0;
-            minHeight = 0;
+            //minWidth = 0;
+            //minHeight = 0;
 
             SizeOrPosChanged = new();
         }

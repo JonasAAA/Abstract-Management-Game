@@ -3,17 +3,10 @@
     [Serializable]
     public class Triangle : NearRectangle
     {
-        // TODO: delete if not needed
-        //public readonly struct ImmutableParams : IParams
-        //{
-        //    public Color Color { get; }
-
-        //    public ImmutableParams(Color color)
-        //        => Color = color;
-        //}
-
-        public new interface IParams : NearRectangle.IParams
-        { }
+        public new interface IParams : NearRectangle.IState
+        {
+            public Direction InitDirection { get; }
+        }
 
         public enum Direction
         {
@@ -34,19 +27,20 @@
         private readonly MyVector2 origin, dirVector, orthDir;
         private readonly UDouble baseLength, mainAltitudeLength, scaleX, scaleY;
 
-        public Triangle(UDouble width, UDouble height, IParams parameters, Direction direction)
-            : base(width: width, height: height, parameters: parameters)
+        public Triangle(IParams parameters)
+            : base(state: parameters)
         {
-            rotation = (int)direction * MyMathHelper.pi / 2;
+            int direction = (int)parameters.InitDirection;
+            rotation = direction * MyMathHelper.pi / 2;
             origin = new MyVector2(triangleTexture.Width, triangleTexture.Height) * .5;
             dirVector = MyMathHelper.Direction(rotation: rotation);
             orthDir = new MyVector2(-dirVector.Y, dirVector.X);
-            baseLength = ((int)direction % 2) switch
+            baseLength = (direction % 2) switch
             {
                 0 => Height,
                 not 0 => Width
             };
-            mainAltitudeLength = ((int)direction % 2) switch
+            mainAltitudeLength = (direction % 2) switch
             {
                 0 => Width,
                 not 0 => Height

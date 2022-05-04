@@ -3,21 +3,21 @@
     [Serializable]
     public abstract class Shape
     {
-        public interface IParams
+        public interface IState
         {
             public Color Color { get; }
         }
 
         public bool Transparent
-           => parameters.Color.Transparent();
+           => state.Color.Transparent();
         //public abstract Color Color { get; }
         // TODO: delete
         //public virtual MyVector2 Center { get; set; }
 
-        private readonly IParams parameters;
+        private readonly IState state;
 
-        protected Shape(IParams parameters)
-            => this.parameters = parameters;
+        protected Shape(IState state)
+            => this.state = state;
         // TODO: delete
             //=> Color = Color.Transparent;
 
@@ -28,13 +28,13 @@
         public void Draw()
         {
             if (!Transparent)
-                Draw(color: parameters.Color);
+                Draw(color: state.Color);
         }
 
         public void Draw(Color otherColor, Propor otherColorPropor)
         {
-            Color color = Color.Lerp(parameters.Color, otherColor, amount: (float)otherColorPropor);
-            color.A = parameters.Color.A;
+            Color color = Color.Lerp(state.Color, otherColor, amount: (float)otherColorPropor);
+            color.A = state.Color.A;
             if (!color.Transparent())
                 Draw(color: color);
         }

@@ -3,9 +3,6 @@
     [Serializable]
     public class Arrow : VectorShape
     {
-        public new interface IParams : VectorShape.IParams
-        { }
-
         private static readonly Texture2D triangleTexture;
 
         static Arrow()

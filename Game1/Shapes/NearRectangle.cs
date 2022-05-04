@@ -5,32 +5,21 @@ namespace Game1.Shapes
     [Serializable]
     public abstract class NearRectangle : Shape
     {
-        public abstract class Factory
-        {
-            public abstract NearRectangle CreateNearRectangle(IParams parameters);
-        }
-
-        public abstract class ImmutableParams : IParams
-        {
-            public Color Color { get; }
-
-            protected ImmutableParams(Color color)
-                => Color = color;
-        }
-
-        public new interface IParams : Shape.IParams
-        { }
-
+        // can do:
+        //public abstract class Params
+        //{
+        //    public abstract void Make(double width, double height);
+        //}
         public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; }
 
-        public MyVector2 Center
+        public override MyVector2 Center
         {
-            get => center;
+            get => base.Center;
             set
             {
-                if (!MyMathHelper.IsTiny(value: MyVector2.Distance(center, value)))
+                if (!MyMathHelper.IsTiny(value: MyVector2.Distance(base.Center, value)))
                 {
-                    center = value;
+                    base.Center = value;
                     RaiseSizeOrPosChanged();
                 }
             }
@@ -139,11 +128,9 @@ namespace Game1.Shapes
             }
         }
 
-        private MyVector2 center;
         private UDouble width, height, minWidth, minHeight;
 
-        protected NearRectangle(UDouble width, UDouble height, IParams parameters)
-            : base(parameters: parameters)
+        protected NearRectangle(UDouble width, UDouble height)
         {
             this.width = width;
             this.height = height;

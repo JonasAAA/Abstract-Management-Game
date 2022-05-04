@@ -69,8 +69,8 @@ namespace Game1
             public void Add(Person person)
                 => waitingPeople.Add(person);
 
-            public ulong GetTravellingAmount(IOverlay overlay)
-                => overlay.SwitchExpression
+            public ulong GetTravellingAmount()
+                => CurWorldManager.Overlay.SwitchExpression
                 (
                     singleResCase: resInd => timedPacketQueue.TotalResAmounts[resInd],
                     allResCase: () => timedPacketQueue.TotalResAmounts.TotalWeight(),
@@ -149,7 +149,7 @@ namespace Game1
         }
 
         [Serializable]
-        private record ShapeParams(Planet Node1, Planet Node2) : LateInitializer<Link>, LineSegment.IParams
+        private readonly record struct ShapeParams(Planet Node1, Planet Node2) : VectorShape.IParams
         {
             public MyVector2 StartPos
                 => Node1.Position;
@@ -159,44 +159,6 @@ namespace Game1
 
             public UDouble Width
                 => CurWorldConfig.linkWidth;
-
-            public bool Active
-                => Param.Active;
-
-            Color WorldShape.IParams.ActiveColor
-                => Color.White;
-
-            Color WorldShape.IParams.InactiveColor
-                => Color.Lerp
-                (
-                    value1: Color.White,
-                    value2: Color.Green,
-                    amount: CurWorldManager.Overlay switch
-                    {
-                        IPeopleOverlay => (float)(Param.TravelTime / CurWorldManager.MaxLinkTravelTime),
-                        _ => (float)(Param.JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
-                    }
-                );
-        }
-
-        private record OverlayTextBox(Link Link, IOverlay Overlay) : TextBox.IParams
-        {
-            public string? Text
-                => CurWorldManager.Overlay.SwitchExpression
-                (
-                    singleResCase: resInd => $"{TravellingAmount} of {Overlay} is travelling",
-                    allResCase: () => $"{TravellingAmount} kg of resources are travelling",
-                    peopleCase: () => $"{TravellingAmount} of people are travelling",
-                    powerCase: () => ""
-                );
-
-            public Color BackgroundColor
-                => Color.White;
-
-            // TODO: It may be more appropriate for link1To2.GetTravellingAmount() to return a dictionary from Overlay cases to amounts
-            // in order to not have two switch statements mirroring each other
-            private ulong TravellingAmount
-                => Link.link1To2.GetTravellingAmount(overlay: Overlay) + Link.link2To1.GetTravellingAmount(overlay: Overlay);
         }
 
         public readonly Planet node1, node2;
@@ -206,10 +168,8 @@ namespace Game1
             => link1To2.TravelTime;
 
         private readonly DirLink link1To2, link2To1;
-        private readonly ReadOnlyDictionary<IOverlay, TextBox> overlayTextBoxes;
-        // TODO: delete
-        //private readonly MyArray<TextBox> resTextBoxes;
-        //private readonly TextBox allResTextBox, peopleTextBox;
+        private readonly MyArray<TextBox> resTextBoxes;
+        private readonly TextBox allResTextBox, peopleTextBox;
 
         public Link(Planet node1, Planet node2, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
             : base
@@ -218,12 +178,12 @@ namespace Game1
                 (
                     parameters: new ShapeParams(Node1: node1, Node2: node2)
                 ),
+                activeColor: Color.White,
+                inactiveColor: Color.Green,
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top
             )
         {
-            ShapeParams.InitializeLast(param: this);
-
             if (node1 == node2)
                 throw new ArgumentException();
 
@@ -233,41 +193,21 @@ namespace Game1
             link1To2 = new(startNode: node1, endNode: node2, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
             link2To1 = new(startNode: node2, endNode: node1, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
 
-            overlayTextBoxes = new
-            (
-                IOverlay.all.ToDictionary
-                (
-                    keySelector: overlay => overlay,
-                    elementSelector: overlay => new TextBox
-                    (
-                        parameters: new OverlayTextBox
-                        (
-                            Link: this,
-                            Overlay: overlay
-                        )
-                    )
-                )
-            );
+            resTextBoxes = new();
+            foreach (var resInd in ResInd.All)
+            {
+                resTextBoxes[resInd] = new();
+                resTextBoxes[resInd].Shape.Color = Color.White;
+                SetPopup(HUDElement: resTextBoxes[resInd], overlay: resInd);
+            }
 
-            foreach (var overlay in IOverlay.all)
-                SetPopup(HUDElement: overlayTextBoxes[overlay], overlay: overlay);
+            allResTextBox = new();
+            allResTextBox.Shape.Color = Color.White;
+            SetPopup(HUDElement: allResTextBox, overlay: IOverlay.allRes);
 
-            // TODO: delete
-            //resTextBoxes = new();
-            //foreach (var resInd in ResInd.All)
-            //{
-            //    resTextBoxes[resInd] = new();
-            //    resTextBoxes[resInd].Shape.Color = Color.White;
-            //    SetPopup(HUDElement: resTextBoxes[resInd], overlay: resInd);
-            //}
-
-            //allResTextBox = new();
-            //allResTextBox.Shape.Color = Color.White;
-            //SetPopup(HUDElement: allResTextBox, overlay: IOverlay.allRes);
-
-            //peopleTextBox = new();
-            //peopleTextBox.Shape.Color = Color.White;
-            //SetPopup(HUDElement: peopleTextBox, overlay: IOverlay.people);
+            peopleTextBox = new();
+            peopleTextBox.Shape.Color = Color.White;
+            SetPopup(HUDElement: peopleTextBox, overlay: IOverlay.people);
         }
 
         public Planet OtherNode(Planet node)
@@ -303,21 +243,31 @@ namespace Game1
             link1To2.Update();
             link2To1.Update();
 
-            // TODO: delete
-            //if (CurWorldManager.Overlay is IPowerOverlay)
-            //    return;
+            InactiveColor = Color.Lerp
+            (
+                value1: Color.White,
+                value2: Color.Green,
+                amount: CurWorldManager.Overlay switch
+                {
+                    IPeopleOverlay => (float)(TravelTime / CurWorldManager.MaxLinkTravelTime),
+                    _ => (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
+                }
+            );
 
-            //// TODO: It may be more appropriate for link1To2.GetTravellingAmount() to return a dictionary from Overlay cases to amounts
-            //// in order to not have two switch statements mirroring each other
-            //ulong travellingAmount = link1To2.GetTravellingAmount() + link2To1.GetTravellingAmount();
+            if (CurWorldManager.Overlay is IPowerOverlay)
+                return;
 
-            //CurWorldManager.Overlay.SwitchStatement
-            //(
-            //    singleResCase: resInd => resTextBoxes[resInd].Text = $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",
-            //    allResCase: () => allResTextBox.Text = $"{travellingAmount} kg of resources are travelling",
-            //    peopleCase: () => peopleTextBox.Text = $"{travellingAmount} of people are travelling",
-            //    powerCase: () => throw new ArgumentOutOfRangeException()
-            //);
+            // TODO: It may be more appropriate for link1To2.GetTravellingAmount() to return a dictionary from Overlay cases to amounts
+            // in order to not have two switch statements mirroring each other
+            ulong travellingAmount = link1To2.GetTravellingAmount() + link2To1.GetTravellingAmount();
+
+            CurWorldManager.Overlay.SwitchStatement
+            (
+                singleResCase: resInd => resTextBoxes[resInd].Text = $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",
+                allResCase: () => allResTextBox.Text = $"{travellingAmount} kg of resources are travelling",
+                peopleCase: () => peopleTextBox.Text = $"{travellingAmount} of people are travelling",
+                powerCase: () => throw new ArgumentOutOfRangeException()
+            );
         }
 
         public void UpdatePeople()

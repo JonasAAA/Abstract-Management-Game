@@ -1,9 +1,9 @@
 ﻿namespace Game1.Shapes
 {
     [Serializable]
-    public class Disk : WorldShape
+    public class Disk : Shape
     {
-        public new interface IParams : WorldShape.IParams
+        public interface IParams
         {
             public MyVector2 Center { get; }
 
@@ -15,13 +15,16 @@
         static Disk()
             => diskTexture = C.LoadTexture(name: "big disk");
 
-        public MyVector2 Center
-            => parameters.Center;
+        public override MyVector2 Center
+        {
+            get => parameters.Center;
+            // TODO: get rid of this hack
+            set => throw new InvalidOperationException();
+        }
 
         protected readonly IParams parameters;
 
         public Disk(IParams parameters)
-            : base(parameters: parameters)
             => this.parameters = parameters;
 
         public override bool Contains(MyVector2 position)

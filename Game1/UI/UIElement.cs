@@ -59,17 +59,20 @@ namespace Game1.UI
         public virtual bool CanBeClicked
             => false;
 
-        protected readonly Shape shape;
+        public string Explanation { get; }
 
+        protected readonly Shape shape;
+        
         private bool personallyEnabled, hasDisabledAncestor, mouseOn;
 
         private readonly SortedDictionary<ulong, List<TChild>> layerToChildren;
         private readonly Dictionary<TChild, ulong> childToLayer;
 
-        public UIElement(Shape shape)
+        public UIElement(Shape shape, string explanation = defaultExplanation)
         {
             EnabledChanged = new();
             this.shape = shape;
+            Explanation = explanation;
             personallyEnabled = true;
             MouseOn = false;
             hasDisabledAncestor = false;

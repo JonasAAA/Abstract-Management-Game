@@ -5,14 +5,11 @@ namespace Game1.UI
     [Serializable]
     public class SelectButton : OnOffButton
     {
-        public new interface IParams : OnOffButton.IParams
-        { }
-
         public override bool CanBeClicked
             => !On;
 
-        public SelectButton(NearRectangle.Factory shapeFactory, IParams parameters, bool on)
-            : base(shapeFactory: shapeFactory, parameters: parameters, on: on)
+        public SelectButton(NearRectangle shape, string text, bool on, Color selectedColor, Color deselectedColor)
+            : base(shape: shape, text: text, on: on, selectedColor: selectedColor, deselectedColor: deselectedColor)
         { }
 
         public override void OnClick()

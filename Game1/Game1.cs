@@ -60,22 +60,6 @@ namespace Game1
                 => Game.SetGameState(newGameState: PauseMenu);
         }
 
-        [Serializable]
-        private readonly record struct ActionButtonParams(string? Text, string? Explanation, Action Action) : ActionButton.IParams
-        {
-            public Color TextColor
-                => Color.Black;
-
-            public void OnClick()
-                => Action.Invoke();
-        }
-
-        private readonly record struct ActionButtonShapeParams : MyRectangle.IParams
-        {
-            public Color Color
-                => Color.White;
-        }
-
         protected override void LoadContent()
         {
             C.Initialize
@@ -86,20 +70,18 @@ namespace Game1
 
             // TODO: consider moving this to a constants class or similar
             UDouble buttonWidth = 200, buttonHeight = 30;
-            
             continueButton = new
             (
-                shape: CreateActionButtonShape(),
-                parameters: new ActionButtonParams
-                (
-                    Text: "Continue",
-                    Explanation: null,
-                    Action: () =>
-                    {
-                        playState.ContinueGame();
-                        SetGameState(newGameState: playState);
-                    }
-                )
+                shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                {
+                    Color = Color.White
+                },
+                action: () =>
+                {
+                    playState.ContinueGame();
+                    SetGameState(newGameState: playState);
+                },
+                text: "Continue"
             )
             {
                 PersonallyEnabled = playState.CanContinueGame()
@@ -114,21 +96,27 @@ namespace Game1
                 actionButtons: new List<ActionButton>()
                 {
                     continueButton,
-                    CreateActionButton
+                    new
                     (
-                        text: "New game",
-                        explanation: null,
+                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                        {
+                            Color = Color.White
+                        },
                         action: () =>
                         {
                             playState.StartNewGame();
                             SetGameState(newGameState: playState);
-                        }
+                        },
+                        text: "New game"
                     ),
-                    CreateActionButton
+                    new
                     (
-                        text: "Exit",
-                        explanation: null,
-                        action: Exit
+                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                        {
+                            Color = Color.White
+                        },
+                        action: Exit,
+                        text: "Exit"
                     ),
                 }
             );
@@ -139,27 +127,36 @@ namespace Game1
             (
                 actionButtons: new List<ActionButton>()
                 {
-                    CreateActionButton
+                    new
                     (
-                        text: "Continue",
-                        explanation: null,
-                        action: () => SetGameState(newGameState: playState)
+                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                        {
+                            Color = Color.White
+                        },
+                        action: () => SetGameState(newGameState: playState),
+                        text: "Continue"
                     ),
-                    CreateActionButton
+                    new
                     (
-                        text: "Quick save",
-                        explanation: null,
-                        action: () => playState.SaveGame()
+                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                        {
+                            Color = Color.White
+                        },
+                        action: () => playState.SaveGame(),
+                        text: "Quick save"
                     ),
-                    CreateActionButton
+                    new
                     (
-                        text: "Save and exit",
-                        explanation: null,
+                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
+                        {
+                            Color = Color.White
+                        },
                         action: () =>
                         {
                             playState.SaveGame();
                             SetGameState(newGameState: mainMenu);
-                        }
+                        },
+                        text: "Save and exit"
                     ),
                 }
             );
@@ -167,28 +164,6 @@ namespace Game1
             (
                 switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: pauseMenu)
             );
-
-            return;
-
-            MyRectangle CreateActionButtonShape()
-                => new
-                (
-                    width: buttonWidth,
-                    height: buttonHeight,
-                    parameters: new ActionButtonShapeParams()
-                );
-
-            ActionButton CreateActionButton(string? text, string? explanation, Action action)
-                => new
-                (
-                    shape: CreateActionButtonShape(),
-                    parameters: new ActionButtonParams
-                    (
-                        Text: text,
-                        Explanation: explanation,
-                        Action: action
-                    )
-                );
         }
 
         private void SetGameState(GameState newGameState)

@@ -1,9 +1,9 @@
 ﻿namespace Game1.Shapes
 {
     [Serializable]
-    public abstract class VectorShape : WorldShape
+    public abstract class VectorShape : Shape
     {
-        public new interface IParams : WorldShape.IParams
+        public interface IParams
         {
             public MyVector2 StartPos { get; }
             public MyVector2 EndPos { get; }
@@ -18,11 +18,10 @@
 
         protected abstract Texture2D Texture { get; }
 
-        private readonly IParams parameters;
+        protected readonly IParams parameters;
 
         // TODO: consider creating unsigned variables for texture width and height (or maybe extension methods for that)
         protected VectorShape(IParams parameters)
-            : base(parameters: parameters)
         {
             if (MyMathHelper.IsTiny(MyVector2.Distance(parameters.StartPos, parameters.EndPos)))
                 throw new ArgumentException();

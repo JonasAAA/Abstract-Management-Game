@@ -7,28 +7,15 @@ namespace Game1.UI
     public abstract class UIRectPanel<TChild> : HUDElement, IEnumerable<TChild>
         where TChild : IHUDElement
     {
-        public class ImmutableParams : IParams
-        {
-            public Color BackgroundColor { get; }
-
-            public ImmutableParams(Color backgroundColor)
-                => BackgroundColor = backgroundColor;
-        }
-
-        public interface IParams : MyRectangle.IParams, IPanelParams
-        {
-            Color Shape.IParams.Color
-                => BackgroundColor;
-        }
-
         public int Count
             => children.Count;
 
         protected readonly List<TChild> children;
 
-        protected UIRectPanel(IParams parameters)
-            : base(shape: new MyRectangle(parameters: parameters), parameters: parameters)
+        protected UIRectPanel(Color color)
+            : base(shape: new MyRectangle())
         {
+            Shape.Color = color;
             children = new();
         }
 

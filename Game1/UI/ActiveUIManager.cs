@@ -6,15 +6,6 @@ namespace Game1.UI
     [Serializable]
     public class ActiveUIManager
     {
-        [Serializable]
-        private readonly record struct ExplanationTextBoxParams(ActiveUIManager ActiveUIManager) : TextBox.IParams
-        {
-            public string? Text => throw new NotImplementedException();
-
-            public Color BackgroundColor
-                => Color.Pink;
-        }
-
         public static readonly UIConfig curUIConfig;
         public static readonly UDouble screenWidth, screenHeight;
         public static MyVector2 MouseHUDPos
@@ -42,7 +33,7 @@ namespace Game1.UI
         private IUIElement? halfClicked, contMouse;
         private readonly TimeSpan minDurationToGetExplanation;
         private TimeSpan hoverDuration;
-        private TextBox? explanationTextBox;
+        private readonly TextBox explanationTextBox;
         private readonly HUDPosSetter HUDPosSetter;
 
         public ActiveUIManager()
@@ -61,8 +52,8 @@ namespace Game1.UI
             HUDPosSetter = new();
             nonHUDElementsToTransform = new();
 
-            // TODO: delete the commented part
-            explanationTextBox = null;//new(color: Color.LightPink);
+            explanationTextBox = new();
+            explanationTextBox.Shape.Color = Color.LightPink;
         }
 
         public void AddNonHUDElement(IUIElement UIElement, IPosTransformer posTransformer)
@@ -142,16 +133,9 @@ namespace Game1.UI
             if (contMouse == prevContMouse)
             {
                 hoverDuration += elapsed;
-                if (contMouse is not null && contMouse.Enabled && hoverDuration >= minDurationToGetExplanation && explanationTextBox is null)
+                if (contMouse is not null && contMouse.Enabled && hoverDuration >= minDurationToGetExplanation && explanationTextBox.Text is null)
                 {
-                    explanationTextBox = new
-                    (
-                        parameters: new TextBox.ImmutableParams
-                        (
-                            text: contMouse.Explanation,
-                            backgroundColor: Color.Pink
-                        )
-                    );
+                    explanationTextBox.Text = contMouse.Explanation;
                     explanationTextBox.Shape.TopLeftCorner = mouseHUDPos;
                     explanationTextBox.Shape.ClampPosition
                     (
@@ -165,7 +149,7 @@ namespace Game1.UI
             else
             {
                 hoverDuration = TimeSpan.Zero;
-                explanationTextBox = null;
+                explanationTextBox.Text = null;
                 if (prevContMouse is not null && prevContMouse.Enabled)
                     prevContMouse.MouseOn = false;
                 if (contMouse is not null && contMouse.Enabled)
@@ -192,7 +176,7 @@ namespace Game1.UI
             HUDCamera.BeginDraw();
             foreach (var UIElement in HUDElements)
                 UIElement.Draw();
-            explanationTextBox?.Draw();
+            explanationTextBox.Draw();
             HUDCamera.EndDraw();
         }
     }

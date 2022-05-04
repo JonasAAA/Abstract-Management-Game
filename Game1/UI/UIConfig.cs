@@ -7,7 +7,6 @@
         public readonly UDouble rectOutlineWidth;
         public readonly UDouble letterHeight;
         public readonly Color mouseOnColor;
-        public readonly Color defaultTextColor;
 
         public UIConfig()
         {
@@ -15,7 +14,6 @@
             rectOutlineWidth = 0;
             letterHeight = 20;
             mouseOnColor = Color.Yellow;
-            defaultTextColor = Color.Black;
         }
     }
 }

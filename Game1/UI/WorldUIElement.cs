@@ -24,8 +24,7 @@ namespace Game1.UI
                     return;
 
                 active = value;
-                // TODO: delete
-                //SetShapeColor();
+                SetShapeColor();
                 if (active)
                     CurWorldManager.AddHUDElement
                     (
@@ -44,28 +43,26 @@ namespace Game1.UI
             } 
         }
 
-        // TODO: delete
-        //protected Color ActiveColor
-        //{
-        //    get => activeColor;
-        //    set
-        //    {
-        //        activeColor = value;
-        //        SetShapeColor();
-        //    }
-        //}
-        //protected Color InactiveColor
-        //{
-        //    get => inactiveColor;
-        //    set
-        //    {
-        //        inactiveColor = value;
-        //        SetShapeColor();
-        //    }
-        //}
+        protected Color ActiveColor
+        {
+            get => activeColor;
+            set
+            {
+                activeColor = value;
+                SetShapeColor();
+            }
+        }
+        protected Color InactiveColor
+        {
+            get => inactiveColor;
+            set
+            {
+                inactiveColor = value;
+                SetShapeColor();
+            }
+        }
 
-        // TODO: delete
-        //private Color activeColor, inactiveColor;
+        private Color activeColor, inactiveColor;
         private readonly HorizPos popupHorizPos;
         private readonly VertPos popupVertPos;
         private readonly Event<IDeletedListener> deleted;
@@ -73,18 +70,16 @@ namespace Game1.UI
 
         private readonly Dictionary<IOverlay, IHUDElement?> popups;
 
-        public WorldUIElement(Shape shape, HorizPos popupHorizPos, VertPos popupVertPos)
+        public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
             : base(shape: shape)
         {
             activeChanged = new();
-            // TODO: delete
-            //this.activeColor = activeColor;
-            //this.inactiveColor = inactiveColor;
+            this.activeColor = activeColor;
+            this.inactiveColor = inactiveColor;
             this.popupHorizPos = popupHorizPos;
             this.popupVertPos = popupVertPos;
             active = false;
-            // TODO: delete
-            //SetShapeColor();
+            SetShapeColor();
             deleted = new();
 
             popups = IOverlay.all.ToDictionary
@@ -113,13 +108,12 @@ namespace Game1.UI
             Active = true;
         }
 
-        // TODO: delete
-        //private void SetShapeColor()
-        //    => shape.Color = Active switch
-        //    {
-        //        true => activeColor,
-        //        false => inactiveColor
-        //    };
+        private void SetShapeColor()
+            => shape.Color = Active switch
+            {
+                true => activeColor,
+                false => inactiveColor
+            };
 
         public virtual void ChoiceChangedResponse(IOverlay prevOverlay)
         {

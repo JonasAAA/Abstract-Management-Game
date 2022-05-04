@@ -8,12 +8,6 @@ namespace Game1.UI
     public class MultipleChoicePanel<TChoice> : HUDElement
         where TChoice : notnull
     {
-        public interface IParams : IPanelParams, MyRectangle.IParams, UIRectHorizPanel<SelectButton>.IParams, UIRectVertPanel<SelectButton>.IParams
-        {
-            sealed Color Shape.IParams.Color
-                => BackgroundColor;
-        }
-
         // it is public to easily add it to knownTypes
         [Serializable]
         public readonly record struct ChoiceEventListener(MultipleChoicePanel<TChoice> MultipleChoicePanel, TChoice ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
@@ -65,21 +59,20 @@ namespace Game1.UI
         private readonly Color selectedColor, deselectedColor;
         private TChoice selectedChoiceLabel;
 
-        public MultipleChoicePanel(IParams parameters, bool horizontal, UDouble choiceWidth, UDouble choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor, IEnumerable<TChoice> choiceLabels)
-            : base(shape: new MyRectangle(parameters: parameters))
+        public MultipleChoicePanel(bool horizontal, UDouble choiceWidth, UDouble choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor, IEnumerable<TChoice> choiceLabels)
+            : base(shape: new MyRectangle())
         {
             choiceChanged = new();
-            // TODO: could use factory pattern here
             choicePanel = horizontal switch
             {
                 true => new UIRectHorizPanel<SelectButton>
                 (
-                    parameters: parameters,
+                    color: backgroundColor,
                     childVertPos: VertPos.Top
                 ),
                 false => new UIRectVertPanel<SelectButton>
                 (
-                    parameters: parameters,
+                    color: backgroundColor,
                     childHorizPos: HorizPos.Left
                 )
             };
@@ -89,6 +82,7 @@ namespace Game1.UI
             this.selectedColor = selectedColor;
             this.deselectedColor = deselectedColor;
 
+            Shape.Color = backgroundColor;
             var choiceLabelsArray = choiceLabels.ToArray();
             if (choiceLabelsArray.Length is 0)
                 throw new ArgumentException($"must provide at least one choice to start with");

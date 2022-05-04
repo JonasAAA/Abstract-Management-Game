@@ -5,36 +5,6 @@ namespace Game1.Shapes
     [Serializable]
     public class MyRectangle : NearRectangle
     {
-        public new class Factory : NearRectangle.Factory
-        {
-            private readonly record struct MyRectangeParams(NearRectangle.IParams Parameters) : IParams
-            {
-                public Color Color
-                    => Parameters.Color;
-            }
-
-            private readonly UDouble width, height;
-
-            public Factory(UDouble width, UDouble height)
-            {
-                this.width = width;
-                this.height = height;
-            }
-
-            public override MyRectangle CreateNearRectangle(NearRectangle.IParams parameters)
-                => new(width: width, height: height, parameters: new MyRectangeParams(Parameters: parameters));
-        }
-
-        public new class ImmutableParams : NearRectangle.ImmutableParams, IParams
-        {
-            public ImmutableParams(Color color)
-                : base(color: color)
-            { }
-        }
-
-        public new interface IParams : NearRectangle.IParams
-        { }
-
         private static class OutlineDrawer
         {
             private static readonly Texture2D pixelTexture;
@@ -69,12 +39,12 @@ namespace Game1.Shapes
         static MyRectangle()
             => pixelTexture = C.LoadTexture(name: "pixel");
 
-        public MyRectangle(IParams parameters)
-            : this(width: 2 * ActiveUIManager.RectOutlineWidth, height: 2 * ActiveUIManager.RectOutlineWidth, parameters: parameters)
+        public MyRectangle()
+            : this(width: 2 * ActiveUIManager.RectOutlineWidth, height: 2 * ActiveUIManager.RectOutlineWidth)
         { }
 
-        public MyRectangle(UDouble width, UDouble height, IParams parameters)
-            : base(width: width, height: height, parameters: parameters)
+        public MyRectangle(UDouble width, UDouble height)
+            : base(width: width, height: height)
         {
             MinWidth = 2 * ActiveUIManager.RectOutlineWidth;
             MinHeight = 2 * ActiveUIManager.RectOutlineWidth;

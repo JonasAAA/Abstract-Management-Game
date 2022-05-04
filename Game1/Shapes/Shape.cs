@@ -3,23 +3,13 @@
     [Serializable]
     public abstract class Shape
     {
-        public interface IParams
-        {
-            public Color Color { get; }
-        }
-
         public bool Transparent
-           => parameters.Color.Transparent();
-        //public abstract Color Color { get; }
-        // TODO: delete
-        //public virtual MyVector2 Center { get; set; }
+           => Color.Transparent();
+        public Color Color { get; set; }
+        public virtual MyVector2 Center { get; set; }
 
-        private readonly IParams parameters;
-
-        protected Shape(IParams parameters)
-            => this.parameters = parameters;
-        // TODO: delete
-            //=> Color = Color.Transparent;
+        protected Shape()
+            => Color = Color.Transparent;
 
         public abstract bool Contains(MyVector2 position);
 
@@ -27,14 +17,14 @@
 
         public void Draw()
         {
-            if (!Transparent)
-                Draw(color: parameters.Color);
+            if (!Color.Transparent())
+                Draw(color: Color);
         }
 
         public void Draw(Color otherColor, Propor otherColorPropor)
         {
-            Color color = Color.Lerp(parameters.Color, otherColor, amount: (float)otherColorPropor);
-            color.A = parameters.Color.A;
+            Color color = Color.Lerp(Color, otherColor, amount: (float)otherColorPropor);
+            color.A = Color.A;
             if (!color.Transparent())
                 Draw(color: color);
         }

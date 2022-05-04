@@ -5,11 +5,8 @@ namespace Game1.UI
     [Serializable]
     public class ToggleButton : OnOffButton
     {
-        public new interface IParams : OnOffButton.IParams
-        { }
-
-        public ToggleButton(NearRectangle.Factory shapeFactory, IParams parameters, bool on)
-            : base(shapeFactory: shapeFactory, parameters: parameters, on: on)
+        public ToggleButton(NearRectangle shape, string text, bool on, Color selectedColor, Color deselectedColor)
+            : base(shape: shape, text: text, on: on, selectedColor: selectedColor, deselectedColor: deselectedColor)
         { }
 
         public override void OnClick()

@@ -72,12 +72,6 @@ namespace Game1
             }
         }
 
-        private readonly record struct BackgroundParams : Shape.IParams
-        {
-            public Color Color
-                => Color.Black;
-        }
-
         public IEnumerable<Planet> Nodes
             => nodes;
 
@@ -123,13 +117,7 @@ namespace Game1
         public WorldUIElement? ActiveWorldElement { get; private set; }
 
         public Graph(IEnumerable<Star> stars, IEnumerable<Planet> nodes, IEnumerable<Link> links)
-            : base
-            (
-                shape: new InfinitePlane
-                (
-                    parameters: new BackgroundParams()
-                )
-            )
+            : base(shape: new InfinitePlane(color: Color.Black))
         {
             this.stars = stars.ToMyHashSet().ToList();
             this.nodes = nodes.ToMyHashSet().ToList();

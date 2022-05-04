@@ -3,11 +3,11 @@
     [Serializable]
     public class IndustryConfig
     {
-        public readonly ReadOnlyCollection<IBuildableFactory> buildableFactories;
+        public readonly ReadOnlyCollection<IBuildableFactory> constrBuildingParams;
 
         public IndustryConfig()
         {
-            buildableFactories = new(list: new IBuildableFactory[]
+            constrBuildingParams = new(list: new IBuildableFactory[]
             {
                 new Construction.Factory
                 (

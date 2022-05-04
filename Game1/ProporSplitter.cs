@@ -130,13 +130,6 @@
             necAdds.Remove(key: key);
         }
 
-        public ulong GetImportance(TKey key)
-        {
-            if (ContainsKey(key: key))
-                return importances[key];
-            return 0;
-        }
-
         public void SetImportance(TKey key, ulong importance)
         {
             if (importance < 0)

@@ -11,44 +11,37 @@ namespace Game1
     [Serializable]
     public class Planet : WorldUIElement, INodeAsLocalEnergyProducer, INodeAsResDestin
     {
-        // TODO: rename to ResDestinArrowDeletedListener
-        // TODO: delete commented out part
         [Serializable]
-        private readonly record struct ResDesinArrowEventListener(Planet Node, ResInd ResInd) : IDeletedListener //, INumberChangedListener
+        private readonly record struct ResDesinArrowEventListener(Planet Node, ResInd ResInd) : IDeletedListener, INumberChangedListener
         {
-            // TODO: delete
-            //public void SyncSplittersWithArrows()
-            //{
-            //    foreach (var resDestinArrow in Node.resDistribArrows[ResInd])
-            //        Node.resSplittersToDestins[ResInd].SetImportance
-            //        (
-            //            key: resDestinArrow.destinationId,
-            //            importance: resDestinArrow.Importance
-            //        );
-            //    int totalImportance = Node.resDistribArrows[ResInd].Sum(resDestinArrow => resDestinArrow.Importance);
-            //    foreach (var resDestinArrow in Node.resDistribArrows[ResInd])
-            //        resDestinArrow.TotalImportance = totalImportance;
-            //}
+            public void SyncSplittersWithArrows()
+            {
+                foreach (var resDestinArrow in Node.resDistribArrows[ResInd])
+                    Node.resSplittersToDestins[ResInd].SetImportance
+                    (
+                        key: resDestinArrow.DestinationId,
+                        importance: (ulong)resDestinArrow.Importance
+                    );
+                int totalImportance = Node.resDistribArrows[ResInd].Sum(resDestinArrow => resDestinArrow.Importance);
+                foreach (var resDestinArrow in Node.resDistribArrows[ResInd])
+                    resDestinArrow.TotalImportance = totalImportance;
+            }
 
             void IDeletedListener.DeletedResponse(IDeletable deletable)
             {
                 if (deletable is ResDestinArrow resDestinArrow)
                 {
-                    
                     Node.resDistribArrows[ResInd].RemoveChild(child: resDestinArrow);
                     CurWorldManager.RemoveResDestinArrow(resInd: ResInd, resDestinArrow: resDestinArrow);
-                    Node.resSplittersToDestins[ResInd].RemoveKey(key: resDestinArrow.destinationId);
-                    // TODO: delete
-                    //resDestinArrow.Importance = 0;
-                    //SyncSplittersWithArrows();
+                    Node.resSplittersToDestins[ResInd].RemoveKey(key: resDestinArrow.DestinationId);
+                    SyncSplittersWithArrows();
                 }
                 else
                     throw new ArgumentException();
             }
 
-            // TODO: delete
-            //void INumberChangedListener.NumberChangedResponse()
-            //    => SyncSplittersWithArrows();
+            void INumberChangedListener.NumberChangedResponse()
+                => SyncSplittersWithArrows();
         }
 
         [Serializable]
@@ -66,167 +59,39 @@ namespace Game1
         }
 
         [Serializable]
-        private record ShapeParams : LateInitializer<Planet>, Disk.IParams
+        private readonly record struct ShapeParams(NodeState State) : Disk.IParams
         {
             public MyVector2 Center
-                => Param.Position;
+                => State.position;
 
             public UDouble Radius
-                => Param.state.Radius;
-
-            public bool Active
-                => Param.Active;
+                => State.Radius;
         }
 
         [Serializable]
-        private record ResDestinArrowParams : ResDestinArrow.IParamsAndState
+        private readonly record struct ResDestinArrowParams(NodeState State, NodeId DestinationId, Color DefaultActiveColor, Color DefaultInactiveColor, HorizPos PopupHorizPos, VertPos PopupVertPos, int MinImportance, int Importance, ResInd ResInd) : ResDestinArrow.IParams
         {
+            public MyVector2 StartPos
+                => State.position;
+
+            public MyVector2 EndPos
+                => CurWorldManager.NodePosition(nodeId: DestinationId);
+
             public UDouble Width
                 => 2 * State.Radius;
 
-            public ulong TotalImportance
-                => planet.totalResDesinArrowImportance;
-
-            public Color IncrAndDecrButtonColor
-                => Color.Blue;
-
-            public Color BackgroundColor
-                => Color.White;
-
-            public ulong MinImportance
-                => 1;
-
-            public ulong Importance
-            {
-                get => planet.resSplittersToDestins[resInd].GetImportance(key: destinationId);
-                set
-                {
-                    planet.totalResDesinArrowImportance -= Importance;
-                    planet.resSplittersToDestins[resInd].SetImportance
-                    (
-                        key: destinationId,
-                        importance: value
-                    );
-                    planet.totalResDesinArrowImportance += Importance;
-                }
-            }
-
-            public Color DefaultActiveColor
-                => Color.Lerp(Color.Yellow, Color.White, .5f);
-
-            public Color DefaultInactiveColor
-                => Color.White * .5f;
-
-            private NodeState State
-                => planet.state;
-
-            private readonly Planet planet;
-            private readonly NodeId destinationId;
-            private readonly ResInd resInd;
-
-            public ResDestinArrowParams(Planet planet, NodeId destinationId, ResInd resInd)
-            {
-                this.planet = planet;
-                this.destinationId = destinationId;
-                this.resInd = resInd;
-                Importance = MinImportance;
-            }
+            public NodeId SourceId
+                => State.nodeId;
         }
 
         [Serializable]
-        private readonly record struct SingleFrameArrowParams(NodeState State, MyVector2 EndPos) : Arrow.IParams
+        private readonly record struct SingleFrameArrowParams(NodeState State, MyVector2 EndPos) : VectorShape.IParams
         {
             public MyVector2 StartPos
                 => State.position;
 
             public UDouble Width
                 => 2 * State.Radius;
-
-            public bool Active
-                => true;
-
-            Color WorldShape.IParams.ActiveColor
-                => Color.White * .25f;
-        }
-
-        [Serializable]
-        private record OnPlanetTextBoxParams(Planet Planet) : TextBox.IParams
-        {
-            public string? Text
-                => CurWorldManager.Overlay.SwitchExpression
-                (
-                    singleResCase: resInd =>
-                    {
-                        string text = "";
-                        if (Planet.IfStore(resInd: resInd))
-                            text += "store\n";
-                        if (State.storedRes[resInd] is not 0 || Planet.targetStoredResAmounts[resInd] is not 0)
-                            text += (State.storedRes[resInd] >= Planet.targetStoredResAmounts[resInd]) switch
-                            {
-                                true => $"have {State.storedRes[resInd] - Planet.targetStoredResAmounts[resInd]} extra resources",
-                                false => $"have {(double)State.storedRes[resInd] / Planet.targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
-                            };
-                        return text;
-                    },
-                    allResCase: () => $"stored total res weight {State.storedRes.TotalWeight()}",
-                    powerCase: () => $"get {Planet.shape.Watts:0.##} W from stars\nof which {Planet.shape.Watts - Planet.remainingLocalWatts:.##} W is used",
-                    peopleCase: () => Planet.unemploymentCenter.GetInfo()
-                ).Trim();
-
-            public Color BackgroundColor
-                => Color.Transparent;
-
-            private NodeState State
-                => Planet.state;
-        }
-
-        [Serializable]
-        private record InfoTextBoxParams(Planet Planet, OnPlanetTextBoxParams OnPlanetTextBoxParams) : TextBox.IParams
-        {
-            public string Text
-                => $"consists of {State.MainResAmount} {State.consistsOfResInd}\nstores {State.storedRes}\ntarget {Planet.targetStoredResAmounts}\n" + OnPlanetTextBoxParams.Text;
-
-            public Color BackgroundColor
-                => Color.Transparent;
-
-            private NodeState State
-                => Planet.state;
-        }
-
-        [Serializable]
-        private record BuildIndustryButtonParams(IBuildableFactory BuildableFactory) : Button.IParams
-        {
-            public string? Text
-                => BuildableFactory.ButtonName;
-
-            public string? Explanation
-                => BuildableFactory.Explanation;
-        }
-
-        [Serializable]
-        private record AddResDestinButtonParams(ResInd ResInd) : Button.IParams
-        {
-            public string? Text
-                => $"add resource {ResInd}\ndestination";
-
-            public string? Explanation
-                => $"This is basically equivalent to placing a recurring order to get {ResInd} to a new destination";
-        }
-
-        [Serializable]
-        private record StoreToggleButtonParams(ResInd ResInd) : ToggleButton.IParams
-        {
-            public string? Explanation
-                => null;
-
-            public string? Text
-                => $"store {ResInd}\nswitch";
-
-            Color OnOffButton.IParams.SelectedColor
-                => Color.White;
-
-            Color OnOffButton.IParams.DeselectedColor
-                => Color.Gray;
         }
 
         public NodeId NodeId
@@ -246,9 +111,8 @@ namespace Game1
         private ResAmounts undecidedResAmounts, resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
         private UDouble remainingLocalWatts;
-        private ulong totalResDesinArrowImportance;
 
-        private readonly TextBox onPlanetTextBox;
+        private readonly TextBox textBox;
         private readonly MyArray<ToggleButton> storeToggleButtons;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
         private readonly UIRectPanel<IHUDElement> infoPanel, buildButtonPannel;
@@ -257,15 +121,16 @@ namespace Game1
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
-        public Planet(NodeState state, int startPersonCount = 0)
+        public Planet(NodeState state, Color activeColor, Color inactiveColor, int startPersonCount = 0)
             : base
             (
-                shape: new LightCatchingDisk(parameters: new ShapeParams()),
+                shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
+                activeColor: activeColor,
+                inactiveColor: inactiveColor,
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top
             )
         {
-            ShapeParams.InitializeLast(param: this);
             this.state = state;
             shape = (LightCatchingDisk)base.shape;
             
@@ -288,16 +153,19 @@ namespace Game1
                 state.waitingPeople.Add(person);
             }
 
-            OnPlanetTextBoxParams onPlanetTextBoxParams = new(Planet: this);
-            onPlanetTextBox = new(parameters: onPlanetTextBoxParams);
-            onPlanetTextBox.Shape.Center = Position;
-            AddChild(child: onPlanetTextBox);
+            textBox = new()
+            {
+                Text = "",
+                TextColor = Color.White
+            };
+            textBox.Shape.Center = Position;
+            AddChild(child: textBox);
 
             List<(string tabLabelText, IHUDElement tab)> UITabs = new();
 
             infoPanel = new UIRectVertPanel<IHUDElement>
             (
-                parameters: new UIRectVertPanel<IHUDElement>.ImmutableParams(backgroundColor: Color.White),
+                color: Color.White,
                 childHorizPos: HorizPos.Left
             );
             UITabs.Add
@@ -305,19 +173,12 @@ namespace Game1
                 tabLabelText: "info",
                 tab: infoPanel
             ));
-            infoTextBox = new
-            (
-                parameters: new InfoTextBoxParams
-                (
-                    Planet: this,
-                    OnPlanetTextBoxParams: onPlanetTextBoxParams
-                )
-            );
+            infoTextBox = new();
             infoPanel.AddChild(child: infoTextBox);
 
             buildButtonPannel = new UIRectVertPanel<IHUDElement>
             (
-                parameters: new UIRectVertPanel<IHUDElement>.ImmutableParams(backgroundColor: Color.White),
+                color: Color.White,
                 childHorizPos: HorizPos.Left
             );
             UITabs.Add
@@ -325,24 +186,27 @@ namespace Game1
                 tabLabelText: "build",
                 tab: buildButtonPannel
             ));
-            foreach (var buildableFactory in CurIndustryConfig.buildableFactories)
+            foreach (var buildableParams in CurIndustryConfig.constrBuildingParams)
             {
                 Button buildIndustryButton = new
                 (
                     shape: new Ellipse
                     (
                         width: 200,
-                        height: 20,
-                        parameters: new Ellipse.ImmutableParams(color: Color.White)
-                    ),
-                    parameters: new BuildIndustryButtonParams(BuildableFactory: buildableFactory)
+                        height: 20
+                    )
+                    {
+                        Color = Color.White
+                    },
+                    explanation: buildableParams.Explanation,
+                    text: buildableParams.ButtonName
                 );
                 buildIndustryButton.clicked.Add
                 (
                     listener: new BuildIndustryButtonClickedListener
                     (
                         Node: this,
-                        BuildableParams: buildableFactory
+                        BuildableParams: buildableParams
                     )
                 );
 
@@ -355,7 +219,7 @@ namespace Game1
             foreach (var overlay in IOverlay.all)
                 overlayTabPanels[overlay] = new UIRectVertPanel<IHUDElement>
                 (
-                    new UIRectVertPanel<IHUDElement>.ImmutableParams(backgroundColor: Color.White),
+                    color: Color.White,
                     childHorizPos: HorizPos.Left
                 );
             storeToggleButtons = new();
@@ -363,24 +227,26 @@ namespace Game1
             {
                 storeToggleButtons[resInd] = new ToggleButton
                 (
-                    shapeFactory: new MyRectangle.Factory(),
-                    width: 60,
-                    height: 60,
-                    parameters: new StoreToggleButtonParams(ResInd: resInd),
-                    on: false
+                    shape: new MyRectangle
+                    (
+                        width: 60,
+                        height: 60
+                    ),
+                    text: "store\nswitch",
+                    on: false,
+                    selectedColor: Color.White,
+                    deselectedColor: Color.Gray
                 );
 
                 overlayTabPanels[resInd].AddChild(child: storeToggleButtons[resInd]);
 
                 Button addResourceDestinationButton = new
                 (
-                    shape: new MyRectangle
-                    (
-                        width: 150,
-                        height: 50,
-                        parameters: new MyRectangle.ImmutableParams(color: Color.White)
-                    ),
-                    parameters: new AddResDestinButtonParams(ResInd: resInd)
+                    shape: new MyRectangle(width: 150, height: 50)
+                    {
+                        Color = Color.White
+                    },
+                    text: $"add resource {resInd}\ndestination"
                 );
                 addResourceDestinationButton.clicked.Add(listener: new AddResourceDestinationButtonClickedListener());
 
@@ -475,28 +341,26 @@ namespace Game1
 
             ResDestinArrow resDestinArrow = new
             (
-                paramsAndState: new ResDestinArrowParams
+                parameters: new ResDestinArrowParams
                 (
-                    planet: this,
-                    destinationId: destinationId,
-                    resInd: resInd
-                ),
-                sourceId: NodeId,
-                destinationId: destinationId,
-                resInd: resInd,
-                popupHorizPos: HorizPos.Right,
-                popupVertPos: VertPos.Top
+                    State: state,
+                    DestinationId: destinationId,
+                    DefaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
+                    DefaultInactiveColor: Color.White * .5f,
+                    PopupHorizPos: HorizPos.Right,
+                    PopupVertPos: VertPos.Top,
+                    MinImportance: 1,
+                    Importance: 1,
+                    ResInd: resInd
+                )
             );
-            // TODO: delete
-            //ResDesinArrowEventListener resDesinArrowEventListener = new(Node: this, ResInd: resInd);
-            //resDestinArrow.ImportanceNumberChanged.Add(listener: resDesinArrowEventListener);
-            //resDestinArrow.Deleted.Add(listener: resDesinArrowEventListener);
-            resDestinArrow.Deleted.Add(listener: new ResDesinArrowEventListener(Node: this, ResInd: resInd));
+            ResDesinArrowEventListener resDesinArrowEventListener = new(Node: this, ResInd: resInd);
+            resDestinArrow.ImportanceNumberChanged.Add(listener: resDesinArrowEventListener);
+            resDestinArrow.Deleted.Add(listener: resDesinArrowEventListener);
 
             resDistribArrows[resInd].AddChild(child: resDestinArrow);
             CurWorldManager.AddResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
-            // TODO: delete
-            //resDesinArrowEventListener.SyncSplittersWithArrows();
+            resDesinArrowEventListener.SyncSplittersWithArrows();
         }
 
         private void SetIndustry(Industry? newIndustry)
@@ -538,8 +402,6 @@ namespace Game1
                     personFirstLinks[(NodeId, activityCenterPosition)]!.Add(start: this, person: person);
                 state.waitingPeople.Remove(person);
             }
-
-            onPlanetTextBox.Shape.Center = Position;
         }
 
         public void UpdatePeople()
@@ -612,38 +474,37 @@ namespace Game1
                 resFirstLinks[(NodeId, destinationId)]!.Add(start: this, resAmountsPacket: resAmountsPacket);
             }
 
-            // TODO: delete
-            //// TODO: look at this
-            //infoTextBox.Text = $"consists of {state.MainResAmount} {state.consistsOfResInd}\nstores {state.storedRes}\ntarget {targetStoredResAmounts}\n";
+            // TODO: look at this
+            infoTextBox.Text = $"consists of {state.MainResAmount} {state.consistsOfResInd}\nstores {state.storedRes}\ntarget {targetStoredResAmounts}\n";
 
-            ////update text
-            //onPlanetTextBox.Text = "";
+            // update text
+            textBox.Text = "";
 
-            //CurWorldManager.Overlay.SwitchStatement
-            //(
-            //    singleResCase: resInd =>
-            //    {
-            //        if (IfStore(resInd: resInd))
-            //            onPlanetTextBox.Text += "store\n";
-            //        if (state.storedRes[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
-            //            onPlanetTextBox.Text += (state.storedRes[resInd] >= targetStoredResAmounts[resInd]) switch
-            //            {
-            //                true => $"have {state.storedRes[resInd] - targetStoredResAmounts[resInd]} extra resources",
-            //                false => $"have {(double)state.storedRes[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
-            //            };
-            //    },
-            //    allResCase: () =>
-            //    {
-            //        ulong totalStoredWeight = state.storedRes.TotalWeight();
-            //        if (totalStoredWeight > 0)
-            //            onPlanetTextBox.Text += $"stored total res weight {totalStoredWeight}";
-            //    },
-            //    powerCase: () => onPlanetTextBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {shape.Watts - remainingLocalWatts:.##} W is used",
-            //    peopleCase: () => onPlanetTextBox.Text += unemploymentCenter.GetInfo()
-            //);
+            CurWorldManager.Overlay.SwitchStatement
+            (
+                singleResCase: resInd =>
+                {
+                    if (IfStore(resInd: resInd))
+                        textBox.Text += "store\n";
+                    if (state.storedRes[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
+                        textBox.Text += (state.storedRes[resInd] >= targetStoredResAmounts[resInd]) switch
+                        {
+                            true => $"have {state.storedRes[resInd] - targetStoredResAmounts[resInd]} extra resources",
+                            false => $"have {(double)state.storedRes[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
+                        };
+                },
+                allResCase: () =>
+                {
+                    ulong totalStoredWeight = state.storedRes.TotalWeight();
+                    if (totalStoredWeight > 0)
+                        textBox.Text += $"stored total res weight {totalStoredWeight}";
+                },
+                powerCase: () => textBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {shape.Watts - remainingLocalWatts:.##} W is used",
+                peopleCase: () => textBox.Text += unemploymentCenter.GetInfo()
+            );
 
-            //onPlanetTextBox.Text = onPlanetTextBox.Text.Trim();
-            //infoTextBox.Text += onPlanetTextBox.Text;
+            textBox.Text = textBox.Text.Trim();
+            infoTextBox.Text += textBox.Text;
         }
 
         public override void Draw()
@@ -659,7 +520,10 @@ namespace Game1
                         State: state,
                         EndPos: CurWorldManager.MouseWorldPos
                     )
-                ).Draw();
+                )
+                {
+                    Color = Color.White * .25f
+                }.Draw();
         }
         
         public void SetRemainingLocalWatts(UDouble remainingLocalWatts)

@@ -3,9 +3,6 @@
     [Serializable]
     public class LineSegment : VectorShape
     {
-        public new interface IParams : VectorShape.IParams
-        { }
-
         private static readonly Texture2D pixelTexture;
 
         static LineSegment()

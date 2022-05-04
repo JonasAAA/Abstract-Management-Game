@@ -14,6 +14,8 @@ namespace Game1.UI
 
         public bool CanBeClicked { get; }
 
+        public string Explanation { get; }
+
         public Event<IEnabledChangedListener> EnabledChanged { get; }
 
         public bool Contains(MyVector2 position);

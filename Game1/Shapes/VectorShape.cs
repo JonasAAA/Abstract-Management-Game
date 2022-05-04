@@ -10,12 +10,6 @@
             public UDouble Width { get; }
         }
 
-        public MyVector2 StartPos
-            => parameters.StartPos;
-
-        public MyVector2 EndPos
-            => parameters.EndPos;
-
         protected abstract Texture2D Texture { get; }
 
         protected readonly IParams parameters;

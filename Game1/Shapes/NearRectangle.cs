@@ -12,14 +12,14 @@ namespace Game1.Shapes
         //}
         public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; }
 
-        public override MyVector2 Center
+        public MyVector2 Center
         {
-            get => base.Center;
+            get => center;
             set
             {
-                if (!MyMathHelper.IsTiny(value: MyVector2.Distance(base.Center, value)))
+                if (!MyMathHelper.IsTiny(value: MyVector2.Distance(center, value)))
                 {
-                    base.Center = value;
+                    center = value;
                     RaiseSizeOrPosChanged();
                 }
             }
@@ -81,7 +81,7 @@ namespace Game1.Shapes
                 vertOrigin: VertPos.Bottom
             );
         }
-        public virtual UDouble Width
+        public UDouble Width
         {
             get => width;
             set
@@ -94,7 +94,7 @@ namespace Game1.Shapes
                 }
             }
         }
-        public virtual UDouble Height
+        public UDouble Height
         {
             get => height;
             set
@@ -128,6 +128,7 @@ namespace Game1.Shapes
             }
         }
 
+        private MyVector2 center;
         private UDouble width, height, minWidth, minHeight;
 
         protected NearRectangle(UDouble width, UDouble height)

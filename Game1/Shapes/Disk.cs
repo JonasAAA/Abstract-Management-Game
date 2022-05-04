@@ -15,12 +15,8 @@
         static Disk()
             => diskTexture = C.LoadTexture(name: "big disk");
 
-        public override MyVector2 Center
-        {
-            get => parameters.Center;
-            // TODO: get rid of this hack
-            set => throw new InvalidOperationException();
-        }
+        public MyVector2 Center
+            => parameters.Center;
 
         protected readonly IParams parameters;
 

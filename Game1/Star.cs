@@ -9,19 +9,32 @@ namespace Game1
     [Serializable]
     public class Star : WorldUIElement, ILightSource
     {
-        private readonly StarId starId;
-        private readonly UDouble prodWatts;
-        private readonly LightPolygon polygon;
+        [Serializable]
+        private readonly record struct ShapeParams(StarState State) : Disk.IParams
+        {
+            public MyVector2 Center
+                => State.position;
 
+            public UDouble Radius
+                => State.radius;
+        }
+
+        private readonly StarState state;
+        private readonly LightPolygon polygon;
         private readonly TextBox popupTextBox;
 
-        public Star(UDouble radius, MyVector2 center, UDouble prodWatts, Color color)
-            : base(shape: new Ellipse(width: 2 * radius, height: 2 * radius), activeColor: Color.AntiqueWhite, inactiveColor: Color.White, popupHorizPos: HorizPos.Right, popupVertPos: VertPos.Top)
+        public Star(StarState state, Color color)
+            : base
+            (
+                shape: new Disk(parameters: new ShapeParams(State: state)),
+                activeColor: Color.AntiqueWhite,
+                inactiveColor: Color.White,
+                popupHorizPos: HorizPos.Right,
+                popupVertPos: VertPos.Top
+            )
         {
-            starId = StarId.Create();
-            shape.Center = center;
-            this.prodWatts = prodWatts;
-            polygon = new LightPolygon(strength: radius / CurWorldConfig.standardStarRadius, color: color);
+            this.state = state;
+            polygon = new LightPolygon(strength: state.radius / CurWorldConfig.standardStarRadius, color: color);
 
             popupTextBox = new();
             popupTextBox.Shape.Color = Color.White;
@@ -42,7 +55,7 @@ namespace Game1
         {
             List<double> angles = new();
             foreach (var lightCatchingObject in lightCatchingObjects)
-                angles.AddRange(lightCatchingObject.RelAngles(lightPos: shape.Center));
+                angles.AddRange(lightCatchingObject.RelAngles(lightPos: state.position));
 
             const double small = .0001;
             int oldAngleCount = angles.Count;
@@ -74,7 +87,7 @@ namespace Game1
                 ILightCatchingObject? rayCatchingObject = null;
                 foreach (var lightCatchingObject in lightCatchingObjects)
                 {
-                    var dists = lightCatchingObject.InterPoints(lightPos: shape.Center, lightDir: rayDir);
+                    var dists = lightCatchingObject.InterPoints(lightPos: state.position, lightDir: rayDir);
                     foreach (var dist in dists)
                         if (UDouble.Create(value: dist) is UDouble nonnegDist && nonnegDist < minDist)
                         {
@@ -83,12 +96,12 @@ namespace Game1
                         }
                 }
                 rayCatchingObjects.Add(rayCatchingObject);
-                vertices.Add(shape.Center + minDist * rayDir);
+                vertices.Add(state.position + minDist * rayDir);
             }
 
             Debug.Assert(rayCatchingObjects.Count == angles.Count && vertices.Count == angles.Count);
 
-            polygon.Update(center: shape.Center, vertices: vertices);
+            polygon.Update(center: state.position, vertices: vertices);
 
             Dictionary<ILightCatchingObject, UDouble> arcsForObjects = lightCatchingObjects.ToDictionary
             (
@@ -111,15 +124,15 @@ namespace Game1
                 }
             }
 
-            popupTextBox.Text = $"generates {prodWatts} power\n{usedArc / (2 * MyMathHelper.pi) * 100:0.}% of it is used";
+            popupTextBox.Text = $"generates {state.prodWatts} power\n{usedArc / (2 * MyMathHelper.pi) * 100:0.}% of it is used";
 
             foreach (var lightCatchingObject in lightCatchingObjects)
             {
                 Propor powerPropor = Propor.Create(part: arcsForObjects[lightCatchingObject], whole: 2 * MyMathHelper.pi)!.Value;
                 lightCatchingObject.SetWatts
                 (
-                    starPos: starId,
-                    watts: powerPropor * prodWatts,
+                    starPos: state.starId,
+                    watts: powerPropor * state.prodWatts,
                     powerPropor: powerPropor
                 );
             }

@@ -385,7 +385,7 @@ namespace Game1
             // temporary
             // state.SetRadius((double)C.Random(0.99, 1.01) * state.radius.Value);
             // temporary
-            // state.position += new MyVector2(x: C.Random(min: -1.0, max: 1), y: C.Random(min: -1.0, max: 1));
+            //state.position += new MyVector2(x: C.Random(min: -1.0, max: 1), y: C.Random(min: -1.0, max: 1));
 
             if (industry is not null)
                 SetIndustry(newIndustry: industry.Update());
@@ -402,6 +402,8 @@ namespace Game1
                     personFirstLinks[(NodeId, activityCenterPosition)]!.Add(start: this, person: person);
                 state.waitingPeople.Remove(person);
             }
+
+            textBox.Shape.Center = state.position;
         }
 
         public void UpdatePeople()

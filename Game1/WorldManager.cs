@@ -80,23 +80,35 @@ namespace Game1
                 {
                     new
                     (
-                        radius: 20,
-                        center: new MyVector2(0, -300),
-                        prodWatts: 200,
+                        state: new
+                        (
+                            starId: StarId.Create(),
+                            position: new MyVector2(0, -300),
+                            radius: 20,
+                            prodWatts: 200
+                        ),
                         color: Color.Lerp(Color.White, Color.Red, .3f)
                     ),
                     new
                     (
-                        radius: 10,
-                        center: new MyVector2(200, 300),
-                        prodWatts: 100,
+                        state: new
+                        (
+                            starId: StarId.Create(),
+                            position: new MyVector2(200, 300),
+                            radius: 10,
+                            prodWatts: 100
+                        ),
                         color: Color.Lerp(Color.White, Color.Blue, .3f)
                     ),
                     new
                     (
-                        radius: 40,
-                        center: new MyVector2(-200, 100),
-                        prodWatts: 400,
+                        state: new
+                        (
+                            starId: StarId.Create(),
+                            position: new MyVector2(-200, 100),
+                            radius: 40,
+                            prodWatts: 400
+                        ),
                         color: Color.Lerp(Color.White, new Color(0f, 1f, 0f), .3f)
                     ),
                 };

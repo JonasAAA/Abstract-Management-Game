@@ -6,7 +6,6 @@
         public bool Transparent
            => Color.Transparent();
         public Color Color { get; set; }
-        public virtual MyVector2 Center { get; set; }
 
         protected Shape()
             => Color = Color.Transparent;

@@ -7,8 +7,6 @@ namespace Game1.UI
     public class UIElement<TChild> : IUIElement
         where TChild : IUIElement
     {
-        protected const string defaultExplanation = "Explanation missing!";
-
         public Event<IEnabledChangedListener> EnabledChanged { get; }
 
         public bool Enabled
@@ -59,8 +57,6 @@ namespace Game1.UI
         public virtual bool CanBeClicked
             => false;
 
-        public string Explanation { get; }
-
         protected readonly Shape shape;
         
         private bool personallyEnabled, hasDisabledAncestor, mouseOn;
@@ -68,11 +64,10 @@ namespace Game1.UI
         private readonly SortedDictionary<ulong, List<TChild>> layerToChildren;
         private readonly Dictionary<TChild, ulong> childToLayer;
 
-        public UIElement(Shape shape, string explanation = defaultExplanation)
+        public UIElement(Shape shape)
         {
             EnabledChanged = new();
             this.shape = shape;
-            Explanation = explanation;
             personallyEnabled = true;
             MouseOn = false;
             hasDisabledAncestor = false;

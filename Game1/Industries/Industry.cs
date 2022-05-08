@@ -12,31 +12,51 @@ namespace Game1.Industries
         public abstract class Factory
         {
             public readonly string name;
-            public readonly string explanation;
 
-            protected Factory(string name, string explanation)
-            {
-                this.name = name;
-                this.explanation = explanation;
-            }
+            protected Factory(string name)
+                => this.name = name;
 
             public abstract Industry CreateIndustry(NodeState state);
+
+            public abstract Params CreateParams(NodeState state);
+
+            protected ITooltip Tooltip(NodeState state)
+                => (CreateParams(state: state) as IWithTooltip).Tooltip;
         }
 
         [Serializable]
-        public abstract class Params
+        public abstract class Params: IWithTooltip
         {
+            [Serializable]
+            private class TextTooltip : TextTooltipBase
+            {
+                protected override string Text
+                    => parameters.TooltipText;
+
+                private readonly Params parameters;
+
+                public TextTooltip(Params parameters)
+                    => this.parameters = parameters;
+            }
+
             public readonly NodeState state;
             public readonly string name;
-            public readonly string explanation;
+
+            private readonly ITooltip tooltip;
+
+            public virtual string TooltipText
+                => $"{nameof(name)}: {name}\n";
 
             public Params(NodeState state, Factory factory)
             {
                 this.state = state;
 
                 name = factory.name;
-                explanation = factory.explanation;
+                tooltip = new TextTooltip(parameters: this);
             }
+
+            ITooltip IWithTooltip.Tooltip
+                => tooltip;
         }
 
         [Serializable]
@@ -82,7 +102,7 @@ namespace Game1.Industries
                 {
                     Color = Color.Red
                 },
-                explanation: "deletes this industry",
+                tooltip: new ImmutableTextTooltip(text: "Delete this industry"),
                 text: "delete"
             );
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(Industry: this));

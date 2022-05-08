@@ -1,4 +1,6 @@
-﻿namespace Game1.Industries
+﻿using Game1.UI;
+
+namespace Game1.Industries
 {
     [Serializable]
     public sealed class Mining : Production
@@ -16,21 +18,23 @@
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface,
                     reqWattsPerUnitSurface: reqWattsPerUnitSurface,
-                    prodDuration: miningDuration,
-                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(minedResPerUnitSurface)} {minedResPerUnitSurface}\n{nameof(miningDuration)} {miningDuration}"
+                    prodDuration: miningDuration
                 )
             {
                 this.minedResPerUnitSurface = minedResPerUnitSurface;
             }
 
             public override Mining CreateIndustry(NodeState state)
-                => new(parameters: new(state: state, factory: this));
+                => new(parameters: CreateParams(state: state));
+
+            public override Params CreateParams(NodeState state)
+                => new(state: state, factory: this);
 
             string IBuildableFactory.ButtonName
                 => name;
 
-            string IBuildableFactory.Explanation
-                => explanation;
+            ITooltip IBuildableFactory.CreateTooltip(NodeState state)
+                => Tooltip(state: state);
         }
 
         [Serializable]
@@ -45,6 +49,9 @@
                 {
                     [state.consistsOfResInd] = factory.minedResPerUnitSurface
                 };
+
+            public override string TooltipText
+                => base.TooltipText + $"{nameof(MinedRes)}: {MinedRes}";
 
             private readonly Factory factory;
 

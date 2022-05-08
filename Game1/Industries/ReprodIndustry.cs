@@ -19,8 +19,7 @@ namespace Game1.Industries
                     industryType: IndustryType.Reproduction,
                     name: name,
                     energyPriority: energyPriority,
-                    reqSkillPerUnitSurface: reqSkillPerUnitSurface,
-                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(reqWattsPerChild)} {reqWattsPerChild}\n{nameof(maxCouplesPerUnitSurface)} {maxCouplesPerUnitSurface}\n{nameof(resPerChild)} {resPerChild}\n{nameof(birthDuration)} {birthDuration.TotalSeconds:0.#} s"
+                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
             {
                 this.reqWattsPerChild = reqWattsPerChild;
@@ -30,7 +29,10 @@ namespace Game1.Industries
             }
 
             public override ReprodIndustry CreateIndustry(NodeState state)
-                => new(parameters: new(state: state, factory: this));
+                => new(parameters: CreateParams(state: state));
+
+            public override Params CreateParams(NodeState state)
+                => new(state: state, factory: this);
         }
 
         [Serializable]
@@ -41,6 +43,9 @@ namespace Game1.Industries
                 => state.ApproxSurfaceLength * factory.maxCouplesPerUnitSurface;
             public readonly ResAmounts resPerChild;
             public readonly TimeSpan birthDuration;
+
+            public override string TooltipText
+                => base.TooltipText + $"{nameof(reqWattsPerChild)}: {reqWattsPerChild}\n{nameof(MaxCouples)}: {MaxCouples}\n{nameof(resPerChild)}: {resPerChild}\n{nameof(birthDuration)}: {birthDuration}";
 
             private readonly Factory factory;
 

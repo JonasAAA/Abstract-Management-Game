@@ -5,12 +5,12 @@ using System.Diagnostics.CodeAnalysis;
 namespace Game1.UI
 {
     [Serializable]
-    public class MultipleChoicePanel<TChoice> : HUDElement
-        where TChoice : notnull
+    public class MultipleChoicePanel<TChoiceLabel> : HUDElement
+        where TChoiceLabel : notnull
     {
         // it is public to easily add it to knownTypes
         [Serializable]
-        public readonly record struct ChoiceEventListener(MultipleChoicePanel<TChoice> MultipleChoicePanel, TChoice ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
+        public readonly record struct ChoiceEventListener(MultipleChoicePanel<TChoiceLabel> MultipleChoicePanel, TChoiceLabel ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
         {
             void IEnabledChangedListener.EnabledChangedResponse()
             {
@@ -38,9 +38,9 @@ namespace Game1.UI
             }
         }
 
-        public readonly Event<IChoiceChangedListener<TChoice>> choiceChanged;
+        public readonly Event<IChoiceChangedListener<TChoiceLabel>> choiceChanged;
 
-        public TChoice SelectedChoiceLabel
+        public TChoiceLabel SelectedChoiceLabel
         {
             get => selectedChoiceLabel;
             [MemberNotNull(nameof(selectedChoiceLabel))]
@@ -54,12 +54,12 @@ namespace Game1.UI
         }
 
         private readonly UIRectPanel<SelectButton> choicePanel;
-        private readonly Dictionary<TChoice, SelectButton> choices;
+        private readonly Dictionary<TChoiceLabel, SelectButton> choices;
         private readonly UDouble choiceWidth, choiceHeight;
         private readonly Color selectedColor, deselectedColor;
-        private TChoice selectedChoiceLabel;
+        private TChoiceLabel selectedChoiceLabel;
 
-        public MultipleChoicePanel(bool horizontal, UDouble choiceWidth, UDouble choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor, IEnumerable<TChoice> choiceLabels)
+        public MultipleChoicePanel(bool horizontal, UDouble choiceWidth, UDouble choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor, IEnumerable<(TChoiceLabel label, ITooltip tooltip)> choiceLabelsAndTooltips)
             : base(shape: new MyRectangle())
         {
             choiceChanged = new();
@@ -83,14 +83,14 @@ namespace Game1.UI
             this.deselectedColor = deselectedColor;
 
             Shape.Color = backgroundColor;
-            var choiceLabelsArray = choiceLabels.ToArray();
-            if (choiceLabelsArray.Length is 0)
+            var choiceLabelsAndTooltipsArray = choiceLabelsAndTooltips.ToArray();
+            if (choiceLabelsAndTooltipsArray.Length is 0)
                 throw new ArgumentException($"must provide at least one choice to start with");
             choices = new();
-            foreach (var choiceLabel in choiceLabelsArray)
-                AddChoice(choiceLabel: choiceLabel);
+            foreach (var (choiceLabel, choiceTooltip) in choiceLabelsAndTooltipsArray)
+                AddChoice(choiceLabel: choiceLabel, choiceTooltip: choiceTooltip);
 
-            SelectedChoiceLabel = choiceLabelsArray[0];
+            SelectedChoiceLabel = choiceLabelsAndTooltipsArray[0].label;
 
             AddChild(child: choicePanel);
         }
@@ -104,7 +104,7 @@ namespace Game1.UI
             choicePanel.Shape.Center = Shape.Center;
         }
 
-        public void AddChoice(TChoice choiceLabel)
+        public void AddChoice(TChoiceLabel choiceLabel, ITooltip choiceTooltip)
         {
             if (choices.ContainsKey(choiceLabel))
                 throw new ArgumentException();
@@ -117,6 +117,7 @@ namespace Game1.UI
                     height: choiceHeight
                 ),
                 on: choicePanel.Count is 0,
+                tooltip: choiceTooltip,
                 text: choiceLabel.ToString() ?? throw new Exception("The label text must be not null"),
                 selectedColor: selectedColor,
                 deselectedColor: deselectedColor
@@ -134,7 +135,7 @@ namespace Game1.UI
             choicePanel.AddChild(child: choice);
         }
 
-        public void SetChoicePersonallyEnabled(TChoice choiceLabel, bool newPersonallyEnabled)
+        public void SetChoicePersonallyEnabled(TChoiceLabel choiceLabel, bool newPersonallyEnabled)
             => choices[choiceLabel].PersonallyEnabled = newPersonallyEnabled;
     }
 }

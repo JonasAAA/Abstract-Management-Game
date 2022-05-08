@@ -11,14 +11,13 @@ namespace Game1.Industries
             public readonly UDouble reqWattsPerUnitSurface;
             public readonly TimeSpan prodDuration;
 
-            public Factory(IndustryType industryType, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, TimeSpan prodDuration, string explanation)
+            public Factory(IndustryType industryType, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, TimeSpan prodDuration)
                 : base
                 (
                     industryType: industryType,
                     name: name,
                     energyPriority: energyPriority,
-                    reqSkillPerUnitSurface: reqSkillPerUnitSurface,
-                    explanation: explanation
+                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
             {
                 if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
@@ -42,6 +41,9 @@ namespace Game1.Industries
             public readonly TimeSpan prodDuration;
 
             protected abstract ResAmounts SupplyPerUnitSurface { get; }
+
+            public override string TooltipText
+                => base.TooltipText + $"{nameof(ReqWatts)}: {ReqWatts}\n{nameof(Supply)}: {Supply}\n{nameof(prodDuration)}: {prodDuration}\n";
 
             private readonly Factory factory;
 

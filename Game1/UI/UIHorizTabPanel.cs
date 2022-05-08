@@ -24,15 +24,16 @@ namespace Game1.UI
         private TTab ActiveTab
             => tabs[tabChoicePanel.SelectedChoiceLabel];
 
-        public UIHorizTabPanel(UDouble tabLabelWidth, UDouble tabLabelHeight, Color color, Color inactiveTabLabelColor, IEnumerable<(string tabLabelText, TTab tab)> tabs)
+        public UIHorizTabPanel(UDouble tabLabelWidth, UDouble tabLabelHeight, Color color, Color inactiveTabLabelColor, IEnumerable<(string tabLabelText, ITooltip tabTooltip, TTab tab)> tabs)
             : base(shape: new MyRectangle())
         {
             Shape.Color = color;
 
             this.tabs = new();
+            var tabArray = tabs.ToArray();
             tabEnabledChangedListeners = new();
-            foreach ((string tabLabelText, TTab tab) in tabs)
-                AddTab(tabLabelText: tabLabelText, tab: tab);
+            foreach (var (tabLabelText, tabTooltip, tab) in tabArray)
+                AddTab(tabLabelText: tabLabelText, tabTooltip: tabTooltip, tab: tab);
 
             tabChoicePanel = new
             (
@@ -42,7 +43,8 @@ namespace Game1.UI
                 selectedColor: color,
                 deselectedColor: inactiveTabLabelColor,
                 backgroundColor: inactiveTabLabelColor,
-                choiceLabels: this.tabs.Keys
+                choiceLabelsAndTooltips: from tab in tabArray
+                                         select (label: tab.tabLabelText, tooltip: tab.tabTooltip)
             );
 
             // This must be before adding tabs as children because otherwise tabChoicePanel choices are personally disabled for whatever reason
@@ -83,7 +85,7 @@ namespace Game1.UI
                 tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new MyVector2(ActiveUIManager.RectOutlineWidth) + new MyVector2(0, tabChoicePanel.Shape.Height);
         }
 
-        private void AddTab(string tabLabelText, TTab tab)
+        private void AddTab(string tabLabelText, ITooltip tabTooltip, TTab tab)
         {
             tabs.Add(tabLabelText, tab);
 
@@ -93,7 +95,7 @@ namespace Game1.UI
 
             if (tabChoicePanel is not null)
             {
-                tabChoicePanel.AddChoice(choiceLabel: tabLabelText);
+                tabChoicePanel.AddChoice(choiceLabel: tabLabelText, choiceTooltip: tabTooltip);
                 AddChild(child: tab);
             }
         }

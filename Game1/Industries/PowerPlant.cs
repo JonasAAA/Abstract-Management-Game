@@ -16,8 +16,7 @@ namespace Game1.Industries
                     industryType: IndustryType.PowerPlant,
                     energyPriority: EnergyPriority.minimal,
                     name: name,
-                    reqSkillPerUnitSurface: reqSkillPerUnitSurface,
-                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(prodWattsPerUnitSurface)} {prodWattsPerUnitSurface}"
+                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
             {
                 if (prodWattsPerUnitSurface.IsCloseTo(other: 0))
@@ -26,7 +25,10 @@ namespace Game1.Industries
             }
 
             public override PowerPlant CreateIndustry(NodeState state)
-                => new(parameters: new(state: state, factory: this));
+                => new(parameters: CreateParams(state: state));
+
+            public override Params CreateParams(NodeState state)
+                => new(state: state, factory: this);
         }
 
         [Serializable]
@@ -36,6 +38,9 @@ namespace Game1.Industries
                 => state.ApproxSurfaceLength * factory.prodWattsPerUnitSurface;
 
             private readonly Factory factory;
+
+            public override string TooltipText
+                => base.TooltipText + $"{nameof(ProdWatts)}: {ProdWatts}\n";
 
             public Params(NodeState state, Factory factory)
                 : base(state: state, factory: factory)

@@ -1,4 +1,5 @@
-﻿using static Game1.WorldManager;
+﻿using Game1.UI;
+using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -19,8 +20,7 @@ namespace Game1.Industries
                     industryType: IndustryType.Construction,
                     name: name,
                     energyPriority: energyPriority,
-                    reqSkillPerUnitSurface: reqSkillPerUnitSurface,
-                    explanation: $"construction stats:\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(duration)} {duration.TotalSeconds:0.}s\n{nameof(costPerUnitSurface)} {costPerUnitSurface}\n\nbuilding stats:\n{industryFactory.explanation}"
+                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
             {
                 if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
@@ -34,13 +34,16 @@ namespace Game1.Industries
             }
 
             public override Construction CreateIndustry(NodeState state)
-                => new(parameters: new(state: state, factory: this));
+                => new(parameters: CreateParams(state: state));
+
+            public override Params CreateParams(NodeState state)
+                => new(state: state, factory: this);
 
             string IBuildableFactory.ButtonName
                 => $"build {industryFactory.name}";
 
-            string IBuildableFactory.Explanation
-                => explanation;
+            ITooltip IBuildableFactory.CreateTooltip(NodeState state)
+                => Tooltip(state: state);
         }
 
         [Serializable]
@@ -52,6 +55,9 @@ namespace Game1.Industries
             public readonly TimeSpan duration;
             public ResAmounts Cost
                 => state.ApproxSurfaceLength * factory.costPerUnitSurface;
+
+            public override string TooltipText
+                => base.TooltipText + $"Construction parameters:\n{nameof(ReqWatts)}: {ReqWatts}\n{nameof(duration)}: {duration}\n{nameof(Cost)}: {Cost}\n\nBuilding paramerers:\n{industryFactory.CreateParams(state: state).TooltipText}";
 
             private readonly Factory factory;
 

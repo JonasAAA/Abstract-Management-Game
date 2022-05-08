@@ -15,6 +15,26 @@ namespace Game1
     [Serializable]
     public class WorldManager : IDeletedListener, IClickedNowhereListener
     {
+        [Serializable]
+        private class PauseButtonTooltip : TextTooltipBase
+        {
+            protected override string Text
+                => onOffButton switch
+                {
+                    null => throw new InvalidOperationException($"Must initialize {nameof(PauseButtonTooltip)} by calling {nameof(Initialize)} first"),
+                    not null => onOffButton.On switch
+                    {
+                        true => "Press to pause the game",
+                        false => "Press to resume the game"
+                    }
+                };
+
+            private OnOffButton? onOffButton;
+
+            public void Initialize(OnOffButton onOffButton)
+                => this.onOffButton = onOffButton;
+        }
+
         public static event Action? OnCreate;
 
         public static WorldManager CurWorldManager
@@ -349,9 +369,25 @@ namespace Game1
                 selectedColor: Color.White,
                 deselectedColor: Color.Gray,
                 backgroundColor: Color.White,
-                choiceLabels: IOverlay.all
+                choiceLabelsAndTooltips:
+                    from overlay in IOverlay.all
+                    select 
+                    (
+                        label: overlay,
+                        tooltip: new ImmutableTextTooltip
+                        (
+                            text: overlay.SwitchExpression
+                            (
+                                singleResCase: resInd => $"Display information about resource {resInd}",
+                                allResCase: () => "Display information about all resources",
+                                powerCase: () => "Display information about power (production and consumption)",
+                                peopleCase: () => "Display information about people"
+                            )
+                        ) as ITooltip
+                    )
             );
-            
+
+            PauseButtonTooltip pauseButtonTooltip = new();
             pauseButton = new
             (
                 shape: new MyRectangle
@@ -359,11 +395,13 @@ namespace Game1
                     width: 60,
                     height: 60
                 ),
+                tooltip: pauseButtonTooltip,
                 on: false,
                 text: "Toggle\nPause",
                 selectedColor: Color.White,
                 deselectedColor: Color.Gray
             );
+            pauseButtonTooltip.Initialize(onOffButton: pauseButton);
             
             arrowDrawingModeOn = false;
         }

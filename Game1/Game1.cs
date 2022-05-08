@@ -72,16 +72,14 @@ namespace Game1
             UDouble buttonWidth = 200, buttonHeight = 30;
             continueButton = new
             (
-                shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
-                {
-                    Color = Color.White
-                },
+                shape: CreateActionButtonShape(),
                 action: () =>
                 {
                     playState.ContinueGame();
                     SetGameState(newGameState: playState);
                 },
-                text: "Continue"
+                text: "Continue",
+                tooltip: new ImmutableTextTooltip(text: "Continue from last save")
             )
             {
                 PersonallyEnabled = playState.CanContinueGame()
@@ -96,27 +94,21 @@ namespace Game1
                 actionButtons: new List<ActionButton>()
                 {
                     continueButton,
-                    new
+                    CreateActionButton
                     (
-                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
-                        {
-                            Color = Color.White
-                        },
                         action: () =>
                         {
                             playState.StartNewGame();
                             SetGameState(newGameState: playState);
                         },
-                        text: "New game"
+                        text: "New game",
+                        tooltipText: "Start new game"
                     ),
-                    new
+                    CreateActionButton
                     (
-                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
-                        {
-                            Color = Color.White
-                        },
                         action: Exit,
-                        text: "Exit"
+                        text: "Exit",
+                        tooltipText: "Quit to desktop"
                     ),
                 }
             );
@@ -127,36 +119,27 @@ namespace Game1
             (
                 actionButtons: new List<ActionButton>()
                 {
-                    new
+                    CreateActionButton
                     (
-                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
-                        {
-                            Color = Color.White
-                        },
                         action: () => SetGameState(newGameState: playState),
-                        text: "Continue"
+                        text: "Continue",
+                        tooltipText: "Continue from last save"
                     ),
-                    new
+                    CreateActionButton
                     (
-                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
-                        {
-                            Color = Color.White
-                        },
                         action: () => playState.SaveGame(),
-                        text: "Quick save"
+                        text: "Quick save",
+                        tooltipText: "Save the game. Will override the last save"
                     ),
-                    new
+                    CreateActionButton
                     (
-                        shape: new MyRectangle(width: buttonWidth, height: buttonHeight)
-                        {
-                            Color = Color.White
-                        },
                         action: () =>
                         {
                             playState.SaveGame();
                             SetGameState(newGameState: mainMenu);
                         },
-                        text: "Save and exit"
+                        text: "Save and exit",
+                        tooltipText: "Save the game and exit. Will override the last save"
                     ),
                 }
             );
@@ -164,6 +147,23 @@ namespace Game1
             (
                 switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: pauseMenu)
             );
+
+            return;
+
+            NearRectangle CreateActionButtonShape()
+                => new MyRectangle(width: buttonWidth, height: buttonHeight)
+                {
+                    Color = Color.White
+                };
+
+            ActionButton CreateActionButton(string text, Action action, string tooltipText)
+                => new
+                (
+                    shape: CreateActionButtonShape(),
+                    action: action,
+                    tooltip: new ImmutableTextTooltip(text: tooltipText),
+                    text: text
+                );
         }
 
         private void SetGameState(GameState newGameState)

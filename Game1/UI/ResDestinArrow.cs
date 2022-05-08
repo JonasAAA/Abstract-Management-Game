@@ -90,8 +90,10 @@ namespace Game1.UI
             (
                 minNum: parameters.MinImportance,
                 number: parameters.Importance,
-                incrDecrButtonHeight: 20,
                 shapeColor: Color.White,
+                incrDecrButtonHeight: 20,
+                incrButtonTooltip: new ImmutableTextTooltip(text: "Increase importance of this route"),
+                decrButtonTooltip: new ImmutableTextTooltip(text: "Decrease importance of this route"),
                 incrDecrButtonColor: Color.Blue
             );
             line1.AddChild(child: importanceIncDecrPanel);
@@ -109,7 +111,8 @@ namespace Game1.UI
                 {
                     Color = Color.Red
                 },
-                text: "delete"
+                text: "delete",
+                tooltip: new ImmutableTextTooltip(text: $"Remove resource {parameters.ResInd} destination")
             );
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(ResDestinArrow: this));
             popup.AddChild(deleteButton);

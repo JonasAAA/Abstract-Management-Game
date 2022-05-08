@@ -29,8 +29,8 @@ namespace Game1.UI
         private bool on;
         private readonly Color selectedColor, deselectedColor;
 
-        protected OnOffButton(NearRectangle shape, string text, bool on, Color selectedColor, Color deselectedColor)
-            : base(shape: shape, text: text)
+        protected OnOffButton(NearRectangle shape, ITooltip tooltip, string text, bool on, Color selectedColor, Color deselectedColor)
+            : base(shape: shape, tooltip: tooltip, text: text)
         {
             onChanged = new();
             this.on = on;

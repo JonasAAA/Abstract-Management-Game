@@ -16,8 +16,7 @@
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface,
                     reqWattsPerUnitSurface: reqWattsPerUnitSurface,
-                    prodDuration: prodDuration,
-                    explanation: $"{nameof(reqSkillPerUnitSurface)} {reqSkillPerUnitSurface}\n{nameof(reqWattsPerUnitSurface)} {reqWattsPerUnitSurface}\n{nameof(supplyPerUnitSurface)} {supplyPerUnitSurface}\n{nameof(demandPerUnitSurface)} {demandPerUnitSurface}\n{nameof(prodDuration)} {prodDuration}"
+                    prodDuration: prodDuration
                 )
             {
                 this.demandPerUnitSurface = demandPerUnitSurface;
@@ -25,7 +24,10 @@
             }
 
             public override Manufacturing CreateIndustry(NodeState state)
-                => new(parameters: new(state: state, factory: this));
+                => new(parameters: CreateParams(state: state));
+
+            public override Params CreateParams(NodeState state)
+                => new(state: state, factory: this);
         }
 
         [Serializable]
@@ -36,6 +38,9 @@
 
             protected override ResAmounts SupplyPerUnitSurface
                 => factory.supplyPerUnitSurface;
+
+            public override string TooltipText
+                => base.TooltipText + $"{nameof(Demand)}: {Demand}\n";
 
             private readonly Factory factory;
 

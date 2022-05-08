@@ -161,7 +161,7 @@ namespace Game1
             textBox.Shape.Center = Position;
             AddChild(child: textBox);
 
-            List<(string tabLabelText, IHUDElement tab)> UITabs = new();
+            List<(string tabLabelText, ITooltip tabTooltip, IHUDElement tab)> UITabs = new();
 
             infoPanel = new UIRectVertPanel<IHUDElement>
             (
@@ -171,6 +171,7 @@ namespace Game1
             UITabs.Add
             ((
                 tabLabelText: "info",
+                tabTooltip: new ImmutableTextTooltip(text: "Info about the planet and the industry/building on it (if such exists)"),
                 tab: infoPanel
             ));
             infoTextBox = new();
@@ -184,6 +185,7 @@ namespace Game1
             UITabs.Add
             ((
                 tabLabelText: "build",
+                tabTooltip: new ImmutableTextTooltip(text: "Buildings/industries which could be built here"),
                 tab: buildButtonPannel
             ));
             foreach (var buildableParams in CurIndustryConfig.constrBuildingParams)
@@ -198,7 +200,7 @@ namespace Game1
                     {
                         Color = Color.White
                     },
-                    //explanation: buildableParams.Explanation,
+                    tooltip: buildableParams.CreateTooltip(state: state),
                     text: buildableParams.ButtonName
                 );
                 buildIndustryButton.clicked.Add
@@ -232,6 +234,7 @@ namespace Game1
                         width: 60,
                         height: 60
                     ),
+                    tooltip: new ImmutableTextTooltip(text: "Specifies weather to store extra resources"),
                     text: "store\nswitch",
                     on: false,
                     selectedColor: Color.White,
@@ -246,6 +249,7 @@ namespace Game1
                     {
                         Color = Color.White
                     },
+                    tooltip: new ImmutableTextTooltip(text: $"Adds new place to where {resInd} should be transported"),
                     text: $"add resource {resInd}\ndestination"
                 );
                 addResourceDestinationButton.clicked.Add(listener: new AddResourceDestinationButtonClickedListener());
@@ -258,6 +262,7 @@ namespace Game1
             UITabs.Add
             ((
                 tabLabelText: overlayTabLabel,
+                tabTooltip: new ImmutableTextTooltip(text: "UI specific to the current overlay"),
                 tab: overlayTabPanels[CurWorldManager.Overlay]
             ));
 

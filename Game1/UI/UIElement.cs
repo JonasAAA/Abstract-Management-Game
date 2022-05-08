@@ -7,9 +7,6 @@ namespace Game1.UI
     public class UIElement<TChild> : IUIElement
         where TChild : IUIElement
     {
-        // TODO: delete
-        //protected const string defaultExplanation = "Explanation missing!";
-
         public Event<IEnabledChangedListener> EnabledChanged { get; }
 
         public bool Enabled

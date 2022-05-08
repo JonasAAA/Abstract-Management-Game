@@ -11,17 +11,16 @@ namespace Game1.Industries
             public readonly UDouble floorSpacePerUnitSurface;
 
             public Factory(string name, UDouble floorSpacePerUnitSurface)
-                : base
-                (
-                    name: name,
-                    explanation: $"{nameof(floorSpacePerUnitSurface)} {floorSpacePerUnitSurface}"
-                )
+                : base(name: name)
             {
                 this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
             }
 
             public override House CreateIndustry(NodeState state)
-                => new(parameters: new(state: state, factory: this));
+                => new(parameters: CreateParams(state: state));
+
+            public override Params CreateParams(NodeState state)
+                => new(state: state, factory: this);
         }
 
         [Serializable]
@@ -29,6 +28,9 @@ namespace Game1.Industries
         {
             public UDouble FloorSpace
                 => state.ApproxSurfaceLength * factory.floorSpacePerUnitSurface;
+
+            public override string TooltipText
+                => base.TooltipText + $"{nameof(FloorSpace)}: {FloorSpace}\n";
 
             private readonly Factory factory;
 

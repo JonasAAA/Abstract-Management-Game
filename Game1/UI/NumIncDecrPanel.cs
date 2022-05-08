@@ -46,7 +46,7 @@ namespace Game1.UI
         private readonly UIRectVertPanel<IHUDElement> panel;
         private readonly TextBox textBox;
 
-        public NumIncDecrPanel(int minNum, int number, UDouble incrDecrButtonHeight, Color shapeColor, Color incrDecrButtonColor)
+        public NumIncDecrPanel(int minNum, int number, Color shapeColor, UDouble incrDecrButtonHeight, ITooltip incrButtonTooltip, ITooltip decrButtonTooltip, Color incrDecrButtonColor)
             : base(shape: new MyRectangle())
         {
             numberChanged = new();
@@ -74,7 +74,8 @@ namespace Game1.UI
                 )
                 {
                     Color = incrDecrButtonColor
-                }
+                },
+                tooltip: incrButtonTooltip
             );
             numIncrButton.clicked.Add(listener: new NumIncrButtonClickedListener(NumIncDecrPanel: this));
             panel.AddChild(child: numIncrButton);
@@ -91,7 +92,8 @@ namespace Game1.UI
                 )
                 {
                     Color = Color.Blue
-                }
+                },
+                tooltip: decrButtonTooltip
             );
             numDecrButton.clicked.Add(listener: new NumDecrButtonClickedListener(NumIncDecrPanel: this));
             panel.AddChild(child: numDecrButton);

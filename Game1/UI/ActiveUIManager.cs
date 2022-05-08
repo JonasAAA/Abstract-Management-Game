@@ -135,14 +135,8 @@ namespace Game1.UI
                 if (contMouse is not null && contMouse.Enabled && hoverDuration >= minDurationToGetExplanation && tooltip is null && contMouse is IWithTooltip UIElementWithTooltip)
                 {
                     tooltip = UIElementWithTooltip.Tooltip;
+                    tooltip.Update();
                     tooltip.Shape.TopLeftCorner = mouseHUDPos;
-                    tooltip.Shape.ClampPosition
-                    (
-                        left: 0,
-                        right: screenWidth,
-                        top: 0,
-                        bottom: screenHeight
-                    );
                 }
             }
             else
@@ -168,6 +162,15 @@ namespace Game1.UI
 
                 halfClicked = null;
             }
+
+            tooltip?.Update();
+            tooltip?.Shape.ClampPosition
+            (
+                left: 0,
+                right: screenWidth,
+                top: 0,
+                bottom: screenHeight
+            );
         }
 
         public void DrawHUD()

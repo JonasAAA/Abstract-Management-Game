@@ -14,8 +14,8 @@ namespace Game1.Industries
             public readonly EnergyPriority energyPriority;
             public readonly UDouble reqSkillPerUnitSurface;
 
-            protected Factory(IndustryType industryType, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, string explanation)
-                : base(name: name, explanation: explanation)
+            protected Factory(IndustryType industryType, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface)
+                : base(name: name)
             {
                 this.industryType = industryType;
                 if ((industryType is IndustryType.PowerPlant && energyPriority != EnergyPriority.minimal)
@@ -37,6 +37,9 @@ namespace Game1.Industries
             public readonly EnergyPriority energyPriority;
             public UDouble ReqSkill
                 => state.ApproxSurfaceLength * factory.reqSkillPerUnitSurface;
+
+            public override string TooltipText
+                => base.TooltipText + $"{nameof(industryType)}: {industryType}\n{nameof(energyPriority)}: {energyPriority}\n{nameof(ReqSkill)}: {ReqSkill}\n";
 
             private readonly Factory factory;
 

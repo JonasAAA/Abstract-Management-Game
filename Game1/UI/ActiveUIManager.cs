@@ -31,7 +31,7 @@ namespace Game1.UI
         private readonly Dictionary<IUIElement, IPosTransformer> nonHUDElementsToTransform;
         private bool leftDown, prevLeftDown;
         private IUIElement? halfClicked, contMouse;
-        private readonly TimeSpan minDurationToGetExplanation;
+        private readonly TimeSpan minDurationToGetTooltip;
         private TimeSpan hoverDuration;
         private ITooltip? tooltip;
         private readonly HUDPosSetter HUDPosSetter;
@@ -46,7 +46,7 @@ namespace Game1.UI
             prevLeftDown = new();
             halfClicked = null;
             contMouse = null;
-            minDurationToGetExplanation = TimeSpan.FromSeconds(.5);
+            minDurationToGetTooltip = TimeSpan.FromSeconds(.5);
             hoverDuration = TimeSpan.Zero;
 
             HUDPosSetter = new();
@@ -132,7 +132,7 @@ namespace Game1.UI
             if (contMouse == prevContMouse)
             {
                 hoverDuration += elapsed;
-                if (contMouse is not null && contMouse.Enabled && hoverDuration >= minDurationToGetExplanation && tooltip is null && contMouse is IWithTooltip UIElementWithTooltip)
+                if (contMouse is not null && contMouse.Enabled && hoverDuration >= minDurationToGetTooltip && tooltip is null && contMouse is IWithTooltip UIElementWithTooltip)
                 {
                     tooltip = UIElementWithTooltip.Tooltip;
                     tooltip.Update();

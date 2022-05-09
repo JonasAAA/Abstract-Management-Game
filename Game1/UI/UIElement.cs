@@ -4,7 +4,7 @@ using Game1.Shapes;
 namespace Game1.UI
 {
     [Serializable]
-    public class UIElement<TChild> : IUIElement
+    public abstract class UIElement<TChild> : IUIElement
         where TChild : IUIElement
     {
         public Event<IEnabledChangedListener> EnabledChanged { get; }
@@ -64,7 +64,7 @@ namespace Game1.UI
         private readonly SortedDictionary<ulong, List<TChild>> layerToChildren;
         private readonly Dictionary<TChild, ulong> childToLayer;
 
-        public UIElement(Shape shape)
+        protected UIElement(Shape shape)
         {
             EnabledChanged = new();
             this.shape = shape;
@@ -129,17 +129,26 @@ namespace Game1.UI
                 throw new InvalidOperationException();
         }
 
-        public virtual void Draw()
+        public void Draw()
         {
+            (Color otherColor, Propor otherColorPropor) = (Enabled, CanBeClicked && MouseOn) switch
+            {
+                (true, true) => (ActiveUIManager.curUIConfig.mouseOnColor, (Propor).5),
+                (true, false) => (ActiveUIManager.curUIConfig.mouseOnColor, (Propor)0),
+                (false, _) => (Color.Transparent, (Propor).3)
+            };
+
             shape.Draw
             (
-                otherColor: ActiveUIManager.curUIConfig.mouseOnColor,
-                otherColorPropor: (CanBeClicked && MouseOn) switch
-                {
-                    true => (Propor).5,
-                    false => (Propor)0
-                }
+                otherColor: otherColor,
+                otherColorPropor: otherColorPropor
             );
+
+            DrawChildren();
+        }
+
+        protected virtual void DrawChildren()
+        {
             foreach (var child in Children())
                 child.Draw();
         }

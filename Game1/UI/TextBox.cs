@@ -34,7 +34,7 @@ namespace Game1.UI
         private readonly UDouble scale;
 
         public TextBox()
-            : base(shape: new MyRectangle())
+            : base(shape: new MyRectangle(color: Color.White))
         {
             Shape.Color = Color.Transparent;
             // TODO: look up where font.MeasureString(...) is called, there should probably be a static readonly variable
@@ -47,11 +47,10 @@ namespace Game1.UI
         public MyVector2 MeasureText(string text)
             => (MyVector2)font.MeasureString(text) * scale;
 
-        public override void Draw()
+        protected override void DrawChildren()
         {
             if (text is null)
                 return;
-            base.Draw();
             C.DrawString
             (
                 spriteFont: font,

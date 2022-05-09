@@ -13,7 +13,7 @@
         /// <summary>
         /// node from which consume energy
         /// </summary>
-        public NodeId NodeId { get; }
+        public NodeID NodeID { get; }
 
         public UDouble ReqWatts();
 

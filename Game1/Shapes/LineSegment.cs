@@ -11,8 +11,8 @@
         protected override Texture2D Texture
             => pixelTexture;
 
-        public LineSegment(IParams parameters)
-            : base(parameters: parameters)
+        public LineSegment(IParams parameters, Color color)
+            : base(parameters: parameters, color: color)
         { }
 
         protected override bool Contains(Propor dirPropor, Propor orthDirPropor)

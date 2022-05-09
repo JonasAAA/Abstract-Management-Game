@@ -11,10 +11,10 @@ namespace Game1
     [Serializable]
     public class Person : IEnergyConsumer
     {
-        public static Person GeneratePerson(NodeId nodeId)
+        public static Person GeneratePerson(NodeID nodeID)
             => new
             (
-                nodeId: nodeId,
+                nodeID: nodeID,
                 enjoyments: Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
@@ -36,11 +36,11 @@ namespace Game1
                 seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime)
             );
 
-        public static Person GenerateChild(Person person1, Person person2, NodeId nodeId)
+        public static Person GenerateChild(Person person1, Person person2, NodeID nodeID)
         {
             return new Person
             (
-                nodeId: nodeId,
+                nodeID: nodeID,
                 enjoyments: CreateIndustryScoreDict
                 (
                     personalScore: (person, indType) => person.enjoyments[indType]
@@ -82,9 +82,9 @@ namespace Game1
         public readonly ReadOnlyDictionary<IndustryType, Score> talents;
         public readonly Dictionary<IndustryType, Score> skills;
         
-        public NodeId? ActivityCenterNodeId
-            => activityCenter?.NodeId;
-        public NodeId ClosestNodeId { get; private set; }
+        public NodeID? ActivityCenterNodeID
+            => activityCenter?.NodeID;
+        public NodeID ClosestNodeID { get; private set; }
         public Propor EnergyPropor { get; private set; }
         public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
             => lastActivityTimes;
@@ -104,13 +104,13 @@ namespace Game1
         private readonly TimeSpan seekChangeTime;
         private TimeSpan timeSinceActivitySearch;
         private readonly Dictionary<ActivityType, TimeSpan> lastActivityTimes;
-        private NodeId lastNodeId;
+        private NodeID lastNodeID;
         private readonly Event<IDeletedListener> deleted;
 
-        private Person(NodeId nodeId, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, ulong weight, UDouble reqWatts, TimeSpan seekChangeTime)
+        private Person(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, ulong weight, UDouble reqWatts, TimeSpan seekChangeTime)
         {
-            lastNodeId = nodeId;
-            ClosestNodeId = nodeId;
+            lastNodeID = nodeID;
+            ClosestNodeID = nodeID;
             this.enjoyments = new(enjoyments);
             this.talents = new(talents);
             this.skills = new(skills);
@@ -143,10 +143,10 @@ namespace Game1
         public void Arrived()
             => (activityCenter ?? throw new InvalidOperationException()).TakePerson(person: this);
 
-        public void Update(NodeId lastNodeId, NodeId closestNodeId)
+        public void Update(NodeID lastNodeID, NodeID closestNodeID)
         {
-            this.lastNodeId = lastNodeId;
-            ClosestNodeId = closestNodeId;
+            this.lastNodeID = lastNodeID;
+            ClosestNodeID = closestNodeID;
             if (activityCenter is not null && activityCenter.IsPersonHere(person: this))
             {
                 activityCenter.UpdatePerson(person: this);
@@ -203,7 +203,7 @@ namespace Game1
                 not null => MyMathHelper.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority)
             };
 
-        NodeId IEnergyConsumer.NodeId
-            => lastNodeId;
+        NodeID IEnergyConsumer.NodeID
+            => lastNodeID;
     }
 }

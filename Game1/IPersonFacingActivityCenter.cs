@@ -4,7 +4,7 @@
     {
         public ActivityType ActivityType { get; }
 
-        public NodeId NodeId { get; }
+        public NodeID NodeID { get; }
 
         public EnergyPriority EnergyPriority { get; }
 

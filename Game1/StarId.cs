@@ -1,12 +1,12 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public class StarId
+    public class StarID
     {
-        public static StarId Create()
+        public static StarID Create()
             => new();
 
-        private StarId()
+        private StarID()
         { }
     }
 }

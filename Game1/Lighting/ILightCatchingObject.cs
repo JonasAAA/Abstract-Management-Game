@@ -6,6 +6,6 @@
 
         public IEnumerable<double> InterPoints(MyVector2 lightPos, MyVector2 lightDir);
 
-        public void SetWatts(StarId starPos, UDouble watts, Propor powerPropor);
+        public void SetWatts(StarID starPos, UDouble watts, Propor powerPropor);
     }
 }

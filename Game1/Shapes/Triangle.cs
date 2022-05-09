@@ -35,8 +35,8 @@
         private readonly MyVector2 origin, dirVector, orthDir;
         private readonly UDouble scaleX, scaleY;
 
-        public Triangle(UDouble width, UDouble height, Direction direction)
-            : base(width: width, height: height)
+        public Triangle(UDouble width, UDouble height, Color color, Direction direction)
+            : base(width: width, height: height, color: color)
         {
             this.direction = direction;
             rotation = (int)direction * MyMathHelper.pi / 2;

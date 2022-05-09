@@ -26,7 +26,7 @@ namespace Game1
         public Star(StarState state, Color color)
             : base
             (
-                shape: new Disk(parameters: new ShapeParams(State: state)),
+                shape: new Disk(parameters: new ShapeParams(State: state), color: Color.White),
                 activeColor: Color.AntiqueWhite,
                 inactiveColor: Color.White,
                 popupHorizPos: HorizPos.Right,
@@ -131,7 +131,7 @@ namespace Game1
                 Propor powerPropor = Propor.Create(part: arcsForObjects[lightCatchingObject], whole: 2 * MyMathHelper.pi)!.Value;
                 lightCatchingObject.SetWatts
                 (
-                    starPos: state.starId,
+                    starPos: state.starID,
                     watts: powerPropor * state.prodWatts,
                     powerPropor: powerPropor
                 );

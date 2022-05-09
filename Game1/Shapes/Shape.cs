@@ -7,8 +7,8 @@
            => Color.Transparent();
         public Color Color { get; set; }
 
-        protected Shape()
-            => Color = Color.Transparent;
+        protected Shape(Color color)
+            => Color = color;
 
         public abstract bool Contains(MyVector2 position);
 
@@ -16,14 +16,13 @@
 
         public void Draw()
         {
-            if (!Color.Transparent())
+            if (!Transparent)
                 Draw(color: Color);
         }
 
         public void Draw(Color otherColor, Propor otherColorPropor)
         {
             Color color = Color.Lerp(Color, otherColor, amount: (float)otherColorPropor);
-            color.A = Color.A;
             if (!color.Transparent())
                 Draw(color: color);
         }

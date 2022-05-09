@@ -97,11 +97,9 @@ namespace Game1.Industries
                 shape: new MyRectangle
                 (
                     width: 60,
-                    height: 30
-                )
-                {
-                    Color = Color.Red
-                },
+                    height: 30,
+                    color: Color.Red
+                ),
                 tooltip: new ImmutableTextTooltip(text: "Delete this industry"),
                 text: "delete"
             );

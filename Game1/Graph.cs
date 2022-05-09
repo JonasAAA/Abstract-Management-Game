@@ -75,21 +75,21 @@ namespace Game1
         public IEnumerable<Planet> Nodes
             => nodes;
 
-        public readonly ReadOnlyDictionary<NodeId, Planet> nodeIdToNode;
+        public readonly ReadOnlyDictionary<NodeID, Planet> nodeIDToNode;
         public readonly TimeSpan maxLinkTravelTime;
         public readonly UDouble maxLinkJoulesPerKg;
 
         public override bool CanBeClicked
             => true;
         
-        private readonly ReadOnlyDictionary<(NodeId, NodeId), UDouble> personDists;
-        private readonly ReadOnlyDictionary<(NodeId, NodeId), UDouble> resDists;
+        private readonly ReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
+        private readonly ReadOnlyDictionary<(NodeID, NodeID), UDouble> resDists;
 
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        private readonly ReadOnlyDictionary<(NodeId, NodeId), Link?> personFirstLinks;
-        private readonly ReadOnlyDictionary<(NodeId, NodeId), Link?> resFirstLinks;
+        private readonly ReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks;
+        private readonly ReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks;
 
         private IEnumerable<WorldUIElement> WorldUIElements
         {
@@ -134,11 +134,11 @@ namespace Game1
             (personDists, personFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.personDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.personDistanceEnergyCoeff);
             (resDists, resFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.resDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.resDistanceEnergyCoeff);
 
-            nodeIdToNode = new
+            nodeIDToNode = new
             (
                 dictionary: nodes.ToDictionary
                 (
-                    keySelector: node => node.NodeId
+                    keySelector: node => node.NodeID
                 )
             );
 
@@ -170,7 +170,7 @@ namespace Game1
 
         // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
-        private (ReadOnlyDictionary<(NodeId, NodeId), UDouble> dists, ReadOnlyDictionary<(NodeId, NodeId), Link?> firstLinks) FindShortestPaths(UDouble distTimeCoeff, UDouble distEnergyCoeff)
+        private (ReadOnlyDictionary<(NodeID, NodeID), UDouble> dists, ReadOnlyDictionary<(NodeID, NodeID), Link?> firstLinks) FindShortestPaths(UDouble distTimeCoeff, UDouble distEnergyCoeff)
         {
             UDouble[,] distsArray = new UDouble[nodes.Count, nodes.Count];
             Link?[,] firstLinksArray = new Link[nodes.Count, nodes.Count];
@@ -205,19 +205,19 @@ namespace Game1
                             Debug.Assert(firstLinksArray[i, j] is not null);
                         }
 
-            Dictionary<(NodeId, NodeId), UDouble> distsDict = new();
-            Dictionary<(NodeId, NodeId), Link?> firstLinksDict = new();
+            Dictionary<(NodeID, NodeID), UDouble> distsDict = new();
+            Dictionary<(NodeID, NodeID), Link?> firstLinksDict = new();
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)
                 {
                     distsDict.Add
                     (
-                        key: (nodes[i].NodeId, nodes[j].NodeId),
+                        key: (nodes[i].NodeID, nodes[j].NodeID),
                         value: distsArray[i, j]
                     );
                     firstLinksDict.Add
                     (
-                        key: (nodes[i].NodeId, nodes[j].NodeId),
+                        key: (nodes[i].NodeID, nodes[j].NodeID),
                         value: firstLinksArray[i, j]
                     );
                 }
@@ -225,14 +225,14 @@ namespace Game1
             return (dists: new(distsDict), firstLinks: new(firstLinksDict));
         }
 
-        public UDouble PersonDist(NodeId nodeId1, NodeId nodeId2)
-            => personDists[(nodeId1, nodeId2)];
+        public UDouble PersonDist(NodeID nodeID1, NodeID nodeID2)
+            => personDists[(nodeID1, nodeID2)];
 
-        public UDouble ResDist(NodeId nodeId1, NodeId nodeId2)
-            => resDists[(nodeId1, nodeId2)];
+        public UDouble ResDist(NodeID nodeID1, NodeID nodeID2)
+            => resDists[(nodeID1, nodeID2)];
 
-        public MyVector2 NodePosition(NodeId nodeId)
-            => nodeIdToNode[nodeId].Position;
+        public MyVector2 NodePosition(NodeID nodeID)
+            => nodeIDToNode[nodeID].Position;
 
         public void AddResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
         {
@@ -282,9 +282,9 @@ namespace Game1
         public void SplitRes(ResInd resInd)
         {
             NodeInfo.Init(resInd: resInd);
-            Dictionary<NodeId, NodeInfo> nodeInfos = nodes.ToDictionary
+            Dictionary<NodeID, NodeInfo> nodeInfos = nodes.ToDictionary
             (
-                keySelector: node => node.NodeId,
+                keySelector: node => node.NodeID,
                 elementSelector: node => new NodeInfo(node: node)
             );
 
@@ -307,8 +307,8 @@ namespace Game1
                 select nodeInfo
             );
 
-            ulong MaxExtraRes(NodeId nodeId)
-                => nodeInfos[nodeId].MaxExtraRes();
+            ulong MaxExtraRes(NodeID nodeID)
+                => nodeInfos[nodeID].MaxExtraRes();
 
             while (sinks.Count > 0)
             {
@@ -316,7 +316,7 @@ namespace Game1
                 NodeInfo sink = sinks.Dequeue();
                 sink.node.SplitRes
                 (
-                    nodeIdToNode: nodeId => nodeIdToNode[nodeId],
+                    nodeIDToNode: nodeID => nodeIDToNode[nodeID],
                     resInd: resInd,
                     maxExtraResFunc: MaxExtraRes
                 );
@@ -335,7 +335,7 @@ namespace Game1
                 {
                     nodeInfo.node.SplitRes
                     (
-                        nodeIdToNode: nodeId => nodeIdToNode[nodeId],
+                        nodeIDToNode: nodeID => nodeIDToNode[nodeID],
                         resInd: resInd,
                         maxExtraResFunc: MaxExtraRes
                     );
@@ -355,7 +355,7 @@ namespace Game1
                 child.Draw();
         }
 
-        public override void Draw()
+        protected override void DrawChildren()
             => throw new InvalidOperationException();
 
         void IChoiceChangedListener<IOverlay>.ChoiceChangedResponse(IOverlay prevOverlay)
@@ -380,7 +380,7 @@ namespace Game1
                     var sourceNode = ActiveWorldElement as Planet;
                     var destinationNode = worldUIElement as Planet;
                     Debug.Assert(sourceNode is not null && destinationNode is not null);
-                    sourceNode.AddResDestin(destinationId: destinationNode.NodeId);
+                    sourceNode.AddResDestin(destinationId: destinationNode.NodeID);
                     worldUIElement.Active = false;
                 }
                 return;

@@ -4,14 +4,14 @@
     public class StarState
     {
         // TODO: make prodWatts and color the consequence of mass/radius/material
-        public readonly StarId starId;
+        public readonly StarID starID;
         public readonly MyVector2 position;
         public readonly UDouble radius;
         public readonly UDouble prodWatts;
 
-        public StarState(StarId starId, MyVector2 position, UDouble radius, UDouble prodWatts)
+        public StarState(StarID starID, MyVector2 position, UDouble radius, UDouble prodWatts)
         {
-            this.starId = starId;
+            this.starID = starID;
             this.position = position;
             this.radius = radius;
             this.prodWatts = prodWatts;

@@ -15,7 +15,8 @@
         protected readonly IParams parameters;
 
         // TODO: consider creating unsigned variables for texture width and height (or maybe extension methods for that)
-        protected VectorShape(IParams parameters)
+        protected VectorShape(IParams parameters, Color color)
+            : base(color: color)
         {
             if (MyMathHelper.IsTiny(MyVector2.Distance(parameters.StartPos, parameters.EndPos)))
                 throw new ArgumentException();

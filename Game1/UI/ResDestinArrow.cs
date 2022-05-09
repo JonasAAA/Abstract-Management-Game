@@ -31,22 +31,22 @@ namespace Game1.UI
             }
         }
 
-        public NodeId DestinationId
+        public NodeID DestinationId
             => destinId;
 
         public Event<INumberChangedListener> ImportanceNumberChanged
             => importanceIncDecrPanel.numberChanged;
 
         private int totalImportance;
-        private readonly NodeId destinId;
+        private readonly NodeID destinId;
         private readonly Color defaultActiveColor, defaultInactiveColor;
         private readonly NumIncDecrPanel importanceIncDecrPanel;
         private readonly TextBox line2;
 
-        public ResDestinArrow(VectorShape.IParams shapeParams, NodeId destinId, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int startImportance, ResInd resInd)
+        public ResDestinArrow(VectorShape.IParams shapeParams, NodeID destinId, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int startImportance, ResInd resInd)
             : base
             (
-                shape: new Arrow(parameters: shapeParams),
+                shape: new Arrow(parameters: shapeParams, color: Color.White),
                 activeColor: defaultActiveColor,
                 inactiveColor: defaultInactiveColor,
                 popupHorizPos: popupHorizPos,
@@ -97,11 +97,9 @@ namespace Game1.UI
                 shape: new MyRectangle
                 (
                     width: 70,
-                    height: 30
-                )
-                {
-                    Color = Color.Red
-                },
+                    height: 30,
+                    color: Color.Red
+                ),
                 text: "delete",
                 tooltip: new ImmutableTextTooltip(text: $"Remove resource {resInd} destination")
             );

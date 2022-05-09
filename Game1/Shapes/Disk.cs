@@ -20,7 +20,8 @@
 
         protected readonly IParams parameters;
 
-        public Disk(IParams parameters)
+        public Disk(IParams parameters, Color color)
+            : base(color: color)
             => this.parameters = parameters;
 
         public override bool Contains(MyVector2 position)

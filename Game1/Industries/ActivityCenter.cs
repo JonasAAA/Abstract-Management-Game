@@ -11,8 +11,8 @@ namespace Game1.Industries
 
         public ActivityType ActivityType { get; }
 
-        public NodeId NodeId
-            => state.nodeId;
+        public NodeID NodeID
+            => state.nodeID;
 
         public EnergyPriority EnergyPriority { get; private set; }
 
@@ -95,13 +95,13 @@ namespace Game1.Industries
         /// </summary>
         protected Score DistanceToHereAsPerson(Person person)
             // TODO: get rid of hard-coded constant
-            => Score.FromUnboundedUDouble(value: CurWorldManager.PersonDist(nodeId1: person.ClosestNodeId, nodeId2: NodeId), valueGettingAverageScore: 2).Opposite();
+            => Score.FromUnboundedUDouble(value: CurWorldManager.PersonDist(nodeID1: person.ClosestNodeID, nodeID2: NodeID), valueGettingAverageScore: 2).Opposite();
 
         /// <summary>
         /// Used this to calculate suitability of person
         /// </summary>
         protected Score DistanceToHereAsRes(Person person)
             // TODO: get rid of hard-coded constant
-            => Score.FromUnboundedUDouble(value: CurWorldManager.ResDist(nodeId1: person.ClosestNodeId, nodeId2: NodeId), valueGettingAverageScore: 2).Opposite();
+            => Score.FromUnboundedUDouble(value: CurWorldManager.ResDist(nodeID1: person.ClosestNodeID, nodeID2: NodeID), valueGettingAverageScore: 2).Opposite();
     }
 }

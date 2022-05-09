@@ -60,7 +60,7 @@ namespace Game1.UI
         private TChoiceLabel selectedChoiceLabel;
 
         public MultipleChoicePanel(bool horizontal, UDouble choiceWidth, UDouble choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor, IEnumerable<(TChoiceLabel label, ITooltip tooltip)> choiceLabelsAndTooltips)
-            : base(shape: new MyRectangle())
+            : base(shape: new MyRectangle(color: Color.White))
         {
             choiceChanged = new();
             choicePanel = horizontal switch
@@ -114,7 +114,8 @@ namespace Game1.UI
                 shape: new MyRectangle
                 (
                     width: choiceWidth,
-                    height: choiceHeight
+                    height: choiceHeight,
+                    color: Color.White
                 ),
                 on: choicePanel.Count is 0,
                 tooltip: choiceTooltip,

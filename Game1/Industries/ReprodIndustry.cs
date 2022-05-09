@@ -141,7 +141,7 @@ namespace Game1.Industries
 
             foreach (var (person1, person2) in birthQueue.DoneElements())
             {
-                var newPerson = Person.GenerateChild(nodeId: parameters.state.nodeId, person1: person1, person2: person2);
+                var newPerson = Person.GenerateChild(nodeID: parameters.state.nodeID, person1: person1, person2: person2);
                 parameters.state.waitingPeople.Add(newPerson);
 
                 reprodCenter.RemovePerson(person: person1);

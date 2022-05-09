@@ -13,9 +13,8 @@ namespace Game1.UI
         protected readonly List<TChild> children;
 
         protected UIRectPanel(Color color)
-            : base(shape: new MyRectangle())
+            : base(shape: new MyRectangle(color: color))
         {
-            Shape.Color = color;
             children = new();
         }
 

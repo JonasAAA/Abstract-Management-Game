@@ -10,21 +10,21 @@ namespace Game1.Lighting
     {
         public IEvent<IDeletedListener> Deleted
             => deleted;
-        public IReadOnlyDictionary<StarId, UDouble> StarPosToWatts
+        public IReadOnlyDictionary<StarID, UDouble> StarPosToWatts
             => starPosToWatts;
 
-        public IReadOnlyDictionary<StarId, Propor> StarPosToPowerPropor
+        public IReadOnlyDictionary<StarID, Propor> StarPosToPowerPropor
             => starPosToPowerPropor;
 
         public UDouble Watts
             => starPosToWatts.Values.DefaultIfEmpty().Sum();
 
-        private readonly Dictionary<StarId, UDouble> starPosToWatts;
-        private readonly Dictionary<StarId, Propor> starPosToPowerPropor;
+        private readonly Dictionary<StarID, UDouble> starPosToWatts;
+        private readonly Dictionary<StarID, Propor> starPosToPowerPropor;
         private readonly Event<IDeletedListener> deleted;
 
-        public LightCatchingDisk(IParams parameters)
-            : base(parameters: parameters)
+        public LightCatchingDisk(IParams parameters, Color color)
+            : base(parameters: parameters, color: color)
         {
             starPosToWatts = new();
             starPosToPowerPropor = new();
@@ -75,7 +75,7 @@ namespace Game1.Lighting
             }
         }
 
-        void ILightCatchingObject.SetWatts(StarId starPos, UDouble watts, Propor powerPropor)
+        void ILightCatchingObject.SetWatts(StarID starPos, UDouble watts, Propor powerPropor)
         {
             starPosToWatts[starPos] = watts;
             starPosToPowerPropor[starPos] = powerPropor;

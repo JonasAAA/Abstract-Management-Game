@@ -33,8 +33,7 @@ namespace Game1.UI
                 if (number == value)
                     return;
 
-                number = value;
-                textBox.Text = number.ToString();
+                SetNumber(newNumber: value);
                 numberChanged.Raise(action: listener => listener.NumberChangedResponse());
             }
         }
@@ -42,25 +41,26 @@ namespace Game1.UI
         public Event<INumberChangedListener> numberChanged;
 
         private int number;
+        private readonly Button numDecrButton;
         private readonly int minNum;
         private readonly UIRectVertPanel<IHUDElement> panel;
         private readonly TextBox textBox;
 
         public NumIncDecrPanel(int minNum, int number, Color shapeColor, UDouble incrDecrButtonHeight, ITooltip incrButtonTooltip, ITooltip decrButtonTooltip, Color incrDecrButtonColor)
-            : base(shape: new MyRectangle())
+            : base(shape: new MyRectangle(color: Color.White))
         {
             numberChanged = new();
             if (number < minNum)
                 throw new ArgumentException();
             this.minNum = minNum;
-            this.number = number;
+            
             panel = new
             (
                 color: shapeColor,
                 childHorizPos: HorizPos.Middle
             );
             textBox = new();
-            textBox.Text = number.ToString();
+            //textBox.Text = number.ToString();
             UDouble width = (UDouble)textBox.MeasureText(text: "00").X;
             textBox.Shape.MinWidth = width;
 
@@ -70,11 +70,9 @@ namespace Game1.UI
                 (
                     width: width,
                     height: incrDecrButtonHeight,
-                    direction: Triangle.Direction.Up
-                )
-                {
-                    Color = incrDecrButtonColor
-                },
+                    direction: Triangle.Direction.Up,
+                    color: incrDecrButtonColor
+                ),
                 tooltip: incrButtonTooltip
             );
             numIncrButton.clicked.Add(listener: new NumIncrButtonClickedListener(NumIncDecrPanel: this));
@@ -82,17 +80,15 @@ namespace Game1.UI
 
             panel.AddChild(child: textBox);
 
-            Button numDecrButton = new
+            numDecrButton = new
             (
                 shape: new Triangle
                 (
                     width: width,
                     height: incrDecrButtonHeight,
-                    direction: Triangle.Direction.Down
-                )
-                {
-                    Color = Color.Blue
-                },
+                    direction: Triangle.Direction.Down,
+                    color: incrDecrButtonColor
+                ),
                 tooltip: decrButtonTooltip
             );
             numDecrButton.clicked.Add(listener: new NumDecrButtonClickedListener(NumIncDecrPanel: this));
@@ -103,6 +99,8 @@ namespace Game1.UI
             Shape.Height = panel.Shape.Height;
 
             AddChild(child: panel);
+
+            SetNumber(newNumber: number);
         }
 
         protected override void PartOfRecalcSizeAndPos()
@@ -112,6 +110,13 @@ namespace Game1.UI
             Shape.Width = panel.Shape.Width;
             Shape.Height = panel.Shape.Height;
             panel.Shape.Center = Shape.Center;
+        }
+
+        private void SetNumber(int newNumber)
+        {
+            number = newNumber;
+            textBox.Text = number.ToString();
+            numDecrButton.PersonallyEnabled = number > minNum;
         }
     }
 }

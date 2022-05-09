@@ -24,8 +24,8 @@ namespace Game1
                     null => throw new InvalidOperationException($"Must initialize {nameof(PauseButtonTooltip)} by calling {nameof(Initialize)} first"),
                     not null => onOffButton.On switch
                     {
-                        true => "Press to pause the game",
-                        false => "Press to resume the game"
+                        true => "Press to resume the game",
+                        false => "Press to pause the game"
                     }
                 };
 
@@ -102,7 +102,7 @@ namespace Game1
                     (
                         state: new
                         (
-                            starId: StarId.Create(),
+                            starID: StarID.Create(),
                             position: new MyVector2(0, -300),
                             radius: 20,
                             prodWatts: 200
@@ -113,7 +113,7 @@ namespace Game1
                     (
                         state: new
                         (
-                            starId: StarId.Create(),
+                            starID: StarID.Create(),
                             position: new MyVector2(200, 300),
                             radius: 10,
                             prodWatts: 100
@@ -124,7 +124,7 @@ namespace Game1
                     (
                         state: new
                         (
-                            starId: StarId.Create(),
+                            starID: StarID.Create(),
                             position: new MyVector2(-200, 100),
                             radius: 40,
                             prodWatts: 400
@@ -141,7 +141,7 @@ namespace Game1
                         (
                             state: new
                             (
-                                nodeId: NodeId.Create(),
+                                nodeID: NodeID.Create(),
                                 position: new MyVector2(i - (width - 1) * .5, j - (height - 1) * .5) * dist,
                                 approxRadius: MyMathHelper.Pow((UDouble)2, C.Random(min: (double)3, max: 6)),
                                 consistsOfResInd: BasicResInd.Random(),
@@ -252,7 +252,7 @@ namespace Game1
                 typeof(UIRectVertPanel<IHUDElement>),
                 typeof(UITransparentPanel<ResDestinArrow>),
                 typeof(Dictionary<IOverlay, IHUDElement>),
-                typeof(ReadOnlyDictionary<NodeId, Planet>)
+                typeof(ReadOnlyDictionary<NodeID, Planet>)
             };
             List<Type> unserializedTypeList = new();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
@@ -306,7 +306,7 @@ namespace Game1
                     if (CurGraph.ActiveWorldElement is Planet activeNode)
                     {
                         foreach (var node in CurGraph.Nodes)
-                            if (activeNode.CanHaveDestin(destinationId: node.NodeId))
+                            if (activeNode.CanHaveDestin(destinationId: node.NodeID))
                                 node.HasDisabledAncestor = false;
                     }
                     else
@@ -393,7 +393,8 @@ namespace Game1
                 shape: new MyRectangle
                 (
                     width: 60,
-                    height: 60
+                    height: 60,
+                    color: Color.White
                 ),
                 tooltip: pauseButtonTooltip,
                 on: false,
@@ -412,14 +413,14 @@ namespace Game1
             OnCreate?.Invoke();
         }
 
-        public UDouble PersonDist(NodeId nodeId1, NodeId nodeId2)
-            => CurGraph.PersonDist(nodeId1: nodeId1, nodeId2: nodeId2);
+        public UDouble PersonDist(NodeID nodeID1, NodeID nodeID2)
+            => CurGraph.PersonDist(nodeID1: nodeID1, nodeID2: nodeID2);
 
-        public UDouble ResDist(NodeId nodeId1, NodeId nodeId2)
-            => CurGraph.ResDist(nodeId1: nodeId1, nodeId2: nodeId2);
+        public UDouble ResDist(NodeID nodeID1, NodeID nodeID2)
+            => CurGraph.ResDist(nodeID1: nodeID1, nodeID2: nodeID2);
 
-        public MyVector2 NodePosition(NodeId nodeId)
-            => CurGraph.NodePosition(nodeId: nodeId);
+        public MyVector2 NodePosition(NodeID nodeID)
+            => CurGraph.NodePosition(nodeID: nodeID);
 
         public void AddResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
             => CurGraph.AddResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
@@ -459,6 +460,8 @@ namespace Game1
             if (elapsed < TimeSpan.Zero)
                 throw new ArgumentException();
 
+            TimeSpan elapsedUITime = elapsed;
+
             if (pauseButton.On)
                 elapsed = TimeSpan.Zero;
 
@@ -471,9 +474,9 @@ namespace Game1
 
             energyManager.DistributeEnergy
             (
-                nodeIds: from node in CurGraph.Nodes
-                         select node.NodeId,
-                nodeIdToNode: nodeId => CurGraph.nodeIdToNode[nodeId]
+                nodeIDs: from node in CurGraph.Nodes
+                         select node.NodeID,
+                nodeIDToNode: nodeID => CurGraph.nodeIDToNode[nodeID]
             );
 
             CurGraph.Update();
@@ -482,7 +485,7 @@ namespace Game1
 
             globalTextBox.Text = (energyManager.Summary() + $"population {people.Count}").Trim();
 
-            activeUIManager.Update(elapsed: elapsed);
+            activeUIManager.Update(elapsed: elapsedUITime);
         }
 
         public void Draw()

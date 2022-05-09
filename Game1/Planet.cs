@@ -69,13 +69,13 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct ResDestinShapeParams(NodeState State, NodeId DestinationId) : VectorShape.IParams
+        private readonly record struct ResDestinShapeParams(NodeState State, NodeID DestinationId) : VectorShape.IParams
         {
             public MyVector2 StartPos
                 => State.position;
 
             public MyVector2 EndPos
-                => CurWorldManager.NodePosition(nodeId: DestinationId);
+                => CurWorldManager.NodePosition(nodeID: DestinationId);
 
             public UDouble Width
                 => 2 * State.Radius;
@@ -91,8 +91,8 @@ namespace Game1
                 => 2 * State.Radius;
         }
 
-        public NodeId NodeId
-            => state.nodeId;
+        public NodeID NodeID
+            => state.nodeID;
         public MyVector2 Position
             => state.position;
         public readonly UDouble radius;
@@ -103,7 +103,7 @@ namespace Game1
         private readonly List<Link> links;
         private Industry? industry;
         private readonly HouseOld unemploymentCenter;
-        private readonly MyArray<ProporSplitter<NodeId>> resSplittersToDestins;
+        private readonly MyArray<ProporSplitter<NodeID>> resSplittersToDestins;
         private ResAmounts targetStoredResAmounts;
         private ResAmounts undecidedResAmounts, resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
@@ -121,7 +121,7 @@ namespace Game1
         public Planet(NodeState state, Color activeColor, Color inactiveColor, int startPersonCount = 0)
             : base
             (
-                shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
+                shape: new LightCatchingDisk(parameters: new ShapeParams(State: state), color: Color.White),
                 activeColor: activeColor,
                 inactiveColor: inactiveColor,
                 popupHorizPos: HorizPos.Right,
@@ -137,7 +137,7 @@ namespace Game1
 
             resSplittersToDestins = new
             (
-                selector: resInd => new ProporSplitter<NodeId>()
+                selector: resInd => new ProporSplitter<NodeID>()
             );
             targetStoredResAmounts = new();
             undecidedResAmounts = new();
@@ -146,7 +146,7 @@ namespace Game1
 
             for (int i = 0; i < startPersonCount; i++)
             {
-                Person person = Person.GeneratePerson(nodeId: NodeId);
+                Person person = Person.GeneratePerson(nodeID: NodeID);
                 state.waitingPeople.Add(person);
             }
 
@@ -192,11 +192,9 @@ namespace Game1
                     shape: new Ellipse
                     (
                         width: 200,
-                        height: 20
-                    )
-                    {
-                        Color = Color.White
-                    },
+                        height: 20,
+                        color: Color.White
+                    ),
                     tooltip: buildableParams.CreateTooltip(state: state),
                     text: buildableParams.ButtonName
                 );
@@ -229,7 +227,8 @@ namespace Game1
                     shape: new MyRectangle
                     (
                         width: 60,
-                        height: 60
+                        height: 60,
+                        color: Color.White
                     ),
                     tooltip: new ImmutableTextTooltip(text: "Specifies weather to store extra resources"),
                     text: "store\nswitch",
@@ -242,10 +241,7 @@ namespace Game1
 
                 Button addResourceDestinationButton = new
                 (
-                    shape: new MyRectangle(width: 150, height: 50)
-                    {
-                        Color = Color.White
-                    },
+                    shape: new MyRectangle(width: 150, height: 50, color: Color.White),
                     tooltip: new ImmutableTextTooltip(text: $"Adds new place to where {resInd} should be transported"),
                     text: $"add resource {resInd}\ndestination"
                 );
@@ -293,7 +289,7 @@ namespace Game1
         public void Arrive(ResAmountsPacketsByDestin resAmountsPackets)
         {
             state.waitingResAmountsPackets.Add(resAmountsPackets: resAmountsPackets);
-            resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeId);
+            resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeID);
         }
 
         public void Arrive(IEnumerable<Person> people)
@@ -315,7 +311,7 @@ namespace Game1
         public bool IfStore(ResInd resInd)
             => storeToggleButtons[resInd].On;
 
-        public IEnumerable<NodeId> ResDestins(ResInd resInd)
+        public IEnumerable<NodeID> ResDestins(ResInd resInd)
             => resSplittersToDestins[resInd].Keys;
 
         public ulong TargetStoredResAmount(ResInd resInd)
@@ -324,15 +320,15 @@ namespace Game1
         public ulong StoredResAmount(ResInd resInd)
             => state.storedRes[resInd];
 
-        public bool CanHaveDestin(NodeId destinationId)
+        public bool CanHaveDestin(NodeID destinationId)
         {
             if (!Active || !CurWorldManager.ArrowDrawingModeOn)
                 throw new InvalidOperationException();
 
-            return destinationId != NodeId && !resSplittersToDestins[(ResInd)CurWorldManager.Overlay].ContainsKey(destinationId);
+            return destinationId != NodeID && !resSplittersToDestins[(ResInd)CurWorldManager.Overlay].ContainsKey(destinationId);
         }
 
-        public void AddResDestin(NodeId destinationId)
+        public void AddResDestin(NodeID destinationId)
         {
             if (!CanHaveDestin(destinationId: destinationId))
                 throw new ArgumentException();
@@ -382,7 +378,7 @@ namespace Game1
             }
         }
 
-        public void Update(IReadOnlyDictionary<(NodeId, NodeId), Link?> personFirstLinks)
+        public void Update(IReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks)
         {
             // TODO: delete
             // temporary
@@ -396,13 +392,13 @@ namespace Game1
             // deal with people
             foreach (var person in state.waitingPeople.Clone())
             {
-                NodeId? activityCenterPosition = person.ActivityCenterNodeId;
+                NodeID? activityCenterPosition = person.ActivityCenterNodeID;
                 if (activityCenterPosition is null)
                     continue;
-                if (activityCenterPosition == NodeId)
+                if (activityCenterPosition == NodeID)
                     person.Arrived();
                 else
-                    personFirstLinks[(NodeId, activityCenterPosition)]!.Add(start: this, person: person);
+                    personFirstLinks[(NodeID, activityCenterPosition)]!.Add(start: this, person: person);
                 state.waitingPeople.Remove(person);
             }
 
@@ -417,7 +413,7 @@ namespace Game1
                 not null => industry.PeopleHere
             };
             foreach (var person in state.waitingPeople.Concat(unemploymentCenter.PeopleHere).Concat(peopleInIndustry))
-                person.Update(lastNodeId: NodeId, closestNodeId: NodeId);
+                person.Update(lastNodeID: NodeID, closestNodeID: NodeID);
         }
 
         public void StartSplitRes()
@@ -429,7 +425,7 @@ namespace Game1
             };
 
             // deal with resources
-            undecidedResAmounts = state.storedRes + state.waitingResAmountsPackets.ReturnAndRemove(destination: NodeId);
+            undecidedResAmounts = state.storedRes + state.waitingResAmountsPackets.ReturnAndRemove(destination: NodeID);
             state.storedRes = new();
 
             state.storedRes = undecidedResAmounts.Min(resAmounts: targetStoredResAmounts);
@@ -439,7 +435,7 @@ namespace Game1
         /// <summary>
         /// MUST call StartSplitRes first
         /// </summary>
-        public void SplitRes(Func<NodeId, INodeAsResDestin> nodeIdToNode, ResInd resInd, Func<NodeId, ulong> maxExtraResFunc)
+        public void SplitRes(Func<NodeID, INodeAsResDestin> nodeIDToNode, ResInd resInd, Func<NodeID, ulong> maxExtraResFunc)
         {
             if (undecidedResAmounts[resInd] is 0)
                 return;
@@ -459,7 +455,7 @@ namespace Game1
                         resInd: resInd,
                         resAmount: resAmount
                     );
-                    nodeIdToNode(destination).AddResTravelHere(resInd: resInd, resAmount: resAmount);
+                    nodeIDToNode(destination).AddResTravelHere(resInd: resInd, resAmount: resAmount);
                 }
             }
         }
@@ -467,16 +463,16 @@ namespace Game1
         /// <summary>
         /// MUST call SplitRes first
         /// </summary>
-        public void EndSplitRes(IReadOnlyDictionary<(NodeId, NodeId), Link?> resFirstLinks)
+        public void EndSplitRes(IReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks)
         {
             undecidedResAmounts = new();
 
             foreach (var resAmountsPacket in state.waitingResAmountsPackets.DeconstructAndClear())
             {
-                NodeId destinationId = resAmountsPacket.destination;
-                Debug.Assert(destinationId != NodeId);
+                NodeID destinationId = resAmountsPacket.destination;
+                Debug.Assert(destinationId != NodeID);
 
-                resFirstLinks[(NodeId, destinationId)]!.Add(start: this, resAmountsPacket: resAmountsPacket);
+                resFirstLinks[(NodeID, destinationId)]!.Add(start: this, resAmountsPacket: resAmountsPacket);
             }
 
             // TODO: look at this
@@ -512,9 +508,9 @@ namespace Game1
             infoTextBox.Text += textBox.Text;
         }
 
-        public override void Draw()
+        protected override void DrawChildren()
         {
-            base.Draw();
+            base.DrawChildren();
 
             if (Active && CurWorldManager.ArrowDrawingModeOn)
                 // TODO: could create the arrow once with endPos calculated from mouse position
@@ -524,11 +520,9 @@ namespace Game1
                     (
                         State: state,
                         EndPos: CurWorldManager.MouseWorldPos
-                    )
-                )
-                {
-                    Color = Color.White * .25f
-                }.Draw();
+                    ),
+                    color: Color.White
+                ).Draw();
         }
         
         public void SetRemainingLocalWatts(UDouble remainingLocalWatts)

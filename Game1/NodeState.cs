@@ -8,7 +8,7 @@ namespace Game1
         // TODO: define using the new notation
         //public double SurfaceGravitationalAccel
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
-        public readonly NodeId nodeId;
+        public readonly NodeID nodeID;
 
         // TODO: inlcude other objects with mass in this calculation, i.e. buildings, people, resources, etc.
         public ulong Mass { get; private set; }
@@ -37,9 +37,9 @@ namespace Game1
         // NEVER TO BE USED DIRECTLY
         private ulong mainResAmount;
 
-        public NodeState(NodeId nodeId, MyVector2 position, UDouble approxRadius, BasicResInd consistsOfResInd, ulong maxBatchDemResStored)
+        public NodeState(NodeID nodeID, MyVector2 position, UDouble approxRadius, BasicResInd consistsOfResInd, ulong maxBatchDemResStored)
         {
-            this.nodeId = nodeId;
+            this.nodeID = nodeID;
             this.position = position;
             consistsOfRes = CurResConfig.resources[consistsOfResInd];
             MainResAmount = Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / consistsOfRes.area);

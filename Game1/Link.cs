@@ -97,7 +97,7 @@ namespace Game1
             public void UpdatePeople()
             {
                 foreach (var person in waitingPeople.Concat(timedPacketQueue.People))
-                    person.Update(lastNodeId: startNode.NodeId, closestNodeId: endNode.NodeId);
+                    person.Update(lastNodeID: startNode.NodeID, closestNodeID: endNode.NodeID);
             }
 
             public void DrawTravelingRes()
@@ -138,8 +138,8 @@ namespace Game1
             EnergyPriority IEnergyConsumer.EnergyPriority
                 => CurWorldConfig.linkEnergyPriority;
 
-            NodeId IEnergyConsumer.NodeId
-                => startNode.NodeId;
+            NodeID IEnergyConsumer.NodeID
+                => startNode.NodeID;
 
             UDouble IEnergyConsumer.ReqWatts()
                 => timedPacketQueue.TotalWeight * reqWattsPerKg;
@@ -176,7 +176,8 @@ namespace Game1
             (
                 shape: new LineSegment
                 (
-                    parameters: new ShapeParams(Node1: node1, Node2: node2)
+                    parameters: new ShapeParams(Node1: node1, Node2: node2),
+                    color: Color.White
                 ),
                 activeColor: Color.White,
                 inactiveColor: Color.Green,
@@ -276,9 +277,9 @@ namespace Game1
             link2To1.UpdatePeople();
         }
 
-        public override void Draw()
+        protected override void DrawChildren()
         {
-            base.Draw();
+            base.DrawChildren();
 
             link1To2.DrawTravelingRes();
             link2To1.DrawTravelingRes();

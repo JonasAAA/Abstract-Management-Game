@@ -10,7 +10,7 @@ namespace Game1
         public bool Empty
             => TotalWeight is 0;
 
-        private Dictionary<NodeId, ResAmountsPacket> resAmountsPacketsByDestin;
+        private Dictionary<NodeID, ResAmountsPacket> resAmountsPacketsByDestin;
 
         public ResAmountsPacketsByDestin()
         {
@@ -37,7 +37,7 @@ namespace Game1
             TotalWeight += resAmountsPacket.TotalWeight;
         }
 
-        public void Add(NodeId destination, ResAmounts resAmounts)
+        public void Add(NodeID destination, ResAmounts resAmounts)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
@@ -45,7 +45,7 @@ namespace Game1
             TotalWeight += resAmounts.TotalWeight();
         }
 
-        public void Add(NodeId destination, ResInd resInd, ulong resAmount)
+        public void Add(NodeID destination, ResInd resInd, ulong resAmount)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
@@ -53,7 +53,7 @@ namespace Game1
             TotalWeight += CurResConfig.resources[resInd].mass * resAmount;
         }
 
-        public ResAmounts ReturnAndRemove(NodeId destination)
+        public ResAmounts ReturnAndRemove(NodeID destination)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 return new();
@@ -64,7 +64,7 @@ namespace Game1
             return resAmountsPacket.ResAmounts;
         }
 
-        public ResAmounts ResToDestinAmounts(NodeId destination)
+        public ResAmounts ResToDestinAmounts(NodeID destination)
             => resAmountsPacketsByDestin.ContainsKey(destination) switch
             {
                 true => resAmountsPacketsByDestin[destination].ResAmounts,

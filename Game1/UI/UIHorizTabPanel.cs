@@ -25,7 +25,7 @@ namespace Game1.UI
             => tabs[tabChoicePanel.SelectedChoiceLabel];
 
         public UIHorizTabPanel(UDouble tabLabelWidth, UDouble tabLabelHeight, Color color, Color inactiveTabLabelColor, IEnumerable<(string tabLabelText, ITooltip tabTooltip, TTab tab)> tabs)
-            : base(shape: new MyRectangle())
+            : base(shape: new MyRectangle(color: Color.White))
         {
             Shape.Color = color;
 
@@ -42,7 +42,7 @@ namespace Game1.UI
                 choiceHeight: tabLabelHeight,
                 selectedColor: color,
                 deselectedColor: inactiveTabLabelColor,
-                backgroundColor: inactiveTabLabelColor,
+                backgroundColor: Color.White,
                 choiceLabelsAndTooltips: from tab in tabArray
                                          select (label: tab.tabLabelText, tooltip: tab.tabTooltip)
             );
@@ -127,9 +127,8 @@ namespace Game1.UI
             return ActiveTab.CatchUIElement(mousePos: mousePos) ?? this;
         }
 
-        public override void Draw()
+        protected override void DrawChildren()
         {
-            Shape.Draw();
             tabChoicePanel.Draw();
             ActiveTab?.Draw();
         }

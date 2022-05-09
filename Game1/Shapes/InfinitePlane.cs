@@ -11,10 +11,12 @@ namespace Game1.Shapes
             => pixelTexture = C.LoadTexture(name: "pixel");
 
         public InfinitePlane()
-            => Color = Color.Transparent;
+            : base(color: Color.Transparent)
+        { }
 
         public InfinitePlane(Color color)
-            => Color = color;
+            : base(color: color)
+        { }
 
         public override bool Contains(MyVector2 position)
             => true;

@@ -204,8 +204,8 @@ namespace Game1.Industries
                 false => EnergyPriority.maximal
             };
 
-        NodeId IEnergyConsumer.NodeId
-            => parameters.state.nodeId;
+        NodeID IEnergyConsumer.NodeID
+            => parameters.state.nodeID;
 
         public override IEnumerable<Person> PeopleHere
             => employer.PeopleHere;

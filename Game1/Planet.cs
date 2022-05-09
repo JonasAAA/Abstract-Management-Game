@@ -69,7 +69,7 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct ResDestinArrowParams(NodeState State, NodeId DestinationId, Color DefaultActiveColor, Color DefaultInactiveColor, HorizPos PopupHorizPos, VertPos PopupVertPos, int MinImportance, int Importance, ResInd ResInd) : ResDestinArrow.IParams
+        private readonly record struct ResDestinShapeParams(NodeState State, NodeId DestinationId) : VectorShape.IParams
         {
             public MyVector2 StartPos
                 => State.position;
@@ -79,9 +79,6 @@ namespace Game1
 
             public UDouble Width
                 => 2 * State.Radius;
-
-            public NodeId SourceId
-                => State.nodeId;
         }
 
         [Serializable]
@@ -346,18 +343,19 @@ namespace Game1
 
             ResDestinArrow resDestinArrow = new
             (
-                parameters: new ResDestinArrowParams
+                shapeParams: new ResDestinShapeParams
                 (
                     State: state,
-                    DestinationId: destinationId,
-                    DefaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
-                    DefaultInactiveColor: Color.White * .5f,
-                    PopupHorizPos: HorizPos.Right,
-                    PopupVertPos: VertPos.Top,
-                    MinImportance: 1,
-                    Importance: 1,
-                    ResInd: resInd
-                )
+                    DestinationId: destinationId
+                ),
+                destinId: destinationId,
+                defaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
+                defaultInactiveColor: Color.White * .5f,
+                popupHorizPos: HorizPos.Right,
+                popupVertPos: VertPos.Top,
+                minImportance: 1,
+                startImportance: 1,
+                resInd: resInd
             );
             ResDesinArrowEventListener resDesinArrowEventListener = new(Node: this, ResInd: resInd);
             resDestinArrow.ImportanceNumberChanged.Add(listener: resDesinArrowEventListener);

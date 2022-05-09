@@ -6,19 +6,6 @@ namespace Game1.UI
     [Serializable]
     public class ResDestinArrow : WorldUIElement
     {
-        public interface IParams : VectorShape.IParams
-        {
-            public NodeId SourceId { get; }
-            public NodeId DestinationId { get; }
-            public Color DefaultActiveColor { get; }
-            public Color DefaultInactiveColor { get; }
-            public HorizPos PopupHorizPos { get; }
-            public VertPos PopupVertPos { get; }
-            public int MinImportance { get; }
-            public int Importance { get; }
-            public ResInd ResInd { get; }
-        }
-
         [Serializable]
         private readonly record struct DeleteButtonClickedListener(ResDestinArrow ResDestinArrow) : IClickedListener
         {
@@ -38,40 +25,44 @@ namespace Game1.UI
             {
                 totalImportance = value;
                 double relImportance = (double)Importance / totalImportance;
-                InactiveColor = parameters.DefaultInactiveColor * (float)relImportance;
-                ActiveColor = parameters.DefaultActiveColor * (float)relImportance;
+                InactiveColor = defaultInactiveColor * (float)relImportance;
+                ActiveColor = defaultActiveColor * (float)relImportance;
                 line2.Text = $"total importance {totalImportance}";
             }
         }
 
         public NodeId DestinationId
-            => parameters.DestinationId;
+            => destinId;
 
         public Event<INumberChangedListener> ImportanceNumberChanged
             => importanceIncDecrPanel.numberChanged;
 
-        private readonly IParams parameters;
         private int totalImportance;
+        private readonly NodeId destinId;
+        private readonly Color defaultActiveColor, defaultInactiveColor;
         private readonly NumIncDecrPanel importanceIncDecrPanel;
         private readonly TextBox line2;
 
-        public ResDestinArrow(IParams parameters)
+        public ResDestinArrow(VectorShape.IParams shapeParams, NodeId destinId, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int startImportance, ResInd resInd)
             : base
             (
-                shape: new Arrow(parameters: parameters),
-                activeColor: parameters.DefaultActiveColor,
-                inactiveColor: parameters.DefaultInactiveColor,
-                popupHorizPos: parameters.PopupHorizPos,
-                popupVertPos: parameters.PopupVertPos
+                shape: new Arrow(parameters: shapeParams),
+                activeColor: defaultActiveColor,
+                inactiveColor: defaultInactiveColor,
+                popupHorizPos: popupHorizPos,
+                popupVertPos: popupVertPos
             )
         {
-            this.parameters = parameters;
+            this.destinId = destinId;
+            this.defaultActiveColor = defaultActiveColor;
+            this.defaultInactiveColor = defaultInactiveColor;
+
             UIRectPanel<IHUDElement> popup = new UIRectVertPanel<IHUDElement>
             (
                 color: Color.White,
                 childHorizPos: HorizPos.Left
             );
-            SetPopup(HUDElement: popup, overlay: parameters.ResInd);
+            SetPopup(HUDElement: popup, overlay: resInd);
 
             UIRectHorizPanel<IHUDElement> line1 = new
             (
@@ -88,8 +79,8 @@ namespace Game1.UI
             );
             importanceIncDecrPanel = new
             (
-                minNum: parameters.MinImportance,
-                number: parameters.Importance,
+                minNum: minImportance,
+                number: startImportance,
                 shapeColor: Color.White,
                 incrDecrButtonHeight: 20,
                 incrButtonTooltip: new ImmutableTextTooltip(text: "Increase importance of this route"),
@@ -112,7 +103,7 @@ namespace Game1.UI
                     Color = Color.Red
                 },
                 text: "delete",
-                tooltip: new ImmutableTextTooltip(text: $"Remove resource {parameters.ResInd} destination")
+                tooltip: new ImmutableTextTooltip(text: $"Remove resource {resInd} destination")
             );
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(ResDestinArrow: this));
             popup.AddChild(deleteButton);

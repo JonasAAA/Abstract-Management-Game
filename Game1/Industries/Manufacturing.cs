@@ -11,7 +11,7 @@
             public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, ResAmounts supplyPerUnitSurface, ResAmounts demandPerUnitSurface, TimeSpan prodDuration)
                 : base
                 (
-                    industryType: IndustryType.Factory,
+                    industryType: IndustryType.Manufacturing,
                     name: name,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface,

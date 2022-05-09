@@ -15,7 +15,7 @@ namespace Game1.Industries
             public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, UDouble minedResPerUnitSurfacePerSec)
                 : base
                 (
-                    industryType: IndustryType.Factory,
+                    industryType: IndustryType.Mining,
                     name: name,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface
@@ -82,20 +82,22 @@ namespace Game1.Industries
 
         protected override Mining InternalUpdate(Propor workingPropor)
         {
-            curMinedResPerSec = workingPropor * parameters.MinedResPerSec;
-            UDouble resToMine = curMinedResPerSec * (UDouble)CurWorldManager.Elapsed.TotalSeconds + silentlyMinedBits;
+            UDouble resToMine = workingPropor * parameters.MinedResPerSec * (UDouble)CurWorldManager.Elapsed.TotalSeconds + silentlyMinedBits;
             ulong minedRes = (ulong)resToMine;
             silentlyMinedBits = (UDouble)(resToMine - minedRes);
             Debug.Assert(0 <= silentlyMinedBits && silentlyMinedBits <= 1);
 
-            if (minedRes > parameters.state.MaxAvailableResAmount)
+            ulong maxMinedRes = parameters.state.MaxAvailableResAmount;
+            if (minedRes > maxMinedRes)
             {
-                minedRes = parameters.state.MaxAvailableResAmount;
+                minedRes = maxMinedRes;
                 silentlyMinedBits = 0;
             }
 
+            curMinedResPerSec = minedRes / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
+
             parameters.state.waitingResAmountsPackets.Add(destination: parameters.state.nodeID, resInd: parameters.state.consistsOfResInd, resAmount: minedRes);
-            parameters.state.Remove(resAmount: minedRes);
+            parameters.state.RemoveRes(resAmount: minedRes);
 
             return this;
         }

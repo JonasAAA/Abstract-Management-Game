@@ -4,7 +4,8 @@
     {
         Construction,
         Mining,
-        Factory,
+        PlanetEnlargement,
+        Manufacturing,
         PowerPlant,
         Reproduction,
     }

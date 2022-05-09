@@ -29,7 +29,15 @@
                     energyPriority: new(value: 20),
                     reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 10,
-                    minedResPerUnitSurfacePerSec: (UDouble).1
+                    minedResPerUnitSurfacePerSec: (UDouble)1
+                ),
+                new PlanetEnlargement.Factory
+                (
+                    name: "planet_enlargement_lvl1",
+                    energyPriority: new(value: 20),
+                    reqSkillPerUnitSurface: (UDouble).2,
+                    reqWattsPerUnitSurface: 5,
+                    addedResPerUnitSurfacePerSec: (UDouble)2
                 ),
                 new Construction.Factory
                 (

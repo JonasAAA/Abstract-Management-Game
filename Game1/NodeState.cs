@@ -58,12 +58,15 @@ namespace Game1
         public bool CanRemove(ulong resAmount)
             => MainResAmount >= resAmount + CurWorldConfig.minResAmountInPlanet;
 
-        public void Remove(ulong resAmount)
+        public void RemoveRes(ulong resAmount)
         {
             if (!CanRemove(resAmount: resAmount))
                 throw new ArgumentException();
             MainResAmount -= resAmount;
         }
+
+        public void AddRes(ulong resAmount)
+            => MainResAmount += resAmount;
 
         private void RecalculateValues()
         {

@@ -19,8 +19,9 @@ namespace Game1.Industries
                 // TODO: get rid of hard-coded constants
                 score2: Score.WeightedAverage
                 (
+                    (weight: 6, score: Score.lowest),
                     // TODO: make it so that multiple samples generate the same value
-                    (weight: 7, score: Score.GenerateRandom()),
+                    (weight: 1, score: Score.GenerateRandom()),
                     (weight: 3, score: DistanceToHereAsPerson(person: person))
                 ),
                 score1Propor: CurWorldConfig.personMomentumPropor

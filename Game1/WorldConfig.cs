@@ -40,7 +40,7 @@
             personToJobDistWeight = 1;
 
             jobVacDespValueConsideredAverage = 10;
-            minAcceptablePersonScore = (Score).2;
+            minAcceptablePersonScore = (Score).1;
             linkEnergyPriority = new EnergyPriority(value: 10);
             standardStarRadius = 50;
             scrollSpeed = 60;

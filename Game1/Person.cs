@@ -1,5 +1,6 @@
 ﻿using Game1.Delegates;
 using Game1.Industries;
+using System.Diagnostics.CodeAnalysis;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -98,7 +99,7 @@ namespace Game1
             => deleted;
 
         /// <summary>
-        /// is null just been let go from activity center
+        /// is null if just been let go from activity center
         /// </summary>
         private IPersonFacingActivityCenter? activityCenter;
         private readonly TimeSpan seekChangeTime;
@@ -106,6 +107,9 @@ namespace Game1
         private readonly Dictionary<ActivityType, TimeSpan> lastActivityTimes;
         private NodeID lastNodeID;
         private readonly Event<IDeletedListener> deleted;
+        [MemberNotNullWhen(returnValue: true, member: nameof(activityCenter))]
+        private bool IsInActivityCenter
+            => activityCenter is not null && activityCenter.IsPersonHere(person: this);
 
         private Person(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, ulong weight, UDouble reqWatts, TimeSpan seekChangeTime)
         {
@@ -147,7 +151,7 @@ namespace Game1
         {
             this.lastNodeID = lastNodeID;
             ClosestNodeID = closestNodeID;
-            if (activityCenter is not null && activityCenter.IsPersonHere(person: this))
+            if (IsInActivityCenter)
             {
                 activityCenter.UpdatePerson(person: this);
                 lastActivityTimes[activityCenter.ActivityType] = CurWorldManager.CurTime;
@@ -194,13 +198,13 @@ namespace Game1
             => SetActivityCenter(newActivityCenter: null);
 
         EnergyPriority IEnergyConsumer.EnergyPriority
-            => activityCenter switch
+            => IsInActivityCenter switch
             {
-                null => CurWorldConfig.personDefaultEnergyPriority,
                 // if person has higher priority then activityCenter,
-                // then activityCenter most likely will can't work at full capacity
-                // so will not use all the available energyicity
-                not null => MyMathHelper.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority)
+                // then activityCenter most likely can't work at full capacity
+                // so will not use all the available energy
+                true => MyMathHelper.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority),
+                false => CurWorldConfig.personDefaultEnergyPriority
             };
 
         NodeID IEnergyConsumer.NodeID

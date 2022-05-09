@@ -83,9 +83,7 @@ namespace Game1
                     false => Propor.Create(reqWattsByConsumer[energyConsumer], curReqWatts)!.Value.Opposite()
                 };
                 if (energyConsumer.EnergyPriority == EnergyPriority.minimal && !energyPropor.IsCloseTo(other: Propor.full))
-                    ;
-                    // TODO: uncomment
-                    //throw new Exception();
+                    throw new Exception();
                 energyConsumer.ConsumeEnergy(energyPropor: energyPropor);
             }
 

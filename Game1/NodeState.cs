@@ -26,6 +26,8 @@ namespace Game1
                     RecalculateValues();
             }
         }
+        public ulong MaxAvailableResAmount
+            => MainResAmount - CurWorldConfig.minResAmountInPlanet;
         public MyVector2 position;
         public readonly ulong maxBatchDemResStored;
         public ResAmounts storedRes;

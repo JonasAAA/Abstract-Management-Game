@@ -1,4 +1,6 @@
-﻿namespace Game1.Industries
+﻿using static Game1.WorldManager;
+
+namespace Game1.Industries
 {
     [Serializable]
     public sealed class Manufacturing : Production
@@ -6,9 +8,10 @@
         [Serializable]
         public new sealed class Factory : Production.Factory
         {
-            public readonly ResAmounts demandPerUnitSurface, supplyPerUnitSurface;
+            public readonly NonBasicResInd producedResInd;
+            public readonly ulong prodResPerUnitSurface;
 
-            public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, ResAmounts supplyPerUnitSurface, ResAmounts demandPerUnitSurface, TimeSpan prodDuration)
+            public Factory(string name, NonBasicResInd producedResInd, ulong prodResPerUnitSurface, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, TimeSpan prodDuration)
                 : base
                 (
                     industryType: IndustryType.Manufacturing,
@@ -19,8 +22,8 @@
                     prodDuration: prodDuration
                 )
             {
-                this.demandPerUnitSurface = demandPerUnitSurface;
-                this.supplyPerUnitSurface = supplyPerUnitSurface;
+                this.producedResInd = producedResInd;
+                this.prodResPerUnitSurface = prodResPerUnitSurface;
             }
 
             public override Manufacturing CreateIndustry(NodeState state)
@@ -34,10 +37,13 @@
         public new sealed class Params : Production.Params
         {
             public ResAmounts Demand
-                => state.ApproxSurfaceLength * factory.demandPerUnitSurface;
+                => state.ApproxSurfaceLength * factory.prodResPerUnitSurface * CurResConfig.resources[factory.producedResInd].recipe;
 
             protected override ResAmounts SupplyPerUnitSurface
-                => factory.supplyPerUnitSurface;
+                => factory.prodResPerUnitSurface * new ResAmounts()
+                {
+                    [factory.producedResInd] = factory.prodResPerUnitSurface
+                };
 
             public override string TooltipText
                 => base.TooltipText + $"{nameof(Demand)}: {Demand}\n";

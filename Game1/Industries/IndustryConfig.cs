@@ -48,25 +48,64 @@
                     industryFactory: new Manufacturing.Factory
                     (
                         name: "factory2_lvl1",
+                        producedResInd: (NonBasicResInd)2,
+                        prodResPerUnitSurface: 1,
                         energyPriority: new(value: 20),
                         reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerUnitSurface: 10,
-                        supplyPerUnitSurface: new()
-                        {
-                            [(ResInd)2] = 10,
-                        },
-                        demandPerUnitSurface: new()
-                        {
-                            [(ResInd)0] = 5,
-                            [(ResInd)1] = 5
-                        },
                         prodDuration: TimeSpan.FromSeconds(value: 2)
                     ),
                     duration: TimeSpan.FromSeconds(5),
                     costPerUnitSurface: new()
                     {
-                        [(ResInd)0] = 20,
-                        [(ResInd)1] = 20
+                        [(ResInd)0] = 2,
+                        [(ResInd)1] = 2
+                    }
+                ),
+                new Construction.Factory
+                (
+                    name: "factory costruction",
+                    energyPriority: new(value: 10),
+                    reqSkillPerUnitSurface: (UDouble).1,
+                    reqWattsPerUnitSurface: 100,
+                    industryFactory: new Manufacturing.Factory
+                    (
+                        name: "factory3_lvl1",
+                        producedResInd: (NonBasicResInd)3, 
+                        prodResPerUnitSurface: 1,
+                        energyPriority: new(value: 20),
+                        reqSkillPerUnitSurface: (UDouble).1,
+                        reqWattsPerUnitSurface: 10,
+                        prodDuration: TimeSpan.FromSeconds(value: 2)
+                    ),
+                    duration: TimeSpan.FromSeconds(5),
+                    costPerUnitSurface: new()
+                    {
+                        [(ResInd)0] = 2,
+                        [(ResInd)1] = 2
+                    }
+                ),
+                new Construction.Factory
+                (
+                    name: "factory costruction",
+                    energyPriority: new(value: 10),
+                    reqSkillPerUnitSurface: (UDouble).1,
+                    reqWattsPerUnitSurface: 100,
+                    industryFactory: new Manufacturing.Factory
+                    (
+                        name: "factory4_lvl1",
+                        producedResInd: (NonBasicResInd)4,
+                        prodResPerUnitSurface: 1,
+                        energyPriority: new(value: 20),
+                        reqSkillPerUnitSurface: (UDouble).1,
+                        reqWattsPerUnitSurface: 10,
+                        prodDuration: TimeSpan.FromSeconds(value: 2)
+                    ),
+                    duration: TimeSpan.FromSeconds(5),
+                    costPerUnitSurface: new()
+                    {
+                        [(ResInd)0] = 2,
+                        [(ResInd)1] = 2
                     }
                 ),
                 new Construction.Factory

@@ -3,7 +3,7 @@
     [Serializable]
     public readonly record struct ResInd : IOverlay
     {
-        public const ulong count = 3;
+        public const ulong count = BasicResInd.count + NonBasicResInd.count;
 
         private static readonly ResInd[] allInds;
 
@@ -16,6 +16,23 @@
             for (ulong ind = 0; ind < count; ind++)
                 allInds[ind] = new(value: ind);
         }
+
+        // TODO: delete if unused
+        //public static IEnumerable<ResInd> ResIndInterval(ResInd? minInd = null, ResInd? maxInd = null)
+        //{
+        //    ulong minIndex = minInd switch
+        //    {
+        //        ResInd resInd => (ulong)resInd,
+        //        null => 0
+        //    };
+        //    ulong maxIndex = maxInd switch
+        //    {
+        //        ResInd resInd => (ulong)resInd,
+        //        null => count - 1
+        //    };
+        //    for (ulong ind = minIndex; ind <= maxIndex; ind++)
+        //        yield return allInds[ind];
+        //}
 
         public static ResInd? MakeFrom(ulong value)
         {
@@ -41,6 +58,18 @@
                 ResInd resInd => resInd,
                 null => throw new InvalidCastException()
             };
+        
+        public static bool operator <(ResInd resInd1, ResInd resInd2)
+            => resInd1.value < resInd2.value;
+
+        public static bool operator >(ResInd resInd1, ResInd resInd2)
+            => resInd1.value > resInd2.value;
+
+        public static bool operator <=(ResInd resInd1, ResInd resInd2)
+            => resInd1.value <= resInd2.value;
+
+        public static bool operator >=(ResInd resInd1, ResInd resInd2)
+            => resInd1.value >= resInd2.value;
 
         public override string ToString()
             => "Res" + value.ToString();

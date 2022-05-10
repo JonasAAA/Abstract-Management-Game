@@ -32,7 +32,7 @@ namespace Game1
                     elementSelector: indType => Score.GenerateRandom()
                 ),
                 // TODO: get rid of hard-coded constant
-                weight: 10,
+                mass: 10,
                 reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                 seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime)
             );
@@ -56,7 +56,7 @@ namespace Game1
                     elementSelector: indType => Score.lowest
                 ),
                 // TODO: get rid of hard-coded constant
-                weight: 10,
+                mass: 10,
                 reqWatts:
                     CurWorldConfig.parentContribToChildPropor * (person1.reqWatts + person2.reqWatts) * (UDouble).5
                     + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
@@ -89,7 +89,7 @@ namespace Game1
         public Propor EnergyPropor { get; private set; }
         public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
             => lastActivityTimes;
-        public readonly ulong weight;
+        public readonly ulong mass;
         public readonly UDouble reqWatts;
 
         /// <summary>
@@ -111,7 +111,7 @@ namespace Game1
         private bool IsInActivityCenter
             => activityCenter is not null && activityCenter.IsPersonHere(person: this);
 
-        private Person(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, ulong weight, UDouble reqWatts, TimeSpan seekChangeTime)
+        private Person(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, ulong mass, UDouble reqWatts, TimeSpan seekChangeTime)
         {
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
@@ -120,7 +120,7 @@ namespace Game1
             this.skills = new(skills);
 
             activityCenter = null;
-            this.weight = weight;
+            this.mass = mass;
 
             if (reqWatts < CurWorldConfig.personMinReqWatts || reqWatts > CurWorldConfig.personMaxReqWatts)
                 throw new ArgumentOutOfRangeException();

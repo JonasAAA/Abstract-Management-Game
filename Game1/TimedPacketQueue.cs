@@ -9,7 +9,7 @@
             => people;
 
         public ResAmounts TotalResAmounts { get; private set; }
-        public ulong TotalWeight { get; private set; }
+        public ulong TotalMass { get; private set; }
 
         private readonly MySet<Person> people;
 
@@ -17,7 +17,7 @@
             : base(duration: duration)
         {
             TotalResAmounts = new();
-            TotalWeight = 0;
+            TotalMass = 0;
             people = new();
         }
 
@@ -29,7 +29,7 @@
             people.UnionWith(newPeople);
             base.Enqueue(element: (packets.resAmountsPackets, newPeople));
             TotalResAmounts += packets.resAmountsPackets.ResAmounts;
-            TotalWeight += packets.resAmountsPackets.TotalWeight + newPeople.TotalWeight();
+            TotalMass += packets.resAmountsPackets.TotalMass + newPeople.TotalMass();
         }
 
         public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, IEnumerable<Person> people)
@@ -41,7 +41,7 @@
             foreach (var (resAmountsPackets, people) in result)
             {
                 TotalResAmounts -= resAmountsPackets.ResAmounts;
-                TotalWeight -= resAmountsPackets.TotalWeight + people.TotalWeight();
+                TotalMass -= resAmountsPackets.TotalMass + people.TotalMass();
                 this.people.ExceptWith(people);
             }
             return result;

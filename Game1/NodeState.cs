@@ -34,7 +34,7 @@ namespace Game1
         public ResAmountsPacketsByDestin waitingResAmountsPackets;
         public readonly MySet<Person> waitingPeople;
         public readonly BasicResInd consistsOfResInd;
-        public readonly Resource consistsOfRes;
+        public readonly BasicRes consistsOfRes;
 
         // NEVER TO BE USED DIRECTLY
         private ulong mainResAmount;

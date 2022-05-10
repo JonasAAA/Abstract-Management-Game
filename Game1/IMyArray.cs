@@ -4,7 +4,7 @@ namespace Game1
 {
     public interface IMyArray<T> : IEnumerable<T>
     {
-        public T this[ResInd resInd] { get; init; }
+        public T this[ResInd resInd] { get; }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
             => (from resInd in ResInd.All

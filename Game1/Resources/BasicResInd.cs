@@ -44,6 +44,9 @@
         public static implicit operator ResInd(BasicResInd basicResInd)
             => (ResInd)(ulong)basicResInd;
 
+        public static explicit operator BasicResInd(ResInd resInd)
+            => (BasicResInd)(ulong)resInd;
+
         public static explicit operator BasicResInd(ulong value)
             => MakeFrom(value: value) switch
             {

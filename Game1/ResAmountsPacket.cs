@@ -8,9 +8,9 @@ namespace Game1
         public readonly NodeID destination;
         public ResAmounts ResAmounts
             => resAmounts;
-        public ulong TotalWeight { get; private set; }
+        public ulong TotalMass { get; private set; }
         public bool Empty
-            => TotalWeight is 0;
+            => TotalMass is 0;
 
         private ResAmounts resAmounts;
 
@@ -22,7 +22,7 @@ namespace Game1
         {
             this.destination = destination;
             this.resAmounts = resAmounts;
-            TotalWeight = resAmounts.TotalWeight();
+            TotalMass = resAmounts.TotalMass();
         }
 
         public void Add(ResAmountsPacket resAmountsPacket)
@@ -30,19 +30,19 @@ namespace Game1
             if (resAmountsPacket.destination != destination)
                 throw new ArgumentException();
             resAmounts += resAmountsPacket.resAmounts;
-            TotalWeight += resAmountsPacket.TotalWeight;
+            TotalMass += resAmountsPacket.TotalMass;
         }
 
         public void Add(ResAmounts resAmounts)
         {
             this.resAmounts += resAmounts;
-            TotalWeight += resAmounts.TotalWeight();
+            TotalMass += resAmounts.TotalMass();
         }
 
         public void Add(ResInd resInd, ulong resAmount)
         {
             resAmounts = resAmounts.WithAdd(index: resInd, value: resAmount);
-            TotalWeight += CurResConfig.resources[resInd].mass * resAmount;
+            TotalMass += CurResConfig.resources[resInd].Mass * resAmount;
         }
     }
 }

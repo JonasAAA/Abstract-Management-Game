@@ -496,9 +496,9 @@ namespace Game1
                 },
                 allResCase: () =>
                 {
-                    ulong totalStoredWeight = state.storedRes.TotalWeight();
-                    if (totalStoredWeight > 0)
-                        textBox.Text += $"stored total res weight {totalStoredWeight}";
+                    ulong totalStoredMass = state.storedRes.TotalMass();
+                    if (totalStoredMass > 0)
+                        textBox.Text += $"stored total res mass {totalStoredMass}";
                 },
                 powerCase: () => textBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {shape.Watts - remainingLocalWatts:.##} W is used",
                 peopleCase: () => textBox.Text += unemploymentCenter.GetInfo()

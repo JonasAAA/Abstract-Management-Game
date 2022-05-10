@@ -6,9 +6,9 @@ namespace Game1
     public class ResAmountsPacketsByDestin
     {
         public ResAmounts ResAmounts { get; private set; }
-        public ulong TotalWeight { get; private set; }
+        public ulong TotalMass { get; private set; }
         public bool Empty
-            => TotalWeight is 0;
+            => TotalMass is 0;
 
         private Dictionary<NodeID, ResAmountsPacket> resAmountsPacketsByDestin;
 
@@ -17,7 +17,7 @@ namespace Game1
             resAmountsPacketsByDestin = new();
 
             ResAmounts = new();
-            TotalWeight = 0;
+            TotalMass = 0;
         }
 
         public void Add(ResAmountsPacketsByDestin resAmountsPackets)
@@ -34,7 +34,7 @@ namespace Game1
                 resAmountsPacketsByDestin[resAmountsPacket.destination] = resAmountsPacket;
 
             ResAmounts += resAmountsPacket.ResAmounts;
-            TotalWeight += resAmountsPacket.TotalWeight;
+            TotalMass += resAmountsPacket.TotalMass;
         }
 
         public void Add(NodeID destination, ResAmounts resAmounts)
@@ -42,7 +42,7 @@ namespace Game1
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
             resAmountsPacketsByDestin[destination].Add(resAmounts: resAmounts);
-            TotalWeight += resAmounts.TotalWeight();
+            TotalMass += resAmounts.TotalMass();
         }
 
         public void Add(NodeID destination, ResInd resInd, ulong resAmount)
@@ -50,7 +50,7 @@ namespace Game1
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
             resAmountsPacketsByDestin[destination].Add(resInd: resInd, resAmount: resAmount);
-            TotalWeight += CurResConfig.resources[resInd].mass * resAmount;
+            TotalMass += CurResConfig.resources[resInd].Mass * resAmount;
         }
 
         public ResAmounts ReturnAndRemove(NodeID destination)
@@ -60,7 +60,7 @@ namespace Game1
             
             var resAmountsPacket = resAmountsPacketsByDestin[destination];
             resAmountsPacketsByDestin.Remove(destination);
-            TotalWeight -= resAmountsPacket.TotalWeight;
+            TotalMass -= resAmountsPacket.TotalMass;
             return resAmountsPacket.ResAmounts;
         }
 
@@ -75,7 +75,7 @@ namespace Game1
         {
             var result = resAmountsPacketsByDestin.Values;
             resAmountsPacketsByDestin = new();
-            TotalWeight = 0;
+            TotalMass = 0;
             return result;
         }
     }

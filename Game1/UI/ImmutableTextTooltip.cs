@@ -12,11 +12,10 @@ namespace Game1.UI
 
         public ImmutableTextTooltip(string text)
         {
-            textBox = new()
+            textBox = new(backgroundColor: Color.LightPink)
             {
                 Text = text
             };
-            Shape.Color = Color.LightPink;
         }
 
         public void Update()

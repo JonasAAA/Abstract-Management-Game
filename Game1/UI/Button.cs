@@ -1,42 +1,21 @@
-﻿using Game1.Delegates;
-using Game1.Shapes;
+﻿using Game1.Shapes;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
     [Serializable]
-    public class Button : HUDElement, IWithTooltip
+    public sealed class Button : BaseButton
     {
-        public ITooltip Tooltip { get; }
+        protected override Color Color { get; }
 
-        public readonly Event<IClickedListener> clicked;
-
-        public override bool CanBeClicked
-            => true;
-
-        protected readonly TextBox textBox;
-
-        public Button(NearRectangle shape, ITooltip tooltip, string? text = null)
-            : base(shape: shape)
-        {
-            clicked = new();
-            textBox = new()
-            {
-                Text = text
-            };
-            Tooltip = tooltip;
-            AddChild(child: textBox);
-        }
+        public Button(NearRectangle shape, ITooltip tooltip, string? text = null, Color? color = null)
+            : base(shape: shape, tooltip: tooltip, text: text)
+            => Color = color ?? curUIConfig.defaultButtonColor;
 
         protected override void PartOfRecalcSizeAndPos()
         {
             base.PartOfRecalcSizeAndPos();
             textBox.Shape.Center = Shape.Center;
-        }
-
-        public override void OnClick()
-        {
-            base.OnClick();
-            clicked.Raise(action: listener => listener.ClickedResponse());
         }
     }
 }

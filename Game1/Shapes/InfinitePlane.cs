@@ -3,25 +3,17 @@
 namespace Game1.Shapes
 {
     [Serializable]
-    public class InfinitePlane : Shape
+    public sealed class InfinitePlane : Shape
     {
         private static readonly Texture2D pixelTexture;
 
         static InfinitePlane()
             => pixelTexture = C.LoadTexture(name: "pixel");
 
-        public InfinitePlane()
-            : base(color: Color.Transparent)
-        { }
-
-        public InfinitePlane(Color color)
-            : base(color: color)
-        { }
-
         public override bool Contains(MyVector2 position)
             => true;
 
-        protected override void Draw(Color color)
+        public override void Draw(Color color)
         {
             if (!color.Transparent())
                 C.Draw

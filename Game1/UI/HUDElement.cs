@@ -4,7 +4,7 @@ using Game1.Shapes;
 namespace Game1.UI
 {
     [Serializable]
-    public class HUDElement : UIElement<IHUDElement>, IHUDElement, ISizeOrPosChangedListener
+    public abstract class HUDElement : UIElement<IHUDElement>, IHUDElement, ISizeOrPosChangedListener
     {
         public NearRectangle Shape { get; }
 

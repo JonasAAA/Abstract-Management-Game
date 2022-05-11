@@ -131,8 +131,7 @@ namespace Game1.Shapes
         private MyVector2 center;
         private UDouble width, height, minWidth, minHeight;
 
-        protected NearRectangle(UDouble width, UDouble height, Color color)
-            : base(color: color)
+        protected NearRectangle(UDouble width, UDouble height)
         {
             this.width = width;
             this.height = height;

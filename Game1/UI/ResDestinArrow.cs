@@ -25,8 +25,8 @@ namespace Game1.UI
             {
                 totalImportance = value;
                 double relImportance = (double)Importance / totalImportance;
-                InactiveColor = defaultInactiveColor * (float)relImportance;
-                ActiveColor = defaultActiveColor * (float)relImportance;
+                inactiveColor = defaultInactiveColor * (float)relImportance;
+                activeColor = defaultActiveColor * (float)relImportance;
                 line2.Text = $"total importance {totalImportance}";
             }
         }
@@ -46,7 +46,7 @@ namespace Game1.UI
         public ResDestinArrow(VectorShape.IParams shapeParams, NodeID destinId, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int startImportance, ResInd resInd)
             : base
             (
-                shape: new Arrow(parameters: shapeParams, color: Color.White),
+                shape: new Arrow(parameters: shapeParams),
                 activeColor: defaultActiveColor,
                 inactiveColor: defaultInactiveColor,
                 popupHorizPos: popupHorizPos,
@@ -57,18 +57,10 @@ namespace Game1.UI
             this.defaultActiveColor = defaultActiveColor;
             this.defaultInactiveColor = defaultInactiveColor;
 
-            UIRectPanel<IHUDElement> popup = new UIRectVertPanel<IHUDElement>
-            (
-                color: Color.White,
-                childHorizPos: HorizPos.Left
-            );
+            UIRectPanel<IHUDElement> popup = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
             SetPopup(HUDElement: popup, overlay: resInd);
 
-            UIRectHorizPanel<IHUDElement> line1 = new
-            (
-                color: Color.White,
-                childVertPos: VertPos.Middle
-            );
+            UIRectHorizPanel<IHUDElement> line1 = new(childVertPos: VertPos.Middle);
             popup.AddChild(child: line1);
             line1.AddChild
             (
@@ -81,7 +73,6 @@ namespace Game1.UI
             (
                 minNum: minImportance,
                 number: startImportance,
-                shapeColor: Color.White,
                 incrDecrButtonHeight: 20,
                 incrButtonTooltip: new ImmutableTextTooltip(text: "Increase importance of this route"),
                 decrButtonTooltip: new ImmutableTextTooltip(text: "Decrease importance of this route"),
@@ -97,11 +88,11 @@ namespace Game1.UI
                 shape: new MyRectangle
                 (
                     width: 70,
-                    height: 30,
-                    color: Color.Red
+                    height: 30
                 ),
                 text: "delete",
-                tooltip: new ImmutableTextTooltip(text: $"Remove resource {resInd} destination")
+                tooltip: new ImmutableTextTooltip(text: $"Remove resource {resInd} destination"),
+                color: Color.Red
             );
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(ResDestinArrow: this));
             popup.AddChild(deleteButton);

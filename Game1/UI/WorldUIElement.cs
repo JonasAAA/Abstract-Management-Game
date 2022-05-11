@@ -24,7 +24,6 @@ namespace Game1.UI
                     return;
 
                 active = value;
-                SetShapeColor();
                 if (active)
                     CurWorldManager.AddHUDElement
                     (
@@ -43,26 +42,14 @@ namespace Game1.UI
             }
         }
 
-        protected Color ActiveColor
-        {
-            get => activeColor;
-            set
+        protected sealed override Color Color
+            => Active switch
             {
-                activeColor = value;
-                SetShapeColor();
-            }
-        }
-        protected Color InactiveColor
-        {
-            get => inactiveColor;
-            set
-            {
-                inactiveColor = value;
-                SetShapeColor();
-            }
-        }
+                true => activeColor,
+                false => inactiveColor
+            };
+        protected Color activeColor, inactiveColor;
 
-        private Color activeColor, inactiveColor;
         private readonly HorizPos popupHorizPos;
         private readonly VertPos popupVertPos;
         private readonly Event<IDeletedListener> deleted;
@@ -79,7 +66,6 @@ namespace Game1.UI
             this.popupHorizPos = popupHorizPos;
             this.popupVertPos = popupVertPos;
             active = false;
-            SetShapeColor();
             deleted = new();
 
             popups = IOverlay.all.ToDictionary
@@ -107,13 +93,6 @@ namespace Game1.UI
 
             Active = true;
         }
-
-        private void SetShapeColor()
-            => shape.Color = Active switch
-            {
-                true => activeColor,
-                false => inactiveColor
-            };
 
         public virtual void ChoiceChangedResponse(IOverlay prevOverlay)
         {

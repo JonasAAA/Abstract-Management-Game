@@ -35,8 +35,8 @@
         private readonly MyVector2 origin, dirVector, orthDir;
         private readonly UDouble scaleX, scaleY;
 
-        public Triangle(UDouble width, UDouble height, Color color, Direction direction)
-            : base(width: width, height: height, color: color)
+        public Triangle(UDouble width, UDouble height, Direction direction)
+            : base(width: width, height: height)
         {
             this.direction = direction;
             rotation = (int)direction * MyMathHelper.pi / 2;
@@ -57,7 +57,7 @@
             return dirProp + orthDirProp < 1;
         }
 
-        protected override void Draw(Color color)
+        public override void Draw(Color color)
             => C.Draw
             (
                 texture: triangleTexture,

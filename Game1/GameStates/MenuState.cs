@@ -11,7 +11,7 @@ namespace Game1.GameStates
 
         public MenuState(List<ActionButton> actionButtons)
         {
-            UIPanel = new(color: Color.White, childHorizPos: HorizPos.Middle);
+            UIPanel = new(childHorizPos: HorizPos.Middle);
             foreach (var actionButton in actionButtons)
                 UIPanel.AddChild(child: actionButton);
 

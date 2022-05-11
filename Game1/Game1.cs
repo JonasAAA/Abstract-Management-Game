@@ -151,7 +151,7 @@ namespace Game1
             return;
 
             NearRectangle CreateActionButtonShape()
-                => new MyRectangle(width: buttonWidth, height: buttonHeight, color: Color.White);
+                => new MyRectangle(width: buttonWidth, height: buttonHeight);
 
             ActionButton CreateActionButton(string text, Action action, string tooltipText)
                 => new

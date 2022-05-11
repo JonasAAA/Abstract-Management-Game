@@ -1,26 +1,24 @@
-﻿using Game1.Shapes;
-using static Game1.UI.ActiveUIManager;
+﻿using Game1.Delegates;
+using Game1.Shapes;
 
 namespace Game1.UI
 {
     [Serializable]
-    public sealed class ActionButton : HUDElement, IWithTooltip
+    public abstract class BaseButton : HUDElement, IWithTooltip
     {
         public ITooltip Tooltip { get; }
+
+        public readonly Event<IClickedListener> clicked;
 
         public override bool CanBeClicked
             => true;
 
-        protected override Color Color
-            => curUIConfig.defaultButtonColor;
+        protected readonly TextBox textBox;
 
-        private readonly Action action;
-        private readonly TextBox textBox;
-
-        public ActionButton(NearRectangle shape, Action action, ITooltip tooltip, string? text = null)
+        protected BaseButton(NearRectangle shape, ITooltip tooltip, string? text = null)
             : base(shape: shape)
         {
-            this.action = action;
+            clicked = new();
             textBox = new()
             {
                 Text = text
@@ -38,7 +36,7 @@ namespace Game1.UI
         public override void OnClick()
         {
             base.OnClick();
-            action();
+            clicked.Raise(action: listener => listener.ClickedResponse());
         }
     }
 }

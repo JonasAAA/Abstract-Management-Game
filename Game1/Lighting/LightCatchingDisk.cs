@@ -23,8 +23,8 @@ namespace Game1.Lighting
         private readonly Dictionary<StarID, Propor> starPosToPowerPropor;
         private readonly Event<IDeletedListener> deleted;
 
-        public LightCatchingDisk(IParams parameters, Color color)
-            : base(parameters: parameters, color: color)
+        public LightCatchingDisk(IParams parameters)
+            : base(parameters: parameters)
         {
             starPosToWatts = new();
             starPosToPowerPropor = new();

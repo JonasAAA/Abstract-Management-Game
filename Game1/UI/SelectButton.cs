@@ -8,8 +8,8 @@ namespace Game1.UI
         public override bool CanBeClicked
             => !On;
 
-        public SelectButton(NearRectangle shape, ITooltip tooltip, string text, bool on, Color selectedColor, Color deselectedColor)
-            : base(shape: shape, tooltip: tooltip, text: text, on: on, selectedColor: selectedColor, deselectedColor: deselectedColor)
+        public SelectButton(NearRectangle shape, ITooltip tooltip, string text, bool on)
+            : base(shape: shape, tooltip: tooltip, text: text, on: on)
         { }
 
         public override void OnClick()

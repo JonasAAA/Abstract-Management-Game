@@ -3,16 +3,13 @@
 namespace Game1.UI
 {
     [Serializable]
-    public class UIRectHorizPanel<TChild> : UIRectPanel<TChild>
+    public sealed class UIRectHorizPanel<TChild> : UIRectPanel<TChild>
         where TChild : IHUDElement
     {
         private readonly VertPos childVertPos;
 
-        public UIRectHorizPanel(Color color, VertPos childVertPos)
-            : base(color: color)
-        {
-            this.childVertPos = childVertPos;
-        }
+        public UIRectHorizPanel(VertPos childVertPos)
+            => this.childVertPos = childVertPos;
 
         protected override void PartOfRecalcSizeAndPos()
         {

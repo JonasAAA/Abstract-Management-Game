@@ -1,10 +1,11 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
     [Serializable]
-    public class UIHorizTabPanel<TTab> : HUDElement
+    public sealed class UIHorizTabPanel<TTab> : HUDElement
         where TTab : class, IHUDElement
     {
         [Serializable]
@@ -18,17 +19,18 @@ namespace Game1.UI
                 );
         }
 
+        protected override Color Color
+            => curUIConfig.defaultUIBackgroundColor;
+
         private readonly MultipleChoicePanel<string> tabChoicePanel;
         private readonly Dictionary<string, TTab> tabs;
         private readonly Dictionary<string, TabEnabledChangedListener> tabEnabledChangedListeners;
         private TTab ActiveTab
             => tabs[tabChoicePanel.SelectedChoiceLabel];
 
-        public UIHorizTabPanel(UDouble tabLabelWidth, UDouble tabLabelHeight, Color color, Color inactiveTabLabelColor, IEnumerable<(string tabLabelText, ITooltip tabTooltip, TTab tab)> tabs)
-            : base(shape: new MyRectangle(color: Color.White))
+        public UIHorizTabPanel(UDouble tabLabelWidth, UDouble tabLabelHeight, IEnumerable<(string tabLabelText, ITooltip tabTooltip, TTab tab)> tabs)
+            : base(shape: new MyRectangle())
         {
-            Shape.Color = color;
-
             this.tabs = new();
             var tabArray = tabs.ToArray();
             tabEnabledChangedListeners = new();
@@ -40,9 +42,6 @@ namespace Game1.UI
                 horizontal: true,
                 choiceWidth: tabLabelWidth,
                 choiceHeight: tabLabelHeight,
-                selectedColor: color,
-                deselectedColor: inactiveTabLabelColor,
-                backgroundColor: Color.White,
                 choiceLabelsAndTooltips: from tab in tabArray
                                          select (label: tab.tabLabelText, tooltip: tab.tabTooltip)
             );

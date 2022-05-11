@@ -7,7 +7,7 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [Serializable]
-    public class Graph : UIElement<IUIElement>, IChoiceChangedListener<IOverlay>, IActiveChangedListener
+    public sealed class Graph : UIElement<IUIElement>, IChoiceChangedListener<IOverlay>, IActiveChangedListener
     {
         [Serializable]
         private class NodeInfo
@@ -82,6 +82,9 @@ namespace Game1
         public override bool CanBeClicked
             => true;
 
+        protected override Color Color
+            => Color.Black;
+
         private readonly ReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
         private readonly ReadOnlyDictionary<(NodeID, NodeID), UDouble> resDists;
 
@@ -107,7 +110,6 @@ namespace Game1
             }
         }
 
-
         private readonly List<Star> stars;
         private readonly List<Planet> nodes;
         private readonly List<Link> links;
@@ -117,7 +119,7 @@ namespace Game1
         public WorldUIElement? ActiveWorldElement { get; private set; }
 
         public Graph(IEnumerable<Star> stars, IEnumerable<Planet> nodes, IEnumerable<Link> links)
-            : base(shape: new InfinitePlane(color: Color.Black))
+            : base(shape: new InfinitePlane())
         {
             this.stars = stars.ToMyHashSet().ToList();
             this.nodes = nodes.ToMyHashSet().ToList();

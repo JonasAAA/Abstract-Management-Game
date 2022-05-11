@@ -4,11 +4,14 @@ using System.Collections;
 namespace Game1.UI
 {
     [Serializable]
-    public class UITransparentPanel<TChild> : UIElement<IUIElement>, IEnumerable<TChild>
+    public sealed class UITransparentPanel<TChild> : UIElement<IUIElement>, IEnumerable<TChild>
         where TChild : IUIElement
     {
         public int Count
             => children.Count;
+
+        protected override Color Color
+            => Color.Transparent;
 
         private readonly List<TChild> children;
 

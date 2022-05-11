@@ -1,5 +1,6 @@
 ﻿using Game1.Shapes;
 using System.Collections;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -10,13 +11,14 @@ namespace Game1.UI
         public int Count
             => children.Count;
 
+        protected sealed override Color Color
+            => curUIConfig.defaultUIBackgroundColor;
+
         protected readonly List<TChild> children;
 
-        protected UIRectPanel(Color color)
-            : base(shape: new MyRectangle(color: color))
-        {
-            children = new();
-        }
+        protected UIRectPanel()
+            : base(shape: new MyRectangle())
+            => children = new();
 
         public void AddChild(TChild? child)
         {

@@ -1,10 +1,11 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
     [Serializable]
-    public abstract class OnOffButton : Button
+    public abstract class OnOffButton : BaseButton
     {
         public readonly Event<IOnChangedListener> onChanged;
 
@@ -16,31 +17,25 @@ namespace Game1.UI
                 if (on != value)
                 {
                     on = value;
-                    Shape.Color = on switch
-                    {
-                        true => selectedColor,
-                        false => deselectedColor
-                    };
                     onChanged.Raise(action: listener => listener.OnChangedResponse());
                 }
             }
         }
 
-        private bool on;
-        private readonly Color selectedColor, deselectedColor;
+        protected sealed override Color Color
+            => on switch
+            {
+                true => curUIConfig.defaultSelectedButtonColor,
+                false => curUIConfig.defaultDeselectedButtonColor
+            };
 
-        protected OnOffButton(NearRectangle shape, ITooltip tooltip, string text, bool on, Color selectedColor, Color deselectedColor)
+        private bool on;
+
+        protected OnOffButton(NearRectangle shape, ITooltip tooltip, string text, bool on)
             : base(shape: shape, tooltip: tooltip, text: text)
         {
             onChanged = new();
             this.on = on;
-            this.selectedColor = selectedColor;
-            this.deselectedColor = deselectedColor;
-            Shape.Color = on switch
-            {
-                true => selectedColor,
-                false => deselectedColor
-            };
         }
     }
 }

@@ -13,10 +13,7 @@ namespace Game1.UI
         private readonly TextBox textBox;
 
         protected TextTooltipBase()
-        {
-            textBox = new();
-            Shape.Color = Color.LightPink;
-        }
+            => textBox = new(backgroundColor: Color.LightPink);
 
         public void Update()
             => textBox.Text = Text;

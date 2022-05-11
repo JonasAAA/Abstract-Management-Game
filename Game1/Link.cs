@@ -176,8 +176,7 @@ namespace Game1
             (
                 shape: new LineSegment
                 (
-                    parameters: new ShapeParams(Node1: node1, Node2: node2),
-                    color: Color.White
+                    parameters: new ShapeParams(Node1: node1, Node2: node2)
                 ),
                 activeColor: Color.White,
                 inactiveColor: Color.Green,
@@ -197,17 +196,14 @@ namespace Game1
             resTextBoxes = new();
             foreach (var resInd in ResInd.All)
             {
-                resTextBoxes[resInd] = new();
-                resTextBoxes[resInd].Shape.Color = Color.White;
+                resTextBoxes[resInd] = new(backgroundColor: Color.White);
                 SetPopup(HUDElement: resTextBoxes[resInd], overlay: resInd);
             }
 
-            allResTextBox = new();
-            allResTextBox.Shape.Color = Color.White;
+            allResTextBox = new(backgroundColor: Color.White);
             SetPopup(HUDElement: allResTextBox, overlay: IOverlay.allRes);
 
-            peopleTextBox = new();
-            peopleTextBox.Shape.Color = Color.White;
+            peopleTextBox = new(backgroundColor: Color.White);
             SetPopup(HUDElement: peopleTextBox, overlay: IOverlay.people);
         }
 
@@ -244,7 +240,7 @@ namespace Game1
             link1To2.Update();
             link2To1.Update();
 
-            InactiveColor = Color.Lerp
+            inactiveColor = Color.Lerp
             (
                 value1: Color.White,
                 value2: Color.Green,

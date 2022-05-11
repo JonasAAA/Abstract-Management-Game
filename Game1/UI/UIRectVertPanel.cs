@@ -8,11 +8,8 @@ namespace Game1.UI
     {
         private readonly HorizPos childHorizPos;
 
-        public UIRectVertPanel(Color color, HorizPos childHorizPos)
-            : base(color: color)
-        {
-            this.childHorizPos = childHorizPos;
-        }
+        public UIRectVertPanel(HorizPos childHorizPos)
+            => this.childHorizPos = childHorizPos;
 
         protected override void PartOfRecalcSizeAndPos()
         {

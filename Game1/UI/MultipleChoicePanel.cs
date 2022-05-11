@@ -1,11 +1,12 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
 using System.Diagnostics.CodeAnalysis;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
     [Serializable]
-    public class MultipleChoicePanel<TChoiceLabel> : HUDElement
+    public sealed class MultipleChoicePanel<TChoiceLabel> : HUDElement
         where TChoiceLabel : notnull
     {
         // it is public to easily add it to knownTypes
@@ -53,36 +54,33 @@ namespace Game1.UI
             }
         }
 
+        protected override Color Color
+            => curUIConfig.defaultUIBackgroundColor;
+
         private readonly UIRectPanel<SelectButton> choicePanel;
         private readonly Dictionary<TChoiceLabel, SelectButton> choices;
         private readonly UDouble choiceWidth, choiceHeight;
-        private readonly Color selectedColor, deselectedColor;
         private TChoiceLabel selectedChoiceLabel;
 
-        public MultipleChoicePanel(bool horizontal, UDouble choiceWidth, UDouble choiceHeight, Color selectedColor, Color deselectedColor, Color backgroundColor, IEnumerable<(TChoiceLabel label, ITooltip tooltip)> choiceLabelsAndTooltips)
-            : base(shape: new MyRectangle(color: Color.White))
+        public MultipleChoicePanel(bool horizontal, UDouble choiceWidth, UDouble choiceHeight, IEnumerable<(TChoiceLabel label, ITooltip tooltip)> choiceLabelsAndTooltips)
+            : base(shape: new MyRectangle())
         {
             choiceChanged = new();
             choicePanel = horizontal switch
             {
                 true => new UIRectHorizPanel<SelectButton>
                 (
-                    color: backgroundColor,
                     childVertPos: VertPos.Top
                 ),
                 false => new UIRectVertPanel<SelectButton>
                 (
-                    color: backgroundColor,
                     childHorizPos: HorizPos.Left
                 )
             };
 
             this.choiceWidth = choiceWidth;
             this.choiceHeight = choiceHeight;
-            this.selectedColor = selectedColor;
-            this.deselectedColor = deselectedColor;
 
-            Shape.Color = backgroundColor;
             var choiceLabelsAndTooltipsArray = choiceLabelsAndTooltips.ToArray();
             if (choiceLabelsAndTooltipsArray.Length is 0)
                 throw new ArgumentException($"must provide at least one choice to start with");
@@ -114,14 +112,11 @@ namespace Game1.UI
                 shape: new MyRectangle
                 (
                     width: choiceWidth,
-                    height: choiceHeight,
-                    color: Color.White
+                    height: choiceHeight
                 ),
                 on: choicePanel.Count is 0,
                 tooltip: choiceTooltip,
-                text: choiceLabel.ToString() ?? throw new Exception("The label text must be not null"),
-                selectedColor: selectedColor,
-                deselectedColor: deselectedColor
+                text: choiceLabel.ToString() ?? throw new Exception("The label text must be not null")
             );
 
             ChoiceEventListener choiceEventListener = new

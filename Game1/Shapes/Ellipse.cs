@@ -8,8 +8,8 @@
         static Ellipse()
             => diskTexture = C.LoadTexture(name: "big disk");
 
-        public Ellipse(UDouble width, UDouble height, Color color)
-            : base(width: width, height: height, color: color)
+        public Ellipse(UDouble width, UDouble height)
+            : base(width: width, height: height)
         { }
 
         public override bool Contains(MyVector2 position)
@@ -20,7 +20,7 @@
             return propX * propX + propY * propY < 1;
         }
 
-        protected override void Draw(Color color)
+        public override void Draw(Color color)
             => C.Draw
             (
                 texture: diskTexture,

@@ -20,14 +20,13 @@
 
         protected readonly IParams parameters;
 
-        public Disk(IParams parameters, Color color)
-            : base(color: color)
+        public Disk(IParams parameters)
             => this.parameters = parameters;
 
         public override bool Contains(MyVector2 position)
             => MyVector2.Distance(position, Center) < parameters.Radius;
 
-        protected override void Draw(Color color)
+        public override void Draw(Color color)
             => C.Draw
             (
                 texture: diskTexture,

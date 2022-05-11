@@ -15,8 +15,7 @@
         protected readonly IParams parameters;
 
         // TODO: consider creating unsigned variables for texture width and height (or maybe extension methods for that)
-        protected VectorShape(IParams parameters, Color color)
-            : base(color: color)
+        protected VectorShape(IParams parameters)
         {
             if (MyMathHelper.IsTiny(MyVector2.Distance(parameters.StartPos, parameters.EndPos)))
                 throw new ArgumentException();
@@ -39,7 +38,7 @@
 
         protected abstract bool Contains(Propor dirPropor, Propor orthDirPropor);
 
-        protected override void Draw(Color color)
+        public override void Draw(Color color)
             => C.Draw
             (
                 texture: Texture,

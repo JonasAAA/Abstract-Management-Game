@@ -11,8 +11,8 @@
         protected override Texture2D Texture
             => triangleTexture;
 
-        public Arrow(IParams parameters, Color color)
-            : base(parameters: parameters, color: color)
+        public Arrow(IParams parameters)
+            : base(parameters: parameters)
         { }
 
         protected override bool Contains(Propor dirPropor, Propor orthDirPropor)

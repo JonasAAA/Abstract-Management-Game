@@ -39,12 +39,12 @@ namespace Game1.Shapes
         static MyRectangle()
             => pixelTexture = C.LoadTexture(name: "pixel");
 
-        public MyRectangle(Color color)
-            : this(width: 2 * ActiveUIManager.RectOutlineWidth, height: 2 * ActiveUIManager.RectOutlineWidth, color: color)
+        public MyRectangle()
+            : this(width: 2 * ActiveUIManager.RectOutlineWidth, height: 2 * ActiveUIManager.RectOutlineWidth)
         { }
 
-        public MyRectangle(UDouble width, UDouble height, Color color)
-            : base(width: width, height: height, color: color)
+        public MyRectangle(UDouble width, UDouble height)
+            : base(width: width, height: height)
         {
             MinWidth = 2 * ActiveUIManager.RectOutlineWidth;
             MinHeight = 2 * ActiveUIManager.RectOutlineWidth;
@@ -56,7 +56,7 @@ namespace Game1.Shapes
             return MyMathHelper.Abs(relPos.X) < Width * (UDouble).5 && MyMathHelper.Abs(relPos.Y) < Height * (UDouble).5;
         }
 
-        protected override void Draw(Color color)
+        public override void Draw(Color color)
         {
             if (Width.IsCloseTo(other: 0) || Height.IsCloseTo(other: 0))
                 return;

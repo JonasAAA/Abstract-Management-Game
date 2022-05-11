@@ -57,7 +57,12 @@ namespace Game1.UI
         public virtual bool CanBeClicked
             => false;
 
+        protected abstract Color Color { get; }
+
         protected readonly Shape shape;
+
+        private bool Transparent
+            => Color.Transparent();
 
         private bool personallyEnabled, hasDisabledAncestor, mouseOn;
 
@@ -116,7 +121,7 @@ namespace Game1.UI
                 if (childCatchingUIElement is not null)
                     return childCatchingUIElement;
             }
-            return shape.Transparent switch
+            return Transparent switch
             {
                 true => null,
                 false => this
@@ -140,6 +145,7 @@ namespace Game1.UI
 
             shape.Draw
             (
+                baseColor: Color,
                 otherColor: otherColor,
                 otherColorPropor: otherColorPropor
             );

@@ -4,14 +4,13 @@ using static Game1.UI.ActiveUIManager;
 namespace Game1.UI
 {
     [Serializable]
-    public class TextBox : HUDElement
+    public sealed class TextBox : HUDElement
     {
         private static readonly SpriteFont font;
 
         static TextBox()
             => font = C.LoadFont(name: "font");
 
-        public Color TextColor { private get; set; }
         public string? Text
         {
             get => text;
@@ -31,16 +30,20 @@ namespace Game1.UI
             }
         }
 
+        protected override Color Color { get; }
+
+        private readonly Color textColor;
         private string? text;
         private readonly UDouble scale;
 
-        public TextBox()
-            : base(shape: new MyRectangle(color: Color.Transparent))
+        public TextBox(Color? backgroundColor = null, Color? textColor = null)
+            : base(shape: new MyRectangle())
         {
             // TODO: look up where font.MeasureString(...) is called, there should probably be a static readonly variable
             // storing what the height of a capital letter is
             scale = curUIConfig.letterHeight / (UDouble)font.MeasureString("F").Y;
-            TextColor = curUIConfig.defaultTextColor;
+            Color = backgroundColor ?? Color.Transparent;
+            this.textColor = textColor ?? curUIConfig.defaultTextColor;
             Text = null;
         }
 
@@ -58,8 +61,8 @@ namespace Game1.UI
                 position: Shape.TopLeftCorner,
                 color: (PersonallyEnabled && !HasDisabledAncestor) switch
                 {
-                    true => TextColor,
-                    false => TextColor * .5f
+                    true => textColor,
+                    false => textColor * .5f
                 },
                 origin: MyVector2.zero,
                 scale: scale

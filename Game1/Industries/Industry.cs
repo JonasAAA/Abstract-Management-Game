@@ -91,18 +91,18 @@ namespace Game1.Industries
             deleted = new();
 
             textBox = new();
-            UIPanel = new UIRectVertPanel<IHUDElement>(color: curUIConfig.defaultUIBackgroundColor, childHorizPos: HorizPos.Left);
+            UIPanel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
             UIPanel.AddChild(child: textBox);
             Button deleteButton = new
             (
                 shape: new MyRectangle
                 (
                     width: 60,
-                    height: 30,
-                    color: Color.Red
+                    height: 30
                 ),
                 tooltip: new ImmutableTextTooltip(text: "Delete this industry"),
-                text: "delete"
+                text: "delete",
+                color: Color.Red
             );
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(Industry: this));
             UIPanel.AddChild(child: deleteButton);

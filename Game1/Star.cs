@@ -26,9 +26,9 @@ namespace Game1
         public Star(StarState state, Color color)
             : base
             (
-                shape: new Disk(parameters: new ShapeParams(State: state), color: Color.White),
+                shape: new Disk(parameters: new ShapeParams(State: state)),
                 activeColor: Color.AntiqueWhite,
-                inactiveColor: Color.White,
+                inactiveColor: color,
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top
             )
@@ -36,8 +36,7 @@ namespace Game1
             this.state = state;
             polygon = new LightPolygon(strength: state.radius / CurWorldConfig.standardStarRadius, color: color);
 
-            popupTextBox = new();
-            popupTextBox.Shape.Color = Color.White;
+            popupTextBox = new(backgroundColor: Color.White);
             SetPopup
             (
                 HUDElement: popupTextBox,

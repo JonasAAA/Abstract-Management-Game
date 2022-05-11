@@ -9,6 +9,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Xml;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1
 {
@@ -355,10 +356,9 @@ namespace Game1
             activeUIManager = new();
             activeUIManager.clickedNowhere.Add(listener: this);
 
-            globalTextBox = new();
+            globalTextBox = new(backgroundColor: curUIConfig.defaultUIBackgroundColor);
             // TODO: move these constants to a contants file
             globalTextBox.Shape.MinWidth = 300;
-            globalTextBox.Shape.Color = Color.White;
 
             // TODO: move these constants to a contants file
             overlayChoicePanel = new
@@ -366,9 +366,6 @@ namespace Game1
                 horizontal: true,
                 choiceWidth: 100,
                 choiceHeight: 30,
-                selectedColor: Color.White,
-                deselectedColor: Color.Gray,
-                backgroundColor: Color.White,
                 choiceLabelsAndTooltips:
                     from overlay in IOverlay.all
                     select
@@ -393,14 +390,11 @@ namespace Game1
                 shape: new MyRectangle
                 (
                     width: 60,
-                    height: 60,
-                    color: Color.White
+                    height: 60
                 ),
                 tooltip: pauseButtonTooltip,
                 on: false,
-                text: "Toggle\nPause",
-                selectedColor: Color.White,
-                deselectedColor: Color.Gray
+                text: "Toggle\nPause"
             );
             pauseButtonTooltip.Initialize(onOffButton: pauseButton);
 

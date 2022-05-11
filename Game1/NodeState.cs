@@ -45,7 +45,7 @@ namespace Game1
             this.position = position;
             consistsOfRes = CurResConfig.resources[consistsOfResInd];
             MainResAmount = Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / consistsOfRes.area);
-            
+
             this.consistsOfResInd = consistsOfResInd;
             storedRes = new();
             if (maxBatchDemResStored is 0)
@@ -75,7 +75,7 @@ namespace Game1
             Radius = MyMathHelper.Sqrt(value: Area / MyMathHelper.pi);
             ApproxSurfaceLength = (ulong)(2 * MyMathHelper.pi * Radius);
         }
-        
+
         public void AddToStoredRes(ResInd resInd, ulong resAmount)
             => storedRes = storedRes.WithAdd(index: resInd, value: resAmount);
     }

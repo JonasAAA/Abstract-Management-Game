@@ -75,7 +75,7 @@ namespace Game1.UI
             tabChoicePanel.Shape.MinWidth = innerWidth;
             foreach (var tab in tabs.Values)
                 tab.Shape.MinWidth = innerWidth;
-            
+
             foreach (var tab in tabs.Values)
                 tab.Shape.MinHeight = tabHeight;
 
@@ -99,12 +99,12 @@ namespace Game1.UI
                 AddChild(child: tab);
             }
         }
-        
+
         public void ReplaceTab(string tabLabelText, TTab tab)
         {
             RemoveChild(child: tabs[tabLabelText]);
             tabs[tabLabelText].EnabledChanged.Remove(listener: tabEnabledChangedListeners[tabLabelText]);
-            
+
             tabs[tabLabelText] = tab;
             tab.EnabledChanged.Add(listener: tabEnabledChangedListeners[tabLabelText]);
             AddChild(child: tab);

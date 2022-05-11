@@ -11,7 +11,7 @@ namespace Game1.Shapes
 
             static OutlineDrawer()
                 => pixelTexture = C.LoadTexture(name: "pixel");
-            
+
             /// <param name="toLeft">is start top, end is bottom</param>
             public static void Draw(MyVector2 Start, MyVector2 End, Color Color, bool toLeft = false)
             {

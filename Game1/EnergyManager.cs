@@ -53,7 +53,7 @@ namespace Game1
                 energyConsumersByNode[nodeID] = new();
             foreach (var energyConsumer in energyConsumers)
                 energyConsumersByNode[energyConsumer.NodeID].Add(energyConsumer);
-            
+
             foreach (var (nodeID, sameNodeEnergyConsumers) in energyConsumersByNode)
             {
                 var node = nodeIDToNode(nodeID);

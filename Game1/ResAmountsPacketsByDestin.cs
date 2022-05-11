@@ -57,7 +57,7 @@ namespace Game1
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 return new();
-            
+
             var resAmountsPacket = resAmountsPacketsByDestin[destination];
             resAmountsPacketsByDestin.Remove(destination);
             TotalMass -= resAmountsPacket.TotalMass;

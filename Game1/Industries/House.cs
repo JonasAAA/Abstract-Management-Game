@@ -51,7 +51,7 @@ namespace Game1.Industries
             {
                 this.parameters = parameters;
             }
-            
+
             public override bool IsFull()
                 => false;
 
@@ -74,7 +74,7 @@ namespace Game1.Industries
                     ),
                     score1Propor: CurWorldConfig.personMomentumPropor
                 );
-            
+
             public override bool IsPersonSuitable(Person person)
                 // may disallow far travel
                 => true;

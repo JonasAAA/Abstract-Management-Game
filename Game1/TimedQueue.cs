@@ -8,7 +8,7 @@ namespace Game1
         public int Count
             => endTimeQueue.Count;
         public readonly TimeSpan duration;
-        
+
         private TimeSpan currentLocalTime, lastEndTime;
         private readonly Queue<TimeSpan> endTimeQueue;
         private readonly Queue<T> queue;

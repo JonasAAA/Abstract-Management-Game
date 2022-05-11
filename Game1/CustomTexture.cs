@@ -46,7 +46,7 @@ namespace Game1
 
             if (!Contains(pos: pos1) || !Contains(pos: pos2))
                 throw new ArgumentException();
-            
+
             if (pos1 == pos2)
                 SetColor(pos: pos1, color: color);
 
@@ -77,7 +77,7 @@ namespace Game1
                 }
             }
         }
-        
+
         private void SetColor(Point pos, Color color)
         {
             if (!editing)

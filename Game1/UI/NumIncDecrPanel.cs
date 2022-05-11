@@ -53,7 +53,7 @@ namespace Game1.UI
             if (number < minNum)
                 throw new ArgumentException();
             this.minNum = minNum;
-            
+
             panel = new
             (
                 color: shapeColor,

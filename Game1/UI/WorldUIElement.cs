@@ -40,7 +40,7 @@ namespace Game1.UI
                 activeChanged.Raise(action: listener => listener.ActiveChangedResponse(worldUIElement: this));
 
                 CurWorldManager.ArrowDrawingModeOn = false;
-            } 
+            }
         }
 
         protected Color ActiveColor

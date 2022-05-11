@@ -25,7 +25,7 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        public abstract class Params: IWithTooltip
+        public abstract class Params : IWithTooltip
         {
             [Serializable]
             private class TextTooltip : TextTooltipBase

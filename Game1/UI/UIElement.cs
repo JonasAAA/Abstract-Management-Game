@@ -58,7 +58,7 @@ namespace Game1.UI
             => false;
 
         protected readonly Shape shape;
-        
+
         private bool personallyEnabled, hasDisabledAncestor, mouseOn;
 
         private readonly SortedDictionary<ulong, List<TChild>> layerToChildren;

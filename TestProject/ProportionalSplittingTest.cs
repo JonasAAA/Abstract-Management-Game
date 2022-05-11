@@ -118,7 +118,7 @@
 //            );
 
 //            splitter.InsertVar(index: insertInd);
-            
+
 //            Assert.IsTrue(splitter.CanSplit(amount: amountToSplit2));
 //            CollectionAssert.AreEqual
 //            (
@@ -144,7 +144,7 @@
 //            );
 
 //            splitter.Proportions = new(proportions2);
-            
+
 //            Assert.IsTrue(splitter.CanSplit(amount: amountToSplit2));
 //            CollectionAssert.AreEqual
 //            (

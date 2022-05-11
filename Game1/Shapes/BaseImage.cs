@@ -14,7 +14,7 @@
 //        protected BaseImage(BaseTexture texture, MyVector2? origin = null, UDouble? width = null, UDouble? height = null)
 //        {
 //            this.texture = texture;
-            
+
 //            this.origin = origin ?? new(this.texture.Width * .5, this.texture.Height * .5);
 //            scaleX = 1;
 //            scaleY = 1;

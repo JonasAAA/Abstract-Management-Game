@@ -73,7 +73,7 @@ namespace Game1.Industries
                 this.parameters = parameters;
                 unpairedPeople = new();
             }
-            
+
             public override bool IsFull()
                 => allPeople.Count >= 2 * parameters.MaxCouples;
 

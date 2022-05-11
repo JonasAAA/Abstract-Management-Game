@@ -56,10 +56,10 @@ namespace Game1.Lighting
         IEnumerable<double> ILightCatchingObject.InterPoints(MyVector2 lightPos, MyVector2 lightDir)
         {
             MyVector2 d = lightPos - Center;
-            double e = MyVector2.Dot(lightDir, d), 
+            double e = MyVector2.Dot(lightDir, d),
                 f = MyVector2.Dot(d, d) - parameters.Radius * parameters.Radius,
                 g = e * e - f;
-            
+
             switch (UDouble.Create(value: g))
             {
                 case null:

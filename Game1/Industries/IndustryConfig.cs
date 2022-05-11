@@ -71,7 +71,7 @@
                     industryFactory: new Manufacturing.Factory
                     (
                         name: "factory3_lvl1",
-                        producedResInd: (NonBasicResInd)3, 
+                        producedResInd: (NonBasicResInd)3,
                         prodResPerUnitSurface: 1,
                         energyPriority: new(value: 20),
                         reqSkillPerUnitSurface: (UDouble).1,

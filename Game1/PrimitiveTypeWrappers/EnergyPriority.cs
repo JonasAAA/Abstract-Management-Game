@@ -23,6 +23,6 @@
             => new(value: MyMathHelper.Min(value, other.value));
 
         public string ToString(string? format, IFormatProvider? formatProvider)
-            =>$"energy priority {value.ToString(format, formatProvider)}";
+            => $"energy priority {value.ToString(format, formatProvider)}";
     }
 }

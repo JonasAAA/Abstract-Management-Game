@@ -130,7 +130,7 @@ namespace Game1
         {
             this.state = state;
             shape = (LightCatchingDisk)base.shape;
-            
+
             links = new();
             industry = null;
             unemploymentCenter = new(state: state);
@@ -524,7 +524,7 @@ namespace Game1
                     color: Color.White
                 ).Draw();
         }
-        
+
         public void SetRemainingLocalWatts(UDouble remainingLocalWatts)
             => this.remainingLocalWatts = remainingLocalWatts;
 

@@ -190,7 +190,7 @@ namespace Game1
 
             this.node1 = node1;
             this.node2 = node2;
-            
+
             link1To2 = new(startNode: node1, endNode: node2, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
             link2To1 = new(startNode: node2, endNode: node1, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
 

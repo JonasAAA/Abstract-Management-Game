@@ -58,7 +58,7 @@ namespace Game1
 
         public static bool SaveFileExists
             => File.Exists(GetSaveFilePath);
-        
+
         private static WorldManager? curWorldManager;
         private static readonly Type[] knownTypes;
 
@@ -207,7 +207,7 @@ namespace Game1
             {
                 using FileStream fileStream = new(path: GetSaveFilePath, FileMode.Open, FileAccess.Read);
                 DataContractSerializer serializer = GetDataContractSerializer();
-                
+
                 using XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader
                 (
                     stream: fileStream,
@@ -235,7 +235,7 @@ namespace Game1
                     SerializeReadOnlyTypes = true
                 }
             );
-        
+
         static WorldManager()
         {
             // TODO: move to a more appropriate class?
@@ -266,7 +266,7 @@ namespace Game1
                     knownTypesSet.Add(type);
                 else
                     if (type != typeof(Game1) && !(type.IsAbstract && type.IsSealed) && !type.IsInterface)
-                        unserializedTypeList.Add(type);
+                    unserializedTypeList.Add(type);
             }
             if (unserializedTypeList.Count > 0)
                 throw new Exception($"Every non-static, non-interface, non-enum type (except for Game1) must have attribute Serializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
@@ -371,7 +371,7 @@ namespace Game1
                 backgroundColor: Color.White,
                 choiceLabelsAndTooltips:
                     from overlay in IOverlay.all
-                    select 
+                    select
                     (
                         label: overlay,
                         tooltip: new ImmutableTextTooltip
@@ -403,7 +403,7 @@ namespace Game1
                 deselectedColor: Color.Gray
             );
             pauseButtonTooltip.Initialize(onOffButton: pauseButton);
-            
+
             arrowDrawingModeOn = false;
         }
 
@@ -430,7 +430,7 @@ namespace Game1
 
         public void AddHUDElement(IHUDElement? HUDElement, HorizPos horizPos, VertPos vertPos)
             => activeUIManager.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
-            
+
         public void RemoveHUDElement(IHUDElement? HUDElement)
             => activeUIManager.RemoveHUDElement(HUDElement: HUDElement);
 

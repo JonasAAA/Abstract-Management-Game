@@ -23,7 +23,7 @@
         public void UpdatePerson(Person person);
 
         public bool CanPersonLeave(Person person);
-        
+
         public void RemovePerson(Person person);
     }
 }

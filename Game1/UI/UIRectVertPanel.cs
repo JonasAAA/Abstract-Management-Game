@@ -23,7 +23,7 @@ namespace Game1.UI
                 0 => (UDouble)0,
                 not 0 => children.Max(child => child.Shape.Width)
             };
-            
+
             Shape.Height = 2 * ActiveUIManager.RectOutlineWidth + children.Count switch
             {
                 0 => 0,

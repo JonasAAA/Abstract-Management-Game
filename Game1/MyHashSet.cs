@@ -13,7 +13,7 @@ namespace Game1
             => (ulong)set.Count;
 
         private readonly HashSet<T> set;
-        
+
         public MySet()
             => set = new();
 

@@ -21,7 +21,7 @@ namespace Game1.UI
 
         public void Update()
         { }
-        
+
         public void Draw()
             => textBox.Draw();
     }

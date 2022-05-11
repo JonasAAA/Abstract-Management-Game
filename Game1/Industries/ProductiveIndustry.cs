@@ -99,7 +99,7 @@ namespace Game1.Industries
                     Debug.Assert(HiredSkill() >= parameters.ReqSkill);
                     Debug.Assert(IsFull());
                 }
-                
+
                 desperationScore = Score.BringCloser
                 (
                     current: desperationScore,
@@ -154,7 +154,7 @@ namespace Game1.Industries
                     // TODO: get rid of hard-coded constant
                     halvingDifferenceDuration: TimeSpan.FromSeconds(20)
                 );
-            
+
             public override bool CanPersonLeave(Person person)
                 => true;
 
@@ -168,7 +168,7 @@ namespace Game1.Industries
                 => allPeople.Sum(person => (UDouble)person.skills[parameters.industryType]);
 
             private Propor OpenSpacePropor()
-                => Propor.Create(part: HiredSkill(), whole:  parameters.ReqSkill) switch
+                => Propor.Create(part: HiredSkill(), whole: parameters.ReqSkill) switch
                 {
                     Propor hiredPropor => hiredPropor.Opposite(),
                     null => Propor.empty

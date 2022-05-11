@@ -32,11 +32,11 @@
         static IOverlay()
         {
             allRes = new AllResOverlay();
-            power =  new PowerOverlay();
+            power = new PowerOverlay();
             people = new PeopleOverlay();
 
             List<IOverlay> allTemp = new();
-            
+
             foreach (var resInd in ResInd.All)
                 allTemp.Add(resInd);
 

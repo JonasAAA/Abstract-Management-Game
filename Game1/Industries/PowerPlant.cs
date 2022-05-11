@@ -9,7 +9,7 @@ namespace Game1.Industries
         public new sealed class Factory : ProductiveIndustry.Factory
         {
             public readonly UDouble prodWattsPerUnitSurface;
-            
+
             public Factory(string name, UDouble reqSkillPerUnitSurface, UDouble prodWattsPerUnitSurface)
                 : base
                 (

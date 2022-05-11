@@ -82,7 +82,7 @@ namespace Game1
         public readonly ReadOnlyDictionary<IndustryType, Score> enjoyments;
         public readonly ReadOnlyDictionary<IndustryType, Score> talents;
         public readonly Dictionary<IndustryType, Score> skills;
-        
+
         public NodeID? ActivityCenterNodeID
             => activityCenter?.NodeID;
         public NodeID ClosestNodeID { get; private set; }

@@ -26,7 +26,7 @@
             {
                 if (!necNotLockedAdds.ContainsKey(key))
                     return;
-                
+
                 sum -= necNotLockedAdds[key];
                 necNotLockedAdds.Remove(key);
             }

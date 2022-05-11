@@ -58,7 +58,7 @@
                 ResInd resInd => resInd,
                 null => throw new InvalidCastException()
             };
-        
+
         public static bool operator <(ResInd resInd1, ResInd resInd2)
             => resInd1.value < resInd2.value;
 

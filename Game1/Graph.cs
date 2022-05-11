@@ -81,7 +81,7 @@ namespace Game1
 
         public override bool CanBeClicked
             => true;
-        
+
         private readonly ReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
         private readonly ReadOnlyDictionary<(NodeID, NodeID), UDouble> resDists;
 
@@ -362,12 +362,12 @@ namespace Game1
         {
             if (prevOverlay is ResInd prevResInd)
                 RemoveChild(child: resDestinArrows[prevResInd]);
-            
+
             if (CurWorldManager.Overlay is ResInd resInd)
                 AddChild
                 (
                     child: resDestinArrows[resInd],
-                    layer:CurWorldConfig.resDistribArrowsUILayer
+                    layer: CurWorldConfig.resDistribArrowsUILayer
                 );
         }
 

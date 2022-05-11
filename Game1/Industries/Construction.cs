@@ -13,7 +13,7 @@ namespace Game1.Industries
             public readonly Industry.Factory industryFactory;
             public readonly TimeSpan duration;
             public readonly ResAmounts costPerUnitSurface;
-            
+
             public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, Industry.Factory industryFactory, TimeSpan duration, ResAmounts costPerUnitSurface)
                 : base
                 (
@@ -65,7 +65,7 @@ namespace Game1.Industries
                 : base(state: state, factory: factory)
             {
                 this.factory = factory;
-                
+
                 industryFactory = factory.industryFactory;
                 duration = factory.duration;
             }

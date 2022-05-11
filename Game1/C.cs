@@ -19,7 +19,7 @@ namespace Game1
         private static GraphicsDevice? graphicsDevice;
         private static SpriteBatch? spriteBatch;
         private static readonly Random random;
-        
+
         static C()
             => random = new();
 

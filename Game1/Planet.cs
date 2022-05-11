@@ -96,8 +96,6 @@ namespace Game1
         public MyVector2 Position
             => state.position;
         public readonly UDouble radius;
-        public UDouble LocallyProducedWatts
-            => shape.Watts;
 
         private readonly NodeState state;
         private readonly List<Link> links;
@@ -316,10 +314,7 @@ namespace Game1
 
         public ulong TargetStoredResAmount(ResInd resInd)
             => targetStoredResAmounts[resInd];
-
-        public ulong StoredResAmount(ResInd resInd)
-            => state.storedRes[resInd];
-
+        
         public bool CanHaveDestin(NodeID destinationId)
         {
             if (!Active || !CurWorldManager.ArrowDrawingModeOn)
@@ -525,9 +520,6 @@ namespace Game1
                 ).Draw();
         }
 
-        public void SetRemainingLocalWatts(UDouble remainingLocalWatts)
-            => this.remainingLocalWatts = remainingLocalWatts;
-
         public override void ChoiceChangedResponse(IOverlay prevOverlay)
         {
             base.ChoiceChangedResponse(prevOverlay: prevOverlay);
@@ -538,5 +530,11 @@ namespace Game1
                     tab: overlayTabPanels[CurWorldManager.Overlay]
                 );
         }
+
+        UDouble INodeAsLocalEnergyProducer.LocallyProducedWatts
+            => shape.Watts;
+
+        void INodeAsLocalEnergyProducer.SetRemainingLocalWatts(UDouble remainingLocalWatts)
+            => this.remainingLocalWatts = remainingLocalWatts;
     }
 }

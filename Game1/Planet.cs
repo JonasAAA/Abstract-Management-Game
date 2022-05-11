@@ -3,8 +3,8 @@ using Game1.Industries;
 using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
-
 using static Game1.WorldManager;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1
 {
@@ -119,7 +119,7 @@ namespace Game1
         public Planet(NodeState state, Color activeColor, Color inactiveColor, int startPersonCount = 0)
             : base
             (
-                shape: new LightCatchingDisk(parameters: new ShapeParams(State: state), color: Color.White),
+                shape: new LightCatchingDisk(parameters: new ShapeParams(State: state), color: curUIConfig.crapColor),
                 activeColor: activeColor,
                 inactiveColor: inactiveColor,
                 popupHorizPos: HorizPos.Right,
@@ -150,8 +150,7 @@ namespace Game1
 
             textBox = new()
             {
-                Text = "",
-                TextColor = Color.White
+                TextColor = curUIConfig.defaultAlmostWhiteColor
             };
             textBox.Shape.Center = Position;
             AddChild(child: textBox);
@@ -160,7 +159,7 @@ namespace Game1
 
             infoPanel = new UIRectVertPanel<IHUDElement>
             (
-                color: Color.White,
+                color: curUIConfig.defaultUIBackgroundColor,
                 childHorizPos: HorizPos.Left
             );
             UITabs.Add
@@ -174,7 +173,7 @@ namespace Game1
 
             buildButtonPannel = new UIRectVertPanel<IHUDElement>
             (
-                color: Color.White,
+                color: curUIConfig.defaultUIBackgroundColor,
                 childHorizPos: HorizPos.Left
             );
             UITabs.Add
@@ -191,7 +190,7 @@ namespace Game1
                     (
                         width: 200,
                         height: 20,
-                        color: Color.White
+                        color: curUIConfig.defaultButtonColor
                     ),
                     tooltip: buildableParams.CreateTooltip(state: state),
                     text: buildableParams.ButtonName
@@ -214,7 +213,7 @@ namespace Game1
             foreach (var overlay in IOverlay.all)
                 overlayTabPanels[overlay] = new UIRectVertPanel<IHUDElement>
                 (
-                    color: Color.White,
+                    color: curUIConfig.defaultUIBackgroundColor,
                     childHorizPos: HorizPos.Left
                 );
             storeToggleButtons = new();
@@ -226,20 +225,20 @@ namespace Game1
                     (
                         width: 60,
                         height: 60,
-                        color: Color.White
+                        color: curUIConfig.crapColor
                     ),
                     tooltip: new ImmutableTextTooltip(text: "Specifies weather to store extra resources"),
                     text: "store\nswitch",
                     on: false,
-                    selectedColor: Color.White,
-                    deselectedColor: Color.Gray
+                    selectedColor: curUIConfig.defaultSelectedButtonColor,
+                    deselectedColor: curUIConfig.defaultDeselectedButtonColor
                 );
 
                 overlayTabPanels[resInd].AddChild(child: storeToggleButtons[resInd]);
 
                 Button addResourceDestinationButton = new
                 (
-                    shape: new MyRectangle(width: 150, height: 50, color: Color.White),
+                    shape: new MyRectangle(width: 150, height: 50, color: curUIConfig.defaultButtonColor),
                     tooltip: new ImmutableTextTooltip(text: $"Adds new place to where {resInd} should be transported"),
                     text: $"add resource {resInd}\ndestination"
                 );
@@ -261,7 +260,7 @@ namespace Game1
             (
                 tabLabelWidth: 100,
                 tabLabelHeight: 30,
-                color: Color.White,
+                color: curUIConfig.defaultUIBackgroundColor,
                 inactiveTabLabelColor: Color.Gray,
                 tabs: UITabs
             );

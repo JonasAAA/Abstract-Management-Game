@@ -1,6 +1,7 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.Industries
 {
@@ -90,7 +91,7 @@ namespace Game1.Industries
             deleted = new();
 
             textBox = new();
-            UIPanel = new UIRectVertPanel<IHUDElement>(color: Color.White, childHorizPos: HorizPos.Left);
+            UIPanel = new UIRectVertPanel<IHUDElement>(color: curUIConfig.defaultUIBackgroundColor, childHorizPos: HorizPos.Left);
             UIPanel.AddChild(child: textBox);
             Button deleteButton = new
             (

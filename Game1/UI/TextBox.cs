@@ -1,4 +1,5 @@
 ﻿using Game1.Shapes;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -34,13 +35,12 @@ namespace Game1.UI
         private readonly UDouble scale;
 
         public TextBox()
-            : base(shape: new MyRectangle(color: Color.White))
+            : base(shape: new MyRectangle(color: Color.Transparent))
         {
-            Shape.Color = Color.Transparent;
             // TODO: look up where font.MeasureString(...) is called, there should probably be a static readonly variable
             // storing what the height of a capital letter is
-            scale = ActiveUIManager.curUIConfig.letterHeight / (UDouble)font.MeasureString("F").Y;
-            TextColor = Color.Black;
+            scale = curUIConfig.letterHeight / (UDouble)font.MeasureString("F").Y;
+            TextColor = curUIConfig.defaultTextColor;
             Text = null;
         }
 

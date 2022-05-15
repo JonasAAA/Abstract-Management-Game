@@ -16,6 +16,7 @@ namespace Game1.Industries
                 (
                     industryType: IndustryType.Manufacturing,
                     name: name,
+                    color: Color.Brown,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface,
                     reqWattsPerUnitSurface: reqWattsPerUnitSurface,

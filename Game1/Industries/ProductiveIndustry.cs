@@ -14,8 +14,8 @@ namespace Game1.Industries
             public readonly EnergyPriority energyPriority;
             public readonly UDouble reqSkillPerUnitSurface;
 
-            protected Factory(IndustryType industryType, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface)
-                : base(name: name)
+            protected Factory(IndustryType industryType, Color color, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface)
+                : base(name: name, color: color)
             {
                 this.industryType = industryType;
                 if ((industryType is IndustryType.PowerPlant && energyPriority != EnergyPriority.minimal)

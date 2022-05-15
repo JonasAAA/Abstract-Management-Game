@@ -10,11 +10,13 @@ namespace Game1.Lighting
     {
         public IEvent<IDeletedListener> Deleted
             => deleted;
-        public IReadOnlyDictionary<StarID, UDouble> StarPosToWatts
-            => starPosToWatts;
 
-        public IReadOnlyDictionary<StarID, Propor> StarPosToPowerPropor
-            => starPosToPowerPropor;
+        // TODO: delete if unused
+        //public IReadOnlyDictionary<StarID, UDouble> StarPosToWatts
+        //    => starPosToWatts;
+
+        //public IReadOnlyDictionary<StarID, Propor> StarPosToPowerPropor
+        //    => starPosToPowerPropor;
 
         public UDouble Watts
             => starPosToWatts.Values.DefaultIfEmpty().Sum();
@@ -23,14 +25,15 @@ namespace Game1.Lighting
         private readonly Dictionary<StarID, Propor> starPosToPowerPropor;
         private readonly Event<IDeletedListener> deleted;
 
-        public LightCatchingDisk(IParams parameters)
+        public LightCatchingDisk(IParams parameters, bool addToLightCatchingObjects)
             : base(parameters: parameters)
         {
             starPosToWatts = new();
             starPosToPowerPropor = new();
             deleted = new();
 
-            CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
+            if (addToLightCatchingObjects)
+                CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
         }
 
         public void Delete()

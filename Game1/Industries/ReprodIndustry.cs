@@ -18,6 +18,7 @@ namespace Game1.Industries
                 (
                     industryType: IndustryType.Reproduction,
                     name: name,
+                    color: Color.Green,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
@@ -115,6 +116,9 @@ namespace Game1.Industries
 
         public override IEnumerable<Person> PeopleHere
             => base.PeopleHere.Concat(reprodCenter.PeopleHere);
+
+        protected override UDouble Height
+            => CurWorldConfig.defaultIndustryHeight;
 
         private readonly Params parameters;
         private readonly ReprodCenter reprodCenter;

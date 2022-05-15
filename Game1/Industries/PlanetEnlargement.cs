@@ -1,4 +1,5 @@
-﻿using Game1.UI;
+﻿using Game1.Shapes;
+using Game1.UI;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
@@ -17,6 +18,7 @@ namespace Game1.Industries
                 (
                     industryType: IndustryType.PlanetEnlargement,
                     name: name,
+                    color: Color.Pink,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
@@ -57,6 +59,18 @@ namespace Game1.Industries
                 this.factory = factory;
             }
         }
+
+        [Serializable]
+        private readonly record struct FutureShapeOutlineParams(Params Parameters) : Disk.IParams
+        {
+            public MyVector2 Center
+                => Parameters.state.position;
+
+            public UDouble Radius => throw new NotImplementedException();
+        }
+
+        protected override UDouble Height
+            => 0;
 
         private readonly Params parameters;
         /// <summary>

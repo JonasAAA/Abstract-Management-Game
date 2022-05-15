@@ -1,4 +1,5 @@
-﻿using Game1.UI;
+﻿using Game1.Shapes;
+using Game1.UI;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
@@ -19,6 +20,7 @@ namespace Game1.Industries
                 (
                     industryType: IndustryType.Construction,
                     name: name,
+                    color: industryFactory.color,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
@@ -71,13 +73,29 @@ namespace Game1.Industries
             }
         }
 
+        [Serializable]
+        public readonly record struct IndustryOutlineParams(Params Parameters) : Disk.IParams
+        {
+            public MyVector2 Center
+                => Parameters.state.position;
+
+            public UDouble Radius
+                => Parameters.state.Radius + CurWorldConfig.defaultIndustryHeight;
+        }
+
+        protected override UDouble Height
+            => CurWorldConfig.defaultIndustryHeight * donePropor;
+
         private readonly Params parameters;
+        private readonly Disk industryOutline;
         private TimeSpan constrTimeLeft;
+        private Propor donePropor;
 
         private Construction(Params parameters)
             : base(parameters: parameters)
         {
             this.parameters = parameters;
+            industryOutline = new(new IndustryOutlineParams(Parameters: parameters));
             constrTimeLeft = TimeSpan.MaxValue;
         }
 
@@ -93,22 +111,29 @@ namespace Game1.Industries
 
         protected override Industry InternalUpdate(Propor workingPropor)
         {
-            if (IsBusy())
-                constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;
-
-            if (!IsBusy() && parameters.state.storedRes >= parameters.Cost)
+            try
             {
-                parameters.state.storedRes -= parameters.Cost;
-                constrTimeLeft = parameters.duration;
-            }
+                if (IsBusy())
+                    constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;
 
-            if (constrTimeLeft <= TimeSpan.Zero)
-            {
-                constrTimeLeft = TimeSpan.Zero;
-                Delete();
-                return parameters.industryFactory.CreateIndustry(state: parameters.state);
+                if (!IsBusy() && parameters.state.storedRes >= parameters.Cost)
+                {
+                    parameters.state.storedRes -= parameters.Cost;
+                    constrTimeLeft = parameters.duration;
+                }
+
+                if (constrTimeLeft <= TimeSpan.Zero)
+                {
+                    constrTimeLeft = TimeSpan.Zero;
+                    Delete();
+                    return parameters.industryFactory.CreateIndustry(state: parameters.state);
+                }
+                return this;
             }
-            return this;
+            finally
+            {
+                donePropor = C.DonePropor(timeLeft: constrTimeLeft, duration: parameters.duration);
+            }
         }
 
         protected override void PlayerDelete()
@@ -126,7 +151,7 @@ namespace Game1.Industries
         {
             string text = base.GetInfo();
             if (IsBusy())
-                text += $"constructing {C.DonePropor(timeLeft: constrTimeLeft, duration: parameters.duration) * 100.0: 0.}%\n";
+                text += $"constructing {donePropor * 100.0: 0.}%\n";
             else
                 text += "waiting to start costruction\n";
             return text;
@@ -140,5 +165,13 @@ namespace Game1.Industries
                 true => parameters.ReqWatts * CurSkillPropor,
                 false => 0
             };
+
+        public override void Draw(Color otherColor, Propor otherColorPropor)
+        {
+            Propor transparency = (Propor).25;
+            industryOutline.Draw(baseColor: parameters.industryFactory.color * (float)transparency, otherColor: otherColor * (float)transparency, otherColorPropor: otherColorPropor * transparency);
+
+            base.Draw(otherColor, otherColorPropor);
+        }
     }
 }

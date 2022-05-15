@@ -30,6 +30,7 @@
         public readonly UDouble gravitPower, gravitConst;
         public readonly Propor desperationMemoryPropor;
         public readonly ulong minResAmountInPlanet;
+        public readonly UDouble defaultIndustryHeight;
 
         public WorldConfig()
         {
@@ -80,6 +81,8 @@
             desperationMemoryPropor = (Propor).9;
 
             minResAmountInPlanet = 10;
+
+            defaultIndustryHeight = 10;
         }
     }
 }

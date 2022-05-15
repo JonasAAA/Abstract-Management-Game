@@ -11,7 +11,7 @@ namespace Game1.Industries
             public readonly UDouble floorSpacePerUnitSurface;
 
             public Factory(string name, UDouble floorSpacePerUnitSurface)
-                : base(name: name)
+                : base(name: name, color: Color.Yellow)
             {
                 this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
             }
@@ -99,13 +99,13 @@ namespace Game1.Industries
         public override IEnumerable<Person> PeopleHere
             => housing.PeopleHere;
 
-        private readonly Params parameters;
+        protected override UDouble Height
+            => CurWorldConfig.defaultIndustryHeight;
         private readonly Housing housing;
 
         public House(Params parameters)
             : base(parameters: parameters)
         {
-            this.parameters = parameters;
             housing = new(parameters: parameters);
         }
 

@@ -143,6 +143,12 @@ namespace Game1.UI
                 (false, _) => (Color.Transparent, (Propor).3)
             };
 
+            DrawPreBackground
+            (
+                otherColor: otherColor,
+                otherColorPropor: otherColorPropor
+            );
+
             shape.Draw
             (
                 baseColor: Color,
@@ -152,6 +158,9 @@ namespace Game1.UI
 
             DrawChildren();
         }
+
+        protected virtual void DrawPreBackground(Color otherColor, Propor otherColorPropor)
+        { }
 
         protected virtual void DrawChildren()
         {

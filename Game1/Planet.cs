@@ -9,7 +9,7 @@ using static Game1.UI.ActiveUIManager;
 namespace Game1
 {
     [Serializable]
-    public class Planet : WorldUIElement, INodeAsLocalEnergyProducer, INodeAsResDestin
+    public class Planet : WorldUIElement, INodeAsLocalEnergyProducer, INodeAsResDestin, ILightCatchingObject
     {
         [Serializable]
         private readonly record struct ResDesinArrowEventListener(Planet Node, ResInd ResInd) : IDeletedListener, INumberChangedListener
@@ -119,7 +119,7 @@ namespace Game1
         public Planet(NodeState state, Color activeColor, Color inactiveColor, int startPersonCount = 0)
             : base
             (
-                shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
+                shape: new LightCatchingDisk(parameters: new ShapeParams(State: state), addToLightCatchingObjects: false),
                 activeColor: activeColor,
                 inactiveColor: inactiveColor,
                 popupHorizPos: HorizPos.Right,
@@ -140,7 +140,7 @@ namespace Game1
             targetStoredResAmounts = new();
             undecidedResAmounts = new();
             resTravelHereAmounts = new();
-            remainingLocalWatts = new();
+            remainingLocalWatts = 0;
 
             for (int i = 0; i < startPersonCount; i++)
             {
@@ -253,6 +253,8 @@ namespace Game1
             resDistribArrows = new();
             foreach (var resInd in ResInd.All)
                 resDistribArrows[resInd] = new();
+
+            CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
         }
 
         public void AddLink(Link link)
@@ -481,6 +483,13 @@ namespace Game1
             infoTextBox.Text += textBox.Text;
         }
 
+        protected override void DrawPreBackground(Color otherColor, Propor otherColorPropor)
+        {
+            base.DrawPreBackground(otherColor, otherColorPropor);
+
+            industry?.Draw(otherColor: otherColor, otherColorPropor: otherColorPropor);
+        }
+
         protected override void DrawChildren()
         {
             base.DrawChildren();
@@ -513,5 +522,19 @@ namespace Game1
 
         void INodeAsLocalEnergyProducer.SetRemainingLocalWatts(UDouble remainingLocalWatts)
             => this.remainingLocalWatts = remainingLocalWatts;
+
+        private ILightCatchingObject CurLightCatchingObject
+            => industry?.LightCatchingObject ?? shape;
+
+        IEnumerable<double> ILightCatchingObject.RelAngles(MyVector2 lightPos)
+            => CurLightCatchingObject.RelAngles(lightPos: lightPos);
+
+        IEnumerable<double> ILightCatchingObject.InterPoints(MyVector2 lightPos, MyVector2 lightDir)
+            => CurLightCatchingObject.InterPoints(lightPos: lightPos, lightDir: lightDir);
+
+        void ILightCatchingObject.SetWatts(StarID starPos, UDouble watts, Propor powerPropor)
+            // TODO: deal with this properly
+            // temporary
+            => (shape as ILightCatchingObject).SetWatts(starPos: starPos, watts: watts, powerPropor: powerPropor);
     }
 }

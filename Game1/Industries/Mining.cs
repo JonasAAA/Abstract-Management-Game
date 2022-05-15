@@ -1,4 +1,5 @@
-﻿using Game1.UI;
+﻿using Game1.Lighting;
+using Game1.UI;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
@@ -17,6 +18,7 @@ namespace Game1.Industries
                 (
                     industryType: IndustryType.Mining,
                     name: name,
+                    color: Color.Pink,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
@@ -57,6 +59,9 @@ namespace Game1.Industries
                 this.factory = factory;
             }
         }
+
+        protected override UDouble Height
+            => 0;
 
         private readonly Params parameters;
         /// <summary>

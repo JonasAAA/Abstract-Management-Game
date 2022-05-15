@@ -16,6 +16,7 @@ namespace Game1.Industries
                     industryType: IndustryType.PowerPlant,
                     energyPriority: EnergyPriority.minimal,
                     name: name,
+                    color: Color.Blue,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
             {
@@ -48,6 +49,9 @@ namespace Game1.Industries
                 this.factory = factory;
             }
         }
+
+        protected override UDouble Height
+            => CurWorldConfig.defaultIndustryHeight;
 
         private readonly Params parameters;
 

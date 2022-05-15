@@ -1,7 +1,7 @@
 ﻿using Game1.Delegates;
+using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
-using static Game1.UI.ActiveUIManager;
 
 namespace Game1.Industries
 {
@@ -13,9 +13,13 @@ namespace Game1.Industries
         public abstract class Factory
         {
             public readonly string name;
+            public readonly Color color;
 
-            protected Factory(string name)
-                => this.name = name;
+            protected Factory(string name, Color color)
+            {
+                this.name = name;
+                this.color = color;
+            }
 
             public abstract Industry CreateIndustry(NodeState state);
 
@@ -42,6 +46,7 @@ namespace Game1.Industries
 
             public readonly NodeState state;
             public readonly string name;
+            public readonly Color color;
 
             private readonly ITooltip tooltip;
 
@@ -53,6 +58,7 @@ namespace Game1.Industries
                 this.state = state;
 
                 name = factory.name;
+                color = factory.color;
                 tooltip = new TextTooltip(parameters: this);
             }
 
@@ -67,20 +73,42 @@ namespace Game1.Industries
                 => Industry.isDeleted = true;
         }
 
+        [Serializable]
+        private readonly record struct LightCatchingDiskParams(Industry Industry) : Disk.IParams
+        {
+            public MyVector2 Center
+                => Industry.parameters.state.position;
+
+            public UDouble Radius
+                => Industry.parameters.state.Radius + Industry.Height;
+        }
+
         public IEvent<IDeletedListener> Deleted
             => deleted;
 
         public abstract IEnumerable<Person> PeopleHere { get; }
+
+        public ILightCatchingObject? LightCatchingObject
+            => lightCatchingDisk.Radius.IsCloseTo(other: parameters.state.Radius) switch
+            {
+                true => null,
+                false => lightCatchingDisk
+            };
 
         public IHUDElement UIElement
             => UIPanel;
 
         //TODO: implement deletion behaviour, then make all buildings subclasses of this
         //consider turning this into an intherface (though that would lead to deletion code duplication)
+        
+        protected abstract UDouble Height { get; }
+
+        protected readonly UIRectPanel<IHUDElement> UIPanel;
+
         private bool isDeleted;
         private readonly Event<IDeletedListener> deleted;
 
-        protected readonly UIRectPanel<IHUDElement> UIPanel;
+        private readonly LightCatchingDisk lightCatchingDisk;
         private readonly TextBox textBox;
         private readonly Params parameters;
 
@@ -89,6 +117,8 @@ namespace Game1.Industries
             this.parameters = parameters;
             isDeleted = false;
             deleted = new();
+
+            lightCatchingDisk = new(parameters: new LightCatchingDiskParams(Industry: this), addToLightCatchingObjects: false);
 
             textBox = new();
             UIPanel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
@@ -134,5 +164,15 @@ namespace Game1.Industries
             => deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
 
         public abstract string GetInfo();
+
+        public virtual void Draw(Color otherColor, Propor otherColorPropor)
+        {
+            if (LightCatchingObject is not null)
+                lightCatchingDisk.Draw(baseColor: parameters.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
+            else
+                //also for construction, draw a transparent version of the building from the start so that the player sees visually that they have construction industry there
+                // TODO: draw something here
+                ;
+        }
     }
 }

@@ -10,6 +10,9 @@
             public UDouble Radius { get; }
         }
 
+        public UDouble Radius
+            => parameters.Radius;
+
         private static readonly Texture2D diskTexture;
 
         static Disk()

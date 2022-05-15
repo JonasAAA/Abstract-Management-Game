@@ -11,11 +11,12 @@ namespace Game1.Industries
             public readonly UDouble reqWattsPerUnitSurface;
             public readonly TimeSpan prodDuration;
 
-            public Factory(IndustryType industryType, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, TimeSpan prodDuration)
+            public Factory(IndustryType industryType, string name, Color color, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, TimeSpan prodDuration)
                 : base
                 (
                     industryType: industryType,
                     name: name,
+                    color: color,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
@@ -55,6 +56,9 @@ namespace Game1.Industries
                 prodDuration = factory.prodDuration;
             }
         }
+
+        protected sealed override UDouble Height
+            => CurWorldConfig.defaultIndustryHeight;
 
         private readonly Params parameters;
         private TimeSpan prodTimeLeft;

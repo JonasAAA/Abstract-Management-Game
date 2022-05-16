@@ -495,7 +495,7 @@ namespace Game1
             base.DrawChildren();
 
             // temporary
-            industry?.DrawAfterPlanet(otherColor: Color.Pink, otherColorPropor: Propor.empty);
+            industry?.DrawAfterPlanet();
 
             if (Active && CurWorldManager.ArrowDrawingModeOn)
                 // TODO: could create the arrow once with endPos calculated from mouse position

@@ -171,7 +171,7 @@ namespace Game1.Industries
                 lightCatchingDisk.Draw(baseColor: parameters.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
         }
 
-        public virtual void DrawAfterPlanet(Color otherColor, Propor otherColorPropor)
+        public virtual void DrawAfterPlanet()
         { }
     }
 }

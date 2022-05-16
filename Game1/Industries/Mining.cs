@@ -138,11 +138,11 @@ namespace Game1.Industries
                 false => 0
             };
 
-        public override void DrawAfterPlanet(Color otherColor, Propor otherColorPropor)
+        public override void DrawAfterPlanet()
         {
-            base.DrawAfterPlanet(otherColor, otherColorPropor);
+            base.DrawAfterPlanet();
 
-            futureShapeOutline.Draw(baseColor: Color.Black, otherColor: otherColor, otherColorPropor: otherColorPropor);
+            futureShapeOutline.Draw(color: Color.Black);
         }
     }
 }

@@ -3,7 +3,7 @@
 namespace Game1
 {
     [Serializable]
-    public class ResAmountsPacket
+    public sealed class ResAmountsPacket
     {
         public readonly NodeID destination;
         public ResAmounts ResAmounts

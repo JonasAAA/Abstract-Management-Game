@@ -3,7 +3,7 @@
 namespace Game1.Shapes
 {
     [Serializable]
-    public class MyRectangle : NearRectangle
+    public sealed class MyRectangle : NearRectangle
     {
         private static class OutlineDrawer
         {

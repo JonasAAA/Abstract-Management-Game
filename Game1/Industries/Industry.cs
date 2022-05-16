@@ -33,7 +33,7 @@ namespace Game1.Industries
         public abstract class Params : IWithTooltip
         {
             [Serializable]
-            private class TextTooltip : TextTooltipBase
+            private sealed class TextTooltip : TextTooltipBase
             {
                 protected override string Text
                     => parameters.TooltipText;
@@ -169,10 +169,6 @@ namespace Game1.Industries
         {
             if (LightCatchingObject is not null)
                 lightCatchingDisk.Draw(baseColor: parameters.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
-            else
-                //also for construction, draw a transparent version of the building from the start so that the player sees visually that they have construction industry there
-                // TODO: draw something here
-                ;
         }
 
         public virtual void DrawAfterPlanet(Color otherColor, Propor otherColorPropor)

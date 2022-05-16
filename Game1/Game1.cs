@@ -5,7 +5,7 @@ using Game1.UI;
 
 namespace Game1
 {
-    public class Game1 : Game
+    public sealed class Game1 : Game
     {
         private readonly GraphicsDeviceManager graphics;
         private readonly PlayState playState;

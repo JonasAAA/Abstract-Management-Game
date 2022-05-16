@@ -3,7 +3,7 @@
 namespace Game1
 {
     [Serializable]
-    public class NodeState
+    public sealed class NodeState
     {
         // TODO: define using the new notation
         //public double SurfaceGravitationalAccel

@@ -3,7 +3,7 @@
 namespace Game1.UI
 {
     [Serializable]
-    public class ImmutableTextTooltip : ITooltip
+    public sealed class ImmutableTextTooltip : ITooltip
     {
         public NearRectangle Shape
             => textBox.Shape;

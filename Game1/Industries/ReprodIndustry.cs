@@ -62,7 +62,7 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        private class ReprodCenter : ActivityCenter
+        private sealed class ReprodCenter : ActivityCenter
         {
             public readonly Queue<Person> unpairedPeople;
 

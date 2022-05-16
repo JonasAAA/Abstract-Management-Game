@@ -14,10 +14,10 @@ using static Game1.UI.ActiveUIManager;
 namespace Game1
 {
     [Serializable]
-    public class WorldManager : IDeletedListener, IClickedNowhereListener
+    public sealed class WorldManager : IDeletedListener, IClickedNowhereListener
     {
         [Serializable]
-        private class PauseButtonTooltip : TextTooltipBase
+        private sealed class PauseButtonTooltip : TextTooltipBase
         {
             protected override string Text
                 => onOffButton switch
@@ -317,8 +317,6 @@ namespace Game1
             }
         }
 
-        public readonly Dictionary<string, MyTexture> myTextures;
-
         private readonly WorldConfig worldConfig;
         private readonly ResConfig resConfig;
         private readonly IndustryConfig industryConfig;
@@ -350,7 +348,6 @@ namespace Game1
             lightManager = new();
 
             worldCamera = new(startingWorldScale: worldConfig.startingWorldScale);
-            myTextures = new();
 
             activeUIManager = new();
             activeUIManager.clickedNowhere.Add(listener: this);

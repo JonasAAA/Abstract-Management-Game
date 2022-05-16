@@ -1,7 +1,7 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public class StarState
+    public sealed class StarState
     {
         // TODO: make prodWatts and color the consequence of mass/radius/material
         public readonly StarID starID;

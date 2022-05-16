@@ -1,7 +1,7 @@
 ﻿namespace Game1.Shapes
 {
     [Serializable]
-    public class Triangle : NearRectangle
+    public sealed class Triangle : NearRectangle
     {
         public enum Direction
         {

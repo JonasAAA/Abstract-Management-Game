@@ -4,7 +4,7 @@ using Game1.Shapes;
 namespace Game1.UI
 {
     [Serializable]
-    public class ActiveUIManager
+    public sealed class ActiveUIManager
     {
         public static readonly UIConfig curUIConfig;
         public static readonly UDouble screenWidth, screenHeight;

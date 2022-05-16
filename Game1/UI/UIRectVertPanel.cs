@@ -3,7 +3,7 @@
 namespace Game1.UI
 {
     [Serializable]
-    public class UIRectVertPanel<TChild> : UIRectPanel<TChild>
+    public sealed class UIRectVertPanel<TChild> : UIRectPanel<TChild>
         where TChild : IHUDElement
     {
         private readonly HorizPos childHorizPos;

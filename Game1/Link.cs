@@ -8,10 +8,10 @@ namespace Game1
 {
     // TODO: consider making this record class, but see comment below (where operator == is commented out)
     [Serializable]
-    public class Link : WorldUIElement
+    public sealed class Link : WorldUIElement
     {
         [Serializable]
-        private class DirLink : IEnergyConsumer
+        private sealed class DirLink : IEnergyConsumer
         {
             private static readonly Texture2D diskTexture;
 

@@ -5,7 +5,7 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public class PlanetEnlargement : ProductiveIndustry
+    public sealed class PlanetEnlargement : ProductiveIndustry
     {
         [Serializable]
         public new sealed class Factory : ProductiveIndustry.Factory, IBuildableFactory

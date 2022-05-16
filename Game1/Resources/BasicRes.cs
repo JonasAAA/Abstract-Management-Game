@@ -1,7 +1,7 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public class BasicRes : IResource
+    public sealed class BasicRes : IResource
     {
         public BasicResInd resInd;
         public readonly ulong mass, area;

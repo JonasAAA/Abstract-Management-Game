@@ -3,21 +3,21 @@
     public interface IOverlay
     {
         [Serializable]
-        private class AllResOverlay : IAllResOverlay
+        private sealed class AllResOverlay : IAllResOverlay
         {
             public override string ToString()
                 => "AllRes";
         }
 
         [Serializable]
-        private class PowerOverlay : IPowerOverlay
+        private sealed class PowerOverlay : IPowerOverlay
         {
             public override string ToString()
                 => "Power";
         }
 
         [Serializable]
-        private class PeopleOverlay : IPeopleOverlay
+        private sealed class PeopleOverlay : IPeopleOverlay
         {
             public override string ToString()
                 => "People";

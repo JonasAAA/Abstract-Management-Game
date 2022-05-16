@@ -1,7 +1,7 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public class NonBasicRes : IResource
+    public sealed class NonBasicRes : IResource
     {
         public ulong Mass
             => mass switch

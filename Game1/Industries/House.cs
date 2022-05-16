@@ -42,7 +42,7 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        private class Housing : ActivityCenter
+        private sealed class Housing : ActivityCenter
         {
             private readonly Params parameters;
 

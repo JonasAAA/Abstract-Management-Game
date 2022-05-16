@@ -1,7 +1,7 @@
 ﻿namespace Game1.Shapes
 {
     [Serializable]
-    public class Ellipse : NearRectangle
+    public sealed class Ellipse : NearRectangle
     {
         private static readonly Texture2D diskTexture;
 

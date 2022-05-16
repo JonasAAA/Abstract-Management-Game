@@ -1,7 +1,7 @@
 ﻿namespace Game1.UI
 {
     [Serializable]
-    public class UIConfig
+    public sealed class UIConfig
     {
         public readonly uint standardScreenHeight;
         public readonly UDouble rectOutlineWidth;

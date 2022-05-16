@@ -9,7 +9,7 @@ using static Game1.UI.ActiveUIManager;
 namespace Game1
 {
     [Serializable]
-    public class Planet : WorldUIElement, INodeAsLocalEnergyProducer, INodeAsResDestin, ILightCatchingObject
+    public sealed class Planet : WorldUIElement, INodeAsLocalEnergyProducer, INodeAsResDestin, ILightCatchingObject
     {
         [Serializable]
         private readonly record struct ResDesinArrowEventListener(Planet Node, ResInd ResInd) : IDeletedListener, INumberChangedListener

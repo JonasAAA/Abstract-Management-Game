@@ -3,7 +3,7 @@
 namespace Game1.UI
 {
     [Serializable]
-    public class SelectButton : OnOffButton
+    public sealed class SelectButton : OnOffButton
     {
         public override bool CanBeClicked
             => !On;

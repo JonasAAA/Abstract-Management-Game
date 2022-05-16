@@ -1,7 +1,7 @@
 ﻿namespace Game1.Industries
 {
     [Serializable]
-    public class IndustryConfig
+    public sealed class IndustryConfig
     {
         public readonly ReadOnlyCollection<IBuildableFactory> constrBuildingParams;
 

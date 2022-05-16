@@ -1,7 +1,7 @@
 ﻿namespace Game1.Delegates
 {
     [Serializable]
-    public class Event<T> : IEvent<T>
+    public sealed class Event<T> : IEvent<T>
         where T : IListener
     {
         private readonly MySet<T> listeners;

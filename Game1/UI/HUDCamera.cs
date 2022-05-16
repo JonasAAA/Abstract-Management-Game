@@ -1,7 +1,7 @@
 ﻿namespace Game1.UI
 {
     [Serializable]
-    public class HUDCamera : Camera
+    public sealed class HUDCamera : Camera
     {
         private readonly Matrix HUDToScreen, screenToHUD;
 

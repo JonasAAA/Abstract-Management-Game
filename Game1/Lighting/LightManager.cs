@@ -5,7 +5,7 @@ using static Game1.WorldManager;
 namespace Game1.Lighting
 {
     [Serializable]
-    public class LightManager : IDeletedListener
+    public sealed class LightManager : IDeletedListener
     {
         private static readonly int actualScreenWidth, actualScreenHeight;
 

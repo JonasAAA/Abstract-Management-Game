@@ -1,7 +1,7 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public class TimedPacketQueue : TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, IEnumerable<Person> people)>
+    public sealed class TimedPacketQueue : TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, IEnumerable<Person> people)>
     {
         public ulong PeopleCount
             => people.Count;

@@ -1,7 +1,7 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public class WorldConfig
+    public sealed class WorldConfig
     {
         public readonly ulong personJobEnjoymentWeight, personTalentWeight, personSkillWeight, jobDesperationWeight, personToJobDistWeight;
         public readonly UDouble jobVacDespValueConsideredAverage;

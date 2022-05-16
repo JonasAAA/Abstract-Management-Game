@@ -6,7 +6,7 @@ using static Game1.WorldManager;
 namespace Game1.Lighting
 {
     [Serializable]
-    public class LightCatchingDisk : Disk, ILightCatchingObject
+    public sealed class LightCatchingDisk : Disk, ILightCatchingObject
     {
         public IEvent<IDeletedListener> Deleted
             => deleted;

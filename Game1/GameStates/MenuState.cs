@@ -4,7 +4,7 @@ using Game1.UI;
 namespace Game1.GameStates
 {
     [Serializable]
-    public class MenuState : GameState
+    public sealed class MenuState : GameState
     {
         private readonly ActiveUIManager activeUIManager;
         private readonly UIRectVertPanel<ActionButton> UIPanel;

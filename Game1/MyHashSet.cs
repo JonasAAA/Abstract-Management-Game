@@ -7,7 +7,7 @@ namespace Game1
     /// </summary>
     //[CollectionDataContract]
     [Serializable]
-    public class MySet<T> : IEnumerable<T>
+    public sealed class MySet<T> : IEnumerable<T>
     {
         public ulong Count
             => (ulong)set.Count;

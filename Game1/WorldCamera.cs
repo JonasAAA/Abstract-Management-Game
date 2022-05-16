@@ -6,7 +6,7 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [Serializable]
-    public class WorldCamera : Camera, IPosTransformer
+    public sealed class WorldCamera : Camera, IPosTransformer
     {
         private Matrix worldToScreen, screenToWorld;
         private UDouble scale;

@@ -1,7 +1,7 @@
 ﻿namespace Game1.Shapes
 {
     [Serializable]
-    public class Arrow : VectorShape
+    public sealed class Arrow : VectorShape
     {
         private static readonly Texture2D triangleTexture;
 

@@ -3,7 +3,7 @@
 namespace Game1
 {
     [Serializable]
-    public class KeyButton
+    public sealed class KeyButton
     {
         public bool Click { get; private set; }
         public bool Hold { get; private set; }

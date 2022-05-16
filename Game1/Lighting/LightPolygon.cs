@@ -3,7 +3,7 @@
 namespace Game1.Lighting
 {
     [Serializable]
-    public class LightPolygon
+    public sealed class LightPolygon
     {
         private MyVector2 center;
         private List<MyVector2> vertices;

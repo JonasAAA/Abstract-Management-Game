@@ -3,7 +3,7 @@
 namespace Game1
 {
     [Serializable]
-    public class ActivityManager : IDeletedListener
+    public sealed class ActivityManager : IDeletedListener
     {
         private readonly HashSet<IActivityCenter> activityCenters;
 

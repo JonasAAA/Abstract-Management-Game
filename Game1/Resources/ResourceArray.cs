@@ -1,7 +1,7 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public class ResourceArray : IMyArray<IResource>
+    public sealed class ResourceArray : IMyArray<IResource>
     {
         private readonly ConstArray<IResource> resources;
 

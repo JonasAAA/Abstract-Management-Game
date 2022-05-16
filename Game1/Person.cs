@@ -10,7 +10,7 @@ namespace Game1
     /// person must be unhappy when don't get enough energy
     /// </summary>
     [Serializable]
-    public class Person : IEnergyConsumer
+    public sealed class Person : IEnergyConsumer
     {
         public static Person GeneratePerson(NodeID nodeID)
             => new

@@ -2,7 +2,7 @@
 {
     // may delete this
     [Serializable]
-    public class MyArray<T> : ConstArray<T>
+    public sealed class MyArray<T> : ConstArray<T>
     {
         public MyArray()
             : base()
@@ -14,10 +14,6 @@
 
         public MyArray(Func<ResInd, T> selector)
             : base(selector: selector)
-        { }
-
-        protected MyArray(IEnumerable<T> values)
-            : base(values: values)
         { }
 
         public new T this[ResInd resInd]

@@ -7,7 +7,7 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [Serializable]
-    public class Star : WorldUIElement, ILightSource
+    public sealed class Star : WorldUIElement, ILightSource
     {
         [Serializable]
         private readonly record struct ShapeParams(StarState State) : Disk.IParams

@@ -1,7 +1,7 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public class ProporSplitter<TKey>
+    public sealed class ProporSplitter<TKey>
         where TKey : notnull
     {
         /// <summary>
@@ -9,7 +9,7 @@
         /// deal with potential numeric instability
         /// </summary>
         [Serializable]
-        private class NecAdds
+        private sealed class NecAdds
         {
             private readonly HashSet<TKey> keys;
             private Dictionary<TKey, decimal> necNotLockedAdds;

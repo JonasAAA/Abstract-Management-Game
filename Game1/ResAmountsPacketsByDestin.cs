@@ -3,7 +3,7 @@
 namespace Game1
 {
     [Serializable]
-    public class ResAmountsPacketsByDestin
+    public sealed class ResAmountsPacketsByDestin
     {
         public ResAmounts ResAmounts { get; private set; }
         public ulong TotalMass { get; private set; }

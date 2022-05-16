@@ -1,7 +1,7 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public class ResConfig
+    public sealed class ResConfig
     {
         public readonly ResourceArray resources;
 

@@ -4,7 +4,7 @@ using Game1.Shapes;
 namespace Game1.UI
 {
     [Serializable]
-    public class ResDestinArrow : WorldUIElement
+    public sealed class ResDestinArrow : WorldUIElement
     {
         [Serializable]
         private readonly record struct DeleteButtonClickedListener(ResDestinArrow ResDestinArrow) : IClickedListener

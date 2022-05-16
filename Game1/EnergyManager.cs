@@ -3,7 +3,7 @@
 namespace Game1
 {
     [Serializable]
-    public class EnergyManager : IDeletedListener
+    public sealed class EnergyManager : IDeletedListener
     {
         private readonly MySet<IEnergyProducer> energyProducers;
         private readonly MySet<IEnergyConsumer> energyConsumers;

@@ -8,7 +8,7 @@ namespace Game1.Industries
     public abstract class ProductiveIndustry : Industry, IEnergyConsumer
     {
         [Serializable]
-        public abstract new class Factory : Industry.Factory
+        public new abstract class Factory : Industry.Factory
         {
             public readonly IndustryType industryType;
             public readonly EnergyPriority energyPriority;
@@ -54,7 +54,7 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        private class Employer : ActivityCenter
+        private sealed class Employer : ActivityCenter
         {
             public Propor CurSkillPropor { get; private set; }
 

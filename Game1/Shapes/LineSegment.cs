@@ -1,7 +1,7 @@
 ﻿namespace Game1.Shapes
 {
     [Serializable]
-    public class LineSegment : VectorShape
+    public sealed class LineSegment : VectorShape
     {
         private static readonly Texture2D pixelTexture;
 

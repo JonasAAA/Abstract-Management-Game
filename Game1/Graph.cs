@@ -10,7 +10,7 @@ namespace Game1
     public sealed class Graph : UIElement<IUIElement>, IChoiceChangedListener<IOverlay>, IActiveChangedListener
     {
         [Serializable]
-        private class NodeInfo
+        private sealed class NodeInfo
         {
             private static ResInd resInd;
 

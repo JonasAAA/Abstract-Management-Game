@@ -4,6 +4,6 @@
     {
         public UDouble LocallyProducedWatts { get; }
 
-        public void SetRemainingLocalWatts(UDouble remainingLocalWatts);
+        public void SetUsedLocalWatts(UDouble remainingLocalWatts);
     }
 }

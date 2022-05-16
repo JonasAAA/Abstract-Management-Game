@@ -62,8 +62,9 @@ namespace Game1
                     energyConsumers: sameNodeEnergyConsumers,
                     availableWatts: node.LocallyProducedWatts
                 );
-                node.SetRemainingLocalWatts(remainingLocalWatts: availableWatts);
-                totUsedLocalWatts += (UDouble)(node.LocallyProducedWatts - availableWatts);
+                UDouble usedLocalWatts = (UDouble)(node.LocallyProducedWatts - availableWatts);
+                node.SetUsedLocalWatts(remainingLocalWatts: usedLocalWatts);
+                totUsedLocalWatts += usedLocalWatts;
             }
 
             UDouble totAvailableWatts = DistributePartOfEnergy

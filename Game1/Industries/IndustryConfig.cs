@@ -113,12 +113,12 @@
                     name: "power plant costruction",
                     energyPriority: new(value: 10),
                     reqSkillPerUnitSurface: (UDouble).3,
-                    reqWattsPerUnitSurface: 1,
+                    reqWattsPerUnitSurface: (UDouble).1,
                     industryFactory: new PowerPlant.Factory
                     (
                         name: "power_plant_lvl1",
                         reqSkillPerUnitSurface: (UDouble).2,
-                        prodWattsPerUnitSurface: 10
+                        surfaceWattsAbsorbedPropor: (Propor).2
                     ),
                     duration: TimeSpan.FromSeconds(5),
                     costPerUnitSurface: new()

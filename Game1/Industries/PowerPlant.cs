@@ -8,9 +8,9 @@ namespace Game1.Industries
         [Serializable]
         public new sealed class Factory : ProductiveIndustry.Factory
         {
-            public readonly UDouble prodWattsPerUnitSurface;
+            public readonly Propor surfaceWattsAbsorbedPropor;
 
-            public Factory(string name, UDouble reqSkillPerUnitSurface, UDouble prodWattsPerUnitSurface)
+            public Factory(string name, UDouble reqSkillPerUnitSurface, Propor surfaceWattsAbsorbedPropor)
                 : base
                 (
                     industryType: IndustryType.PowerPlant,
@@ -20,9 +20,9 @@ namespace Game1.Industries
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
             {
-                if (prodWattsPerUnitSurface.IsCloseTo(other: 0))
+                if (surfaceWattsAbsorbedPropor.IsCloseTo(other: Propor.empty))
                     throw new ArgumentOutOfRangeException();
-                this.prodWattsPerUnitSurface = prodWattsPerUnitSurface;
+                this.surfaceWattsAbsorbedPropor = surfaceWattsAbsorbedPropor;
             }
 
             public override PowerPlant CreateIndustry(NodeState state)
@@ -36,7 +36,7 @@ namespace Game1.Industries
         public new sealed class Params : ProductiveIndustry.Params
         {
             public UDouble ProdWatts
-                => state.ApproxSurfaceLength * factory.prodWattsPerUnitSurface;
+                => state.wattsHittingSurfaceOrIndustry * factory.surfaceWattsAbsorbedPropor;
 
             private readonly Factory factory;
 
@@ -49,6 +49,9 @@ namespace Game1.Industries
                 this.factory = factory;
             }
         }
+
+        public override bool PeopleWorkOnTop
+            => false;
 
         protected override UDouble Height
             => CurWorldConfig.defaultIndustryHeight;

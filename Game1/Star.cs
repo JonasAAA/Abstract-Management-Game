@@ -123,7 +123,7 @@ namespace Game1
                 }
             }
 
-            popupTextBox.Text = $"generates {state.prodWatts} power\n{usedArc / (2 * MyMathHelper.pi) * 100:0.}% of it is used";
+            popupTextBox.Text = $"generates {state.prodWatts} power\n{usedArc / (2 * MyMathHelper.pi) * 100:0.}% of it hits planet";
 
             foreach (var lightCatchingObject in lightCatchingObjects)
             {

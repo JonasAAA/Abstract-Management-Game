@@ -117,6 +117,9 @@ namespace Game1.Industries
         public override IEnumerable<Person> PeopleHere
             => base.PeopleHere.Concat(reprodCenter.PeopleHere);
 
+        public override bool PeopleWorkOnTop
+            => false;
+
         protected override UDouble Height
             => CurWorldConfig.defaultIndustryHeight;
 

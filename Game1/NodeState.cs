@@ -28,13 +28,14 @@ namespace Game1
         }
         public ulong MaxAvailableResAmount
             => MainResAmount - CurWorldConfig.minResAmountInPlanet;
-        public MyVector2 position;
+        public readonly MyVector2 position;
         public readonly ulong maxBatchDemResStored;
         public ResAmounts storedRes;
         public ResAmountsPacketsByDestin waitingResAmountsPackets;
         public readonly MySet<Person> waitingPeople;
         public readonly BasicResInd consistsOfResInd;
         public readonly BasicRes consistsOfRes;
+        public UDouble wattsHittingSurfaceOrIndustry;
 
         // NEVER TO BE USED DIRECTLY
         private ulong mainResAmount;
@@ -53,6 +54,7 @@ namespace Game1
             this.maxBatchDemResStored = maxBatchDemResStored;
             waitingResAmountsPackets = new();
             waitingPeople = new();
+            wattsHittingSurfaceOrIndustry = 0;
         }
 
         public bool CanRemove(ulong resAmount)

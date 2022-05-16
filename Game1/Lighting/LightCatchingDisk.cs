@@ -1,44 +1,18 @@
-﻿using Game1.Delegates;
-using Game1.Shapes;
-using static Game1.WorldManager;
+﻿using Game1.Shapes;
 
 namespace Game1.Lighting
 {
     [Serializable]
-    public sealed class LightCatchingDisk : Disk, ILightCatchingObject
+    public sealed class LightCatchingDisk : Disk, ILightBlockingObject
     {
-        public IEvent<IDeletedListener> Deleted
-            => deleted;
+        //private readonly Dictionary<StarID, UDouble> starPosToWatts;
+        //private readonly Dictionary<StarID, Propor> starPosToPowerPropor;
 
-        // TODO: delete if unused
-        //public IReadOnlyDictionary<StarID, UDouble> StarPosToWatts
-        //    => starPosToWatts;
-
-        //public IReadOnlyDictionary<StarID, Propor> StarPosToPowerPropor
-        //    => starPosToPowerPropor;
-
-        public UDouble Watts
-            => starPosToWatts.Values.DefaultIfEmpty().Sum();
-
-        private readonly Dictionary<StarID, UDouble> starPosToWatts;
-        private readonly Dictionary<StarID, Propor> starPosToPowerPropor;
-        private readonly Event<IDeletedListener> deleted;
-
-        public LightCatchingDisk(IParams parameters, bool addToLightCatchingObjects)
+        public LightCatchingDisk(IParams parameters)
             : base(parameters: parameters)
-        {
-            starPosToWatts = new();
-            starPosToPowerPropor = new();
-            deleted = new();
+        { }
 
-            if (addToLightCatchingObjects)
-                CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
-        }
-
-        public void Delete()
-            => deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
-
-        IEnumerable<double> ILightCatchingObject.RelAngles(MyVector2 lightPos)
+        IEnumerable<double> ILightBlockingObject.RelAngles(MyVector2 lightPos)
         {
             UDouble dist = MyVector2.Distance(lightPos, Center);
             if (dist <= parameters.Radius)
@@ -55,7 +29,7 @@ namespace Game1.Lighting
             yield return MyMathHelper.Atan2(point2.Y, point2.X);
         }
 
-        IEnumerable<double> ILightCatchingObject.InterPoints(MyVector2 lightPos, MyVector2 lightDir)
+        IEnumerable<double> ILightBlockingObject.InterPoints(MyVector2 lightPos, MyVector2 lightDir)
         {
             MyVector2 d = lightPos - Center;
             double e = MyVector2.Dot(lightDir, d),
@@ -77,10 +51,10 @@ namespace Game1.Lighting
             }
         }
 
-        void ILightCatchingObject.SetWatts(StarID starPos, UDouble watts, Propor powerPropor)
-        {
-            starPosToWatts[starPos] = watts;
-            starPosToPowerPropor[starPos] = powerPropor;
-        }
+        //void ILightCatchingObject.SetWatts(StarID starPos, UDouble watts, Propor powerPropor)
+        //{
+        //    starPosToWatts[starPos] = watts;
+        //    starPosToPowerPropor[starPos] = powerPropor;
+        //}
     }
 }

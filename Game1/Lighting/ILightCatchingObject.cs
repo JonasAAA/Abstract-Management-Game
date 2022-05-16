@@ -1,10 +1,9 @@
 ﻿namespace Game1.Lighting
 {
-    public interface ILightCatchingObject : IDeletable
+    public interface ILightCatchingObject : ILightBlockingObject, IDeletable
     {
-        public IEnumerable<double> RelAngles(MyVector2 lightPos);
-
-        public IEnumerable<double> InterPoints(MyVector2 lightPos, MyVector2 lightDir);
+        public void BeginSetWatts()
+        { }
 
         public void SetWatts(StarID starPos, UDouble watts, Propor powerPropor);
     }

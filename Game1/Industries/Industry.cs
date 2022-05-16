@@ -88,12 +88,14 @@ namespace Game1.Industries
 
         public abstract IEnumerable<Person> PeopleHere { get; }
 
-        public ILightCatchingObject? LightCatchingObject
+        public ILightBlockingObject? LightBlockingObject
             => lightCatchingDisk.Radius.IsCloseTo(other: parameters.state.Radius) switch
             {
                 true => null,
                 false => lightCatchingDisk
             };
+
+        public abstract bool PeopleWorkOnTop { get; }
 
         public IHUDElement UIElement
             => UIPanel;
@@ -118,7 +120,7 @@ namespace Game1.Industries
             isDeleted = false;
             deleted = new();
 
-            lightCatchingDisk = new(parameters: new LightCatchingDiskParams(Industry: this), addToLightCatchingObjects: false);
+            lightCatchingDisk = new(parameters: new LightCatchingDiskParams(Industry: this));
 
             textBox = new();
             UIPanel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
@@ -167,7 +169,7 @@ namespace Game1.Industries
 
         public virtual void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)
         {
-            if (LightCatchingObject is not null)
+            if (LightBlockingObject is not null)
                 lightCatchingDisk.Draw(baseColor: parameters.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
         }
 

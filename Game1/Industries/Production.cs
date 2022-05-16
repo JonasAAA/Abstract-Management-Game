@@ -57,6 +57,9 @@ namespace Game1.Industries
             }
         }
 
+        public sealed override bool PeopleWorkOnTop
+            => false;
+
         protected sealed override UDouble Height
             => CurWorldConfig.defaultIndustryHeight;
 

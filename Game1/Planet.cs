@@ -105,7 +105,7 @@ namespace Game1
         private ResAmounts targetStoredResAmounts;
         private ResAmounts undecidedResAmounts, resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
-        private UDouble remainingLocalWatts;
+        private UDouble usedLocalWatts;
 
         private readonly TextBox textBox;
         private readonly MyArray<ToggleButton> storeToggleButtons;
@@ -119,7 +119,7 @@ namespace Game1
         public Planet(NodeState state, Color activeColor, int startPersonCount = 0)
             : base
             (
-                shape: new LightCatchingDisk(parameters: new ShapeParams(State: state), addToLightCatchingObjects: false),
+                shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
                 activeColor: activeColor,
                 inactiveColor: state.consistsOfRes.color,
                 popupHorizPos: HorizPos.Right,
@@ -140,7 +140,7 @@ namespace Game1
             targetStoredResAmounts = new();
             undecidedResAmounts = new();
             resTravelHereAmounts = new();
-            remainingLocalWatts = 0;
+            usedLocalWatts = 0;
 
             for (int i = 0; i < startPersonCount; i++)
             {
@@ -361,9 +361,6 @@ namespace Game1
             // temporary
             //state.position += new MyVector2(x: C.Random(min: -1.0, max: 1), y: C.Random(min: -1.0, max: 1));
 
-            if (industry is not null)
-                SetIndustry(newIndustry: industry.Update());
-
             // deal with people
             foreach (var person in state.waitingPeople.Clone())
             {
@@ -376,6 +373,9 @@ namespace Game1
                     personFirstLinks[(NodeID, activityCenterPosition)]!.Add(start: this, person: person);
                 state.waitingPeople.Remove(person);
             }
+
+            if (industry is not null)
+                SetIndustry(newIndustry: industry.Update());
 
             textBox.Shape.Center = state.position;
         }
@@ -454,32 +454,34 @@ namespace Game1
             infoTextBox.Text = $"consists of {state.MainResAmount} {state.consistsOfResInd}\nstores {state.storedRes}\ntarget {targetStoredResAmounts}\n";
 
             // update text
-            textBox.Text = "";
-
-            CurWorldManager.Overlay.SwitchStatement
+            textBox.Text = CurWorldManager.Overlay.SwitchExpression
             (
                 singleResCase: resInd =>
                 {
+                    string text = "";
                     if (IfStore(resInd: resInd))
-                        textBox.Text += "store\n";
+                        text += "store\n";
                     if (state.storedRes[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
-                        textBox.Text += (state.storedRes[resInd] >= targetStoredResAmounts[resInd]) switch
+                        text += (state.storedRes[resInd] >= targetStoredResAmounts[resInd]) switch
                         {
                             true => $"have {state.storedRes[resInd] - targetStoredResAmounts[resInd]} extra resources",
                             false => $"have {(double)state.storedRes[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
                         };
+                    return text;
                 },
                 allResCase: () =>
                 {
                     ulong totalStoredMass = state.storedRes.TotalMass();
-                    if (totalStoredMass > 0)
-                        textBox.Text += $"stored total res mass {totalStoredMass}";
+                    return totalStoredMass switch
+                    {
+                        > 0 => $"stored total res mass {totalStoredMass}",
+                        _ => ""
+                    };
                 },
-                powerCase: () => textBox.Text += $"get {shape.Watts:0.##} W from stars\nof which {shape.Watts - remainingLocalWatts:.##} W is used",
-                peopleCase: () => textBox.Text += unemploymentCenter.GetInfo()
-            );
+                powerCase: () => $"get {(this as INodeAsLocalEnergyProducer).LocallyProducedWatts:0.##} W from stars\nof which {usedLocalWatts:0.##} W is used",
+                peopleCase: () => unemploymentCenter.GetInfo()
+            ).Trim();
 
-            textBox.Text = textBox.Text.Trim();
             infoTextBox.Text += textBox.Text;
         }
 
@@ -521,23 +523,28 @@ namespace Game1
         }
 
         UDouble INodeAsLocalEnergyProducer.LocallyProducedWatts
-            => shape.Watts;
+            => industry?.PeopleWorkOnTop switch
+            {
+                true or null => state.wattsHittingSurfaceOrIndustry * (UDouble).001,
+                false => 0
+            };
 
-        void INodeAsLocalEnergyProducer.SetRemainingLocalWatts(UDouble remainingLocalWatts)
-            => this.remainingLocalWatts = remainingLocalWatts;
+        void INodeAsLocalEnergyProducer.SetUsedLocalWatts(UDouble usedLocalWatts)
+            => this.usedLocalWatts = usedLocalWatts;
 
-        private ILightCatchingObject CurLightCatchingObject
-            => industry?.LightCatchingObject ?? shape;
+        private ILightBlockingObject CurLightCatchingObject
+            => industry?.LightBlockingObject ?? shape;
 
-        IEnumerable<double> ILightCatchingObject.RelAngles(MyVector2 lightPos)
+        IEnumerable<double> ILightBlockingObject.RelAngles(MyVector2 lightPos)
             => CurLightCatchingObject.RelAngles(lightPos: lightPos);
 
-        IEnumerable<double> ILightCatchingObject.InterPoints(MyVector2 lightPos, MyVector2 lightDir)
+        IEnumerable<double> ILightBlockingObject.InterPoints(MyVector2 lightPos, MyVector2 lightDir)
             => CurLightCatchingObject.InterPoints(lightPos: lightPos, lightDir: lightDir);
 
+        void ILightCatchingObject.BeginSetWatts()
+            => state.wattsHittingSurfaceOrIndustry = 0;
+
         void ILightCatchingObject.SetWatts(StarID starPos, UDouble watts, Propor powerPropor)
-            // TODO: deal with this properly
-            // temporary
-            => (shape as ILightCatchingObject).SetWatts(starPos: starPos, watts: watts, powerPropor: powerPropor);
+            => state.wattsHittingSurfaceOrIndustry += watts;
     }
 }

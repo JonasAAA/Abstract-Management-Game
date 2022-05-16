@@ -83,6 +83,9 @@ namespace Game1.Industries
                 => Parameters.state.Radius + CurWorldConfig.defaultIndustryHeight;
         }
 
+        public override bool PeopleWorkOnTop
+            => true;
+
         protected override UDouble Height
             => CurWorldConfig.defaultIndustryHeight * donePropor;
 

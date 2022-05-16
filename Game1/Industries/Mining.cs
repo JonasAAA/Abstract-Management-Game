@@ -70,6 +70,9 @@ namespace Game1.Industries
                 => Parameters.state.Radius + 1;
         }
 
+        public override bool PeopleWorkOnTop
+            => true;
+
         protected override UDouble Height
             => 0;
 

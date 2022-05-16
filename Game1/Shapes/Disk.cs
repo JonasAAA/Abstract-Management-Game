@@ -26,10 +26,10 @@
         public Disk(IParams parameters)
             => this.parameters = parameters;
 
-        public override bool Contains(MyVector2 position)
+        public sealed override bool Contains(MyVector2 position)
             => MyVector2.Distance(position, Center) < parameters.Radius;
 
-        public override void Draw(Color color)
+        public sealed override void Draw(Color color)
             => C.Draw
             (
                 texture: diskTexture,

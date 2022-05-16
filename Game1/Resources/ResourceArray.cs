@@ -13,8 +13,20 @@
                 {
                     < BasicResInd.count => (ulong)resInd switch
                     {
-                        0 => new BasicRes(resInd: (BasicResInd)resInd, mass: 1, area: 10),
-                        1 => new BasicRes(resInd: (BasicResInd)resInd, mass: 2, area: 2),
+                        0 => new BasicRes
+                        (
+                            resInd: (BasicResInd)resInd,
+                            mass: 1,
+                            area: 10,
+                            color: Color.Gray
+                        ),
+                        1 => new BasicRes
+                        (
+                            resInd: (BasicResInd)resInd,
+                            mass: 2,
+                            area: 2,
+                            color: Color.Brown
+                        ),
                         _ => throw new ArgumentOutOfRangeException()
                     },
                     < BasicResInd.count + NonBasicResInd.count => (ulong)resInd switch

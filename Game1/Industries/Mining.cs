@@ -1,4 +1,4 @@
-﻿using Game1.Lighting;
+﻿using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
 
@@ -60,6 +60,16 @@ namespace Game1.Industries
             }
         }
 
+        [Serializable]
+        private readonly record struct FutureShapeOutlineParams(Params Parameters) : Ring.IParamsWithOuterRadius
+        {
+            public MyVector2 Center
+                => Parameters.state.position;
+
+            public UDouble OuterRadius
+                => Parameters.state.Radius + 1;
+        }
+
         protected override UDouble Height
             => 0;
 
@@ -70,6 +80,7 @@ namespace Game1.Industries
         /// </summary>
         private UDouble silentlyMinedBits;
         private UDouble curMinedResPerSec;
+        private readonly OuterRing futureShapeOutline;
 
         public Mining(Params parameters)
             : base(parameters: parameters)
@@ -77,6 +88,7 @@ namespace Game1.Industries
             this.parameters = parameters;
             silentlyMinedBits = 0;
             curMinedResPerSec = 0;
+            futureShapeOutline = new(parameters: new FutureShapeOutlineParams(Parameters: parameters));
         }
 
         protected override bool IsBusy()
@@ -125,5 +137,12 @@ namespace Game1.Industries
                 true => parameters.ReqWatts * CurSkillPropor,
                 false => 0
             };
+
+        public override void DrawAfterPlanet(Color otherColor, Propor otherColorPropor)
+        {
+            base.DrawAfterPlanet(otherColor, otherColorPropor);
+
+            futureShapeOutline.Draw(baseColor: Color.Black, otherColor: otherColor, otherColorPropor: otherColorPropor);
+        }
     }
 }

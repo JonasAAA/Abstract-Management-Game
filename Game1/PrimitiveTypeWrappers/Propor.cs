@@ -6,6 +6,9 @@
         public static readonly Propor full = new(value: 1);
         public static readonly Propor empty = new(value: 0);
 
+        public static Propor? Create(double part, double whole)
+            => Create(value: part / whole);
+
         public static Propor? Create(UDouble part, UDouble whole)
             => Create(value: part / whole);
 

@@ -61,12 +61,13 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        private readonly record struct FutureShapeOutlineParams(Params Parameters) : Disk.IParams
+        private readonly record struct FutureShapeOutlineParams(Params Parameters) : Ring.IParamsWithInnerRadius
         {
             public MyVector2 Center
                 => Parameters.state.position;
 
-            public UDouble Radius => throw new NotImplementedException();
+            public UDouble InnerRadius
+                => Parameters.state.Radius;
         }
 
         protected override UDouble Height
@@ -79,6 +80,7 @@ namespace Game1.Industries
         /// </summary>
         private UDouble silentlyAddedBits;
         private UDouble curAddedResPerSec;
+        private readonly InnerRing futureShapeOutline;
 
         public PlanetEnlargement(Params parameters)
             : base(parameters: parameters)
@@ -86,6 +88,7 @@ namespace Game1.Industries
             this.parameters = parameters;
             silentlyAddedBits = 0;
             curAddedResPerSec = 0;
+            futureShapeOutline = new(parameters: new FutureShapeOutlineParams(Parameters: parameters));
         }
 
         protected override bool IsBusy()
@@ -137,5 +140,12 @@ namespace Game1.Industries
                 true => parameters.ReqWatts * CurSkillPropor,
                 false => 0
             };
+
+        public override void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)
+        {
+            base.DrawBeforePlanet(otherColor, otherColorPropor);
+
+            futureShapeOutline.Draw(baseColor: parameters.state.consistsOfRes.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
+        }
     }
 }

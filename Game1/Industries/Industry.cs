@@ -165,7 +165,7 @@ namespace Game1.Industries
 
         public abstract string GetInfo();
 
-        public virtual void Draw(Color otherColor, Propor otherColorPropor)
+        public virtual void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)
         {
             if (LightCatchingObject is not null)
                 lightCatchingDisk.Draw(baseColor: parameters.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
@@ -174,5 +174,8 @@ namespace Game1.Industries
                 // TODO: draw something here
                 ;
         }
+
+        public virtual void DrawAfterPlanet(Color otherColor, Propor otherColorPropor)
+        { }
     }
 }

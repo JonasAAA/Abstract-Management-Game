@@ -64,7 +64,7 @@ namespace Game1.Lighting
             int centerInd = vertices.Count;
             vertPosTexs[centerInd] = new VertexPositionColorTexture(Transform(pos: center), color, (Vector2)textureCenter);
             for (int i = 0; i < centerInd; i++)
-                vertPosTexs[i] = new VertexPositionColorTexture(Transform(vertices[i]), color, (Vector2)(textureCenter + (vertices[i] - center) / CurWorldConfig.lightTextureWidth / strength));
+                vertPosTexs[i] = new VertexPositionColorTexture(Transform(vertices[i]), color, (Vector2)(textureCenter + (vertices[i] - center) / CurWorldConfig.lightTextureWidthAndHeight / strength));
             if (vertPosTexs.Length == 0)
                 return;
 

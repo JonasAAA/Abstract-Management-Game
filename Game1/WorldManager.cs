@@ -149,7 +149,6 @@ namespace Game1
                                 maxBatchDemResStored: 2
                             ),
                             activeColor: Color.White,
-                            inactiveColor: Color.Gray,
                             startPersonCount: 5
                         );
 

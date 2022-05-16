@@ -47,27 +47,17 @@ namespace Game1.Lighting
             {
                 if (brightness.IsCloseTo(other: 0))
                     throw new ArgumentOutOfRangeException();
-                Texture2D texture = new(C.GraphicsDevice, CurWorldConfig.lightTextureWidth, CurWorldConfig.lightTextureWidth);
-                Color[] colorData = new Color[CurWorldConfig.lightTextureWidth * CurWorldConfig.lightTextureWidth];
-                for (int i = 0; i < CurWorldConfig.lightTextureWidth; i++)
-                    for (int j = 0; j < CurWorldConfig.lightTextureWidth; j++)
-                    {
-                        UDouble distFromLight = MyVector2.Distance
-                        (
-                            value1: CurWorldConfig.lightTextureWidth * .5 * new MyVector2(xAndY: 1),
-                            value2: new MyVector2(i + .5, j + .5)
-                        );
-                        UDouble a = CurWorldConfig.standardStarRadius + brightness;
-                        UDouble factor = MyMathHelper.Min((UDouble)1, a / (brightness + distFromLight));
-                        colorData[i * CurWorldConfig.lightTextureWidth + j] = Color.White * (float)factor;
-                    }
-                texture.SetData(colorData);
 
                 return new(C.GraphicsDevice)
                 {
                     TextureEnabled = true,
                     VertexColorEnabled = true,
-                    Texture = texture
+                    Texture = C.CreateTexture
+                    (
+                        width: CurWorldConfig.lightTextureWidthAndHeight,
+                        height: CurWorldConfig.lightTextureWidthAndHeight,
+                        colorFromRelToCenterPos: relToCenterPos => Color.White * (float)MyMathHelper.Min(1, (CurWorldConfig.standardStarRadius + brightness) / (relToCenterPos.Length() + brightness))
+                    )
                 };
             }
         }

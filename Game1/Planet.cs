@@ -116,12 +116,12 @@ namespace Game1
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
-        public Planet(NodeState state, Color activeColor, Color inactiveColor, int startPersonCount = 0)
+        public Planet(NodeState state, Color activeColor, int startPersonCount = 0)
             : base
             (
                 shape: new LightCatchingDisk(parameters: new ShapeParams(State: state), addToLightCatchingObjects: false),
                 activeColor: activeColor,
-                inactiveColor: inactiveColor,
+                inactiveColor: state.consistsOfRes.color,
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top
             )
@@ -487,12 +487,15 @@ namespace Game1
         {
             base.DrawPreBackground(otherColor, otherColorPropor);
 
-            industry?.Draw(otherColor: otherColor, otherColorPropor: otherColorPropor);
+            industry?.DrawBeforePlanet(otherColor: otherColor, otherColorPropor: otherColorPropor);
         }
 
         protected override void DrawChildren()
         {
             base.DrawChildren();
+
+            // temporary
+            industry?.DrawAfterPlanet(otherColor: Color.Pink, otherColorPropor: Propor.empty);
 
             if (Active && CurWorldManager.ArrowDrawingModeOn)
                 // TODO: could create the arrow once with endPos calculated from mouse position

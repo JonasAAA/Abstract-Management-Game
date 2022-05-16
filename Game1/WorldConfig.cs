@@ -18,7 +18,7 @@
         public readonly EnergyPriority personDefaultEnergyPriority;
         public readonly TimeSpan personMinSeekChangeTime, personMaxSeekChangeTime;
         public readonly UDouble personDistanceTimeCoeff, personDistanceEnergyCoeff, resDistanceTimeCoeff, resDistanceEnergyCoeff;
-        public readonly int lightTextureWidth;
+        public readonly int lightTextureWidthAndHeight;
         public readonly ulong lightLayer, nodeLayer, linkLayer;
         public readonly UDouble brightStarTextureBrigthness, dimStarTextureBrightness;
         public readonly UDouble startingWorldScale;
@@ -59,7 +59,7 @@
             resDistanceTimeCoeff = 0;
             resDistanceEnergyCoeff = 1;
 
-            lightTextureWidth = 2048;
+            lightTextureWidthAndHeight = 2048;
             lightLayer = 5;
             nodeLayer = 10;
             linkLayer = 0;

@@ -166,12 +166,12 @@ namespace Game1.Industries
                 false => 0
             };
 
-        public override void Draw(Color otherColor, Propor otherColorPropor)
+        public override void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)
         {
             Propor transparency = (Propor).25;
             industryOutline.Draw(baseColor: parameters.industryFactory.color * (float)transparency, otherColor: otherColor * (float)transparency, otherColorPropor: otherColorPropor * transparency);
 
-            base.Draw(otherColor, otherColorPropor);
+            base.DrawBeforePlanet(otherColor, otherColorPropor);
         }
     }
 }

@@ -139,5 +139,21 @@ namespace Game1
 
         public static bool Equals<T>(T object1, T object2)
             => EqualityComparer<T>.Default.Equals(object1, object2);
+
+        public static Texture2D CreateTexture(int width, int height, Func<MyVector2, Color> colorFromRelToCenterPos)
+        {
+            if (width <= 0 || height <= 0)
+                throw new ArgumentOutOfRangeException();
+
+            Texture2D texture = new(GraphicsDevice, width, height);
+            Color[] colorData = new Color[width * height];
+            MyVector2 textureCenter = .5 * new MyVector2(x: width, y: height);
+            for (int y = 0; y < height; y++)
+                for (int x = 0; x < width; x++)
+                    colorData[y * width + x] = colorFromRelToCenterPos(new MyVector2(x + .5, y + .5) - textureCenter);
+            texture.SetData(colorData);
+
+            return texture;
+        }
     }
 }

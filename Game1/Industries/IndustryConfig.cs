@@ -31,7 +31,7 @@
                     name: "mine_lvl1",
                     energyPriority: new(value: 20),
                     reqSkillPerUnitSurface: (UDouble).1,
-                    reqWattsPerUnitSurface: 10,
+                    reqWattsPerUnitSurface: 1,
                     minedResPerUnitSurfacePerSec: (UDouble)1
                 ),
                 new PlanetEnlargement.Factory

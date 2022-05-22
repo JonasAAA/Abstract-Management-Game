@@ -9,11 +9,11 @@ namespace Game1.Industries
         public new sealed class Factory : ProductiveIndustry.Factory
         {
             public readonly UDouble reqWattsPerChild;
-            public readonly ulong maxCouplesPerUnitSurface;
+            public readonly UDouble maxCouplesPerUnitSurface;
             public readonly ResAmounts resPerChild;
             public readonly TimeSpan birthDuration;
 
-            public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerChild, ulong maxCouplesPerUnitSurface, ResAmounts resPerChild, TimeSpan birthDuration)
+            public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerChild, UDouble maxCouplesPerUnitSurface, ResAmounts resPerChild, TimeSpan birthDuration)
                 : base
                 (
                     industryType: IndustryType.Reproduction,
@@ -41,7 +41,7 @@ namespace Game1.Industries
         {
             public readonly UDouble reqWattsPerChild;
             public ulong MaxCouples
-                => state.ApproxSurfaceLength * factory.maxCouplesPerUnitSurface;
+                => (ulong)(state.ApproxSurfaceLength * factory.maxCouplesPerUnitSurface);
             public readonly ResAmounts resPerChild;
             public readonly TimeSpan birthDuration;
 
@@ -174,7 +174,7 @@ namespace Game1.Industries
             // first, births should finish, then people should evacuate, then can delete
             throw new NotImplementedException();
         }
-
+        
         public override UDouble ReqWatts()
             => (UDouble)birthQueue.Count * parameters.reqWattsPerChild * CurSkillPropor;
 
@@ -183,7 +183,7 @@ namespace Game1.Industries
             string text = base.GetInfo() + $"{parameters.name}\n";
             if (CurWorldManager.Overlay is IPeopleOverlay)
             {
-                text += $"{birthQueue.Count} children are being born\n";
+                text += $"{birthQueue.Count} children are being born\n(maximum supported is {parameters.MaxCouples})\n";
                 text += reprodCenter.GetInfo();
             }
             return text;

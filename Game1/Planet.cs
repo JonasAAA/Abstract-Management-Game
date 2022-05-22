@@ -48,7 +48,7 @@ namespace Game1
         private readonly record struct BuildIndustryButtonClickedListener(Planet Node, IBuildableFactory BuildableParams) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
-                => Node.SetIndustry(newIndustry: BuildableParams.CreateIndustry(state: Node.state));
+                => Node.Industry = BuildableParams.CreateIndustry(state: Node.state);
         }
 
         [Serializable]
@@ -97,10 +97,31 @@ namespace Game1
             => state.position;
         public readonly UDouble radius;
 
+        private Industry? Industry
+        {
+            get => industry;
+            set
+            {
+                if (industry == value)
+                    return;
+
+                infoPanel.RemoveChild(child: industry?.UIElement);
+                industry = value;
+                if (industry is null)
+                    buildButtonPannel.PersonallyEnabled = true;
+                else
+                {
+                    buildButtonPannel.PersonallyEnabled = false;
+                    infoPanel.AddChild(child: industry.UIElement);
+                }
+            }
+        }
         private readonly NodeState state;
         private readonly List<Link> links;
+        /// <summary>
+        /// NEVER use this directly, use Industry instead
+        /// </summary>
         private Industry? industry;
-        private readonly HouseOld unemploymentCenter;
         private readonly MyArray<ProporSplitter<NodeID>> resSplittersToDestins;
         private ResAmounts targetStoredResAmounts;
         private ResAmounts undecidedResAmounts, resTravelHereAmounts;
@@ -116,7 +137,7 @@ namespace Game1
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
-        public Planet(NodeState state, Color activeColor, int startPersonCount = 0)
+        public Planet(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount)? startingConditions = null)
             : base
             (
                 shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
@@ -130,8 +151,6 @@ namespace Game1
             shape = (LightCatchingDisk)base.shape;
 
             links = new();
-            industry = null;
-            unemploymentCenter = new(state: state);
 
             resSplittersToDestins = new
             (
@@ -141,12 +160,6 @@ namespace Game1
             undecidedResAmounts = new();
             resTravelHereAmounts = new();
             usedLocalWatts = 0;
-
-            for (int i = 0; i < startPersonCount; i++)
-            {
-                Person person = Person.GeneratePerson(nodeID: NodeID);
-                state.waitingPeople.Add(person);
-            }
 
             textBox = new(textColor: curUIConfig.defaultAlmostWhiteColor);
             textBox.Shape.Center = Position;
@@ -254,6 +267,20 @@ namespace Game1
             foreach (var resInd in ResInd.All)
                 resDistribArrows[resInd] = new();
 
+            // this is here beause it uses infoPanel, so that needs to be initialized first
+            if (startingConditions is var (houseFactory, personCount))
+            {
+                Industry = houseFactory.CreateIndustry(state: state);
+
+                for (ulong i = 0; i < personCount; i++)
+                {
+                    Person person = Person.GeneratePerson(nodeID: NodeID);
+                    state.waitingPeople.Add(person);
+                }
+            }
+            else
+                Industry = null;
+
             CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
         }
 
@@ -337,22 +364,6 @@ namespace Game1
             resDesinArrowEventListener.SyncSplittersWithArrows();
         }
 
-        private void SetIndustry(Industry? newIndustry)
-        {
-            if (industry == newIndustry)
-                return;
-
-            infoPanel.RemoveChild(child: industry?.UIElement);
-            industry = newIndustry;
-            if (industry is null)
-                buildButtonPannel.PersonallyEnabled = true;
-            else
-            {
-                buildButtonPannel.PersonallyEnabled = false;
-                infoPanel.AddChild(child: industry.UIElement);
-            }
-        }
-
         public void Update(IReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks)
         {
             // TODO: delete
@@ -374,29 +385,28 @@ namespace Game1
                 state.waitingPeople.Remove(person);
             }
 
-            if (industry is not null)
-                SetIndustry(newIndustry: industry.Update());
+            Industry = Industry?.Update();
 
             textBox.Shape.Center = state.position;
         }
 
         public void UpdatePeople()
         {
-            var peopleInIndustry = industry switch
+            var peopleInIndustry = Industry switch
             {
                 null => Enumerable.Empty<Person>(),
-                not null => industry.PeopleHere
+                not null => Industry.PeopleHere
             };
-            foreach (var person in state.waitingPeople.Concat(unemploymentCenter.PeopleHere).Concat(peopleInIndustry))
+            foreach (var person in state.waitingPeople.Concat(peopleInIndustry))
                 person.Update(lastNodeID: NodeID, closestNodeID: NodeID);
         }
 
         public void StartSplitRes()
         {
-            targetStoredResAmounts = industry switch
+            targetStoredResAmounts = Industry switch
             {
                 null => new(),
-                not null => industry.TargetStoredResAmounts()
+                not null => Industry.TargetStoredResAmounts()
             };
 
             // deal with resources
@@ -479,7 +489,7 @@ namespace Game1
                     };
                 },
                 powerCase: () => $"get {(this as INodeAsLocalEnergyProducer).LocallyProducedWatts:0.##} W from stars\nof which {usedLocalWatts:0.##} W is used",
-                peopleCase: () => unemploymentCenter.GetInfo()
+                peopleCase: () => ""
             ).Trim();
 
             infoTextBox.Text += textBox.Text;
@@ -489,7 +499,7 @@ namespace Game1
         {
             base.DrawPreBackground(otherColor, otherColorPropor);
 
-            industry?.DrawBeforePlanet(otherColor: otherColor, otherColorPropor: otherColorPropor);
+            Industry?.DrawBeforePlanet(otherColor: otherColor, otherColorPropor: otherColorPropor);
         }
 
         protected override void DrawChildren()
@@ -497,7 +507,7 @@ namespace Game1
             base.DrawChildren();
 
             // temporary
-            industry?.DrawAfterPlanet();
+            Industry?.DrawAfterPlanet();
 
             if (Active && CurWorldManager.ArrowDrawingModeOn)
                 // TODO: could create the arrow once with endPos calculated from mouse position
@@ -523,7 +533,7 @@ namespace Game1
         }
 
         UDouble INodeAsLocalEnergyProducer.LocallyProducedWatts
-            => industry?.PeopleWorkOnTop switch
+            => Industry?.PeopleWorkOnTop switch
             {
                 true or null => state.wattsHittingSurfaceOrIndustry * (UDouble).001,
                 false => 0
@@ -533,7 +543,7 @@ namespace Game1
             => this.usedLocalWatts = usedLocalWatts;
 
         private ILightBlockingObject CurLightCatchingObject
-            => industry?.LightBlockingObject ?? shape;
+            => Industry?.LightBlockingObject ?? shape;
 
         IEnumerable<double> ILightBlockingObject.RelAngles(MyVector2 lightPos)
             => CurLightCatchingObject.RelAngles(lightPos: lightPos);

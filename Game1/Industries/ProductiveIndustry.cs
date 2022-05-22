@@ -162,7 +162,7 @@ namespace Game1.Industries
                 => workingPropor = Propor.Create((UDouble)energyPropor, MyMathHelper.Max((UDouble)1, curUnboundedSkillPropor))!.Value;
 
             public string GetInfo()
-                => $"have {peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / parameters.ReqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\nemployed {peopleHere.Count}\n";
+                => $"have {peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / parameters.ReqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\nemployed {peopleHere.Count}\ntravel here {allPeople.Count - peopleHere.Count}\n";
 
             private UDouble HiredSkill()
                 => allPeople.Sum(person => (UDouble)person.skills[parameters.industryType]);

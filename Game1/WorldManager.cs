@@ -158,8 +158,8 @@ namespace Game1
                             {
                                 true =>
                                 (
-                                    houseFactory: new House.Factory(name: "starting house", floorSpacePerUnitSurface: 1),
-                                    personCount: 5
+                                    houseFactory: CurIndustryConfig.basicHouseFactory,
+                                    personCount: 20
                                 ),
                                 false => null
                             }

@@ -4,9 +4,16 @@
     public sealed class IndustryConfig
     {
         public readonly ReadOnlyCollection<IBuildableFactory> constrBuildingParams;
+        public readonly House.Factory basicHouseFactory;
 
         public IndustryConfig()
         {
+            basicHouseFactory = new House.Factory
+            (
+                name: "house",
+                floorSpacePerUnitSurface: 1
+            );
+
             constrBuildingParams = new(list: new IBuildableFactory[]
             {
                 new Construction.Factory
@@ -15,11 +22,7 @@
                     energyPriority: new(value: 20),
                     reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 10,
-                    industryFactory: new House.Factory
-                    (
-                        name: "house",
-                        floorSpacePerUnitSurface: 1
-                    ),
+                    industryFactory: basicHouseFactory,
                     duration: TimeSpan.FromSeconds(5),
                     costPerUnitSurface: new()
                 ),
@@ -113,7 +116,7 @@
                     name: "power plant costruction",
                     energyPriority: new(value: 10),
                     reqSkillPerUnitSurface: (UDouble).3,
-                    reqWattsPerUnitSurface: (UDouble).1,
+                    reqWattsPerUnitSurface: (UDouble).05,
                     industryFactory: new PowerPlant.Factory
                     (
                         name: "power_plant_lvl1",
@@ -128,14 +131,14 @@
                     name: "reprod. ind. constr.",
                     energyPriority: new(value: 10),
                     reqSkillPerUnitSurface: (UDouble).05,
-                    reqWattsPerUnitSurface: 200,
+                    reqWattsPerUnitSurface: 10,
                     industryFactory: new ReprodIndustry.Factory
                     (
                         name: "reprod. ind.",
                         energyPriority: new(value: 11),
                         reqSkillPerUnitSurface: (UDouble).1,
-                        reqWattsPerChild: 10,
-                        maxCouplesPerUnitSurface: 1,
+                        reqWattsPerChild: 100,
+                        maxCouplesPerUnitSurface: (UDouble).1,
                         resPerChild: new()
                         {
                             [(ResInd)0] = 10,

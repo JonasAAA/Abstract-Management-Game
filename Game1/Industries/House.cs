@@ -69,8 +69,9 @@ namespace Game1.Industries
                     // TODO: get rid of hard-coded constants
                     score2: Score.WeightedAverage
                     (
-                        (weight: 7, score: PersonalSpace(peopleCount: allPeople.Count + 1)),
-                        (weight: 3, score: DistanceToHereAsPerson(person: person))
+                        (weight: 5, score: Score.lowest),
+                        (weight: 3, score: PersonalSpace(peopleCount: allPeople.Count + 1)),
+                        (weight: 2, score: DistanceToHereAsPerson(person: person))
                     ),
                     score1Propor: CurWorldConfig.personMomentumPropor
                 );
@@ -93,19 +94,19 @@ namespace Game1.Industries
                 => true;
 
             public string GetInfo()
-                => $"unemployed {peopleHere.Count}\ntravel to be unemployed\nhere {allPeople.Count - peopleHere.Count}\n";
+                => $"{peopleHere.Count} people live here\n{allPeople.Count - peopleHere.Count} people travel here\n";
         }
 
         public override IEnumerable<Person> PeopleHere
             => housing.PeopleHere;
 
         public override bool PeopleWorkOnTop
-            => false;
+            => true;
 
         protected override UDouble Height
             => CurWorldConfig.defaultIndustryHeight;
         private readonly Housing housing;
-
+        
         public House(Params parameters)
             : base(parameters: parameters)
         {
@@ -119,6 +120,6 @@ namespace Game1.Industries
             => this;
 
         public override string GetInfo()
-            => $"{PeopleHere.Count()} people live here,\neach get {housing.PersonalSpace():#.##} floor space\n";
+            => housing.GetInfo() + $"each person gets {housing.PersonalSpace():#.##} floor space\n";
     }
 }

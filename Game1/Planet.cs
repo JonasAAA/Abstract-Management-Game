@@ -488,7 +488,7 @@ namespace Game1
                         _ => ""
                     };
                 },
-                powerCase: () => $"get {(this as INodeAsLocalEnergyProducer).LocallyProducedWatts:0.##} W from stars\nof which {usedLocalWatts:0.##} W is used",
+                powerCase: () => $"produce {(this as INodeAsLocalEnergyProducer).LocallyProducedWatts:0.##} W for local use\nof which {usedLocalWatts:0.##} W is used",
                 peopleCase: () => ""
             ).Trim();
 

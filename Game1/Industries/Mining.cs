@@ -82,7 +82,7 @@ namespace Game1.Industries
         /// this represents the amount that is mined, but not counted yet. Must be between 0 and 1.
         /// </summary>
         private UDouble silentlyMinedBits;
-        private UDouble curMinedResPerSec;
+        private UDouble minedResPerSec;
         private readonly OuterRing futureShapeOutline;
 
         public Mining(Params parameters)
@@ -90,7 +90,7 @@ namespace Game1.Industries
         {
             this.parameters = parameters;
             silentlyMinedBits = 0;
-            curMinedResPerSec = 0;
+            minedResPerSec = 0;
             futureShapeOutline = new(parameters: new FutureShapeOutlineParams(Parameters: parameters));
         }
 
@@ -102,7 +102,8 @@ namespace Game1.Industries
 
         protected override Mining InternalUpdate(Propor workingPropor)
         {
-            UDouble resToMine = workingPropor * parameters.MinedResPerSec * (UDouble)CurWorldManager.Elapsed.TotalSeconds + silentlyMinedBits;
+            UDouble targetMinedRes = workingPropor * parameters.MinedResPerSec * (UDouble)CurWorldManager.Elapsed.TotalSeconds,
+                resToMine = targetMinedRes + silentlyMinedBits;
             ulong minedRes = (ulong)resToMine;
             silentlyMinedBits = (UDouble)(resToMine - minedRes);
             Debug.Assert(0 <= silentlyMinedBits && silentlyMinedBits <= 1);
@@ -113,8 +114,7 @@ namespace Game1.Industries
                 minedRes = maxMinedRes;
                 silentlyMinedBits = 0;
             }
-
-            curMinedResPerSec = minedRes / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
+            minedResPerSec = MyMathHelper.Min(targetMinedRes, maxMinedRes) / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
 
             parameters.state.waitingResAmountsPackets.Add(destination: parameters.state.nodeID, resInd: parameters.state.consistsOfResInd, resAmount: minedRes);
             parameters.state.RemoveRes(resAmount: minedRes);
@@ -126,7 +126,7 @@ namespace Game1.Industries
         {
             string text = base.GetInfo() + $"{parameters.name}\n";
             if (IsBusy())
-                text += $"Mining {curMinedResPerSec:0.##} {parameters.state.consistsOfResInd} per second\n";
+                text += $"Mining {minedResPerSec:0.##} {parameters.state.consistsOfResInd} per second\n";
             else
                 text += "The planet is fully mined out, can't mine anymore\n";
             return text;

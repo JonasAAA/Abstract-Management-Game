@@ -79,12 +79,15 @@ namespace Game1.Industries
         }
 
         public override string GetInfo()
-            => base.GetInfo() + parameters.name + "\n";
+            => base.GetInfo() + parameters.name + $"\nproduce {ProdWatts} W\n";
 
         public override UDouble ReqWatts()
             => 0;
 
         UDouble IEnergyProducer.ProdWatts()
+            => ProdWatts;
+
+        private UDouble ProdWatts
             => IsBusy() switch
             {
                 true => parameters.ProdWatts * CurSkillPropor,

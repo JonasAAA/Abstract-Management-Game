@@ -18,7 +18,7 @@
                     industryFactory: new House.Factory
                     (
                         name: "house",
-                        floorSpacePerUnitSurface: 100
+                        floorSpacePerUnitSurface: 1
                     ),
                     duration: TimeSpan.FromSeconds(5),
                     costPerUnitSurface: new()

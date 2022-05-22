@@ -134,23 +134,37 @@ namespace Game1
                     ),
                 };
 
+                
                 const int width = 8, height = 5, dist = 200;
+                int startPlanetI = C.Random(min: 0, max: width),
+                    startPlanetJ = C.Random(min: 0, max: height);
                 Planet[,] nodes = new Planet[width, height];
                 for (int i = 0; i < width; i++)
                     for (int j = 0; j < height; j++)
+                    {
+                        bool startPlanet = i == startPlanetI && j == startPlanetJ;
                         nodes[i, j] = new
                         (
                             state: new
                             (
                                 nodeID: NodeID.Create(),
                                 position: new MyVector2(i - (width - 1) * .5, j - (height - 1) * .5) * dist,
-                                approxRadius: MyMathHelper.Pow((UDouble)2, C.Random(min: (double)3, max: 6)),
+                                approxRadius: MyMathHelper.Pow((UDouble)2, startPlanet ? 4.5 : C.Random(min: (double)3, max: 6)),
                                 consistsOfResInd: BasicResInd.Random(),
                                 maxBatchDemResStored: 2
                             ),
                             activeColor: Color.White,
-                            startPersonCount: 5
+                            startingConditions: startPlanet switch
+                            {
+                                true =>
+                                (
+                                    houseFactory: new House.Factory(name: "starting house", floorSpacePerUnitSurface: 1),
+                                    personCount: 5
+                                ),
+                                false => null
+                            }
                         );
+                    }
 
                 UDouble distScale = (UDouble).1;
 

@@ -4,5 +4,6 @@
     {
         public ResInd ResInd { get; }
         public ulong Mass { get; }
+        public ResAmounts BasicIngredients { get; }
     }
 }

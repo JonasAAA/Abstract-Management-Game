@@ -31,5 +31,8 @@
             //    )
             //);
         }
+
+        public void Initialize()
+            => resources.Initialize();
     }
 }

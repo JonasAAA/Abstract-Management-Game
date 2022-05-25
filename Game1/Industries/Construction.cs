@@ -11,16 +11,15 @@ namespace Game1.Industries
         public new sealed class Factory : ProductiveIndustry.Factory, IBuildableFactory
         {
             public readonly UDouble reqWattsPerUnitSurface;
-            public readonly Industry.Factory industryFactory;
+            public readonly IFactoryForIndustryWithBuilding industryFactory;
             public readonly TimeSpan duration;
-            public readonly ResAmounts costPerUnitSurface;
 
-            public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, Industry.Factory industryFactory, TimeSpan duration, ResAmounts costPerUnitSurface)
+            public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, IFactoryForIndustryWithBuilding industryFactory, TimeSpan duration)
                 : base
                 (
                     industryType: IndustryType.Construction,
                     name: name,
-                    color: industryFactory.color,
+                    color: industryFactory.Color,
                     energyPriority: energyPriority,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
@@ -32,20 +31,19 @@ namespace Game1.Industries
                 if (duration < TimeSpan.Zero || duration == TimeSpan.MaxValue)
                     throw new ArgumentException();
                 this.duration = duration;
-                this.costPerUnitSurface = costPerUnitSurface;
             }
-
-            public override Construction CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
 
             public override Params CreateParams(NodeState state)
                 => new(state: state, factory: this);
 
             string IBuildableFactory.ButtonName
-                => $"build {industryFactory.name}";
+                => $"build {industryFactory.Name}";
 
             ITooltip IBuildableFactory.CreateTooltip(NodeState state)
                 => Tooltip(state: state);
+
+            Industry IBuildableFactory.CreateIndustry(NodeState state)
+                => new Construction(parameters: CreateParams(state: state));
         }
 
         [Serializable]
@@ -53,10 +51,10 @@ namespace Game1.Industries
         {
             public UDouble ReqWatts
                 => state.ApproxSurfaceLength * factory.reqWattsPerUnitSurface;
-            public readonly Industry.Factory industryFactory;
+            public readonly IFactoryForIndustryWithBuilding industryFactory;
             public readonly TimeSpan duration;
             public ResAmounts Cost
-                => state.ApproxSurfaceLength * factory.costPerUnitSurface;
+                => industryFactory.BuildingCost(state: state);
 
             public override string TooltipText
                 => base.TooltipText + $"Construction parameters:\n{nameof(ReqWatts)}: {ReqWatts}\n{nameof(duration)}: {duration}\n{nameof(Cost)}: {Cost}\n\nBuilding paramerers:\n{industryFactory.CreateParams(state: state).TooltipText}";
@@ -93,13 +91,15 @@ namespace Game1.Industries
         private readonly Disk industryOutline;
         private TimeSpan constrTimeLeft;
         private Propor donePropor;
+        private readonly ResPile resInBuilding;
 
         private Construction(Params parameters)
-            : base(parameters: parameters)
+            : base(parameters: parameters, building: null)
         {
             this.parameters = parameters;
             industryOutline = new(new IndustryOutlineParams(Parameters: parameters));
             constrTimeLeft = TimeSpan.MaxValue;
+            resInBuilding = ResPile.CreateEmpty();
         }
 
         public override ResAmounts TargetStoredResAmounts()
@@ -119,9 +119,9 @@ namespace Game1.Industries
                 if (IsBusy())
                     constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;
 
-                if (!IsBusy() && parameters.state.storedRes >= parameters.Cost)
+                if (!IsBusy() && parameters.state.storedResPile.ResAmounts >= parameters.Cost)
                 {
-                    parameters.state.storedRes -= parameters.Cost;
+                    ResPile.Transfer(source: parameters.state.storedResPile, destin: resInBuilding, resAmounts: parameters.Cost);
                     constrTimeLeft = parameters.duration;
                 }
 
@@ -129,7 +129,15 @@ namespace Game1.Industries
                 {
                     constrTimeLeft = TimeSpan.Zero;
                     Delete();
-                    return parameters.industryFactory.CreateIndustry(state: parameters.state);
+                    return parameters.industryFactory.CreateIndustry
+                    (
+                        state: parameters.state,
+                        building: new
+                        (
+                            resSource: resInBuilding,
+                            cost: parameters.industryFactory.BuildingCost(state: parameters.state)
+                        )
+                    );
                 }
                 return this;
             }
@@ -141,13 +149,9 @@ namespace Game1.Industries
 
         protected override void PlayerDelete()
         {
-            base.PlayerDelete();
+            ResPile.TransferAll(source: resInBuilding, destin: parameters.state.storedResPile);
 
-            parameters.state.storedRes += IsBusy() switch
-            {
-                true => parameters.Cost / 2,
-                false => parameters.Cost
-            };
+            base.PlayerDelete();
         }
 
         public override string GetInfo()
@@ -172,7 +176,7 @@ namespace Game1.Industries
         public override void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)
         {
             Propor transparency = (Propor).25;
-            industryOutline.Draw(baseColor: parameters.industryFactory.color * (float)transparency, otherColor: otherColor * (float)transparency, otherColorPropor: otherColorPropor * transparency);
+            industryOutline.Draw(baseColor: parameters.industryFactory.Color * (float)transparency, otherColor: otherColor * (float)transparency, otherColorPropor: otherColorPropor * transparency);
 
             base.DrawBeforePlanet(otherColor, otherColorPropor);
         }

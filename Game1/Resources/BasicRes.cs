@@ -7,6 +7,8 @@
         public readonly ulong mass, area;
         public readonly Color color;
 
+        private readonly ResAmounts basicIngredients;
+
         public BasicRes(BasicResInd resInd, ulong mass, ulong area, Color color)
         {
             this.resInd = resInd;
@@ -19,6 +21,11 @@
             if (color.A != byte.MaxValue)
                 throw new ArgumentException();
             this.color = color;
+
+            basicIngredients = new()
+            {
+                [resInd] = 1
+            };
         }
 
         ResInd IResource.ResInd
@@ -26,5 +33,8 @@
 
         ulong IResource.Mass
             => mass;
+
+        ResAmounts IResource.BasicIngredients
+            => basicIngredients;
     }
 }

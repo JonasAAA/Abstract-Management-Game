@@ -61,7 +61,7 @@ namespace Game1
             }
 
             public void Add(ResAmountsPacket resAmountsPacket)
-                => waitingResAmountsPackets.Add(resAmountsPacket: resAmountsPacket);
+                => waitingResAmountsPackets.TransferAllFrom(sourcePacket: resAmountsPacket);
 
             public void Add(IEnumerable<Person> people)
                 => waitingPeople.UnionWith(people);
@@ -113,7 +113,7 @@ namespace Game1
                     allResCase: () =>
                     {
                         foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts.TotalMass());
+                            DrawDisk(complProp: complProp, size: resAmountsPackets.TotalMass);
                     },
                     powerCase: () => { },
                     peopleCase: () =>

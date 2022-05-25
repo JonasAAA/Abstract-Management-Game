@@ -20,54 +20,57 @@ namespace Game1
             TotalMass = 0;
         }
 
-        public void Add(ResAmountsPacketsByDestin resAmountsPackets)
+        public void TransferAllFrom(ResAmountsPacketsByDestin sourcePackets)
         {
-            foreach (var resAmountsPacket in resAmountsPackets.resAmountsPacketsByDestin.Values)
-                Add(resAmountsPacket: resAmountsPacket);
+            foreach (var resAmountsPacket in sourcePackets.resAmountsPacketsByDestin.Values)
+                TransferAllFrom(sourcePacket: resAmountsPacket);
         }
 
-        public void Add(ResAmountsPacket resAmountsPacket)
+        public void TransferAllFrom(ResAmountsPacket sourcePacket)
         {
-            if (resAmountsPacketsByDestin.ContainsKey(resAmountsPacket.destination))
-                resAmountsPacketsByDestin[resAmountsPacket.destination].Add(resAmountsPacket: resAmountsPacket);
-            else
-                resAmountsPacketsByDestin[resAmountsPacket.destination] = resAmountsPacket;
+            ResAmounts += sourcePacket.resPile.ResAmounts;
+            TotalMass += sourcePacket.TotalMass;
 
-            ResAmounts += resAmountsPacket.ResAmounts;
-            TotalMass += resAmountsPacket.TotalMass;
+            if (!resAmountsPacketsByDestin.ContainsKey(sourcePacket.destination))
+                resAmountsPacketsByDestin[sourcePacket.destination] = new(destination: sourcePacket.destination);
+            ResPile.TransferAll(source: sourcePacket.resPile, destin: resAmountsPacketsByDestin[sourcePacket.destination].resPile);
         }
 
-        public void Add(NodeID destination, ResAmounts resAmounts)
+        // TODO: delete if unused
+        //public void TransferAll(NodeID destination, OldResAmounts resAmounts)
+        //{
+        //    if (!resAmountsPacketsByDestin.ContainsKey(destination))
+        //        resAmountsPacketsByDestin[destination] = new(destination: destination);
+        //    resAmountsPacketsByDestin[destination].TransferAllFrom(resAmounts: resAmounts);
+        //    TotalMass += resAmounts.TotalMass();
+        //}
+
+        public void TransferFrom(ResPile source, ResAmount resAmount, NodeID destination)
         {
+            ResAmounts += new ResAmounts(resAmount: resAmount);
+            TotalMass += CurResConfig.resources[resAmount.resInd].Mass * resAmount.amount;
+
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
-            resAmountsPacketsByDestin[destination].Add(resAmounts: resAmounts);
-            TotalMass += resAmounts.TotalMass();
+            ResPile.Transfer(source: source, destin: resAmountsPacketsByDestin[destination].resPile, resAmount: resAmount);
         }
 
-        public void Add(NodeID destination, ResInd resInd, ulong resAmount)
+        public ResPile ReturnAndRemove(NodeID destination)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
-                resAmountsPacketsByDestin[destination] = new(destination: destination);
-            resAmountsPacketsByDestin[destination].Add(resInd: resInd, resAmount: resAmount);
-            TotalMass += CurResConfig.resources[resInd].Mass * resAmount;
-        }
-
-        public ResAmounts ReturnAndRemove(NodeID destination)
-        {
-            if (!resAmountsPacketsByDestin.ContainsKey(destination))
-                return new();
+                return ResPile.CreateEmpty();
 
             var resAmountsPacket = resAmountsPacketsByDestin[destination];
             resAmountsPacketsByDestin.Remove(destination);
+            ResAmounts -= resAmountsPacket.resPile.ResAmounts;
             TotalMass -= resAmountsPacket.TotalMass;
-            return resAmountsPacket.ResAmounts;
+            return resAmountsPacket.resPile;
         }
 
         public ResAmounts ResToDestinAmounts(NodeID destination)
             => resAmountsPacketsByDestin.ContainsKey(destination) switch
             {
-                true => resAmountsPacketsByDestin[destination].ResAmounts,
+                true => resAmountsPacketsByDestin[destination].resPile.ResAmounts,
                 false => new()
             };
 
@@ -75,6 +78,7 @@ namespace Game1
         {
             var result = resAmountsPacketsByDestin.Values;
             resAmountsPacketsByDestin = new();
+            ResAmounts = new();
             TotalMass = 0;
             return result;
         }

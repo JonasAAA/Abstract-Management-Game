@@ -2,26 +2,26 @@
 using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
+using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
     [Serializable]
     public abstract class Industry : IDeletable
     {
+        // TODO: could rename this class to ParamsOfParams or ParamsIndepFromState
         // all fields and properties in this and derived classes must have unchangeable state
         [Serializable]
         public abstract class Factory
         {
-            public readonly string name;
-            public readonly Color color;
+            public string Name { get; }
+            public Color Color { get; }
 
             protected Factory(string name, Color color)
             {
-                this.name = name;
-                this.color = color;
+                Name = name;
+                Color = color;
             }
-
-            public abstract Industry CreateIndustry(NodeState state);
 
             public abstract Params CreateParams(NodeState state);
 
@@ -57,8 +57,8 @@ namespace Game1.Industries
             {
                 this.state = state;
 
-                name = factory.name;
-                color = factory.color;
+                name = factory.Name;
+                color = factory.Color;
                 tooltip = new TextTooltip(parameters: this);
             }
 
@@ -105,18 +105,19 @@ namespace Game1.Industries
         
         protected abstract UDouble Height { get; }
 
+        protected readonly Building? building;
         protected readonly UIRectPanel<IHUDElement> UIPanel;
 
         private bool isDeleted;
         private readonly Event<IDeletedListener> deleted;
-
         private readonly LightCatchingDisk lightCatchingDisk;
         private readonly TextBox textBox;
         private readonly Params parameters;
 
-        protected Industry(Params parameters)
+        protected Industry(Params parameters, Building? building)
         {
             this.parameters = parameters;
+            this.building = building;
             isDeleted = false;
             deleted = new();
 
@@ -149,12 +150,16 @@ namespace Game1.Industries
                 PlayerDelete();
                 return null;
             }
-
-            var result = InternalUpdate();
-
-            textBox.Text = GetInfo();
-
-            return result;
+            try
+            {
+                if (MyMathHelper.AreClose(CurWorldManager.Elapsed, TimeSpan.Zero))
+                    return this;
+                return InternalUpdate();
+            }
+            finally
+            {
+                textBox.Text = GetInfo();
+            }
         }
 
         protected abstract Industry InternalUpdate();
@@ -163,7 +168,10 @@ namespace Game1.Industries
             => Delete();
 
         protected virtual void Delete()
-            => deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+        {
+            building?.Delete(resDesin: parameters.state.storedResPile);
+            deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+        }
 
         public abstract string GetInfo();
 

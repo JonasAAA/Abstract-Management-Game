@@ -27,17 +27,17 @@ namespace Game1.Industries
                 this.minedResPerUnitSurfacePerSec = minedResPerUnitSurfacePerSec;
             }
 
-            public override Mining CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
-
             public override Params CreateParams(NodeState state)
                 => new(state: state, factory: this);
 
             string IBuildableFactory.ButtonName
-                => name;
+                => Name;
 
             ITooltip IBuildableFactory.CreateTooltip(NodeState state)
                 => Tooltip(state: state);
+
+            Industry IBuildableFactory.CreateIndustry(NodeState state)
+                => new Mining(parameters: CreateParams(state: state));
         }
 
         [Serializable]
@@ -85,8 +85,8 @@ namespace Game1.Industries
         private UDouble minedResPerSec;
         private readonly OuterRing futureShapeOutline;
 
-        public Mining(Params parameters)
-            : base(parameters: parameters)
+        private Mining(Params parameters)
+            : base(parameters: parameters, building: null)
         {
             this.parameters = parameters;
             silentlyMinedBits = 0;
@@ -114,10 +114,9 @@ namespace Game1.Industries
                 minedRes = maxMinedRes;
                 silentlyMinedBits = 0;
             }
-            minedResPerSec = MyMathHelper.Min(targetMinedRes, maxMinedRes) / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
 
-            parameters.state.waitingResAmountsPackets.Add(destination: parameters.state.nodeID, resInd: parameters.state.consistsOfResInd, resAmount: minedRes);
-            parameters.state.RemoveRes(resAmount: minedRes);
+            minedResPerSec = MyMathHelper.Min(targetMinedRes, maxMinedRes) / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
+            parameters.state.MineTo(destin: parameters.state.storedResPile, resAmount: minedRes);
 
             return this;
         }

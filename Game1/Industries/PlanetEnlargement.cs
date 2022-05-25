@@ -27,17 +27,17 @@ namespace Game1.Industries
                 this.addedResPerUnitSurfacePerSec = addedResPerUnitSurfacePerSec;
             }
 
-            public override PlanetEnlargement CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
-
             public override Params CreateParams(NodeState state)
                 => new(state: state, factory: this);
 
             string IBuildableFactory.ButtonName
-                => name;
+                => Name;
 
             ITooltip IBuildableFactory.CreateTooltip(NodeState state)
                 => Tooltip(state: state);
+
+            Industry IBuildableFactory.CreateIndustry(NodeState state)
+                => new PlanetEnlargement(parameters: CreateParams(state: state));
         }
 
         [Serializable]
@@ -85,8 +85,8 @@ namespace Game1.Industries
         private UDouble curAddedResPerSec;
         private readonly InnerRing futureShapeOutline;
 
-        public PlanetEnlargement(Params parameters)
-            : base(parameters: parameters)
+        private PlanetEnlargement(Params parameters)
+            : base(parameters: parameters, building: null)
         {
             this.parameters = parameters;
             silentlyAddedBits = 0;
@@ -105,25 +105,21 @@ namespace Game1.Industries
 
         protected override PlanetEnlargement InternalUpdate(Propor workingPropor)
         {
-            UDouble resToAdd = workingPropor * parameters.AddedResPerSec * (UDouble)CurWorldManager.Elapsed.TotalSeconds + silentlyAddedBits;
+            UDouble targetAddedRes = workingPropor * parameters.AddedResPerSec * (UDouble)CurWorldManager.Elapsed.TotalSeconds,
+                resToAdd = targetAddedRes + silentlyAddedBits;
             ulong addedRes = (ulong)resToAdd;
             silentlyAddedBits = (UDouble)(resToAdd - addedRes);
             Debug.Assert(0 <= silentlyAddedBits && silentlyAddedBits <= 1);
 
-            ulong maxAddedRes = parameters.state.storedRes[parameters.state.consistsOfResInd];
+            ulong maxAddedRes = parameters.state.storedResPile[parameters.state.consistsOfResInd];
             if (addedRes > maxAddedRes)
             {
                 addedRes = maxAddedRes;
                 silentlyAddedBits = 0;
             }
 
-            curAddedResPerSec = addedRes / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
-
-            parameters.state.storedRes -= new ResAmounts()
-            {
-                [parameters.state.consistsOfResInd] = addedRes
-            };
-            parameters.state.AddRes(resAmount: addedRes);
+            curAddedResPerSec = MyMathHelper.Min(targetAddedRes, maxAddedRes) / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
+            parameters.state.EnlargeFrom(source: parameters.state.storedResPile, resAmount: addedRes);
 
             return this;
         }

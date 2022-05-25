@@ -12,7 +12,7 @@ namespace Game1
     [Serializable]
     public sealed class Person : IEnergyConsumer
     {
-        public static Person GeneratePerson(NodeID nodeID)
+        public static Person GeneratePersonByMagic(NodeID nodeID, ResPile resSource)
             => new
             (
                 nodeID: nodeID,
@@ -31,15 +31,15 @@ namespace Game1
                     keySelector: indType => indType,
                     elementSelector: indType => Score.GenerateRandom()
                 ),
-                // TODO: get rid of hard-coded constant
-                mass: 10,
                 reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
-                seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime)
+                seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
+                resSource: resSource,
+                consistsOfResAmounts: resAmountsPerPerson
             );
 
-        public static Person GenerateChild(Person person1, Person person2, NodeID nodeID)
+        public static Person GenerateChild(Person person1, Person person2, NodeID nodeID, ResPile resSource)
         {
-            return new Person
+            return new
             (
                 nodeID: nodeID,
                 enjoyments: CreateIndustryScoreDict
@@ -55,14 +55,14 @@ namespace Game1
                     keySelector: indType => indType,
                     elementSelector: indType => Score.lowest
                 ),
-                // TODO: get rid of hard-coded constant
-                mass: 10,
                 reqWatts:
                     CurWorldConfig.parentContribToChildPropor * (person1.reqWatts + person2.reqWatts) * (UDouble).5
                     + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                 seekChangeTime:
                     CurWorldConfig.parentContribToChildPropor * (person1.seekChangeTime + person2.seekChangeTime) * (UDouble).5
-                    + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime)
+                    + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
+                resSource: resSource,
+                consistsOfResAmounts: resAmountsPerPerson
             );
 
             Dictionary<IndustryType, Score> CreateIndustryScoreDict(Func<Person, IndustryType, Score> personalScore)
@@ -79,6 +79,16 @@ namespace Game1
                 );
         }
 
+        // TODO: move to some config file
+        // Long-term, make each person require different amount of resources
+        public static readonly ResAmounts resAmountsPerPerson;
+
+        static Person()
+            => resAmountsPerPerson = new()
+            {
+                [(ResInd)0] = 10
+            };
+
         public readonly ReadOnlyDictionary<IndustryType, Score> enjoyments;
         public readonly ReadOnlyDictionary<IndustryType, Score> talents;
         public readonly Dictionary<IndustryType, Score> skills;
@@ -89,15 +99,20 @@ namespace Game1
         public Propor EnergyPropor { get; private set; }
         public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
             => lastActivityTimes;
-        public readonly ulong mass;
+        public ulong Mass
+            => consistsOfResPile.TotalMass;
         public readonly UDouble reqWatts;
 
         /// <summary>
         /// CURRENTLY UNUSED
+        /// If used, needs to transfer the resources the person consists of somewhere else
         /// </summary>
         public IEvent<IDeletedListener> Deleted
             => deleted;
 
+        [MemberNotNullWhen(returnValue: true, member: nameof(activityCenter))]
+        private bool IsInActivityCenter
+            => activityCenter is not null && activityCenter.IsPersonHere(person: this);
         /// <summary>
         /// is null if just been let go from activity center
         /// </summary>
@@ -107,11 +122,9 @@ namespace Game1
         private readonly Dictionary<ActivityType, TimeSpan> lastActivityTimes;
         private NodeID lastNodeID;
         private readonly Event<IDeletedListener> deleted;
-        [MemberNotNullWhen(returnValue: true, member: nameof(activityCenter))]
-        private bool IsInActivityCenter
-            => activityCenter is not null && activityCenter.IsPersonHere(person: this);
+        private readonly ResPile consistsOfResPile;
 
-        private Person(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, ulong mass, UDouble reqWatts, TimeSpan seekChangeTime)
+        private Person(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, ResPile resSource, ResAmounts consistsOfResAmounts)
         {
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
@@ -120,7 +133,6 @@ namespace Game1
             this.skills = new(skills);
 
             activityCenter = null;
-            this.mass = mass;
 
             if (reqWatts < CurWorldConfig.personMinReqWatts || reqWatts > CurWorldConfig.personMaxReqWatts)
                 throw new ArgumentOutOfRangeException();
@@ -142,6 +154,9 @@ namespace Game1
 
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
             CurWorldManager.AddPerson(person: this);
+            if (resSource.ResAmounts != consistsOfResAmounts)
+                throw new ArgumentException();
+            consistsOfResPile = ResPile.Create(source: resSource);
         }
 
         public void Arrived()

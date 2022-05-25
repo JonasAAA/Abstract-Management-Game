@@ -6,21 +6,32 @@ namespace Game1.Industries
     public sealed class House : Industry
     {
         [Serializable]
-        public new sealed class Factory : Industry.Factory
+        public new sealed class Factory : Industry.Factory, IFactoryForIndustryWithBuilding
         {
             public readonly UDouble floorSpacePerUnitSurface;
+            private readonly ResAmounts buildingCostPerUnitSurface;
 
-            public Factory(string name, UDouble floorSpacePerUnitSurface)
+            public Factory(string name, UDouble floorSpacePerUnitSurface, ResAmounts buildingCostPerUnitSurface)
                 : base(name: name, color: Color.Yellow)
             {
                 this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
+                if (buildingCostPerUnitSurface.IsEmpty())
+                    throw new ArgumentException();
+                this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
             }
-
-            public override House CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
 
             public override Params CreateParams(NodeState state)
                 => new(state: state, factory: this);
+
+            public ResAmounts BuildingCost(NodeState state)
+                => state.ApproxSurfaceLength * buildingCostPerUnitSurface;
+
+            Industry IFactoryForIndustryWithBuilding.CreateIndustry(NodeState state, Building building)
+            {
+                if (building.Cost != BuildingCost(state: state))
+                    throw new ArgumentException();
+                return new House(parameters: CreateParams(state: state), building: building);
+            }
         }
 
         [Serializable]
@@ -28,17 +39,14 @@ namespace Game1.Industries
         {
             public UDouble FloorSpace
                 => state.ApproxSurfaceLength * factory.floorSpacePerUnitSurface;
-
             public override string TooltipText
-                => base.TooltipText + $"{nameof(FloorSpace)}: {FloorSpace}\n";
+                => base.TooltipText + $"BuildingCost: {factory.BuildingCost(state: state)}\n{nameof(FloorSpace)}: {FloorSpace}\n";
 
             private readonly Factory factory;
 
             public Params(NodeState state, Factory factory)
                 : base(state: state, factory: factory)
-            {
-                this.factory = factory;
-            }
+                => this.factory = factory;
         }
 
         [Serializable]
@@ -105,13 +113,12 @@ namespace Game1.Industries
 
         protected override UDouble Height
             => CurWorldConfig.defaultIndustryHeight;
+
         private readonly Housing housing;
         
-        public House(Params parameters)
-            : base(parameters: parameters)
-        {
-            housing = new(parameters: parameters);
-        }
+        private House(Params parameters, Building building)
+            : base(parameters: parameters, building: building)
+            => housing = new(parameters: parameters);
 
         public override ResAmounts TargetStoredResAmounts()
             => new();

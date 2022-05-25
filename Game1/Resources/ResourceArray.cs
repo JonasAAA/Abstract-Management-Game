@@ -34,7 +34,7 @@
                         2 => new NonBasicRes
                         (
                             resInd: (NonBasicResInd)resInd,
-                            recipe: new ResAmounts()
+                            ingredients: new ResAmounts()
                             {
                                 [(ResInd)0] = 1,
                                 [(ResInd)1] = 2,
@@ -43,7 +43,7 @@
                         3 => new NonBasicRes
                         (
                             resInd: (NonBasicResInd)resInd,
-                            recipe: new ResAmounts()
+                            ingredients: new ResAmounts()
                             {
                                 [(ResInd)0] = 1,
                                 [(ResInd)1] = 2,
@@ -53,7 +53,7 @@
                         4 => new NonBasicRes
                         (
                             resInd: (NonBasicResInd)resInd,
-                            recipe: new ResAmounts()
+                            ingredients: new ResAmounts()
                             {
                                 [(ResInd)3] = 10,
                             }
@@ -63,9 +63,13 @@
                     _ => throw new ArgumentOutOfRangeException()
                 }
             );
+        }
+
+        public void Initialize()
+        {
             foreach (var resource in resources)
                 if (resource is NonBasicRes nonBasicRes)
-                    nonBasicRes.Initialize(masses: resInd => resources[resInd].Mass);
+                    nonBasicRes.Initialize();
 
             // validate that resource invariants hold
             foreach (var resInd in ResInd.All)

@@ -48,11 +48,9 @@ namespace Game1
         public static bool Initialized
             => curWorldManager is not null;
 
-        public static WorldConfig CurWorldConfig
-            => CurWorldManager.worldConfig;
+        public static WorldConfig CurWorldConfig { get; private set; }
 
-        public static ResConfig CurResConfig
-            => CurWorldManager.resConfig;
+        public static ResConfig CurResConfig { get; private set; }
 
         public static IndustryConfig CurIndustryConfig
             => CurWorldManager.industryConfig;
@@ -139,18 +137,25 @@ namespace Game1
                 int startPlanetI = C.Random(min: 0, max: width),
                     startPlanetJ = C.Random(min: 0, max: height);
                 Planet[,] nodes = new Planet[width, height];
+                ResPile magicResPile = ResPile.CreateMagicUnlimitedPile();
                 for (int i = 0; i < width; i++)
                     for (int j = 0; j < height; j++)
                     {
                         bool startPlanet = i == startPlanetI && j == startPlanetJ;
+                        BasicResInd consistsOfResInd = BasicResInd.Random();
                         nodes[i, j] = new
                         (
                             state: new
                             (
                                 nodeID: NodeID.Create(),
                                 position: new MyVector2(i - (width - 1) * .5, j - (height - 1) * .5) * dist,
-                                approxRadius: MyMathHelper.Pow((UDouble)2, startPlanet ? 4.5 : C.Random(min: (double)3, max: 6)),
-                                consistsOfResInd: BasicResInd.Random(),
+                                consistsOfResInd: consistsOfResInd,
+                                mainResAmount: NodeState.ResAmountFromApproxRadius
+                                (
+                                    basicResInd: consistsOfResInd,
+                                    approxRadius: MyMathHelper.Pow((UDouble)2, startPlanet ? 4.5 : C.Random(min: (double)3, max: 6))
+                                ),
+                                resSource: magicResPile,
                                 maxBatchDemResStored: 2
                             ),
                             activeColor: Color.White,
@@ -159,7 +164,8 @@ namespace Game1
                                 true =>
                                 (
                                     houseFactory: CurIndustryConfig.basicHouseFactory,
-                                    personCount: 20
+                                    personCount: 20,
+                                    resSource: magicResPile
                                 ),
                                 false => null
                             }
@@ -213,6 +219,8 @@ namespace Game1
                 throw new InvalidOperationException();
 
             curWorldManager = Deserialize();
+            CurWorldConfig = curWorldManager.worldConfig;
+            CurResConfig = curWorldManager.resConfig;
             CurWorldManager!.Initialize();
 
             return CurWorldManager.activeUIManager;
@@ -285,6 +293,9 @@ namespace Game1
             if (unserializedTypeList.Count > 0)
                 throw new Exception($"Every non-static, non-interface, non-enum type (except for Game1) must have attribute Serializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
             knownTypes = knownTypesSet.ToArray();
+
+            CurWorldConfig = null!;
+            CurResConfig = null!;
         }
 
         public IOverlay Overlay
@@ -353,7 +364,10 @@ namespace Game1
         private WorldManager()
         {
             worldConfig = new();
+            CurWorldConfig = worldConfig;
             resConfig = new();
+            CurResConfig = resConfig;
+            resConfig.Initialize();
             industryConfig = new();
             people = new();
 
@@ -490,6 +504,12 @@ namespace Game1
             globalTextBox.Text = (energyManager.Summary() + $"population {people.Count}").Trim();
 
             activeUIManager.Update(elapsed: elapsedUITime);
+
+            // THIS is a huge performance penalty
+#if DEBUG
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+#endif
         }
 
         public void Draw()

@@ -6,11 +6,12 @@ namespace Game1.Industries
     public sealed class PowerPlant : ProductiveIndustry, IEnergyProducer
     {
         [Serializable]
-        public new sealed class Factory : ProductiveIndustry.Factory
+        public new sealed class Factory : ProductiveIndustry.Factory, IFactoryForIndustryWithBuilding
         {
             public readonly Propor surfaceWattsAbsorbedPropor;
+            private readonly ResAmounts buildingCostPerUnitSurface;
 
-            public Factory(string name, UDouble reqSkillPerUnitSurface, Propor surfaceWattsAbsorbedPropor)
+            public Factory(string name, UDouble reqSkillPerUnitSurface, Propor surfaceWattsAbsorbedPropor, ResAmounts buildingCostPerUnitSurface)
                 : base
                 (
                     industryType: IndustryType.PowerPlant,
@@ -23,13 +24,19 @@ namespace Game1.Industries
                 if (surfaceWattsAbsorbedPropor.IsCloseTo(other: Propor.empty))
                     throw new ArgumentOutOfRangeException();
                 this.surfaceWattsAbsorbedPropor = surfaceWattsAbsorbedPropor;
+                if (buildingCostPerUnitSurface.IsEmpty())
+                    throw new ArgumentException();
+                this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
             }
-
-            public override PowerPlant CreateIndustry(NodeState state)
-                => new(parameters: CreateParams(state: state));
 
             public override Params CreateParams(NodeState state)
                 => new(state: state, factory: this);
+
+            ResAmounts IFactoryForIndustryWithBuilding.BuildingCost(NodeState state)
+                => state.ApproxSurfaceLength * buildingCostPerUnitSurface;
+
+            Industry IFactoryForIndustryWithBuilding.CreateIndustry(NodeState state, Building building)
+                => new PowerPlant(parameters: CreateParams(state: state), building: building);
         }
 
         [Serializable]
@@ -58,8 +65,8 @@ namespace Game1.Industries
 
         private readonly Params parameters;
 
-        private PowerPlant(Params parameters)
-            : base(parameters: parameters)
+        private PowerPlant(Params parameters, Building building)
+            : base(parameters: parameters, building: building)
         {
             this.parameters = parameters;
             CurWorldManager.AddEnergyProducer(energyProducer: this);

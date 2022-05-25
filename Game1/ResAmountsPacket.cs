@@ -6,43 +6,34 @@ namespace Game1
     public sealed class ResAmountsPacket
     {
         public readonly NodeID destination;
-        public ResAmounts ResAmounts
-            => resAmounts;
-        public ulong TotalMass { get; private set; }
+        public readonly ResPile resPile;
+        public ulong TotalMass
+            => resPile.TotalMass;
         public bool Empty
-            => TotalMass is 0;
-
-        private ResAmounts resAmounts;
+            => resPile.IsEmpty;
 
         public ResAmountsPacket(NodeID destination)
-            : this(destination: destination, resAmounts: new())
+            : this(destination: destination, resPile: ResPile.CreateEmpty())
         { }
 
-        public ResAmountsPacket(NodeID destination, ResAmounts resAmounts)
+        private ResAmountsPacket(NodeID destination, ResPile resPile)
         {
             this.destination = destination;
-            this.resAmounts = resAmounts;
-            TotalMass = resAmounts.TotalMass();
+            this.resPile = resPile;
         }
 
-        public void Add(ResAmountsPacket resAmountsPacket)
-        {
-            if (resAmountsPacket.destination != destination)
-                throw new ArgumentException();
-            resAmounts += resAmountsPacket.resAmounts;
-            TotalMass += resAmountsPacket.TotalMass;
-        }
+        // TODO: delete if unused
+        //public void TransferFrom(ResAmountsPacket resAmountsPacket, ResAmounts resAmounts)
+        //{
+        //    if (resAmountsPacket.destination != destination)
+        //        throw new ArgumentException();
+        //    TransferFrom(resPile: resAmountsPacket.resPile, resAmounts: resAmounts);
+        //}
 
-        public void Add(ResAmounts resAmounts)
-        {
-            this.resAmounts += resAmounts;
-            TotalMass += resAmounts.TotalMass();
-        }
+        //public void TransferFrom(ResPile resPile, ResAmounts resAmounts)
+        //    => ResPile.Transfer(source: resPile, destin: this.resPile, resAmounts: resAmounts);
 
-        public void Add(ResInd resInd, ulong resAmount)
-        {
-            resAmounts = resAmounts.WithAdd(index: resInd, value: resAmount);
-            TotalMass += CurResConfig.resources[resInd].Mass * resAmount;
-        }
+        //public void TRansferFrom(ResPile resPile, ResInd resInd, ulong resAmount)
+        //    => ResPile.Transfer(source: resPile, destin: this.resPile, resInd: resInd, resAmount: resAmount);
     }
 }

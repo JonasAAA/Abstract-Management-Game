@@ -26,8 +26,6 @@ namespace Game1.Industries
                     throw new ArgumentOutOfRangeException();
                 this.reqSkillPerUnitSurface = reqSkillPerUnitSurface;
             }
-
-            public abstract override ProductiveIndustry CreateIndustry(NodeState state);
         }
 
         [Serializable]
@@ -217,8 +215,8 @@ namespace Game1.Industries
         private readonly Employer employer;
         private Propor energyPropor;
 
-        protected ProductiveIndustry(Params parameters)
-            : base(parameters: parameters)
+        protected ProductiveIndustry(Params parameters, Building? building)
+            : base(parameters: parameters, building: building)
         {
             this.parameters = parameters;
 

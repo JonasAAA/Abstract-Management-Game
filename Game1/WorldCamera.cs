@@ -32,13 +32,13 @@ namespace Game1
             if (canScroll)
             {
                 double scrollDist = CurWorldConfig.scrollSpeed * elapsed.TotalSeconds;
-                if (ActiveUIManager.MouseHUDPos.X <= CurWorldConfig.screenBoundWidthForMapMoving)
+                if (isCoordNonnegAndSmall(value: ActiveUIManager.MouseHUDPos.X))
                     worldCenter = worldCenter with { X = worldCenter.X - scrollDist };
-                if (ActiveUIManager.MouseHUDPos.X >= ActiveUIManager.screenWidth - CurWorldConfig.screenBoundWidthForMapMoving)
+                if (isCoordNonnegAndSmall(value: ActiveUIManager.screenWidth - ActiveUIManager.MouseHUDPos.X))
                     worldCenter = worldCenter with { X = worldCenter.X + scrollDist };
-                if (ActiveUIManager.MouseHUDPos.Y <= CurWorldConfig.screenBoundWidthForMapMoving)
+                if (isCoordNonnegAndSmall(value: ActiveUIManager.MouseHUDPos.Y))
                     worldCenter = worldCenter with { Y = worldCenter.Y - scrollDist };
-                if (ActiveUIManager.MouseHUDPos.Y >= ActiveUIManager.screenHeight - CurWorldConfig.screenBoundWidthForMapMoving)
+                if (isCoordNonnegAndSmall(value: ActiveUIManager.screenHeight - ActiveUIManager.MouseHUDPos.Y))
                     worldCenter = worldCenter with { Y = worldCenter.Y + scrollDist };
             }
 
@@ -55,6 +55,12 @@ namespace Game1
                 Matrix.CreateScale((float)ScreenScale);
 
             screenToWorld = Matrix.Invert(worldToScreen);
+
+            return;
+
+            // care about nonnegativity so that the scrolling works appropriately in multi-screen setup
+            static bool isCoordNonnegAndSmall(double value)
+                => 0 <= value && value <= CurWorldConfig.screenBoundWidthForMapMoving; 
         }
 
         public override Matrix GetToScreenTransform()

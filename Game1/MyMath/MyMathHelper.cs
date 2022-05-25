@@ -15,6 +15,10 @@
         public static bool AreClose(decimal value1, decimal value2)
             => IsTiny(value: value1 - value2);
 
+        // TODO: consider if this is appropriate
+        public static bool AreClose(TimeSpan value1, TimeSpan value2)
+            => value1 == value2;
+
         public static T Min<T>(T value1, T value2) where T : IMinable<T>
             => value1.Min(other: value2);
 

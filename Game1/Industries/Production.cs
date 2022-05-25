@@ -1,127 +1,128 @@
-﻿using static Game1.WorldManager;
+﻿// TODO: delete
+//using static Game1.WorldManager;
 
-namespace Game1.Industries
-{
-    [Serializable]
-    public abstract class Production : ProductiveIndustry
-    {
-        [Serializable]
-        public new abstract class Factory : ProductiveIndustry.Factory
-        {
-            public readonly UDouble reqWattsPerUnitSurface;
-            public readonly TimeSpan prodDuration;
+//namespace Game1.Industries
+//{
+//    [Serializable]
+//    public abstract class Production : ProductiveIndustry
+//    {
+//        [Serializable]
+//        public new abstract class Factory : ProductiveIndustry.Factory
+//        {
+//            public readonly UDouble reqWattsPerUnitSurface;
+//            public readonly TimeSpan prodDuration;
 
-            public Factory(IndustryType industryType, string name, Color color, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, TimeSpan prodDuration)
-                : base
-                (
-                    industryType: industryType,
-                    name: name,
-                    color: color,
-                    energyPriority: energyPriority,
-                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
-                )
-            {
-                if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
-                    throw new ArgumentOutOfRangeException();
-                this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
-                if (prodDuration < TimeSpan.Zero)
-                    throw new ArgumentException();
-                this.prodDuration = prodDuration;
-            }
+//            public Factory(IndustryType industryType, string name, Color color, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, TimeSpan prodDuration)
+//                : base
+//                (
+//                    industryType: industryType,
+//                    name: name,
+//                    color: color,
+//                    energyPriority: energyPriority,
+//                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
+//                )
+//            {
+//                if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
+//                    throw new ArgumentOutOfRangeException();
+//                this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
+//                if (prodDuration < TimeSpan.Zero)
+//                    throw new ArgumentException();
+//                this.prodDuration = prodDuration;
+//            }
 
-            public abstract override Production CreateIndustry(NodeState state);
-        }
+//            public abstract override Production CreateIndustry(NodeState state);
+//        }
 
-        [Serializable]
-        public new abstract class Params : ProductiveIndustry.Params
-        {
-            public UDouble ReqWatts
-                => state.ApproxSurfaceLength * factory.reqWattsPerUnitSurface;
-            public ResAmounts Supply
-                => state.ApproxSurfaceLength * SupplyPerUnitSurface;
-            public readonly TimeSpan prodDuration;
+//        [Serializable]
+//        public new abstract class Params : ProductiveIndustry.Params
+//        {
+//            public UDouble ReqWatts
+//                => state.ApproxSurfaceLength * factory.reqWattsPerUnitSurface;
+//            public ResAmounts Supply
+//                => state.ApproxSurfaceLength * SupplyPerUnitSurface;
+//            public readonly TimeSpan prodDuration;
 
-            protected abstract ResAmounts SupplyPerUnitSurface { get; }
+//            protected abstract ResAmounts SupplyPerUnitSurface { get; }
 
-            public override string TooltipText
-                => base.TooltipText + $"{nameof(ReqWatts)}: {ReqWatts}\n{nameof(Supply)}: {Supply}\n{nameof(prodDuration)}: {prodDuration}\n";
+//            public override string TooltipText
+//                => base.TooltipText + $"{nameof(ReqWatts)}: {ReqWatts}\n{nameof(Supply)}: {Supply}\n{nameof(prodDuration)}: {prodDuration}\n";
 
-            private readonly Factory factory;
+//            private readonly Factory factory;
 
-            public Params(NodeState state, Factory factory)
-                : base(state: state, factory: factory)
-            {
-                this.factory = factory;
+//            public Params(NodeState state, Factory factory)
+//                : base(state: state, factory: factory)
+//            {
+//                this.factory = factory;
 
-                prodDuration = factory.prodDuration;
-            }
-        }
+//                prodDuration = factory.prodDuration;
+//            }
+//        }
 
-        public sealed override bool PeopleWorkOnTop
-            => false;
+//        public sealed override bool PeopleWorkOnTop
+//            => false;
 
-        protected sealed override UDouble Height
-            => CurWorldConfig.defaultIndustryHeight;
+//        protected sealed override UDouble Height
+//            => CurWorldConfig.defaultIndustryHeight;
 
-        private readonly Params parameters;
-        private TimeSpan prodTimeLeft;
+//        private readonly Params parameters;
+//        private TimeSpan prodTimeLeft;
 
-        protected Production(Params parameters)
-            : base(parameters: parameters)
-        {
-            this.parameters = parameters;
-            prodTimeLeft = TimeSpan.MaxValue;
-        }
+//        protected Production(Params parameters)
+//            : base(parameters: parameters)
+//        {
+//            this.parameters = parameters;
+//            prodTimeLeft = TimeSpan.MaxValue;
+//        }
 
-        protected override bool IsBusy()
-            => prodTimeLeft < TimeSpan.MaxValue;
+//        protected override bool IsBusy()
+//            => prodTimeLeft < TimeSpan.MaxValue;
 
-        protected abstract bool CanStartProduction();
+//        protected abstract bool CanStartProduction();
 
-        protected abstract void StartProduction();
+//        protected abstract void StartProduction();
 
-        protected abstract void StopProduction();
+//        protected abstract void StopProduction();
 
-        protected override Production InternalUpdate(Propor workingPropor)
-        {
-            if (IsBusy())
-                prodTimeLeft -= workingPropor * CurWorldManager.Elapsed;
+//        protected override Production InternalUpdate(Propor workingPropor)
+//        {
+//            if (IsBusy())
+//                prodTimeLeft -= workingPropor * CurWorldManager.Elapsed;
 
-            if (!IsBusy() && CanStartProduction())
-            {
-                prodTimeLeft = parameters.prodDuration;
-                StartProduction();
-            }
+//            if (!IsBusy() && CanStartProduction())
+//            {
+//                prodTimeLeft = parameters.prodDuration;
+//                StartProduction();
+//            }
 
-            if (prodTimeLeft <= TimeSpan.Zero)
-            {
-                parameters.state.waitingResAmountsPackets.Add(destination: parameters.state.nodeID, resAmounts: parameters.Supply);
-                prodTimeLeft = TimeSpan.MaxValue;
-                StopProduction();
-            }
+//            if (prodTimeLeft <= TimeSpan.Zero)
+//            {
+//                ResPile.Transfer(source:, destin: parameters.state.storedResPile, resAmounts: parameters.Supply);
+//                prodTimeLeft = TimeSpan.MaxValue;
+//                StopProduction();
+//            }
 
-            return this;
-        }
+//            return this;
+//        }
 
-        public override string GetInfo()
-        {
-            string text = base.GetInfo() + $"{parameters.name}\n";
-            if (IsBusy())
-                text += $"producing {C.DonePropor(timeLeft: prodTimeLeft, duration: parameters.prodDuration) * 100.0: 0.}%\n";
-            else
-                text += "idle\n";
-            if (!CanStartProduction())
-                text += "can't start new\n";
-            return text;
-        }
+//        public override string GetInfo()
+//        {
+//            string text = base.GetInfo() + $"{parameters.name}\n";
+//            if (IsBusy())
+//                text += $"producing {C.DonePropor(timeLeft: prodTimeLeft, duration: parameters.prodDuration) * 100.0: 0.}%\n";
+//            else
+//                text += "idle\n";
+//            if (!CanStartProduction())
+//                text += "can't start new\n";
+//            return text;
+//        }
 
-        public override UDouble ReqWatts()
-            // this is correct as if more important people get full energy, this works
-            // and if they don't, then the industry will get 0 energy anyway
-            => IsBusy() switch
-            {
-                true => parameters.ReqWatts * CurSkillPropor,
-                false => 0
-            };
-    }
-}
+//        public override UDouble ReqWatts()
+//            // this is correct as if more important people get full energy, this works
+//            // and if they don't, then the industry will get 0 energy anyway
+//            => IsBusy() switch
+//            {
+//                true => parameters.ReqWatts * CurSkillPropor,
+//                false => 0
+//            };
+//    }
+//}

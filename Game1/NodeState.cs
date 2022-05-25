@@ -5,6 +5,9 @@ namespace Game1
     [Serializable]
     public sealed class NodeState
     {
+        public static ulong ResAmountFromApproxRadius(BasicResInd basicResInd, UDouble approxRadius)
+            => Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / CurResConfig.resources[basicResInd].area);
+
         // TODO: define using the new notation
         //public double SurfaceGravitationalAccel
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
@@ -16,39 +19,30 @@ namespace Game1
         public UDouble Radius { get; private set; }
         public ulong ApproxSurfaceLength { get; private set; }
         public ulong MainResAmount
-        {
-            get => mainResAmount;
-            private set
-            {
-                ulong prevMainResAmount = MainResAmount;
-                mainResAmount = value;
-                if (prevMainResAmount != value)
-                    RecalculateValues();
-            }
-        }
+            => consistsOfResPile[consistsOfResInd];
         public ulong MaxAvailableResAmount
             => MainResAmount - CurWorldConfig.minResAmountInPlanet;
         public readonly MyVector2 position;
         public readonly ulong maxBatchDemResStored;
-        public ResAmounts storedRes;
+        public readonly ResPile storedResPile;
         public ResAmountsPacketsByDestin waitingResAmountsPackets;
         public readonly MySet<Person> waitingPeople;
         public readonly BasicResInd consistsOfResInd;
         public readonly BasicRes consistsOfRes;
         public UDouble wattsHittingSurfaceOrIndustry;
 
-        // NEVER TO BE USED DIRECTLY
-        private ulong mainResAmount;
+        private readonly ResPile consistsOfResPile;
 
-        public NodeState(NodeID nodeID, MyVector2 position, UDouble approxRadius, BasicResInd consistsOfResInd, ulong maxBatchDemResStored)
+        public NodeState(NodeID nodeID, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
             this.nodeID = nodeID;
             this.position = position;
             consistsOfRes = CurResConfig.resources[consistsOfResInd];
-            MainResAmount = Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / consistsOfRes.area);
+            consistsOfResPile = ResPile.CreateEmpty();
+            EnlargeFrom(source: resSource, resAmount: mainResAmount);
 
             this.consistsOfResInd = consistsOfResInd;
-            storedRes = new();
+            storedResPile = ResPile.CreateEmpty();
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             this.maxBatchDemResStored = maxBatchDemResStored;
@@ -60,16 +54,6 @@ namespace Game1
         public bool CanRemove(ulong resAmount)
             => MainResAmount >= resAmount + CurWorldConfig.minResAmountInPlanet;
 
-        public void RemoveRes(ulong resAmount)
-        {
-            if (!CanRemove(resAmount: resAmount))
-                throw new ArgumentException();
-            MainResAmount -= resAmount;
-        }
-
-        public void AddRes(ulong resAmount)
-            => MainResAmount += resAmount;
-
         private void RecalculateValues()
         {
             Mass = MainResAmount * consistsOfRes.mass;
@@ -78,7 +62,36 @@ namespace Game1
             ApproxSurfaceLength = (ulong)(2 * MyMathHelper.pi * Radius);
         }
 
-        public void AddToStoredRes(ResInd resInd, ulong resAmount)
-            => storedRes = storedRes.WithAdd(index: resInd, value: resAmount);
+        public void MineTo(ResPile destin, ulong resAmount)
+        {
+            if (!CanRemove(resAmount: resAmount))
+                throw new ArgumentException();
+            ResPile.Transfer(source: consistsOfResPile, destin: destin, resAmount: new(resInd: consistsOfResInd, amount: resAmount));
+            RecalculateValues();
+        }
+
+        public void EnlargeFrom(ResPile source, ulong resAmount)
+        {
+            ResPile.Transfer(source: source, destin: consistsOfResPile, resAmount: new(resInd: consistsOfResInd, amount: resAmount));
+            RecalculateValues();
+        }
+
+        // TODO: delete if unused
+        //public void TransferToStorage(ResPile resPile)
+        //    => ResPile.TransferAll(source: resPile, destin: storedResPile);
+
+        //public void AddRes(ulong resAmount)
+        //    => MainResAmount += resAmount;
+
+        //public void RemoveRes(ulong resAmount)
+        //{
+        //    if (!CanRemove(resAmount: resAmount))
+        //        throw new ArgumentException();
+        //    MainResAmount -= resAmount;
+        //}
+
+
+        //public void AddToStoredRes(ResInd resInd, ulong resAmount)
+        //    => storedRes = storedRes.WithAdd(index: resInd, value: resAmount);
     }
 }

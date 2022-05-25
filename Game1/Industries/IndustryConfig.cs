@@ -1,4 +1,6 @@
-﻿namespace Game1.Industries
+﻿using static Game1.WorldManager;
+
+namespace Game1.Industries
 {
     [Serializable]
     public sealed class IndustryConfig
@@ -11,7 +13,11 @@
             basicHouseFactory = new House.Factory
             (
                 name: "house",
-                floorSpacePerUnitSurface: 1
+                floorSpacePerUnitSurface: 1,
+                buildingCostPerUnitSurface: new()
+                {
+                    [(ResInd)0] = 1
+                }
             );
 
             constrBuildingParams = new(list: new IBuildableFactory[]
@@ -23,8 +29,7 @@
                     reqSkillPerUnitSurface: (UDouble).1,
                     reqWattsPerUnitSurface: 10,
                     industryFactory: basicHouseFactory,
-                    duration: TimeSpan.FromSeconds(5),
-                    costPerUnitSurface: new()
+                    duration: TimeSpan.FromSeconds(5)
                 ),
                 new Mining.Factory
                 (
@@ -51,19 +56,19 @@
                     industryFactory: new Manufacturing.Factory
                     (
                         name: "factory2_lvl1",
-                        producedResInd: (NonBasicResInd)2,
+                        baseResRecipe: CurResConfig.resources[(NonBasicResInd)2].Recipe,
                         prodResPerUnitSurface: 1,
                         energyPriority: new(value: 20),
                         reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerUnitSurface: 10,
-                        prodDuration: TimeSpan.FromSeconds(value: 2)
+                        prodDuration: TimeSpan.FromSeconds(value: 2),
+                        buildingCostPerUnitSurface: new()
+                        {
+                            [(ResInd)0] = 2,
+                            [(ResInd)1] = 2
+                        }
                     ),
-                    duration: TimeSpan.FromSeconds(5),
-                    costPerUnitSurface: new()
-                    {
-                        [(ResInd)0] = 2,
-                        [(ResInd)1] = 2
-                    }
+                    duration: TimeSpan.FromSeconds(5)
                 ),
                 new Construction.Factory
                 (
@@ -74,19 +79,19 @@
                     industryFactory: new Manufacturing.Factory
                     (
                         name: "factory3_lvl1",
-                        producedResInd: (NonBasicResInd)3,
+                        baseResRecipe: CurResConfig.resources[(NonBasicResInd)3].Recipe,
                         prodResPerUnitSurface: 1,
                         energyPriority: new(value: 20),
                         reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerUnitSurface: 10,
-                        prodDuration: TimeSpan.FromSeconds(value: 2)
+                        prodDuration: TimeSpan.FromSeconds(value: 2),
+                        buildingCostPerUnitSurface: new()
+                        {
+                            [(ResInd)0] = 2,
+                            [(ResInd)1] = 2
+                        }
                     ),
-                    duration: TimeSpan.FromSeconds(5),
-                    costPerUnitSurface: new()
-                    {
-                        [(ResInd)0] = 2,
-                        [(ResInd)1] = 2
-                    }
+                    duration: TimeSpan.FromSeconds(5)
                 ),
                 new Construction.Factory
                 (
@@ -97,19 +102,19 @@
                     industryFactory: new Manufacturing.Factory
                     (
                         name: "factory4_lvl1",
-                        producedResInd: (NonBasicResInd)4,
+                        baseResRecipe: CurResConfig.resources[(NonBasicResInd)4].Recipe,
                         prodResPerUnitSurface: 1,
                         energyPriority: new(value: 20),
                         reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerUnitSurface: 10,
-                        prodDuration: TimeSpan.FromSeconds(value: 2)
+                        prodDuration: TimeSpan.FromSeconds(value: 2),
+                        buildingCostPerUnitSurface: new()
+                        {
+                            [(ResInd)0] = 2,
+                            [(ResInd)1] = 2
+                        }
                     ),
-                    duration: TimeSpan.FromSeconds(5),
-                    costPerUnitSurface: new()
-                    {
-                        [(ResInd)0] = 2,
-                        [(ResInd)1] = 2
-                    }
+                    duration: TimeSpan.FromSeconds(5)
                 ),
                 new Construction.Factory
                 (
@@ -121,10 +126,13 @@
                     (
                         name: "power_plant_lvl1",
                         reqSkillPerUnitSurface: (UDouble).2,
-                        surfaceWattsAbsorbedPropor: (Propor).2
+                        surfaceWattsAbsorbedPropor: (Propor).2,
+                        buildingCostPerUnitSurface: new()
+                        {
+                            [(ResInd)0] = 1
+                        }
                     ),
-                    duration: TimeSpan.FromSeconds(5),
-                    costPerUnitSurface: new()
+                    duration: TimeSpan.FromSeconds(5)
                 ),
                 new Construction.Factory
                 (
@@ -139,14 +147,13 @@
                         reqSkillPerUnitSurface: (UDouble).1,
                         reqWattsPerChild: 100,
                         maxCouplesPerUnitSurface: (UDouble).1,
-                        resPerChild: new()
+                        birthDuration: TimeSpan.FromSeconds(1),
+                        buildingCostPerUnitSurface: new()
                         {
-                            [(ResInd)0] = 10,
-                        },
-                        birthDuration: TimeSpan.FromSeconds(1)
+                            [(ResInd)0] = 1
+                        }
                     ),
-                    duration: TimeSpan.FromSeconds(20),
-                    costPerUnitSurface: new()
+                    duration: TimeSpan.FromSeconds(20)
                 ),
             });
         }

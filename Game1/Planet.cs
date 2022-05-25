@@ -124,7 +124,8 @@ namespace Game1
         private Industry? industry;
         private readonly MyArray<ProporSplitter<NodeID>> resSplittersToDestins;
         private ResAmounts targetStoredResAmounts;
-        private ResAmounts undecidedResAmounts, resTravelHereAmounts;
+        private readonly ResPile undecidedResPile;
+        private ResAmounts resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
         private UDouble usedLocalWatts;
 
@@ -137,7 +138,7 @@ namespace Game1
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
-        public Planet(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount)? startingConditions = null)
+        public Planet(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount, ResPile resSource)? startingConditions = null)
             : base
             (
                 shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
@@ -157,7 +158,7 @@ namespace Game1
                 selector: resInd => new ProporSplitter<NodeID>()
             );
             targetStoredResAmounts = new();
-            undecidedResAmounts = new();
+            undecidedResPile = ResPile.CreateEmpty();
             resTravelHereAmounts = new();
             usedLocalWatts = 0;
 
@@ -268,13 +269,26 @@ namespace Game1
                 resDistribArrows[resInd] = new();
 
             // this is here beause it uses infoPanel, so that needs to be initialized first
-            if (startingConditions is var (houseFactory, personCount))
+            if (startingConditions is var (houseFactory, personCount, resSource))
             {
-                Industry = houseFactory.CreateIndustry(state: state);
+                ResAmounts houseBuildingCost = houseFactory.BuildingCost(state: state);
+                Industry = (houseFactory as IFactoryForIndustryWithBuilding).CreateIndustry
+                (
+                    state: state,
+                    building: new
+                    (
+                        resSource: ResPile.Create(source: resSource, resAmounts: houseBuildingCost)!,
+                        cost: houseBuildingCost
+                    )
+                );
 
                 for (ulong i = 0; i < personCount; i++)
                 {
-                    Person person = Person.GeneratePerson(nodeID: NodeID);
+                    Person person = Person.GeneratePersonByMagic
+                    (
+                        nodeID: NodeID,
+                        resSource: ResPile.Create(source: resSource, resAmounts: Person.resAmountsPerPerson)!
+                    );
                     state.waitingPeople.Add(person);
                 }
             }
@@ -293,7 +307,7 @@ namespace Game1
 
         public void Arrive(ResAmountsPacketsByDestin resAmountsPackets)
         {
-            state.waitingResAmountsPackets.Add(resAmountsPackets: resAmountsPackets);
+            state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
             resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeID);
         }
 
@@ -311,7 +325,7 @@ namespace Game1
             => resTravelHereAmounts = resTravelHereAmounts.WithAdd(index: resInd, value: resAmount);
 
         public ulong TotalQueuedRes(ResInd resInd)
-            => state.storedRes[resInd] + resTravelHereAmounts[resInd];
+            => state.storedResPile[resInd] + resTravelHereAmounts[resInd];
 
         public bool IfStore(ResInd resInd)
             => storeToggleButtons[resInd].On;
@@ -410,11 +424,15 @@ namespace Game1
             };
 
             // deal with resources
-            undecidedResAmounts = state.storedRes + state.waitingResAmountsPackets.ReturnAndRemove(destination: NodeID);
-            state.storedRes = new();
+            ResPile.TransferAll(source: state.storedResPile, destin: undecidedResPile);
+            ResPile.TransferAll(source: state.waitingResAmountsPackets.ReturnAndRemove(destination: NodeID), destin: undecidedResPile);
 
-            state.storedRes = undecidedResAmounts.Min(resAmounts: targetStoredResAmounts);
-            undecidedResAmounts -= state.storedRes;
+            ResPile.Transfer
+            (
+                source: undecidedResPile,
+                destin: state.storedResPile,
+                resAmounts: undecidedResPile.ResAmounts.Min(resAmounts: targetStoredResAmounts)
+            );
         }
 
         /// <summary>
@@ -422,27 +440,38 @@ namespace Game1
         /// </summary>
         public void SplitRes(Func<NodeID, INodeAsResDestin> nodeIDToNode, ResInd resInd, Func<NodeID, ulong> maxExtraResFunc)
         {
-            if (undecidedResAmounts[resInd] is 0)
+            if (undecidedResPile[resInd] is 0)
                 return;
 
             var resSplitter = resSplittersToDestins[resInd];
             if (resSplitter.Empty)
-                state.AddToStoredRes(resInd: resInd, resAmount: undecidedResAmounts[resInd]);
+                ResPile.Transfer
+                (
+                    source: undecidedResPile,
+                    destin: state.storedResPile,
+                    resAmount: new(resInd: resInd, amount: undecidedResPile[resInd])
+                );
             else
             {
-                var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResAmounts[resInd], maxAmountsFunc: maxExtraResFunc);
-                state.AddToStoredRes(resInd: resInd, unsplitResAmount);
+                var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile[resInd], maxAmountsFunc: maxExtraResFunc);
+                ResPile.Transfer
+                (
+                    source: undecidedResPile,
+                    destin: state.storedResPile,
+                    resAmount: new(resInd: resInd, amount: unsplitResAmount)
+                );
                 foreach (var (destination, resAmount) in splitResAmounts)
                 {
-                    state.waitingResAmountsPackets.Add
+                    state.waitingResAmountsPackets.TransferFrom
                     (
-                        destination: destination,
-                        resInd: resInd,
-                        resAmount: resAmount
+                        source: undecidedResPile,
+                        resAmount: new(resInd: resInd, amount: resAmount),
+                        destination: destination
                     );
                     nodeIDToNode(destination).AddResTravelHere(resInd: resInd, resAmount: resAmount);
                 }
             }
+            Debug.Assert(undecidedResPile[resInd] == 0);
         }
 
         /// <summary>
@@ -450,8 +479,6 @@ namespace Game1
         /// </summary>
         public void EndSplitRes(IReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks)
         {
-            undecidedResAmounts = new();
-
             foreach (var resAmountsPacket in state.waitingResAmountsPackets.DeconstructAndClear())
             {
                 NodeID destinationId = resAmountsPacket.destination;
@@ -461,7 +488,7 @@ namespace Game1
             }
 
             // TODO: look at this
-            infoTextBox.Text = $"consists of {state.MainResAmount} {state.consistsOfResInd}\nstores {state.storedRes}\ntarget {targetStoredResAmounts}\n";
+            infoTextBox.Text = $"consists of {state.MainResAmount} {state.consistsOfResInd}\nstores {state.storedResPile}\ntarget {targetStoredResAmounts}\n";
 
             // update text
             textBox.Text = CurWorldManager.Overlay.SwitchExpression
@@ -471,17 +498,17 @@ namespace Game1
                     string text = "";
                     if (IfStore(resInd: resInd))
                         text += "store\n";
-                    if (state.storedRes[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
-                        text += (state.storedRes[resInd] >= targetStoredResAmounts[resInd]) switch
+                    if (state.storedResPile[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
+                        text += (state.storedResPile[resInd] >= targetStoredResAmounts[resInd]) switch
                         {
-                            true => $"have {state.storedRes[resInd] - targetStoredResAmounts[resInd]} extra resources",
-                            false => $"have {(double)state.storedRes[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
+                            true => $"have {state.storedResPile[resInd] - targetStoredResAmounts[resInd]} extra resources",
+                            false => $"have {(double)state.storedResPile[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
                         };
                     return text;
                 },
                 allResCase: () =>
                 {
-                    ulong totalStoredMass = state.storedRes.TotalMass();
+                    ulong totalStoredMass = state.storedResPile.TotalMass;
                     return totalStoredMass switch
                     {
                         > 0 => $"stored total res mass {totalStoredMass}",

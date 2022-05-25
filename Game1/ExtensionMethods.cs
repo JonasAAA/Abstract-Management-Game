@@ -9,6 +9,7 @@ namespace Game1
             ulong sum = 0;
             foreach (var value in source)
                 sum += value;
+
             return sum;
         }
 
@@ -28,7 +29,7 @@ namespace Game1
             => source.Select(selector).Sum();
 
         public static ulong TotalMass(this IEnumerable<Person> people)
-            => people.Sum(person => person.mass);
+            => people.Sum(person => person.Mass);
 
         public static TResult Max<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
             where TResult : IMaxable<TResult>

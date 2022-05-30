@@ -91,7 +91,7 @@ namespace Game1.Industries
         private readonly Disk industryOutline;
         private TimeSpan constrTimeLeft;
         private Propor donePropor;
-        private readonly ResPile resInBuilding;
+        private Building? buildingBeingConstructed;
 
         private Construction(Params parameters)
             : base(parameters: parameters, building: null)
@@ -99,7 +99,6 @@ namespace Game1.Industries
             this.parameters = parameters;
             industryOutline = new(new IndustryOutlineParams(Parameters: parameters));
             constrTimeLeft = TimeSpan.MaxValue;
-            resInBuilding = ResPile.CreateEmpty();
         }
 
         public override ResAmounts TargetStoredResAmounts()
@@ -119,37 +118,39 @@ namespace Game1.Industries
                 if (IsBusy())
                     constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;
 
-                if (!IsBusy() && parameters.state.storedResPile.ResAmounts >= parameters.Cost)
                 {
-                    ResPile.Transfer(source: parameters.state.storedResPile, destin: resInBuilding, resAmounts: parameters.Cost);
-                    constrTimeLeft = parameters.duration;
+                    var reservedBuildingCost = ReservedResPile.Create(source: parameters.state.storedResPile, resAmounts: parameters.Cost);
+                    if (!IsBusy() && reservedBuildingCost is not null)
+                    {
+                        buildingBeingConstructed = new Building(resSource: ref reservedBuildingCost);
+                        constrTimeLeft = parameters.duration;
+                    }
                 }
 
                 if (constrTimeLeft <= TimeSpan.Zero)
                 {
                     constrTimeLeft = TimeSpan.Zero;
-                    Delete();
-                    return parameters.industryFactory.CreateIndustry
+                    Debug.Assert(buildingBeingConstructed is not null);
+                    Industry newIndustry = parameters.industryFactory.CreateIndustry
                     (
                         state: parameters.state,
-                        building: new
-                        (
-                            resSource: resInBuilding,
-                            cost: parameters.industryFactory.BuildingCost(state: parameters.state)
-                        )
+                        building: ref buildingBeingConstructed
                     );
+                    Delete();
+                    return newIndustry;
                 }
                 return this;
             }
             finally
             {
-                donePropor = C.DonePropor(timeLeft: constrTimeLeft, duration: parameters.duration);
+                donePropor = IsBusy() ? C.DonePropor(timeLeft: constrTimeLeft, duration: parameters.duration) : Propor.empty;
             }
         }
 
         protected override void PlayerDelete()
         {
-            ResPile.TransferAll(source: resInBuilding, destin: parameters.state.storedResPile);
+            if (buildingBeingConstructed is not null)
+                Building.Delete(building: ref buildingBeingConstructed, resDestin: parameters.state.storedResPile);
 
             base.PlayerDelete();
         }

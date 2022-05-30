@@ -12,7 +12,7 @@ namespace Game1
     [Serializable]
     public sealed class Person : IEnergyConsumer
     {
-        public static Person GeneratePersonByMagic(NodeID nodeID, ResPile resSource)
+        public static Person GeneratePersonByMagic(NodeID nodeID, ReservedResPile resSource)
             => new
             (
                 nodeID: nodeID,
@@ -37,7 +37,7 @@ namespace Game1
                 consistsOfResAmounts: resAmountsPerPerson
             );
 
-        public static Person GenerateChild(Person person1, Person person2, NodeID nodeID, ResPile resSource)
+        public static Person GenerateChild(Person person1, Person person2, NodeID nodeID, ReservedResPile resSource)
         {
             return new
             (
@@ -122,9 +122,9 @@ namespace Game1
         private readonly Dictionary<ActivityType, TimeSpan> lastActivityTimes;
         private NodeID lastNodeID;
         private readonly Event<IDeletedListener> deleted;
-        private readonly ResPile consistsOfResPile;
+        private readonly ReservedResPile consistsOfResPile;
 
-        private Person(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, ResPile resSource, ResAmounts consistsOfResAmounts)
+        private Person(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts)
         {
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
@@ -156,7 +156,7 @@ namespace Game1
             CurWorldManager.AddPerson(person: this);
             if (resSource.ResAmounts != consistsOfResAmounts)
                 throw new ArgumentException();
-            consistsOfResPile = ResPile.Create(source: resSource);
+            consistsOfResPile = ReservedResPile.Create(source: ref resSource);
         }
 
         public void Arrived()

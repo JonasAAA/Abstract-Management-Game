@@ -272,22 +272,27 @@ namespace Game1
             if (startingConditions is var (houseFactory, personCount, resSource))
             {
                 ResAmounts houseBuildingCost = houseFactory.BuildingCost(state: state);
-                Industry = (houseFactory as IFactoryForIndustryWithBuilding).CreateIndustry
-                (
-                    state: state,
-                    building: new
+
+                {
+                    var reservedBuildingRes = ReservedResPile.Create(source: resSource, resAmounts: houseBuildingCost);
+                    Debug.Assert(reservedBuildingRes is not null);
+                    Building? building = new
                     (
-                        resSource: ResPile.Create(source: resSource, resAmounts: houseBuildingCost)!,
-                        cost: houseBuildingCost
-                    )
-                );
+                        resSource: ref reservedBuildingRes
+                    );
+                    Industry = (houseFactory as IFactoryForIndustryWithBuilding).CreateIndustry
+                    (
+                        state: state,
+                        building: ref building
+                    );
+                }
 
                 for (ulong i = 0; i < personCount; i++)
                 {
                     Person person = Person.GeneratePersonByMagic
                     (
                         nodeID: NodeID,
-                        resSource: ResPile.Create(source: resSource, resAmounts: Person.resAmountsPerPerson)!
+                        resSource: ReservedResPile.Create(source: resSource, resAmounts: Person.resAmountsPerPerson)!
                     );
                     state.waitingPeople.Add(person);
                 }
@@ -321,8 +326,8 @@ namespace Game1
         public void Arrive(Person person)
             => state.waitingPeople.Add(person);
 
-        public void AddResTravelHere(ResInd resInd, ulong resAmount)
-            => resTravelHereAmounts = resTravelHereAmounts.WithAdd(index: resInd, value: resAmount);
+        public void AddResTravelHere(ResAmount resAmount)
+            => resTravelHereAmounts = resTravelHereAmounts.WithAdd(resAmount: resAmount);
 
         public ulong TotalQueuedRes(ResInd resInd)
             => state.storedResPile[resInd] + resTravelHereAmounts[resInd];
@@ -417,6 +422,8 @@ namespace Game1
 
         public void StartSplitRes()
         {
+            Debug.Assert(undecidedResPile.IsEmpty);
+
             targetStoredResAmounts = Industry switch
             {
                 null => new(),
@@ -424,15 +431,10 @@ namespace Game1
             };
 
             // deal with resources
-            ResPile.TransferAll(source: state.storedResPile, destin: undecidedResPile);
-            ResPile.TransferAll(source: state.waitingResAmountsPackets.ReturnAndRemove(destination: NodeID), destin: undecidedResPile);
+            state.storedResPile.TransferAllTo(destin: undecidedResPile);
+            state.waitingResAmountsPackets.ReturnAndRemove(destination: NodeID).TransferAllTo(destin: undecidedResPile);
 
-            ResPile.Transfer
-            (
-                source: undecidedResPile,
-                destin: state.storedResPile,
-                resAmounts: undecidedResPile.ResAmounts.Min(resAmounts: targetStoredResAmounts)
-            );
+            undecidedResPile.TransferUpTo(destin: state.storedResPile, resAmounts: targetStoredResAmounts);
         }
 
         /// <summary>
@@ -445,30 +447,32 @@ namespace Game1
 
             var resSplitter = resSplittersToDestins[resInd];
             if (resSplitter.Empty)
-                ResPile.Transfer
-                (
-                    source: undecidedResPile,
-                    destin: state.storedResPile,
-                    resAmount: new(resInd: resInd, amount: undecidedResPile[resInd])
-                );
+                undecidedResPile.TransferAllSingleResTo(destin: state.storedResPile, resInd: resInd);
             else
             {
                 var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile[resInd], maxAmountsFunc: maxExtraResFunc);
-                ResPile.Transfer
-                (
-                    source: undecidedResPile,
-                    destin: state.storedResPile,
-                    resAmount: new(resInd: resInd, amount: unsplitResAmount)
-                );
-                foreach (var (destination, resAmount) in splitResAmounts)
+
                 {
-                    state.waitingResAmountsPackets.TransferFrom
+                    var unsplitResPile = ReservedResPile.Create(source: undecidedResPile, resAmount: new(resInd: resInd, amount: unsplitResAmount));
+                    Debug.Assert(unsplitResPile is not null);
+                    ReservedResPile.TransferAll
                     (
-                        source: undecidedResPile,
-                        resAmount: new(resInd: resInd, amount: resAmount),
+                        reservedSource: ref unsplitResPile,
+                        destin: state.storedResPile
+                    );
+                }
+
+                foreach (var (destination, resAmountNum) in splitResAmounts)
+                {
+                    ResAmount resAmount = new(resInd: resInd, amount: resAmountNum);
+                    var resPileForDestin = ReservedResPile.Create(source: undecidedResPile, resAmount: resAmount);
+                    Debug.Assert(resPileForDestin is not null);
+                    state.waitingResAmountsPackets.TransferAllFrom
+                    (
+                        source: ref resPileForDestin,
                         destination: destination
                     );
-                    nodeIDToNode(destination).AddResTravelHere(resInd: resInd, resAmount: resAmount);
+                    nodeIDToNode(destination).AddResTravelHere(resAmount: resAmount);
                 }
             }
             Debug.Assert(undecidedResPile[resInd] == 0);

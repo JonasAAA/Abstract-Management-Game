@@ -82,14 +82,14 @@ namespace Game1.Industries
 
         private readonly Params parameters;
         private TimeSpan prodTimeLeft;
-        private readonly ResPile resInUse;
+        private IngredientsResPile? resInUse;
         private ResRecipe curResRecipe;
 
         private Manufacturing(Params parameters, Building building)
             : base(parameters: parameters, building: building)
         {
             this.parameters = parameters;
-            resInUse = ResPile.CreateEmpty();
+            resInUse = null;
             curResRecipe = parameters.ResRecipe;
         }
 
@@ -104,25 +104,20 @@ namespace Game1.Industries
             if (!IsBusy())
             {
                 curResRecipe = parameters.ResRecipe;
-                if (CanStartProduction())
-                {
+                resInUse = IngredientsResPile.Create(source: parameters.state.storedResPile, recipe: parameters.ResRecipe);
+                if (resInUse is not null)
                     prodTimeLeft = parameters.prodDuration;
-                    ResPile.Transfer(source: parameters.state.storedResPile, destin: resInUse, resAmounts: parameters.ResRecipe.ingredients);
-                }
             }
 
             if (prodTimeLeft <= TimeSpan.Zero)
             {
-                resInUse.TransformAll(resRecipe: curResRecipe);
-                ResPile.TransferAll(source: resInUse, destin: parameters.state.storedResPile);
+                Debug.Assert(resInUse is not null);
+                IngredientsResPile.TransformAndTransferAll(ingredients: ref resInUse, destin: parameters.state.storedResPile);
                 prodTimeLeft = TimeSpan.MaxValue;
             }
 
             return this;
         }
-
-        private bool CanStartProduction()
-            => parameters.state.storedResPile.ResAmounts >= curResRecipe.ingredients;
 
         public override ResAmounts TargetStoredResAmounts()
             => curResRecipe.ingredients * parameters.state.maxBatchDemResStored;
@@ -134,8 +129,6 @@ namespace Game1.Industries
                 text += $"producing {C.DonePropor(timeLeft: prodTimeLeft, duration: parameters.prodDuration) * 100.0: 0.}%\n";
             else
                 text += "idle\n";
-            if (!CanStartProduction())
-                text += "can't start new\n";
             return text;
         }
 

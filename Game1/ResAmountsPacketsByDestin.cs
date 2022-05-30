@@ -1,4 +1,5 @@
-﻿using static Game1.WorldManager;
+﻿using System.Diagnostics.CodeAnalysis;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -33,7 +34,7 @@ namespace Game1
 
             if (!resAmountsPacketsByDestin.ContainsKey(sourcePacket.destination))
                 resAmountsPacketsByDestin[sourcePacket.destination] = new(destination: sourcePacket.destination);
-            ResPile.TransferAll(source: sourcePacket.resPile, destin: resAmountsPacketsByDestin[sourcePacket.destination].resPile);
+            sourcePacket.resPile.TransferAllTo(destin: resAmountsPacketsByDestin[sourcePacket.destination].resPile);
         }
 
         // TODO: delete if unused
@@ -45,14 +46,14 @@ namespace Game1
         //    TotalMass += resAmounts.TotalMass();
         //}
 
-        public void TransferFrom(ResPile source, ResAmount resAmount, NodeID destination)
+        public void TransferAllFrom([DisallowNull] ref ReservedResPile? source, NodeID destination)
         {
-            ResAmounts += new ResAmounts(resAmount: resAmount);
-            TotalMass += CurResConfig.resources[resAmount.resInd].Mass * resAmount.amount;
+            ResAmounts += source.ResAmounts;
+            TotalMass += source.TotalMass;
 
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
-            ResPile.Transfer(source: source, destin: resAmountsPacketsByDestin[destination].resPile, resAmount: resAmount);
+            ReservedResPile.TransferAll(reservedSource: ref source, destin: resAmountsPacketsByDestin[destination].resPile);
         }
 
         public ResPile ReturnAndRemove(NodeID destination)

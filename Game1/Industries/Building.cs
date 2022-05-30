@@ -1,31 +1,32 @@
-﻿namespace Game1.Industries
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Game1.Industries
 {
     [Serializable]
     public class Building
     {
         public ResAmounts Cost
-            => resPile.ResAmounts;
+            => ResPile.ResAmounts;
 
-        private readonly ResPile resPile;
-        private bool isDeleted;
+        private ReservedResPile ResPile
+            => resPile ?? throw new InvalidOperationException(buildingIsDeletedMessage);
 
-        public Building(ResPile resSource, ResAmounts cost)
+        private ReservedResPile? resPile;
+        private const string buildingIsDeletedMessage = "building has been deleted";
+
+        public Building([DisallowNull] ref ReservedResPile? resSource)
         {
-            resPile = ResPile.CreateEmpty();
-            if (cost.IsEmpty())
+            if (resSource.IsEmpty)
                 throw new ArgumentException();
-            if (resSource.ResAmounts != cost)
-                throw new ArgumentException();
-            ResPile.TransferAll(source: resSource, destin: resPile);
-            isDeleted = false;
+            resPile = ReservedResPile.Create(source: ref resSource);
         }
 
-        public void Delete(ResPile resDesin)
+        public static void Delete([DisallowNull] ref Building? building, ResPile resDestin)
         {
-            if (isDeleted)
-                throw new InvalidOperationException();
-            ResPile.TransferAll(source: resPile, destin: resDesin);
-            isDeleted = true;
+            if (building.resPile is null)
+                throw new InvalidOperationException(buildingIsDeletedMessage);
+            ReservedResPile.TransferAll(reservedSource: ref building.resPile, destin: resDestin);
+            building = null;
         }
     }
 }

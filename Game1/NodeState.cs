@@ -37,11 +37,11 @@ namespace Game1
         {
             this.nodeID = nodeID;
             this.position = position;
+            this.consistsOfResInd = consistsOfResInd;
             consistsOfRes = CurResConfig.resources[consistsOfResInd];
             consistsOfResPile = ResPile.CreateEmpty();
             EnlargeFrom(source: resSource, resAmount: mainResAmount);
-
-            this.consistsOfResInd = consistsOfResInd;
+            
             storedResPile = ResPile.CreateEmpty();
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
@@ -66,13 +66,26 @@ namespace Game1
         {
             if (!CanRemove(resAmount: resAmount))
                 throw new ArgumentException();
-            ResPile.Transfer(source: consistsOfResPile, destin: destin, resAmount: new(resInd: consistsOfResInd, amount: resAmount));
+            var reservedResPile = ReservedResPile.Create
+            (
+                source: consistsOfResPile,
+                resAmount: new(resInd: consistsOfResInd, amount: resAmount)
+            );
+            Debug.Assert(reservedResPile is not null);
+            ReservedResPile.TransferAll(reservedSource: ref reservedResPile, destin: destin);
             RecalculateValues();
         }
 
         public void EnlargeFrom(ResPile source, ulong resAmount)
         {
-            ResPile.Transfer(source: source, destin: consistsOfResPile, resAmount: new(resInd: consistsOfResInd, amount: resAmount));
+            var reservedResPile = ReservedResPile.Create
+            (
+                source: source,
+                resAmount: new(resInd: consistsOfResInd, amount: resAmount)
+            );
+            if (reservedResPile is null)
+                throw new ArgumentException();
+            ReservedResPile.TransferAll(reservedSource: ref reservedResPile, destin: consistsOfResPile);
             RecalculateValues();
         }
 

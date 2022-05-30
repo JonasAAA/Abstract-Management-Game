@@ -105,9 +105,9 @@ namespace Game1.Industries
         
         protected abstract UDouble Height { get; }
 
-        protected readonly Building? building;
         protected readonly UIRectPanel<IHUDElement> UIPanel;
 
+        private Building? building;
         private bool isDeleted;
         private readonly Event<IDeletedListener> deleted;
         private readonly LightCatchingDisk lightCatchingDisk;
@@ -169,7 +169,8 @@ namespace Game1.Industries
 
         protected virtual void Delete()
         {
-            building?.Delete(resDesin: parameters.state.storedResPile);
+            if (building is not null)
+                Building.Delete(building: ref building, resDestin: parameters.state.storedResPile);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 

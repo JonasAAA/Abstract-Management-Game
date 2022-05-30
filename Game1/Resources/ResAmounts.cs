@@ -3,7 +3,7 @@
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly struct ResAmounts : IMyArray<ulong>, IEquatable<ResAmounts>
+    public readonly struct ResAmounts : IMyArray<ulong>, IEquatable<ResAmounts>, IMinable<ResAmounts>
     {
         private readonly ulong[] array;
 
@@ -60,16 +60,16 @@ namespace Game1.Resources
             => CurResConfig.resources.Zip(array).Sum(item => item.First.Mass * item.Second);
 
         // analogous to with expression from https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/with-expression
-        public ResAmounts With(ResInd index, ulong value)
+        public ResAmounts With(ResAmount resAmount)
             => new(this)
             {
-                [index] = value
+                [resAmount.resInd] = resAmount.amount
             };
 
-        public ResAmounts WithAdd(ResInd index, ulong value)
+        public ResAmounts WithAdd(ResAmount resAmount)
             => new(this)
             {
-                [index] = this[index] + value
+                [resAmount.resInd] = this[resAmount.resInd] + resAmount.amount
             };
 
         public override string ToString()

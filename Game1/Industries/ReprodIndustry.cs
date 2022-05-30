@@ -132,7 +132,7 @@ namespace Game1.Industries
 
         private readonly Params parameters;
         private readonly ReprodCenter reprodCenter;
-        private readonly TimedQueue<(Person, Person, ResPile childResPile)> birthQueue;
+        private readonly TimedQueue<(Person, Person, ReservedResPile childResPile)> birthQueue;
 
         private ReprodIndustry(Params parameters, Building building)
             : base(parameters: parameters, building: building)
@@ -168,7 +168,7 @@ namespace Game1.Industries
                 reprodCenter.RemovePerson(person: person2);
             }
 
-            while (reprodCenter.unpairedPeople.Count >= 2 && ResPile.Create(source: parameters.state.storedResPile, resAmounts: Person.resAmountsPerPerson) is ResPile childResPile)
+            while (reprodCenter.unpairedPeople.Count >= 2 && ReservedResPile.Create(source: parameters.state.storedResPile, resAmounts: Person.resAmountsPerPerson) is ReservedResPile childResPile)
             {
                 Person person1 = reprodCenter.unpairedPeople.Dequeue(),
                     person2 = reprodCenter.unpairedPeople.Dequeue();

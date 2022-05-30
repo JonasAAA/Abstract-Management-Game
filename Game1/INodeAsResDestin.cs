@@ -2,6 +2,6 @@
 {
     public interface INodeAsResDestin
     {
-        public void AddResTravelHere(ResInd resInd, ulong resAmount);
+        public void AddResTravelHere(ResAmount resAmount);
     }
 }

@@ -46,41 +46,6 @@
                 )
            );
 
-        // TODO: delete if unused
-        //public static void TransferAll(ResPile source, ResPile destin)
-        //    => Transfer(source: source, destin: destin, resAmounts: source.ResAmounts);
-
-        //public static void Transfer(ResPile source, ResPile destin, ResAmounts resAmounts)
-        //{
-        //    if (source == destin)
-        //        throw new ArgumentException();
-            
-        //    source.ResAmounts -= resAmounts;
-        //    destin.ResAmounts += resAmounts;
-        //}
-
-        // TODO: this method is O(resCount) though could probably be optimised into O(1)
-        //public static void Transfer(ResPile source, ResPile destin, ResAmount resAmount)
-        //    => Transfer
-        //    (
-        //        source: source,
-        //        destin: destin,
-        //        resAmounts: new ResAmounts(resAmount: resAmount)
-        //    );
-
-        //public void Transform(ResRecipe resRecipe)
-        //{
-        //    ResAmounts -= resRecipe.ingredients;
-        //    ResAmounts += resRecipe.results;
-        //}
-
-        //public void TransformAll(ResRecipe resRecipe)
-        //{
-        //    if (ResAmounts != resRecipe.ingredients)
-        //        throw new ArgumentException();
-        //    Transform(resRecipe: resRecipe);
-        //}
-
         public override string ToString()
             => ResAmounts.ToString();
     }

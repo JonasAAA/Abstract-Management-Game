@@ -127,7 +127,7 @@ namespace Game1.Industries
             if (IsBusy())
                 text += $"Mining {minedResPerSec:0.##} {parameters.state.consistsOfResInd} per second\n";
             else
-                text += "The planet is fully mined out, can't mine anymore\n";
+                text += "The planet is fully mined out,\ncan't mine anymore\n";
             return text;
         }
 

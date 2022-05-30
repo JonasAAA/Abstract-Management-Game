@@ -43,15 +43,6 @@ namespace Game1
             sourcePacket = null;
         }
 
-        // TODO: delete if unused
-        //public void TransferAll(NodeID destination, OldResAmounts resAmounts)
-        //{
-        //    if (!resAmountsPacketsByDestin.ContainsKey(destination))
-        //        resAmountsPacketsByDestin[destination] = new(destination: destination);
-        //    resAmountsPacketsByDestin[destination].TransferAllFrom(resAmounts: resAmounts);
-        //    TotalMass += resAmounts.TotalMass();
-        //}
-
         public void TransferAllFrom([DisallowNull] ref ReservedResPile? source, NodeID destination)
         {
             ResAmounts += source.ResAmounts;

@@ -17,23 +17,6 @@
                 allInds[ind] = new(value: ind);
         }
 
-        // TODO: delete if unused
-        //public static IEnumerable<ResInd> ResIndInterval(ResInd? minInd = null, ResInd? maxInd = null)
-        //{
-        //    ulong minIndex = minInd switch
-        //    {
-        //        ResInd resInd => (ulong)resInd,
-        //        null => 0
-        //    };
-        //    ulong maxIndex = maxInd switch
-        //    {
-        //        ResInd resInd => (ulong)resInd,
-        //        null => count - 1
-        //    };
-        //    for (ulong ind = minIndex; ind <= maxIndex; ind++)
-        //        yield return allInds[ind];
-        //}
-
         public static ResInd? MakeFrom(ulong value)
         {
             if (IsInRange(value: value))

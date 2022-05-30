@@ -88,23 +88,5 @@ namespace Game1
             ReservedResPile.TransferAll(reservedSource: ref reservedResPile, destin: consistsOfResPile);
             RecalculateValues();
         }
-
-        // TODO: delete if unused
-        //public void TransferToStorage(ResPile resPile)
-        //    => ResPile.TransferAll(source: resPile, destin: storedResPile);
-
-        //public void AddRes(ulong resAmount)
-        //    => MainResAmount += resAmount;
-
-        //public void RemoveRes(ulong resAmount)
-        //{
-        //    if (!CanRemove(resAmount: resAmount))
-        //        throw new ArgumentException();
-        //    MainResAmount -= resAmount;
-        //}
-
-
-        //public void AddToStoredRes(ResInd resInd, ulong resAmount)
-        //    => storedRes = storedRes.WithAdd(index: resInd, value: resAmount);
     }
 }

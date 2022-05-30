@@ -312,8 +312,8 @@ namespace Game1
 
         public void Arrive(ResAmountsPacketsByDestin resAmountsPackets)
         {
-            state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
             resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeID);
+            state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
         }
 
         public void Arrive(IEnumerable<Person> people)

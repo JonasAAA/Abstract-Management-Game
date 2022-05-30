@@ -39,8 +39,6 @@ namespace Game1.UI
         public TextBox(Color? backgroundColor = null, Color? textColor = null)
             : base(shape: new MyRectangle())
         {
-            // TODO: look up where font.MeasureString(...) is called, there should probably be a static readonly variable
-            // storing what the height of a capital letter is
             scale = curUIConfig.letterHeight / (UDouble)font.MeasureString("F").Y;
             Color = backgroundColor ?? Color.Transparent;
             this.textColor = textColor ?? curUIConfig.defaultTextColor;

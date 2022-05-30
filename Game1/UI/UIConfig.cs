@@ -24,6 +24,7 @@
             defaultTextColor = Color.Black;
             defaultAlmostWhiteColor = Color.Aqua;
             defaultButtonColor = Color.Aqua;
+            defaultSelectedButtonColor = Color.White;
             defaultDeselectedButtonColor = Color.Gray;
         }
     }

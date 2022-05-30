@@ -1,7 +1,7 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
-
+using System.Diagnostics.CodeAnalysis;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -60,8 +60,8 @@ namespace Game1
                 CurWorldManager.AddEnergyConsumer(energyConsumer: this);
             }
 
-            public void Add(ResAmountsPacket resAmountsPacket)
-                => waitingResAmountsPackets.TransferAllFrom(sourcePacket: resAmountsPacket);
+            public void TransferAll([DisallowNull] ref ResAmountsPacket? resAmountsPacket)
+                => waitingResAmountsPackets.TransferAllFrom(sourcePacket: ref resAmountsPacket);
 
             public void Add(IEnumerable<Person> people)
                 => waitingPeople.UnionWith(people);
@@ -226,8 +226,8 @@ namespace Game1
             throw new ArgumentException();
         }
 
-        public void Add(Planet start, ResAmountsPacket resAmountsPacket)
-            => GetDirLink(start: start).Add(resAmountsPacket: resAmountsPacket);
+        public void TransferAll(Planet start, [DisallowNull] ref ResAmountsPacket? resAmountsPacket)
+            => GetDirLink(start: start).TransferAll(resAmountsPacket: ref resAmountsPacket);
 
         public void Add(Planet start, IEnumerable<Person> people)
             => GetDirLink(start: start).Add(people: people);

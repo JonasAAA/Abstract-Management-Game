@@ -5,6 +5,7 @@ using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Game1
 {
@@ -310,10 +311,10 @@ namespace Game1
             links.Add(link);
         }
 
-        public void Arrive(ResAmountsPacketsByDestin resAmountsPackets)
+        public void Arrive([DisallowNull] ResAmountsPacketsByDestin? resAmountsPackets)
         {
             resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeID);
-            state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
+            state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: ref resAmountsPackets);
         }
 
         public void Arrive(IEnumerable<Person> people)
@@ -488,7 +489,8 @@ namespace Game1
                 NodeID destinationId = resAmountsPacket.destination;
                 Debug.Assert(destinationId != NodeID);
 
-                resFirstLinks[(NodeID, destinationId)]!.Add(start: this, resAmountsPacket: resAmountsPacket);
+                var resAmountsPacketCopy = resAmountsPacket;
+                resFirstLinks[(NodeID, destinationId)]!.TransferAll(start: this, resAmountsPacket: ref resAmountsPacketCopy);
             }
 
             // TODO: look at this

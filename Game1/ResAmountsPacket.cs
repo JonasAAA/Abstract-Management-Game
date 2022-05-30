@@ -1,6 +1,4 @@
-﻿using static Game1.WorldManager;
-
-namespace Game1
+﻿namespace Game1
 {
     [Serializable]
     public sealed class ResAmountsPacket

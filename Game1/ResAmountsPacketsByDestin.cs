@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -21,13 +20,18 @@ namespace Game1
             TotalMass = 0;
         }
 
-        public void TransferAllFrom(ResAmountsPacketsByDestin sourcePackets)
+        public void TransferAllFrom([DisallowNull] ref ResAmountsPacketsByDestin? sourcePackets)
         {
-            foreach (var resAmountsPacket in sourcePackets.resAmountsPacketsByDestin.Values)
-                TransferAllFrom(sourcePacket: resAmountsPacket);
+            foreach (var resAmountsPacket in sourcePackets.DeconstructAndClear())
+            {
+                var resAmountsPacketCopy = resAmountsPacket;
+                TransferAllFrom(sourcePacket: ref resAmountsPacketCopy);
+            }
+
+            sourcePackets = null;
         }
 
-        public void TransferAllFrom(ResAmountsPacket sourcePacket)
+        public void TransferAllFrom([DisallowNull] ref ResAmountsPacket? sourcePacket)
         {
             ResAmounts += sourcePacket.resPile.ResAmounts;
             TotalMass += sourcePacket.TotalMass;
@@ -35,6 +39,8 @@ namespace Game1
             if (!resAmountsPacketsByDestin.ContainsKey(sourcePacket.destination))
                 resAmountsPacketsByDestin[sourcePacket.destination] = new(destination: sourcePacket.destination);
             sourcePacket.resPile.TransferAllTo(destin: resAmountsPacketsByDestin[sourcePacket.destination].resPile);
+
+            sourcePacket = null;
         }
 
         // TODO: delete if unused

@@ -25,7 +25,7 @@ namespace Game1
         public readonly MyVector2 position;
         public readonly ulong maxBatchDemResStored;
         public readonly ResPile storedResPile;
-        public ResAmountsPacketsByDestin waitingResAmountsPackets;
+        public readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
         public readonly MySet<Person> waitingPeople;
         public readonly BasicResInd consistsOfResInd;
         public readonly BasicRes consistsOfRes;

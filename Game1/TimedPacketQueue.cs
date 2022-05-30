@@ -53,7 +53,8 @@
             MySet<Person> donePeople = new();
             foreach (var (resAmountsPackets, people) in DoneElements())
             {
-                doneResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
+                var resAmountsPacketsCopy = resAmountsPackets;
+                doneResAmountsPackets.TransferAllFrom(sourcePackets: ref resAmountsPacketsCopy);
                 donePeople.UnionWith(people);
             }
             return

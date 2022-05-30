@@ -77,18 +77,6 @@ namespace Game1
             };
         }
 
-        public static bool IsInSuitableRange(double value)
-            => value is >= 0 and <= 1;
-
-        public static bool IsInSuitableRange(UDouble value)
-            => value <= 1;
-
-        public static bool IsSuitable(double value)
-            => value is double.NegativeInfinity || IsInSuitableRange(value: value);
-
-        //public static bool Transparent(Color color)
-        //    => color.A is 0;
-
         public static Texture2D LoadTexture(string name)
             => ContentManager.Load<Texture2D>(name);
 

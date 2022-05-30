@@ -12,7 +12,7 @@ namespace Game1.UI
             => true;
 
         protected override Color Color
-            => curUIConfig.defaultButtonColor;
+            => curUIConfig.buttonColor;
 
         private readonly Action action;
         private readonly TextBox textBox;

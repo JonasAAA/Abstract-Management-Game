@@ -6,13 +6,7 @@
         public readonly uint standardScreenHeight;
         public readonly UDouble rectOutlineWidth;
         public readonly UDouble letterHeight;
-        public readonly Color mouseOnColor;
-        public readonly Color defaultUIBackgroundColor;
-        public readonly Color defaultTextColor;
-        public readonly Color defaultAlmostWhiteColor;
-        public readonly Color defaultButtonColor;
-        public readonly Color defaultSelectedButtonColor;
-        public readonly Color defaultDeselectedButtonColor;
+        public readonly Color mouseOnColor, UIBackgroundColor, textColor, almostWhiteColor, buttonColor, selectedButtonColor, deselectedButtonColor, tooltipBackgroundColor, deleteButtonColor;
         
         public UIConfig()
         {
@@ -20,12 +14,14 @@
             rectOutlineWidth = 0;
             letterHeight = 20;
             mouseOnColor = Color.Yellow;
-            defaultUIBackgroundColor = Color.White;
-            defaultTextColor = Color.Black;
-            defaultAlmostWhiteColor = Color.Aqua;
-            defaultButtonColor = Color.Aqua;
-            defaultSelectedButtonColor = Color.White;
-            defaultDeselectedButtonColor = Color.Gray;
+            UIBackgroundColor = Color.White;
+            textColor = Color.Black;
+            almostWhiteColor = Color.Aqua;
+            buttonColor = Color.Aqua;
+            selectedButtonColor = Color.White;
+            deselectedButtonColor = Color.Gray;
+            tooltipBackgroundColor = Color.LightPink;
+            deleteButtonColor = Color.Red;
         }
     }
 }

@@ -32,6 +32,8 @@
         public readonly ulong minResAmountInPlanet;
         public readonly UDouble defaultIndustryHeight;
 
+        public readonly Color cosmosBackgroundColor, houseIndustryColor, linkTravellerColor;
+
         public WorldConfig()
         {
             personJobEnjoymentWeight = 2;
@@ -83,6 +85,10 @@
             minResAmountInPlanet = 10;
 
             defaultIndustryHeight = 10;
+
+            cosmosBackgroundColor = Color.Black;
+            houseIndustryColor = Color.Yellow;
+            linkTravellerColor = Color.Black;
         }
     }
 }

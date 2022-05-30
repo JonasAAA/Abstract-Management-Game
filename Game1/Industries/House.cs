@@ -12,7 +12,7 @@ namespace Game1.Industries
             private readonly ResAmounts buildingCostPerUnitSurface;
 
             public Factory(string name, UDouble floorSpacePerUnitSurface, ResAmounts buildingCostPerUnitSurface)
-                : base(name: name, color: Color.Yellow)
+                : base(name: name, color: CurWorldConfig.houseIndustryColor)
             {
                 this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
                 if (buildingCostPerUnitSurface.IsEmpty())

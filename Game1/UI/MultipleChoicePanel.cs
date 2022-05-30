@@ -55,7 +55,7 @@ namespace Game1.UI
         }
 
         protected override Color Color
-            => curUIConfig.defaultUIBackgroundColor;
+            => curUIConfig.UIBackgroundColor;
 
         private readonly UIRectPanel<SelectButton> choicePanel;
         private readonly Dictionary<TChoiceLabel, SelectButton> choices;

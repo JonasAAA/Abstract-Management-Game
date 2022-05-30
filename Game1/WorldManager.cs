@@ -380,7 +380,7 @@ namespace Game1
             activeUIManager = new();
             activeUIManager.clickedNowhere.Add(listener: this);
 
-            globalTextBox = new(backgroundColor: curUIConfig.defaultUIBackgroundColor);
+            globalTextBox = new(backgroundColor: curUIConfig.UIBackgroundColor);
             // TODO: move these constants to a contants file
             globalTextBox.Shape.MinWidth = 300;
 

@@ -1,7 +1,6 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
-
 using static Game1.WorldManager;
 
 namespace Game1
@@ -83,7 +82,7 @@ namespace Game1
             => true;
 
         protected override Color Color
-            => Color.Black;
+            => CurWorldConfig.cosmosBackgroundColor;
 
         private readonly ReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
         private readonly ReadOnlyDictionary<(NodeID, NodeID), UDouble> resDists;

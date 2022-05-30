@@ -41,7 +41,7 @@ namespace Game1.UI
         {
             scale = curUIConfig.letterHeight / (UDouble)font.MeasureString("F").Y;
             Color = backgroundColor ?? Color.Transparent;
-            this.textColor = textColor ?? curUIConfig.defaultTextColor;
+            this.textColor = textColor ?? curUIConfig.textColor;
             Text = null;
         }
 

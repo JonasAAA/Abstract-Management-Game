@@ -128,7 +128,7 @@ namespace Game1
                     (
                         texture: diskTexture,
                         position: startNode.Position + (double)complProp * (endNode.Position - startNode.Position),
-                        color: Color.Black,
+                        color: CurWorldConfig.linkTravellerColor,
                         rotation: 0,
                         origin: new MyVector2(diskTexture.Width * .5, diskTexture.Height * .5),
                         scale: MyMathHelper.Sqrt(size) * 2 / (UDouble)diskTexture.Width
@@ -240,6 +240,7 @@ namespace Game1
             link1To2.Update();
             link2To1.Update();
 
+            // TODO(color): turn activeColor and inactiveColor into abstract properties
             inactiveColor = Color.Lerp
             (
                 value1: Color.White,

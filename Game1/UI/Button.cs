@@ -10,7 +10,7 @@ namespace Game1.UI
 
         public Button(NearRectangle shape, ITooltip tooltip, string? text = null, Color? color = null)
             : base(shape: shape, tooltip: tooltip, text: text)
-            => Color = color ?? curUIConfig.defaultButtonColor;
+            => Color = color ?? curUIConfig.buttonColor;
 
         protected override void PartOfRecalcSizeAndPos()
         {

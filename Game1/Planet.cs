@@ -163,7 +163,7 @@ namespace Game1
             resTravelHereAmounts = new();
             usedLocalWatts = 0;
 
-            textBox = new(textColor: curUIConfig.defaultAlmostWhiteColor);
+            textBox = new(textColor: curUIConfig.almostWhiteColor);
             textBox.Shape.Center = Position;
             AddChild(child: textBox);
 

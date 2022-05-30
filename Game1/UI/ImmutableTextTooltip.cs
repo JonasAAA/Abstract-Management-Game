@@ -1,4 +1,5 @@
 ﻿using Game1.Shapes;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -12,7 +13,7 @@ namespace Game1.UI
 
         public ImmutableTextTooltip(string text)
         {
-            textBox = new(backgroundColor: Color.LightPink)
+            textBox = new(backgroundColor: curUIConfig.tooltipBackgroundColor)
             {
                 Text = text
             };

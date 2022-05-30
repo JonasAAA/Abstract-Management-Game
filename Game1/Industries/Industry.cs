@@ -3,6 +3,7 @@ using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.Industries
 {
@@ -135,7 +136,7 @@ namespace Game1.Industries
                 ),
                 tooltip: new ImmutableTextTooltip(text: "Delete this industry"),
                 text: "delete",
-                color: Color.Red
+                color: curUIConfig.deleteButtonColor
             );
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(Industry: this));
             UIPanel.AddChild(child: deleteButton);

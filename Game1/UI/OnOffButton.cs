@@ -25,8 +25,8 @@ namespace Game1.UI
         protected sealed override Color Color
             => on switch
             {
-                true => curUIConfig.defaultSelectedButtonColor,
-                false => curUIConfig.defaultDeselectedButtonColor
+                true => curUIConfig.selectedButtonColor,
+                false => curUIConfig.deselectedButtonColor
             };
 
         private bool on;

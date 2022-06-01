@@ -63,6 +63,9 @@
             if (halvingDifferenceDuration <= TimeSpan.Zero)
                 throw new ArgumentOutOfRangeException();
 
+            if (elapsed == TimeSpan.Zero)
+                return current;
+
             return WightedAverageOfTwo
             (
                 score1: current,

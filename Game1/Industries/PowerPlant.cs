@@ -83,7 +83,7 @@ namespace Game1.Industries
         }
 
         protected override string GetBusyInfo()
-            => $"produce {ProdWatts} W\n";
+            => $"produce {ProdWatts:0.##} W\n";
 
         protected override UDouble ReqWatts()
             => 0;

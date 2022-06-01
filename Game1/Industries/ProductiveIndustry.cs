@@ -60,6 +60,7 @@ namespace Game1.Industries
             private Score desperationScore;
             private UDouble curUnboundedSkillPropor;
             private Propor workingPropor;
+            private bool isBusy;
 
             public Employer(Params parameters)
                 : base(activityType: ActivityType.Working, energyPriority: parameters.energyPriority, state: parameters.state)
@@ -70,10 +71,12 @@ namespace Game1.Industries
                 // TODO: could initialize to some other value
                 desperationScore = Score.lowest;
                 workingPropor = Propor.empty;
+                isBusy = false;
             }
 
-            public void StartUpdate()
+            public void StartUpdate(bool isBusy)
             {
+                this.isBusy = isBusy;
                 UDouble totalHiredSkill = HiredSkill();
                 if (totalHiredSkill >= parameters.ReqSkill)
                 {
@@ -148,7 +151,7 @@ namespace Game1.Industries
                 (
                     current: person.skills[parameters.industryType],
                     target: Score.highest,
-                    elapsed: CurWorldManager.Elapsed * workingPropor,
+                    elapsed: isBusy ? CurWorldManager.Elapsed * workingPropor : TimeSpan.Zero,
                     // TODO: get rid of hard-coded constant
                     halvingDifferenceDuration: TimeSpan.FromSeconds(20)
                 );
@@ -230,7 +233,7 @@ namespace Game1.Industries
 
         protected sealed override Industry InternalUpdate()
         {
-            employer.StartUpdate();
+            employer.StartUpdate(isBusy: (bool)IsBusy());
 
             var result = (bool)CanBeBusy ? InternalUpdate(workingPropor: energyPropor * CurSkillPropor) : this;
 

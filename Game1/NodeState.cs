@@ -1,9 +1,10 @@
-﻿using static Game1.WorldManager;
+﻿using Game1.Industries;
+using static Game1.WorldManager;
 
 namespace Game1
 {
     [Serializable]
-    public sealed class NodeState
+    public sealed class NodeState : IIndustryFacingNodeState
     {
         public static ulong ResAmountFromApproxRadius(BasicResInd basicResInd, UDouble approxRadius)
             => Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / CurResConfig.resources[basicResInd].area);
@@ -11,7 +12,7 @@ namespace Game1
         // TODO: define using the new notation
         //public double SurfaceGravitationalAccel
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
-        public readonly NodeID nodeID;
+        public NodeID NodeID { get; }
 
         // TODO: inlcude other objects with mass in this calculation, i.e. buildings, people, resources, etc.
         public ulong Mass { get; private set; }
@@ -19,36 +20,38 @@ namespace Game1
         public UDouble Radius { get; private set; }
         public ulong ApproxSurfaceLength { get; private set; }
         public ulong MainResAmount
-            => consistsOfResPile[consistsOfResInd];
+            => consistsOfResPile[ConsistsOfResInd];
         public ulong MaxAvailableResAmount
             => MainResAmount - CurWorldConfig.minResAmountInPlanet;
-        public readonly MyVector2 position;
-        public readonly ulong maxBatchDemResStored;
-        public readonly ResPile storedResPile;
+        public MyVector2 Position { get; }
+        public ulong MaxBatchDemResStored { get; }
+        public ResPile StoredResPile { get; }
         public readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
-        public readonly MySet<Person> waitingPeople;
-        public readonly BasicResInd consistsOfResInd;
-        public readonly BasicRes consistsOfRes;
-        public UDouble wattsHittingSurfaceOrIndustry;
+        public MySet<Person> WaitingPeople { get; }
+        public BasicResInd ConsistsOfResInd { get; }
+        public BasicRes ConsistsOfRes { get; }
+        public bool TooManyResStored { get; set; }
+        public UDouble WattsHittingSurfaceOrIndustry { get; set; }
 
         private readonly ResPile consistsOfResPile;
 
         public NodeState(NodeID nodeID, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
-            this.nodeID = nodeID;
-            this.position = position;
-            this.consistsOfResInd = consistsOfResInd;
-            consistsOfRes = CurResConfig.resources[consistsOfResInd];
+            NodeID = nodeID;
+            Position = position;
+            ConsistsOfResInd = consistsOfResInd;
+            ConsistsOfRes = CurResConfig.resources[consistsOfResInd];
             consistsOfResPile = ResPile.CreateEmpty();
             EnlargeFrom(source: resSource, resAmount: mainResAmount);
             
-            storedResPile = ResPile.CreateEmpty();
+            StoredResPile = ResPile.CreateEmpty();
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
-            this.maxBatchDemResStored = maxBatchDemResStored;
+            MaxBatchDemResStored = maxBatchDemResStored;
             waitingResAmountsPackets = new();
-            waitingPeople = new();
-            wattsHittingSurfaceOrIndustry = 0;
+            WaitingPeople = new();
+            TooManyResStored = false;
+            WattsHittingSurfaceOrIndustry = 0;
         }
 
         public bool CanRemove(ulong resAmount)
@@ -56,8 +59,8 @@ namespace Game1
 
         private void RecalculateValues()
         {
-            Mass = MainResAmount * consistsOfRes.mass;
-            Area = MainResAmount * consistsOfRes.area;
+            Mass = MainResAmount * ConsistsOfRes.mass;
+            Area = MainResAmount * ConsistsOfRes.area;
             Radius = MyMathHelper.Sqrt(value: Area / MyMathHelper.pi);
             ApproxSurfaceLength = (ulong)(2 * MyMathHelper.pi * Radius);
         }
@@ -69,7 +72,7 @@ namespace Game1
             var reservedResPile = ReservedResPile.Create
             (
                 source: consistsOfResPile,
-                resAmount: new(resInd: consistsOfResInd, amount: resAmount)
+                resAmount: new(resInd: ConsistsOfResInd, amount: resAmount)
             );
             Debug.Assert(reservedResPile is not null);
             ReservedResPile.TransferAll(reservedSource: ref reservedResPile, destin: destin);
@@ -81,7 +84,7 @@ namespace Game1
             var reservedResPile = ReservedResPile.Create
             (
                 source: source,
-                resAmount: new(resInd: consistsOfResInd, amount: resAmount)
+                resAmount: new(resInd: ConsistsOfResInd, amount: resAmount)
             );
             if (reservedResPile is null)
                 throw new ArgumentException();

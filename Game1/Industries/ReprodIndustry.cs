@@ -34,13 +34,13 @@ namespace Game1.Industries
                 this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
             }
 
-            public override Params CreateParams(NodeState state)
+            public override Params CreateParams(IIndustryFacingNodeState state)
                 => new(state: state, factory: this);
 
-            public ResAmounts BuildingCost(NodeState state)
+            public ResAmounts BuildingCost(IIndustryFacingNodeState state)
                 => state.ApproxSurfaceLength * buildingCostPerUnitSurface;
 
-            Industry IFactoryForIndustryWithBuilding.CreateIndustry(NodeState state, Building building)
+            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
                 => new ReprodIndustry(parameters: CreateParams(state: state), building: building);
         }
 
@@ -58,7 +58,7 @@ namespace Game1.Industries
 
             private readonly Factory factory;
 
-            public Params(NodeState state, Factory factory)
+            public Params(IIndustryFacingNodeState state, Factory factory)
                 : base(state: state, factory: factory)
             {
                 this.factory = factory;
@@ -144,10 +144,14 @@ namespace Game1.Industries
         }
 
         public override ResAmounts TargetStoredResAmounts()
-            => parameters.MaxCouples * Person.resAmountsPerPerson * parameters.state.maxBatchDemResStored;
+            => parameters.MaxCouples * Person.resAmountsPerPerson * parameters.state.MaxBatchDemResStored;
 
-        protected override bool IsBusy()
-            => birthQueue.Count > 0;
+        protected override BoolWithExplanationIfFalse IsBusy()
+            => base.IsBusy() & BoolWithExplanationIfFalse.Create
+            (
+                value: birthQueue.Count > 0,
+                explanationIfFalse: "need 2 people to have a child"
+            );
 
         protected override ReprodIndustry InternalUpdate(Propor workingPropor)
         {
@@ -157,18 +161,18 @@ namespace Game1.Industries
             {
                 var newPerson = Person.GenerateChild
                 (
-                    nodeID: parameters.state.nodeID,
+                    nodeID: parameters.state.NodeID,
                     person1: person1,
                     person2: person2,
                     resSource: childResPile
                 );
-                parameters.state.waitingPeople.Add(newPerson);
+                parameters.state.WaitingPeople.Add(newPerson);
 
                 reprodCenter.RemovePerson(person: person1);
                 reprodCenter.RemovePerson(person: person2);
             }
 
-            while (reprodCenter.unpairedPeople.Count >= 2 && ReservedResPile.Create(source: parameters.state.storedResPile, resAmounts: Person.resAmountsPerPerson) is ReservedResPile childResPile)
+            while (reprodCenter.unpairedPeople.Count >= 2 && ReservedResPile.Create(source: parameters.state.StoredResPile, resAmounts: Person.resAmountsPerPerson) is ReservedResPile childResPile)
             {
                 Person person1 = reprodCenter.unpairedPeople.Dequeue(),
                     person2 = reprodCenter.unpairedPeople.Dequeue();
@@ -187,18 +191,14 @@ namespace Game1.Industries
             throw new NotImplementedException();
         }
         
-        public override UDouble ReqWatts()
+        protected override UDouble ReqWatts()
             => (UDouble)birthQueue.Count * parameters.reqWattsPerChild * CurSkillPropor;
 
-        public override string GetInfo()
-        {
-            string text = base.GetInfo() + $"{parameters.name}\n";
-            if (CurWorldManager.Overlay is IPeopleOverlay)
+        protected override string GetBusyInfo()
+            => CurWorldManager.Overlay switch
             {
-                text += $"{birthQueue.Count} children are being born\n(maximum supported is {parameters.MaxCouples})\n";
-                text += reprodCenter.GetInfo();
-            }
-            return text;
-        }
+                IPeopleOverlay => $"{birthQueue.Count} children are being born\n(maximum supported is {parameters.MaxCouples})\n" + reprodCenter.GetInfo(),
+                _ => ""
+            };
     }
 }

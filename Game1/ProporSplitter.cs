@@ -46,6 +46,9 @@
                 if (necAdds.Count != necNotLockedAdds.Count)
                     throw new ArgumentException();
 
+                if (!MyMathHelper.IsTiny(necAdds.Values.Sum()))
+                    throw new ArgumentException();
+
                 // this also checks if keys are the same
                 foreach (var key in necAdds.Keys)
                     necNotLockedAdds[key] = necAdds[key];
@@ -92,7 +95,7 @@
                 sum = necNotLockedAdds.Values.Sum();
 
                 Debug.Assert(MyMathHelper.IsTiny(sum));
-                Debug.Assert(necNotLockedAdds.Count is 0 || necNotLockedAdds.Values.Max() - necNotLockedAdds.Values.Min() < 1);
+                Debug.Assert(necNotLockedAdds.Count is 0 || necNotLockedAdds.Values.Max() - necNotLockedAdds.Values.Min() < 1 + MyMathHelper.minPosDecimal);
             }
         }
 

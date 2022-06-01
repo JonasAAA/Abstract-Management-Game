@@ -25,9 +25,8 @@
 
         protected ResPileBase(bool createdByMagic = false)
         {
-            ResAmounts = new();
             this.createdByMagic = createdByMagic;
-            ResAmounts = createdByMagic ? new(value: uint.MaxValue) : new();
+            ResAmounts = createdByMagic ? new(value: uint.MaxValue) : ResAmounts.Empty;
         }
 
         public ulong this[ResInd resInd]

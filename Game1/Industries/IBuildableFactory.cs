@@ -9,8 +9,8 @@ namespace Game1.Industries
     {
         public string ButtonName { get; }
 
-        public Industry CreateIndustry(NodeState state);
+        public Industry CreateIndustry(IIndustryFacingNodeState state);
 
-        public ITooltip CreateTooltip(NodeState state);
+        public ITooltip CreateTooltip(IIndustryFacingNodeState state);
     }
 }

@@ -33,16 +33,16 @@ namespace Game1.Industries
                 this.duration = duration;
             }
 
-            public override Params CreateParams(NodeState state)
+            public override Params CreateParams(IIndustryFacingNodeState state)
                 => new(state: state, factory: this);
 
             string IBuildableFactory.ButtonName
                 => $"build {industryFactory.Name}";
 
-            ITooltip IBuildableFactory.CreateTooltip(NodeState state)
+            ITooltip IBuildableFactory.CreateTooltip(IIndustryFacingNodeState state)
                 => Tooltip(state: state);
 
-            Industry IBuildableFactory.CreateIndustry(NodeState state)
+            Industry IBuildableFactory.CreateIndustry(IIndustryFacingNodeState state)
                 => new Construction(parameters: CreateParams(state: state));
         }
 
@@ -61,7 +61,7 @@ namespace Game1.Industries
 
             private readonly Factory factory;
 
-            public Params(NodeState state, Factory factory)
+            public Params(IIndustryFacingNodeState state, Factory factory)
                 : base(state: state, factory: factory)
             {
                 this.factory = factory;
@@ -75,7 +75,7 @@ namespace Game1.Industries
         public readonly record struct IndustryOutlineParams(Params Parameters) : Disk.IParams
         {
             public MyVector2 Center
-                => Parameters.state.position;
+                => Parameters.state.Position;
 
             public UDouble Radius
                 => Parameters.state.Radius + CurWorldConfig.defaultIndustryHeight;
@@ -102,30 +102,38 @@ namespace Game1.Industries
         }
 
         public override ResAmounts TargetStoredResAmounts()
-            => IsBusy() switch
-            {
-                true => new(),
-                false => parameters.Cost,
-            };
+            => IsBusy().SwitchExpression
+            (
+                trueCase: () => ResAmounts.Empty,
+                falseCase: () => parameters.Cost
+            );
 
-        protected override bool IsBusy()
+        protected override BoolWithExplanationIfFalse IsBusy()
+            => base.IsBusy() & BoolWithExplanationIfFalse.Create
+            (
+                value: StartedConstruction,
+                explanationIfFalse: "not enough resources\nto start construction\n"
+            );
+
+        private bool StartedConstruction
             => constrTimeLeft < TimeSpan.MaxValue;
 
         protected override Industry InternalUpdate(Propor workingPropor)
         {
             try
             {
-                if (IsBusy())
-                    constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;
-
+                if (!StartedConstruction)
                 {
-                    var reservedBuildingCost = ReservedResPile.Create(source: parameters.state.storedResPile, resAmounts: parameters.Cost);
-                    if (!IsBusy() && reservedBuildingCost is not null)
+                    var reservedBuildingCost = ReservedResPile.Create(source: parameters.state.StoredResPile, resAmounts: parameters.Cost);
+                    if (reservedBuildingCost is not null)
                     {
                         buildingBeingConstructed = new Building(resSource: ref reservedBuildingCost);
                         constrTimeLeft = parameters.duration;
                     }
+                    return this;
                 }
+
+                constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;
 
                 if (constrTimeLeft <= TimeSpan.Zero)
                 {
@@ -143,36 +151,29 @@ namespace Game1.Industries
             }
             finally
             {
-                donePropor = IsBusy() ? C.DonePropor(timeLeft: constrTimeLeft, duration: parameters.duration) : Propor.empty;
+                donePropor = StartedConstruction ? C.DonePropor(timeLeft: constrTimeLeft, duration: parameters.duration) : Propor.empty;
             }
         }
 
         protected override void PlayerDelete()
         {
             if (buildingBeingConstructed is not null)
-                Building.Delete(building: ref buildingBeingConstructed, resDestin: parameters.state.storedResPile);
+                Building.Delete(building: ref buildingBeingConstructed, resDestin: parameters.state.StoredResPile);
 
             base.PlayerDelete();
         }
 
-        public override string GetInfo()
-        {
-            string text = base.GetInfo();
-            if (IsBusy())
-                text += $"constructing {donePropor * 100.0: 0.}%\n";
-            else
-                text += "waiting to start costruction\n";
-            return text;
-        }
+        protected override string GetBusyInfo()
+            => $"constructing {donePropor * 100.0: 0.}%\n";
 
-        public override UDouble ReqWatts()
+        protected override UDouble ReqWatts()
             // this is correct as if more important people get full energy, this works
             // and if they don't, then the industry will get 0 energy anyway
-            => IsBusy() switch
-            {
-                true => parameters.ReqWatts * CurSkillPropor,
-                false => 0
-            };
+            => IsBusy().SwitchExpression
+            (
+                trueCase: () => parameters.ReqWatts * CurSkillPropor,
+                falseCase: () => (UDouble)0
+            );
 
         public override void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)
         {

@@ -41,7 +41,7 @@ namespace Game1.Industries
 
             private readonly Factory factory;
 
-            public Params(NodeState state, Factory factory)
+            public Params(IIndustryFacingNodeState state, Factory factory)
                 : base(state: state, factory: factory)
             {
                 this.factory = factory;
@@ -195,16 +195,6 @@ namespace Game1.Industries
             }
         }
 
-        public EnergyPriority EnergyPriority
-            => IsBusy() switch
-            {
-                true => parameters.energyPriority,
-                false => EnergyPriority.maximal
-            };
-
-        NodeID IEnergyConsumer.NodeID
-            => parameters.state.nodeID;
-
         public override IEnumerable<Person> PeopleHere
             => employer.PeopleHere;
 
@@ -227,13 +217,22 @@ namespace Game1.Industries
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
         }
 
-        protected abstract bool IsBusy();
+        // TODO: Compute this value only once per frame
+        protected virtual BoolWithExplanationIfFalse IsBusy()
+            => CanBeBusy;
 
-        protected override Industry InternalUpdate()
+        private BoolWithExplanationIfFalse CanBeBusy
+            => BoolWithExplanationIfFalse.Create
+            (
+                value: !parameters.state.TooManyResStored,
+                explanationIfFalse: "the planet contains\nunwanted resources\n"
+            );
+
+        protected sealed override Industry InternalUpdate()
         {
             employer.StartUpdate();
 
-            var result = InternalUpdate(workingPropor: energyPropor * CurSkillPropor);
+            var result = (bool)CanBeBusy ? InternalUpdate(workingPropor: energyPropor * CurSkillPropor) : this;
 
             employer.EndUpdate();
 
@@ -248,21 +247,40 @@ namespace Game1.Industries
             base.Delete();
         }
 
-        public override string GetInfo()
+        public sealed override string GetInfo()
             => CurWorldManager.Overlay.SwitchExpression
             (
                 singleResCase: resInd => "",
                 allResCase: () => "",
                 powerCase: () => $"have {energyPropor * 100.0:0.}% of required energy\n",
                 peopleCase: () => employer.GetInfo()
+            ) + $"{parameters.name}\n" + IsBusy().SwitchExpression
+            (
+                trueCase: GetBusyInfo,
+                falseCase: explanation => "Idle because\n" + explanation
             );
 
-        public abstract UDouble ReqWatts();
+        protected abstract string GetBusyInfo();
+
+        protected abstract UDouble ReqWatts();
+
+        EnergyPriority IEnergyConsumer.EnergyPriority
+            => IsBusy().SwitchExpression
+            (
+                trueCase: () => parameters.energyPriority,
+                falseCase: () => EnergyPriority.maximal
+            );
+
+        NodeID IEnergyConsumer.NodeID
+            => parameters.state.NodeID;
 
         void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
         {
             this.energyPropor = energyPropor;
             employer.SetEnergyPropor(energyPropor: energyPropor);
         }
+
+        UDouble IEnergyConsumer.ReqWatts()
+            => ReqWatts();
     }
 }

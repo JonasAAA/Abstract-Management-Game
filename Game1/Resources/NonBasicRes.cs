@@ -49,7 +49,7 @@ namespace Game1.Resources
             if (mass != 0)
                 throw new InvalidOperationException($"{nameof(NonBasicRes)} is alrealy initialized, so can't initialize it a second time");
             mass = 0;
-            ResAmounts curBasicIngredients = new();
+            ResAmounts curBasicIngredients = ResAmounts.Empty;
             foreach (var otherResInd in ResInd.All)
                 if (ingredients[otherResInd] != 0)
                 {

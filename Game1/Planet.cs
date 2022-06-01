@@ -63,7 +63,7 @@ namespace Game1
         private readonly record struct ShapeParams(NodeState State) : Disk.IParams
         {
             public MyVector2 Center
-                => State.position;
+                => State.Position;
 
             public UDouble Radius
                 => State.Radius;
@@ -73,7 +73,7 @@ namespace Game1
         private readonly record struct ResDestinShapeParams(NodeState State, NodeID DestinationId) : VectorShape.IParams
         {
             public MyVector2 StartPos
-                => State.position;
+                => State.Position;
 
             public MyVector2 EndPos
                 => CurWorldManager.NodePosition(nodeID: DestinationId);
@@ -86,16 +86,16 @@ namespace Game1
         private readonly record struct SingleFrameArrowParams(NodeState State, MyVector2 EndPos) : VectorShape.IParams
         {
             public MyVector2 StartPos
-                => State.position;
+                => State.Position;
 
             public UDouble Width
                 => 2 * State.Radius;
         }
 
         public NodeID NodeID
-            => state.nodeID;
+            => state.NodeID;
         public MyVector2 Position
-            => state.position;
+            => state.Position;
         public readonly UDouble radius;
 
         private Industry? Industry
@@ -144,7 +144,7 @@ namespace Game1
             (
                 shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
                 activeColor: activeColor,
-                inactiveColor: state.consistsOfRes.color,
+                inactiveColor: state.ConsistsOfRes.color,
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top
             )
@@ -158,9 +158,9 @@ namespace Game1
             (
                 selector: resInd => new ProporSplitter<NodeID>()
             );
-            targetStoredResAmounts = new();
+            targetStoredResAmounts = ResAmounts.Empty;
             undecidedResPile = ResPile.CreateEmpty();
-            resTravelHereAmounts = new();
+            resTravelHereAmounts = ResAmounts.Empty;
             usedLocalWatts = 0;
 
             textBox = new(textColor: curUIConfig.almostWhiteColor);
@@ -295,7 +295,7 @@ namespace Game1
                         nodeID: NodeID,
                         resSource: ReservedResPile.Create(source: resSource, resAmounts: Person.resAmountsPerPerson)!
                     );
-                    state.waitingPeople.Add(person);
+                    state.WaitingPeople.Add(person);
                 }
             }
             else
@@ -321,17 +321,17 @@ namespace Game1
         {
             if (people.Count() is 0)
                 return;
-            state.waitingPeople.UnionWith(people);
+            state.WaitingPeople.UnionWith(people);
         }
 
         public void Arrive(Person person)
-            => state.waitingPeople.Add(person);
+            => state.WaitingPeople.Add(person);
 
         public void AddResTravelHere(ResAmount resAmount)
             => resTravelHereAmounts = resTravelHereAmounts.WithAdd(resAmount: resAmount);
 
         public ulong TotalQueuedRes(ResInd resInd)
-            => state.storedResPile[resInd] + resTravelHereAmounts[resInd];
+            => state.StoredResPile[resInd] + resTravelHereAmounts[resInd];
 
         public bool IfStore(ResInd resInd)
             => storeToggleButtons[resInd].On;
@@ -393,7 +393,7 @@ namespace Game1
             //state.position += new MyVector2(x: C.Random(min: -1.0, max: 1), y: C.Random(min: -1.0, max: 1));
 
             // deal with people
-            foreach (var person in state.waitingPeople.Clone())
+            foreach (var person in state.WaitingPeople.Clone())
             {
                 NodeID? activityCenterPosition = person.ActivityCenterNodeID;
                 if (activityCenterPosition is null)
@@ -402,12 +402,12 @@ namespace Game1
                     person.Arrived();
                 else
                     personFirstLinks[(NodeID, activityCenterPosition)]!.Add(start: this, person: person);
-                state.waitingPeople.Remove(person);
+                state.WaitingPeople.Remove(person);
             }
 
             Industry = Industry?.Update();
 
-            textBox.Shape.Center = state.position;
+            textBox.Shape.Center = state.Position;
         }
 
         public void UpdatePeople()
@@ -417,7 +417,7 @@ namespace Game1
                 null => Enumerable.Empty<Person>(),
                 not null => Industry.PeopleHere
             };
-            foreach (var person in state.waitingPeople.Concat(peopleInIndustry))
+            foreach (var person in state.WaitingPeople.Concat(peopleInIndustry))
                 person.Update(lastNodeID: NodeID, closestNodeID: NodeID);
         }
 
@@ -427,15 +427,15 @@ namespace Game1
 
             targetStoredResAmounts = Industry switch
             {
-                null => new(),
+                null => ResAmounts.Empty,
                 not null => Industry.TargetStoredResAmounts()
             };
 
             // deal with resources
-            state.storedResPile.TransferAllTo(destin: undecidedResPile);
+            state.StoredResPile.TransferAllTo(destin: undecidedResPile);
             state.waitingResAmountsPackets.ReturnAndRemove(destination: NodeID).TransferAllTo(destin: undecidedResPile);
 
-            undecidedResPile.TransferUpTo(destin: state.storedResPile, resAmounts: targetStoredResAmounts);
+            undecidedResPile.TransferUpTo(destin: state.StoredResPile, resAmounts: targetStoredResAmounts);
         }
 
         /// <summary>
@@ -448,7 +448,7 @@ namespace Game1
 
             var resSplitter = resSplittersToDestins[resInd];
             if (resSplitter.Empty)
-                undecidedResPile.TransferAllSingleResTo(destin: state.storedResPile, resInd: resInd);
+                undecidedResPile.TransferAllSingleResTo(destin: state.StoredResPile, resInd: resInd);
             else
             {
                 var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile[resInd], maxAmountsFunc: maxExtraResFunc);
@@ -459,7 +459,7 @@ namespace Game1
                     ReservedResPile.TransferAll
                     (
                         reservedSource: ref unsplitResPile,
-                        destin: state.storedResPile
+                        destin: state.StoredResPile
                     );
                 }
 
@@ -493,8 +493,10 @@ namespace Game1
                 resFirstLinks[(NodeID, destinationId)]!.TransferAll(start: this, resAmountsPacket: ref resAmountsPacketCopy);
             }
 
+            state.TooManyResStored = !(state.StoredResPile.ResAmounts <= targetStoredResAmounts);
+
             // TODO: look at this
-            infoTextBox.Text = $"consists of {state.MainResAmount} {state.consistsOfResInd}\nstores {state.storedResPile}\ntarget {targetStoredResAmounts}\n";
+            infoTextBox.Text = $"consists of {state.MainResAmount} {state.ConsistsOfResInd}\nstores {state.StoredResPile}\ntarget {targetStoredResAmounts}\n";
 
             // update text
             textBox.Text = CurWorldManager.Overlay.SwitchExpression
@@ -504,17 +506,17 @@ namespace Game1
                     string text = "";
                     if (IfStore(resInd: resInd))
                         text += "store\n";
-                    if (state.storedResPile[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
-                        text += (state.storedResPile[resInd] >= targetStoredResAmounts[resInd]) switch
+                    if (state.StoredResPile[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
+                        text += (state.StoredResPile[resInd] >= targetStoredResAmounts[resInd]) switch
                         {
-                            true => $"have {state.storedResPile[resInd] - targetStoredResAmounts[resInd]} extra resources",
-                            false => $"have {(double)state.storedResPile[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
+                            true => $"have {state.StoredResPile[resInd] - targetStoredResAmounts[resInd]} extra resources",
+                            false => $"have {(double)state.StoredResPile[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
                         };
                     return text;
                 },
                 allResCase: () =>
                 {
-                    ulong totalStoredMass = state.storedResPile.TotalMass;
+                    ulong totalStoredMass = state.StoredResPile.TotalMass;
                     return totalStoredMass switch
                     {
                         > 0 => $"stored total res mass {totalStoredMass}",
@@ -568,7 +570,7 @@ namespace Game1
         UDouble INodeAsLocalEnergyProducer.LocallyProducedWatts
             => Industry?.PeopleWorkOnTop switch
             {
-                true or null => state.wattsHittingSurfaceOrIndustry * (UDouble).001,
+                true or null => state.WattsHittingSurfaceOrIndustry * (UDouble).001,
                 false => 0
             };
 
@@ -585,9 +587,9 @@ namespace Game1
             => CurLightCatchingObject.InterPoints(lightPos: lightPos, lightDir: lightDir);
 
         void ILightCatchingObject.BeginSetWatts()
-            => state.wattsHittingSurfaceOrIndustry = 0;
+            => state.WattsHittingSurfaceOrIndustry = 0;
 
         void ILightCatchingObject.SetWatts(StarID starPos, UDouble watts, Propor powerPropor)
-            => state.wattsHittingSurfaceOrIndustry += watts;
+            => state.WattsHittingSurfaceOrIndustry += watts;
     }
 }

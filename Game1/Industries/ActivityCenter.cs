@@ -12,7 +12,7 @@ namespace Game1.Industries
         public ActivityType ActivityType { get; }
 
         public NodeID NodeID
-            => state.nodeID;
+            => state.NodeID;
 
         public EnergyPriority EnergyPriority { get; private set; }
 
@@ -20,12 +20,12 @@ namespace Game1.Industries
             => peopleHere;
 
         protected readonly MySet<Person> peopleHere, allPeople;
-        protected readonly NodeState state;
+        protected readonly IIndustryFacingNodeState state;
 
         private readonly Event<IDeletedListener> deleted;
         private readonly HashSet<Person> peopleInProcessOfRemoving;
 
-        protected ActivityCenter(ActivityType activityType, EnergyPriority energyPriority, NodeState state)
+        protected ActivityCenter(ActivityType activityType, EnergyPriority energyPriority, IIndustryFacingNodeState state)
         {
             ActivityType = activityType;
             EnergyPriority = energyPriority;
@@ -76,7 +76,7 @@ namespace Game1.Industries
             if (IsPersonHere(person: person))
             {
                 peopleHere.Remove(person);
-                state.waitingPeople.Add(person);
+                state.WaitingPeople.Add(person);
             }
 
             peopleInProcessOfRemoving.Remove(person);

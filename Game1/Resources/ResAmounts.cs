@@ -5,6 +5,14 @@ namespace Game1.Resources
     [Serializable]
     public readonly struct ResAmounts : IMyArray<ulong>, IEquatable<ResAmounts>, IMinable<ResAmounts>
     {
+        public static ResAmounts Empty
+            => emptyResAmounts;
+
+        private static readonly ResAmounts emptyResAmounts;
+
+        static ResAmounts()
+            => emptyResAmounts = new();
+
         private readonly ulong[] array;
 
         public ResAmounts()
@@ -33,7 +41,7 @@ namespace Game1.Resources
 
         public ResAmounts ConvertToBasic()
         {
-            ResAmounts result = new();
+            ResAmounts result = Empty;
             foreach (var resInd in ResInd.All)
                 if (this[resInd] > 0)
                     result += this[resInd] * CurResConfig.resources[resInd].BasicIngredients;
@@ -51,7 +59,7 @@ namespace Game1.Resources
         }
 
         public bool IsEmpty()
-            => array.Sum() is 0;
+            => this == emptyResAmounts || array.Sum() is 0;
 
         public ResAmounts Min(ResAmounts resAmounts)
             => new(array.Zip(resAmounts, (a, b) => MyMathHelper.Min(a, b)));
@@ -109,7 +117,7 @@ namespace Game1.Resources
             => resAmounts1.Zip(resAmounts2).All(a => a.First >= a.Second);
 
         public static bool operator ==(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => resAmounts1.array.Zip(resAmounts2.array).All(pair => pair.First == pair.Second);
+            => resAmounts1.array == resAmounts2.array || resAmounts1.array.Zip(resAmounts2.array).All(pair => pair.First == pair.Second);
 
         public static bool operator !=(ResAmounts resAmounts1, ResAmounts resAmounts2)
             => !(resAmounts1 == resAmounts2);

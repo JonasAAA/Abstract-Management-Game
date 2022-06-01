@@ -2,6 +2,7 @@
 
 namespace Game1.Industries
 {
+    // TODO: make people unhappy if have unwanted resources
     [Serializable]
     public class Building
     {

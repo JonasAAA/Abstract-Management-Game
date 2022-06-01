@@ -24,9 +24,9 @@ namespace Game1.Industries
                 Color = color;
             }
 
-            public abstract Params CreateParams(NodeState state);
+            public abstract Params CreateParams(IIndustryFacingNodeState state);
 
-            protected ITooltip Tooltip(NodeState state)
+            protected ITooltip Tooltip(IIndustryFacingNodeState state)
                 => (CreateParams(state: state) as IWithTooltip).Tooltip;
         }
 
@@ -45,7 +45,7 @@ namespace Game1.Industries
                     => this.parameters = parameters;
             }
 
-            public readonly NodeState state;
+            public readonly IIndustryFacingNodeState state;
             public readonly string name;
             public readonly Color color;
 
@@ -54,7 +54,7 @@ namespace Game1.Industries
             public virtual string TooltipText
                 => $"{nameof(name)}: {name}\n";
 
-            public Params(NodeState state, Factory factory)
+            public Params(IIndustryFacingNodeState state, Factory factory)
             {
                 this.state = state;
 
@@ -78,7 +78,7 @@ namespace Game1.Industries
         private readonly record struct LightCatchingDiskParams(Industry Industry) : Disk.IParams
         {
             public MyVector2 Center
-                => Industry.parameters.state.position;
+                => Industry.parameters.state.Position;
 
             public UDouble Radius
                 => Industry.parameters.state.Radius + Industry.Height;
@@ -155,6 +155,7 @@ namespace Game1.Industries
             {
                 if (MyMathHelper.AreClose(CurWorldManager.Elapsed, TimeSpan.Zero))
                     return this;
+
                 return InternalUpdate();
             }
             finally
@@ -171,7 +172,7 @@ namespace Game1.Industries
         protected virtual void Delete()
         {
             if (building is not null)
-                Building.Delete(building: ref building, resDestin: parameters.state.storedResPile);
+                Building.Delete(building: ref building, resDestin: parameters.state.StoredResPile);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 

@@ -16,7 +16,7 @@ namespace Game1
         {
             resAmountsPacketsByDestin = new();
 
-            ResAmounts = new();
+            ResAmounts = ResAmounts.Empty;
             TotalMass = 0;
         }
 
@@ -69,14 +69,14 @@ namespace Game1
             => resAmountsPacketsByDestin.ContainsKey(destination) switch
             {
                 true => resAmountsPacketsByDestin[destination].resPile.ResAmounts,
-                false => new()
+                false => ResAmounts.Empty
             };
 
         public IEnumerable<ResAmountsPacket> DeconstructAndClear()
         {
             var result = resAmountsPacketsByDestin.Values;
             resAmountsPacketsByDestin = new();
-            ResAmounts = new();
+            ResAmounts = ResAmounts.Empty;
             TotalMass = 0;
             return result;
         }

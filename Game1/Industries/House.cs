@@ -2,6 +2,7 @@
 
 namespace Game1.Industries
 {
+    // TODO: use parameters.state.TooManyResStored somehow
     [Serializable]
     public sealed class House : Industry
     {
@@ -20,13 +21,13 @@ namespace Game1.Industries
                 this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
             }
 
-            public override Params CreateParams(NodeState state)
+            public override Params CreateParams(IIndustryFacingNodeState state)
                 => new(state: state, factory: this);
 
-            public ResAmounts BuildingCost(NodeState state)
+            public ResAmounts BuildingCost(IIndustryFacingNodeState state)
                 => state.ApproxSurfaceLength * buildingCostPerUnitSurface;
 
-            Industry IFactoryForIndustryWithBuilding.CreateIndustry(NodeState state, Building building)
+            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
             {
                 if (building.Cost != BuildingCost(state: state))
                     throw new ArgumentException();
@@ -44,7 +45,7 @@ namespace Game1.Industries
 
             private readonly Factory factory;
 
-            public Params(NodeState state, Factory factory)
+            public Params(IIndustryFacingNodeState state, Factory factory)
                 : base(state: state, factory: factory)
                 => this.factory = factory;
         }
@@ -121,7 +122,7 @@ namespace Game1.Industries
             => housing = new(parameters: parameters);
 
         public override ResAmounts TargetStoredResAmounts()
-            => new();
+            => ResAmounts.Empty;
 
         protected override House InternalUpdate()
             => this;

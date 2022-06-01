@@ -1,4 +1,5 @@
-﻿using static Game1.WorldManager;
+﻿using System.Diagnostics.CodeAnalysis;
+using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -41,13 +42,13 @@ namespace Game1.Industries
                 this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
             }
 
-            public override Params CreateParams(NodeState state)
+            public override Params CreateParams(IIndustryFacingNodeState state)
                 => new(state: state, factory: this);
 
-            ResAmounts IFactoryForIndustryWithBuilding.BuildingCost(NodeState state)
+            ResAmounts IFactoryForIndustryWithBuilding.BuildingCost(IIndustryFacingNodeState state)
                 => state.ApproxSurfaceLength * buildingCostPerUnitSurface;
 
-            Industry IFactoryForIndustryWithBuilding.CreateIndustry(NodeState state, Building building)
+            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
                 => new Manufacturing(parameters: CreateParams(state: state), building: building);
         }
 
@@ -65,13 +66,62 @@ namespace Game1.Industries
 
             private readonly Factory factory;
 
-            public Params(NodeState state, Factory factory)
+            public Params(IIndustryFacingNodeState state, Factory factory)
                 : base(state: state, factory: factory)
             {
                 this.factory = factory;
 
                 prodDuration = factory.prodDuration;
             }
+        }
+
+        [Serializable]
+        private class Production
+        {
+            private static Production? Create(ResPile source, ResRecipe recipe, TimeSpan duration)
+            {
+                if (duration <= TimeSpan.Zero)
+                    throw new ArgumentException();
+                var resInUse = IngredientsResPile.Create(source: source, recipe: recipe);
+                if (resInUse is null)
+                    return null;
+                return new(resInUse: resInUse, duration: duration);
+            }
+
+            public static void Update(ref Production? product, Params parameters, Propor workingPropor)
+            {
+                if (product is null)
+                {
+                    product = Create
+                    (
+                        source: parameters.state.StoredResPile,
+                        recipe: parameters.ResRecipe,
+                        duration: parameters.prodDuration
+                    );
+                    return;
+                }
+                product.prodTimeLeft -= workingPropor * CurWorldManager.Elapsed;
+                if (product.prodTimeLeft <= TimeSpan.Zero)
+                {
+                    var resInUseCopy = product.resInUse;
+                    IngredientsResPile.TransformAndTransferAll(ingredients: ref resInUseCopy, destin: parameters.state.StoredResPile);
+                    product = null;
+                }
+            }
+
+            private readonly IngredientsResPile resInUse;
+            private TimeSpan prodTimeLeft;
+            private readonly TimeSpan duration;
+
+            private Production(IngredientsResPile resInUse, TimeSpan duration)
+            {
+                this.resInUse = resInUse;
+                this.duration = duration;
+                prodTimeLeft = duration;
+            }
+
+            public Propor DonePropor()
+                => C.DonePropor(timeLeft: prodTimeLeft, duration: duration);
         }
 
         public override bool PeopleWorkOnTop
@@ -81,64 +131,41 @@ namespace Game1.Industries
             => CurWorldConfig.defaultIndustryHeight;
 
         private readonly Params parameters;
-        private TimeSpan prodTimeLeft;
-        private IngredientsResPile? resInUse;
-        private ResRecipe curResRecipe;
+        private Production? production;
 
         private Manufacturing(Params parameters, Building building)
             : base(parameters: parameters, building: building)
         {
             this.parameters = parameters;
-            resInUse = null;
-            curResRecipe = parameters.ResRecipe;
+            production = null;
         }
 
-        protected override bool IsBusy()
-            => prodTimeLeft < TimeSpan.MaxValue;
+        protected override BoolWithExplanationIfFalse IsBusy()
+            => base.IsBusy() & BoolWithExplanationIfFalse.Create
+            (
+                value: production is not null,
+                explanationIfFalse: "not enough resources\nto start manufacturing\n"
+            );
 
         protected override Manufacturing InternalUpdate(Propor workingPropor)
         {
-            if (IsBusy())
-                prodTimeLeft -= workingPropor * CurWorldManager.Elapsed;
-
-            if (!IsBusy())
-            {
-                curResRecipe = parameters.ResRecipe;
-                resInUse = IngredientsResPile.Create(source: parameters.state.storedResPile, recipe: parameters.ResRecipe);
-                if (resInUse is not null)
-                    prodTimeLeft = parameters.prodDuration;
-            }
-
-            if (prodTimeLeft <= TimeSpan.Zero)
-            {
-                Debug.Assert(resInUse is not null);
-                IngredientsResPile.TransformAndTransferAll(ingredients: ref resInUse, destin: parameters.state.storedResPile);
-                prodTimeLeft = TimeSpan.MaxValue;
-            }
-
+            Production.Update(product: ref production, parameters: parameters, workingPropor: workingPropor);
             return this;
         }
 
         public override ResAmounts TargetStoredResAmounts()
-            => curResRecipe.ingredients * parameters.state.maxBatchDemResStored;
+            => parameters.ResRecipe.ingredients * parameters.state.MaxBatchDemResStored;
 
-        public override string GetInfo()
-        {
-            string text = base.GetInfo() + $"{parameters.name}\n";
-            if (IsBusy())
-                text += $"producing {C.DonePropor(timeLeft: prodTimeLeft, duration: parameters.prodDuration) * 100.0: 0.}%\n";
-            else
-                text += "idle\n";
-            return text;
-        }
+        protected override string GetBusyInfo()
+            => $"producing {production!.DonePropor() * 100.0: 0.}%\n";
 
-        public override UDouble ReqWatts()
+        protected override UDouble ReqWatts()
             // this is correct as if more important people get full energy, this works
             // and if they don't, then the industry will get 0 energy anyway
-            => IsBusy() switch
-            {
-                true => parameters.ReqWatts * CurSkillPropor,
-                false => 0
-            };
+            => IsBusy().SwitchExpression
+            (
+                trueCase: () => parameters.ReqWatts * CurSkillPropor,
+                falseCase: () => (UDouble)0
+            );
     }
 }

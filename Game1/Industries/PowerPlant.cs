@@ -29,13 +29,13 @@ namespace Game1.Industries
                 this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
             }
 
-            public override Params CreateParams(NodeState state)
+            public override Params CreateParams(IIndustryFacingNodeState state)
                 => new(state: state, factory: this);
 
-            ResAmounts IFactoryForIndustryWithBuilding.BuildingCost(NodeState state)
+            ResAmounts IFactoryForIndustryWithBuilding.BuildingCost(IIndustryFacingNodeState state)
                 => state.ApproxSurfaceLength * buildingCostPerUnitSurface;
 
-            Industry IFactoryForIndustryWithBuilding.CreateIndustry(NodeState state, Building building)
+            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
                 => new PowerPlant(parameters: CreateParams(state: state), building: building);
         }
 
@@ -43,14 +43,14 @@ namespace Game1.Industries
         public new sealed class Params : ProductiveIndustry.Params
         {
             public UDouble ProdWatts
-                => state.wattsHittingSurfaceOrIndustry * factory.surfaceWattsAbsorbedPropor;
+                => state.WattsHittingSurfaceOrIndustry * factory.surfaceWattsAbsorbedPropor;
 
             private readonly Factory factory;
 
             public override string TooltipText
                 => base.TooltipText + $"{nameof(ProdWatts)}: {ProdWatts}\n";
 
-            public Params(NodeState state, Factory factory)
+            public Params(IIndustryFacingNodeState state, Factory factory)
                 : base(state: state, factory: factory)
             {
                 this.factory = factory;
@@ -73,10 +73,7 @@ namespace Game1.Industries
         }
 
         public override ResAmounts TargetStoredResAmounts()
-            => new();
-
-        protected override bool IsBusy()
-            => true;
+            => ResAmounts.Empty;
 
         protected override PowerPlant InternalUpdate(Propor workingPropor)
         {
@@ -85,20 +82,20 @@ namespace Game1.Industries
             return this;
         }
 
-        public override string GetInfo()
-            => base.GetInfo() + parameters.name + $"\nproduce {ProdWatts} W\n";
+        protected override string GetBusyInfo()
+            => $"produce {ProdWatts} W\n";
 
-        public override UDouble ReqWatts()
+        protected override UDouble ReqWatts()
             => 0;
 
         UDouble IEnergyProducer.ProdWatts()
             => ProdWatts;
 
         private UDouble ProdWatts
-            => IsBusy() switch
-            {
-                true => parameters.ProdWatts * CurSkillPropor,
-                false => 0
-            };
+            => IsBusy().SwitchExpression
+            (
+                trueCase: () => parameters.ProdWatts * CurSkillPropor,
+                falseCase: () => (UDouble)0
+            );
     }
 }

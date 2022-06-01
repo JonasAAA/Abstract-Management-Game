@@ -27,16 +27,16 @@ namespace Game1.Industries
                 this.addedResPerUnitSurfacePerSec = addedResPerUnitSurfacePerSec;
             }
 
-            public override Params CreateParams(NodeState state)
+            public override Params CreateParams(IIndustryFacingNodeState state)
                 => new(state: state, factory: this);
 
             string IBuildableFactory.ButtonName
                 => Name;
 
-            ITooltip IBuildableFactory.CreateTooltip(NodeState state)
+            ITooltip IBuildableFactory.CreateTooltip(IIndustryFacingNodeState state)
                 => Tooltip(state: state);
 
-            Industry IBuildableFactory.CreateIndustry(NodeState state)
+            Industry IBuildableFactory.CreateIndustry(IIndustryFacingNodeState state)
                 => new PlanetEnlargement(parameters: CreateParams(state: state));
         }
 
@@ -53,7 +53,7 @@ namespace Game1.Industries
 
             private readonly Factory factory;
 
-            public Params(NodeState state, Factory factory)
+            public Params(IIndustryFacingNodeState state, Factory factory)
                 : base(state: state, factory: factory)
             {
                 this.factory = factory;
@@ -64,7 +64,7 @@ namespace Game1.Industries
         private readonly record struct FutureShapeOutlineParams(Params Parameters) : Ring.IParamsWithInnerRadius
         {
             public MyVector2 Center
-                => Parameters.state.position;
+                => Parameters.state.Position;
 
             public UDouble InnerRadius
                 => Parameters.state.Radius;
@@ -94,14 +94,15 @@ namespace Game1.Industries
             futureShapeOutline = new(parameters: new FutureShapeOutlineParams(Parameters: parameters));
         }
 
-        protected override bool IsBusy()
-            => true;
-
         public override ResAmounts TargetStoredResAmounts()
-            => new()
-            {
-                [parameters.state.consistsOfResInd] = (ulong)(parameters.AddedResPerSec * 60)
-            };
+            => new
+            (
+                resAmount: new
+                (
+                    resInd: parameters.state.ConsistsOfResInd,
+                    amount: (ulong)(parameters.AddedResPerSec * 60)
+                )
+            );
 
         protected override PlanetEnlargement InternalUpdate(Propor workingPropor)
         {
@@ -111,7 +112,7 @@ namespace Game1.Industries
             silentlyAddedBits = (UDouble)(resToAdd - addedRes);
             Debug.Assert(0 <= silentlyAddedBits && silentlyAddedBits <= 1);
 
-            ulong maxAddedRes = parameters.state.storedResPile[parameters.state.consistsOfResInd];
+            ulong maxAddedRes = parameters.state.StoredResPile[parameters.state.ConsistsOfResInd];
             if (addedRes > maxAddedRes)
             {
                 addedRes = maxAddedRes;
@@ -119,32 +120,28 @@ namespace Game1.Industries
             }
 
             curAddedResPerSec = MyMathHelper.Min(targetAddedRes, maxAddedRes) / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
-            parameters.state.EnlargeFrom(source: parameters.state.storedResPile, resAmount: addedRes);
+            parameters.state.EnlargeFrom(source: parameters.state.StoredResPile, resAmount: addedRes);
 
             return this;
         }
 
-        public override string GetInfo()
-        {
-            string text = base.GetInfo() + $"{parameters.name}\n";
-            text += $"Adding {curAddedResPerSec:0.##} {parameters.state.consistsOfResInd} per second\n";
-            return text;
-        }
+        protected override string GetBusyInfo()
+            => $"Adding {curAddedResPerSec:0.##} {parameters.state.ConsistsOfResInd} per second\n";
 
-        public override UDouble ReqWatts()
+        protected override UDouble ReqWatts()
             // this is correct as if more important people get full energy, this works
             // and if they don't, then the industry will get 0 energy anyway
-            => IsBusy() switch
-            {
-                true => parameters.ReqWatts * CurSkillPropor,
-                false => 0
-            };
+            => IsBusy().SwitchExpression
+            (
+                trueCase: () => parameters.ReqWatts * CurSkillPropor,
+                falseCase: () => (UDouble)0
+            );
 
         public override void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)
         {
             base.DrawBeforePlanet(otherColor, otherColorPropor);
 
-            futureShapeOutline.Draw(baseColor: parameters.state.consistsOfRes.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
+            futureShapeOutline.Draw(baseColor: parameters.state.ConsistsOfRes.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
         }
     }
 }

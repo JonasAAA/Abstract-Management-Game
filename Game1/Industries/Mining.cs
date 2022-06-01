@@ -27,16 +27,16 @@ namespace Game1.Industries
                 this.minedResPerUnitSurfacePerSec = minedResPerUnitSurfacePerSec;
             }
 
-            public override Params CreateParams(NodeState state)
+            public override Params CreateParams(IIndustryFacingNodeState state)
                 => new(state: state, factory: this);
 
             string IBuildableFactory.ButtonName
                 => Name;
 
-            ITooltip IBuildableFactory.CreateTooltip(NodeState state)
+            ITooltip IBuildableFactory.CreateTooltip(IIndustryFacingNodeState state)
                 => Tooltip(state: state);
 
-            Industry IBuildableFactory.CreateIndustry(NodeState state)
+            Industry IBuildableFactory.CreateIndustry(IIndustryFacingNodeState state)
                 => new Mining(parameters: CreateParams(state: state));
         }
 
@@ -53,7 +53,7 @@ namespace Game1.Industries
 
             private readonly Factory factory;
 
-            public Params(NodeState state, Factory factory)
+            public Params(IIndustryFacingNodeState state, Factory factory)
                 : base(state: state, factory: factory)
             {
                 this.factory = factory;
@@ -64,7 +64,7 @@ namespace Game1.Industries
         private readonly record struct FutureShapeOutlineParams(Params Parameters) : Ring.IParamsWithOuterRadius
         {
             public MyVector2 Center
-                => Parameters.state.position;
+                => Parameters.state.Position;
 
             public UDouble OuterRadius
                 => Parameters.state.Radius + 1;
@@ -94,11 +94,15 @@ namespace Game1.Industries
             futureShapeOutline = new(parameters: new FutureShapeOutlineParams(Parameters: parameters));
         }
 
-        protected override bool IsBusy()
-            => parameters.state.MaxAvailableResAmount > 0;
+        protected override BoolWithExplanationIfFalse IsBusy()
+            => base.IsBusy() & BoolWithExplanationIfFalse.Create
+            (
+                value: parameters.state.MaxAvailableResAmount > 0,
+                explanationIfFalse: "the planet is fully mined out\n"
+            );
 
         public override ResAmounts TargetStoredResAmounts()
-            => new();
+            => ResAmounts.Empty;
 
         protected override Mining InternalUpdate(Propor workingPropor)
         {
@@ -116,29 +120,23 @@ namespace Game1.Industries
             }
 
             minedResPerSec = MyMathHelper.Min(targetMinedRes, maxMinedRes) / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
-            parameters.state.MineTo(destin: parameters.state.storedResPile, resAmount: minedRes);
+            parameters.state.MineTo(destin: parameters.state.StoredResPile, resAmount: minedRes);
 
             return this;
         }
 
-        public override string GetInfo()
-        {
-            string text = base.GetInfo() + $"{parameters.name}\n";
-            if (IsBusy())
-                text += $"Mining {minedResPerSec:0.##} {parameters.state.consistsOfResInd} per second\n";
-            else
-                text += "The planet is fully mined out,\ncan't mine anymore\n";
-            return text;
-        }
+        protected override string GetBusyInfo()
+            => $"Mining {minedResPerSec:0.##} {parameters.state.ConsistsOfResInd} per second\n";
 
-        public override UDouble ReqWatts()
+        // TODO: get rid of the duplication of this method code
+        protected override UDouble ReqWatts()
             // this is correct as if more important people get full energy, this works
             // and if they don't, then the industry will get 0 energy anyway
-            => IsBusy() switch
-            {
-                true => parameters.ReqWatts * CurSkillPropor,
-                false => 0
-            };
+            => IsBusy().SwitchExpression
+            (
+                trueCase: () => parameters.ReqWatts * CurSkillPropor,
+                falseCase: () => (UDouble)0
+            );
 
         public override void DrawAfterPlanet()
         {

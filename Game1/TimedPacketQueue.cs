@@ -16,7 +16,7 @@
         public TimedPacketQueue(TimeSpan duration)
             : base(duration: duration)
         {
-            TotalResAmounts = new();
+            TotalResAmounts = ResAmounts.Empty;
             TotalMass = 0;
             people = new();
         }

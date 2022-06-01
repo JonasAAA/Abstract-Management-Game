@@ -3,8 +3,8 @@
     public static class MyMathHelper
     {
         public static readonly UDouble pi = (UDouble)Math.PI;
-        private static readonly UDouble minPosDouble = (UDouble)1e-6;
-        private static readonly decimal minPosDecimal = 1e-6m;
+        public static readonly UDouble minPosDouble = (UDouble)1e-6;
+        public static readonly decimal minPosDecimal = 1e-6m;
 
         public static bool AreClose<T>(T value1, T value2) where T : IClose<T>
             => value1.IsCloseTo(other: value2);

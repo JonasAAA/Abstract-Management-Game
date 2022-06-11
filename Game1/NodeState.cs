@@ -14,8 +14,9 @@ namespace Game1
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
         public NodeID NodeID { get; }
 
-        // TODO: inlcude other objects with mass in this calculation, i.e. buildings, people, resources, etc.
+        // TODO: could include linkEndPoints mass in this
         public ulong Mass { get; private set; }
+            //=> planetMass + StoredResPile.TotalMass + waitingResAmountsPackets.TotalMass + (Industry?.Mass ?? 0);
         public ulong Area { get; private set; }
         public UDouble Radius { get; private set; }
         public ulong ApproxSurfaceLength { get; private set; }
@@ -34,9 +35,11 @@ namespace Game1
         public UDouble WattsHittingSurfaceOrIndustry { get; set; }
 
         private readonly ResPile consistsOfResPile;
+        private ulong planetMass;
 
         public NodeState(NodeID nodeID, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
+            "assign starting mass here, and don't forget to count in the mass from starting pleople and house
             NodeID = nodeID;
             Position = position;
             ConsistsOfResInd = consistsOfResInd;
@@ -52,6 +55,7 @@ namespace Game1
             WaitingPeople = new();
             TooManyResStored = false;
             WattsHittingSurfaceOrIndustry = 0;
+            Industry = null;
         }
 
         public bool CanRemove(ulong resAmount)
@@ -59,7 +63,7 @@ namespace Game1
 
         private void RecalculateValues()
         {
-            Mass = MainResAmount * ConsistsOfRes.mass;
+            planetMass = MainResAmount * ConsistsOfRes.mass;
             Area = MainResAmount * ConsistsOfRes.area;
             Radius = MyMathHelper.Sqrt(value: Area / MyMathHelper.pi);
             ApproxSurfaceLength = (ulong)(2 * MyMathHelper.pi * Radius);
@@ -91,5 +95,11 @@ namespace Game1
             ReservedResPile.TransferAll(reservedSource: ref reservedResPile, destin: consistsOfResPile);
             RecalculateValues();
         }
+
+        public void RegisterArriving(IHasMass hasMass)
+            => Mass += hasMass.Mass;
+
+        public void RegisterLeaving(IHasMass hasMass)
+            => Mass -= hasMass.Mass;
     }
 }

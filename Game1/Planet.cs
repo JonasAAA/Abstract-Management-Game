@@ -96,7 +96,6 @@ namespace Game1
             => state.NodeID;
         public MyVector2 Position
             => state.Position;
-        public readonly UDouble radius;
 
         private Industry? Industry
         {
@@ -120,7 +119,7 @@ namespace Game1
         private readonly NodeState state;
         private readonly List<Link> links;
         /// <summary>
-        /// NEVER use this directly, use Industry instead
+        /// NEVER use this directly, use Planet.Industry instead
         /// </summary>
         private Industry? industry;
         private readonly MyArray<ProporSplitter<NodeID>> resSplittersToDestins;
@@ -313,19 +312,26 @@ namespace Game1
 
         public void Arrive([DisallowNull] ResAmountsPacketsByDestin? resAmountsPackets)
         {
+            state.RegisterArriving(hasMass: resAmountsPackets);
             resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeID);
             state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: ref resAmountsPackets);
         }
 
         public void Arrive(IEnumerable<Person> people)
         {
+            var newPeople = people.ToArray();
+            foreach (var person in newPeople)
+                state.RegisterArriving(hasMass: person);
             if (people.Count() is 0)
                 return;
-            state.WaitingPeople.UnionWith(people);
+            state.WaitingPeople.UnionWith(newPeople);
         }
 
         public void Arrive(Person person)
-            => state.WaitingPeople.Add(person);
+        {
+            state.RegisterArriving(hasMass: person);
+            state.WaitingPeople.Add(person);
+        }
 
         public void AddResTravelHere(ResAmount resAmount)
             => resTravelHereAmounts = resTravelHereAmounts.WithAdd(resAmount: resAmount);
@@ -490,6 +496,9 @@ namespace Game1
                 Debug.Assert(destinationId != NodeID);
 
                 var resAmountsPacketCopy = resAmountsPacket;
+                "deal with mass here
+                "and in general, when stuff is added to planet/link, the function could take the source of the stuff to ensure that stuff actually leaves one
+                "place and goes to the other
                 resFirstLinks[(NodeID, destinationId)]!.TransferAll(start: this, resAmountsPacket: ref resAmountsPacketCopy);
             }
 

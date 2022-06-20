@@ -10,6 +10,7 @@
             return resPile;
         }
 
+        // TODO: both RealPeople and ResPile should have analogous API to create an empty one
         public static ResPile CreateEmpty()
             => new(createdByMagic: false);
 

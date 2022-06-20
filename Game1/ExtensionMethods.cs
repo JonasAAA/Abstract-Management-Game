@@ -28,9 +28,6 @@ namespace Game1
         public static UDouble Sum<T>(this IEnumerable<T> source, Func<T, UDouble> selector)
             => source.Select(selector).Sum();
 
-        public static ulong TotalMass(this IEnumerable<Person> people)
-            => people.Sum(person => person.Mass);
-
         public static TResult Max<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
             where TResult : IMaxable<TResult>
         {

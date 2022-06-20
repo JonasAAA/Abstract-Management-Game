@@ -44,7 +44,7 @@
         public static Score WeightedAverage(params (ulong weight, Score score)[] weightsAndScores)
             => (Score)(weightsAndScores.Sum(weightAndScore => weightAndScore.weight * (UDouble)weightAndScore.score) / weightsAndScores.Sum(weightAndScore => weightAndScore.weight));
 
-        public static Score WightedAverageOfTwo(Score score1, Score score2, Propor score1Propor)
+        public static Score WeightedAverageOfTwo(Score score1, Score score2, Propor score1Propor)
             => (Score)((UDouble)score1 * score1Propor + (UDouble)score2 * score1Propor.Opposite());
 
         public static Score Average(params Score[] scores)
@@ -66,7 +66,7 @@
             if (elapsed == TimeSpan.Zero)
                 return current;
 
-            return WightedAverageOfTwo
+            return WeightedAverageOfTwo
             (
                 score1: current,
                 score2: target,

@@ -1,4 +1,5 @@
 ﻿using Game1.Delegates;
+using Game1.Inhabitants;
 
 namespace Game1
 {
@@ -18,7 +19,7 @@ namespace Game1
             activityCenter.Deleted.Add(listener: this);
         }
 
-        public void ManageActivities(IEnumerable<Person> people)
+        public void ManageActivities(VirtualPeople people)
         {
             HashSet<IActivityCenter> availableActivityCenters = new
             (
@@ -27,7 +28,7 @@ namespace Game1
                 select activityCenter
             );
 
-            Queue<Person> availablePeople = new
+            Queue<VirtualPerson> availablePeople = new
             (
                 (from person in people
                  where person.IfSeeksNewActivity()

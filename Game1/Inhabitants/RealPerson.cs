@@ -3,76 +3,87 @@ using Game1.Industries;
 using System.Diagnostics.CodeAnalysis;
 using static Game1.WorldManager;
 
-namespace Game1
+namespace Game1.Inhabitants
 {
     /// <summary>
     /// TODO:
     /// person must be unhappy when don't get enough energy
     /// </summary>
     [Serializable]
-    public sealed class Person : IEnergyConsumer
+    public sealed class RealPerson : IEnergyConsumer, IHasMass
     {
-        public static Person GeneratePersonByMagic(NodeID nodeID, ReservedResPile resSource)
-            => new
+        [Serializable]
+        public readonly record struct UpdateParams(NodeID LastNodeID, NodeID ClosestNodeID);
+
+        public static void GeneratePersonByMagic(NodeID nodeID, ReservedResPile resSource, RealPeople personDestin)
+            => personDestin.AddByMagic
             (
-                nodeID: nodeID,
-                enjoyments: Enum.GetValues<IndustryType>().ToDictionary
+                realPerson: new
                 (
-                    keySelector: indType => indType,
-                    elementSelector: indType => Score.GenerateRandom()
-                ),
-                talents: Enum.GetValues<IndustryType>().ToDictionary
-                (
-                    keySelector: indType => indType,
-                    elementSelector: indType => Score.GenerateRandom()
-                ),
-                skills: Enum.GetValues<IndustryType>().ToDictionary
-                (
-                    keySelector: indType => indType,
-                    elementSelector: indType => Score.GenerateRandom()
-                ),
-                reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
-                seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
-                resSource: resSource,
-                consistsOfResAmounts: resAmountsPerPerson
+                    nodeID: nodeID,
+                    enjoyments: Enum.GetValues<IndustryType>().ToDictionary
+                    (
+                        keySelector: indType => indType,
+                        elementSelector: indType => Score.GenerateRandom()
+                    ),
+                    talents: Enum.GetValues<IndustryType>().ToDictionary
+                    (
+                        keySelector: indType => indType,
+                        elementSelector: indType => Score.GenerateRandom()
+                    ),
+                    skills: Enum.GetValues<IndustryType>().ToDictionary
+                    (
+                        keySelector: indType => indType,
+                        elementSelector: indType => Score.GenerateRandom()
+                    ),
+                    reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
+                    seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
+                    resSource: resSource,
+                    consistsOfResAmounts: resAmountsPerPerson
+                )
             );
 
-        public static Person GenerateChild(Person person1, Person person2, NodeID nodeID, ReservedResPile resSource)
+        public static void GenerateChild(VirtualPerson parent1, VirtualPerson parent2, NodeID nodeID, ReservedResPile resSource, RealPeople parentSource, RealPeople childDestin)
         {
-            return new
+            if (!parentSource.Contains(virtualPerson: parent1) || !parentSource.Contains(virtualPerson: parent2))
+                throw new ArgumentException();
+            childDestin.AddByMagic
             (
-                nodeID: nodeID,
-                enjoyments: CreateIndustryScoreDict
+                realPerson: new
                 (
-                    personalScore: (person, indType) => person.enjoyments[indType]
-                ),
-                talents: CreateIndustryScoreDict
-                (
-                    personalScore: (person, indType) => person.talents[indType]
-                ),
-                skills: Enum.GetValues<IndustryType>().ToDictionary
-                (
-                    keySelector: indType => indType,
-                    elementSelector: indType => Score.lowest
-                ),
-                reqWatts:
-                    CurWorldConfig.parentContribToChildPropor * (person1.reqWatts + person2.reqWatts) * (UDouble).5
-                    + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
-                seekChangeTime:
-                    CurWorldConfig.parentContribToChildPropor * (person1.seekChangeTime + person2.seekChangeTime) * (UDouble).5
-                    + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
-                resSource: resSource,
-                consistsOfResAmounts: resAmountsPerPerson
+                    nodeID: nodeID,
+                    enjoyments: CreateIndustryScoreDict
+                    (
+                        personalScore: (person, indType) => person.enjoyments[indType]
+                    ),
+                    talents: CreateIndustryScoreDict
+                    (
+                        personalScore: (person, indType) => person.talents[indType]
+                    ),
+                    skills: Enum.GetValues<IndustryType>().ToDictionary
+                    (
+                        keySelector: indType => indType,
+                        elementSelector: indType => Score.lowest
+                    ),
+                    reqWatts:
+                        CurWorldConfig.parentContribToChildPropor * (parent1.reqWatts + parent2.reqWatts) * (UDouble).5
+                        + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
+                    seekChangeTime:
+                        CurWorldConfig.parentContribToChildPropor * (parent1.seekChangeTime + parent2.seekChangeTime) * (UDouble).5
+                        + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
+                    resSource: resSource,
+                    consistsOfResAmounts: resAmountsPerPerson
+                )
             );
 
-            Dictionary<IndustryType, Score> CreateIndustryScoreDict(Func<Person, IndustryType, Score> personalScore)
+            Dictionary<IndustryType, Score> CreateIndustryScoreDict(Func<VirtualPerson, IndustryType, Score> personalScore)
                 => Enum.GetValues<IndustryType>().ToDictionary
                 (
                     keySelector: indType => indType,
                     elementSelector: indType
-                        => Score.WightedAverageOfTwo
+                        => Score.WeightedAverageOfTwo
                         (
-                            score1: Score.Average(personalScore(person1, indType), personalScore(person2, indType)),
+                            score1: Score.Average(personalScore(parent1, indType), personalScore(parent2, indType)),
                             score2: Score.GenerateRandom(),
                             score1Propor: CurWorldConfig.parentContribToChildPropor
                         )
@@ -83,11 +94,13 @@ namespace Game1
         // Long-term, make each person require different amount of resources
         public static readonly ResAmounts resAmountsPerPerson;
 
-        static Person()
+        static RealPerson()
             => resAmountsPerPerson = new()
             {
                 [(ResInd)0] = 10
             };
+
+        public readonly VirtualPerson asVirtual;
 
         public readonly ReadOnlyDictionary<IndustryType, Score> enjoyments;
         public readonly ReadOnlyDictionary<IndustryType, Score> talents;
@@ -100,9 +113,9 @@ namespace Game1
         public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
             => lastActivityTimes;
         public ulong Mass
-            => consistsOfResPile.TotalMass;
+            => consistsOfResPile.Mass;
         public readonly UDouble reqWatts;
-
+        public readonly TimeSpan seekChangeTime;
         /// <summary>
         /// CURRENTLY UNUSED
         /// If used, needs to transfer the resources the person consists of somewhere else
@@ -112,19 +125,18 @@ namespace Game1
 
         [MemberNotNullWhen(returnValue: true, member: nameof(activityCenter))]
         private bool IsInActivityCenter
-            => activityCenter is not null && activityCenter.IsPersonHere(person: this);
+            => activityCenter is not null && activityCenter.IsPersonHere(person: asVirtual);
         /// <summary>
         /// is null if just been let go from activity center
         /// </summary>
         private IPersonFacingActivityCenter? activityCenter;
-        private readonly TimeSpan seekChangeTime;
         private TimeSpan timeSinceActivitySearch;
         private readonly Dictionary<ActivityType, TimeSpan> lastActivityTimes;
         private NodeID lastNodeID;
         private readonly Event<IDeletedListener> deleted;
         private readonly ReservedResPile consistsOfResPile;
 
-        private Person(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts)
+        private RealPerson(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts)
         {
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
@@ -149,31 +161,29 @@ namespace Game1
                 keySelector: activityType => activityType,
                 elementSelector: activityType => TimeSpan.MinValue / 3
             );
-
+            if (resSource.ResAmounts != consistsOfResAmounts)
+                throw new ArgumentException();
+            consistsOfResPile = ReservedResPile.Create(source: ref resSource);
+            asVirtual = new(realPerson: this);
             deleted = new();
 
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
             CurWorldManager.AddPerson(person: this);
-            if (resSource.ResAmounts != consistsOfResAmounts)
-                throw new ArgumentException();
-            consistsOfResPile = ReservedResPile.Create(source: ref resSource);
         }
 
-        public void Arrived()
-            => (activityCenter ?? throw new InvalidOperationException()).TakePerson(person: this);
+        public void Arrived(RealPeople personSource)
+            => (activityCenter ?? throw new InvalidOperationException()).TakePersonFrom(personSource: personSource, person: this);
 
-        public void Update(NodeID lastNodeID, NodeID closestNodeID)
+        public void Update(UpdateParams updateParams, Action update)
         {
-            this.lastNodeID = lastNodeID;
-            ClosestNodeID = closestNodeID;
+            lastNodeID = updateParams.LastNodeID;
+            ClosestNodeID = updateParams.ClosestNodeID;
             if (IsInActivityCenter)
             {
-                activityCenter.UpdatePerson(person: this);
                 lastActivityTimes[activityCenter.ActivityType] = CurWorldManager.CurTime;
                 timeSinceActivitySearch += CurWorldManager.Elapsed;
             }
-            else
-                IActivityCenter.UpdatePersonDefault(person: this);
+            update();
         }
 
         UDouble IEnergyConsumer.ReqWatts()
@@ -183,14 +193,14 @@ namespace Game1
             => EnergyPropor = energyPropor;
 
         public bool IfSeeksNewActivity()
-            => activityCenter is null || (timeSinceActivitySearch >= seekChangeTime && activityCenter.CanPersonLeave(person: this));
+            => activityCenter is null || timeSinceActivitySearch >= seekChangeTime && activityCenter.CanPersonLeave(person: asVirtual);
 
         public IPersonFacingActivityCenter ChooseActivityCenter(IEnumerable<IPersonFacingActivityCenter> activityCenters)
         {
             if (!IfSeeksNewActivity())
                 throw new InvalidOperationException();
 
-            var bestActivityCenter = activityCenters.ArgMaxOrDefault(activityCenter => activityCenter.PersonScoreOfThis(person: this));
+            var bestActivityCenter = activityCenters.ArgMaxOrDefault(activityCenter => activityCenter.PersonScoreOfThis(person: asVirtual));
             if (bestActivityCenter is null)
                 throw new ArgumentException();
             SetActivityCenter(newActivityCenter: bestActivityCenter);
@@ -205,7 +215,7 @@ namespace Game1
                 return;
 
             if (activityCenter is not null)
-                activityCenter.RemovePerson(person: this);
+                activityCenter.RemovePerson(person: asVirtual);
             activityCenter = newActivityCenter;
         }
 
@@ -224,5 +234,10 @@ namespace Game1
 
         NodeID IEnergyConsumer.NodeID
             => lastNodeID;
+
+#if DEBUG
+        ~RealPerson()
+            => throw new();
+#endif
     }
 }

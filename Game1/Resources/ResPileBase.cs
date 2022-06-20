@@ -1,11 +1,11 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public abstract class ResPileBase : IMyArray<ulong>
+    public abstract class ResPileBase : IMyArray<ulong>, IHasMass
     {
-        public ulong TotalMass { get; private set; }
+        public ulong Mass { get; private set; }
         public bool IsEmpty
-            => TotalMass is 0;
+            => Mass is 0;
 
         public ResAmounts ResAmounts
         {
@@ -13,7 +13,7 @@
             private set
             {
                 resAmounts = value;
-                TotalMass = resAmounts.TotalMass();
+                Mass = resAmounts.TotalMass();
             }
         }
 

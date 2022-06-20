@@ -54,11 +54,11 @@ namespace Game1.Inhabitants
                     nodeID: nodeID,
                     enjoyments: CreateIndustryScoreDict
                     (
-                        personalScore: (person, indType) => person.enjoyments[indType]
+                        personalScore: (person, indType) => person.Enjoyments[indType]
                     ),
                     talents: CreateIndustryScoreDict
                     (
-                        personalScore: (person, indType) => person.talents[indType]
+                        personalScore: (person, indType) => person.Talents[indType]
                     ),
                     skills: Enum.GetValues<IndustryType>().ToDictionary
                     (
@@ -66,10 +66,10 @@ namespace Game1.Inhabitants
                         elementSelector: indType => Score.lowest
                     ),
                     reqWatts:
-                        CurWorldConfig.parentContribToChildPropor * (parent1.reqWatts + parent2.reqWatts) * (UDouble).5
+                        CurWorldConfig.parentContribToChildPropor * (parent1.ReqWatts + parent2.ReqWatts) * (UDouble).5
                         + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                     seekChangeTime:
-                        CurWorldConfig.parentContribToChildPropor * (parent1.seekChangeTime + parent2.seekChangeTime) * (UDouble).5
+                        CurWorldConfig.parentContribToChildPropor * (parent1.SeekChangeTime + parent2.SeekChangeTime) * (UDouble).5
                         + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
                     consistsOfResAmounts: resAmountsPerPerson
@@ -174,7 +174,10 @@ namespace Game1.Inhabitants
         public void Arrived(RealPeople personSource)
             => (activityCenter ?? throw new InvalidOperationException()).TakePersonFrom(personSource: personSource, person: this);
 
-        public void Update(UpdateParams updateParams, Action update)
+        // TODO: could take list of required changes as parameter.
+        // This would make it so that the only way to change person is to call Update()
+        /// <param name="update">if null, will use default update</param>
+        public void Update(UpdateParams updateParams, Action? update)
         {
             lastNodeID = updateParams.LastNodeID;
             ClosestNodeID = updateParams.ClosestNodeID;
@@ -183,7 +186,10 @@ namespace Game1.Inhabitants
                 lastActivityTimes[activityCenter.ActivityType] = CurWorldManager.CurTime;
                 timeSinceActivitySearch += CurWorldManager.Elapsed;
             }
-            update();
+            if (update is null)
+                IActivityCenter.UpdatePersonDefault(person: this);
+            else
+                update.Invoke();
         }
 
         UDouble IEnergyConsumer.ReqWatts()
@@ -236,7 +242,9 @@ namespace Game1.Inhabitants
             => lastNodeID;
 
 #if DEBUG
+#pragma warning disable CA1821 // Remove empty Finalizers
         ~RealPerson()
+#pragma warning restore CA1821 // Remove empty Finalizers
             => throw new();
 #endif
     }

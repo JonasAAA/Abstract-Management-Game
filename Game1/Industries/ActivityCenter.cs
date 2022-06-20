@@ -17,8 +17,8 @@ namespace Game1.Industries
 
         public EnergyPriority EnergyPriority { get; private set; }
 
-        protected abstract RealPeople NewPeopleDestin { get; }
-        protected readonly VirtualPeople peopleHere, allPeople;
+        protected readonly RealPeople peopleHere;
+        protected readonly VirtualPeople allPeople;
         protected readonly IIndustryFacingNodeState state;
 
         private readonly Event<IDeletedListener> deleted;
@@ -51,23 +51,17 @@ namespace Game1.Industries
         {
             if (!allPeople.Contains(person.asVirtual))
                 throw new ArgumentException();
-            peopleHere.Add(person: person.asVirtual);
-            NewPeopleDestin.TransferFrom(personSource: personSource, realPerson: person);
+            peopleHere.TransferFrom(personSource: personSource, realPerson: person);
         }
 
-        public abstract void UpdatePeople(RealPerson.UpdateParams updateParams);
+        public void UpdatePeople(RealPerson.UpdateParams updateParams)
+            => peopleHere.Update
+            (
+                updateParams: updateParams,
+                personalUpdate: realPerson => UpdatePerson(person: realPerson)
+            );
 
-        // TODO: delete
-        //public void UpdatePeople(RealPerson.UpdateParams updateParams)
-        //{
-        //    peopleHere.Update
-        //    (
-        //        updateParams: updateParams,
-        //        personalUpdate: realPerson => UpdatePerson(person: realPerson)
-        //    );
-        //}
-
-        //public abstract void UpdatePerson(RealPerson person);
+        protected abstract void UpdatePerson(RealPerson person);
 
         public bool IsPersonHere(VirtualPerson person)
             => peopleHere.Contains(person);
@@ -77,24 +71,26 @@ namespace Game1.Industries
 
         public abstract bool CanPersonLeave(VirtualPerson person);
 
-        public void RemovePerson(VirtualPerson person)
+        public void RemovePerson(VirtualPerson person, bool force = false)
         {
-            if (!CanPersonLeave(person: person))
-                throw new ArgumentException();
             if (peopleInProcessOfRemoving.Contains(person))
                 return;
             peopleInProcessOfRemoving.Add(person);
+            
+            if (!force && !CanPersonLeave(person: person))
+                throw new ArgumentException();
+
+            RemovePersonInternal(person: person, force: force);
 
             allPeople.Remove(person);
-            if (peopleHere.Contains(person: person))
-                peopleHere.Remove(person);
             person.LetGoFromActivityCenter();
-            RemovePersonInternal(person: person);
+            state.WaitingPeople.TransferFromIfPossible(personSource: peopleHere, virtualPerson: person);
 
             peopleInProcessOfRemoving.Remove(person);
         }
 
-        protected abstract void RemovePersonInternal(VirtualPerson person);
+        protected virtual void RemovePersonInternal(VirtualPerson person, bool force)
+        { }
 
         public void Delete()
         {

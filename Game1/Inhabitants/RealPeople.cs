@@ -1,4 +1,5 @@
 ﻿using Game1.Industries;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Game1.Inhabitants
 {
@@ -13,10 +14,17 @@ namespace Game1.Inhabitants
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
 
         public RealPeople()
-            => virtualToRealPeople = new();
+        {
+            Mass = 0;
+            virtualToRealPeople = new();
+        }
+
+        public RealPeople(RealPeople peopleSource)
+            : this()
+            => TransferAllFrom(peopleSource: peopleSource);
 
         public void AddByMagic(RealPerson realPerson)
-            => virtualToRealPeople.Add(realPerson.asVirtual, realPerson);
+            => Add(realPerson: realPerson);
 
         /// <summary>
         /// Unlike the usual foreach loop, can change the collection with personalAction
@@ -29,7 +37,7 @@ namespace Game1.Inhabitants
                 personalAction(person);
         }
 
-        /// <param name="personalUpdate"> if null, will use default update</param>
+        /// <param name="personalUpdate">if null, will use default update</param>
         public void Update(RealPerson.UpdateParams updateParams, Action<RealPerson>? personalUpdate)
         {
             personalUpdate ??= realPerson => IActivityCenter.UpdatePersonDefault(person: realPerson);
@@ -45,15 +53,15 @@ namespace Game1.Inhabitants
 
         public void TransferFromIfPossible(RealPeople personSource, VirtualPerson virtualPerson)
         {
-            if (personSource.virtualToRealPeople.Remove(key: virtualPerson, out RealPerson? realPerson))
-                virtualToRealPeople.Add(key: realPerson.asVirtual, value: realPerson);
+            if (personSource.Remove(virtualPerson: virtualPerson, out RealPerson? realPerson))
+                Add(realPerson: realPerson);
         }
 
         public void TransferFrom(RealPeople personSource, RealPerson realPerson)
         {
-            if (!personSource.virtualToRealPeople.Remove(realPerson.asVirtual))
+            if (!personSource.Remove(virtualPerson: realPerson.asVirtual))
                 throw new ArgumentException();
-            virtualToRealPeople.Add(key: realPerson.asVirtual, value: realPerson);
+            Add(realPerson: realPerson);
         }
 
         public void TransferAllFrom(RealPeople peopleSource)
@@ -61,6 +69,25 @@ namespace Game1.Inhabitants
             foreach (var realPerson in peopleSource.virtualToRealPeople.Values)
                 TransferFrom(personSource: peopleSource, realPerson: realPerson);
         }
+
+        private void Add(RealPerson realPerson)
+        {
+            Mass += realPerson.Mass;
+            virtualToRealPeople.Add(key: realPerson.asVirtual, value: realPerson);
+        }
+
+        private bool Remove(VirtualPerson virtualPerson, [NotNullWhen(true)] out RealPerson? realPerson)
+        {
+            if (virtualToRealPeople.Remove(key: virtualPerson, value: out realPerson))
+            {
+                Mass -= realPerson.Mass;
+                return true;
+            }
+            return false;
+        }
+
+        private bool Remove(VirtualPerson virtualPerson)
+            => Remove(virtualPerson: virtualPerson, realPerson: out RealPerson? _);
 
 #if DEBUG
         ~RealPeople()

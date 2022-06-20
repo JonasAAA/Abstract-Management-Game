@@ -466,10 +466,10 @@ namespace Game1
                 Debug.Assert(destinationId != NodeID);
 
                 var resAmountsPacketCopy = resAmountsPacket;
-                throw new NotImplementedException();
-                //"deal with mass here
-                //"and in general, when stuff is added to planet/link, the function could take the source of the stuff to ensure that stuff actually leaves one
-                //"place and goes to the other
+#warning Continue here
+                //deal with mass here
+                //and in general, when stuff is added to planet/link, the function could take the source of the stuff to ensure that stuff actually leaves one
+                //place and goes to the other
                 resFirstLinks[(NodeID, destinationId)]!.TransferAll(start: this, resAmountsPacket: ref resAmountsPacketCopy);
             }
 
@@ -554,11 +554,12 @@ namespace Game1
             links.Add(link);
         }
 
-        void ILinkFacingPlanet.Arrive([DisallowNull] ResAmountsPacketsByDestin? resAmountsPackets)
+        void ILinkFacingPlanet.Arrive([DisallowNull] ref ResAmountsPacketsByDestin? resAmountsPackets)
         {
             state.RegisterArriving(hasMass: resAmountsPackets);
             resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeID);
-            state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: ref resAmountsPackets);
+            state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
+            resAmountsPackets = null;
         }
 
         void ILinkFacingPlanet.Arrive(RealPeople people)

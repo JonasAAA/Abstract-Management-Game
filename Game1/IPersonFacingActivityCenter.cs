@@ -27,6 +27,6 @@ namespace Game1
 
         public bool CanPersonLeave(VirtualPerson person);
 
-        public void RemovePerson(VirtualPerson person);
+        public void RemovePerson(VirtualPerson person, bool force = false);
     }
 }

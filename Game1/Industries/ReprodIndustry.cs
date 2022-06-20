@@ -72,20 +72,17 @@ namespace Game1.Industries
         [Serializable]
         private sealed class ReprodCenter : ActivityCenter
         {
-            public readonly Queue<VirtualPerson> unpairedPeople;
-
-            protected override RealPeople NewPeopleDestin
-                => realPeopleHere;
+            public RealPeople PeopleHere
+                => peopleHere;
+            public readonly UniqueQueue<VirtualPerson> unpairedPeople;
 
             private readonly Params parameters;
-            public readonly RealPeople realPeopleHere;
 
             public ReprodCenter(Params parameters)
                 : base(activityType: ActivityType.Reproduction, energyPriority: parameters.energyPriority, state: parameters.state)
             {
                 this.parameters = parameters;
                 unpairedPeople = new();
-                realPeopleHere = new();
             }
 
             public override bool IsFull()
@@ -113,22 +110,18 @@ namespace Game1.Industries
             public override void TakePersonFrom(RealPeople peopleSource, RealPerson person)
             {
                 base.TakePersonFrom(personSource: peopleSource, person: person);
-                unpairedPeople.Enqueue(person.asVirtual);
+                unpairedPeople.Enqueue(element: person.asVirtual);
             }
 
-            public override void UpdatePeople(RealPerson.UpdateParams updateParams)
-                => realPeopleHere.Update
-                (
-                    updateParams: updateParams,
-                    personalUpdate: null
-                );
+            protected override void UpdatePerson(RealPerson person)
+                => IActivityCenter.UpdatePersonDefault(person: person);
 
             public override bool CanPersonLeave(VirtualPerson person)
                 // a person can't leave while in the process of having a child
-                => false;
+                => !peopleHere.Contains(virtualPerson: person) || unpairedPeople.Contains(element: person);
 
-            protected override void RemovePersonInternal(VirtualPerson person)
-                => state.WaitingPeople.TransferFromIfPossible(personSource: realPeopleHere, virtualPerson: person);
+            protected override void RemovePersonInternal(VirtualPerson person, bool force)
+                => unpairedPeople.TryRemove(element: person);
 
             public string GetInfo()
                 => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - peopleHere.Count} people travelling here\n";
@@ -182,12 +175,12 @@ namespace Game1.Industries
                     parent1: parent1,
                     parent2: parent2,
                     resSource: childResPile,
-                    parentSource: reprodCenter.realPeopleHere,
+                    parentSource: reprodCenter.PeopleHere,
                     childDestin: parameters.state.WaitingPeople
                 );
 
-                reprodCenter.RemovePerson(person: parent1);
-                reprodCenter.RemovePerson(person: parent2);
+                reprodCenter.RemovePerson(person: parent1, force: true);
+                reprodCenter.RemovePerson(person: parent2, force: true);
             }
 
             while (reprodCenter.unpairedPeople.Count >= 2 && ReservedResPile.Create(source: parameters.state.StoredResPile, resAmounts: RealPerson.resAmountsPerPerson) is ReservedResPile childResPile)

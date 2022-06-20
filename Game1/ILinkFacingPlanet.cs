@@ -36,7 +36,7 @@ namespace Game1
         //    Arrive(person: person);
         //}
 
-        public void Arrive([DisallowNull] ResAmountsPacketsByDestin? resAmountsPackets);
+        public void Arrive([DisallowNull] ref ResAmountsPacketsByDestin? resAmountsPackets);
 
         public void Arrive(RealPeople people);
 

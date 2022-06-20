@@ -54,18 +54,11 @@ namespace Game1.Industries
         [Serializable]
         private sealed class Housing : ActivityCenter
         {
-            protected override RealPeople NewPeopleDestin
-                => realPeopleHere;
-
             private readonly Params parameters;
-            private readonly RealPeople realPeopleHere;
 
             public Housing(Params parameters)
                 : base(activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.maximal, state: parameters.state)
-            {
-                this.parameters = parameters;
-                realPeopleHere = new();
-            }
+                => this.parameters = parameters;
 
             public override bool IsFull()
                 => false;
@@ -95,18 +88,11 @@ namespace Game1.Industries
                 // may disallow far travel
                 => true;
 
-            public override void UpdatePeople(RealPerson.UpdateParams updateParams)
-                => realPeopleHere.Update
-                (
-                    updateParams: updateParams,
-                    personalUpdate: null
-                );
+            protected override void UpdatePerson(RealPerson person)
+                => IActivityCenter.UpdatePersonDefault(person: person);
 
             public override bool CanPersonLeave(VirtualPerson person)
                 => true;
-
-            protected override void RemovePersonInternal(VirtualPerson person)
-                => state.WaitingPeople.TransferFromIfPossible(personSource: realPeopleHere, virtualPerson: person);
 
             public string GetInfo()
                 => $"{peopleHere.Count} people live here\n{allPeople.Count - peopleHere.Count} people travel here\n";

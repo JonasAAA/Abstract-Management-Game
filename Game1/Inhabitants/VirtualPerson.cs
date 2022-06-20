@@ -5,11 +5,11 @@ namespace Game1.Inhabitants
     [Serializable]
     public class VirtualPerson
     {
-        public IReadOnlyDictionary<IndustryType, Score> enjoyments
+        public IReadOnlyDictionary<IndustryType, Score> Enjoyments
             => realPerson.enjoyments;
-        public IReadOnlyDictionary<IndustryType, Score> talents
+        public IReadOnlyDictionary<IndustryType, Score> Talents
             => realPerson.talents;
-        public IReadOnlyDictionary<IndustryType, Score> skills
+        public IReadOnlyDictionary<IndustryType, Score> Skills
             => realPerson.skills;
 
         public NodeID ClosestNodeID
@@ -17,9 +17,9 @@ namespace Game1.Inhabitants
 
         public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
             => realPerson.LastActivityTimes;
-        public UDouble reqWatts
+        public UDouble ReqWatts
             => realPerson.reqWatts;
-        public TimeSpan seekChangeTime
+        public TimeSpan SeekChangeTime
             => realPerson.seekChangeTime;
 
         private readonly RealPerson realPerson;

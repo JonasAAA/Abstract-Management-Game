@@ -83,7 +83,7 @@ namespace Game1
             {
                 timedPacketQueue.Update(workingPropor: energyPropor);
                 var (resAmountsPackets, people) = timedPacketQueue.DonePacketsAndPeople();
-                endNode.Arrive(resAmountsPackets: resAmountsPackets);
+                endNode.Arrive(resAmountsPackets: ref resAmountsPackets);
                 endNode.Arrive(people: people);
 
                 if ((!waitingResAmountsPackets.Empty || waitingPeople.Count > 0)

@@ -20,15 +20,17 @@ namespace Game1
             Mass = 0;
         }
 
-        public void TransferAllFrom([DisallowNull] ref ResAmountsPacketsByDestin? sourcePackets)
+        public ResAmountsPacketsByDestin(ResAmountsPacketsByDestin sourcePackets)
+            : this()
+            => TransferAllFrom(sourcePackets: sourcePackets);
+
+        public void TransferAllFrom(ResAmountsPacketsByDestin sourcePackets)
         {
             foreach (var resAmountsPacket in sourcePackets.DeconstructAndClear())
             {
                 var resAmountsPacketCopy = resAmountsPacket;
                 TransferAllFrom(sourcePacket: ref resAmountsPacketCopy);
             }
-
-            sourcePackets = null;
         }
 
         public void TransferAllFrom([DisallowNull] ref ResAmountsPacket? sourcePacket)

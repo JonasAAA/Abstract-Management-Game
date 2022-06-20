@@ -18,6 +18,7 @@ namespace Game1
         {
             TotalResAmounts = ResAmounts.Empty;
             Mass = 0;
+            PeopleCount = 0;
             this.duration = duration;
             timedQueue = new(duration: duration);
         }
@@ -34,6 +35,8 @@ namespace Game1
 
         public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, RealPeople people)
         {
+            resAmountsPackets = new(sourcePackets: resAmountsPackets);
+            people = new(peopleSource: people);
             if (resAmountsPackets.Empty && people.Count is 0)
                 return;
             timedQueue.Enqueue(element: (resAmountsPackets, people));
@@ -63,8 +66,7 @@ namespace Game1
                 Mass -= resAmountsPackets.Mass + people.Mass;
                 PeopleCount -= people.Count;
 
-                var resAmountsPacketsCopy = resAmountsPackets;
-                doneResAmountsPackets.TransferAllFrom(sourcePackets: ref resAmountsPacketsCopy);
+                doneResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
                 donePeople.TransferAllFrom(peopleSource: people);
             }
             return

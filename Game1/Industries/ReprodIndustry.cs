@@ -1,4 +1,5 @@
-﻿using static Game1.WorldManager;
+﻿using Game1.Inhabitants;
+using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -54,7 +55,7 @@ namespace Game1.Industries
                 => (ulong)(state.ApproxSurfaceLength * factory.maxCouplesPerUnitSurface);
             public readonly TimeSpan birthDuration;
             public override string TooltipText
-                => base.TooltipText + $"{nameof(BuildingCost)}: {BuildingCost}\n{nameof(reqWattsPerChild)}: {reqWattsPerChild}\n{nameof(MaxCouples)}: {MaxCouples}\nresPerChild: {Person.resAmountsPerPerson}\n{nameof(birthDuration)}: {birthDuration}";
+                => base.TooltipText + $"{nameof(BuildingCost)}: {BuildingCost}\n{nameof(reqWattsPerChild)}: {reqWattsPerChild}\n{nameof(MaxCouples)}: {MaxCouples}\nresPerChild: {RealPerson.resAmountsPerPerson}\n{nameof(birthDuration)}: {birthDuration}";
 
             private readonly Factory factory;
 
@@ -71,7 +72,9 @@ namespace Game1.Industries
         [Serializable]
         private sealed class ReprodCenter : ActivityCenter
         {
-            public readonly Queue<Person> unpairedPeople;
+            public RealPeople PeopleHere
+                => peopleHere;
+            public readonly UniqueQueue<VirtualPerson> unpairedPeople;
 
             private readonly Params parameters;
 
@@ -85,11 +88,11 @@ namespace Game1.Industries
             public override bool IsFull()
                 => allPeople.Count >= 2 * parameters.MaxCouples;
 
-            public override bool IsPersonSuitable(Person person)
+            public override bool IsPersonSuitable(VirtualPerson person)
                 // could disalow far travel
                 => true;
 
-            public override Score PersonScoreOfThis(Person person)
+            public override Score PersonScoreOfThis(VirtualPerson person)
                 => Score.WeightedAverage
                 (
                     (
@@ -104,25 +107,25 @@ namespace Game1.Industries
                     (weight: 1, score: DistanceToHereAsPerson(person: person))
                 );
 
-            public override void TakePerson(Person person)
+            public override void TakePersonFrom(RealPeople peopleSource, RealPerson person)
             {
-                base.TakePerson(person);
-                unpairedPeople.Enqueue(person);
+                base.TakePersonFrom(personSource: peopleSource, person: person);
+                unpairedPeople.Enqueue(element: person.asVirtual);
             }
 
-            public override void UpdatePerson(Person person)
+            protected override void UpdatePerson(RealPerson person)
                 => IActivityCenter.UpdatePersonDefault(person: person);
 
-            public override bool CanPersonLeave(Person person)
+            public override bool CanPersonLeave(VirtualPerson person)
                 // a person can't leave while in the process of having a child
-                => false;
+                => !peopleHere.Contains(virtualPerson: person) || unpairedPeople.Contains(element: person);
+
+            protected override void RemovePersonInternal(VirtualPerson person, bool force)
+                => unpairedPeople.TryRemove(element: person);
 
             public string GetInfo()
                 => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - peopleHere.Count} people travelling here\n";
         }
-
-        public override IEnumerable<Person> PeopleHere
-            => base.PeopleHere.Concat(reprodCenter.PeopleHere);
 
         public override bool PeopleWorkOnTop
             => false;
@@ -132,7 +135,7 @@ namespace Game1.Industries
 
         private readonly Params parameters;
         private readonly ReprodCenter reprodCenter;
-        private readonly TimedQueue<(Person, Person, ReservedResPile childResPile)> birthQueue;
+        private readonly TimedQueue<(VirtualPerson, VirtualPerson, ReservedResPile childResPile)> birthQueue;
 
         private ReprodIndustry(Params parameters, Building building)
             : base(parameters: parameters, building: building)
@@ -143,8 +146,15 @@ namespace Game1.Industries
             birthQueue = new(duration: parameters.birthDuration);
         }
 
+        public override void UpdatePeople(RealPerson.UpdateParams updateParams)
+        {
+            base.UpdatePeople(updateParams: updateParams);
+
+            reprodCenter.UpdatePeople(updateParams: updateParams);
+        }
+
         public override ResAmounts TargetStoredResAmounts()
-            => parameters.MaxCouples * Person.resAmountsPerPerson * parameters.state.MaxBatchDemResStored;
+            => parameters.MaxCouples * RealPerson.resAmountsPerPerson * parameters.state.MaxBatchDemResStored;
 
         protected override BoolWithExplanationIfFalse IsBusy()
             => base.IsBusy() & BoolWithExplanationIfFalse.Create
@@ -157,24 +167,26 @@ namespace Game1.Industries
         {
             birthQueue.Update(workingPropor: workingPropor);
 
-            foreach (var (person1, person2, childResPile) in birthQueue.DoneElements())
+            foreach (var (parent1, parent2, childResPile) in birthQueue.DoneElements())
             {
-                var newPerson = Person.GenerateChild
+                RealPerson.GenerateChild
                 (
                     nodeID: parameters.state.NodeID,
-                    person1: person1,
-                    person2: person2,
-                    resSource: childResPile
+                    parent1: parent1,
+                    parent2: parent2,
+                    resSource: childResPile,
+                    parentSource: reprodCenter.PeopleHere,
+                    childDestin: parameters.state.WaitingPeople
                 );
-                parameters.state.WaitingPeople.Add(newPerson);
 
-                reprodCenter.RemovePerson(person: person1);
-                reprodCenter.RemovePerson(person: person2);
+                reprodCenter.RemovePerson(person: parent1, force: true);
+                reprodCenter.RemovePerson(person: parent2, force: true);
             }
 
-            while (reprodCenter.unpairedPeople.Count >= 2 && ReservedResPile.Create(source: parameters.state.StoredResPile, resAmounts: Person.resAmountsPerPerson) is ReservedResPile childResPile)
+            while (reprodCenter.unpairedPeople.Count >= 2 && ReservedResPile.Create(source: parameters.state.StoredResPile, resAmounts: RealPerson.resAmountsPerPerson) is ReservedResPile childResPile)
             {
-                Person person1 = reprodCenter.unpairedPeople.Dequeue(),
+                // TODO: move this logic into ReprodCenter class?
+                VirtualPerson person1 = reprodCenter.unpairedPeople.Dequeue(),
                     person2 = reprodCenter.unpairedPeople.Dequeue();
                 birthQueue.Enqueue((person1, person2, childResPile: childResPile));
             }

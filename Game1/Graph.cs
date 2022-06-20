@@ -188,7 +188,7 @@ namespace Game1
 
             foreach (var link in links)
             {
-                int i = nodes.IndexOf(link.node1), j = nodes.IndexOf(link.node2);
+                int i = nodes.IndexOf((Planet)link.node1), j = nodes.IndexOf((Planet)link.node2);
                 Debug.Assert(i >= 0 && j >= 0);
                 distsArray[i, j] = distTimeCoeff * (UDouble)link.TravelTime.TotalSeconds + distEnergyCoeff * link.JoulesPerKg;
                 distsArray[j, i] = distsArray[i, j];

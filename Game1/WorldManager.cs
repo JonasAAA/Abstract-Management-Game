@@ -1,5 +1,6 @@
 ﻿using Game1.Delegates;
 using Game1.Industries;
+using Game1.Inhabitants;
 using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
@@ -345,7 +346,7 @@ namespace Game1
         private readonly WorldConfig worldConfig;
         private readonly ResConfig resConfig;
         private readonly IndustryConfig industryConfig;
-        private readonly MySet<Person> people;
+        private readonly VirtualPeople people;
         private readonly EnergyManager energyManager;
         private readonly ActivityManager activityManager;
         private readonly LightManager lightManager;
@@ -467,9 +468,9 @@ namespace Game1
         public void AddLightSource(ILightSource lightSource)
             => lightManager.AddLightSource(lightSource: lightSource);
 
-        public void AddPerson(Person person)
+        public void AddPerson(RealPerson person)
         {
-            people.Add(person);
+            people.Add(person.asVirtual);
             person.Deleted.Add(listener: this);
         }
 
@@ -538,8 +539,8 @@ namespace Game1
 
         void IDeletedListener.DeletedResponse(IDeletable deletable)
         {
-            if (deletable is Person person)
-                people.Remove(person);
+            if (deletable is RealPerson person)
+                people.Remove(person.asVirtual);
             else
                 throw new ArgumentException();
         }

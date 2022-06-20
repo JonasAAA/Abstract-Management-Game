@@ -6,11 +6,12 @@ using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
 using System.Diagnostics.CodeAnalysis;
+using Game1.Inhabitants;
 
 namespace Game1
 {
     [Serializable]
-    public sealed class Planet : WorldUIElement, INodeAsLocalEnergyProducer, INodeAsResDestin, ILightCatchingObject
+    public sealed class Planet : WorldUIElement, ILinkFacingPlanet, INodeAsLocalEnergyProducer, INodeAsResDestin, ILightCatchingObject
     {
         [Serializable]
         private readonly record struct ResDesinArrowEventListener(Planet Node, ResInd ResInd) : IDeletedListener, INumberChangedListener
@@ -96,7 +97,6 @@ namespace Game1
             => state.NodeID;
         public MyVector2 Position
             => state.Position;
-        public readonly UDouble radius;
 
         private Industry? Industry
         {
@@ -120,7 +120,7 @@ namespace Game1
         private readonly NodeState state;
         private readonly List<Link> links;
         /// <summary>
-        /// NEVER use this directly, use Industry instead
+        /// NEVER use this directly, use Planet.Industry instead
         /// </summary>
         private Industry? industry;
         private readonly MyArray<ProporSplitter<NodeID>> resSplittersToDestins;
@@ -269,6 +269,7 @@ namespace Game1
             foreach (var resInd in ResInd.All)
                 resDistribArrows[resInd] = new();
 
+            ulong startingNonPlanetMass = 0;
             // this is here beause it uses infoPanel, so that needs to be initialized first
             if (startingConditions is var (houseFactory, personCount, resSource))
             {
@@ -277,6 +278,7 @@ namespace Game1
                 {
                     var reservedBuildingRes = ReservedResPile.Create(source: resSource, resAmounts: houseBuildingCost);
                     Debug.Assert(reservedBuildingRes is not null);
+                    startingNonPlanetMass += reservedBuildingRes.Mass;
                     Building? building = new
                     (
                         resSource: ref reservedBuildingRes
@@ -290,45 +292,21 @@ namespace Game1
 
                 for (ulong i = 0; i < personCount; i++)
                 {
-                    Person person = Person.GeneratePersonByMagic
+                    RealPerson.GeneratePersonByMagic
                     (
                         nodeID: NodeID,
-                        resSource: ReservedResPile.Create(source: resSource, resAmounts: Person.resAmountsPerPerson)!
+                        resSource: ReservedResPile.Create(source: resSource, resAmounts: RealPerson.resAmountsPerPerson)!,
+                        personDestin: state.WaitingPeople
                     );
-                    state.WaitingPeople.Add(person);
                 }
+                startingNonPlanetMass += state.WaitingPeople.Mass;
             }
             else
                 Industry = null;
+            state.Initialize(startingNonPlanetMass: startingNonPlanetMass);
 
             CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
         }
-
-        public void AddLink(Link link)
-        {
-            if (!link.Contains(this))
-                throw new ArgumentException();
-            links.Add(link);
-        }
-
-        public void Arrive([DisallowNull] ResAmountsPacketsByDestin? resAmountsPackets)
-        {
-            resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeID);
-            state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: ref resAmountsPackets);
-        }
-
-        public void Arrive(IEnumerable<Person> people)
-        {
-            if (people.Count() is 0)
-                return;
-            state.WaitingPeople.UnionWith(people);
-        }
-
-        public void Arrive(Person person)
-            => state.WaitingPeople.Add(person);
-
-        public void AddResTravelHere(ResAmount resAmount)
-            => resTravelHereAmounts = resTravelHereAmounts.WithAdd(resAmount: resAmount);
 
         public ulong TotalQueuedRes(ResInd resInd)
             => state.StoredResPile[resInd] + resTravelHereAmounts[resInd];
@@ -393,17 +371,19 @@ namespace Game1
             //state.position += new MyVector2(x: C.Random(min: -1.0, max: 1), y: C.Random(min: -1.0, max: 1));
 
             // deal with people
-            foreach (var person in state.WaitingPeople.Clone())
-            {
-                NodeID? activityCenterPosition = person.ActivityCenterNodeID;
-                if (activityCenterPosition is null)
-                    continue;
-                if (activityCenterPosition == NodeID)
-                    person.Arrived();
-                else
-                    personFirstLinks[(NodeID, activityCenterPosition)]!.Add(start: this, person: person);
-                state.WaitingPeople.Remove(person);
-            }
+            state.WaitingPeople.ForEach
+            (
+                personalAction: realPerson =>
+                {
+                    NodeID? activityCenterPosition = realPerson.ActivityCenterNodeID;
+                    if (activityCenterPosition is null)
+                        return;
+                    if (activityCenterPosition == NodeID)
+                        realPerson.Arrived(personSource: state.WaitingPeople);
+                    else
+                        personFirstLinks[(NodeID, activityCenterPosition)]!.TransferFrom(start: this, peopleSource: state.WaitingPeople, person: realPerson);
+                }
+            );
 
             Industry = Industry?.Update();
 
@@ -412,13 +392,9 @@ namespace Game1
 
         public void UpdatePeople()
         {
-            var peopleInIndustry = Industry switch
-            {
-                null => Enumerable.Empty<Person>(),
-                not null => Industry.PeopleHere
-            };
-            foreach (var person in state.WaitingPeople.Concat(peopleInIndustry))
-                person.Update(lastNodeID: NodeID, closestNodeID: NodeID);
+            RealPerson.UpdateParams personUpdateParams = new(LastNodeID: NodeID, ClosestNodeID: NodeID);
+            Industry?.UpdatePeople(updateParams: personUpdateParams);
+            state.WaitingPeople.Update(updateParams: personUpdateParams, personalUpdate: null);
         }
 
         public void StartSplitRes()
@@ -490,6 +466,10 @@ namespace Game1
                 Debug.Assert(destinationId != NodeID);
 
                 var resAmountsPacketCopy = resAmountsPacket;
+#warning Continue here
+                //deal with mass here
+                //and in general, when stuff is added to planet/link, the function could take the source of the stuff to ensure that stuff actually leaves one
+                //place and goes to the other
                 resFirstLinks[(NodeID, destinationId)]!.TransferAll(start: this, resAmountsPacket: ref resAmountsPacketCopy);
             }
 
@@ -516,7 +496,7 @@ namespace Game1
                 },
                 allResCase: () =>
                 {
-                    ulong totalStoredMass = state.StoredResPile.TotalMass;
+                    ulong totalStoredMass = state.StoredResPile.Mass;
                     return totalStoredMass switch
                     {
                         > 0 => $"stored total res mass {totalStoredMass}",
@@ -567,6 +547,35 @@ namespace Game1
                 );
         }
 
+        void ILinkFacingPlanet.AddLink(Link link)
+        {
+            if (!link.Contains(this))
+                throw new ArgumentException();
+            links.Add(link);
+        }
+
+        void ILinkFacingPlanet.Arrive([DisallowNull] ref ResAmountsPacketsByDestin? resAmountsPackets)
+        {
+            state.RegisterArriving(hasMass: resAmountsPackets);
+            resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeID);
+            state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
+            resAmountsPackets = null;
+        }
+
+        void ILinkFacingPlanet.Arrive(RealPeople people)
+        {
+            if (people.Count is 0)
+                return;
+            state.RegisterArriving(hasMass: people);
+            state.WaitingPeople.TransferAllFrom(peopleSource: people);
+        }
+
+        void ILinkFacingPlanet.Arrive(RealPerson person, RealPeople personSource)
+        {
+            state.RegisterArriving(hasMass: person);
+            state.WaitingPeople.TransferFrom(realPerson: person, personSource: personSource);
+        }
+
         UDouble INodeAsLocalEnergyProducer.LocallyProducedWatts
             => Industry?.PeopleWorkOnTop switch
             {
@@ -591,5 +600,8 @@ namespace Game1
 
         void ILightCatchingObject.SetWatts(StarID starPos, UDouble watts, Propor powerPropor)
             => state.WattsHittingSurfaceOrIndustry += watts;
+
+        void INodeAsResDestin.AddResTravelHere(ResAmount resAmount)
+            => resTravelHereAmounts = resTravelHereAmounts.WithAdd(resAmount: resAmount);
     }
 }

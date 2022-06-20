@@ -1,4 +1,6 @@
-﻿namespace Game1
+﻿using Game1.Inhabitants;
+
+namespace Game1
 {
     public interface IPersonFacingActivityCenter
     {
@@ -14,16 +16,17 @@
         /// gives higher/lower score to the current place of the person depending on
         /// if person recently got queued
         /// </summary>
-        public Score PersonScoreOfThis(Person person);
+        public Score PersonScoreOfThis(VirtualPerson person);
 
-        public bool IsPersonHere(Person person);
+        public bool IsPersonHere(VirtualPerson person);
 
-        public void TakePerson(Person person);
+        public void TakePersonFrom(RealPeople personSource, RealPerson person);
 
-        public void UpdatePerson(Person person);
+        // TODO: delete
+        //public void UpdatePerson(RealPerson person);
 
-        public bool CanPersonLeave(Person person);
+        public bool CanPersonLeave(VirtualPerson person);
 
-        public void RemovePerson(Person person);
+        public void RemovePerson(VirtualPerson person, bool force = false);
     }
 }

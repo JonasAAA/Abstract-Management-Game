@@ -1,9 +1,10 @@
-﻿using static Game1.WorldManager;
+﻿using System.Collections;
+using static Game1.WorldManager;
 
 namespace Game1
 {
     [Serializable]
-    public class TimedQueue<T>
+    public class TimedQueue<T> : IEnumerable<T>
     {
         public int Count
             => endTimeQueue.Count;
@@ -62,5 +63,11 @@ namespace Game1
                 throw new InvalidOperationException();
             return C.DonePropor(timeLeft: lastEndTime - currentLocalTime, duration: duration);
         }
+
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            => queue.GetEnumerator();
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => queue.GetEnumerator();
     }
 }

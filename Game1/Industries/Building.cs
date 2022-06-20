@@ -8,6 +8,8 @@ namespace Game1.Industries
     {
         public ResAmounts Cost
             => ResPile.ResAmounts;
+        // TODO: should probably have a separate type for mass
+        public readonly ulong mass;
 
         private ReservedResPile ResPile
             => resPile ?? throw new InvalidOperationException(buildingIsDeletedMessage);
@@ -20,6 +22,7 @@ namespace Game1.Industries
             if (resSource.IsEmpty)
                 throw new ArgumentException();
             resPile = ReservedResPile.Create(source: ref resSource);
+            mass = Cost.TotalMass();
         }
 
         public static void Delete([DisallowNull] ref Building? building, ResPile resDestin)

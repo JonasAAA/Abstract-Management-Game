@@ -1,4 +1,5 @@
-﻿using Priority_Queue;
+﻿using Game1.Inhabitants;
+using Priority_Queue;
 
 using static Game1.WorldManager;
 
@@ -82,7 +83,7 @@ namespace Game1.Industries
                 {
                     // if can, fire the worst people
 
-                    SimplePriorityQueue<Person, Score> allEmployeesPriorQueue = new();
+                    SimplePriorityQueue<VirtualPerson, Score> allEmployeesPriorQueue = new();
                     foreach (var person in allPeople)
                         allEmployeesPriorQueue.Enqueue
                         (
@@ -90,10 +91,10 @@ namespace Game1.Industries
                             priority: CurrentEmploymentScore(person: person)
                         );
 
-                    while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill >= (UDouble)allEmployeesPriorQueue.First.skills[parameters.industryType] + parameters.ReqSkill)
+                    while (allEmployeesPriorQueue.Count > 0 && totalHiredSkill >= (UDouble)allEmployeesPriorQueue.First.Skills[parameters.industryType] + parameters.ReqSkill)
                     {
                         var person = allEmployeesPriorQueue.Dequeue();
-                        totalHiredSkill = (UDouble)(totalHiredSkill - (double)person.skills[parameters.industryType]);
+                        totalHiredSkill = (UDouble)(totalHiredSkill - (double)person.Skills[parameters.industryType]);
                         RemovePerson(person: person);
                     }
 
@@ -104,7 +105,7 @@ namespace Game1.Industries
                 desperationScore = Score.BringCloser
                 (
                     current: desperationScore,
-                    target: IsFull() ? Score.lowest : Score.WightedAverageOfTwo
+                    target: IsFull() ? Score.lowest : Score.WeightedAverageOfTwo
                     (
                         score1: (Score)OpenSpacePropor(),
                         score2: Score.highest,
@@ -119,26 +120,26 @@ namespace Game1.Industries
 
             public void EndUpdate()
             {
-                curUnboundedSkillPropor = peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / parameters.ReqSkill;
+                curUnboundedSkillPropor = peopleHere.TotalSkill(industryType: parameters.industryType) / parameters.ReqSkill;
                 CurSkillPropor = (Propor)MyMathHelper.Min((UDouble)1, curUnboundedSkillPropor);
             }
 
             public override bool IsFull()
                 => OpenSpacePropor().IsCloseTo(other: Propor.empty);
 
-            public override Score PersonScoreOfThis(Person person)
-                => Score.WightedAverageOfTwo
+            public override Score PersonScoreOfThis(VirtualPerson person)
+                => Score.WeightedAverageOfTwo
                 (
                     score1: IsPersonHere(person: person) ? Score.highest : Score.lowest,
                     score2: Score.WeightedAverage
                     (
-                        (weight: 9, score: person.enjoyments[parameters.industryType]),
+                        (weight: 9, score: person.Enjoyments[parameters.industryType]),
                         (weight: 1, score: DistanceToHereAsPerson(person: person))
                     ),
                     score1Propor: CurWorldConfig.personMomentumPropor
                 );
 
-            public override bool IsPersonSuitable(Person person)
+            public override bool IsPersonSuitable(VirtualPerson person)
             {
                 if (IsPersonQueuedOrHere(person: person))
                     return true;
@@ -146,7 +147,7 @@ namespace Game1.Industries
                 return NewEmploymentScore(person: person) >= CurWorldConfig.minAcceptablePersonScore;
             }
 
-            public override void UpdatePerson(Person person)
+            protected override void UpdatePerson(RealPerson person)
                 => person.skills[parameters.industryType] = Score.BringCloser
                 (
                     current: person.skills[parameters.industryType],
@@ -156,17 +157,17 @@ namespace Game1.Industries
                     halvingDifferenceDuration: TimeSpan.FromSeconds(20)
                 );
 
-            public override bool CanPersonLeave(Person person)
+            public override bool CanPersonLeave(VirtualPerson person)
                 => true;
 
             public void SetEnergyPropor(Propor energyPropor)
                 => workingPropor = Propor.Create((UDouble)energyPropor, MyMathHelper.Max((UDouble)1, curUnboundedSkillPropor))!.Value;
 
             public string GetInfo()
-                => $"have {peopleHere.Sum(person => (UDouble)person.skills[parameters.industryType]) / parameters.ReqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\nemployed {peopleHere.Count}\ntravel here {allPeople.Count - peopleHere.Count}\n";
+                => $"have {peopleHere.TotalSkill(industryType: parameters.industryType) / parameters.ReqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\nemployed {peopleHere.Count}\ntravel here {allPeople.Count - peopleHere.Count}\n";
 
             private UDouble HiredSkill()
-                => allPeople.Sum(person => (UDouble)person.skills[parameters.industryType]);
+                => allPeople.Sum(person => (UDouble)person.Skills[parameters.industryType]);
 
             private Propor OpenSpacePropor()
                 => Propor.Create(part: HiredSkill(), whole: parameters.ReqSkill) switch
@@ -175,31 +176,28 @@ namespace Game1.Industries
                     null => Propor.empty
                 };
 
-            private Score NewEmploymentScore(Person person)
+            private Score NewEmploymentScore(VirtualPerson person)
                 => Score.WeightedAverage
                 (
                     (weight: CurWorldConfig.personJobEnjoymentWeight, score: PersonScoreOfThis(person: person)),
-                    (weight: CurWorldConfig.personTalentWeight, score: person.talents[parameters.industryType]),
-                    (weight: CurWorldConfig.personSkillWeight, score: person.skills[parameters.industryType]),
+                    (weight: CurWorldConfig.personTalentWeight, score: person.Talents[parameters.industryType]),
+                    (weight: CurWorldConfig.personSkillWeight, score: person.Skills[parameters.industryType]),
                     (weight: CurWorldConfig.jobDesperationWeight, score: desperationScore),
                     (weight: CurWorldConfig.personToJobDistWeight, score: DistanceToHereAsRes(person: person))
                 );
 
-            private Score CurrentEmploymentScore(Person person)
+            private Score CurrentEmploymentScore(VirtualPerson person)
             {
                 if (!IsPersonQueuedOrHere(person: person))
                     throw new ArgumentException();
                 return Score.WeightedAverage
                     (
                         (weight: CurWorldConfig.personJobEnjoymentWeight, score: PersonScoreOfThis(person: person)),
-                        (weight: CurWorldConfig.personTalentWeight, score: person.talents[parameters.industryType]),
-                        (weight: CurWorldConfig.personSkillWeight, score: person.skills[parameters.industryType])
+                        (weight: CurWorldConfig.personTalentWeight, score: person.Talents[parameters.industryType]),
+                        (weight: CurWorldConfig.personSkillWeight, score: person.Skills[parameters.industryType])
                     );
             }
         }
-
-        public override IEnumerable<Person> PeopleHere
-            => employer.PeopleHere;
 
         protected Propor CurSkillPropor
             => employer.CurSkillPropor;
@@ -219,6 +217,9 @@ namespace Game1.Industries
 
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
         }
+
+        public override void UpdatePeople(RealPerson.UpdateParams updateParams)
+            => employer.UpdatePeople(updateParams: updateParams);
 
         // TODO: Compute this value only once per frame
         protected virtual BoolWithExplanationIfFalse IsBusy()

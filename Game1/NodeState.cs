@@ -1,4 +1,5 @@
 ﻿using Game1.Industries;
+using Game1.Inhabitants;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -14,8 +15,9 @@ namespace Game1
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
         public NodeID NodeID { get; }
 
-        // TODO: inlcude other objects with mass in this calculation, i.e. buildings, people, resources, etc.
+        // TODO: could include linkEndPoints mass in this
         public ulong Mass { get; private set; }
+        //=> planetMass + StoredResPile.TotalMass + waitingResAmountsPackets.TotalMass + (Industry?.Mass ?? 0);
         public ulong Area { get; private set; }
         public UDouble Radius { get; private set; }
         public ulong ApproxSurfaceLength { get; private set; }
@@ -27,13 +29,14 @@ namespace Game1
         public ulong MaxBatchDemResStored { get; }
         public ResPile StoredResPile { get; }
         public readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
-        public MySet<Person> WaitingPeople { get; }
+        public RealPeople WaitingPeople { get; }
         public BasicResInd ConsistsOfResInd { get; }
         public BasicRes ConsistsOfRes { get; }
         public bool TooManyResStored { get; set; }
         public UDouble WattsHittingSurfaceOrIndustry { get; set; }
 
         private readonly ResPile consistsOfResPile;
+        //private ulong planetMass;
 
         public NodeState(NodeID nodeID, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
@@ -52,14 +55,17 @@ namespace Game1
             WaitingPeople = new();
             TooManyResStored = false;
             WattsHittingSurfaceOrIndustry = 0;
+            Mass = MainResAmount * ConsistsOfRes.mass;
         }
+
+        public void Initialize(ulong startingNonPlanetMass)
+            => Mass += startingNonPlanetMass;
 
         public bool CanRemove(ulong resAmount)
             => MainResAmount >= resAmount + CurWorldConfig.minResAmountInPlanet;
 
         private void RecalculateValues()
         {
-            Mass = MainResAmount * ConsistsOfRes.mass;
             Area = MainResAmount * ConsistsOfRes.area;
             Radius = MyMathHelper.Sqrt(value: Area / MyMathHelper.pi);
             ApproxSurfaceLength = (ulong)(2 * MyMathHelper.pi * Radius);
@@ -91,5 +97,11 @@ namespace Game1
             ReservedResPile.TransferAll(reservedSource: ref reservedResPile, destin: consistsOfResPile);
             RecalculateValues();
         }
+
+        public void RegisterArriving(IHasMass hasMass)
+            => Mass += hasMass.Mass;
+
+        public void RegisterLeaving(IHasMass hasMass)
+            => Mass -= hasMass.Mass;
     }
 }

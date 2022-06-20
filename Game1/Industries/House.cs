@@ -1,4 +1,5 @@
-﻿using static Game1.WorldManager;
+﻿using Game1.Inhabitants;
+using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -57,9 +58,7 @@ namespace Game1.Industries
 
             public Housing(Params parameters)
                 : base(activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.maximal, state: parameters.state)
-            {
-                this.parameters = parameters;
-            }
+                => this.parameters = parameters;
 
             public override bool IsFull()
                 => false;
@@ -71,8 +70,8 @@ namespace Game1.Industries
                 // TODO: get rid of hard-coded constant
                 => Score.FromUnboundedUDouble(value: parameters.FloorSpace / peopleCount, valueGettingAverageScore: 10);
 
-            public override Score PersonScoreOfThis(Person person)
-                => Score.WightedAverageOfTwo
+            public override Score PersonScoreOfThis(VirtualPerson person)
+                => Score.WeightedAverageOfTwo
                 (
                     score1: (IsPersonHere(person: person) ? Score.highest : Score.lowest),
                     // TODO: get rid of hard-coded constants
@@ -85,29 +84,19 @@ namespace Game1.Industries
                     score1Propor: CurWorldConfig.personMomentumPropor
                 );
 
-            public override bool IsPersonSuitable(Person person)
+            public override bool IsPersonSuitable(VirtualPerson person)
                 // may disallow far travel
                 => true;
 
-            public override void UpdatePerson(Person person)
-            {
-                if (!IsPersonHere(person: person))
-                    throw new ArgumentException();
+            protected override void UpdatePerson(RealPerson person)
+                => IActivityCenter.UpdatePersonDefault(person: person);
 
-                IActivityCenter.UpdatePersonDefault(person: person);
-                // TODO calculate happiness
-                // may decrease person's skills
-            }
-
-            public override bool CanPersonLeave(Person person)
+            public override bool CanPersonLeave(VirtualPerson person)
                 => true;
 
             public string GetInfo()
                 => $"{peopleHere.Count} people live here\n{allPeople.Count - peopleHere.Count} people travel here\n";
         }
-
-        public override IEnumerable<Person> PeopleHere
-            => housing.PeopleHere;
 
         public override bool PeopleWorkOnTop
             => true;
@@ -120,6 +109,9 @@ namespace Game1.Industries
         private House(Params parameters, Building building)
             : base(parameters: parameters, building: building)
             => housing = new(parameters: parameters);
+
+        public override void UpdatePeople(RealPerson.UpdateParams updateParams)
+            => housing.UpdatePeople(updateParams: updateParams);
 
         public override ResAmounts TargetStoredResAmounts()
             => ResAmounts.Empty;

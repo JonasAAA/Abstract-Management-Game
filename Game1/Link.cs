@@ -1,4 +1,5 @@
 ﻿using Game1.Delegates;
+using Game1.Inhabitants;
 using Game1.Shapes;
 using Game1.UI;
 using System.Diagnostics.CodeAnalysis;
@@ -24,7 +25,7 @@ namespace Game1
             public IEvent<IDeletedListener> Deleted
                 => deleted;
 
-            public readonly Planet startNode, endNode;
+            public readonly ILinkFacingPlanet startNode, endNode;
             public UDouble JoulesPerKg
                 => (UDouble)timedPacketQueue.duration.TotalSeconds * reqWattsPerKg;
             public TimeSpan TravelTime
@@ -33,12 +34,12 @@ namespace Game1
             private readonly TimedPacketQueue timedPacketQueue;
             private readonly Propor minSafePropor;
             private ResAmountsPacketsByDestin waitingResAmountsPackets;
-            private readonly MySet<Person> waitingPeople;
+            private readonly RealPeople waitingPeople;
             private readonly UDouble reqWattsPerKg;
             private Propor energyPropor;
             private readonly Event<IDeletedListener> deleted;
 
-            public DirLink(Planet startNode, Planet endNode, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
+            public DirLink(ILinkFacingPlanet startNode, ILinkFacingPlanet endNode, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
             {
                 this.startNode = startNode;
                 this.endNode = endNode;
@@ -63,11 +64,11 @@ namespace Game1
             public void TransferAll([DisallowNull] ref ResAmountsPacket? resAmountsPacket)
                 => waitingResAmountsPackets.TransferAllFrom(sourcePacket: ref resAmountsPacket);
 
-            public void Add(IEnumerable<Person> people)
-                => waitingPeople.UnionWith(people);
+            public void TransferAll(RealPeople people)
+                => waitingPeople.TransferAllFrom(peopleSource: people);
 
-            public void Add(Person person)
-                => waitingPeople.Add(person);
+            public void TransferFrom(RealPeople peopleSource, RealPerson person)
+                => waitingPeople.TransferFrom(personSource: peopleSource, realPerson: person);
 
             public ulong GetTravellingAmount()
                 => CurWorldManager.Overlay.SwitchExpression
@@ -82,7 +83,7 @@ namespace Game1
             {
                 timedPacketQueue.Update(workingPropor: energyPropor);
                 var (resAmountsPackets, people) = timedPacketQueue.DonePacketsAndPeople();
-                endNode.Arrive(resAmountsPackets: resAmountsPackets);
+                endNode.Arrive(resAmountsPackets: ref resAmountsPackets);
                 endNode.Arrive(people: people);
 
                 if ((!waitingResAmountsPackets.Empty || waitingPeople.Count > 0)
@@ -90,14 +91,14 @@ namespace Game1
                 {
                     timedPacketQueue.Enqueue(resAmountsPackets: waitingResAmountsPackets, people: waitingPeople);
                     waitingResAmountsPackets = new();
-                    waitingPeople.Clear();
                 }
             }
 
             public void UpdatePeople()
             {
-                foreach (var person in waitingPeople.Concat(timedPacketQueue.People))
-                    person.Update(lastNodeID: startNode.NodeID, closestNodeID: endNode.NodeID);
+                RealPerson.UpdateParams personUpdateParams = new(LastNodeID: startNode.NodeID, ClosestNodeID: endNode.NodeID);
+                timedPacketQueue.UpdatePeople(updateParams: personUpdateParams, personalUpdate: null);
+                waitingPeople.Update(updateParams: personUpdateParams, personalUpdate: null);
             }
 
             public void DrawTravelingRes()
@@ -107,19 +108,19 @@ namespace Game1
                 (
                     singleResCase: resInd =>
                     {
-                        foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmountsPackets.ResAmounts[resInd]);
+                        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
+                            DrawDisk(complProp: complProp, size: resAmounts[resInd]);
                     },
                     allResCase: () =>
                     {
-                        foreach (var (complProp, (resAmountsPackets, _)) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmountsPackets.TotalMass);
+                        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
+                            DrawDisk(complProp: complProp, size: resAmounts.TotalMass());
                     },
                     powerCase: () => { },
                     peopleCase: () =>
                     {
-                        foreach (var (complProp, (_, people)) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: (UDouble)people.Count());
+                        foreach (var (complProp, _, peopleCount) in timedPacketQueue.GetData())
+                            DrawDisk(complProp: complProp, size: peopleCount);
                     }
                 );
 
@@ -142,14 +143,14 @@ namespace Game1
                 => startNode.NodeID;
 
             UDouble IEnergyConsumer.ReqWatts()
-                => timedPacketQueue.TotalMass * reqWattsPerKg;
+                => timedPacketQueue.Mass * reqWattsPerKg;
 
             void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
                 => this.energyPropor = energyPropor;
         }
 
         [Serializable]
-        private readonly record struct ShapeParams(Planet Node1, Planet Node2) : VectorShape.IParams
+        private readonly record struct ShapeParams(ILinkFacingPlanet Node1, ILinkFacingPlanet Node2) : VectorShape.IParams
         {
             public MyVector2 StartPos
                 => Node1.Position;
@@ -161,7 +162,7 @@ namespace Game1
                 => CurWorldConfig.linkWidth;
         }
 
-        public readonly Planet node1, node2;
+        public readonly ILinkFacingPlanet node1, node2;
         public UDouble JoulesPerKg
             => link1To2.JoulesPerKg;
         public TimeSpan TravelTime
@@ -171,7 +172,7 @@ namespace Game1
         private readonly MyArray<TextBox> resTextBoxes;
         private readonly TextBox allResTextBox, peopleTextBox;
 
-        public Link(Planet node1, Planet node2, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
+        public Link(ILinkFacingPlanet node1, ILinkFacingPlanet node2, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
             : base
             (
                 shape: new LineSegment
@@ -207,17 +208,17 @@ namespace Game1
             SetPopup(HUDElement: peopleTextBox, overlay: IOverlay.people);
         }
 
-        public Planet OtherNode(Planet node)
+        public ILinkFacingPlanet OtherNode(ILinkFacingPlanet node)
         {
             if (!Contains(node))
                 throw new ArgumentException();
             return node == node1 ? node2 : node1;
         }
 
-        public bool Contains(Planet node)
+        public bool Contains(ILinkFacingPlanet node)
             => node == node1 || node == node2;
 
-        private DirLink GetDirLink(Planet start)
+        private DirLink GetDirLink(ILinkFacingPlanet start)
         {
             if (start == node1)
                 return link1To2;
@@ -226,14 +227,14 @@ namespace Game1
             throw new ArgumentException();
         }
 
-        public void TransferAll(Planet start, [DisallowNull] ref ResAmountsPacket? resAmountsPacket)
+        public void TransferAll(ILinkFacingPlanet start, [DisallowNull] ref ResAmountsPacket? resAmountsPacket)
             => GetDirLink(start: start).TransferAll(resAmountsPacket: ref resAmountsPacket);
 
-        public void Add(Planet start, IEnumerable<Person> people)
-            => GetDirLink(start: start).Add(people: people);
+        public void TransferAll(ILinkFacingPlanet start, RealPeople people)
+            => GetDirLink(start: start).TransferAll(people: people);
 
-        public void Add(Planet start, Person person)
-            => GetDirLink(start: start).Add(person: person);
+        public void TransferFrom(ILinkFacingPlanet start, RealPeople peopleSource, RealPerson person)
+            => GetDirLink(start: start).TransferFrom(peopleSource: peopleSource, person: person);
 
         public void Update()
         {

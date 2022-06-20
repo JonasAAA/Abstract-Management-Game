@@ -1,4 +1,5 @@
 ﻿using Game1.Delegates;
+using Game1.Inhabitants;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
@@ -16,14 +17,12 @@ namespace Game1.Industries
 
         public EnergyPriority EnergyPriority { get; private set; }
 
-        public IEnumerable<Person> PeopleHere
-            => peopleHere;
-
-        protected readonly MySet<Person> peopleHere, allPeople;
+        protected readonly RealPeople peopleHere;
+        protected readonly VirtualPeople allPeople;
         protected readonly IIndustryFacingNodeState state;
 
         private readonly Event<IDeletedListener> deleted;
-        private readonly HashSet<Person> peopleInProcessOfRemoving;
+        private readonly VirtualPeople peopleInProcessOfRemoving;
 
         protected ActivityCenter(ActivityType activityType, EnergyPriority energyPriority, IIndustryFacingNodeState state)
         {
@@ -41,46 +40,57 @@ namespace Game1.Industries
 
         public abstract bool IsFull();
 
-        public abstract bool IsPersonSuitable(Person person);
+        public abstract bool IsPersonSuitable(VirtualPerson person);
 
-        public abstract Score PersonScoreOfThis(Person person);
+        public abstract Score PersonScoreOfThis(VirtualPerson person);
 
-        public void QueuePerson(Person person)
+        public void QueuePerson(VirtualPerson person)
             => allPeople.Add(person);
 
-        public virtual void TakePerson(Person person)
+        public virtual void TakePersonFrom(RealPeople personSource, RealPerson person)
         {
-            if (!allPeople.Contains(person))
+            if (!allPeople.Contains(person.asVirtual))
                 throw new ArgumentException();
-            peopleHere.Add(person);
+            peopleHere.TransferFrom(personSource: personSource, realPerson: person);
         }
 
-        public abstract void UpdatePerson(Person person);
+        public void UpdatePeople(RealPerson.UpdateParams updateParams)
+            => peopleHere.Update
+            (
+                updateParams: updateParams,
+                personalUpdate: realPerson => UpdatePerson(person: realPerson)
+            );
 
-        public bool IsPersonHere(Person person)
+        protected abstract void UpdatePerson(RealPerson person);
+
+        public bool IsPersonHere(VirtualPerson person)
             => peopleHere.Contains(person);
 
-        public bool IsPersonQueuedOrHere(Person person)
+        public bool IsPersonQueuedOrHere(VirtualPerson person)
             => allPeople.Contains(person);
 
-        public abstract bool CanPersonLeave(Person person);
+        public abstract bool CanPersonLeave(VirtualPerson person);
 
-        public void RemovePerson(Person person)
+        public void RemovePerson(VirtualPerson person, bool force = false)
         {
             if (peopleInProcessOfRemoving.Contains(person))
                 return;
             peopleInProcessOfRemoving.Add(person);
+            
+            if (!force && !CanPersonLeave(person: person))
+                throw new ArgumentException();
+
+            RemovePersonInternal(person: person, force: force);
 
             allPeople.Remove(person);
             person.LetGoFromActivityCenter();
-            if (IsPersonHere(person: person))
-            {
-                peopleHere.Remove(person);
-                state.WaitingPeople.Add(person);
-            }
+            state.WaitingPeople.TransferFromIfPossible(personSource: peopleHere, virtualPerson: person);
 
             peopleInProcessOfRemoving.Remove(person);
         }
+
+        protected virtual void RemovePersonInternal(VirtualPerson person, bool force)
+        { }
 
         public void Delete()
         {
@@ -93,14 +103,14 @@ namespace Game1.Industries
         /// <summary>
         /// Used this to calculate personal score
         /// </summary>
-        protected Score DistanceToHereAsPerson(Person person)
+        protected Score DistanceToHereAsPerson(VirtualPerson person)
             // TODO: get rid of hard-coded constant
             => Score.FromUnboundedUDouble(value: CurWorldManager.PersonDist(nodeID1: person.ClosestNodeID, nodeID2: NodeID), valueGettingAverageScore: 2).Opposite();
 
         /// <summary>
         /// Used this to calculate suitability of person
         /// </summary>
-        protected Score DistanceToHereAsRes(Person person)
+        protected Score DistanceToHereAsRes(VirtualPerson person)
             // TODO: get rid of hard-coded constant
             => Score.FromUnboundedUDouble(value: CurWorldManager.ResDist(nodeID1: person.ClosestNodeID, nodeID2: NodeID), valueGettingAverageScore: 2).Opposite();
     }

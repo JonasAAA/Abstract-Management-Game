@@ -1,4 +1,6 @@
-﻿namespace Game1.Industries
+﻿using Game1.Inhabitants;
+
+namespace Game1.Industries
 {
     public interface IIndustryFacingNodeState
     {
@@ -9,7 +11,7 @@
         public MyVector2 Position { get; }
         public ulong MaxBatchDemResStored { get; }
         public ResPile StoredResPile { get; }
-        public MySet<Person> WaitingPeople { get; }
+        public RealPeople WaitingPeople { get; }
         public BasicResInd ConsistsOfResInd { get; }
         public BasicRes ConsistsOfRes { get; }
         public bool TooManyResStored { get; }

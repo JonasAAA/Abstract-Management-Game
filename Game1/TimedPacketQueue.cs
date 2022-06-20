@@ -1,61 +1,73 @@
-﻿namespace Game1
+﻿using Game1.Inhabitants;
+
+namespace Game1
 {
     [Serializable]
-    public sealed class TimedPacketQueue : TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, IEnumerable<Person> people)>
+    public sealed class TimedPacketQueue : IHasMass
     {
-        public ulong PeopleCount
-            => people.Count;
-        public IEnumerable<Person> People
-            => people;
-
+        public int Count
+            => timedQueue.Count;
+        public ulong PeopleCount { get; private set; }
         public ResAmounts TotalResAmounts { get; private set; }
-        public ulong TotalMass { get; private set; }
+        public ulong Mass { get; private set; }
+        public readonly TimeSpan duration;
 
-        private readonly MySet<Person> people;
+        private readonly TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, RealPeople people)> timedQueue;
 
         public TimedPacketQueue(TimeSpan duration)
-            : base(duration: duration)
         {
             TotalResAmounts = ResAmounts.Empty;
-            TotalMass = 0;
-            people = new();
+            Mass = 0;
+            PeopleCount = 0;
+            this.duration = duration;
+            timedQueue = new(duration: duration);
         }
 
-        public override void Enqueue((ResAmountsPacketsByDestin resAmountsPackets, IEnumerable<Person> people) packets)
+        public void Update(Propor workingPropor)
+            => timedQueue.Update(workingPropor: workingPropor);
+
+        /// <param name="personalUpdate"> if null, will use default update</param>
+        public void UpdatePeople(RealPerson.UpdateParams updateParams, Action<RealPerson>? personalUpdate)
         {
-            var newPeople = packets.people.ToArray();
-            if (packets.resAmountsPackets.Empty && newPeople.Length is 0)
+            foreach (var (_, realPeople) in timedQueue)
+                realPeople.Update(updateParams: updateParams, personalUpdate: personalUpdate);
+        }
+
+        public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, RealPeople people)
+        {
+            resAmountsPackets = new(sourcePackets: resAmountsPackets);
+            people = new(peopleSource: people);
+            if (resAmountsPackets.Empty && people.Count is 0)
                 return;
-            people.UnionWith(newPeople);
-            base.Enqueue(element: (packets.resAmountsPackets, newPeople));
-            TotalResAmounts += packets.resAmountsPackets.ResAmounts;
-            TotalMass += packets.resAmountsPackets.TotalMass + newPeople.TotalMass();
+            timedQueue.Enqueue(element: (resAmountsPackets, people));
+            TotalResAmounts += resAmountsPackets.ResAmounts;
+            Mass += resAmountsPackets.Mass + people.Mass;
+            PeopleCount += people.Count;
         }
 
-        public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, IEnumerable<Person> people)
-            => Enqueue(packets: (resAmountsPackets, people));
-
-        public override IEnumerable<(ResAmountsPacketsByDestin resAmountsPackets, IEnumerable<Person> people)> DoneElements()
+        public IEnumerable<(Propor complPropor, ResAmounts resAmounts, ulong peopleCount)> GetData()
         {
-            var result = base.DoneElements().ToArray();
-            foreach (var (resAmountsPackets, people) in result)
-            {
-                TotalResAmounts -= resAmountsPackets.ResAmounts;
-                TotalMass -= resAmountsPackets.TotalMass + people.TotalMass();
-                this.people.ExceptWith(people);
-            }
-            return result;
+            foreach (var (complPropor, (resAmountsPackets, people)) in timedQueue.GetData())
+                yield return
+                (
+                    complPropor: complPropor,
+                    resAmounts: resAmountsPackets.ResAmounts,
+                    peopleCount: people.Count
+                );
         }
 
-        public (ResAmountsPacketsByDestin resAmountsPackets, MySet<Person> people) DonePacketsAndPeople()
+        public (ResAmountsPacketsByDestin resAmountsPackets, RealPeople people) DonePacketsAndPeople()
         {
             ResAmountsPacketsByDestin doneResAmountsPackets = new();
-            MySet<Person> donePeople = new();
-            foreach (var (resAmountsPackets, people) in DoneElements())
+            RealPeople donePeople = new();
+            foreach (var (resAmountsPackets, people) in timedQueue.DoneElements())
             {
-                var resAmountsPacketsCopy = resAmountsPackets;
-                doneResAmountsPackets.TransferAllFrom(sourcePackets: ref resAmountsPacketsCopy);
-                donePeople.UnionWith(people);
+                TotalResAmounts -= resAmountsPackets.ResAmounts;
+                Mass -= resAmountsPackets.Mass + people.Mass;
+                PeopleCount -= people.Count;
+
+                doneResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
+                donePeople.TransferAllFrom(peopleSource: people);
             }
             return
             (
@@ -63,5 +75,8 @@
                 people: donePeople
             );
         }
+
+        public Propor LastCompletionPropor()
+            => timedQueue.LastCompletionPropor();
     }
 }

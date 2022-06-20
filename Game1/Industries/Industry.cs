@@ -4,6 +4,7 @@ using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
+using Game1.Inhabitants;
 
 namespace Game1.Industries
 {
@@ -87,8 +88,6 @@ namespace Game1.Industries
         public IEvent<IDeletedListener> Deleted
             => deleted;
 
-        public abstract IEnumerable<Person> PeopleHere { get; }
-
         public ILightBlockingObject? LightBlockingObject
             => lightCatchingDisk.Radius.IsCloseTo(other: parameters.state.Radius) switch
             {
@@ -141,6 +140,8 @@ namespace Game1.Industries
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(Industry: this));
             UIPanel.AddChild(child: deleteButton);
         }
+
+        public abstract void UpdatePeople(RealPerson.UpdateParams updateParams);
 
         public abstract ResAmounts TargetStoredResAmounts();
 

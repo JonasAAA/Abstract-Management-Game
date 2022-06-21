@@ -216,7 +216,7 @@ namespace Game1.Inhabitants
 
             var bestActivityCenter = activityCenters.ArgMaxOrDefault(activityCenter => activityCenter.PersonScoreOfThis(person: asVirtual));
             if (bestActivityCenter is null)
-                throw new ArgumentException();
+                throw new ArgumentException("have no place to go");
             SetActivityCenter(newActivityCenter: bestActivityCenter);
             Debug.Assert(activityCenter is not null);
             return activityCenter;

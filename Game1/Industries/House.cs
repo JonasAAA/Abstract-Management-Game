@@ -118,6 +118,12 @@ namespace Game1.Industries
         protected override House InternalUpdate()
             => this;
 
+        protected override void Delete()
+        {
+            base.Delete();
+            housing.Delete();
+        }
+
         public override string GetInfo()
             => housing.GetInfo() + $"each person gets {housing.PersonalSpace():#.##} floor space\n";
     }

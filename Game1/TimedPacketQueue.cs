@@ -27,10 +27,10 @@ namespace Game1
             => timedQueue.Update(workingPropor: workingPropor);
 
         /// <param name="personalUpdate"> if null, will use default update</param>
-        public void UpdatePeople(RealPerson.UpdateParams updateParams, Action<RealPerson>? personalUpdate)
+        public void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams, Func<RealPerson, UpdatePersonSkillsParams?>? personalUpdate)
         {
             foreach (var (_, realPeople) in timedQueue)
-                realPeople.Update(updateParams: updateParams, personalUpdate: personalUpdate);
+                realPeople.Update(updateLocationParams: updateLocationParams, personalUpdateSkillsParams: personalUpdate);
         }
 
         public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)

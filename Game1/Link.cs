@@ -93,9 +93,9 @@ namespace Game1
 
             public void UpdatePeople()
             {
-                RealPerson.UpdateParams personUpdateParams = new(LastNodeID: startNode.NodeID, ClosestNodeID: endNode.NodeID);
-                timedPacketQueue.UpdatePeople(updateParams: personUpdateParams, personalUpdate: null);
-                waitingPeople.Update(updateParams: personUpdateParams, personalUpdate: null);
+                RealPerson.UpdateLocationParams personUpdateParams = new(LastNodeID: startNode.NodeID, ClosestNodeID: endNode.NodeID);
+                timedPacketQueue.UpdatePeople(updateLocationParams: personUpdateParams, personalUpdate: null);
+                waitingPeople.Update(updateLocationParams: personUpdateParams, personalUpdateSkillsParams: null);
             }
 
             public void DrawTravelingRes()

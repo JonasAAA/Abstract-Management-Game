@@ -7,12 +7,6 @@ namespace Game1
     /// </summary>
     public interface IActivityCenter : IPersonFacingActivityCenter, IDeletable
     {
-        public static void UpdatePersonDefault(RealPerson realPerson)
-        {
-            // TODO calculate happiness
-            // may decrease person's skills
-        }
-
         public bool IsFull();
 
         public bool IsPersonSuitable(VirtualPerson person);

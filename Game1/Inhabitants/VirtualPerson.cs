@@ -10,7 +10,7 @@ namespace Game1.Inhabitants
         public IReadOnlyDictionary<IndustryType, Score> Talents
             => realPerson.talents;
         public IReadOnlyDictionary<IndustryType, Score> Skills
-            => realPerson.skills;
+            => realPerson.Skills;
 
         public NodeID ClosestNodeID
             => realPerson.ClosestNodeID;

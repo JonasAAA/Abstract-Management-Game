@@ -1,4 +1,5 @@
-﻿using Game1.Delegates;
+﻿global using UpdatePersonSkillsParams = System.Collections.Generic.List<(Game1.Industries.IndustryType industryType, Game1.PrimitiveTypeWrappers.Score.ParamsOfChange paramsOfSkillChange)>;
+using Game1.Delegates;
 using Game1.Industries;
 using System.Diagnostics.CodeAnalysis;
 using static Game1.WorldManager;
@@ -13,7 +14,7 @@ namespace Game1.Inhabitants
     public sealed class RealPerson : IEnergyConsumer, IHasMass
     {
         [Serializable]
-        public readonly record struct UpdateParams(NodeID LastNodeID, NodeID ClosestNodeID);
+        public readonly record struct UpdateLocationParams(NodeID LastNodeID, NodeID ClosestNodeID);
 
         public static void GeneratePersonByMagic(NodeID nodeID, ReservedResPile resSource, RealPeople childDestin)
             => childDestin.AddByMagic
@@ -102,9 +103,10 @@ namespace Game1.Inhabitants
 
         public readonly VirtualPerson asVirtual;
 
-        public readonly ReadOnlyDictionary<IndustryType, Score> enjoyments;
-        public readonly ReadOnlyDictionary<IndustryType, Score> talents;
-        public readonly Dictionary<IndustryType, Score> skills;
+        public readonly IReadOnlyDictionary<IndustryType, Score> enjoyments;
+        public readonly IReadOnlyDictionary<IndustryType, Score> talents;
+        public IReadOnlyDictionary<IndustryType, Score> Skills
+            => skills;
 
         public NodeID? ActivityCenterNodeID
             => activityCenter?.NodeID;
@@ -126,6 +128,7 @@ namespace Game1.Inhabitants
         [MemberNotNullWhen(returnValue: true, member: nameof(activityCenter))]
         private bool IsInActivityCenter
             => activityCenter is not null && activityCenter.IsPersonHere(person: asVirtual);
+        private readonly Dictionary<IndustryType, Score> skills;
         /// <summary>
         /// is null if just been let go from activity center
         /// </summary>
@@ -140,9 +143,9 @@ namespace Game1.Inhabitants
         {
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
-            this.enjoyments = new(enjoyments);
-            this.talents = new(talents);
-            this.skills = new(skills);
+            this.enjoyments = enjoyments;
+            this.talents = talents;
+            this.skills = skills;
 
             activityCenter = null;
 
@@ -174,22 +177,27 @@ namespace Game1.Inhabitants
         public void Arrived(RealPeople realPersonSource)
             => (activityCenter ?? throw new InvalidOperationException()).TakePersonFrom(realPersonSource: realPersonSource, realPerson: this);
 
-        // TODO: could take list of required changes as parameter.
-        // This would make it so that the only way to change person is to call Update()
-        /// <param name="update">if null, will use default update</param>
-        public void Update(UpdateParams updateParams, Action? update)
+        /// <param name="updateSkillsParams">if null, will use default update</param>
+        public void Update(UpdateLocationParams updateLocationParams, UpdatePersonSkillsParams? updateSkillsParams)
         {
-            lastNodeID = updateParams.LastNodeID;
-            ClosestNodeID = updateParams.ClosestNodeID;
+            lastNodeID = updateLocationParams.LastNodeID;
+            ClosestNodeID = updateLocationParams.ClosestNodeID;
             if (IsInActivityCenter)
             {
                 lastActivityTimes[activityCenter.ActivityType] = CurWorldManager.CurTime;
                 timeSinceActivitySearch += CurWorldManager.Elapsed;
             }
-            if (update is null)
-                IActivityCenter.UpdatePersonDefault(realPerson: this);
-            else
-                update.Invoke();
+            if (updateSkillsParams is null)
+            {
+#warning implement default update
+                return;
+            }
+            foreach (var (industryType, paramsOfSkillChange) in updateSkillsParams)
+                skills[industryType] = Score.BringCloser
+                (
+                    current: Skills[industryType],
+                    paramsOfChange: paramsOfSkillChange
+                );
         }
 
         UDouble IEnergyConsumer.ReqWatts()

@@ -54,14 +54,14 @@ namespace Game1.Industries
             realPeopleHere.TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
         }
 
-        public void UpdatePeople(RealPerson.UpdateParams updateParams)
+        public void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams)
             => realPeopleHere.Update
             (
-                updateParams: updateParams,
-                personalUpdate: realPerson => UpdatePerson(realPerson: realPerson)
+                updateLocationParams: updateLocationParams,
+                personalUpdateSkillsParams: PersonUpdateParams
             );
 
-        protected abstract void UpdatePerson(RealPerson realPerson);
+        protected abstract UpdatePersonSkillsParams? PersonUpdateParams(RealPerson realPerson);
 
         public bool IsPersonHere(VirtualPerson person)
             => realPeopleHere.Contains(person);

@@ -141,7 +141,7 @@ namespace Game1.Industries
             UIPanel.AddChild(child: deleteButton);
         }
 
-        public abstract void UpdatePeople(RealPerson.UpdateParams updateParams);
+        public abstract void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams);
 
         public abstract ResAmounts TargetStoredResAmounts();
 

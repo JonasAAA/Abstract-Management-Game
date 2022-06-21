@@ -3,6 +3,26 @@
     [Serializable]
     public readonly struct Score : IClose<Score>, IComparable<Score>, IPrimitiveTypeWrapper
     {
+        [Serializable]
+        public readonly struct ParamsOfChange
+        {
+            public readonly Score target;
+            public readonly TimeSpan elapsed, halvingDifferenceDuration;
+
+            public ParamsOfChange(Score target, TimeSpan elapsed, TimeSpan halvingDifferenceDuration)
+            {
+                this.target = target;
+
+                if (elapsed < TimeSpan.Zero)
+                    throw new ArgumentOutOfRangeException();
+                this.elapsed = elapsed;
+
+                if (halvingDifferenceDuration <= TimeSpan.Zero)
+                    throw new ArgumentOutOfRangeException();
+                this.halvingDifferenceDuration = halvingDifferenceDuration;
+            }
+        }
+
         public static readonly Score highest = new(value: 1);
         public static readonly Score lowest = new(value: 0);
 
@@ -56,21 +76,16 @@
             );
 
         // Assuming target is constant, this method is frame-rate independent
-        public static Score BringCloser(Score current, Score target, TimeSpan elapsed, TimeSpan halvingDifferenceDuration)
+        public static Score BringCloser(Score current, ParamsOfChange paramsOfChange)
         {
-            if (elapsed < TimeSpan.Zero)
-                throw new ArgumentOutOfRangeException();
-            if (halvingDifferenceDuration <= TimeSpan.Zero)
-                throw new ArgumentOutOfRangeException();
-
-            if (elapsed == TimeSpan.Zero)
+            if (paramsOfChange.elapsed == TimeSpan.Zero)
                 return current;
 
             return WeightedAverageOfTwo
             (
                 score1: current,
-                score2: target,
-                score1Propor: MyMathHelper.Pow(@base: (Propor).5, exponent: (UDouble)(elapsed / halvingDifferenceDuration))
+                score2: paramsOfChange.target,
+                score1Propor: MyMathHelper.Pow(@base: (Propor).5, exponent: (UDouble)(paramsOfChange.elapsed / paramsOfChange.halvingDifferenceDuration))
             );
         }
 

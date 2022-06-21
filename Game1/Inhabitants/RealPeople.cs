@@ -43,16 +43,16 @@ namespace Game1.Inhabitants
                 personalAction(person);
         }
 
-        /// <param name="personalUpdate">if null, will use default update</param>
-        public void Update(RealPerson.UpdateParams updateParams, Action<RealPerson>? personalUpdate)
+        /// <param name="personalUpdateSkillsParams">if null, will use default update</param>
+        public void Update(RealPerson.UpdateLocationParams updateLocationParams, Func<RealPerson, UpdatePersonSkillsParams?>? personalUpdateSkillsParams)
         {
-            personalUpdate ??= realPerson => IActivityCenter.UpdatePersonDefault(realPerson: realPerson);
+            personalUpdateSkillsParams ??= realPerson => null;
             foreach (var realPerson in virtualToRealPeople.Values)
-                realPerson.Update(updateParams: updateParams, update: () => personalUpdate(realPerson));
+                realPerson.Update(updateLocationParams: updateLocationParams, updateSkillsParams: personalUpdateSkillsParams(realPerson));
         }
 
         public UDouble TotalSkill(IndustryType industryType)
-            => virtualToRealPeople.Values.Sum(realPerson => (UDouble)realPerson.skills[industryType]);
+            => virtualToRealPeople.Values.Sum(realPerson => (UDouble)realPerson.Skills[industryType]);
 
         public bool Contains(VirtualPerson person)
             => virtualToRealPeople.ContainsKey(person);

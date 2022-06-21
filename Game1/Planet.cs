@@ -392,9 +392,9 @@ namespace Game1
 
         public void UpdatePeople()
         {
-            RealPerson.UpdateParams personUpdateParams = new(LastNodeID: NodeID, ClosestNodeID: NodeID);
-            Industry?.UpdatePeople(updateParams: personUpdateParams);
-            state.WaitingPeople.Update(updateParams: personUpdateParams, personalUpdate: null);
+            RealPerson.UpdateLocationParams personUpdateParams = new(LastNodeID: NodeID, ClosestNodeID: NodeID);
+            Industry?.UpdatePeople(updateLocationParams: personUpdateParams);
+            state.WaitingPeople.Update(updateLocationParams: personUpdateParams, personalUpdateSkillsParams: null);
         }
 
         public void StartSplitRes()

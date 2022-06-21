@@ -113,8 +113,8 @@ namespace Game1.Industries
                 unpairedPeople.Enqueue(element: realPerson.asVirtual);
             }
 
-            protected override void UpdatePerson(RealPerson realPerson)
-                => IActivityCenter.UpdatePersonDefault(realPerson: realPerson);
+            protected override UpdatePersonSkillsParams? PersonUpdateParams(RealPerson realPerson)
+                => null;
 
             public override bool CanPersonLeave(VirtualPerson person)
                 // a person can't leave while in the process of having a child
@@ -146,11 +146,11 @@ namespace Game1.Industries
             birthQueue = new(duration: parameters.birthDuration);
         }
 
-        public override void UpdatePeople(RealPerson.UpdateParams updateParams)
+        public override void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams)
         {
-            base.UpdatePeople(updateParams: updateParams);
+            base.UpdatePeople(updateLocationParams: updateLocationParams);
 
-            reprodCenter.UpdatePeople(updateParams: updateParams);
+            reprodCenter.UpdatePeople(updateLocationParams: updateLocationParams);
         }
 
         public override ResAmounts TargetStoredResAmounts()

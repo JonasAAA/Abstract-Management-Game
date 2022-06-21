@@ -105,16 +105,19 @@ namespace Game1.Industries
                 desperationScore = Score.BringCloser
                 (
                     current: desperationScore,
-                    target: IsFull() ? Score.lowest : Score.WeightedAverageOfTwo
+                    paramsOfChange: new
                     (
-                        score1: (Score)OpenSpacePropor(),
-                        score2: Score.highest,
+                        target: IsFull() ? Score.lowest : Score.WeightedAverageOfTwo
+                        (
+                            score1: (Score)OpenSpacePropor(),
+                            score2: Score.highest,
+                            // TODO: get rid of hard-coded constant
+                            score1Propor: (Propor).5
+                        ),
+                        elapsed: CurWorldManager.Elapsed,
                         // TODO: get rid of hard-coded constant
-                        score1Propor: (Propor).5
-                    ),
-                    elapsed: CurWorldManager.Elapsed,
-                    // TODO: get rid of hard-coded constant
-                    halvingDifferenceDuration: TimeSpan.FromSeconds(20)
+                        halvingDifferenceDuration: TimeSpan.FromSeconds(20)
+                    )
                 );
             }
 
@@ -147,15 +150,20 @@ namespace Game1.Industries
                 return NewEmploymentScore(person: person) >= CurWorldConfig.minAcceptablePersonScore;
             }
 
-            protected override void UpdatePerson(RealPerson realPerson)
-                => realPerson.skills[parameters.industryType] = Score.BringCloser
-                (
-                    current: realPerson.skills[parameters.industryType],
-                    target: Score.highest,
-                    elapsed: isBusy ? CurWorldManager.Elapsed * workingPropor : TimeSpan.Zero,
-                    // TODO: get rid of hard-coded constant
-                    halvingDifferenceDuration: TimeSpan.FromSeconds(20)
-                );
+            protected override UpdatePersonSkillsParams PersonUpdateParams(RealPerson realPerson)
+                => new()
+                {
+                    (
+                        industryType: parameters.industryType,
+                        paramsOfSkillChange: new Score.ParamsOfChange
+                        (
+                            target: Score.highest,
+                            elapsed: isBusy ? CurWorldManager.Elapsed * workingPropor : TimeSpan.Zero,
+                            // TODO: get rid of hard-coded constant
+                            halvingDifferenceDuration: TimeSpan.FromSeconds(20)
+                        )
+                    )
+                };
 
             public override bool CanPersonLeave(VirtualPerson person)
                 => true;
@@ -218,8 +226,8 @@ namespace Game1.Industries
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
         }
 
-        public override void UpdatePeople(RealPerson.UpdateParams updateParams)
-            => employer.UpdatePeople(updateParams: updateParams);
+        public override void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams)
+            => employer.UpdatePeople(updateLocationParams: updateLocationParams);
 
         // TODO: Compute this value only once per frame
         protected virtual BoolWithExplanationIfFalse IsBusy()

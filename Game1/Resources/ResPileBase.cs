@@ -44,7 +44,7 @@
         protected static void Transfer(ResPileBase source, ResPileBase destin, ResAmount resAmount)
             => Transfer(source: source, destin: destin, resAmounts: new(resAmount: resAmount));
 
-        protected static void TransferAll(ResPileBase source, ResPileBase destin)
+        protected static void TransferAllFrom(ResPileBase source, ResPileBase destin)
             => Transfer(source: source, destin: destin, resAmounts: source.ResAmounts);
 
         protected void Transform(ResRecipe recipe)

@@ -20,10 +20,7 @@ namespace Game1
 
         public bool IsPersonHere(VirtualPerson person);
 
-        public void TakePersonFrom(RealPeople personSource, RealPerson person);
-
-        // TODO: delete
-        //public void UpdatePerson(RealPerson person);
+        public void TakePersonFrom(RealPeople realPersonSource, RealPerson realPerson);
 
         public bool CanPersonLeave(VirtualPerson person);
 

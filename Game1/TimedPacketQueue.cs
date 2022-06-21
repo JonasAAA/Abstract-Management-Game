@@ -12,7 +12,7 @@ namespace Game1
         public ulong Mass { get; private set; }
         public readonly TimeSpan duration;
 
-        private readonly TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, RealPeople people)> timedQueue;
+        private readonly TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)> timedQueue;
 
         public TimedPacketQueue(TimeSpan duration)
         {
@@ -33,16 +33,16 @@ namespace Game1
                 realPeople.Update(updateParams: updateParams, personalUpdate: personalUpdate);
         }
 
-        public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, RealPeople people)
+        public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)
         {
             resAmountsPackets = ResAmountsPacketsByDestin.CreateFromSource(sourcePackets: resAmountsPackets);
-            people = RealPeople.CreateFromSource(peopleSource: people);
-            if (resAmountsPackets.Empty && people.Count is 0)
+            realPeople = RealPeople.CreateFromSource(realPeopleSource: realPeople);
+            if (resAmountsPackets.Empty && realPeople.Count is 0)
                 return;
-            timedQueue.Enqueue(element: (resAmountsPackets, people));
+            timedQueue.Enqueue(element: (resAmountsPackets, realPeople));
             TotalResAmounts += resAmountsPackets.ResAmounts;
-            Mass += resAmountsPackets.Mass + people.Mass;
-            PeopleCount += people.Count;
+            Mass += resAmountsPackets.Mass + realPeople.Mass;
+            PeopleCount += realPeople.Count;
         }
 
         public IEnumerable<(Propor complPropor, ResAmounts resAmounts, ulong peopleCount)> GetData()
@@ -56,7 +56,7 @@ namespace Game1
                 );
         }
 
-        public (ResAmountsPacketsByDestin resAmountsPackets, RealPeople people) DonePacketsAndPeople()
+        public (ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople) DonePacketsAndPeople()
         {
             var doneResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty();
             var donePeople = RealPeople.CreateEmpty();
@@ -67,12 +67,12 @@ namespace Game1
                 PeopleCount -= people.Count;
 
                 doneResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
-                donePeople.TransferAllFrom(peopleSource: people);
+                donePeople.TransferAllFrom(realPeopleSource: people);
             }
             return
             (
                 resAmountsPackets: doneResAmountsPackets,
-                people: donePeople
+                realPeople: donePeople
             );
         }
 

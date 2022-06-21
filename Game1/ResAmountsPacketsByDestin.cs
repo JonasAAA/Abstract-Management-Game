@@ -53,7 +53,7 @@ namespace Game1
 
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination);
-            ReservedResPile.TransferAll(reservedSource: ref source, destin: resAmountsPacketsByDestin[destination].resPile);
+            ReservedResPile.TransferAllFrom(reservedSource: ref source, destin: resAmountsPacketsByDestin[destination].resPile);
         }
 
         public ResPile ReturnAndRemove(NodeID destination)

@@ -64,7 +64,7 @@ namespace Game1.Industries
                 => false;
 
             public Score PersonalSpace()
-                => PersonalSpace(peopleCount: peopleHere.Count);
+                => PersonalSpace(peopleCount: realPeopleHere.Count);
 
             private Score PersonalSpace(ulong peopleCount)
                 // TODO: get rid of hard-coded constant
@@ -88,14 +88,14 @@ namespace Game1.Industries
                 // may disallow far travel
                 => true;
 
-            protected override void UpdatePerson(RealPerson person)
-                => IActivityCenter.UpdatePersonDefault(person: person);
+            protected override void UpdatePerson(RealPerson realPerson)
+                => IActivityCenter.UpdatePersonDefault(realPerson: realPerson);
 
             public override bool CanPersonLeave(VirtualPerson person)
                 => true;
 
             public string GetInfo()
-                => $"{peopleHere.Count} people live here\n{allPeople.Count - peopleHere.Count} people travel here\n";
+                => $"{realPeopleHere.Count} people live here\n{allPeople.Count - realPeopleHere.Count} people travel here\n";
         }
 
         public override bool PeopleWorkOnTop

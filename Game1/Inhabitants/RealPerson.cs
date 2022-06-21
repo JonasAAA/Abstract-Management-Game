@@ -15,8 +15,8 @@ namespace Game1.Inhabitants
         [Serializable]
         public readonly record struct UpdateParams(NodeID LastNodeID, NodeID ClosestNodeID);
 
-        public static void GeneratePersonByMagic(NodeID nodeID, ReservedResPile resSource, RealPeople personDestin)
-            => personDestin.AddByMagic
+        public static void GeneratePersonByMagic(NodeID nodeID, ReservedResPile resSource, RealPeople childDestin)
+            => childDestin.AddByMagic
             (
                 realPerson: new
                 (
@@ -45,7 +45,7 @@ namespace Game1.Inhabitants
 
         public static void GenerateChild(VirtualPerson parent1, VirtualPerson parent2, NodeID nodeID, ReservedResPile resSource, RealPeople parentSource, RealPeople childDestin)
         {
-            if (!parentSource.Contains(virtualPerson: parent1) || !parentSource.Contains(virtualPerson: parent2))
+            if (!parentSource.Contains(person: parent1) || !parentSource.Contains(person: parent2))
                 throw new ArgumentException();
             childDestin.AddByMagic
             (
@@ -168,11 +168,11 @@ namespace Game1.Inhabitants
             deleted = new();
 
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
-            CurWorldManager.AddPerson(person: this);
+            CurWorldManager.AddPerson(realPerson: this);
         }
 
-        public void Arrived(RealPeople personSource)
-            => (activityCenter ?? throw new InvalidOperationException()).TakePersonFrom(personSource: personSource, person: this);
+        public void Arrived(RealPeople realPersonSource)
+            => (activityCenter ?? throw new InvalidOperationException()).TakePersonFrom(realPersonSource: realPersonSource, realPerson: this);
 
         // TODO: could take list of required changes as parameter.
         // This would make it so that the only way to change person is to call Update()
@@ -187,7 +187,7 @@ namespace Game1.Inhabitants
                 timeSinceActivitySearch += CurWorldManager.Elapsed;
             }
             if (update is null)
-                IActivityCenter.UpdatePersonDefault(person: this);
+                IActivityCenter.UpdatePersonDefault(realPerson: this);
             else
                 update.Invoke();
         }

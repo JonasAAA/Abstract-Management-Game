@@ -296,7 +296,7 @@ namespace Game1
                     (
                         nodeID: NodeID,
                         resSource: ReservedResPile.CreateIfHaveEnough(source: resSource, resAmounts: RealPerson.resAmountsPerPerson)!,
-                        personDestin: state.WaitingPeople
+                        childDestin: state.WaitingPeople
                     );
                 }
                 startingNonPlanetMass += state.WaitingPeople.Mass;
@@ -379,9 +379,9 @@ namespace Game1
                     if (activityCenterPosition is null)
                         return;
                     if (activityCenterPosition == NodeID)
-                        realPerson.Arrived(personSource: state.WaitingPeople);
+                        realPerson.Arrived(realPersonSource: state.WaitingPeople);
                     else
-                        personFirstLinks[(NodeID, activityCenterPosition)]!.TransferFrom(start: this, peopleSource: state.WaitingPeople, person: realPerson);
+                        personFirstLinks[(NodeID, activityCenterPosition)]!.TransferFrom(start: this, realPersonSource: state.WaitingPeople, realPerson: realPerson);
                 }
             );
 
@@ -432,7 +432,7 @@ namespace Game1
                 {
                     var unsplitResPile = ReservedResPile.CreateIfHaveEnough(source: undecidedResPile, resAmount: new(resInd: resInd, amount: unsplitResAmount));
                     Debug.Assert(unsplitResPile is not null);
-                    ReservedResPile.TransferAll
+                    ReservedResPile.TransferAllFrom
                     (
                         reservedSource: ref unsplitResPile,
                         destin: state.StoredResPile
@@ -469,7 +469,7 @@ namespace Game1
                 //deal with mass here
                 //and in general, when stuff is added to planet/link, the function could take the source of the stuff to ensure that stuff actually leaves one
                 //place and goes to the other
-                resFirstLinks[(NodeID, destinationId)]!.TransferAll(start: this, resAmountsPacket: resAmountsPacket);
+                resFirstLinks[(NodeID, destinationId)]!.TransferAllFrom(start: this, resAmountsPacket: resAmountsPacket);
             }
 
             state.TooManyResStored = !(state.StoredResPile.ResAmounts <= targetStoredResAmounts);
@@ -560,18 +560,18 @@ namespace Game1
             state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
         }
 
-        void ILinkFacingPlanet.Arrive(RealPeople people)
+        void ILinkFacingPlanet.Arrive(RealPeople realPeople)
         {
-            if (people.Count is 0)
+            if (realPeople.Count is 0)
                 return;
-            state.RegisterArriving(hasMass: people);
-            state.WaitingPeople.TransferAllFrom(peopleSource: people);
+            state.RegisterArriving(hasMass: realPeople);
+            state.WaitingPeople.TransferAllFrom(realPeopleSource: realPeople);
         }
 
-        void ILinkFacingPlanet.Arrive(RealPerson person, RealPeople personSource)
+        void ILinkFacingPlanet.Arrive(RealPerson realPerson, RealPeople realPersonSource)
         {
-            state.RegisterArriving(hasMass: person);
-            state.WaitingPeople.TransferFrom(realPerson: person, personSource: personSource);
+            state.RegisterArriving(hasMass: realPerson);
+            state.WaitingPeople.TransferFrom(realPerson: realPerson, realPersonSource: realPersonSource);
         }
 
         UDouble INodeAsLocalEnergyProducer.LocallyProducedWatts

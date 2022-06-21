@@ -24,13 +24,13 @@ namespace Game1
         //    Arrive(resAmountsPackets: resAmountsPackets);
         //}
 
-        //public sealed void TransferFrom(Link link, RealPeople people)
+        //public sealed void TransferFrom(Link link, RealPeople realPeople)
         //{
         //    TransferFrom(link: link, hasMass: people);
         //    Arrive(people: people);
         //}
 
-        //public sealed void TransferFrom(Link link, RealPerson person)
+        //public sealed void TransferFrom(Link link, RealPerson realPerson)
         //{
         //    TransferFrom(link: link, hasMass: person);
         //    Arrive(person: person);
@@ -38,9 +38,9 @@ namespace Game1
 
         public void Arrive(ResAmountsPacketsByDestin resAmountsPackets);
 
-        public void Arrive(RealPeople people);
+        public void Arrive(RealPeople realPeople);
 
-        public void Arrive(RealPerson person, RealPeople personSource);
+        public void Arrive(RealPerson realPerson, RealPeople realPersonSource);
 
         // TODO: continue implementing these
         //private void TransferFrom(Link link, IHasMass hasMass)

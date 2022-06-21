@@ -9,10 +9,10 @@ namespace Game1.Inhabitants
         public static RealPeople CreateEmpty()
             => new();
 
-        public static RealPeople CreateFromSource(RealPeople peopleSource)
+        public static RealPeople CreateFromSource(RealPeople realPeopleSource)
         {
             RealPeople newRealPeople = new();
-            newRealPeople.TransferAllFrom(peopleSource: peopleSource);
+            newRealPeople.TransferAllFrom(realPeopleSource: realPeopleSource);
             return newRealPeople;
         }
 
@@ -46,7 +46,7 @@ namespace Game1.Inhabitants
         /// <param name="personalUpdate">if null, will use default update</param>
         public void Update(RealPerson.UpdateParams updateParams, Action<RealPerson>? personalUpdate)
         {
-            personalUpdate ??= realPerson => IActivityCenter.UpdatePersonDefault(person: realPerson);
+            personalUpdate ??= realPerson => IActivityCenter.UpdatePersonDefault(realPerson: realPerson);
             foreach (var realPerson in virtualToRealPeople.Values)
                 realPerson.Update(updateParams: updateParams, update: () => personalUpdate(realPerson));
         }
@@ -54,26 +54,26 @@ namespace Game1.Inhabitants
         public UDouble TotalSkill(IndustryType industryType)
             => virtualToRealPeople.Values.Sum(realPerson => (UDouble)realPerson.skills[industryType]);
 
-        public bool Contains(VirtualPerson virtualPerson)
-            => virtualToRealPeople.ContainsKey(virtualPerson);
+        public bool Contains(VirtualPerson person)
+            => virtualToRealPeople.ContainsKey(person);
 
-        public void TransferFromIfPossible(RealPeople personSource, VirtualPerson virtualPerson)
+        public void TransferFromIfPossible(RealPeople realPersonSource, VirtualPerson person)
         {
-            if (personSource.Remove(virtualPerson: virtualPerson, out RealPerson? realPerson))
+            if (realPersonSource.Remove(person: person, out RealPerson? realPerson))
                 Add(realPerson: realPerson);
         }
 
-        public void TransferFrom(RealPeople personSource, RealPerson realPerson)
+        public void TransferFrom(RealPeople realPersonSource, RealPerson realPerson)
         {
-            if (!personSource.Remove(virtualPerson: realPerson.asVirtual))
+            if (!realPersonSource.Remove(person: realPerson.asVirtual))
                 throw new ArgumentException();
             Add(realPerson: realPerson);
         }
 
-        public void TransferAllFrom(RealPeople peopleSource)
+        public void TransferAllFrom(RealPeople realPeopleSource)
         {
-            foreach (var realPerson in peopleSource.virtualToRealPeople.Values)
-                TransferFrom(personSource: peopleSource, realPerson: realPerson);
+            foreach (var realPerson in realPeopleSource.virtualToRealPeople.Values)
+                TransferFrom(realPersonSource: realPeopleSource, realPerson: realPerson);
         }
 
         private void Add(RealPerson realPerson)
@@ -82,9 +82,9 @@ namespace Game1.Inhabitants
             virtualToRealPeople.Add(key: realPerson.asVirtual, value: realPerson);
         }
 
-        private bool Remove(VirtualPerson virtualPerson, [NotNullWhen(true)] out RealPerson? realPerson)
+        private bool Remove(VirtualPerson person, [NotNullWhen(true)] out RealPerson? realPerson)
         {
-            if (virtualToRealPeople.Remove(key: virtualPerson, value: out realPerson))
+            if (virtualToRealPeople.Remove(key: person, value: out realPerson))
             {
                 Mass -= realPerson.Mass;
                 return true;
@@ -92,8 +92,8 @@ namespace Game1.Inhabitants
             return false;
         }
 
-        private bool Remove(VirtualPerson virtualPerson)
-            => Remove(virtualPerson: virtualPerson, realPerson: out RealPerson? _);
+        private bool Remove(VirtualPerson person)
+            => Remove(person: person, realPerson: out RealPerson? _);
 
 #if DEBUG
         ~RealPeople()

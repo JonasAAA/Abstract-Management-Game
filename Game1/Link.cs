@@ -61,14 +61,14 @@ namespace Game1
                 CurWorldManager.AddEnergyConsumer(energyConsumer: this);
             }
 
-            public void TransferAll(ResAmountsPacket resAmountsPacket)
+            public void TransferAllFrom(ResAmountsPacket resAmountsPacket)
                 => waitingResAmountsPackets.TransferAllFrom(sourcePacket: resAmountsPacket);
 
-            public void TransferAll(RealPeople people)
-                => waitingPeople.TransferAllFrom(peopleSource: people);
+            public void TransferAllFrom(RealPeople realPeople)
+                => waitingPeople.TransferAllFrom(realPeopleSource: realPeople);
 
-            public void TransferFrom(RealPeople peopleSource, RealPerson person)
-                => waitingPeople.TransferFrom(personSource: peopleSource, realPerson: person);
+            public void TransferFrom(RealPeople realPersonSource, RealPerson realPerson)
+                => waitingPeople.TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
 
             public ulong GetTravellingAmount()
                 => CurWorldManager.Overlay.SwitchExpression
@@ -84,11 +84,11 @@ namespace Game1
                 timedPacketQueue.Update(workingPropor: energyPropor);
                 var (resAmountsPackets, people) = timedPacketQueue.DonePacketsAndPeople();
                 endNode.Arrive(resAmountsPackets: resAmountsPackets);
-                endNode.Arrive(people: people);
+                endNode.Arrive(realPeople: people);
 
                 if ((!waitingResAmountsPackets.Empty || waitingPeople.Count > 0)
                     && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionPropor() >= minSafePropor))
-                    timedPacketQueue.Enqueue(resAmountsPackets: waitingResAmountsPackets, people: waitingPeople);
+                    timedPacketQueue.Enqueue(resAmountsPackets: waitingResAmountsPackets, realPeople: waitingPeople);
             }
 
             public void UpdatePeople()
@@ -224,14 +224,14 @@ namespace Game1
             throw new ArgumentException();
         }
 
-        public void TransferAll(ILinkFacingPlanet start, ResAmountsPacket resAmountsPacket)
-            => GetDirLink(start: start).TransferAll(resAmountsPacket: resAmountsPacket);
+        public void TransferAllFrom(ILinkFacingPlanet start, ResAmountsPacket resAmountsPacket)
+            => GetDirLink(start: start).TransferAllFrom(resAmountsPacket: resAmountsPacket);
 
-        public void TransferAll(ILinkFacingPlanet start, RealPeople people)
-            => GetDirLink(start: start).TransferAll(people: people);
+        public void TransferAllFrom(ILinkFacingPlanet start, RealPeople realPeople)
+            => GetDirLink(start: start).TransferAllFrom(realPeople: realPeople);
 
-        public void TransferFrom(ILinkFacingPlanet start, RealPeople peopleSource, RealPerson person)
-            => GetDirLink(start: start).TransferFrom(peopleSource: peopleSource, person: person);
+        public void TransferFrom(ILinkFacingPlanet start, RealPeople realPersonSource, RealPerson realPerson)
+            => GetDirLink(start: start).TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
 
         public void Update()
         {

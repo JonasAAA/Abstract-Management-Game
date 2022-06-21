@@ -72,8 +72,8 @@ namespace Game1.Industries
         [Serializable]
         private sealed class ReprodCenter : ActivityCenter
         {
-            public RealPeople PeopleHere
-                => peopleHere;
+            public RealPeople RealPeopleHere
+                => realPeopleHere;
             public readonly UniqueQueue<VirtualPerson> unpairedPeople;
 
             private readonly Params parameters;
@@ -107,24 +107,24 @@ namespace Game1.Industries
                     (weight: 1, score: DistanceToHereAsPerson(person: person))
                 );
 
-            public override void TakePersonFrom(RealPeople peopleSource, RealPerson person)
+            public override void TakePersonFrom(RealPeople realPersonSource, RealPerson realPerson)
             {
-                base.TakePersonFrom(personSource: peopleSource, person: person);
-                unpairedPeople.Enqueue(element: person.asVirtual);
+                base.TakePersonFrom(realPersonSource: realPersonSource, realPerson: realPerson);
+                unpairedPeople.Enqueue(element: realPerson.asVirtual);
             }
 
-            protected override void UpdatePerson(RealPerson person)
-                => IActivityCenter.UpdatePersonDefault(person: person);
+            protected override void UpdatePerson(RealPerson realPerson)
+                => IActivityCenter.UpdatePersonDefault(realPerson: realPerson);
 
             public override bool CanPersonLeave(VirtualPerson person)
                 // a person can't leave while in the process of having a child
-                => !peopleHere.Contains(virtualPerson: person) || unpairedPeople.Contains(element: person);
+                => !realPeopleHere.Contains(person: person) || unpairedPeople.Contains(element: person);
 
             protected override void RemovePersonInternal(VirtualPerson person, bool force)
                 => unpairedPeople.TryRemove(element: person);
 
             public string GetInfo()
-                => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - peopleHere.Count} people travelling here\n";
+                => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - realPeopleHere.Count} people travelling here\n";
         }
 
         public override bool PeopleWorkOnTop
@@ -175,7 +175,7 @@ namespace Game1.Industries
                     parent1: parent1,
                     parent2: parent2,
                     resSource: childResPile,
-                    parentSource: reprodCenter.PeopleHere,
+                    parentSource: reprodCenter.RealPeopleHere,
                     childDestin: parameters.state.WaitingPeople
                 );
 

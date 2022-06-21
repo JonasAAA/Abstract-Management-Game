@@ -15,7 +15,7 @@ namespace Game1.Resources
         public static void TransformAndTransferAll([DisallowNull] ref IngredientsResPile? ingredients, ResPile destin)
         {
             ingredients.Transform(recipe: ingredients.recipe);
-            TransferAll(source: ingredients, destin: destin);
+            TransferAllFrom(source: ingredients, destin: destin);
             ingredients = null;
         }
 

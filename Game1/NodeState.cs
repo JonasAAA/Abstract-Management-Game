@@ -81,7 +81,7 @@ namespace Game1
                 resAmount: new(resInd: ConsistsOfResInd, amount: resAmount)
             );
             Debug.Assert(reservedResPile is not null);
-            ReservedResPile.TransferAll(reservedSource: ref reservedResPile, destin: destin);
+            ReservedResPile.TransferAllFrom(reservedSource: ref reservedResPile, destin: destin);
             RecalculateValues();
         }
 
@@ -94,7 +94,7 @@ namespace Game1
             );
             if (reservedResPile is null)
                 throw new ArgumentException();
-            ReservedResPile.TransferAll(reservedSource: ref reservedResPile, destin: consistsOfResPile);
+            ReservedResPile.TransferAllFrom(reservedSource: ref reservedResPile, destin: consistsOfResPile);
             RecalculateValues();
         }
 

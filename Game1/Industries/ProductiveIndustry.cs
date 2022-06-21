@@ -120,7 +120,7 @@ namespace Game1.Industries
 
             public void EndUpdate()
             {
-                curUnboundedSkillPropor = peopleHere.TotalSkill(industryType: parameters.industryType) / parameters.ReqSkill;
+                curUnboundedSkillPropor = realPeopleHere.TotalSkill(industryType: parameters.industryType) / parameters.ReqSkill;
                 CurSkillPropor = (Propor)MyMathHelper.Min((UDouble)1, curUnboundedSkillPropor);
             }
 
@@ -147,10 +147,10 @@ namespace Game1.Industries
                 return NewEmploymentScore(person: person) >= CurWorldConfig.minAcceptablePersonScore;
             }
 
-            protected override void UpdatePerson(RealPerson person)
-                => person.skills[parameters.industryType] = Score.BringCloser
+            protected override void UpdatePerson(RealPerson realPerson)
+                => realPerson.skills[parameters.industryType] = Score.BringCloser
                 (
-                    current: person.skills[parameters.industryType],
+                    current: realPerson.skills[parameters.industryType],
                     target: Score.highest,
                     elapsed: isBusy ? CurWorldManager.Elapsed * workingPropor : TimeSpan.Zero,
                     // TODO: get rid of hard-coded constant
@@ -164,7 +164,7 @@ namespace Game1.Industries
                 => workingPropor = Propor.Create((UDouble)energyPropor, MyMathHelper.Max((UDouble)1, curUnboundedSkillPropor))!.Value;
 
             public string GetInfo()
-                => $"have {peopleHere.TotalSkill(industryType: parameters.industryType) / parameters.ReqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\nemployed {peopleHere.Count}\ntravel here {allPeople.Count - peopleHere.Count}\n";
+                => $"have {realPeopleHere.TotalSkill(industryType: parameters.industryType) / parameters.ReqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\nemployed {realPeopleHere.Count}\ntravel here {allPeople.Count - realPeopleHere.Count}\n";
 
             private UDouble HiredSkill()
                 => allPeople.Sum(person => (UDouble)person.Skills[parameters.industryType]);

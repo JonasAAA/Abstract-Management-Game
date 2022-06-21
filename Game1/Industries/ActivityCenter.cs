@@ -17,7 +17,7 @@ namespace Game1.Industries
 
         public EnergyPriority EnergyPriority { get; private set; }
 
-        protected readonly RealPeople peopleHere;
+        protected readonly RealPeople realPeopleHere;
         protected readonly VirtualPeople allPeople;
         protected readonly IIndustryFacingNodeState state;
 
@@ -29,7 +29,7 @@ namespace Game1.Industries
             ActivityType = activityType;
             EnergyPriority = energyPriority;
             this.state = state;
-            peopleHere = RealPeople.CreateEmpty();
+            realPeopleHere = RealPeople.CreateEmpty();
             allPeople = new();
 
             deleted = new();
@@ -47,24 +47,24 @@ namespace Game1.Industries
         public void QueuePerson(VirtualPerson person)
             => allPeople.Add(person);
 
-        public virtual void TakePersonFrom(RealPeople personSource, RealPerson person)
+        public virtual void TakePersonFrom(RealPeople realPersonSource, RealPerson realPerson)
         {
-            if (!allPeople.Contains(person.asVirtual))
+            if (!allPeople.Contains(realPerson.asVirtual))
                 throw new ArgumentException();
-            peopleHere.TransferFrom(personSource: personSource, realPerson: person);
+            realPeopleHere.TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
         }
 
         public void UpdatePeople(RealPerson.UpdateParams updateParams)
-            => peopleHere.Update
+            => realPeopleHere.Update
             (
                 updateParams: updateParams,
-                personalUpdate: realPerson => UpdatePerson(person: realPerson)
+                personalUpdate: realPerson => UpdatePerson(realPerson: realPerson)
             );
 
-        protected abstract void UpdatePerson(RealPerson person);
+        protected abstract void UpdatePerson(RealPerson realPerson);
 
         public bool IsPersonHere(VirtualPerson person)
-            => peopleHere.Contains(person);
+            => realPeopleHere.Contains(person);
 
         public bool IsPersonQueuedOrHere(VirtualPerson person)
             => allPeople.Contains(person);
@@ -84,7 +84,7 @@ namespace Game1.Industries
 
             allPeople.Remove(person);
             person.LetGoFromActivityCenter();
-            state.WaitingPeople.TransferFromIfPossible(personSource: peopleHere, virtualPerson: person);
+            state.WaitingPeople.TransferFromIfPossible(realPersonSource: realPeopleHere, person: person);
 
             peopleInProcessOfRemoving.Remove(person);
         }
@@ -96,7 +96,7 @@ namespace Game1.Industries
         {
             foreach (var person in allPeople)
                 RemovePerson(person: person);
-            Debug.Assert(allPeople.Count is 0 && peopleHere.Count is 0);
+            Debug.Assert(allPeople.Count is 0 && realPeopleHere.Count is 0);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 

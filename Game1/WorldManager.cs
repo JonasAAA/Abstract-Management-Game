@@ -468,10 +468,10 @@ namespace Game1
         public void AddLightSource(ILightSource lightSource)
             => lightManager.AddLightSource(lightSource: lightSource);
 
-        public void AddPerson(RealPerson person)
+        public void AddPerson(RealPerson realPerson)
         {
-            people.Add(person.asVirtual);
-            person.Deleted.Add(listener: this);
+            people.Add(realPerson.asVirtual);
+            realPerson.Deleted.Add(listener: this);
         }
 
         public void Update(TimeSpan elapsed)
@@ -539,8 +539,8 @@ namespace Game1
 
         void IDeletedListener.DeletedResponse(IDeletable deletable)
         {
-            if (deletable is RealPerson person)
-                people.Remove(person.asVirtual);
+            if (deletable is RealPerson realPerson)
+                people.Remove(realPerson.asVirtual);
             else
                 throw new ArgumentException();
         }

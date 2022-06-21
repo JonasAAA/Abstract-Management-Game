@@ -22,12 +22,12 @@ namespace Game1.Resources
         public static ReservedResPile CreateFromSource([DisallowNull] ref ReservedResPile? source)
         {
             ReservedResPile resPile = new();
-            TransferAll(source: source, destin: resPile);
+            TransferAllFrom(source: source, destin: resPile);
             source = null;
             return resPile;
         }
 
-        public static void TransferAll([DisallowNull] ref ReservedResPile? reservedSource, ResPile destin)
+        public static void TransferAllFrom([DisallowNull] ref ReservedResPile? reservedSource, ResPile destin)
         {
             Transfer(source: reservedSource, destin: destin, resAmounts: reservedSource.ResAmounts);
             reservedSource = null;

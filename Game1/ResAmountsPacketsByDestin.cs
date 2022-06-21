@@ -5,6 +5,16 @@ namespace Game1
     [Serializable]
     public sealed class ResAmountsPacketsByDestin : IHasMass
     {
+        public static ResAmountsPacketsByDestin CreateEmpty()
+            => new();
+
+        public static ResAmountsPacketsByDestin CreateFromSource(ResAmountsPacketsByDestin sourcePackets)
+        {
+            ResAmountsPacketsByDestin newPackets = new();
+            newPackets.TransferAllFrom(sourcePackets: sourcePackets);
+            return newPackets;
+        }
+
         public ResAmounts ResAmounts { get; private set; }
         public ulong Mass { get; private set; }
         public bool Empty
@@ -12,7 +22,7 @@ namespace Game1
 
         private Dictionary<NodeID, ResAmountsPacket> resAmountsPacketsByDestin;
 
-        public ResAmountsPacketsByDestin()
+        private ResAmountsPacketsByDestin()
         {
             resAmountsPacketsByDestin = new();
 
@@ -20,29 +30,20 @@ namespace Game1
             Mass = 0;
         }
 
-        public ResAmountsPacketsByDestin(ResAmountsPacketsByDestin sourcePackets)
-            : this()
-            => TransferAllFrom(sourcePackets: sourcePackets);
-
         public void TransferAllFrom(ResAmountsPacketsByDestin sourcePackets)
         {
             foreach (var resAmountsPacket in sourcePackets.DeconstructAndClear())
-            {
-                var resAmountsPacketCopy = resAmountsPacket;
-                TransferAllFrom(sourcePacket: ref resAmountsPacketCopy);
-            }
+                TransferAllFrom(sourcePacket: resAmountsPacket);
         }
 
-        public void TransferAllFrom([DisallowNull] ref ResAmountsPacket? sourcePacket)
+        public void TransferAllFrom(ResAmountsPacket sourcePacket)
         {
             ResAmounts += sourcePacket.resPile.ResAmounts;
-            Mass += sourcePacket.TotalMass;
+            Mass += sourcePacket.Mass;
 
             if (!resAmountsPacketsByDestin.ContainsKey(sourcePacket.destination))
                 resAmountsPacketsByDestin[sourcePacket.destination] = new(destination: sourcePacket.destination);
             sourcePacket.resPile.TransferAllTo(destin: resAmountsPacketsByDestin[sourcePacket.destination].resPile);
-
-            sourcePacket = null;
         }
 
         public void TransferAllFrom([DisallowNull] ref ReservedResPile? source, NodeID destination)
@@ -63,7 +64,7 @@ namespace Game1
             var resAmountsPacket = resAmountsPacketsByDestin[destination];
             resAmountsPacketsByDestin.Remove(destination);
             ResAmounts -= resAmountsPacket.resPile.ResAmounts;
-            Mass -= resAmountsPacket.TotalMass;
+            Mass -= resAmountsPacket.Mass;
             return resAmountsPacket.resPile;
         }
 

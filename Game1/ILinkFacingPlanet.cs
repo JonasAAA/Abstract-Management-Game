@@ -12,13 +12,13 @@ namespace Game1
         public void AddLink(Link link);
 
         // TODO: continue implementing these
-        //public sealed void TransferFrom(Link link, [DisallowNull] ResAmountsPacketsByDestin? resAmountsPackets)
+        //public sealed void TransferFrom(Link link, ResAmountsPacketsByDestin resAmountsPackets)
         //{
         //    TransferFrom(link: link, hasMass: resAmountsPackets);
         //    Arrive(resAmountsPackets: resAmountsPackets);
         //}
 
-        //public sealed void TransferFrom(Link link, [DisallowNull] ResAmountsPacketsByDestin? resAmountsPackets)
+        //public sealed void TransferFrom(Link link, ResAmountsPacketsByDestin resAmountsPackets)
         //{
         //    TransferFrom(link: link, hasMass: resAmountsPackets);
         //    Arrive(resAmountsPackets: resAmountsPackets);
@@ -36,7 +36,7 @@ namespace Game1
         //    Arrive(person: person);
         //}
 
-        public void Arrive([DisallowNull] ref ResAmountsPacketsByDestin? resAmountsPackets);
+        public void Arrive(ResAmountsPacketsByDestin resAmountsPackets);
 
         public void Arrive(RealPeople people);
 

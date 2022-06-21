@@ -3,16 +3,15 @@
     [Serializable]
     public sealed class ResPile : ResPileBase
     {
-        public static ResPile Create(ResPile source)
-        {
-            ResPile resPile = CreateEmpty();
-            source.TransferAllTo(destin: resPile);
-            return resPile;
-        }
-
-        // TODO: both RealPeople and ResPile should have analogous API to create an empty one
         public static ResPile CreateEmpty()
             => new(createdByMagic: false);
+
+        public static ResPile CreateFromSource(ResPile sourceResPile)
+        {
+            ResPile resPile = CreateEmpty();
+            sourceResPile.TransferAllTo(destin: resPile);
+            return resPile;
+        }
 
         public static ResPile CreateMagicUnlimitedPile()
             => new(createdByMagic: true);

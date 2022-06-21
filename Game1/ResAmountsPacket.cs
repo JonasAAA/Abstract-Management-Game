@@ -1,13 +1,13 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public sealed class ResAmountsPacket
+    public sealed class ResAmountsPacket : IHasMass
     {
         public readonly NodeID destination;
         public readonly ResPile resPile;
-        public ulong TotalMass
+        public ulong Mass
             => resPile.Mass;
-        public bool Empty
+        public bool IsEmpty
             => resPile.IsEmpty;
 
         public ResAmountsPacket(NodeID destination)

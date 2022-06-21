@@ -183,7 +183,7 @@ namespace Game1.Industries
                 reprodCenter.RemovePerson(person: parent2, force: true);
             }
 
-            while (reprodCenter.unpairedPeople.Count >= 2 && ReservedResPile.Create(source: parameters.state.StoredResPile, resAmounts: RealPerson.resAmountsPerPerson) is ReservedResPile childResPile)
+            while (reprodCenter.unpairedPeople.Count >= 2 && ReservedResPile.CreateIfHaveEnough(source: parameters.state.StoredResPile, resAmounts: RealPerson.resAmountsPerPerson) is ReservedResPile childResPile)
             {
                 // TODO: move this logic into ReprodCenter class?
                 VirtualPerson person1 = reprodCenter.unpairedPeople.Dequeue(),

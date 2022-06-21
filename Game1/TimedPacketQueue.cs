@@ -35,8 +35,8 @@ namespace Game1
 
         public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, RealPeople people)
         {
-            resAmountsPackets = new(sourcePackets: resAmountsPackets);
-            people = new(peopleSource: people);
+            resAmountsPackets = ResAmountsPacketsByDestin.CreateFromSource(sourcePackets: resAmountsPackets);
+            people = RealPeople.CreateFromSource(peopleSource: people);
             if (resAmountsPackets.Empty && people.Count is 0)
                 return;
             timedQueue.Enqueue(element: (resAmountsPackets, people));
@@ -58,8 +58,8 @@ namespace Game1
 
         public (ResAmountsPacketsByDestin resAmountsPackets, RealPeople people) DonePacketsAndPeople()
         {
-            ResAmountsPacketsByDestin doneResAmountsPackets = new();
-            RealPeople donePeople = new();
+            var doneResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty();
+            var donePeople = RealPeople.CreateEmpty();
             foreach (var (resAmountsPackets, people) in timedQueue.DoneElements())
             {
                 TotalResAmounts -= resAmountsPackets.ResAmounts;

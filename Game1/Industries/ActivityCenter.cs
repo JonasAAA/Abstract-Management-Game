@@ -29,7 +29,7 @@ namespace Game1.Industries
             ActivityType = activityType;
             EnergyPriority = energyPriority;
             this.state = state;
-            peopleHere = new();
+            peopleHere = RealPeople.CreateEmpty();
             allPeople = new();
 
             deleted = new();

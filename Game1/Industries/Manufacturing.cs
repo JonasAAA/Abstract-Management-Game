@@ -82,7 +82,7 @@ namespace Game1.Industries
             {
                 if (duration <= TimeSpan.Zero)
                     throw new ArgumentException();
-                var resInUse = IngredientsResPile.Create(source: source, recipe: recipe);
+                var resInUse = IngredientsResPile.CreateIfHaveEnough(source: source, recipe: recipe);
                 if (resInUse is null)
                     return null;
                 return new(resInUse: resInUse, duration: duration);

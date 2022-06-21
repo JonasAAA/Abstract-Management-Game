@@ -276,7 +276,7 @@ namespace Game1
                 ResAmounts houseBuildingCost = houseFactory.BuildingCost(state: state);
 
                 {
-                    var reservedBuildingRes = ReservedResPile.Create(source: resSource, resAmounts: houseBuildingCost);
+                    var reservedBuildingRes = ReservedResPile.CreateIfHaveEnough(source: resSource, resAmounts: houseBuildingCost);
                     Debug.Assert(reservedBuildingRes is not null);
                     startingNonPlanetMass += reservedBuildingRes.Mass;
                     Building? building = new
@@ -295,7 +295,7 @@ namespace Game1
                     RealPerson.GeneratePersonByMagic
                     (
                         nodeID: NodeID,
-                        resSource: ReservedResPile.Create(source: resSource, resAmounts: RealPerson.resAmountsPerPerson)!,
+                        resSource: ReservedResPile.CreateIfHaveEnough(source: resSource, resAmounts: RealPerson.resAmountsPerPerson)!,
                         personDestin: state.WaitingPeople
                     );
                 }
@@ -430,7 +430,7 @@ namespace Game1
                 var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile[resInd], maxAmountsFunc: maxExtraResFunc);
 
                 {
-                    var unsplitResPile = ReservedResPile.Create(source: undecidedResPile, resAmount: new(resInd: resInd, amount: unsplitResAmount));
+                    var unsplitResPile = ReservedResPile.CreateIfHaveEnough(source: undecidedResPile, resAmount: new(resInd: resInd, amount: unsplitResAmount));
                     Debug.Assert(unsplitResPile is not null);
                     ReservedResPile.TransferAll
                     (
@@ -442,7 +442,7 @@ namespace Game1
                 foreach (var (destination, resAmountNum) in splitResAmounts)
                 {
                     ResAmount resAmount = new(resInd: resInd, amount: resAmountNum);
-                    var resPileForDestin = ReservedResPile.Create(source: undecidedResPile, resAmount: resAmount);
+                    var resPileForDestin = ReservedResPile.CreateIfHaveEnough(source: undecidedResPile, resAmount: resAmount);
                     Debug.Assert(resPileForDestin is not null);
                     state.waitingResAmountsPackets.TransferAllFrom
                     (
@@ -465,12 +465,11 @@ namespace Game1
                 NodeID destinationId = resAmountsPacket.destination;
                 Debug.Assert(destinationId != NodeID);
 
-                var resAmountsPacketCopy = resAmountsPacket;
 #warning Continue here
                 //deal with mass here
                 //and in general, when stuff is added to planet/link, the function could take the source of the stuff to ensure that stuff actually leaves one
                 //place and goes to the other
-                resFirstLinks[(NodeID, destinationId)]!.TransferAll(start: this, resAmountsPacket: ref resAmountsPacketCopy);
+                resFirstLinks[(NodeID, destinationId)]!.TransferAll(start: this, resAmountsPacket: resAmountsPacket);
             }
 
             state.TooManyResStored = !(state.StoredResPile.ResAmounts <= targetStoredResAmounts);
@@ -554,12 +553,11 @@ namespace Game1
             links.Add(link);
         }
 
-        void ILinkFacingPlanet.Arrive([DisallowNull] ref ResAmountsPacketsByDestin? resAmountsPackets)
+        void ILinkFacingPlanet.Arrive(ResAmountsPacketsByDestin resAmountsPackets)
         {
             state.RegisterArriving(hasMass: resAmountsPackets);
             resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeID);
             state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
-            resAmountsPackets = null;
         }
 
         void ILinkFacingPlanet.Arrive(RealPeople people)

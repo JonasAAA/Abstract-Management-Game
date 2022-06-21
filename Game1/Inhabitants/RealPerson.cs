@@ -163,7 +163,7 @@ namespace Game1.Inhabitants
             );
             if (resSource.ResAmounts != consistsOfResAmounts)
                 throw new ArgumentException();
-            consistsOfResPile = ReservedResPile.Create(source: ref resSource);
+            consistsOfResPile = ReservedResPile.CreateFromSource(source: ref resSource);
             asVirtual = new(realPerson: this);
             deleted = new();
 

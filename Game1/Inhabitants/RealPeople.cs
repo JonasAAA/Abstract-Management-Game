@@ -6,6 +6,16 @@ namespace Game1.Inhabitants
     [Serializable]
     public class RealPeople : IHasMass
     {
+        public static RealPeople CreateEmpty()
+            => new();
+
+        public static RealPeople CreateFromSource(RealPeople peopleSource)
+        {
+            RealPeople newRealPeople = new();
+            newRealPeople.TransferAllFrom(peopleSource: peopleSource);
+            return newRealPeople;
+        }
+
         public ulong Count
             => (ulong)virtualToRealPeople.Count;
 
@@ -13,15 +23,11 @@ namespace Game1.Inhabitants
 
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
 
-        public RealPeople()
+        private RealPeople()
         {
             Mass = 0;
             virtualToRealPeople = new();
         }
-
-        public RealPeople(RealPeople peopleSource)
-            : this()
-            => TransferAllFrom(peopleSource: peopleSource);
 
         public void AddByMagic(RealPerson realPerson)
             => Add(realPerson: realPerson);

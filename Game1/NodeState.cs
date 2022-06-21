@@ -51,8 +51,8 @@ namespace Game1
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             MaxBatchDemResStored = maxBatchDemResStored;
-            waitingResAmountsPackets = new();
-            WaitingPeople = new();
+            waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty();
+            WaitingPeople = RealPeople.CreateEmpty();
             TooManyResStored = false;
             WattsHittingSurfaceOrIndustry = 0;
             Mass = MainResAmount * ConsistsOfRes.mass;
@@ -75,7 +75,7 @@ namespace Game1
         {
             if (!CanRemove(resAmount: resAmount))
                 throw new ArgumentException();
-            var reservedResPile = ReservedResPile.Create
+            var reservedResPile = ReservedResPile.CreateIfHaveEnough
             (
                 source: consistsOfResPile,
                 resAmount: new(resInd: ConsistsOfResInd, amount: resAmount)
@@ -87,7 +87,7 @@ namespace Game1
 
         public void EnlargeFrom(ResPile source, ulong resAmount)
         {
-            var reservedResPile = ReservedResPile.Create
+            var reservedResPile = ReservedResPile.CreateIfHaveEnough
             (
                 source: source,
                 resAmount: new(resInd: ConsistsOfResInd, amount: resAmount)

@@ -33,7 +33,7 @@ namespace Game1
 
             private readonly TimedPacketQueue timedPacketQueue;
             private readonly Propor minSafePropor;
-            private ResAmountsPacketsByDestin waitingResAmountsPackets;
+            private readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
             private readonly RealPeople waitingPeople;
             private readonly UDouble reqWattsPerKg;
             private Propor energyPropor;
@@ -50,8 +50,8 @@ namespace Game1
                     Propor propor => propor,
                     null => throw new ArgumentException()
                 };
-                waitingResAmountsPackets = new();
-                waitingPeople = new();
+                waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty();
+                waitingPeople = RealPeople.CreateEmpty();
                 if (wattsPerKg.IsCloseTo(other: 0))
                     throw new ArgumentOutOfRangeException();
                 reqWattsPerKg = wattsPerKg / (UDouble)travelTime.TotalSeconds;
@@ -61,8 +61,8 @@ namespace Game1
                 CurWorldManager.AddEnergyConsumer(energyConsumer: this);
             }
 
-            public void TransferAll([DisallowNull] ref ResAmountsPacket? resAmountsPacket)
-                => waitingResAmountsPackets.TransferAllFrom(sourcePacket: ref resAmountsPacket);
+            public void TransferAll(ResAmountsPacket resAmountsPacket)
+                => waitingResAmountsPackets.TransferAllFrom(sourcePacket: resAmountsPacket);
 
             public void TransferAll(RealPeople people)
                 => waitingPeople.TransferAllFrom(peopleSource: people);
@@ -83,15 +83,12 @@ namespace Game1
             {
                 timedPacketQueue.Update(workingPropor: energyPropor);
                 var (resAmountsPackets, people) = timedPacketQueue.DonePacketsAndPeople();
-                endNode.Arrive(resAmountsPackets: ref resAmountsPackets);
+                endNode.Arrive(resAmountsPackets: resAmountsPackets);
                 endNode.Arrive(people: people);
 
                 if ((!waitingResAmountsPackets.Empty || waitingPeople.Count > 0)
                     && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionPropor() >= minSafePropor))
-                {
                     timedPacketQueue.Enqueue(resAmountsPackets: waitingResAmountsPackets, people: waitingPeople);
-                    waitingResAmountsPackets = new();
-                }
             }
 
             public void UpdatePeople()
@@ -227,8 +224,8 @@ namespace Game1
             throw new ArgumentException();
         }
 
-        public void TransferAll(ILinkFacingPlanet start, [DisallowNull] ref ResAmountsPacket? resAmountsPacket)
-            => GetDirLink(start: start).TransferAll(resAmountsPacket: ref resAmountsPacket);
+        public void TransferAll(ILinkFacingPlanet start, ResAmountsPacket resAmountsPacket)
+            => GetDirLink(start: start).TransferAll(resAmountsPacket: resAmountsPacket);
 
         public void TransferAll(ILinkFacingPlanet start, RealPeople people)
             => GetDirLink(start: start).TransferAll(people: people);

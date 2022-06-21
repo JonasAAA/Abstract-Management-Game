@@ -5,7 +5,7 @@ namespace Game1.Resources
     [Serializable]
     public class IngredientsResPile : ResPileBase
     {
-        public static IngredientsResPile? Create(ResPile source, ResRecipe recipe)
+        public static IngredientsResPile? CreateIfHaveEnough(ResPile source, ResRecipe recipe)
         {
             if (source.ResAmounts >= recipe.ingredients)
                 return new(source: source, recipe: recipe);

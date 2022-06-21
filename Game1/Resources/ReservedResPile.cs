@@ -5,7 +5,7 @@ namespace Game1.Resources
     [Serializable]
     public class ReservedResPile : ResPileBase
     {
-        public static ReservedResPile? Create(ResPile source, ResAmounts resAmounts)
+        public static ReservedResPile? CreateIfHaveEnough(ResPile source, ResAmounts resAmounts)
         {
             if (source.ResAmounts >= resAmounts)
             {
@@ -16,10 +16,10 @@ namespace Game1.Resources
             return null;
         }
 
-        public static ReservedResPile? Create(ResPile source, ResAmount resAmount)
-            => Create(source: source, resAmounts: new(resAmount: resAmount));
+        public static ReservedResPile? CreateIfHaveEnough(ResPile source, ResAmount resAmount)
+            => CreateIfHaveEnough(source: source, resAmounts: new(resAmount: resAmount));
 
-        public static ReservedResPile Create([DisallowNull] ref ReservedResPile? source)
+        public static ReservedResPile CreateFromSource([DisallowNull] ref ReservedResPile? source)
         {
             ReservedResPile resPile = new();
             TransferAll(source: source, destin: resPile);

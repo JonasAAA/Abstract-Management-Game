@@ -21,7 +21,7 @@ namespace Game1.Industries
         {
             if (resSource.IsEmpty)
                 throw new ArgumentException();
-            resPile = ReservedResPile.Create(source: ref resSource);
+            resPile = ReservedResPile.CreateFromSource(source: ref resSource);
             mass = Cost.TotalMass();
         }
 

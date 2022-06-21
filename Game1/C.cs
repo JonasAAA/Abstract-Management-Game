@@ -42,6 +42,9 @@ namespace Game1
         public static int Random(int min, int max)
             => random.Next(min, max);
 
+        public static bool RandomBool(Propor probOfTrue)
+            => random.NextDouble() < (double)probOfTrue;
+
         public static double Random(double min, double max)
         {
             if (min > max)

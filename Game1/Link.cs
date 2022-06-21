@@ -2,7 +2,6 @@
 using Game1.Inhabitants;
 using Game1.Shapes;
 using Game1.UI;
-using System.Diagnostics.CodeAnalysis;
 using static Game1.WorldManager;
 
 namespace Game1

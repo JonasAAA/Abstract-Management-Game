@@ -135,6 +135,7 @@ namespace Game1
 
                 
                 const int width = 8, height = 5, dist = 200;
+                const double maxRandomPositionOffset = dist * .3;
                 int startPlanetI = C.Random(min: 2, max: 3),
                     startPlanetJ = C.Random(min: 2, max: 3);
                 Planet[,] nodes = new Planet[width, height];
@@ -149,7 +150,7 @@ namespace Game1
                             state: new
                             (
                                 nodeID: NodeID.Create(),
-                                position: new MyVector2(i - (width - 1) * .5, j - (height - 1) * .5) * dist,
+                                position: new MyVector2(i - (width - 1) * .5, j - (height - 1) * .5) * dist + new MyVector2(C.Random(min: -1, max: 1), C.Random(min: -1, max: 1)) * maxRandomPositionOffset,
                                 consistsOfResInd: consistsOfResInd,
                                 mainResAmount: NodeState.ResAmountFromApproxRadius
                                 (
@@ -174,35 +175,38 @@ namespace Game1
                     }
 
                 UDouble distScale = (UDouble).1;
+                Propor linkExistsProb = (Propor).7;
 
                 List<Link> links = new();
                 for (int i = 0; i < width; i++)
                     for (int j = 0; j < height - 1; j++)
-                        links.Add
-                        (
-                            item: new
+                        if (C.RandomBool(probOfTrue: linkExistsProb))
+                            links.Add
                             (
-                                node1: nodes[i, j],
-                                node2: nodes[i, j + 1],
-                                travelTime: TimeSpan.FromSeconds((i + 1) * distScale),
-                                wattsPerKg: (UDouble)(j + 1.5) * distScale,
-                                minSafeDist: CurWorldConfig.minSafeDist
-                            )
-                        );
+                                item: new
+                                (
+                                    node1: nodes[i, j],
+                                    node2: nodes[i, j + 1],
+                                    travelTime: TimeSpan.FromSeconds((i + 1) * distScale),
+                                    wattsPerKg: (UDouble)(j + 1.5) * distScale,
+                                    minSafeDist: CurWorldConfig.minSafeDist
+                                )
+                            );
 
                 for (int i = 0; i < width - 1; i++)
                     for (int j = 0; j < height; j++)
-                        links.Add
-                        (
-                            item: new
+                        if (C.RandomBool(probOfTrue: linkExistsProb))
+                            links.Add
                             (
-                                node1: nodes[i, j],
-                                node2: nodes[i + 1, j],
-                                travelTime: TimeSpan.FromSeconds((i + 1.5) * distScale),
-                                wattsPerKg: (UDouble)(j + 1) * distScale,
-                                minSafeDist: CurWorldConfig.minSafeDist
-                            )
-                        );
+                                item: new
+                                (
+                                    node1: nodes[i, j],
+                                    node2: nodes[i + 1, j],
+                                    travelTime: TimeSpan.FromSeconds((i + 1.5) * distScale),
+                                    wattsPerKg: (UDouble)(j + 1) * distScale,
+                                    minSafeDist: CurWorldConfig.minSafeDist
+                                )
+                            );
 
                 return new
                 (
@@ -264,6 +268,9 @@ namespace Game1
             // TODO: move to a more appropriate class?
             HashSet<Type> knownTypesSet = new()
             {
+                typeof(Dictionary<IndustryType, Score>),
+                typeof(Dictionary<IOverlay, IHUDElement>),
+                typeof(ReadOnlyDictionary<NodeID, Planet>),
                 typeof(UIHorizTabPanel<IHUDElement>),
                 typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
                 typeof(MultipleChoicePanel<string>),
@@ -274,8 +281,6 @@ namespace Game1
                 typeof(UIRectHorizPanel<SelectButton>),
                 typeof(UIRectVertPanel<IHUDElement>),
                 typeof(UITransparentPanel<ResDestinArrow>),
-                typeof(Dictionary<IOverlay, IHUDElement>),
-                typeof(ReadOnlyDictionary<NodeID, Planet>)
             };
             List<Type> unserializedTypeList = new();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())

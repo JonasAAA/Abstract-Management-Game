@@ -99,9 +99,6 @@ namespace Game1.Industries
 
         public IHUDElement UIElement
             => UIPanel;
-
-        //TODO: implement deletion behaviour, then make all buildings subclasses of this
-        //consider turning this into an intherface (though that would lead to deletion code duplication)
         
         protected abstract UDouble Height { get; }
 

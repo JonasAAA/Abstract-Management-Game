@@ -3,7 +3,6 @@ using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
-    // TODO: use parameters.state.TooManyResStored somehow
     [Serializable]
     public sealed class House : Industry
     {

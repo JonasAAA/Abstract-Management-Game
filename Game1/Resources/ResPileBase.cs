@@ -3,9 +3,9 @@
     [Serializable]
     public abstract class ResPileBase : IMyArray<ulong>, IHasMass
     {
-        public ulong Mass { get; private set; }
+        public Mass Mass { get; private set; }
         public bool IsEmpty
-            => Mass is 0;
+            => Mass.IsZero;
 
         public ResAmounts ResAmounts
         {

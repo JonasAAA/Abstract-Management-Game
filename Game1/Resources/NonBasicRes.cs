@@ -7,11 +7,11 @@ namespace Game1.Resources
     {
         private const string unitializedExceptionMessage = $"must initialize {nameof(NonBasicRes)} by calling {nameof(Initialize)} first";
 
-        public ulong Mass
-            => mass switch
+        public Mass Mass
+            => mass.IsZero switch
             {
-                0 => throw new InvalidOperationException(unitializedExceptionMessage),
-                > 0 => mass
+                true => throw new InvalidOperationException(unitializedExceptionMessage),
+                false => mass
             };
         public ResRecipe Recipe
             => recipe switch
@@ -30,7 +30,7 @@ namespace Game1.Resources
         public readonly NonBasicResInd resInd;
         public readonly ResAmounts ingredients;
         private ResRecipe? recipe;
-        private ulong mass;
+        private Mass mass;
         private ResAmounts? basicIngredients;
 
         public NonBasicRes(NonBasicResInd resInd, ResAmounts ingredients)
@@ -46,16 +46,17 @@ namespace Game1.Resources
 
         public void Initialize()
         {
-            if (mass != 0)
+            if (!mass.IsZero)
                 throw new InvalidOperationException($"{nameof(NonBasicRes)} is alrealy initialized, so can't initialize it a second time");
-            mass = 0;
+            ulong massInKg = 0;
             ResAmounts curBasicIngredients = ResAmounts.Empty;
             foreach (var otherResInd in ResInd.All)
                 if (ingredients[otherResInd] != 0)
                 {
-                    mass += ingredients[otherResInd] * CurResConfig.resources[otherResInd].Mass;
+                    massInKg += ingredients[otherResInd] * CurResConfig.resources[otherResInd].Mass.InKg;
                     curBasicIngredients += ingredients[otherResInd] * CurResConfig.resources[otherResInd].BasicIngredients;
                 }
+            mass = Mass.CreateFromKg(massInKg: massInKg);
             basicIngredients = curBasicIngredients;
 
             recipe = ResRecipe.Create
@@ -71,7 +72,7 @@ namespace Game1.Resources
         ResInd IResource.ResInd
             => resInd;
 
-        ulong IResource.Mass
+        Mass IResource.Mass
             => Mass;
     }
 }

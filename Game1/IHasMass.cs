@@ -2,6 +2,6 @@
 {
     public interface IHasMass
     {
-        public ulong Mass { get; }
+        public Mass Mass { get; }
     }
 }

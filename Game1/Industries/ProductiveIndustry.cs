@@ -109,7 +109,7 @@ namespace Game1.Industries
                     (
                         target: IsFull() ? Score.lowest : Score.WeightedAverageOfTwo
                         (
-                            score1: (Score)OpenSpacePropor(),
+                            score1: Score.Create(propor: OpenSpacePropor()),
                             score2: Score.highest,
                             // TODO: get rid of hard-coded constant
                             score1Propor: (Propor).5

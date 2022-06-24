@@ -16,9 +16,9 @@ namespace Game1
         }
 
         public ResAmounts ResAmounts { get; private set; }
-        public ulong Mass { get; private set; }
+        public Mass Mass { get; private set; }
         public bool Empty
-            => Mass is 0;
+            => Mass.IsZero;
 
         private Dictionary<NodeID, ResAmountsPacket> resAmountsPacketsByDestin;
 
@@ -27,7 +27,7 @@ namespace Game1
             resAmountsPacketsByDestin = new();
 
             ResAmounts = ResAmounts.Empty;
-            Mass = 0;
+            Mass = Mass.zero;
         }
 
         public void TransferAllFrom(ResAmountsPacketsByDestin sourcePackets)
@@ -80,7 +80,7 @@ namespace Game1
             var result = resAmountsPacketsByDestin.Values;
             resAmountsPacketsByDestin = new();
             ResAmounts = ResAmounts.Empty;
-            Mass = 0;
+            Mass = Mass.zero;
             return result;
         }
     }

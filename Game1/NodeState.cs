@@ -16,7 +16,7 @@ namespace Game1
         public NodeID NodeID { get; }
 
         // TODO: could include linkEndPoints mass in this
-        public ulong Mass { get; private set; }
+        public Mass Mass { get; private set; }
         //=> planetMass + StoredResPile.TotalMass + waitingResAmountsPackets.TotalMass + (Industry?.Mass ?? 0);
         public ulong Area { get; private set; }
         public UDouble Radius { get; private set; }
@@ -55,10 +55,10 @@ namespace Game1
             WaitingPeople = RealPeople.CreateEmpty();
             TooManyResStored = false;
             WattsHittingSurfaceOrIndustry = 0;
-            Mass = MainResAmount * ConsistsOfRes.mass;
+            Mass = consistsOfResPile.Mass;
         }
 
-        public void Initialize(ulong startingNonPlanetMass)
+        public void Initialize(Mass startingNonPlanetMass)
             => Mass += startingNonPlanetMass;
 
         public bool CanRemove(ulong resAmount)

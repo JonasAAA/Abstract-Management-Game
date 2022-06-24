@@ -3,7 +3,7 @@
     public interface IResource
     {
         public ResInd ResInd { get; }
-        public ulong Mass { get; }
+        public Mass Mass { get; }
         public ResAmounts BasicIngredients { get; }
     }
 }

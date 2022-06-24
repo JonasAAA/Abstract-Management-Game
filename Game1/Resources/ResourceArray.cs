@@ -16,14 +16,14 @@
                         0 => new BasicRes
                         (
                             resInd: (BasicResInd)resInd,
-                            mass: 1,
+                            mass: Mass.CreateFromKg(massInKg: 1),
                             area: 10,
                             color: Color.Gray
                         ),
                         1 => new BasicRes
                         (
                             resInd: (BasicResInd)resInd,
-                            mass: 2,
+                            mass: Mass.CreateFromKg(massInKg: 2),
                             area: 2,
                             color: Color.Brown
                         ),
@@ -85,7 +85,7 @@
                 Debug.Assert(resources[nonBasicResInd] is NonBasicRes);
 
             foreach (var resource in resources)
-                Debug.Assert(resource.Mass > 0);
+                Debug.Assert(!resource.Mass.IsZero);
         }
 
         public IResource this[ResInd resInd]

@@ -4,15 +4,16 @@
     public sealed class BasicRes : IResource
     {
         public BasicResInd resInd;
-        public readonly ulong mass, area;
+        public readonly Mass mass;
+        public readonly ulong area;
         public readonly Color color;
 
         private readonly ResAmounts basicIngredients;
 
-        public BasicRes(BasicResInd resInd, ulong mass, ulong area, Color color)
+        public BasicRes(BasicResInd resInd, Mass mass, ulong area, Color color)
         {
             this.resInd = resInd;
-            if (mass is 0)
+            if (mass.IsZero)
                 throw new ArgumentOutOfRangeException();
             this.mass = mass;
             if (area is 0)
@@ -31,7 +32,7 @@
         ResInd IResource.ResInd
             => resInd;
 
-        ulong IResource.Mass
+        Mass IResource.Mass
             => mass;
 
         ResAmounts IResource.BasicIngredients

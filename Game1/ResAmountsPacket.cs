@@ -5,7 +5,7 @@
     {
         public readonly NodeID destination;
         public readonly ResPile resPile;
-        public ulong Mass
+        public Mass Mass
             => resPile.Mass;
         public bool IsEmpty
             => resPile.IsEmpty;

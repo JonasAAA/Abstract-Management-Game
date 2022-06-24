@@ -37,6 +37,22 @@
             return null;
         }
 
+        public static Score? Create(UDouble value)
+            => Create(value: (double)value);
+
+        public static Score Create(Propor propor)
+            => new(value: (double)propor);
+
+        public static Score CreateOrThrow(double value)
+            => Create(value: value) switch
+            {
+                Score score => score,
+                null => throw new ArgumentException()
+            };
+
+        public static Score? CreateOrThrow(UDouble value)
+            => CreateOrThrow(value: (double)value);
+
         private readonly UDouble value;
 
         private Score(double value)
@@ -49,23 +65,41 @@
             => MyMathHelper.AreClose(value, other.value);
 
         public Score Opposite()
-            => (Score)(1 - value);
+            => Create(value: 1 - value)!.Value;
 
         public static Score FromUnboundedUDouble(UDouble value, UDouble valueGettingAverageScore)
         {
             if (valueGettingAverageScore.IsCloseTo(other: 0))
                 throw new ArgumentException();
-            return (Score)MyMathHelper.Tanh(value / valueGettingAverageScore * MyMathHelper.Atanh((Propor).5));
+            return Create(propor: MyMathHelper.Tanh(value / valueGettingAverageScore * MyMathHelper.Atanh((Propor).5)));
         }
 
         public static Score GenerateRandom()
-            => (Score)C.Random(min: (double)0, max: 1);
+            => new(value: C.Random(min: (double)0, max: 1));
 
         public static Score WeightedAverage(params (ulong weight, Score score)[] weightsAndScores)
-            => (Score)(weightsAndScores.Sum(weightAndScore => weightAndScore.weight * (UDouble)weightAndScore.score) / weightsAndScores.Sum(weightAndScore => weightAndScore.weight));
+            => GetScoreFromNotNull
+            (
+                score: Create
+                (
+                    value: weightsAndScores.Sum(weightAndScore => weightAndScore.weight * (UDouble)weightAndScore.score) / weightsAndScores.Sum(weightAndScore => weightAndScore.weight)
+                )
+            );
 
         public static Score WeightedAverageOfTwo(Score score1, Score score2, Propor score1Propor)
-            => (Score)((UDouble)score1 * score1Propor + (UDouble)score2 * score1Propor.Opposite());
+        => GetScoreFromNotNull
+        (
+            Create
+            (
+                value: (UDouble)score1 * score1Propor + (UDouble)score2 * score1Propor.Opposite()
+            )
+        );
+
+        private static Score GetScoreFromNotNull(Score? score)
+        {
+            Debug.Assert(score is not null);
+            return score.Value;
+        }
 
         public static Score Average(params Score[] scores)
             => WeightedAverage
@@ -89,18 +123,18 @@
             );
         }
 
-        public static explicit operator Score(double value)
-            => Create(value: value) switch
-            {
-                Score score => score,
-                null => throw new InvalidCastException()
-            };
+        //public static explicit operator Score(double value)
+        //    => Create(value: value) switch
+        //    {
+        //        Score score => score,
+        //        null => throw new InvalidCastException()
+        //    };
 
-        public static explicit operator Score(UDouble value)
-            => (Score)(double)value;
+        //public static explicit operator Score(UDouble value)
+        //    => (Score)(double)value;
 
-        public static explicit operator Score(Propor propor)
-            => new(value: (double)propor);
+        //public static explicit operator Score(Propor propor)
+        //    => new(value: (double)propor);
 
         public static explicit operator UDouble(Score score)
             => score.value;

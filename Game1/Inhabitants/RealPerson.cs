@@ -114,7 +114,7 @@ namespace Game1.Inhabitants
         public Propor EnergyPropor { get; private set; }
         public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
             => lastActivityTimes;
-        public ulong Mass
+        public Mass Mass
             => consistsOfResPile.Mass;
         public readonly UDouble reqWatts;
         public readonly TimeSpan seekChangeTime;

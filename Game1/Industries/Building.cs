@@ -9,7 +9,7 @@ namespace Game1.Industries
         public ResAmounts Cost
             => ResPile.ResAmounts;
         // TODO: should probably have a separate type for mass
-        public readonly ulong mass;
+        public readonly Mass mass;
 
         private ReservedResPile ResPile
             => resPile ?? throw new InvalidOperationException(buildingIsDeletedMessage);

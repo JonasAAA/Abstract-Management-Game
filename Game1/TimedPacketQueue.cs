@@ -9,7 +9,7 @@ namespace Game1
             => timedQueue.Count;
         public ulong PeopleCount { get; private set; }
         public ResAmounts TotalResAmounts { get; private set; }
-        public ulong Mass { get; private set; }
+        public Mass Mass { get; private set; }
         public readonly TimeSpan duration;
 
         private readonly TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)> timedQueue;
@@ -17,7 +17,7 @@ namespace Game1
         public TimedPacketQueue(TimeSpan duration)
         {
             TotalResAmounts = ResAmounts.Empty;
-            Mass = 0;
+            Mass = Mass.zero;
             PeopleCount = 0;
             this.duration = duration;
             timedQueue = new(duration: duration);

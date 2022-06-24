@@ -269,7 +269,7 @@ namespace Game1
             foreach (var resInd in ResInd.All)
                 resDistribArrows[resInd] = new();
 
-            ulong startingNonPlanetMass = 0;
+            Mass startingNonPlanetMass = Mass.zero;
             // this is here beause it uses infoPanel, so that needs to be initialized first
             if (startingConditions is var (houseFactory, personCount, resSource))
             {
@@ -495,11 +495,11 @@ namespace Game1
                 },
                 allResCase: () =>
                 {
-                    ulong totalStoredMass = state.StoredResPile.Mass;
-                    return totalStoredMass switch
+                    Mass totalStoredMass = state.StoredResPile.Mass;
+                    return totalStoredMass.IsZero switch
                     {
-                        > 0 => $"stored total res mass {totalStoredMass}",
-                        _ => ""
+                        true => "",
+                        false => $"stored total res mass {totalStoredMass}"
                     };
                 },
                 powerCase: () => $"produce {(this as INodeAsLocalEnergyProducer).LocallyProducedWatts:0.##} W for local use\nof which {usedLocalWatts:0.##} W is used",

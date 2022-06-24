@@ -19,13 +19,13 @@ namespace Game1.Inhabitants
         public ulong Count
             => (ulong)virtualToRealPeople.Count;
 
-        public ulong Mass { get; private set; }
+        public Mass Mass { get; private set; }
 
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
 
         private RealPeople()
         {
-            Mass = 0;
+            Mass = Mass.zero;
             virtualToRealPeople = new();
         }
 

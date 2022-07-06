@@ -30,6 +30,8 @@ namespace Game1
             public TimeSpan TravelTime
                 => timedPacketQueue.duration;
 
+            // TODO: think about of DirLink or Link should have MassCounter
+            private readonly MassCounter massCounter;
             private readonly TimedPacketQueue timedPacketQueue;
             private readonly Propor minSafePropor;
             private readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
@@ -43,13 +45,14 @@ namespace Game1
                 this.startNode = startNode;
                 this.endNode = endNode;
 
-                timedPacketQueue = new(duration: travelTime);
+                massCounter = MassCounter.CreateEmpty();
+                timedPacketQueue = new(duration: travelTime, massCounter: massCounter);
                 minSafePropor = Propor.Create(part: minSafeDist, whole: MyVector2.Distance(startNode.Position, endNode.Position)) switch
                 {
                     Propor propor => propor,
                     null => throw new ArgumentException()
                 };
-                waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty();
+                waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(massCounter: massCounter);
                 waitingPeople = RealPeople.CreateEmpty();
                 if (wattsPerKg.IsCloseTo(other: 0))
                     throw new ArgumentOutOfRangeException();

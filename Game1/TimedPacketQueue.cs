@@ -12,14 +12,16 @@ namespace Game1
         public Mass Mass { get; private set; }
         public readonly TimeSpan duration;
 
+        private readonly MassCounter massCounter;
         private readonly TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)> timedQueue;
 
-        public TimedPacketQueue(TimeSpan duration)
+        public TimedPacketQueue(TimeSpan duration, MassCounter massCounter)
         {
+            this.duration = duration;
+            this.massCounter = massCounter;
             TotalResAmounts = ResAmounts.Empty;
             Mass = Mass.zero;
             PeopleCount = 0;
-            this.duration = duration;
             timedQueue = new(duration: duration);
         }
 
@@ -58,7 +60,7 @@ namespace Game1
 
         public (ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople) DonePacketsAndPeople()
         {
-            var doneResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty();
+            var doneResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(massCounter: massCounter);
             var donePeople = RealPeople.CreateEmpty();
             foreach (var (resAmountsPackets, people) in timedQueue.DoneElements())
             {

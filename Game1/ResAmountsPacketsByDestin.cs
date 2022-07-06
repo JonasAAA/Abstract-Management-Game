@@ -5,12 +5,12 @@ namespace Game1
     [Serializable]
     public sealed class ResAmountsPacketsByDestin : IHasMass
     {
-        public static ResAmountsPacketsByDestin CreateEmpty()
-            => new();
+        public static ResAmountsPacketsByDestin CreateEmpty(MassCounter massCounter)
+            => new(massCounter: massCounter);
 
         public static ResAmountsPacketsByDestin CreateFromSource(ResAmountsPacketsByDestin sourcePackets)
         {
-            ResAmountsPacketsByDestin newPackets = new();
+            ResAmountsPacketsByDestin newPackets = new(massCounter: sourcePackets.massCounter);
             newPackets.TransferAllFrom(sourcePackets: sourcePackets);
             return newPackets;
         }
@@ -20,10 +20,12 @@ namespace Game1
         public bool Empty
             => Mass.IsZero;
 
+        private readonly MassCounter massCounter;
         private Dictionary<NodeID, ResAmountsPacket> resAmountsPacketsByDestin;
 
-        private ResAmountsPacketsByDestin()
+        private ResAmountsPacketsByDestin(MassCounter massCounter)
         {
+            this.massCounter = massCounter;
             resAmountsPacketsByDestin = new();
 
             ResAmounts = ResAmounts.Empty;
@@ -42,8 +44,8 @@ namespace Game1
             Mass += sourcePacket.Mass;
 
             if (!resAmountsPacketsByDestin.ContainsKey(sourcePacket.destination))
-                resAmountsPacketsByDestin[sourcePacket.destination] = new(destination: sourcePacket.destination);
-            sourcePacket.resPile.TransferAllTo(destin: resAmountsPacketsByDestin[sourcePacket.destination].resPile);
+                resAmountsPacketsByDestin[sourcePacket.destination] = new(destination: sourcePacket.destination, massCounter: massCounter);
+            resAmountsPacketsByDestin[sourcePacket.destination].resPile.TransferAllFrom(source: sourcePacket.resPile);
         }
 
         public void TransferAllFrom([DisallowNull] ref ReservedResPile? source, NodeID destination)
@@ -52,14 +54,14 @@ namespace Game1
             Mass += source.Mass;
 
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
-                resAmountsPacketsByDestin[destination] = new(destination: destination);
+                resAmountsPacketsByDestin[destination] = new(destination: destination, massCounter: massCounter);
             ReservedResPile.TransferAllFrom(reservedSource: ref source, destin: resAmountsPacketsByDestin[destination].resPile);
         }
 
         public ResPile ReturnAndRemove(NodeID destination)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
-                return ResPile.CreateEmpty();
+                return ResPile.CreateEmpty(massCounter: massCounter);
 
             var resAmountsPacket = resAmountsPacketsByDestin[destination];
             resAmountsPacketsByDestin.Remove(destination);

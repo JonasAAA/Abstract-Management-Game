@@ -124,7 +124,11 @@ namespace Game1.Industries
             {
                 if (!StartedConstruction)
                 {
-                    var reservedBuildingCost = ReservedResPile.CreateIfHaveEnough(source: parameters.state.StoredResPile, resAmounts: parameters.Cost);
+                    var reservedBuildingCost = ReservedResPile.CreateIfHaveEnough
+                    (
+                        source: parameters.state.StoredResPile,
+                        resAmounts: parameters.Cost
+                    );
                     if (reservedBuildingCost is not null)
                     {
                         buildingBeingConstructed = new Building(resSource: ref reservedBuildingCost);

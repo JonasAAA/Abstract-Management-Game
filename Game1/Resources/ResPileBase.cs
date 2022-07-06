@@ -3,6 +3,11 @@
     [Serializable]
     public abstract class ResPileBase : IMyArray<ulong>, IHasMass
     {
+        protected static readonly ResAmounts magicResPileStartingResAmounts;
+
+        static ResPileBase()
+            => magicResPileStartingResAmounts = new(value: uint.MaxValue);
+
         public Mass Mass { get; private set; }
         public bool IsEmpty
             => Mass.IsZero;
@@ -16,6 +21,7 @@
                 Mass = resAmounts.TotalMass();
             }
         }
+        public readonly MassCounter massCounter;
 
         /// <summary>
         /// NEVER use directly
@@ -23,10 +29,11 @@
         private ResAmounts resAmounts;
         private readonly bool createdByMagic;
 
-        protected ResPileBase(bool createdByMagic = false)
+        protected ResPileBase(MassCounter massCounter, bool createdByMagic = false)
         {
+            this.massCounter = massCounter;
             this.createdByMagic = createdByMagic;
-            ResAmounts = createdByMagic ? new(value: uint.MaxValue) : ResAmounts.Empty;
+            ResAmounts = createdByMagic ? magicResPileStartingResAmounts : ResAmounts.Empty;
         }
 
         public ulong this[ResInd resInd]
@@ -37,8 +44,9 @@
             if (source == destin)
                 throw new ArgumentException();
 
-            source.ResAmounts -= resAmounts;
+            source.ResAmounts -= resAmounts;            
             destin.ResAmounts += resAmounts;
+            destin.massCounter.TransferFrom(source: source.massCounter, mass: resAmounts.TotalMass());
         }
 
         protected static void Transfer(ResPileBase source, ResPileBase destin, ResAmount resAmount)

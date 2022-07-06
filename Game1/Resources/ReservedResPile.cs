@@ -9,7 +9,7 @@ namespace Game1.Resources
         {
             if (source.ResAmounts >= resAmounts)
             {
-                ReservedResPile resPile = new();
+                ReservedResPile resPile = new(massCounter: source.massCounter);
                 Transfer(source: source, destin: resPile, resAmounts: resAmounts);
                 return resPile;
             }
@@ -21,7 +21,7 @@ namespace Game1.Resources
 
         public static ReservedResPile CreateFromSource([DisallowNull] ref ReservedResPile? source)
         {
-            ReservedResPile resPile = new();
+            ReservedResPile resPile = new(massCounter: source.massCounter);
             TransferAllFrom(source: source, destin: resPile);
             source = null;
             return resPile;
@@ -33,8 +33,8 @@ namespace Game1.Resources
             reservedSource = null;
         }
 
-        private ReservedResPile()
-            : base()
+        private ReservedResPile(MassCounter massCounter)
+            : base(massCounter: massCounter)
         { }
     }
 }

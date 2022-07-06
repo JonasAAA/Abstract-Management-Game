@@ -7,11 +7,9 @@
         public readonly ResPile resPile;
         public Mass Mass
             => resPile.Mass;
-        public bool IsEmpty
-            => resPile.IsEmpty;
 
-        public ResAmountsPacket(NodeID destination)
-            : this(destination: destination, resPile: ResPile.CreateEmpty())
+        public ResAmountsPacket(NodeID destination, MassCounter massCounter)
+            : this(destination: destination, resPile: ResPile.CreateEmpty(massCounter: massCounter))
         { }
 
         private ResAmountsPacket(NodeID destination, ResPile resPile)

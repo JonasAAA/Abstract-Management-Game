@@ -159,7 +159,7 @@ namespace Game1
                 selector: resInd => new ProporSplitter<NodeID>()
             );
             targetStoredResAmounts = ResAmounts.Empty;
-            undecidedResPile = ResPile.CreateEmpty();
+            undecidedResPile = ResPile.CreateEmpty(massCounter: state.MassCounter);
             resTravelHereAmounts = ResAmounts.Empty;
             usedLocalWatts = 0;
 
@@ -273,10 +273,16 @@ namespace Game1
             // this is here beause it uses infoPanel, so that needs to be initialized first
             if (startingConditions is var (houseFactory, personCount, resSource))
             {
+                // This is done so that buildings and people take stuff from this planet (i.e. MassCounter is of this planet)
+                state.StoredResPile.TransferAllFrom(source: resSource);
                 ResAmounts houseBuildingCost = houseFactory.BuildingCost(state: state);
 
                 {
-                    var reservedBuildingRes = ReservedResPile.CreateIfHaveEnough(source: resSource, resAmounts: houseBuildingCost);
+                    var reservedBuildingRes = ReservedResPile.CreateIfHaveEnough
+                    (
+                        source: state.StoredResPile,
+                        resAmounts: houseBuildingCost
+                    );
                     Debug.Assert(reservedBuildingRes is not null);
                     startingNonPlanetMass += reservedBuildingRes.Mass;
                     Building? building = new
@@ -295,11 +301,12 @@ namespace Game1
                     RealPerson.GeneratePersonByMagic
                     (
                         nodeID: NodeID,
-                        resSource: ReservedResPile.CreateIfHaveEnough(source: resSource, resAmounts: RealPerson.resAmountsPerPerson)!,
+                        resSource: ReservedResPile.CreateIfHaveEnough(source: state.StoredResPile, resAmounts: RealPerson.resAmountsPerPerson)!,
                         childDestin: state.WaitingPeople
                     );
                 }
                 startingNonPlanetMass += state.WaitingPeople.Mass;
+                resSource.TransferAllFrom(source: state.StoredResPile);
             }
             else
                 Industry = null;
@@ -408,10 +415,16 @@ namespace Game1
             };
 
             // deal with resources
-            state.StoredResPile.TransferAllTo(destin: undecidedResPile);
-            state.waitingResAmountsPackets.ReturnAndRemove(destination: NodeID).TransferAllTo(destin: undecidedResPile);
+            undecidedResPile.TransferAllFrom(source: state.StoredResPile);
+            undecidedResPile.TransferAllFrom
+            (
+                source: state.waitingResAmountsPackets.ReturnAndRemove
+                (
+                    destination: NodeID
+                )
+            );
 
-            undecidedResPile.TransferUpTo(destin: state.StoredResPile, resAmounts: targetStoredResAmounts);
+            state.StoredResPile.TransferAtMostFrom(source: undecidedResPile, resAmounts: targetStoredResAmounts);
         }
 
         /// <summary>
@@ -424,7 +437,7 @@ namespace Game1
 
             var resSplitter = resSplittersToDestins[resInd];
             if (resSplitter.Empty)
-                undecidedResPile.TransferAllSingleResTo(destin: state.StoredResPile, resInd: resInd);
+                state.StoredResPile.TransferAllSingleResFrom(source: undecidedResPile, resInd: resInd);
             else
             {
                 var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile[resInd], maxAmountsFunc: maxExtraResFunc);
@@ -475,7 +488,7 @@ namespace Game1
             state.TooManyResStored = !(state.StoredResPile.ResAmounts <= targetStoredResAmounts);
 
             // TODO: look at this
-            infoTextBox.Text = $"consists of {state.MainResAmount} {state.ConsistsOfResInd}\nstores {state.StoredResPile}\ntarget {targetStoredResAmounts}\n";
+            infoTextBox.Text = $"consists of {state.MainResAmount} {state.ConsistsOfResInd}\nstores {state.StoredResPile}\ntarget {targetStoredResAmounts}\nMass of everything {state.MassCounter.Mass}\nMass of planet {state.PlanetMass}\n";
 
             // update text
             textBox.Text = CurWorldManager.Overlay.SwitchExpression

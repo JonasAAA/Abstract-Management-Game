@@ -15,6 +15,8 @@ namespace Game1
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
         public NodeID NodeID { get; }
 
+        public Mass PlanetMass
+            => consistsOfResPile.Mass;
         // TODO: could include linkEndPoints mass in this
         public Mass Mass { get; private set; }
         //=> planetMass + StoredResPile.TotalMass + waitingResAmountsPackets.TotalMass + (Industry?.Mass ?? 0);
@@ -34,24 +36,26 @@ namespace Game1
         public BasicRes ConsistsOfRes { get; }
         public bool TooManyResStored { get; set; }
         public UDouble WattsHittingSurfaceOrIndustry { get; set; }
+        public MassCounter MassCounter { get; }
 
         private readonly ResPile consistsOfResPile;
         //private ulong planetMass;
 
         public NodeState(NodeID nodeID, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
+            MassCounter = MassCounter.CreateEmpty();
             NodeID = nodeID;
             Position = position;
             ConsistsOfResInd = consistsOfResInd;
             ConsistsOfRes = CurResConfig.resources[consistsOfResInd];
-            consistsOfResPile = ResPile.CreateEmpty();
+            consistsOfResPile = ResPile.CreateEmpty(massCounter: MassCounter);
             EnlargeFrom(source: resSource, resAmount: mainResAmount);
             
-            StoredResPile = ResPile.CreateEmpty();
+            StoredResPile = ResPile.CreateEmpty(massCounter: MassCounter);
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             MaxBatchDemResStored = maxBatchDemResStored;
-            waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty();
+            waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(massCounter: MassCounter);
             WaitingPeople = RealPeople.CreateEmpty();
             TooManyResStored = false;
             WattsHittingSurfaceOrIndustry = 0;

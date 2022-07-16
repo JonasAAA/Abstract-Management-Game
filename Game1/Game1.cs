@@ -2,6 +2,7 @@
 using Game1.GameStates;
 using Game1.Shapes;
 using Game1.UI;
+using System.Runtime;
 
 namespace Game1
 {
@@ -32,6 +33,7 @@ namespace Game1
             // I know that continueButton and gameState will be initialized in LoadContent and will not be used before then
             continueButton = null!;
             gameState = null!;
+            GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         }
 
         protected override void Initialize()

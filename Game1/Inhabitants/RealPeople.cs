@@ -1,17 +1,19 @@
 ﻿using Game1.Industries;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Game1.Inhabitants
 {
     [Serializable]
     public class RealPeople : IHasMass
     {
-        public static RealPeople CreateEmpty()
-            => new();
+        public static RealPeople CreateEmpty(MassCounter locationMassCounter)
+            => new(locationMassCounter: locationMassCounter);
 
         public static RealPeople CreateFromSource(RealPeople realPeopleSource)
+            => CreateFromSource(realPeopleSource: realPeopleSource, locationMassCounter: realPeopleSource.locationMassCounter);
+
+        public static RealPeople CreateFromSource(RealPeople realPeopleSource, MassCounter locationMassCounter)
         {
-            RealPeople newRealPeople = new();
+            RealPeople newRealPeople = new(locationMassCounter: locationMassCounter);
             newRealPeople.TransferAllFrom(realPeopleSource: realPeopleSource);
             return newRealPeople;
         }
@@ -21,12 +23,14 @@ namespace Game1.Inhabitants
 
         public Mass Mass { get; private set; }
 
+        private readonly MassCounter locationMassCounter;
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
 
-        private RealPeople()
+        private RealPeople(MassCounter locationMassCounter)
         {
             Mass = Mass.zero;
             virtualToRealPeople = new();
+            this.locationMassCounter = locationMassCounter;
         }
 
         public void AddByMagic(RealPerson realPerson)
@@ -59,8 +63,8 @@ namespace Game1.Inhabitants
 
         public void TransferFromIfPossible(RealPeople realPersonSource, VirtualPerson person)
         {
-            if (realPersonSource.Remove(person: person, out RealPerson? realPerson))
-                Add(realPerson: realPerson);
+            if (virtualToRealPeople.TryGetValue(key: person, value: out RealPerson? realPerson))
+                TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
         }
 
         public void TransferFrom(RealPeople realPersonSource, RealPerson realPerson)
@@ -78,22 +82,20 @@ namespace Game1.Inhabitants
 
         private void Add(RealPerson realPerson)
         {
+            realPerson.SetLocationMassCounter(locationMassCounter: locationMassCounter);
             Mass += realPerson.Mass;
             virtualToRealPeople.Add(key: realPerson.asVirtual, value: realPerson);
         }
 
-        private bool Remove(VirtualPerson person, [NotNullWhen(true)] out RealPerson? realPerson)
+        private bool Remove(VirtualPerson person)
         {
-            if (virtualToRealPeople.Remove(key: person, value: out realPerson))
+            if (virtualToRealPeople.Remove(key: person, value: out RealPerson? realPerson))
             {
                 Mass -= realPerson.Mass;
                 return true;
             }
             return false;
         }
-
-        private bool Remove(VirtualPerson person)
-            => Remove(person: person, realPerson: out RealPerson? _);
 
 #if DEBUG
         ~RealPeople()

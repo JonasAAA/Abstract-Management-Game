@@ -176,6 +176,9 @@ namespace Game1.Inhabitants
         public void Arrived(RealPeople realPersonSource)
             => (activityCenter ?? throw new InvalidOperationException()).TakePersonFrom(realPersonSource: realPersonSource, realPerson: this);
 
+        public void SetLocationMassCounter(MassCounter locationMassCounter)
+            => consistsOfResPile.LocationMassCounter = locationMassCounter;
+
         /// <param name="updateSkillsParams">if null, will use default update</param>
         public void Update(UpdateLocationParams updateLocationParams, UpdatePersonSkillsParams? updateSkillsParams)
         {

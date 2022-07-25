@@ -3,21 +3,22 @@
     [Serializable]
     public sealed class ResPile : ResPileBase
     {
-        public static ResPile CreateEmpty(MassCounter massCounter)
-            => new(massCounter: massCounter, createdByMagic: false);
+        public static ResPile CreateEmpty(MassCounter locationMassCounter)
+            => new(locationMassCounter: locationMassCounter, createdByMagic: false);
 
         public static ResPile CreateFromSource(ResPile sourceResPile)
         {
-            ResPile resPile = CreateEmpty(massCounter: sourceResPile.massCounter);
+            ResPile resPile = CreateEmpty(locationMassCounter: sourceResPile.LocationMassCounter);
             resPile.TransferAllFrom(source: sourceResPile);
             return resPile;
         }
 
         public static ResPile CreateMagicUnlimitedPile()
-            => new(massCounter: MassCounter.CreateMassCounterByMagic(mass : magicResPileStartingResAmounts.TotalMass()), createdByMagic: true);
+            // It's OK to create locationMassCounter here as this magic res pile is the only place where the "magic location mass counter" is used
+            => new(locationMassCounter: MassCounter.CreateMassCounterByMagic(mass : magicResPileStartingResAmounts.TotalMass()), createdByMagic: true);
 
-        private ResPile(MassCounter massCounter, bool createdByMagic)
-            : base(massCounter: massCounter, createdByMagic: createdByMagic)
+        private ResPile(MassCounter locationMassCounter, bool createdByMagic)
+            : base(locationMassCounter: locationMassCounter, createdByMagic: createdByMagic)
         { }
 
         /// <summary>

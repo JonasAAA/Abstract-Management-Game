@@ -46,14 +46,14 @@ namespace Game1
                 this.endNode = endNode;
 
                 massCounter = MassCounter.CreateEmpty();
-                timedPacketQueue = new(duration: travelTime, massCounter: massCounter);
+                timedPacketQueue = new(duration: travelTime, locationMassCounter: massCounter);
                 minSafePropor = Propor.Create(part: minSafeDist, whole: MyVector2.Distance(startNode.Position, endNode.Position)) switch
                 {
                     Propor propor => propor,
                     null => throw new ArgumentException()
                 };
-                waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(massCounter: massCounter);
-                waitingPeople = RealPeople.CreateEmpty();
+                waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationMassCounter: massCounter);
+                waitingPeople = RealPeople.CreateEmpty(locationMassCounter: massCounter);
                 if (wattsPerKg.IsCloseTo(other: 0))
                     throw new ArgumentOutOfRangeException();
                 reqWattsPerKg = wattsPerKg / (UDouble)travelTime.TotalSeconds;

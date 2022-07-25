@@ -63,7 +63,7 @@ namespace Game1.Inhabitants
 
         public void TransferFromIfPossible(RealPeople realPersonSource, VirtualPerson person)
         {
-            if (virtualToRealPeople.TryGetValue(key: person, value: out RealPerson? realPerson))
+            if (realPersonSource.virtualToRealPeople.TryGetValue(key: person, value: out RealPerson? realPerson))
                 TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
         }
 

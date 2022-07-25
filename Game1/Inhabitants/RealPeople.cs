@@ -3,7 +3,7 @@
 namespace Game1.Inhabitants
 {
     [Serializable]
-    public class RealPeople : IHasMass
+    public class RealPeople
     {
         public static RealPeople CreateEmpty(MassCounter locationMassCounter)
             => new(locationMassCounter: locationMassCounter);

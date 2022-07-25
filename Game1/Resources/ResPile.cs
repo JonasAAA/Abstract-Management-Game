@@ -1,4 +1,6 @@
-﻿namespace Game1.Resources
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Game1.Resources
 {
     [Serializable]
     public sealed class ResPile : ResPileBase
@@ -45,6 +47,19 @@
 
         public void TransferAllFrom(ResPile source)
             => Transfer(source: source, destin: this, resAmounts: source.ResAmounts);
+
+        public void TransferAllFrom([DisallowNull] ref ReservedResPile? reservedSource)
+        {
+            Transfer(source: reservedSource, destin: this, resAmounts: reservedSource.ResAmounts);
+            reservedSource = null;
+        }
+
+        public void TransformAndTransferAllFrom([DisallowNull] ref IngredientsResPile? ingredients)
+        {
+            Transform(resPileBase: ingredients, recipe: ingredients.recipe);
+            TransferAllFrom(source: ingredients, destin: this);
+            ingredients = null;
+        }
 
         //public void TransferAllTo(ResPile destin)
         //    => Transfer(source: this, destin: destin, resAmounts: ResAmounts);

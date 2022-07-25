@@ -10,7 +10,7 @@ namespace Game1.Inhabitants
     /// person must be unhappy when don't get enough energy
     /// </summary>
     [Serializable]
-    public sealed class RealPerson : IEnergyConsumer, IHasMass
+    public sealed class RealPerson : IEnergyConsumer
     {
         [Serializable]
         public readonly record struct UpdateLocationParams(NodeID LastNodeID, NodeID ClosestNodeID);

@@ -104,7 +104,7 @@ namespace Game1.Industries
                 if (product.prodTimeLeft <= TimeSpan.Zero)
                 {
                     var resInUseCopy = product.resInUse;
-                    IngredientsResPile.TransformAndTransferAll(ingredients: ref resInUseCopy, destin: parameters.state.StoredResPile);
+                    parameters.state.StoredResPile.TransformAndTransferAllFrom(ingredients: ref resInUseCopy);
                     product = null;
                 }
             }

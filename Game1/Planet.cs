@@ -310,7 +310,6 @@ namespace Game1
             }
             else
                 Industry = null;
-            state.Initialize(startingNonPlanetMass: startingNonPlanetMass);
 
             CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
         }
@@ -445,11 +444,7 @@ namespace Game1
                 {
                     var unsplitResPile = ReservedResPile.CreateIfHaveEnough(source: undecidedResPile, resAmount: new(resInd: resInd, amount: unsplitResAmount));
                     Debug.Assert(unsplitResPile is not null);
-                    ReservedResPile.TransferAllFrom
-                    (
-                        reservedSource: ref unsplitResPile,
-                        destin: state.StoredResPile
-                    );
+                    state.StoredResPile.TransferAllFrom(reservedSource: ref unsplitResPile);
                 }
 
                 foreach (var (destination, resAmountNum) in splitResAmounts)
@@ -478,10 +473,6 @@ namespace Game1
                 NodeID destinationId = resAmountsPacket.destination;
                 Debug.Assert(destinationId != NodeID);
 
-#warning Continue here
-                //deal with mass here
-                //and in general, when stuff is added to planet/link, the function could take the source of the stuff to ensure that stuff actually leaves one
-                //place and goes to the other
                 resFirstLinks[(NodeID, destinationId)]!.TransferAllFrom(start: this, resAmountsPacket: resAmountsPacket);
             }
 
@@ -568,7 +559,6 @@ namespace Game1
 
         void ILinkFacingPlanet.Arrive(ResAmountsPacketsByDestin resAmountsPackets)
         {
-            state.RegisterArriving(hasMass: resAmountsPackets);
             resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeID);
             state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
         }
@@ -577,15 +567,11 @@ namespace Game1
         {
             if (realPeople.Count is 0)
                 return;
-            state.RegisterArriving(hasMass: realPeople);
             state.WaitingPeople.TransferAllFrom(realPeopleSource: realPeople);
         }
 
         void ILinkFacingPlanet.Arrive(RealPerson realPerson, RealPeople realPersonSource)
-        {
-            state.RegisterArriving(hasMass: realPerson);
-            state.WaitingPeople.TransferFrom(realPerson: realPerson, realPersonSource: realPersonSource);
-        }
+            => state.WaitingPeople.TransferFrom(realPerson: realPerson, realPersonSource: realPersonSource);
 
         UDouble INodeAsLocalEnergyProducer.LocallyProducedWatts
             => Industry?.PeopleWorkOnTop switch

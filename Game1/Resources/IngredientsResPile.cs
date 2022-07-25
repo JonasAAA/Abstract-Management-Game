@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Game1.Resources
+﻿namespace Game1.Resources
 {
     [Serializable]
     public class IngredientsResPile : ResPileBase
@@ -12,14 +10,7 @@ namespace Game1.Resources
             return null;
         }
 
-        public static void TransformAndTransferAll([DisallowNull] ref IngredientsResPile? ingredients, ResPile destin)
-        {
-            ingredients.Transform(recipe: ingredients.recipe);
-            TransferAllFrom(source: ingredients, destin: destin);
-            ingredients = null;
-        }
-
-        private readonly ResRecipe recipe;
+        public readonly ResRecipe recipe;
 
         private IngredientsResPile(ResPile source, ResRecipe recipe)
             : base(locationMassCounter: source.LocationMassCounter)

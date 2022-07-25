@@ -3,7 +3,7 @@
 namespace Game1
 {
     [Serializable]
-    public sealed class ResAmountsPacketsByDestin : IHasMass
+    public sealed class ResAmountsPacketsByDestin
     {
         public static ResAmountsPacketsByDestin CreateEmpty(MassCounter locationMassCounter)
             => new(locationMassCounter: locationMassCounter);
@@ -58,7 +58,7 @@ namespace Game1
 
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination, locationMassCounter: locationMassCounter);
-            ReservedResPile.TransferAllFrom(reservedSource: ref source, destin: resAmountsPacketsByDestin[destination].resPile);
+            resAmountsPacketsByDestin[destination].resPile.TransferAllFrom(reservedSource: ref source);
         }
 
         public ResPile ReturnAndRemove(NodeID destination)

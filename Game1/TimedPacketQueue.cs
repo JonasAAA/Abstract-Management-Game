@@ -3,7 +3,7 @@
 namespace Game1
 {
     [Serializable]
-    public sealed class TimedPacketQueue : IHasMass
+    public sealed class TimedPacketQueue
     {
         public int Count
             => timedQueue.Count;

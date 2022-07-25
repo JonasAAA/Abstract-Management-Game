@@ -1,7 +1,7 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public abstract class ResPileBase : IMyArray<ulong>, IHasMass
+    public abstract class ResPileBase : IMyArray<ulong>
     {
         protected static readonly ResAmounts magicResPileStartingResAmounts;
 
@@ -64,10 +64,10 @@
         protected static void TransferAllFrom(ResPileBase source, ResPileBase destin)
             => Transfer(source: source, destin: destin, resAmounts: source.ResAmounts);
 
-        protected void Transform(ResRecipe recipe)
+        protected static void Transform(ResPileBase resPileBase, ResRecipe recipe)
         {
-            ResAmounts -= recipe.ingredients;
-            ResAmounts += recipe.results;
+            resPileBase.ResAmounts -= recipe.ingredients;
+            resPileBase.ResAmounts += recipe.results;
         }
 
 #if DEBUG

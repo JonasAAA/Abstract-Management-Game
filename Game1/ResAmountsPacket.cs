@@ -1,7 +1,7 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public sealed class ResAmountsPacket : IHasMass
+    public sealed class ResAmountsPacket
     {
         public readonly NodeID destination;
         public readonly ResPile resPile;

@@ -14,12 +14,8 @@ namespace Game1
         //public double SurfaceGravitationalAccel
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
         public NodeID NodeID { get; }
-
         public Mass PlanetMass
             => consistsOfResPile.Mass;
-        // TODO: could include linkEndPoints mass in this
-        public Mass Mass { get; private set; }
-        //=> planetMass + StoredResPile.TotalMass + waitingResAmountsPackets.TotalMass + (Industry?.Mass ?? 0);
         public ulong Area { get; private set; }
         public UDouble Radius { get; private set; }
         public ulong ApproxSurfaceLength { get; private set; }
@@ -36,10 +32,10 @@ namespace Game1
         public BasicRes ConsistsOfRes { get; }
         public bool TooManyResStored { get; set; }
         public UDouble WattsHittingSurfaceOrIndustry { get; set; }
+        // TODO: could include linkEndPoints mass in this
         public MassCounter MassCounter { get; }
 
         private readonly ResPile consistsOfResPile;
-        //private ulong planetMass;
 
         public NodeState(NodeID nodeID, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
@@ -59,11 +55,7 @@ namespace Game1
             WaitingPeople = RealPeople.CreateEmpty(locationMassCounter: MassCounter);
             TooManyResStored = false;
             WattsHittingSurfaceOrIndustry = 0;
-            Mass = consistsOfResPile.Mass;
         }
-
-        public void Initialize(Mass startingNonPlanetMass)
-            => Mass += startingNonPlanetMass;
 
         public bool CanRemove(ulong resAmount)
             => MainResAmount >= resAmount + CurWorldConfig.minResAmountInPlanet;
@@ -85,7 +77,7 @@ namespace Game1
                 resAmount: new(resInd: ConsistsOfResInd, amount: resAmount)
             );
             Debug.Assert(reservedResPile is not null);
-            ReservedResPile.TransferAllFrom(reservedSource: ref reservedResPile, destin: destin);
+            destin.TransferAllFrom(reservedSource: ref reservedResPile);
             RecalculateValues();
         }
 
@@ -98,14 +90,8 @@ namespace Game1
             );
             if (reservedResPile is null)
                 throw new ArgumentException();
-            ReservedResPile.TransferAllFrom(reservedSource: ref reservedResPile, destin: consistsOfResPile);
+            consistsOfResPile.TransferAllFrom(reservedSource: ref reservedResPile);
             RecalculateValues();
         }
-
-        public void RegisterArriving(IHasMass hasMass)
-            => Mass += hasMass.Mass;
-
-        public void RegisterLeaving(IHasMass hasMass)
-            => Mass -= hasMass.Mass;
     }
 }

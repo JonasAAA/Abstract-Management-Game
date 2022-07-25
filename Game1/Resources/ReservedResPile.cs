@@ -27,12 +27,6 @@ namespace Game1.Resources
             return resPile;
         }
 
-        public static void TransferAllFrom([DisallowNull] ref ReservedResPile? reservedSource, ResPile destin)
-        {
-            Transfer(source: reservedSource, destin: destin, resAmounts: reservedSource.ResAmounts);
-            reservedSource = null;
-        }
-
         private ReservedResPile(MassCounter locationMassCounter)
             : base(locationMassCounter: locationMassCounter)
         { }

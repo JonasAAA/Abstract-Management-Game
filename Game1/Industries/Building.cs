@@ -29,7 +29,7 @@ namespace Game1.Industries
         {
             if (building.resPile is null)
                 throw new InvalidOperationException(buildingIsDeletedMessage);
-            ReservedResPile.TransferAllFrom(reservedSource: ref building.resPile, destin: resDestin);
+            resDestin.TransferAllFrom(reservedSource: ref building.resPile);
             building = null;
         }
     }

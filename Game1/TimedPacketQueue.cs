@@ -12,13 +12,13 @@ namespace Game1
         public Mass Mass { get; private set; }
         public readonly TimeSpan duration;
 
-        private readonly MassCounter massCounter;
+        private readonly MassCounter locationMassCounter;
         private readonly TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)> timedQueue;
 
-        public TimedPacketQueue(TimeSpan duration, MassCounter massCounter)
+        public TimedPacketQueue(TimeSpan duration, MassCounter locationMassCounter)
         {
             this.duration = duration;
-            this.massCounter = massCounter;
+            this.locationMassCounter = locationMassCounter;
             TotalResAmounts = ResAmounts.Empty;
             Mass = Mass.zero;
             PeopleCount = 0;
@@ -37,8 +37,8 @@ namespace Game1
 
         public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)
         {
-            resAmountsPackets = ResAmountsPacketsByDestin.CreateFromSource(sourcePackets: resAmountsPackets);
-            realPeople = RealPeople.CreateFromSource(realPeopleSource: realPeople);
+            resAmountsPackets = ResAmountsPacketsByDestin.CreateFromSource(sourcePackets: resAmountsPackets, locationMassCounter: locationMassCounter);
+            realPeople = RealPeople.CreateFromSource(realPeopleSource: realPeople, locationMassCounter: locationMassCounter);
             if (resAmountsPackets.Empty && realPeople.Count is 0)
                 return;
             timedQueue.Enqueue(element: (resAmountsPackets, realPeople));
@@ -60,8 +60,8 @@ namespace Game1
 
         public (ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople) DonePacketsAndPeople()
         {
-            var doneResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(massCounter: massCounter);
-            var donePeople = RealPeople.CreateEmpty();
+            var doneResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationMassCounter: locationMassCounter);
+            var donePeople = RealPeople.CreateEmpty(locationMassCounter: locationMassCounter);
             foreach (var (resAmountsPackets, people) in timedQueue.DoneElements())
             {
                 TotalResAmounts -= resAmountsPackets.ResAmounts;

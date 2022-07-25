@@ -159,7 +159,7 @@ namespace Game1
                 selector: resInd => new ProporSplitter<NodeID>()
             );
             targetStoredResAmounts = ResAmounts.Empty;
-            undecidedResPile = ResPile.CreateEmpty(massCounter: state.MassCounter);
+            undecidedResPile = ResPile.CreateEmpty(locationMassCounter: state.MassCounter);
             resTravelHereAmounts = ResAmounts.Empty;
             usedLocalWatts = 0;
 

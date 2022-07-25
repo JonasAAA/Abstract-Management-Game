@@ -7,11 +7,10 @@
             => new(createdByMagic: false);
 
         public static MassCounter CreateMassCounterByMagic(Mass mass)
-        {
-            MassCounter magicMassCounter = new(createdByMagic: true);
-            magicMassCounter.Mass = mass;
-            return magicMassCounter;
-        }
+            => new(createdByMagic: true)
+            {
+                Mass = mass
+            };
 
         public Mass Mass { get; private set; }
         private readonly bool createdByMagic;

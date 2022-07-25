@@ -22,7 +22,7 @@ namespace Game1.Resources
         private readonly ResRecipe recipe;
 
         private IngredientsResPile(ResPile source, ResRecipe recipe)
-            : base(massCounter: source.massCounter)
+            : base(locationMassCounter: source.LocationMassCounter)
         {
             Transfer(source: source, destin: this, resAmounts: recipe.ingredients);
             this.recipe = recipe;

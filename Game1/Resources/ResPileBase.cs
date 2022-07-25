@@ -21,17 +21,26 @@
                 Mass = resAmounts.TotalMass();
             }
         }
-        public readonly MassCounter massCounter;
+        public MassCounter LocationMassCounter
+        {
+            get => locationMassCounter;
+            set
+            {
+                value.TransferFrom(source: locationMassCounter, mass: Mass);
+                locationMassCounter = value;
+            }
+        }
 
+        private MassCounter locationMassCounter;
         /// <summary>
         /// NEVER use directly
         /// </summary>
         private ResAmounts resAmounts;
         private readonly bool createdByMagic;
 
-        protected ResPileBase(MassCounter massCounter, bool createdByMagic = false)
+        protected ResPileBase(MassCounter locationMassCounter, bool createdByMagic = false)
         {
-            this.massCounter = massCounter;
+            this.locationMassCounter = locationMassCounter;
             this.createdByMagic = createdByMagic;
             ResAmounts = createdByMagic ? magicResPileStartingResAmounts : ResAmounts.Empty;
         }
@@ -46,7 +55,7 @@
 
             source.ResAmounts -= resAmounts;            
             destin.ResAmounts += resAmounts;
-            destin.massCounter.TransferFrom(source: source.massCounter, mass: resAmounts.TotalMass());
+            destin.LocationMassCounter.TransferFrom(source: source.LocationMassCounter, mass: resAmounts.TotalMass());
         }
 
         protected static void Transfer(ResPileBase source, ResPileBase destin, ResAmount resAmount)

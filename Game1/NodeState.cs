@@ -48,15 +48,15 @@ namespace Game1
             Position = position;
             ConsistsOfResInd = consistsOfResInd;
             ConsistsOfRes = CurResConfig.resources[consistsOfResInd];
-            consistsOfResPile = ResPile.CreateEmpty(massCounter: MassCounter);
+            consistsOfResPile = ResPile.CreateEmpty(locationMassCounter: MassCounter);
             EnlargeFrom(source: resSource, resAmount: mainResAmount);
             
-            StoredResPile = ResPile.CreateEmpty(massCounter: MassCounter);
+            StoredResPile = ResPile.CreateEmpty(locationMassCounter: MassCounter);
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             MaxBatchDemResStored = maxBatchDemResStored;
-            waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(massCounter: MassCounter);
-            WaitingPeople = RealPeople.CreateEmpty();
+            waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationMassCounter: MassCounter);
+            WaitingPeople = RealPeople.CreateEmpty(locationMassCounter: MassCounter);
             TooManyResStored = false;
             WattsHittingSurfaceOrIndustry = 0;
             Mass = consistsOfResPile.Mass;

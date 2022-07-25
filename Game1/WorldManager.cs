@@ -249,7 +249,7 @@ namespace Game1
 
         // TODO: make this work not only on my machine
         private static string GetSaveFilePath
-            => @"C:\Users\Jonas\Desktop\Abstract Management Game\save.bin";
+            => @"C:\Users\Jonas\Desktop\Serious\Game Projects\Abstract Management Game\save.bin";
 
         private static DataContractSerializer GetDataContractSerializer()
             => new

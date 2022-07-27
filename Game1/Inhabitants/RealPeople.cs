@@ -97,7 +97,7 @@ namespace Game1.Inhabitants
             return false;
         }
 
-#if DEBUG
+#if DEBUG2
         ~RealPeople()
         {
             if (virtualToRealPeople.Count != 0)

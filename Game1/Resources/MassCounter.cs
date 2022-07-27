@@ -13,14 +13,14 @@
             };
 
         public Mass Mass { get; private set; }
-#if DEBUG
+#if DEBUG2
         private readonly bool createdByMagic;
 #endif
 
         private MassCounter(bool createdByMagic)
         {
             Mass = Mass.zero;
-#if DEBUG
+#if DEBUG2
             this.createdByMagic = createdByMagic;
 #endif
         }
@@ -33,7 +33,7 @@
             Mass += mass;
         }
 
-#if DEBUG
+#if DEBUG2
         ~MassCounter()
         {
             if (!createdByMagic && !Mass.IsZero)

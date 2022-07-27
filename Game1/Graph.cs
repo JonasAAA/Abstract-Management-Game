@@ -308,11 +308,11 @@ namespace Game1
         public void Update()
         {
             // TODO: improve performance
-            if (shortestPathsTask.IsCompleted)
-            {
-                SetPersonAndResShortestPaths(shortestPathsTask.Result);
-                SetShortestPathsTask();
-            }
+            //if (shortestPathsTask.IsCompleted)
+            //{
+            //    SetPersonAndResShortestPaths(shortestPathsTask.Result);
+            //    SetShortestPathsTask();
+            //}
 
             links.ForEach(link => link.Update());
             foreach (var node in nodes)

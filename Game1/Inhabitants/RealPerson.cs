@@ -251,7 +251,7 @@ namespace Game1.Inhabitants
         NodeID IEnergyConsumer.NodeID
             => lastNodeID;
 
-#if DEBUG
+#if DEBUG2
 #pragma warning disable CA1821 // Remove empty Finalizers
         ~RealPerson()
 #pragma warning restore CA1821 // Remove empty Finalizers

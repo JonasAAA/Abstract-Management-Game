@@ -36,7 +36,7 @@
         /// NEVER use directly
         /// </summary>
         private ResAmounts resAmounts;
-#if DEBUG
+#if DEBUG2
         private readonly bool createdByMagic;
 #endif
 
@@ -45,7 +45,7 @@
         {
             this.locationMassCounter = locationMassCounter;
             ResAmounts = createdByMagic ? magicResPileStartingResAmounts : ResAmounts.Empty;
-#if DEBUG
+#if DEBUG2
             this.createdByMagic = createdByMagic;
 #endif
         }
@@ -75,7 +75,7 @@
             resPileBase.ResAmounts += recipe.results;
         }
 
-#if DEBUG
+#if DEBUG2
         ~ResPileBase()
         {
             if (createdByMagic)

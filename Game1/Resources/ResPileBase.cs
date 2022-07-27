@@ -36,13 +36,18 @@
         /// NEVER use directly
         /// </summary>
         private ResAmounts resAmounts;
+#if DEBUG
         private readonly bool createdByMagic;
+#endif
+
 
         protected ResPileBase(MassCounter locationMassCounter, bool createdByMagic = false)
         {
             this.locationMassCounter = locationMassCounter;
-            this.createdByMagic = createdByMagic;
             ResAmounts = createdByMagic ? magicResPileStartingResAmounts : ResAmounts.Empty;
+#if DEBUG
+            this.createdByMagic = createdByMagic;
+#endif
         }
 
         public ulong this[ResInd resInd]

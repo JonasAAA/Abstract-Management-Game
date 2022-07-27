@@ -13,12 +13,16 @@
             };
 
         public Mass Mass { get; private set; }
+#if DEBUG
         private readonly bool createdByMagic;
-        
+#endif
+
         private MassCounter(bool createdByMagic)
         {
             Mass = Mass.zero;
+#if DEBUG
             this.createdByMagic = createdByMagic;
+#endif
         }
 
         public void TransferFrom(MassCounter source, Mass mass)

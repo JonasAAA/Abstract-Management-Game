@@ -134,10 +134,10 @@ namespace Game1
                 };
 
                 
-                const int width = 8, height = 5, dist = 200;
+                const int width = 10, height = 10, dist = 200;
                 const double maxRandomPositionOffset = dist * .3;
-                int startPlanetI = C.Random(min: 2, max: 3),
-                    startPlanetJ = C.Random(min: 2, max: 3);
+                int startPlanetI = C.Random(min: width / 2 - 1, max: width / 2),
+                    startPlanetJ = C.Random(min: height / 2 - 1, max: height / 2);
                 Planet[,] nodes = new Planet[width, height];
                 ResPile magicResPile = ResPile.CreateMagicUnlimitedPile();
                 for (int i = 0; i < width; i++)

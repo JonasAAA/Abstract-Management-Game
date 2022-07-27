@@ -1,6 +1,8 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -71,6 +73,12 @@ namespace Game1
             }
         }
 
+        [Serializable]
+        private readonly record struct ShortestPaths(ReadOnlyDictionary<(NodeID, NodeID), UDouble> Dists, ReadOnlyDictionary<(NodeID, NodeID), Link?> FirstLinks);
+
+        [Serializable]
+        private readonly record struct PersonAndResShortestPaths(ShortestPaths PersonShortestPaths, ShortestPaths ResShortestPaths);
+
         public IEnumerable<Planet> Nodes
             => nodes;
 
@@ -84,14 +92,14 @@ namespace Game1
         protected override Color Color
             => CurWorldConfig.cosmosBackgroundColor;
 
-        private readonly ReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
-        private readonly ReadOnlyDictionary<(NodeID, NodeID), UDouble> resDists;
+        private ReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
+        private ReadOnlyDictionary<(NodeID, NodeID), UDouble> resDists;
 
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        private readonly ReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks;
-        private readonly ReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks;
+        private ReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks;
+        private ReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks;
 
         private IEnumerable<WorldUIElement> WorldUIElements
         {
@@ -113,6 +121,8 @@ namespace Game1
         private readonly List<Planet> nodes;
         private readonly List<Link> links;
 
+        //THIS CAN'T be serialized
+        private Task<PersonAndResShortestPaths> shortestPathsTask;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDestinArrows;
 
         public WorldUIElement? ActiveWorldElement { get; private set; }
@@ -132,8 +142,8 @@ namespace Game1
             maxLinkTravelTime = this.links.Max(link => link.TravelTime);
             maxLinkJoulesPerKg = this.links.Max(link => link.JoulesPerKg);
 
-            (personDists, personFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.personDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.personDistanceEnergyCoeff);
-            (resDists, resFirstLinks) = FindShortestPaths(distTimeCoeff: CurWorldConfig.resDistanceTimeCoeff, distEnergyCoeff: CurWorldConfig.resDistanceEnergyCoeff);
+            SetPersonAndResShortestPaths(personAndResShortestPaths: FindPersonAndResShortestPaths(nodes: this.nodes, links: this.links));
+            SetShortestPathsTask();
 
             nodeIDToNode = new
             (
@@ -169,9 +179,46 @@ namespace Game1
             CurOverlayChanged.Add(listener: this);
         }
 
+        [MemberNotNull(nameof(personDists), nameof(personFirstLinks), nameof(resDists), nameof(resFirstLinks))]
+        private void SetPersonAndResShortestPaths(PersonAndResShortestPaths personAndResShortestPaths)
+            => ((personDists, personFirstLinks), (resDists, resFirstLinks)) = personAndResShortestPaths;
+
+        [MemberNotNull(nameof(shortestPathsTask))]
+        private void SetShortestPathsTask()
+            => shortestPathsTask = Task<PersonAndResShortestPaths>.Factory.StartNew
+            (
+                function: state =>
+                {
+                    var (nodes, links) = (ValueTuple<List<Planet>, List<Link>>)state!;
+                    return FindPersonAndResShortestPaths(nodes: nodes, links: links);
+                },
+                // TODO: decide if it's needed. it probably executes the function on another thread, but causes massive performance problems in Debug mode
+                creationOptions: TaskCreationOptions.LongRunning,
+                state: (nodes.ToList(), links.ToList())
+            );
+
+        private static PersonAndResShortestPaths FindPersonAndResShortestPaths(List<Planet> nodes, List<Link> links)
+            => new
+            (
+                PersonShortestPaths: FindShortestPaths
+                (
+                    nodes: nodes,
+                    links: links,
+                    distTimeCoeff: CurWorldConfig.personDistanceTimeCoeff,
+                    distEnergyCoeff: CurWorldConfig.personDistanceEnergyCoeff
+                ),
+                ResShortestPaths: FindShortestPaths
+                (
+                    nodes: nodes,
+                    links: links,
+                    distTimeCoeff: CurWorldConfig.resDistanceTimeCoeff,
+                    distEnergyCoeff: CurWorldConfig.resDistanceEnergyCoeff
+                )
+            );
+
         // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
-        private (ReadOnlyDictionary<(NodeID, NodeID), UDouble> dists, ReadOnlyDictionary<(NodeID, NodeID), Link?> firstLinks) FindShortestPaths(UDouble distTimeCoeff, UDouble distEnergyCoeff)
+        private static ShortestPaths FindShortestPaths(List<Planet> nodes, List<Link> links, UDouble distTimeCoeff, UDouble distEnergyCoeff)
         {
             UDouble[,] distsArray = new UDouble[nodes.Count, nodes.Count];
             Link?[,] firstLinksArray = new Link[nodes.Count, nodes.Count];
@@ -223,7 +270,7 @@ namespace Game1
                     );
                 }
 
-            return (dists: new(distsDict), firstLinks: new(firstLinksDict));
+            return new(Dists: new(distsDict), FirstLinks: new(firstLinksDict));
         }
 
         public UDouble PersonDist(NodeID nodeID1, NodeID nodeID2)
@@ -260,6 +307,13 @@ namespace Game1
 
         public void Update()
         {
+            // TODO: improve performance
+            if (shortestPathsTask.IsCompleted)
+            {
+                SetPersonAndResShortestPaths(shortestPathsTask.Result);
+                SetShortestPathsTask();
+            }
+
             links.ForEach(link => link.Update());
             foreach (var node in nodes)
                 node.Update(personFirstLinks: personFirstLinks);

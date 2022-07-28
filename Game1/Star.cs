@@ -1,7 +1,7 @@
 ﻿using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
-
+using Microsoft.Toolkit.HighPerformance;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -50,90 +50,178 @@ namespace Game1
         // the complexity is O(N ^ 2) as each object has O(1) relevant angles
         // and each object checks intersection with all the rays
         // could maybe get the time down to O(N log N) by using modified interval tree
-        void ILightSource.GiveWattsToObjects(IEnumerable<ILightCatchingObject> lightCatchingObjects)
+        void ILightSource.GiveWattsToObjects(List<ILightCatchingObject> lightCatchingObjects)
         {
-            List<double> angles = new();
-            foreach (var lightCatchingObject in lightCatchingObjects)
-                angles.AddRange(lightCatchingObject.RelAngles(lightPos: state.position));
-
-            const double small = .0001;
-            int oldAngleCount = angles.Count;
-
-            for (int i = 0; i < oldAngleCount; i++)
-            {
-                angles.Add(angles[i] + small);
-                angles.Add(angles[i] - small);
-            }
-
-            // prepare angles
-            for (int i = 0; i < 4; i++)
-                angles.Add(i * 2 * MyMathHelper.pi / 4);
-
-            angles = new SortedSet<double>
+            GetAnglesAndBlockedAngleArcs
             (
-                from angle in angles
-                select MyMathHelper.WrapAngle(angle)
-            ).ToList();
+                angles: out List<double> angles,
+                blockedAngleArcs: out List<(bool start, AngleArc angleArc)> blockedAngleArcs
+            );
 
-            List<MyVector2> vertices = new();
-            List<ILightCatchingObject?> rayCatchingObjects = new();
-            // TODO: consider moving this to constants class
-            UDouble maxDist = 2000;
-            foreach (double angle in angles)
-            {
-                MyVector2 rayDir = MyMathHelper.Direction(rotation: angle);
-                UDouble minDist = maxDist;
-                ILightCatchingObject? rayCatchingObject = null;
-                foreach (var lightCatchingObject in lightCatchingObjects)
-                {
-                    var dists = lightCatchingObject.InterPoints(lightPos: state.position, lightDir: rayDir);
-                    foreach (var dist in dists)
-                        if (UDouble.Create(value: dist) is UDouble nonnegDist && nonnegDist < minDist)
-                        {
-                            minDist = nonnegDist;
-                            rayCatchingObject = lightCatchingObject;
-                        }
-                }
-                rayCatchingObjects.Add(rayCatchingObject);
-                vertices.Add(state.position + minDist * rayDir);
-            }
+            PrepareAngles(ref angles);
+
+            blockedAngleArcs.Sort
+            (
+                comparison: (angleArc1, angleArc2) => angleArc1.angleArc.GetAngle(start: angleArc1.start).CompareTo(angleArc2.angleArc.GetAngle(start: angleArc2.start))
+            );
+
+            CalculateLightPolygonAndRayCatchingObjects
+            (
+                vertices: out List<MyVector2> vertices,
+                rayCatchingObjects: out List<ILightCatchingObject?> rayCatchingObjects
+            );
 
             Debug.Assert(rayCatchingObjects.Count == angles.Count && vertices.Count == angles.Count);
 
             polygon.Update(center: state.position, vertices: vertices);
 
-            Dictionary<ILightCatchingObject, UDouble> arcsForObjects = lightCatchingObjects.ToDictionary
-            (
-                keySelector: lightCatchingObject => lightCatchingObject,
-                elementSelector: lightCatchingObject => (UDouble)0
-            );
-            UDouble usedArc = 0;
-            for (int i = 0; i < rayCatchingObjects.Count; i++)
-            {
-                UDouble curArc = MyMathHelper.Abs(MyMathHelper.WrapAngle(angles[i] - angles[(i + 1) % angles.Count]));
-                UseArc(rayCatchingObject: rayCatchingObjects[i]);
-                UseArc(rayCatchingObject: rayCatchingObjects[(i + 1) % rayCatchingObjects.Count]);
-                void UseArc(ILightCatchingObject? rayCatchingObject)
-                {
-                    if (rayCatchingObject is not null)
-                    {
-                        arcsForObjects[rayCatchingObject] += curArc / 2;
-                        usedArc += curArc / 2;
-                    }
-                }
-            }
+            DistributeStarPower(usedArc: out UDouble usedArc);
 
             popupTextBox.Text = $"generates {state.prodWatts} power\n{usedArc / (2 * MyMathHelper.pi) * 100:0.}% of it hits planet";
 
-            foreach (var lightCatchingObject in lightCatchingObjects)
+            return;
+
+            void GetAnglesAndBlockedAngleArcs(out List<double> angles, out List<(bool start, AngleArc angleArc)> blockedAngleArcs)
             {
-                Propor powerPropor = Propor.Create(part: arcsForObjects[lightCatchingObject], whole: 2 * MyMathHelper.pi)!.Value;
-                lightCatchingObject.SetWatts
+                angles = new();
+                blockedAngleArcs = new();
+                foreach (var lightCatchingObject in lightCatchingObjects)
+                {
+                    var blockedAngleArc = lightCatchingObject.BlockedAngleArc(lightPos: state.position);
+
+                    angles.Add(blockedAngleArc.startAngle);
+                    angles.Add(blockedAngleArc.endAngle);
+
+                    if (blockedAngleArc.startAngle <= blockedAngleArc.endAngle)
+                        addProperAngleArc(blockedAngleArcs: blockedAngleArcs, angleArc: blockedAngleArc);
+                    else
+                    {
+                        addProperAngleArc
+                        (
+                            blockedAngleArcs: blockedAngleArcs,
+                            angleArc: new
+                            (
+                                startAngle: blockedAngleArc.startAngle - 2 * MyMathHelper.pi,
+                                endAngle: blockedAngleArc.endAngle,
+                                radius: blockedAngleArc.radius,
+                                lightCatchingObject: blockedAngleArc.lightCatchingObject
+                            )
+                        );
+                        addProperAngleArc
+                        (
+                            blockedAngleArcs: blockedAngleArcs,
+                            angleArc: new
+                            (
+                                startAngle: blockedAngleArc.startAngle,
+                                endAngle: blockedAngleArc.endAngle + 2 * MyMathHelper.pi,
+                                radius: blockedAngleArc.radius,
+                                lightCatchingObject: blockedAngleArc.lightCatchingObject
+                            )
+                        );
+                    }
+                }
+                void addProperAngleArc(List<(bool start, AngleArc angleArc)> blockedAngleArcs, AngleArc angleArc)
+                {
+                    blockedAngleArcs.Add((start: true, angleArc: angleArc));
+                    blockedAngleArcs.Add((start: false, angleArc: angleArc));
+                }
+            }
+
+            void PrepareAngles(ref List<double> angles)
+            {
+                // TODO: move to constants file
+                const double small = .0001;
+                int oldAngleCount = angles.Count;
+                List<double> newAngles = new(2 * angles.Count);
+
+                foreach (var angle in angles)
+                {
+                    newAngles.Add(angle - small);
+                    newAngles.Add(angle + small);
+                }
+
+                for (int i = 0; i < 4; i++)
+                    newAngles.Add(i * 2 * MyMathHelper.pi / 4);
+
+                for (int i = 0; i < newAngles.Count; i++)
+                    newAngles[i] = MyMathHelper.WrapAngle(angle: newAngles[i]);
+
+                newAngles.Sort();
+                angles = newAngles;
+            }
+        
+            void CalculateLightPolygonAndRayCatchingObjects(out List<MyVector2> vertices, out List<ILightCatchingObject?> rayCatchingObjects)
+            {
+                vertices = new();
+                rayCatchingObjects = new();
+                // TODO: consider moving this to constants class
+                UDouble maxDist = 2000;
+
+                SortedSet<AngleArc> curAngleArcs = new();
+                int angleInd = 0, angleArcInd = 0;
+                while (angleInd < angles.Count)
+                {
+                    double curAngle = angles[angleInd];
+                    while (angleArcInd < blockedAngleArcs.Count)
+                    {
+                        var (curStart, curAngleArc) = blockedAngleArcs[angleArcInd];
+                        if (curAngleArc.GetAngle(start: curStart) >= curAngle)
+                            break;
+                        if (curStart)
+                            curAngleArcs.Add(curAngleArc);
+                        else
+                            curAngleArcs.Remove(curAngleArc);
+                        angleArcInd++;
+                    }
+
+                    MyVector2 rayDir = MyMathHelper.Direction(rotation: curAngle);
+                    rayCatchingObjects.Add(curAngleArcs.Count == 0 ? null : curAngleArcs.Min.lightCatchingObject);
+                    double minDist = rayCatchingObjects[^1] switch
+                    {
+                        null => maxDist,
+                        // adding 1 looks better, even though it's not needed mathematically
+                        // TODO: move the constant 1 to the constants fileooooooooooooooooooooooooooo
+                        ILightCatchingObject lightCatchingObject => 1 + lightCatchingObject.CloserInterPoint(lightPos: state.position, lightDir: rayDir)
+                    };
+                    vertices.Add(state.position + minDist * rayDir);
+
+                    angleInd++;
+                }
+            }
+            
+            void DistributeStarPower(out UDouble usedArc)
+            {
+                Dictionary<ILightCatchingObject, UDouble> arcsForObjects = lightCatchingObjects.ToDictionary
                 (
-                    starPos: state.starID,
-                    watts: powerPropor * state.prodWatts,
-                    powerPropor: powerPropor
+                    keySelector: lightCatchingObject => lightCatchingObject,
+                    elementSelector: lightCatchingObject => (UDouble)0
                 );
+                usedArc = 0;
+                for (int i = 0; i < rayCatchingObjects.Count; i++)
+                {
+                    UDouble curArc = MyMathHelper.Abs(MyMathHelper.WrapAngle(angles[i] - angles[(i + 1) % angles.Count]));
+                    UseArc(rayCatchingObject: rayCatchingObjects[i], usedArc: ref usedArc);
+                    UseArc(rayCatchingObject: rayCatchingObjects[(i + 1) % rayCatchingObjects.Count], usedArc: ref usedArc);
+                    void UseArc(ILightCatchingObject? rayCatchingObject, ref UDouble usedArc)
+                    {
+                        if (rayCatchingObject is not null)
+                        {
+                            arcsForObjects[rayCatchingObject] += curArc / 2;
+                            usedArc += curArc / 2;
+                        }
+                    }
+                }
+
+                foreach (var lightCatchingObject in lightCatchingObjects)
+                {
+                    Propor powerPropor = Propor.Create(part: arcsForObjects[lightCatchingObject], whole: 2 * MyMathHelper.pi)!.Value;
+                    lightCatchingObject.SetWatts
+                    (
+                        starPos: state.starID,
+                        watts: powerPropor * state.prodWatts,
+                        powerPropor: powerPropor
+                    );
+                }
             }
         }
 

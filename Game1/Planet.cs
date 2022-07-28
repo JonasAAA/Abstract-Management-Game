@@ -586,11 +586,11 @@ namespace Game1
         private ILightBlockingObject CurLightCatchingObject
             => Industry?.LightBlockingObject ?? shape;
 
-        IEnumerable<double> ILightBlockingObject.RelAngles(MyVector2 lightPos)
-            => CurLightCatchingObject.RelAngles(lightPos: lightPos);
+        AngleArc.Params ILightBlockingObject.BlockedAngleArcParams(MyVector2 lightPos)
+            => CurLightCatchingObject.BlockedAngleArcParams(lightPos: lightPos);
 
-        IEnumerable<double> ILightBlockingObject.InterPoints(MyVector2 lightPos, MyVector2 lightDir)
-            => CurLightCatchingObject.InterPoints(lightPos: lightPos, lightDir: lightDir);
+        double ILightBlockingObject.CloserInterPoint(MyVector2 lightPos, MyVector2 lightDir)
+            => CurLightCatchingObject.CloserInterPoint(lightPos: lightPos, lightDir: lightDir);
 
         void ILightCatchingObject.BeginSetWatts()
             => state.WattsHittingSurfaceOrIndustry = 0;

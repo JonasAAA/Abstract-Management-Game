@@ -114,11 +114,9 @@
         public static double Rotation(MyVector2 vector)
             => Atan2(vector.Y, vector.X);
 
-        /// <summary>
-        /// 90 degrees to the left
-        /// </summary>
-        public static MyVector2 OrthDir(MyVector2 direction)
-            => new(direction.Y, -direction.X);
+        // Coordinate system is such that Y axis points down
+        public static MyVector2 Rotate90DegClockwise(MyVector2 vector)
+            => new(vector.Y, -vector.X);
 
         public static bool IsTiny(double value)
             => IsTiny(value: Abs(value));

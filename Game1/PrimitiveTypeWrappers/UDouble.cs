@@ -79,7 +79,7 @@
         public string ToString(string? format, IFormatProvider? formatProvider)
             => value.ToString(format, formatProvider);
 
-        int IComparable<UDouble>.CompareTo(UDouble other)
+        public int CompareTo(UDouble other)
             => value.CompareTo(other.value);
     }
 }

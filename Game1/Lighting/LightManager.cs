@@ -83,7 +83,7 @@ namespace Game1.Lighting
 
             // could return from this method if nothing changed since last call (including all positions)
             foreach (var lightSource in lightSources)
-                lightSource.GiveWattsToObjects(lightCatchingObjects: lightCatchingObjects);
+                lightSource.GiveWattsToObjects(lightCatchingObjects: lightCatchingObjects.ToList());
         }
 
         public void Draw(Matrix worldToScreenTransform)

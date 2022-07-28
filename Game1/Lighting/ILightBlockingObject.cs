@@ -2,8 +2,11 @@
 {
     public interface ILightBlockingObject
     {
-        public IEnumerable<double> RelAngles(MyVector2 lightPos);
+        public AngleArc.Params BlockedAngleArcParams(MyVector2 lightPos);
 
-        public IEnumerable<double> InterPoints(MyVector2 lightPos, MyVector2 lightDir);
+        /// <summary>
+        /// Throws exception if doesn't intersect
+        /// </summary>
+        public double CloserInterPoint(MyVector2 lightPos, MyVector2 lightDir);
     }
 }

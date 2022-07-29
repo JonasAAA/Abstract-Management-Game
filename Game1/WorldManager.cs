@@ -115,8 +115,8 @@ namespace Game1
                         (
                             starID: StarID.Create(),
                             position: new MyVector2(200, 300),
-                            radius: 10,
-                            prodWatts: 10000
+                            radius: 30,
+                            prodWatts: 30000
                         ),
                         color: Color.Lerp(Color.White, Color.Blue, .3f)
                     ),

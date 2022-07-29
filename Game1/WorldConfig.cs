@@ -83,7 +83,7 @@
 
             desperationMemoryPropor = (Propor).9;
 
-            minResAmountInPlanet = 10;
+            minResAmountInPlanet = 100;
 
             defaultIndustryHeight = 10;
 
@@ -92,8 +92,8 @@
             linkTravellerColor = Color.Black;
 
             linkTravelSpeed = (UDouble)100;
-            linkJoulesPerNewtonOfGravity = (UDouble).01;
-            linkJoulesPerMeterOfDistance = (UDouble).0001;
+            linkJoulesPerNewtonOfGravity = (UDouble).001;
+            linkJoulesPerMeterOfDistance = (UDouble).00001;
         }
     }
 }

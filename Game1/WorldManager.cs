@@ -478,14 +478,9 @@ namespace Game1
             people.Add(realPerson.asVirtual);
             realPerson.Deleted.Add(listener: this);
         }
-        int profile = -1;
+
         public void Update(TimeSpan elapsed)
         {
-            if (profile >= 0)
-                profile++;
-            else
-                if (Keyboard.GetState().IsKeyDown(Keys.Up))
-                    profile = 0;
             if (elapsed < TimeSpan.Zero)
                 throw new ArgumentException();
 
@@ -521,8 +516,6 @@ namespace Game1
             GC.Collect();
             GC.WaitForPendingFinalizers();
 #endif
-            if (profile >= 100)
-                ;
         }
 
         public void Draw()

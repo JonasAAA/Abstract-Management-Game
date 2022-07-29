@@ -218,6 +218,7 @@ namespace Game1
 
         // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
+        // TODO: implement Dijkstra and use pre-allocated buffers for computations to reduce GC pressure
         private static ShortestPaths FindShortestPaths(List<Planet> nodes, List<Link> links, UDouble distTimeCoeff, UDouble distEnergyCoeff)
         {
             UDouble[,] distsArray = new UDouble[nodes.Count, nodes.Count];
@@ -307,12 +308,12 @@ namespace Game1
 
         public void Update()
         {
-            // TODO: improve performance
-            //if (shortestPathsTask.IsCompleted)
-            //{
-            //    SetPersonAndResShortestPaths(shortestPathsTask.Result);
-            //    SetShortestPathsTask();
-            //}
+            // TODO: improve performance of this
+            if (shortestPathsTask.IsCompleted)
+            {
+                SetPersonAndResShortestPaths(shortestPathsTask.Result);
+                SetShortestPathsTask();
+            }
 
             links.ForEach(link => link.Update());
             foreach (var node in nodes)

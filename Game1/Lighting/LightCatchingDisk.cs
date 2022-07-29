@@ -13,7 +13,12 @@ namespace Game1.Lighting
         {
             UDouble dist = MyVector2.Distance(lightPos, Center);
             if (dist <= parameters.Radius)
-                throw new ArgumentException("light source in inside the disk");
+            {
+                // light source in inside the disk
+                // just return empty interval for the time being
+                return new();
+                //return new(startAngle: -MyMathHelper.pi + MyMathHelper.minPosDouble, endAngle: MyMathHelper.pi - MyMathHelper.minPosDouble, radius: parameters.Radius);
+            }
 
             double halfArcSin = parameters.Radius / dist,
                   halfArcCos = MyMathHelper.Sqrt((UDouble)(1 - halfArcSin * halfArcSin));

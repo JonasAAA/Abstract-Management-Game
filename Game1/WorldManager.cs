@@ -187,8 +187,6 @@ namespace Game1
                                 (
                                     node1: nodes[i, j],
                                     node2: nodes[i, j + 1],
-                                    travelTime: TimeSpan.FromSeconds((i + 1) * distScale),
-                                    wattsPerKg: (UDouble)(j + 1.5) * distScale,
                                     minSafeDist: CurWorldConfig.minSafeDist
                                 )
                             );
@@ -202,8 +200,6 @@ namespace Game1
                                 (
                                     node1: nodes[i, j],
                                     node2: nodes[i + 1, j],
-                                    travelTime: TimeSpan.FromSeconds((i + 1.5) * distScale),
-                                    wattsPerKg: (UDouble)(j + 1) * distScale,
                                     minSafeDist: CurWorldConfig.minSafeDist
                                 )
                             );

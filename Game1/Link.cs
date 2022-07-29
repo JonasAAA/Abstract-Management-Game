@@ -165,10 +165,9 @@ namespace Game1
         public TimeSpan TravelTime { get; private set; }
 
         private readonly DirLink link1To2, link2To1;
-        private readonly MyArray<TextBox> resTextBoxes;
-        private readonly TextBox allResTextBox, peopleTextBox;
+        private readonly TextBox infoTextBox;
 
-        public Link(ILinkFacingPlanet node1, ILinkFacingPlanet node2, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
+        public Link(ILinkFacingPlanet node1, ILinkFacingPlanet node2, UDouble minSafeDist)
             : base
             (
                 shape: new LineSegment
@@ -190,18 +189,8 @@ namespace Game1
             link1To2 = new(startNode: node1, endNode: node2, minSafeDist: minSafeDist);
             link2To1 = new(startNode: node2, endNode: node1, minSafeDist: minSafeDist);
 
-            resTextBoxes = new();
-            foreach (var resInd in ResInd.All)
-            {
-                resTextBoxes[resInd] = new(backgroundColor: Color.White);
-                SetPopup(HUDElement: resTextBoxes[resInd], overlay: resInd);
-            }
-
-            allResTextBox = new(backgroundColor: Color.White);
-            SetPopup(HUDElement: allResTextBox, overlay: IOverlay.allRes);
-
-            peopleTextBox = new(backgroundColor: Color.White);
-            SetPopup(HUDElement: peopleTextBox, overlay: IOverlay.people);
+            infoTextBox = new(backgroundColor: Color.White);
+            SetPopup(HUDElement: infoTextBox, overlays: IOverlay.all);
         }
 
         public ILinkFacingPlanet OtherNode(ILinkFacingPlanet node)
@@ -266,12 +255,12 @@ namespace Game1
             // in order to not have two switch statements mirroring each other
             ulong travellingAmount = link1To2.GetTravellingAmount() + link2To1.GetTravellingAmount();
 
-            CurWorldManager.Overlay.SwitchStatement
+            infoTextBox.Text = $"Travel cost is {JoulesPerKg:.###} J/Kg\n" + CurWorldManager.Overlay.SwitchExpression
             (
-                singleResCase: resInd => resTextBoxes[resInd].Text = $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",
-                allResCase: () => allResTextBox.Text = $"{travellingAmount} kg of resources are travelling",
-                peopleCase: () => peopleTextBox.Text = $"{travellingAmount} of people are travelling",
-                powerCase: () => throw new ArgumentOutOfRangeException()
+                singleResCase: resInd => $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",
+                allResCase: () => $"{travellingAmount} kg of resources are travelling",
+                peopleCase: () => $"{travellingAmount} of people are travelling",
+                powerCase: () => ""
             );
         }
 

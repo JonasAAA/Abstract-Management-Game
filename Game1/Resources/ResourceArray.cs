@@ -16,15 +16,15 @@
                         0 => new BasicRes
                         (
                             resInd: (BasicResInd)resInd,
-                            mass: Mass.CreateFromKg(massInKg: 1),
+                            mass: Mass.CreateFromKg(massInKg: 2),
                             area: 10,
                             color: Color.Gray
                         ),
                         1 => new BasicRes
                         (
                             resInd: (BasicResInd)resInd,
-                            mass: Mass.CreateFromKg(massInKg: 2),
-                            area: 2,
+                            mass: Mass.CreateFromKg(massInKg: 1),
+                            area: 20,
                             color: Color.Brown
                         ),
                         _ => throw new ArgumentOutOfRangeException()

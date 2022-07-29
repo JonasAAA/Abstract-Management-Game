@@ -315,10 +315,10 @@ namespace Game1
             => worldCamera.WorldPos(screenPos: (MyVector2)Mouse.GetState().Position);
 
         public TimeSpan MaxLinkTravelTime
-            => CurGraph.maxLinkTravelTime;
+            => CurGraph.MaxLinkTravelTime;
 
         public UDouble MaxLinkJoulesPerKg
-            => CurGraph.maxLinkJoulesPerKg;
+            => CurGraph.MaxLinkJoulesPerKg;
 
         public bool ArrowDrawingModeOn
         {

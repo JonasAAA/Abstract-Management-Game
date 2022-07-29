@@ -34,6 +34,8 @@ namespace Game1
         public UDouble WattsHittingSurfaceOrIndustry { get; set; }
         // TODO: could include linkEndPoints mass in this
         public MassCounter MassCounter { get; }
+        public UDouble SurfaceGravity
+            => WorldFunctions.SurfaceGravity(mass: MassCounter.Mass, radius: Radius);
 
         private readonly ResPile consistsOfResPile;
 

@@ -84,8 +84,8 @@ namespace Game1
             => nodes;
 
         public readonly ReadOnlyDictionary<NodeID, Planet> nodeIDToNode;
-        public readonly TimeSpan maxLinkTravelTime;
-        public readonly UDouble maxLinkJoulesPerKg;
+        public TimeSpan MaxLinkTravelTime { get; private set; }
+        public UDouble MaxLinkJoulesPerKg { get; private set; }
 
         public override bool CanBeClicked
             => true;
@@ -121,7 +121,6 @@ namespace Game1
         private readonly List<Planet> nodes;
         private readonly List<Link> links;
 
-        //TODO: THIS CAN'T be serialized
         [NonSerialized] private Task<PersonAndResShortestPaths> shortestPathsTask;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDestinArrows;
 
@@ -139,8 +138,7 @@ namespace Game1
                 link.node2.AddLink(link: link);
             }
 
-            maxLinkTravelTime = this.links.Max(link => link.TravelTime);
-            maxLinkJoulesPerKg = this.links.Max(link => link.JoulesPerKg);
+            CalcAndSetMaxLinkStats();
 
             SetPersonAndResShortestPaths(personAndResShortestPaths: FindPersonAndResShortestPaths(nodes: this.nodes, links: this.links));
             SetShortestPathsTask();
@@ -183,6 +181,12 @@ namespace Game1
         {
             if (shortestPathsTask is null)
                 SetShortestPathsTask();
+        }
+
+        private void CalcAndSetMaxLinkStats()
+        {
+            MaxLinkTravelTime = this.links.Max(link => link.TravelTime);
+            MaxLinkJoulesPerKg = this.links.Max(link => link.JoulesPerKg);
         }
 
         [MemberNotNull(nameof(personDists), nameof(personFirstLinks), nameof(resDists), nameof(resFirstLinks))]
@@ -321,6 +325,7 @@ namespace Game1
                 SetShortestPathsTask();
             }
 
+            CalcAndSetMaxLinkStats();
             links.ForEach(link => link.Update());
             foreach (var node in nodes)
                 node.Update(personFirstLinks: personFirstLinks);

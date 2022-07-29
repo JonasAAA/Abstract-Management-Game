@@ -10,23 +10,21 @@ namespace Game1
         public ulong PeopleCount { get; private set; }
         public ResAmounts TotalResAmounts { get; private set; }
         public Mass Mass { get; private set; }
-        public readonly TimeSpan duration;
 
         private readonly MassCounter locationMassCounter;
         private readonly TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)> timedQueue;
 
-        public TimedPacketQueue(TimeSpan duration, MassCounter locationMassCounter)
+        public TimedPacketQueue(MassCounter locationMassCounter)
         {
-            this.duration = duration;
             this.locationMassCounter = locationMassCounter;
             TotalResAmounts = ResAmounts.Empty;
             Mass = Mass.zero;
             PeopleCount = 0;
-            timedQueue = new(duration: duration);
+            timedQueue = new();
         }
 
-        public void Update(Propor workingPropor)
-            => timedQueue.Update(workingPropor: workingPropor);
+        public void Update(TimeSpan duration, Propor workingPropor)
+            => timedQueue.Update(duration: duration, workingPropor: workingPropor);
 
         /// <param name="personalUpdate"> if null, will use default update</param>
         public void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams, Func<RealPerson, UpdatePersonSkillsParams?>? personalUpdate)

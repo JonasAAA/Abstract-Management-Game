@@ -143,7 +143,7 @@ namespace Game1.Industries
             this.parameters = parameters;
             reprodCenter = new(parameters: parameters);
 
-            birthQueue = new(duration: parameters.birthDuration);
+            birthQueue = new();
         }
 
         public override void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams)
@@ -165,7 +165,7 @@ namespace Game1.Industries
 
         protected override ReprodIndustry InternalUpdate(Propor workingPropor)
         {
-            birthQueue.Update(workingPropor: workingPropor);
+            birthQueue.Update(duration: parameters.birthDuration, workingPropor: workingPropor);
 
             foreach (var (parent1, parent2, childResPile) in birthQueue.DoneElements())
             {

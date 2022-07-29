@@ -370,12 +370,6 @@ namespace Game1
 
         public void Update(IReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks)
         {
-            // TODO: delete
-            // temporary
-            // state.SetRadius((double)C.Random(0.99, 1.01) * state.radius.Value);
-            // temporary
-            //state.position += new MyVector2(x: C.Random(min: -1.0, max: 1), y: C.Random(min: -1.0, max: 1));
-
             // deal with people
             state.WaitingPeople.ForEach
             (
@@ -549,6 +543,9 @@ namespace Game1
                     tab: overlayTabPanels[CurWorldManager.Overlay]
                 );
         }
+
+        UDouble ILinkFacingPlanet.SurfaceGravity
+            => state.SurfaceGravity;
 
         void ILinkFacingPlanet.AddLink(Link link)
         {

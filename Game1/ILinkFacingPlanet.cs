@@ -8,6 +8,8 @@ namespace Game1
 
         public NodeID NodeID { get; }
 
+        public UDouble SurfaceGravity { get; }
+
         public void AddLink(Link link);
 
         public void Arrive(ResAmountsPacketsByDestin resAmountsPackets);

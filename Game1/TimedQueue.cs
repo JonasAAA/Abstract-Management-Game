@@ -6,53 +6,56 @@ namespace Game1
     [Serializable]
     public class TimedQueue<T> : IEnumerable<T>
     {
-        public int Count
-            => endTimeQueue.Count;
-        public readonly TimeSpan duration;
+        private static readonly TimeSpan normalizedDuration = TimeSpan.FromSeconds(1);
 
-        private TimeSpan currentLocalTime, lastEndTime;
-        private readonly Queue<TimeSpan> endTimeQueue;
+        public int Count
+            => endNormalizedTimeQueue.Count;
+
+        // Normalized time means time is calculated in such a way that normalized duration is 1 second
+        private TimeSpan curNormalizedLocalTime, lastNormalizedEndTime;
+        private readonly Queue<TimeSpan> endNormalizedTimeQueue;
         private readonly Queue<T> queue;
 
-        public TimedQueue(TimeSpan duration)
+        public TimedQueue()
         {
-            if (duration <= TimeSpan.Zero)
-                throw new ArgumentException();
-            this.duration = duration;
-            currentLocalTime = TimeSpan.Zero;
-            lastEndTime = TimeSpan.MinValue;
+            curNormalizedLocalTime = TimeSpan.Zero;
+            lastNormalizedEndTime = TimeSpan.MinValue;
 
-            endTimeQueue = new();
+            endNormalizedTimeQueue = new();
             queue = new();
         }
 
-        public void Update(Propor workingPropor)
-            => currentLocalTime += CurWorldManager.Elapsed * workingPropor;
+        public void Update(TimeSpan duration, Propor workingPropor)
+        {
+            if (duration <= TimeSpan.Zero)
+                throw new ArgumentException();
+            curNormalizedLocalTime += CurWorldManager.Elapsed * workingPropor * normalizedDuration.TotalSeconds / duration.TotalSeconds;
+        }
 
         public virtual void Enqueue(T element)
         {
-            lastEndTime = currentLocalTime + duration;
-            endTimeQueue.Enqueue(lastEndTime);
+            lastNormalizedEndTime = curNormalizedLocalTime + normalizedDuration;
+            endNormalizedTimeQueue.Enqueue(lastNormalizedEndTime);
             queue.Enqueue(element);
         }
 
         public virtual IEnumerable<T> DoneElements()
         {
-            while (endTimeQueue.Count > 0 && endTimeQueue.Peek() < currentLocalTime)
+            while (endNormalizedTimeQueue.Count > 0 && endNormalizedTimeQueue.Peek() < curNormalizedLocalTime)
             {
-                endTimeQueue.Dequeue();
+                endNormalizedTimeQueue.Dequeue();
                 yield return queue.Dequeue();
             }
         }
 
         public IEnumerable<(Propor complPropor, T element)> GetData()
         {
-            Debug.Assert(endTimeQueue.Count == queue.Count);
+            Debug.Assert(endNormalizedTimeQueue.Count == queue.Count);
 
-            foreach (var (endTime, element) in endTimeQueue.Zip(queue))
+            foreach (var (normalizedEndTime, element) in endNormalizedTimeQueue.Zip(queue))
                 yield return
                 (
-                    complPropor: C.DonePropor(timeLeft: endTime - currentLocalTime, duration: duration),
+                    complPropor: C.DonePropor(timeLeft: normalizedEndTime - curNormalizedLocalTime, duration: normalizedDuration),
                     element: element
                 );
         }
@@ -61,7 +64,7 @@ namespace Game1
         {
             if (Count is 0)
                 throw new InvalidOperationException();
-            return C.DonePropor(timeLeft: lastEndTime - currentLocalTime, duration: duration);
+            return C.DonePropor(timeLeft: lastNormalizedEndTime - curNormalizedLocalTime, duration: normalizedDuration);
         }
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator()

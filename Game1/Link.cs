@@ -25,38 +25,28 @@ namespace Game1
                 => deleted;
 
             public readonly ILinkFacingPlanet startNode, endNode;
-            public UDouble JoulesPerKg
-                => (UDouble)timedPacketQueue.duration.TotalSeconds * reqWattsPerKg;
-            public TimeSpan TravelTime
-                => timedPacketQueue.duration;
 
-            // TODO: think about of DirLink or Link should have MassCounter
+            // TODO: think about if DirLink or Link should have MassCounter
             private readonly MassCounter massCounter;
             private readonly TimedPacketQueue timedPacketQueue;
-            private readonly Propor minSafePropor;
             private readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
             private readonly RealPeople waitingPeople;
-            private readonly UDouble reqWattsPerKg;
+            private readonly UDouble minSafeDist;
+            private Propor minSafePropor;
+            private UDouble reqWattsPerKg;
             private Propor energyPropor;
             private readonly Event<IDeletedListener> deleted;
 
-            public DirLink(ILinkFacingPlanet startNode, ILinkFacingPlanet endNode, TimeSpan travelTime, UDouble wattsPerKg, UDouble minSafeDist)
+            public DirLink(ILinkFacingPlanet startNode, ILinkFacingPlanet endNode, UDouble minSafeDist)
             {
                 this.startNode = startNode;
                 this.endNode = endNode;
+                this.minSafeDist = minSafeDist;
 
                 massCounter = MassCounter.CreateEmpty();
-                timedPacketQueue = new(duration: travelTime, locationMassCounter: massCounter);
-                minSafePropor = Propor.Create(part: minSafeDist, whole: MyVector2.Distance(startNode.Position, endNode.Position)) switch
-                {
-                    Propor propor => propor,
-                    null => throw new ArgumentException()
-                };
+                timedPacketQueue = new(locationMassCounter: massCounter);
                 waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationMassCounter: massCounter);
                 waitingPeople = RealPeople.CreateEmpty(locationMassCounter: massCounter);
-                if (wattsPerKg.IsCloseTo(other: 0))
-                    throw new ArgumentOutOfRangeException();
-                reqWattsPerKg = wattsPerKg / (UDouble)travelTime.TotalSeconds;
                 energyPropor = Propor.empty;
                 deleted = new();
 
@@ -81,9 +71,18 @@ namespace Game1
                     powerCase: () => throw new InvalidOperationException()
                 );
 
-            public void Update()
+            public void Update(TimeSpan travelTime, UDouble reqJoulesPerKg, UDouble linkLength)
             {
-                timedPacketQueue.Update(workingPropor: energyPropor);
+                if (travelTime <= TimeSpan.Zero)
+                    throw new ArgumentException();
+                reqWattsPerKg = reqJoulesPerKg / (UDouble)travelTime.TotalSeconds;
+                minSafePropor = Propor.Create(part: minSafeDist, whole: linkLength) switch
+                {
+                    Propor propor => propor,
+                    null => throw new ArgumentException()
+                };
+
+                timedPacketQueue.Update(duration: travelTime, workingPropor: energyPropor);
                 var (resAmountsPackets, people) = timedPacketQueue.DonePacketsAndPeople();
                 endNode.Arrive(resAmountsPackets: resAmountsPackets);
                 endNode.Arrive(realPeople: people);
@@ -162,10 +161,8 @@ namespace Game1
         }
 
         public readonly ILinkFacingPlanet node1, node2;
-        public UDouble JoulesPerKg
-            => link1To2.JoulesPerKg;
-        public TimeSpan TravelTime
-            => link1To2.TravelTime;
+        public UDouble JoulesPerKg { get; private set; }
+        public TimeSpan TravelTime { get; private set; }
 
         private readonly DirLink link1To2, link2To1;
         private readonly MyArray<TextBox> resTextBoxes;
@@ -190,8 +187,8 @@ namespace Game1
             this.node1 = node1;
             this.node2 = node2;
 
-            link1To2 = new(startNode: node1, endNode: node2, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
-            link2To1 = new(startNode: node2, endNode: node1, travelTime: travelTime, wattsPerKg: wattsPerKg, minSafeDist: minSafeDist);
+            link1To2 = new(startNode: node1, endNode: node2, minSafeDist: minSafeDist);
+            link2To1 = new(startNode: node2, endNode: node1, minSafeDist: minSafeDist);
 
             resTextBoxes = new();
             foreach (var resInd in ResInd.All)
@@ -237,8 +234,18 @@ namespace Game1
 
         public void Update()
         {
-            link1To2.Update();
-            link2To1.Update();
+            UDouble linkLength = MyVector2.Distance(value1: node1.Position, value2: node2.Position);
+
+            TravelTime = WorldFunctions.LinkTravelTime(linkLength: linkLength);
+            JoulesPerKg = WorldFunctions.LinkJoulesPerKg
+            (
+                surfaceGravity1: node1.SurfaceGravity,
+                surfaceGravity2: node2.SurfaceGravity,
+                linkLength: linkLength
+            );
+
+            link1To2.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
+            link2To1.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
 
             // TODO(color): turn activeColor and inactiveColor into abstract properties
             inactiveColor = Color.Lerp

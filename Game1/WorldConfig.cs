@@ -27,12 +27,13 @@
         public readonly ulong resDistribArrowsUILayer;
         public readonly UDouble linkWidth;
         // So gravitational force between masses M1 and M2 at distance R is gravitConst * M1 * M2 / (R ^ gravitPower)
-        public readonly UDouble gravitPower, gravitConst;
+        public readonly UDouble gravitExponent, gravitConst;
         public readonly Propor desperationMemoryPropor;
         public readonly ulong minResAmountInPlanet;
         public readonly UDouble defaultIndustryHeight;
 
         public readonly Color cosmosBackgroundColor, houseIndustryColor, linkTravellerColor;
+        public readonly UDouble linkTravelSpeed, linkJoulesPerNewtonOfGravity, linkJoulesPerMeterOfDistance;
 
         public WorldConfig()
         {
@@ -77,7 +78,7 @@
 
             linkWidth = 10;
 
-            gravitPower = (UDouble)1.5;
+            gravitExponent = (UDouble)1.5;
             gravitConst = 1;
 
             desperationMemoryPropor = (Propor).9;
@@ -89,6 +90,10 @@
             cosmosBackgroundColor = Color.Black;
             houseIndustryColor = Color.Yellow;
             linkTravellerColor = Color.Black;
+
+            linkTravelSpeed = (UDouble)100;
+            linkJoulesPerNewtonOfGravity = (UDouble).01;
+            linkJoulesPerMeterOfDistance = (UDouble).0001;
         }
     }
 }

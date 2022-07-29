@@ -1,4 +1,5 @@
 ﻿using Game1.Delegates;
+using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
 using System.Diagnostics.CodeAnalysis;
@@ -94,7 +95,6 @@ namespace Game1
 
         private ReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
         private ReadOnlyDictionary<(NodeID, NodeID), UDouble> resDists;
-
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
@@ -121,8 +121,8 @@ namespace Game1
         private readonly List<Planet> nodes;
         private readonly List<Link> links;
 
-        //THIS CAN'T be serialized
-        private Task<PersonAndResShortestPaths> shortestPathsTask;
+        //TODO: THIS CAN'T be serialized
+        [NonSerialized] private Task<PersonAndResShortestPaths> shortestPathsTask;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDestinArrows;
 
         public WorldUIElement? ActiveWorldElement { get; private set; }
@@ -177,6 +177,12 @@ namespace Game1
             ActiveWorldElement = null;
 
             CurOverlayChanged.Add(listener: this);
+        }
+
+        public void Initialize()
+        {
+            if (shortestPathsTask is null)
+                SetShortestPathsTask();
         }
 
         [MemberNotNull(nameof(personDists), nameof(personFirstLinks), nameof(resDists), nameof(resFirstLinks))]

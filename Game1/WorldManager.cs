@@ -433,6 +433,7 @@ namespace Game1
 
         private void Initialize()
         {
+            graph!.Initialize();
             lightManager.Initialize();
             OnCreate?.Invoke();
         }

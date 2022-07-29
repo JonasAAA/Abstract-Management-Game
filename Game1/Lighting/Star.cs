@@ -1,10 +1,9 @@
-﻿using Game1.Lighting;
-using Game1.Shapes;
+﻿using Game1.Shapes;
 using Game1.UI;
 using Microsoft.Toolkit.HighPerformance;
 using static Game1.WorldManager;
 
-namespace Game1
+namespace Game1.Lighting
 {
     [Serializable]
     public sealed class Star : WorldUIElement, ILightSource
@@ -122,8 +121,8 @@ namespace Game1
                 }
                 void addProperAngleArc(List<(bool start, AngleArc angleArc)> blockedAngleArcs, AngleArc angleArc)
                 {
-                    blockedAngleArcs.Add((start: true, angleArc: angleArc));
-                    blockedAngleArcs.Add((start: false, angleArc: angleArc));
+                    blockedAngleArcs.Add((start: true, angleArc));
+                    blockedAngleArcs.Add((start: false, angleArc));
                 }
             }
 
@@ -149,7 +148,7 @@ namespace Game1
                 newAngles.Sort();
                 angles = newAngles;
             }
-        
+
             void CalculateLightPolygonAndRayCatchingObjects(out List<MyVector2> vertices, out List<ILightCatchingObject?> rayCatchingObjects)
             {
                 vertices = new();
@@ -188,7 +187,7 @@ namespace Game1
                     angleInd++;
                 }
             }
-            
+
             void DistributeStarPower(out UDouble usedArc)
             {
                 Dictionary<ILightCatchingObject, UDouble> arcsForObjects = lightCatchingObjects.ToDictionary

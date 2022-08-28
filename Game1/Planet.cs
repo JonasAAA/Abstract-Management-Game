@@ -131,7 +131,6 @@ namespace Game1
         private UDouble usedLocalWatts;
 
         private readonly TextBox textBox;
-        private readonly MyArray<ToggleButton> storeToggleButtons;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
         private readonly UIRectPanel<IHUDElement> infoPanel, buildButtonPannel;
         private readonly Dictionary<IOverlay, UIRectPanel<IHUDElement>> overlayTabPanels;
@@ -215,23 +214,8 @@ namespace Game1
 
             foreach (var overlay in IOverlay.all)
                 overlayTabPanels[overlay] = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
-            storeToggleButtons = new();
             foreach (var resInd in ResInd.All)
             {
-                storeToggleButtons[resInd] = new ToggleButton
-                (
-                    shape: new MyRectangle
-                    (
-                        width: 60,
-                        height: 60
-                    ),
-                    tooltip: new ImmutableTextTooltip(text: "Specifies weather to store extra resources"),
-                    text: "store\nswitch",
-                    on: false
-                );
-
-                overlayTabPanels[resInd].AddChild(child: storeToggleButtons[resInd]);
-
                 Button addResourceDestinationButton = new
                 (
                     shape: new MyRectangle(width: 150, height: 50),
@@ -316,9 +300,6 @@ namespace Game1
 
         public ulong TotalQueuedRes(ResInd resInd)
             => state.StoredResPile[resInd] + resTravelHereAmounts[resInd];
-
-        public bool IfStore(ResInd resInd)
-            => storeToggleButtons[resInd].On;
 
         public IEnumerable<NodeID> ResDestins(ResInd resInd)
             => resSplittersToDestins[resInd].Keys;
@@ -481,8 +462,6 @@ namespace Game1
                 singleResCase: resInd =>
                 {
                     string text = "";
-                    if (IfStore(resInd: resInd))
-                        text += "store\n";
                     if (state.StoredResPile[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
                         text += (state.StoredResPile[resInd] >= targetStoredResAmounts[resInd]) switch
                         {

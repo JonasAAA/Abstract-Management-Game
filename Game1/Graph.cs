@@ -56,11 +56,13 @@ namespace Game1
                 }
 
                 ulong subgraphUserTargetStoredRes = node.TargetStoredResAmount(resInd: resInd) + userTargetStoredResFromNodesOut,
-                    targetStoredRes = node.IfStore(resInd: resInd) switch
-                    {
-                        true => subgraphUserTargetStoredRes,
-                        false => node.TargetStoredResAmount(resInd: resInd)
-                    };
+                    targetStoredRes = node.TargetStoredResAmount(resInd: resInd);
+                // Use logic similar to below if want a not to store some extra resources for the "downstream" nodes.
+                //    targetStoredRes = node.IfStore(resInd: resInd) switch
+                //    {
+                //        true => subgraphUserTargetStoredRes,
+                //        false => node.TargetStoredResAmount(resInd: resInd)
+                //    };
 
                 return
                 (

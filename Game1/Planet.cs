@@ -479,7 +479,7 @@ namespace Game1
                         false => $"stored total res mass {totalStoredMass}"
                     };
                 },
-                powerCase: () => $"produce {(this as INodeAsLocalEnergyProducer).LocallyProducedWatts:0.##} W for local use\nof which {usedLocalWatts:0.##} W is used",
+                powerCase: () => $"",
                 peopleCase: () => ""
             ).Trim();
 

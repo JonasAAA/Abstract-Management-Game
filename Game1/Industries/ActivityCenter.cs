@@ -99,19 +99,5 @@ namespace Game1.Industries
             Debug.Assert(allPeople.Count is 0 && realPeopleHere.Count is 0);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
-
-        /// <summary>
-        /// Used this to calculate personal score
-        /// </summary>
-        protected Score DistanceToHereAsPerson(VirtualPerson person)
-            // TODO: get rid of hard-coded constant
-            => Score.FromUnboundedUDouble(value: CurWorldManager.PersonDist(nodeID1: person.ClosestNodeID, nodeID2: NodeID), valueGettingAverageScore: 2).Opposite();
-
-        /// <summary>
-        /// Used this to calculate suitability of person
-        /// </summary>
-        protected Score DistanceToHereAsRes(VirtualPerson person)
-            // TODO: get rid of hard-coded constant
-            => Score.FromUnboundedUDouble(value: CurWorldManager.ResDist(nodeID1: person.ClosestNodeID, nodeID2: NodeID), valueGettingAverageScore: 2).Opposite();
     }
 }

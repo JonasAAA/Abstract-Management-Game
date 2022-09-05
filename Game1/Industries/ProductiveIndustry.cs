@@ -182,7 +182,7 @@ namespace Game1.Industries
                     (weight: CurWorldConfig.personTalentWeight, score: person.Talents[parameters.industryType]),
                     (weight: CurWorldConfig.personSkillWeight, score: person.Skills[parameters.industryType]),
                     (weight: CurWorldConfig.jobDesperationWeight, score: desperationScore),
-                    (weight: CurWorldConfig.personToJobDistWeight, score: DistanceToHereAsRes(person: person))
+                    (weight: CurWorldConfig.personToJobDistWeight, score: (this as IPersonFacingActivityCenter).DistanceToHereAsPerson(person: person))
                 );
 
             private Score CurrentEmploymentScore(VirtualPerson person)

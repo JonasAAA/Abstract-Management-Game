@@ -5,15 +5,14 @@
     {
         // Used to calculate how job values person
         public readonly ulong personJobEnjoymentWeight, personTalentWeight, personSkillWeight, jobDesperationWeight, personToJobDistWeight;
-        // Used to calculate personal happiness
-        public readonly ulong personEnvironmentWeight, personEnergyProporWeight;
         public readonly UDouble jobVacDespValueConsideredAverage;
         public readonly Score minAcceptablePersonScore;
         public readonly EnergyPriority linkEnergyPriority;
         public readonly UDouble standardStarRadius, scrollSpeed;
         public readonly UDouble personMinReqWatts, personMaxReqWatts;
         public readonly Propor parentContribToChildPropor;
-        public readonly Propor personMomentumPropor;
+        // Used to calculate score for each potential activity
+        public readonly ulong personInertiaWeight, personEnjoymentWeight, personTravelCostWeight;
         /// <summary>
         /// MUST always be the same for all people
         /// as the way industry deals with required energy requires that
@@ -46,16 +45,16 @@
             jobDesperationWeight = 2;
             personToJobDistWeight = 1;
 
-            personEnvironmentWeight = 2;
-            personEnergyProporWeight = 1;
-
             jobVacDespValueConsideredAverage = 10;
             minAcceptablePersonScore = Score.CreateOrThrow(value: .1);
             linkEnergyPriority = new EnergyPriority(value: 10);
             standardStarRadius = 50;
             scrollSpeed = 60;
 
-            personMomentumPropor = (Propor).2;
+            personInertiaWeight = 1;
+            personEnjoymentWeight = 10;
+            personTravelCostWeight = 2;
+
             personMinReqWatts = (UDouble).1;
             personMaxReqWatts = 1;
             parentContribToChildPropor = (Propor).9;

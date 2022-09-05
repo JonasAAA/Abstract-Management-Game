@@ -209,21 +209,13 @@ namespace Game1.Inhabitants
         {
             if (!IsInActivityCenter)
                 return null;
-            return Score.WeightedAverage
-            (
-                (
-                    weight: CurWorldConfig.personEnvironmentWeight,
-                    score: activityCenter.PersonEnjoymentOfThis(person: asVirtual)
-                ),
-                (
-                    weight: CurWorldConfig.personEnergyProporWeight,
-                    score: Score.Create(propor: EnergyPropor)
-                )
-            );
+
+            // TODO: include how much space they get, gravity preference, other's happiness maybe, etc.
+            return activityCenter.PersonEnjoymentOfThis(person: asVirtual);
         }
 
         UDouble IEnergyConsumer.ReqWatts()
-            => reqWatts;
+            => IsInActivityCenter ? reqWatts : 0;
 
         void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
             => EnergyPropor = energyPropor;
@@ -236,17 +228,15 @@ namespace Game1.Inhabitants
             if (!IfSeeksNewActivity())
                 throw new InvalidOperationException();
 
-            // TODO: Take into consideration how far things are, and how much person enjoys travelling
-            // as the current calculation means that even people who enjoy travelling above all else are not going to act on that
-            // ALSO right now people don't care how close/far their chosen destination is
-            throw new NotImplementedException();
+            // TODO: should probably include activityCenter.DistanceToHereAsPerson(person: asVirtual) into happiness calculation somehow as a person
+            // motivated (only?) by their own happiness
             var bestActivityCenter = activityCenters.ArgMaxOrDefault
             (
-                activityCenter => Score.WeightedAverageOfTwo
+                activityCenter => Score.WeightedAverage
                 (
-                    score1: (activityCenter == this.activityCenter) ? Score.highest : Score.lowest,
-                    score2: activityCenter.PersonEnjoymentOfThis(person: asVirtual),
-                    score1Propor: CurWorldConfig.personMomentumPropor
+                    (weight: CurWorldConfig.personInertiaWeight, score: (activityCenter == this.activityCenter) ? Score.highest : Score.lowest),
+                    (weight: CurWorldConfig.personEnjoymentWeight, score: activityCenter.PersonEnjoymentOfThis(person: asVirtual)),
+                    (weight: CurWorldConfig.personTravelCostWeight, score: activityCenter.DistanceToHereAsPerson(person: asVirtual))
                 )
             );
             if (bestActivityCenter is null)

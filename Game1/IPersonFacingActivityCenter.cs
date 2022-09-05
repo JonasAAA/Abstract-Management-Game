@@ -1,4 +1,5 @@
 ﻿using Game1.Inhabitants;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -25,5 +26,19 @@ namespace Game1
         public bool CanPersonLeave(VirtualPerson person);
 
         public void RemovePerson(VirtualPerson person, bool force = false);
+
+        /// <summary>
+        /// Used this to calculate personal score
+        /// </summary>
+        public sealed Score DistanceToHereAsPerson(VirtualPerson person)
+            // TODO: get rid of hard-coded constant
+            => Score.FromUnboundedUDouble(value: CurWorldManager.PersonDist(nodeID1: person.ClosestNodeID, nodeID2: NodeID), valueGettingAverageScore: 2).Opposite();
+
+        /// <summary>
+        /// Used this to calculate suitability of person
+        /// </summary>
+        protected sealed Score DistanceToHereAsRes(VirtualPerson person)
+            // TODO: get rid of hard-coded constant
+            => Score.FromUnboundedUDouble(value: CurWorldManager.ResDist(nodeID1: person.ClosestNodeID, nodeID2: NodeID), valueGettingAverageScore: 2).Opposite();
     }
 }

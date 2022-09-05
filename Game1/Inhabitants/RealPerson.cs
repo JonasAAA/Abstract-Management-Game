@@ -76,6 +76,8 @@ namespace Game1.Inhabitants
                 )
             );
 
+            return;
+
             Dictionary<IndustryType, Score> CreateIndustryScoreDict(Func<VirtualPerson, IndustryType, Score> personalScore)
                 => Enum.GetValues<IndustryType>().ToDictionary
                 (
@@ -106,7 +108,6 @@ namespace Game1.Inhabitants
         public readonly IReadOnlyDictionary<IndustryType, Score> talents;
         public IReadOnlyDictionary<IndustryType, Score> Skills
             => skills;
-
         public NodeID? ActivityCenterNodeID
             => activityCenter?.NodeID;
         public NodeID ClosestNodeID { get; private set; }
@@ -117,6 +118,7 @@ namespace Game1.Inhabitants
             => consistsOfResPile.Mass;
         public readonly UDouble reqWatts;
         public readonly TimeSpan seekChangeTime;
+        public Score? Happiness { get; private set; }
         /// <summary>
         /// CURRENTLY UNUSED
         /// If used, needs to transfer the resources the person consists of somewhere else
@@ -126,7 +128,7 @@ namespace Game1.Inhabitants
 
         [MemberNotNullWhen(returnValue: true, member: nameof(activityCenter))]
         private bool IsInActivityCenter
-            => activityCenter is not null && activityCenter.IsPersonHere(person: asVirtual);
+            => activityCenter?.IsPersonHere(person: asVirtual) ?? false;
         private readonly Dictionary<IndustryType, Score> skills;
         /// <summary>
         /// is null if just been let go from activity center
@@ -189,6 +191,7 @@ namespace Game1.Inhabitants
                 lastActivityTimes[activityCenter.ActivityType] = CurWorldManager.CurTime;
                 timeSinceActivitySearch += CurWorldManager.Elapsed;
             }
+            Happiness = CalculateHappiness();
             if (updateSkillsParams is null)
             {
 #warning implement default update
@@ -200,6 +203,23 @@ namespace Game1.Inhabitants
                     current: Skills[industryType],
                     paramsOfChange: paramsOfSkillChange
                 );
+        }
+
+        private Score? CalculateHappiness()
+        {
+            if (!IsInActivityCenter)
+                return null;
+            return Score.WeightedAverage
+            (
+                (
+                    weight: CurWorldConfig.personEnvironmentWeight,
+                    score: activityCenter.PersonEnjoymentOfThis(person: asVirtual)
+                ),
+                (
+                    weight: CurWorldConfig.personEnergyProporWeight,
+                    score: Score.Create(propor: EnergyPropor)
+                )
+            );
         }
 
         UDouble IEnergyConsumer.ReqWatts()
@@ -216,7 +236,19 @@ namespace Game1.Inhabitants
             if (!IfSeeksNewActivity())
                 throw new InvalidOperationException();
 
-            var bestActivityCenter = activityCenters.ArgMaxOrDefault(activityCenter => activityCenter.PersonScoreOfThis(person: asVirtual));
+            // TODO: Take into consideration how far things are, and how much person enjoys travelling
+            // as the current calculation means that even people who enjoy travelling above all else are not going to act on that
+            // ALSO right now people don't care how close/far their chosen destination is
+            throw new NotImplementedException();
+            var bestActivityCenter = activityCenters.ArgMaxOrDefault
+            (
+                activityCenter => Score.WeightedAverageOfTwo
+                (
+                    score1: (activityCenter == this.activityCenter) ? Score.highest : Score.lowest,
+                    score2: activityCenter.PersonEnjoymentOfThis(person: asVirtual),
+                    score1Propor: CurWorldConfig.personMomentumPropor
+                )
+            );
             if (bestActivityCenter is null)
                 throw new ArgumentException("have no place to go");
             SetActivityCenter(newActivityCenter: bestActivityCenter);

@@ -130,17 +130,8 @@ namespace Game1.Industries
             public override bool IsFull()
                 => OpenSpacePropor().IsCloseTo(other: Propor.empty);
 
-            public override Score PersonScoreOfThis(VirtualPerson person)
-                => Score.WeightedAverageOfTwo
-                (
-                    score1: IsPersonHere(person: person) ? Score.highest : Score.lowest,
-                    score2: Score.WeightedAverage
-                    (
-                        (weight: 9, score: person.Enjoyments[parameters.industryType]),
-                        (weight: 1, score: DistanceToHereAsPerson(person: person))
-                    ),
-                    score1Propor: CurWorldConfig.personMomentumPropor
-                );
+            public override Score PersonEnjoymentOfThis(VirtualPerson person)
+                => person.Enjoyments[parameters.industryType];
 
             public override bool IsPersonSuitable(VirtualPerson person)
             {
@@ -187,7 +178,7 @@ namespace Game1.Industries
             private Score NewEmploymentScore(VirtualPerson person)
                 => Score.WeightedAverage
                 (
-                    (weight: CurWorldConfig.personJobEnjoymentWeight, score: PersonScoreOfThis(person: person)),
+                    (weight: CurWorldConfig.personJobEnjoymentWeight, score: PersonEnjoymentOfThis(person: person)),
                     (weight: CurWorldConfig.personTalentWeight, score: person.Talents[parameters.industryType]),
                     (weight: CurWorldConfig.personSkillWeight, score: person.Skills[parameters.industryType]),
                     (weight: CurWorldConfig.jobDesperationWeight, score: desperationScore),
@@ -199,11 +190,11 @@ namespace Game1.Industries
                 if (!IsPersonQueuedOrHere(person: person))
                     throw new ArgumentException();
                 return Score.WeightedAverage
-                    (
-                        (weight: CurWorldConfig.personJobEnjoymentWeight, score: PersonScoreOfThis(person: person)),
-                        (weight: CurWorldConfig.personTalentWeight, score: person.Talents[parameters.industryType]),
-                        (weight: CurWorldConfig.personSkillWeight, score: person.Skills[parameters.industryType])
-                    );
+                (
+                    (weight: CurWorldConfig.personJobEnjoymentWeight, score: PersonEnjoymentOfThis(person: person)),
+                    (weight: CurWorldConfig.personTalentWeight, score: person.Talents[parameters.industryType]),
+                    (weight: CurWorldConfig.personSkillWeight, score: person.Skills[parameters.industryType])
+                );
             }
         }
 

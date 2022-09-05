@@ -11,10 +11,8 @@ namespace Game1.Inhabitants
             => realPerson.talents;
         public IReadOnlyDictionary<IndustryType, Score> Skills
             => realPerson.Skills;
-
         public NodeID ClosestNodeID
             => realPerson.ClosestNodeID;
-
         public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
             => realPerson.LastActivityTimes;
         public UDouble ReqWatts

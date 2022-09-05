@@ -16,7 +16,7 @@ namespace Game1
         /// gives higher/lower score to the current place of the person depending on
         /// if person recently got queued
         /// </summary>
-        public Score PersonScoreOfThis(VirtualPerson person);
+        public Score PersonEnjoymentOfThis(VirtualPerson person);
 
         public bool IsPersonHere(VirtualPerson person);
 

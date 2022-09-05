@@ -42,7 +42,7 @@ namespace Game1.Industries
 
         public abstract bool IsPersonSuitable(VirtualPerson person);
 
-        public abstract Score PersonScoreOfThis(VirtualPerson person);
+        public abstract Score PersonEnjoymentOfThis(VirtualPerson person);
 
         public void QueuePerson(VirtualPerson person)
             => allPeople.Add(person);

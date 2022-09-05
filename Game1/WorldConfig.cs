@@ -3,7 +3,10 @@
     [Serializable]
     public sealed class WorldConfig
     {
+        // Used to calculate how job values person
         public readonly ulong personJobEnjoymentWeight, personTalentWeight, personSkillWeight, jobDesperationWeight, personToJobDistWeight;
+        // Used to calculate personal happiness
+        public readonly ulong personEnvironmentWeight, personEnergyProporWeight;
         public readonly UDouble jobVacDespValueConsideredAverage;
         public readonly Score minAcceptablePersonScore;
         public readonly EnergyPriority linkEnergyPriority;
@@ -26,7 +29,7 @@
         public readonly UDouble minSafeDist;
         public readonly ulong resDistribArrowsUILayer;
         public readonly UDouble linkWidth;
-        // So gravitational force between masses M1 and M2 at distance R is gravitConst * M1 * M2 / (R ^ gravitPower)
+        // So gravitational force between masses M1 and M2 at distance R is gravitConst * M1 * M2 / (R ^ gravitExponent)
         public readonly UDouble gravitExponent, gravitConst;
         public readonly Propor desperationMemoryPropor;
         public readonly ulong minResAmountInPlanet;
@@ -42,6 +45,9 @@
             personSkillWeight = 2;
             jobDesperationWeight = 2;
             personToJobDistWeight = 1;
+
+            personEnvironmentWeight = 2;
+            personEnergyProporWeight = 1;
 
             jobVacDespValueConsideredAverage = 10;
             minAcceptablePersonScore = Score.CreateOrThrow(value: .1);

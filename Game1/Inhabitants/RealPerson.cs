@@ -118,7 +118,7 @@ namespace Game1.Inhabitants
             => consistsOfResPile.Mass;
         public readonly UDouble reqWatts;
         public readonly TimeSpan seekChangeTime;
-        public Score? Happiness { get; private set; }
+        public Score Happiness { get; private set; }
         /// <summary>
         /// CURRENTLY UNUSED
         /// If used, needs to transfer the resources the person consists of somewhere else
@@ -205,10 +205,11 @@ namespace Game1.Inhabitants
                 );
         }
 
-        private Score? CalculateHappiness()
+        private Score CalculateHappiness()
         {
             if (!IsInActivityCenter)
-                return null;
+                // When person is asleep, happiness doesn't change
+                return Happiness;
 
             // TODO: include how much space they get, gravity preference, other's happiness maybe, etc.
             return activityCenter.PersonEnjoymentOfThis(person: asVirtual);

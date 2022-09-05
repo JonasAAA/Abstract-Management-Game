@@ -19,6 +19,8 @@ namespace Game1.Inhabitants
             => realPerson.reqWatts;
         public TimeSpan SeekChangeTime
             => realPerson.seekChangeTime;
+        public Score Happiness
+            => realPerson.Happiness;
 
         private readonly RealPerson realPerson;
 

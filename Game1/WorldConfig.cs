@@ -11,6 +11,8 @@
         public readonly UDouble standardStarRadius, scrollSpeed;
         public readonly UDouble personMinReqWatts, personMaxReqWatts;
         public readonly Propor parentContribToChildPropor;
+        public readonly Score startingHappiness;
+        public readonly TimeSpan happinessDifferenceHalvingDuration;
         // Used to calculate score for each potential activity
         public readonly ulong personInertiaWeight, personEnjoymentWeight, personTravelCostWeight;
         /// <summary>
@@ -51,6 +53,8 @@
             standardStarRadius = 50;
             scrollSpeed = 60;
 
+            happinessDifferenceHalvingDuration = TimeSpan.FromSeconds(10);
+
             personInertiaWeight = 1;
             personEnjoymentWeight = 10;
             personTravelCostWeight = 2;
@@ -58,6 +62,7 @@
             personMinReqWatts = (UDouble).1;
             personMaxReqWatts = 1;
             parentContribToChildPropor = (Propor).9;
+            startingHappiness = Score.CreateOrThrow(value: .2);
             personDefaultEnergyPriority = new EnergyPriority(value: 100);
             personMinSeekChangeTime = TimeSpan.FromSeconds(5);
             personMaxSeekChangeTime = TimeSpan.FromSeconds(30);

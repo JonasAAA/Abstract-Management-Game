@@ -510,7 +510,13 @@ namespace Game1
                     (from person in people
                      select person.Happiness).ToArray()
             );
-            globalTextBox.Text = (energyManager.Summary() + $"population {people.Count}\naverage happiness {averageHappiness:0.##}").Trim();
+            Score averageMomentaryHappiness = Score.Average
+            (
+                scores:
+                    (from person in people
+                     select person.MomentaryHappiness).ToArray()
+            );
+            globalTextBox.Text = (energyManager.Summary() + $"population {people.Count}\naverage happiness {averageHappiness:0.##}\naverage momentary happiness {averageMomentaryHappiness:0.##}").Trim();
 
             activeUIManager.Update(elapsed: elapsedUITime);
 

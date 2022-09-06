@@ -39,7 +39,8 @@ namespace Game1.Inhabitants
                     reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                     seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
-                    consistsOfResAmounts: resAmountsPerPerson
+                    consistsOfResAmounts: resAmountsPerPerson,
+                    startingHappiness: CurWorldConfig.startingHappiness
                 )
             );
 
@@ -72,7 +73,8 @@ namespace Game1.Inhabitants
                         CurWorldConfig.parentContribToChildPropor * (parent1.SeekChangeTime + parent2.SeekChangeTime) * (UDouble).5
                         + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
-                    consistsOfResAmounts: resAmountsPerPerson
+                    consistsOfResAmounts: resAmountsPerPerson,
+                    startingHappiness: Score.Average(parent1.Happiness, parent2.Happiness)
                 )
             );
 
@@ -119,6 +121,7 @@ namespace Game1.Inhabitants
         public readonly UDouble reqWatts;
         public readonly TimeSpan seekChangeTime;
         public Score Happiness { get; private set; }
+        public Score MomentaryHappiness { get; private set; }
         /// <summary>
         /// CURRENTLY UNUSED
         /// If used, needs to transfer the resources the person consists of somewhere else
@@ -140,7 +143,7 @@ namespace Game1.Inhabitants
         private readonly Event<IDeletedListener> deleted;
         private readonly ReservedResPile consistsOfResPile;
 
-        private RealPerson(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts)
+        private RealPerson(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts, Score startingHappiness)
         {
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
@@ -170,6 +173,7 @@ namespace Game1.Inhabitants
             consistsOfResPile = ReservedResPile.CreateFromSource(source: ref resSource);
             asVirtual = new(realPerson: this);
             deleted = new();
+            Happiness = startingHappiness;
 
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
             CurWorldManager.AddPerson(realPerson: this);
@@ -191,7 +195,18 @@ namespace Game1.Inhabitants
                 lastActivityTimes[activityCenter.ActivityType] = CurWorldManager.CurTime;
                 timeSinceActivitySearch += CurWorldManager.Elapsed;
             }
-            Happiness = CalculateHappiness();
+            MomentaryHappiness = CalculateMomentaryHappiness();
+            var elapsed = CurWorldManager.Elapsed * EnergyPropor;
+            Happiness = Score.BringCloser
+            (
+                current: Happiness,
+                paramsOfChange: new Score.ParamsOfChange
+                (
+                    target: MomentaryHappiness,
+                    elapsed: elapsed,
+                    halvingDifferenceDuration: CurWorldConfig.happinessDifferenceHalvingDuration
+                )
+            );
             if (updateSkillsParams is null)
             {
 #warning implement default update
@@ -205,7 +220,7 @@ namespace Game1.Inhabitants
                 );
         }
 
-        private Score CalculateHappiness()
+        private Score CalculateMomentaryHappiness()
         {
             if (!IsInActivityCenter)
                 // When person is asleep, happiness doesn't change

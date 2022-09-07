@@ -106,6 +106,10 @@ namespace Game1.Inhabitants
 
         public readonly VirtualPerson asVirtual;
 
+        // TODO(performance): could replace these with array-backed custom dictionaries when use enums as keys
+        /// <summary>
+        /// At least one enjoyment will have Score.highest value, and at leat one enjoyment will value Score.lowest value
+        /// </summary>
         public readonly IReadOnlyDictionary<IndustryType, Score> enjoyments;
         public readonly IReadOnlyDictionary<IndustryType, Score> talents;
         public IReadOnlyDictionary<IndustryType, Score> Skills
@@ -148,6 +152,7 @@ namespace Game1.Inhabitants
         {
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
+            Score.ScaleToHaveHighestAndLowest(scores: enjoyments);
             this.enjoyments = enjoyments;
             this.talents = talents;
             this.skills = skills;

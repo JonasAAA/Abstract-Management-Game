@@ -1,4 +1,6 @@
-﻿namespace Game1.PrimitiveTypeWrappers
+﻿using Game1.Industries;
+
+namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
     public readonly struct Score : IClose<Score>, IComparable<Score>, IPrimitiveTypeWrapper
@@ -123,18 +125,18 @@
             );
         }
 
-        //public static explicit operator Score(double value)
-        //    => Create(value: value) switch
-        //    {
-        //        Score score => score,
-        //        null => throw new InvalidCastException()
-        //    };
-
-        //public static explicit operator Score(UDouble value)
-        //    => (Score)(double)value;
-
-        //public static explicit operator Score(Propor propor)
-        //    => new(value: (double)propor);
+        public static void ScaleToHaveHighestAndLowest(Dictionary<IndustryType, Score> scores)
+        {
+            double highestScore = scores.Values.Max().value,
+                lowestScore = scores.Values.Min().value;
+            if (MyMathHelper.AreClose(highestScore, lowestScore))
+            {
+                Debug.Fail("Enjoyments shouldn't all be basically the same");
+                return;
+            }
+            foreach (var industryType in Enum.GetValues<IndustryType>())
+                scores[industryType] = CreateOrThrow((scores[industryType].value - lowestScore) / (highestScore - lowestScore));
+        }
 
         public static explicit operator UDouble(Score score)
             => score.value;

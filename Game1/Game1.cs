@@ -167,8 +167,7 @@ namespace Game1
 
         private void SetGameState(GameState newGameState)
         {
-            if (gameState is not null)
-                gameState.OnLeave();
+            gameState?.OnLeave();
             gameState = newGameState;
             gameState.OnEnter();
         }

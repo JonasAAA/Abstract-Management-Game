@@ -382,11 +382,7 @@ namespace Game1
         {
             Debug.Assert(undecidedResPile.IsEmpty);
 
-            targetStoredResAmounts = Industry switch
-            {
-                null => ResAmounts.Empty,
-                not null => Industry.TargetStoredResAmounts()
-            };
+            targetStoredResAmounts = Industry?.TargetStoredResAmounts() ?? ResAmounts.Empty;
 
             // deal with resources
             undecidedResPile.TransferAllFrom(source: state.StoredResPile);
@@ -461,14 +457,14 @@ namespace Game1
             (
                 singleResCase: resInd =>
                 {
-                    string text = "";
                     if (state.StoredResPile[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
-                        text += (state.StoredResPile[resInd] >= targetStoredResAmounts[resInd]) switch
+                        return (state.StoredResPile[resInd] >= targetStoredResAmounts[resInd]) switch
                         {
                             true => $"have {state.StoredResPile[resInd] - targetStoredResAmounts[resInd]} extra resources",
                             false => $"have {(double)state.StoredResPile[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
                         };
-                    return text;
+                    else
+                        return "";
                 },
                 allResCase: () =>
                 {
@@ -479,7 +475,7 @@ namespace Game1
                         false => $"stored total res mass {totalStoredMass}"
                     };
                 },
-                powerCase: () => $"",
+                powerCase: () => "",
                 peopleCase: () => ""
             ).Trim();
 

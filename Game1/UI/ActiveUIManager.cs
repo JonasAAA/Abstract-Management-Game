@@ -132,7 +132,7 @@ namespace Game1.UI
             if (contMouse == prevContMouse)
             {
                 hoverDuration += elapsed;
-                if (contMouse is not null && contMouse.Enabled && hoverDuration >= minDurationToGetTooltip && tooltip is null && contMouse is IWithTooltip UIElementWithTooltip)
+                if (contMouse?.Enabled is true && hoverDuration >= minDurationToGetTooltip && tooltip is null && contMouse is IWithTooltip UIElementWithTooltip)
                 {
                     tooltip = UIElementWithTooltip.Tooltip;
                     tooltip.Update();
@@ -143,9 +143,10 @@ namespace Game1.UI
             {
                 hoverDuration = TimeSpan.Zero;
                 tooltip = null;
-                if (prevContMouse is not null && prevContMouse.Enabled)
+                if (prevContMouse?.Enabled is true)
                     prevContMouse.MouseOn = false;
-                if (contMouse is not null && contMouse.Enabled)
+
+                if (contMouse?.Enabled is true)
                     contMouse.MouseOn = true;
             }
 
@@ -155,7 +156,7 @@ namespace Game1.UI
             if (!leftDown && prevLeftDown)
             {
                 IUIElement? otherHalfClicked = contMouse;
-                if (halfClicked == otherHalfClicked && otherHalfClicked is not null && otherHalfClicked.Enabled && otherHalfClicked.CanBeClicked)
+                if (halfClicked == otherHalfClicked && otherHalfClicked?.Enabled is true && otherHalfClicked.CanBeClicked)
                     otherHalfClicked.OnClick();
                 else
                     clickedNowhere.Raise(action: listener => listener.ClickedNowhereResponse());

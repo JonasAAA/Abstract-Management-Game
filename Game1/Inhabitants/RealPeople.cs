@@ -55,6 +55,28 @@ namespace Game1.Inhabitants
                 realPerson.Update(updateLocationParams: updateLocationParams, updateSkillsParams: personalUpdateSkillsParams(realPerson));
         }
 
+        public Score AverageHappiness()
+        {
+            throw new NotImplementedException("Deal with case where this has 0 people");
+            return Score.Average
+            (
+                scores:
+                    (from person in virtualToRealPeople.Values
+                     select person.Happiness).ToArray()
+            );
+        }
+
+        public Score AverageMomentaryHappiness()
+        {
+            throw new NotImplementedException("Deal with case where this has 0 people");
+            return Score.Average
+            (
+                scores:
+                    (from person in virtualToRealPeople.Values
+                     select person.MomentaryHappiness).ToArray()
+            );
+        }
+
         public UDouble TotalSkill(IndustryType industryType)
             => virtualToRealPeople.Values.Sum(realPerson => (UDouble)realPerson.ActualSkill(industryType: industryType));
 

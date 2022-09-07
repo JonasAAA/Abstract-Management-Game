@@ -21,14 +21,11 @@ namespace Game1
         private sealed class PauseButtonTooltip : TextTooltipBase
         {
             protected override string Text
-                => onOffButton switch
+                => onOffButton?.On switch
                 {
-                    null => throw new InvalidOperationException($"Must initialize {nameof(PauseButtonTooltip)} by calling {nameof(Initialize)} first"),
-                    not null => onOffButton.On switch
-                    {
-                        true => "Press to resume the game",
-                        false => "Press to pause the game"
-                    }
+                    true => "Press to resume the game",
+                    false => "Press to pause the game",
+                    null => throw new InvalidOperationException($"Must initialize {nameof(PauseButtonTooltip)} by calling {nameof(Initialize)} first")
                 };
 
             private OnOffButton? onOffButton;

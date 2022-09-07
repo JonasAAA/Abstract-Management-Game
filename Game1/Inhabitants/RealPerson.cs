@@ -282,8 +282,7 @@ namespace Game1.Inhabitants
             if (activityCenter == newActivityCenter)
                 return;
 
-            if (activityCenter is not null)
-                activityCenter.RemovePerson(person: asVirtual);
+            activityCenter?.RemovePerson(person: asVirtual);
             activityCenter = newActivityCenter;
         }
 

@@ -39,7 +39,8 @@ namespace Game1.Inhabitants
                     reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                     seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
-                    consistsOfResAmounts: resAmountsPerPerson
+                    consistsOfResAmounts: resAmountsPerPerson,
+                    startingHappiness: CurWorldConfig.startingHappiness
                 )
             );
 
@@ -72,9 +73,12 @@ namespace Game1.Inhabitants
                         CurWorldConfig.parentContribToChildPropor * (parent1.SeekChangeTime + parent2.SeekChangeTime) * (UDouble).5
                         + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
-                    consistsOfResAmounts: resAmountsPerPerson
+                    consistsOfResAmounts: resAmountsPerPerson,
+                    startingHappiness: Score.Average(parent1.Happiness, parent2.Happiness)
                 )
             );
+
+            return;
 
             Dictionary<IndustryType, Score> CreateIndustryScoreDict(Func<VirtualPerson, IndustryType, Score> personalScore)
                 => Enum.GetValues<IndustryType>().ToDictionary
@@ -106,7 +110,6 @@ namespace Game1.Inhabitants
         public readonly IReadOnlyDictionary<IndustryType, Score> talents;
         public IReadOnlyDictionary<IndustryType, Score> Skills
             => skills;
-
         public NodeID? ActivityCenterNodeID
             => activityCenter?.NodeID;
         public NodeID ClosestNodeID { get; private set; }
@@ -117,6 +120,9 @@ namespace Game1.Inhabitants
             => consistsOfResPile.Mass;
         public readonly UDouble reqWatts;
         public readonly TimeSpan seekChangeTime;
+        // Currently only influences productivity
+        public Score Happiness { get; private set; }
+        public Score MomentaryHappiness { get; private set; }
         /// <summary>
         /// CURRENTLY UNUSED
         /// If used, needs to transfer the resources the person consists of somewhere else
@@ -126,7 +132,7 @@ namespace Game1.Inhabitants
 
         [MemberNotNullWhen(returnValue: true, member: nameof(activityCenter))]
         private bool IsInActivityCenter
-            => activityCenter is not null && activityCenter.IsPersonHere(person: asVirtual);
+            => activityCenter?.IsPersonHere(person: asVirtual) ?? false;
         private readonly Dictionary<IndustryType, Score> skills;
         /// <summary>
         /// is null if just been let go from activity center
@@ -138,7 +144,7 @@ namespace Game1.Inhabitants
         private readonly Event<IDeletedListener> deleted;
         private readonly ReservedResPile consistsOfResPile;
 
-        private RealPerson(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts)
+        private RealPerson(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts, Score startingHappiness)
         {
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
@@ -168,6 +174,7 @@ namespace Game1.Inhabitants
             consistsOfResPile = ReservedResPile.CreateFromSource(source: ref resSource);
             asVirtual = new(realPerson: this);
             deleted = new();
+            Happiness = startingHappiness;
 
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
             CurWorldManager.AddPerson(realPerson: this);
@@ -189,6 +196,18 @@ namespace Game1.Inhabitants
                 lastActivityTimes[activityCenter.ActivityType] = CurWorldManager.CurTime;
                 timeSinceActivitySearch += CurWorldManager.Elapsed;
             }
+            MomentaryHappiness = CalculateMomentaryHappiness();
+            var elapsed = CurWorldManager.Elapsed * EnergyPropor;
+            Happiness = Score.BringCloser
+            (
+                current: Happiness,
+                paramsOfChange: new Score.ParamsOfChange
+                (
+                    target: MomentaryHappiness,
+                    elapsed: elapsed,
+                    halvingDifferenceDuration: CurWorldConfig.happinessDifferenceHalvingDuration
+                )
+            );
             if (updateSkillsParams is null)
             {
 #warning implement default update
@@ -202,8 +221,26 @@ namespace Game1.Inhabitants
                 );
         }
 
+        private Score CalculateMomentaryHappiness()
+        {
+            if (!IsInActivityCenter)
+                // When person is asleep, happiness doesn't change
+                return Happiness;
+
+            // TODO: include how much space they get, gravity preference, other's happiness maybe, etc.
+            return activityCenter.PersonEnjoymentOfThis(person: asVirtual);
+        }
+
+        public Score ActualSkill(IndustryType industryType)
+            => Score.WeightedAverageOfTwo
+            (
+                score1: Happiness,
+                score2: skills[industryType],
+                score1Propor: CurWorldConfig.actualSkillHappinessWeight
+            );
+
         UDouble IEnergyConsumer.ReqWatts()
-            => reqWatts;
+            => IsInActivityCenter ? reqWatts : 0;
 
         void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
             => EnergyPropor = energyPropor;
@@ -216,7 +253,17 @@ namespace Game1.Inhabitants
             if (!IfSeeksNewActivity())
                 throw new InvalidOperationException();
 
-            var bestActivityCenter = activityCenters.ArgMaxOrDefault(activityCenter => activityCenter.PersonScoreOfThis(person: asVirtual));
+            // TODO: should probably include activityCenter.DistanceToHereAsPerson(person: asVirtual) into happiness calculation somehow as a person
+            // motivated (only?) by their own happiness
+            var bestActivityCenter = activityCenters.ArgMaxOrDefault
+            (
+                activityCenter => Score.WeightedAverage
+                (
+                    (weight: CurWorldConfig.personInertiaWeight, score: (activityCenter == this.activityCenter) ? Score.highest : Score.lowest),
+                    (weight: CurWorldConfig.personEnjoymentWeight, score: activityCenter.PersonEnjoymentOfThis(person: asVirtual)),
+                    (weight: CurWorldConfig.personTravelCostWeight, score: activityCenter.DistanceToHereAsPerson(person: asVirtual))
+                )
+            );
             if (bestActivityCenter is null)
                 throw new ArgumentException("have no place to go");
             SetActivityCenter(newActivityCenter: bestActivityCenter);

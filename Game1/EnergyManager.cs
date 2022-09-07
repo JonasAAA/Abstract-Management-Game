@@ -37,6 +37,8 @@ namespace Game1
 
         public void DistributeEnergy(IEnumerable<NodeID> nodeIDs, Func<NodeID, INodeAsLocalEnergyProducer> nodeIDToNode)
         {
+            // TODO(performace): could probably improve performance by separating those requiring no electricity at the start
+            // Then only those requiring non-zero electricity would be involved in more costly calculations
             Dictionary<IEnergyConsumer, UDouble> reqWattsByConsumer = energyConsumers.ToDictionary
             (
                 keySelector: energyConsumer => energyConsumer,

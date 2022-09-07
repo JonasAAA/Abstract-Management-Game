@@ -56,7 +56,7 @@ namespace Game1.Inhabitants
         }
 
         public UDouble TotalSkill(IndustryType industryType)
-            => virtualToRealPeople.Values.Sum(realPerson => (UDouble)realPerson.Skills[industryType]);
+            => virtualToRealPeople.Values.Sum(realPerson => (UDouble)realPerson.ActualSkill(industryType: industryType));
 
         public bool Contains(VirtualPerson person)
             => virtualToRealPeople.ContainsKey(person);

@@ -69,18 +69,12 @@ namespace Game1.Industries
                 // TODO: get rid of hard-coded constant
                 => Score.FromUnboundedUDouble(value: parameters.FloorSpace / peopleCount, valueGettingAverageScore: 10);
 
-            public override Score PersonScoreOfThis(VirtualPerson person)
-                => Score.WeightedAverageOfTwo
+            public override Score PersonEnjoymentOfThis(VirtualPerson person)
+                // TODO: get rid of hard-coded constants
+                => Score.WeightedAverage
                 (
-                    score1: (IsPersonHere(person: person) ? Score.highest : Score.lowest),
-                    // TODO: get rid of hard-coded constants
-                    score2: Score.WeightedAverage
-                    (
-                        (weight: 5, score: Score.lowest),
-                        (weight: 3, score: PersonalSpace(peopleCount: allPeople.Count + 1)),
-                        (weight: 2, score: DistanceToHereAsPerson(person: person))
-                    ),
-                    score1Propor: CurWorldConfig.personMomentumPropor
+                    (weight: 5, score: Score.lowest),
+                    (weight: 3, score: PersonalSpace(peopleCount: allPeople.Count + 1))
                 );
 
             public override bool IsPersonSuitable(VirtualPerson person)

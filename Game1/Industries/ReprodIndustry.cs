@@ -92,19 +92,13 @@ namespace Game1.Industries
                 // could disalow far travel
                 => true;
 
-            public override Score PersonScoreOfThis(VirtualPerson person)
-                => Score.WeightedAverage
+            public override Score PersonEnjoymentOfThis(VirtualPerson person)
+                // TODO: get rid of hard-coded constant
+                // The more time passes since last having a child, the more person wants to have a new child
+                => Score.FromUnboundedUDouble
                 (
-                    (
-                        weight: 9,
-                        // TODO: get rid of hard-coded constant
-                        score: Score.FromUnboundedUDouble
-                        (
-                            value: (UDouble)(CurWorldManager.CurTime - person.LastActivityTimes[ActivityType]).TotalSeconds,
-                            valueGettingAverageScore: 100
-                        )
-                    ),
-                    (weight: 1, score: DistanceToHereAsPerson(person: person))
+                    value: (UDouble)(CurWorldManager.CurTime - person.LastActivityTimes[ActivityType]).TotalSeconds,
+                    valueGettingAverageScore: 100
                 );
 
             public override void TakePersonFrom(RealPeople realPersonSource, RealPerson realPerson)

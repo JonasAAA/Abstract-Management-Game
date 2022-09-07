@@ -13,6 +13,7 @@
         public readonly Propor parentContribToChildPropor;
         public readonly Score startingHappiness;
         public readonly TimeSpan happinessDifferenceHalvingDuration;
+        public readonly Propor actualSkillHappinessWeight;
         // Used to calculate score for each potential activity
         public readonly ulong personInertiaWeight, personEnjoymentWeight, personTravelCostWeight;
         /// <summary>
@@ -54,6 +55,7 @@
             scrollSpeed = 60;
 
             happinessDifferenceHalvingDuration = TimeSpan.FromSeconds(10);
+            actualSkillHappinessWeight = (Propor).2;
 
             personInertiaWeight = 1;
             personEnjoymentWeight = 10;

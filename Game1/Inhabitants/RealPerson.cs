@@ -120,6 +120,7 @@ namespace Game1.Inhabitants
             => consistsOfResPile.Mass;
         public readonly UDouble reqWatts;
         public readonly TimeSpan seekChangeTime;
+        // Currently only influences productivity
         public Score Happiness { get; private set; }
         public Score MomentaryHappiness { get; private set; }
         /// <summary>
@@ -229,6 +230,14 @@ namespace Game1.Inhabitants
             // TODO: include how much space they get, gravity preference, other's happiness maybe, etc.
             return activityCenter.PersonEnjoymentOfThis(person: asVirtual);
         }
+
+        public Score ActualSkill(IndustryType industryType)
+            => Score.WeightedAverageOfTwo
+            (
+                score1: Happiness,
+                score2: skills[industryType],
+                score1Propor: CurWorldConfig.actualSkillHappinessWeight
+            );
 
         UDouble IEnergyConsumer.ReqWatts()
             => IsInActivityCenter ? reqWatts : 0;

@@ -17,7 +17,7 @@ namespace Game1.Resources
 
         public static ResPile CreateMagicUnlimitedPile()
             // It's OK to create locationMassCounter here as this magic res pile is the only place where the "magic location mass counter" is used
-            => new(locationMassCounter: MassCounter.CreateMassCounterByMagic(mass : magicResPileStartingResAmounts.TotalMass()), createdByMagic: true);
+            => new(locationMassCounter: MassCounter.CreateCounterByMagic(count: magicResPileStartingResAmounts.TotalMass()), createdByMagic: true);
 
         private ResPile(MassCounter locationMassCounter, bool createdByMagic)
             : base(locationMassCounter: locationMassCounter, createdByMagic: createdByMagic)

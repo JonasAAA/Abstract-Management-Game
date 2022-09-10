@@ -34,14 +34,16 @@ namespace Game1
         public UDouble WattsHittingSurfaceOrIndustry { get; set; }
         // TODO: could include linkEndPoints mass in this
         public MassCounter MassCounter { get; }
+        public PeopleCounter PeopleCounter { get; }
         public UDouble SurfaceGravity
-            => WorldFunctions.SurfaceGravity(mass: MassCounter.Mass, radius: Radius);
+            => WorldFunctions.SurfaceGravity(mass: MassCounter.Count, radius: Radius);
 
         private readonly ResPile consistsOfResPile;
 
         public NodeState(NodeID nodeID, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
             MassCounter = MassCounter.CreateEmpty();
+            PeopleCounter = PeopleCounter.CreateEmpty();
             NodeID = nodeID;
             Position = position;
             ConsistsOfResInd = consistsOfResInd;
@@ -54,7 +56,7 @@ namespace Game1
                 throw new ArgumentOutOfRangeException();
             MaxBatchDemResStored = maxBatchDemResStored;
             waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationMassCounter: MassCounter);
-            WaitingPeople = RealPeople.CreateEmpty(locationMassCounter: MassCounter);
+            WaitingPeople = RealPeople.CreateEmpty(locationMassCounter: MassCounter, locationPeopleCounter: PeopleCounter);
             TooManyResStored = false;
             WattsHittingSurfaceOrIndustry = 0;
         }

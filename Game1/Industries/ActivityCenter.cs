@@ -29,7 +29,7 @@ namespace Game1.Industries
             ActivityType = activityType;
             EnergyPriority = energyPriority;
             this.state = state;
-            realPeopleHere = RealPeople.CreateEmpty(locationMassCounter: state.MassCounter);
+            realPeopleHere = RealPeople.CreateEmpty(locationMassCounter: state.MassCounter, locationPeopleCounter: state.PeopleCounter);
             allPeople = new();
 
             deleted = new();
@@ -71,6 +71,12 @@ namespace Game1.Industries
 
         public abstract bool CanPersonLeave(VirtualPerson person);
 
+        public Score AverageHappiness()
+            => realPeopleHere.AverageHappiness();
+
+        public Score AverageMomentaryHappiness()
+            => realPeopleHere.AverageMomentaryHappiness();
+
         public void RemovePerson(VirtualPerson person, bool force = false)
         {
             if (peopleInProcessOfRemoving.Contains(person))
@@ -96,7 +102,7 @@ namespace Game1.Industries
         {
             foreach (var person in allPeople)
                 RemovePerson(person: person);
-            Debug.Assert(allPeople.Count is 0 && realPeopleHere.Count is 0);
+            Debug.Assert(allPeople.Count.IsZero && realPeopleHere.Count.IsZero);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
     }

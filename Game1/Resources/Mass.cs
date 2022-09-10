@@ -1,12 +1,12 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public readonly struct Mass
+    public readonly record struct Mass : ICountable<Mass>
     {
         public static readonly Mass zero;
 
         static Mass()
-            => zero = new Mass(valueInKg: 0);
+            => zero = new(valueInKg: 0);
 
         public static Mass CreateFromKg(ulong massInKg)
             => new(valueInKg: massInKg);
@@ -30,5 +30,11 @@
 
         public static Mass operator -(Mass mass1, Mass mass2)
             => new(valueInKg: mass1.valueInKg - mass2.valueInKg);
+
+        Mass ICountable<Mass>.Add(Mass count)
+            => this + count;
+
+        Mass ICountable<Mass>.Subtract(Mass count)
+            => this - count;
     }
 }

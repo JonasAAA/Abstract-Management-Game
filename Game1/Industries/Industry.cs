@@ -99,7 +99,7 @@ namespace Game1.Industries
 
         public IHUDElement UIElement
             => UIPanel;
-        
+
         protected abstract UDouble Height { get; }
 
         protected readonly UIRectPanel<IHUDElement> UIPanel;

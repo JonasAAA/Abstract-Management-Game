@@ -147,6 +147,7 @@ namespace Game1.Inhabitants
         private NodeID lastNodeID;
         private readonly Event<IDeletedListener> deleted;
         private readonly ReservedResPile consistsOfResPile;
+        private PeopleCounter locationPeopleCounter;
 
         private RealPerson(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts, Score startingHappiness)
         {
@@ -177,6 +178,7 @@ namespace Game1.Inhabitants
             if (resSource.ResAmounts != consistsOfResAmounts)
                 throw new ArgumentException();
             consistsOfResPile = ReservedResPile.CreateFromSource(source: ref resSource);
+            locationPeopleCounter = PeopleCounter.CreateCounterByMagic(count: new(1));
             asVirtual = new(realPerson: this);
             deleted = new();
             Happiness = startingHappiness;
@@ -188,8 +190,12 @@ namespace Game1.Inhabitants
         public void Arrived(RealPeople realPersonSource)
             => (activityCenter ?? throw new InvalidOperationException()).TakePersonFrom(realPersonSource: realPersonSource, realPerson: this);
 
-        public void SetLocationMassCounter(MassCounter locationMassCounter)
-            => consistsOfResPile.LocationMassCounter = locationMassCounter;
+        public void SetLocationCounters(MassCounter locationMassCounter, PeopleCounter locationPeopleCounter)
+        {
+            consistsOfResPile.LocationMassCounter = locationMassCounter;
+            locationPeopleCounter.TransferFrom(source: this.locationPeopleCounter, count: new(1));
+            this.locationPeopleCounter = locationPeopleCounter;
+        }
 
         /// <param name="updateSkillsParams">if null, will use default update</param>
         public void Update(UpdateLocationParams updateLocationParams, UpdatePersonSkillsParams? updateSkillsParams)
@@ -251,7 +257,7 @@ namespace Game1.Inhabitants
             => EnergyPropor = energyPropor;
 
         public bool IfSeeksNewActivity()
-            => activityCenter is null || timeSinceActivitySearch >= seekChangeTime && activityCenter.CanPersonLeave(person: asVirtual);
+            => timeSinceActivitySearch >= seekChangeTime && activityCenter?.CanPersonLeave(person: asVirtual) is null or true;
 
         public IPersonFacingActivityCenter ChooseActivityCenter(IEnumerable<IPersonFacingActivityCenter> activityCenters)
         {

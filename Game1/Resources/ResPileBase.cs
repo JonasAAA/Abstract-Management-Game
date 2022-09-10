@@ -26,7 +26,7 @@
             get => locationMassCounter;
             set
             {
-                value.TransferFrom(source: locationMassCounter, mass: Mass);
+                value.TransferFrom(source: locationMassCounter, count: Mass);
                 locationMassCounter = value;
             }
         }
@@ -60,7 +60,7 @@
 
             source.ResAmounts -= resAmounts;            
             destin.ResAmounts += resAmounts;
-            destin.LocationMassCounter.TransferFrom(source: source.LocationMassCounter, mass: resAmounts.TotalMass());
+            destin.LocationMassCounter.TransferFrom(source: source.LocationMassCounter, count: resAmounts.TotalMass());
         }
 
         protected static void Transfer(ResPileBase source, ResPileBase destin, ResAmount resAmount)

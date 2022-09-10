@@ -5,32 +5,34 @@ namespace Game1.Inhabitants
     [Serializable]
     public class RealPeople
     {
-        public static RealPeople CreateEmpty(MassCounter locationMassCounter)
-            => new(locationMassCounter: locationMassCounter);
+        public static RealPeople CreateEmpty(MassCounter locationMassCounter, PeopleCounter locationPeopleCounter)
+            => new(locationMassCounter: locationMassCounter, locationPeopleCounter: locationPeopleCounter);
 
         public static RealPeople CreateFromSource(RealPeople realPeopleSource)
-            => CreateFromSource(realPeopleSource: realPeopleSource, locationMassCounter: realPeopleSource.locationMassCounter);
+            => CreateFromSource(realPeopleSource: realPeopleSource, locationMassCounter: realPeopleSource.locationMassCounter, locationPeopleCounter: realPeopleSource.locationPeopleCounter);
 
-        public static RealPeople CreateFromSource(RealPeople realPeopleSource, MassCounter locationMassCounter)
+        public static RealPeople CreateFromSource(RealPeople realPeopleSource, MassCounter locationMassCounter, PeopleCounter locationPeopleCounter)
         {
-            RealPeople newRealPeople = new(locationMassCounter: locationMassCounter);
+            RealPeople newRealPeople = new(locationMassCounter: locationMassCounter, locationPeopleCounter: locationPeopleCounter);
             newRealPeople.TransferAllFrom(realPeopleSource: realPeopleSource);
             return newRealPeople;
         }
 
-        public ulong Count
-            => (ulong)virtualToRealPeople.Count;
+        public NumPeople Count
+            => new((ulong)virtualToRealPeople.Count);
 
         public Mass Mass { get; private set; }
 
         private readonly MassCounter locationMassCounter;
+        private readonly PeopleCounter locationPeopleCounter;
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
 
-        private RealPeople(MassCounter locationMassCounter)
+        private RealPeople(MassCounter locationMassCounter, PeopleCounter locationPeopleCounter)
         {
             Mass = Mass.zero;
             virtualToRealPeople = new();
             this.locationMassCounter = locationMassCounter;
+            this.locationPeopleCounter = locationPeopleCounter;
         }
 
         public void AddByMagic(RealPerson realPerson)
@@ -57,7 +59,8 @@ namespace Game1.Inhabitants
 
         public Score AverageHappiness()
         {
-            throw new NotImplementedException("Deal with case where this has 0 people");
+            if (Count.IsZero)
+                throw new InvalidOperationException("0 people don't have average happiness");
             return Score.Average
             (
                 scores:
@@ -68,7 +71,8 @@ namespace Game1.Inhabitants
 
         public Score AverageMomentaryHappiness()
         {
-            throw new NotImplementedException("Deal with case where this has 0 people");
+            if (Count.IsZero)
+                throw new InvalidOperationException("0 people don't have average mometary happiness");
             return Score.Average
             (
                 scores:
@@ -104,7 +108,7 @@ namespace Game1.Inhabitants
 
         private void Add(RealPerson realPerson)
         {
-            realPerson.SetLocationMassCounter(locationMassCounter: locationMassCounter);
+            realPerson.SetLocationCounters(locationMassCounter: locationMassCounter, locationPeopleCounter: locationPeopleCounter);
             Mass += realPerson.Mass;
             virtualToRealPeople.Add(key: realPerson.asVirtual, value: realPerson);
         }

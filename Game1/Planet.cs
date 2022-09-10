@@ -5,7 +5,6 @@ using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
-using System.Diagnostics.CodeAnalysis;
 using Game1.Inhabitants;
 
 namespace Game1
@@ -450,7 +449,7 @@ namespace Game1
             state.TooManyResStored = !(state.StoredResPile.ResAmounts <= targetStoredResAmounts);
 
             // TODO: look at this
-            infoTextBox.Text = $"consists of {state.MainResAmount} {state.ConsistsOfResInd}\nstores {state.StoredResPile}\ntarget {targetStoredResAmounts}\nMass of everything {state.MassCounter.Mass}\nMass of planet {state.PlanetMass}\n";
+            infoTextBox.Text = $"consists of {state.MainResAmount} {state.ConsistsOfResInd}\nstores {state.StoredResPile}\ntarget {targetStoredResAmounts}\nMass of everything {state.MassCounter.Count}\nMass of planet {state.PlanetMass}\nNumber of people {state.PeopleCounter.Count}\n";
 
             // update text
             textBox.Text = CurWorldManager.Overlay.SwitchExpression
@@ -537,7 +536,7 @@ namespace Game1
 
         void ILinkFacingPlanet.Arrive(RealPeople realPeople)
         {
-            if (realPeople.Count is 0)
+            if (realPeople.Count.IsZero)
                 return;
             state.WaitingPeople.TransferAllFrom(realPeopleSource: realPeople);
         }

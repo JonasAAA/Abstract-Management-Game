@@ -5,8 +5,8 @@ namespace Game1.Inhabitants
     [Serializable]
     public class VirtualPeople : IEnumerable<VirtualPerson>
     {
-        public ulong Count
-            => people.Count;
+        public NumPeople Count
+            => new(people.Count);
 
         private readonly MySet<VirtualPerson> people;
 

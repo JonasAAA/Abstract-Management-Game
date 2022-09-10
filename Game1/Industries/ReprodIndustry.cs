@@ -86,7 +86,7 @@ namespace Game1.Industries
             }
 
             public override bool IsFull()
-                => allPeople.Count >= 2 * parameters.MaxCouples;
+                => allPeople.Count.value >= 2 * parameters.MaxCouples;
 
             public override bool IsPersonSuitable(VirtualPerson person)
                 // could disalow far travel

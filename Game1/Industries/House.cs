@@ -63,18 +63,18 @@ namespace Game1.Industries
                 => false;
 
             public Score PersonalSpace()
-                => PersonalSpace(peopleCount: realPeopleHere.Count);
+                => PersonalSpace(numPeople: realPeopleHere.Count.value);
 
-            private Score PersonalSpace(ulong peopleCount)
+            private Score PersonalSpace(ulong numPeople)
                 // TODO: get rid of hard-coded constant
-                => Score.FromUnboundedUDouble(value: parameters.FloorSpace / peopleCount, valueGettingAverageScore: 10);
+                => Score.FromUnboundedUDouble(value: parameters.FloorSpace / numPeople, valueGettingAverageScore: 10);
 
             public override Score PersonEnjoymentOfThis(VirtualPerson person)
                 // TODO: get rid of hard-coded constants
                 => Score.WeightedAverage
                 (
                     (weight: 5, score: Score.lowest),
-                    (weight: 3, score: PersonalSpace(peopleCount: allPeople.Count + 1))
+                    (weight: 3, score: PersonalSpace(numPeople: allPeople.Count.value + 1))
                 );
 
             public override bool IsPersonSuitable(VirtualPerson person)

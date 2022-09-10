@@ -17,6 +17,7 @@ namespace Game1.Industries
         public bool TooManyResStored { get; }
         public UDouble WattsHittingSurfaceOrIndustry { get; }
         public MassCounter MassCounter { get; }
+        public PeopleCounter PeopleCounter { get; }
 
         public bool CanRemove(ulong resAmount);
 

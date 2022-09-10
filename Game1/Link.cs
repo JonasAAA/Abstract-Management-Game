@@ -28,6 +28,7 @@ namespace Game1
 
             // TODO: think about if DirLink or Link should have MassCounter
             private readonly MassCounter massCounter;
+            private readonly PeopleCounter peopleCounter;
             private readonly TimedPacketQueue timedPacketQueue;
             private readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
             private readonly RealPeople waitingPeople;
@@ -44,9 +45,10 @@ namespace Game1
                 this.minSafeDist = minSafeDist;
 
                 massCounter = MassCounter.CreateEmpty();
-                timedPacketQueue = new(locationMassCounter: massCounter);
+                peopleCounter = PeopleCounter.CreateEmpty();
+                timedPacketQueue = new(locationMassCounter: massCounter, locationPeopleCounter: peopleCounter);
                 waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationMassCounter: massCounter);
-                waitingPeople = RealPeople.CreateEmpty(locationMassCounter: massCounter);
+                waitingPeople = RealPeople.CreateEmpty(locationMassCounter: massCounter, locationPeopleCounter: peopleCounter);
                 energyPropor = Propor.empty;
                 deleted = new();
 
@@ -63,13 +65,17 @@ namespace Game1
                 => waitingPeople.TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
 
             public ulong GetTravellingAmount()
-                => CurWorldManager.Overlay.SwitchExpression
+            {
+                Debug.Assert(massCounter.Count == timedPacketQueue.Mass);
+                Debug.Assert(peopleCounter.Count == timedPacketQueue.NumPeople);
+                return CurWorldManager.Overlay.SwitchExpression
                 (
                     singleResCase: resInd => timedPacketQueue.TotalResAmounts[resInd],
-                    allResCase: () => timedPacketQueue.TotalResAmounts.TotalMass().InKg,
-                    peopleCase: () => timedPacketQueue.PeopleCount,
+                    allResCase: () => massCounter.Count.InKg,
+                    peopleCase: () => peopleCounter.Count.value,
                     powerCase: () => throw new InvalidOperationException()
                 );
+            }
 
             public void Update(TimeSpan travelTime, UDouble reqJoulesPerKg, UDouble linkLength)
             {
@@ -87,7 +93,7 @@ namespace Game1
                 endNode.Arrive(resAmountsPackets: resAmountsPackets);
                 endNode.Arrive(realPeople: people);
 
-                if ((!waitingResAmountsPackets.Empty || waitingPeople.Count > 0)
+                if ((!waitingResAmountsPackets.Empty || !waitingPeople.Count.IsZero)
                     && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionPropor() >= minSafePropor))
                     timedPacketQueue.Enqueue(resAmountsPackets: waitingResAmountsPackets, realPeople: waitingPeople);
             }
@@ -117,8 +123,8 @@ namespace Game1
                     powerCase: () => { },
                     peopleCase: () =>
                     {
-                        foreach (var (complProp, _, peopleCount) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: peopleCount);
+                        foreach (var (complProp, _, numPeople) in timedPacketQueue.GetData())
+                            DrawDisk(complProp: complProp, size: numPeople.value);
                     }
                 );
 

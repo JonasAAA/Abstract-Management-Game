@@ -5,15 +5,15 @@ namespace Game1.Inhabitants
     [Serializable]
     public class RealPeople
     {
-        public static RealPeople CreateEmpty(MassCounter locationMassCounter, PeopleCounter locationPeopleCounter)
-            => new(locationMassCounter: locationMassCounter, locationPeopleCounter: locationPeopleCounter);
+        public static RealPeople CreateEmpty(LocationCounters locationCounters)
+            => new(locationCounters: locationCounters);
 
         public static RealPeople CreateFromSource(RealPeople realPeopleSource)
-            => CreateFromSource(realPeopleSource: realPeopleSource, locationMassCounter: realPeopleSource.locationMassCounter, locationPeopleCounter: realPeopleSource.locationPeopleCounter);
+            => CreateFromSource(realPeopleSource: realPeopleSource, locationCounters: realPeopleSource.locationCounters);
 
-        public static RealPeople CreateFromSource(RealPeople realPeopleSource, MassCounter locationMassCounter, PeopleCounter locationPeopleCounter)
+        public static RealPeople CreateFromSource(RealPeople realPeopleSource, LocationCounters locationCounters)
         {
-            RealPeople newRealPeople = new(locationMassCounter: locationMassCounter, locationPeopleCounter: locationPeopleCounter);
+            RealPeople newRealPeople = new(locationCounters: locationCounters);
             newRealPeople.TransferAllFrom(realPeopleSource: realPeopleSource);
             return newRealPeople;
         }
@@ -23,16 +23,14 @@ namespace Game1.Inhabitants
 
         public Mass Mass { get; private set; }
 
-        private readonly MassCounter locationMassCounter;
-        private readonly PeopleCounter locationPeopleCounter;
+        private readonly LocationCounters locationCounters;
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
 
-        private RealPeople(MassCounter locationMassCounter, PeopleCounter locationPeopleCounter)
+        private RealPeople(LocationCounters locationCounters)
         {
             Mass = Mass.zero;
             virtualToRealPeople = new();
-            this.locationMassCounter = locationMassCounter;
-            this.locationPeopleCounter = locationPeopleCounter;
+            this.locationCounters = locationCounters;
         }
 
         public void AddByMagic(RealPerson realPerson)
@@ -108,7 +106,7 @@ namespace Game1.Inhabitants
 
         private void Add(RealPerson realPerson)
         {
-            realPerson.SetLocationCounters(locationMassCounter: locationMassCounter, locationPeopleCounter: locationPeopleCounter);
+            realPerson.SetLocationCounters(locationCounters: locationCounters);
             Mass += realPerson.Mass;
             virtualToRealPeople.Add(key: realPerson.asVirtual, value: realPerson);
         }

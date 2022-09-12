@@ -157,7 +157,7 @@ namespace Game1
                 selector: resInd => new ProporSplitter<NodeID>()
             );
             targetStoredResAmounts = ResAmounts.Empty;
-            undecidedResPile = ResPile.CreateEmpty(locationMassCounter: state.MassCounter);
+            undecidedResPile = ResPile.CreateEmpty(locationCounters: state.LocationCounters);
             resTravelHereAmounts = ResAmounts.Empty;
             usedLocalWatts = 0;
 
@@ -449,7 +449,7 @@ namespace Game1
             state.TooManyResStored = !(state.StoredResPile.ResAmounts <= targetStoredResAmounts);
 
             // TODO: look at this
-            infoTextBox.Text = $"consists of {state.MainResAmount} {state.ConsistsOfResInd}\nstores {state.StoredResPile}\ntarget {targetStoredResAmounts}\nMass of everything {state.MassCounter.Count}\nMass of planet {state.PlanetMass}\nNumber of people {state.PeopleCounter.Count}\n";
+            infoTextBox.Text = $"consists of {state.MainResAmount} {state.ConsistsOfResInd}\nstores {state.StoredResPile}\ntarget {targetStoredResAmounts}\nMass of everything {state.LocationCounters.Mass}\nMass of planet {state.PlanetMass}\nNumber of people {state.LocationCounters.NumPeople}\n";
 
             // update text
             textBox.Text = CurWorldManager.Overlay.SwitchExpression

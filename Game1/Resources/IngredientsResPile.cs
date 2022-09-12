@@ -13,7 +13,7 @@
         public readonly ResRecipe recipe;
 
         private IngredientsResPile(ResPile source, ResRecipe recipe)
-            : base(locationMassCounter: source.LocationMassCounter)
+            : base(locationCounters: source.LocationCounters)
         {
             Transfer(source: source, destin: this, resAmounts: recipe.ingredients);
             this.recipe = recipe;

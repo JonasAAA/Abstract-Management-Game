@@ -4,9 +4,13 @@
     public readonly record struct NumPeople : ICountable<NumPeople>
     {
         public static readonly NumPeople zero;
+        public static readonly NumPeople one;
 
         static NumPeople()
-            => zero = new(value: 0);
+        {
+            zero = new(value: 0);
+            one = new(value: 1);
+        }
 
         public readonly ulong value;
 

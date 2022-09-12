@@ -32,31 +32,29 @@ namespace Game1
         public BasicRes ConsistsOfRes { get; }
         public bool TooManyResStored { get; set; }
         public UDouble WattsHittingSurfaceOrIndustry { get; set; }
-        // TODO: could include linkEndPoints mass in this
-        public MassCounter MassCounter { get; }
-        public PeopleCounter PeopleCounter { get; }
+        // TODO: could include linkEndPoints mass in the Counter<Mass> in this NodeState
+        public LocationCounters LocationCounters { get; }
         public UDouble SurfaceGravity
-            => WorldFunctions.SurfaceGravity(mass: MassCounter.Count, radius: Radius);
+            => WorldFunctions.SurfaceGravity(mass: LocationCounters.Mass, radius: Radius);
 
         private readonly ResPile consistsOfResPile;
 
         public NodeState(NodeID nodeID, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
-            MassCounter = MassCounter.CreateEmpty();
-            PeopleCounter = PeopleCounter.CreateEmpty();
+            LocationCounters = LocationCounters.CreateEmpty();
             NodeID = nodeID;
             Position = position;
             ConsistsOfResInd = consistsOfResInd;
             ConsistsOfRes = CurResConfig.resources[consistsOfResInd];
-            consistsOfResPile = ResPile.CreateEmpty(locationMassCounter: MassCounter);
+            consistsOfResPile = ResPile.CreateEmpty(locationCounters: LocationCounters);
             EnlargeFrom(source: resSource, resAmount: mainResAmount);
             
-            StoredResPile = ResPile.CreateEmpty(locationMassCounter: MassCounter);
+            StoredResPile = ResPile.CreateEmpty(locationCounters: LocationCounters);
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             MaxBatchDemResStored = maxBatchDemResStored;
-            waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationMassCounter: MassCounter);
-            WaitingPeople = RealPeople.CreateEmpty(locationMassCounter: MassCounter, locationPeopleCounter: PeopleCounter);
+            waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationCounters: LocationCounters);
+            WaitingPeople = RealPeople.CreateEmpty(locationCounters: LocationCounters);
             TooManyResStored = false;
             WattsHittingSurfaceOrIndustry = 0;
         }

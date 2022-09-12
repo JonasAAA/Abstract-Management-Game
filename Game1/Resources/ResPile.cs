@@ -5,22 +5,26 @@ namespace Game1.Resources
     [Serializable]
     public sealed class ResPile : ResPileBase
     {
-        public static ResPile CreateEmpty(MassCounter locationMassCounter)
-            => new(locationMassCounter: locationMassCounter, createdByMagic: false);
+        public static ResPile CreateEmpty(LocationCounters locationCounters)
+            => new(locationCounters: locationCounters, createdByMagic: false);
 
         public static ResPile CreateFromSource(ResPile sourceResPile)
         {
-            ResPile resPile = CreateEmpty(locationMassCounter: sourceResPile.LocationMassCounter);
+            ResPile resPile = CreateEmpty(locationCounters: sourceResPile.LocationCounters);
             resPile.TransferAllFrom(source: sourceResPile);
             return resPile;
         }
 
         public static ResPile CreateMagicUnlimitedPile()
             // It's OK to create locationMassCounter here as this magic res pile is the only place where the "magic location mass counter" is used
-            => new(locationMassCounter: MassCounter.CreateCounterByMagic(count: magicResPileStartingResAmounts.TotalMass()), createdByMagic: true);
+            => new
+            (
+                locationCounters: LocationCounters.CreateMassByMagic(mass: magicResPileStartingResAmounts.TotalMass()),
+                createdByMagic: true
+            );
 
-        private ResPile(MassCounter locationMassCounter, bool createdByMagic)
-            : base(locationMassCounter: locationMassCounter, createdByMagic: createdByMagic)
+        private ResPile(LocationCounters locationCounters, bool createdByMagic)
+            : base(locationCounters: locationCounters, createdByMagic: createdByMagic)
         { }
 
         /// <summary>

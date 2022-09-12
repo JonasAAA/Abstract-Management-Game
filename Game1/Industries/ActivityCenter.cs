@@ -29,7 +29,7 @@ namespace Game1.Industries
             ActivityType = activityType;
             EnergyPriority = energyPriority;
             this.state = state;
-            realPeopleHere = RealPeople.CreateEmpty(locationMassCounter: state.MassCounter, locationPeopleCounter: state.PeopleCounter);
+            realPeopleHere = RealPeople.CreateEmpty(locationCounters: state.LocationCounters);
             allPeople = new();
 
             deleted = new();

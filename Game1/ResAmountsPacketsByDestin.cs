@@ -5,15 +5,15 @@ namespace Game1
     [Serializable]
     public sealed class ResAmountsPacketsByDestin
     {
-        public static ResAmountsPacketsByDestin CreateEmpty(MassCounter locationMassCounter)
-            => new(locationMassCounter: locationMassCounter);
+        public static ResAmountsPacketsByDestin CreateEmpty(LocationCounters locationCounters)
+            => new(locationCounters: locationCounters);
 
         public static ResAmountsPacketsByDestin CreateFromSource(ResAmountsPacketsByDestin sourcePackets)
-            => CreateFromSource(sourcePackets: sourcePackets, locationMassCounter: sourcePackets.locationMassCounter);
+            => CreateFromSource(sourcePackets: sourcePackets, locationCounters: sourcePackets.locationCounters);
 
-        public static ResAmountsPacketsByDestin CreateFromSource(ResAmountsPacketsByDestin sourcePackets, MassCounter locationMassCounter)
+        public static ResAmountsPacketsByDestin CreateFromSource(ResAmountsPacketsByDestin sourcePackets, LocationCounters locationCounters)
         {
-            ResAmountsPacketsByDestin newPackets = new(locationMassCounter: locationMassCounter);
+            ResAmountsPacketsByDestin newPackets = new(locationCounters: locationCounters);
             newPackets.TransferAllFrom(sourcePackets: sourcePackets);
             return newPackets;
         }
@@ -23,12 +23,12 @@ namespace Game1
         public bool Empty
             => Mass.IsZero;
 
-        private readonly MassCounter locationMassCounter;
+        private readonly LocationCounters locationCounters;
         private Dictionary<NodeID, ResAmountsPacket> resAmountsPacketsByDestin;
 
-        private ResAmountsPacketsByDestin(MassCounter locationMassCounter)
+        private ResAmountsPacketsByDestin(LocationCounters locationCounters)
         {
-            this.locationMassCounter = locationMassCounter;
+            this.locationCounters = locationCounters;
             resAmountsPacketsByDestin = new();
 
             ResAmounts = ResAmounts.Empty;
@@ -47,7 +47,7 @@ namespace Game1
             Mass += sourcePacket.Mass;
 
             if (!resAmountsPacketsByDestin.ContainsKey(sourcePacket.destination))
-                resAmountsPacketsByDestin[sourcePacket.destination] = new(destination: sourcePacket.destination, locationMassCounter: locationMassCounter);
+                resAmountsPacketsByDestin[sourcePacket.destination] = new(destination: sourcePacket.destination, locationCounters: locationCounters);
             resAmountsPacketsByDestin[sourcePacket.destination].resPile.TransferAllFrom(source: sourcePacket.resPile);
         }
 
@@ -57,14 +57,14 @@ namespace Game1
             Mass += source.Mass;
 
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
-                resAmountsPacketsByDestin[destination] = new(destination: destination, locationMassCounter: locationMassCounter);
+                resAmountsPacketsByDestin[destination] = new(destination: destination, locationCounters: locationCounters);
             resAmountsPacketsByDestin[destination].resPile.TransferAllFrom(reservedSource: ref source);
         }
 
         public ResPile ReturnAndRemove(NodeID destination)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
-                return ResPile.CreateEmpty(locationMassCounter: locationMassCounter);
+                return ResPile.CreateEmpty(locationCounters: locationCounters);
 
             var resAmountsPacket = resAmountsPacketsByDestin[destination];
             resAmountsPacketsByDestin.Remove(destination);

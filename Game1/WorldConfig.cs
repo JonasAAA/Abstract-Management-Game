@@ -60,7 +60,7 @@
             dimStarTextureBrightness = 1,
             startingWorldScale = 1,
             screenBoundWidthForMapMoving = 10,
-            minSafeDist = 1;
+            minSafeDist = 10;
         public readonly ulong
             resDistribArrowsUILayer = 1;
         public readonly UDouble

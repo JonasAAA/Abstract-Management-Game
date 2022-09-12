@@ -27,8 +27,7 @@ namespace Game1
             public readonly ILinkFacingPlanet startNode, endNode;
 
             // TODO: think about if DirLink or Link should have MassCounter
-            private readonly MassCounter massCounter;
-            private readonly PeopleCounter peopleCounter;
+            private readonly LocationCounters locationCounters;
             private readonly TimedPacketQueue timedPacketQueue;
             private readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
             private readonly RealPeople waitingPeople;
@@ -44,11 +43,10 @@ namespace Game1
                 this.endNode = endNode;
                 this.minSafeDist = minSafeDist;
 
-                massCounter = MassCounter.CreateEmpty();
-                peopleCounter = PeopleCounter.CreateEmpty();
-                timedPacketQueue = new(locationMassCounter: massCounter, locationPeopleCounter: peopleCounter);
-                waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationMassCounter: massCounter);
-                waitingPeople = RealPeople.CreateEmpty(locationMassCounter: massCounter, locationPeopleCounter: peopleCounter);
+                locationCounters = LocationCounters.CreateEmpty();
+                timedPacketQueue = new(locationCounters: locationCounters);
+                waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationCounters: locationCounters);
+                waitingPeople = RealPeople.CreateEmpty(locationCounters: locationCounters);
                 energyPropor = Propor.empty;
                 deleted = new();
 
@@ -66,13 +64,13 @@ namespace Game1
 
             public ulong GetTravellingAmount()
             {
-                Debug.Assert(massCounter.Count == timedPacketQueue.Mass);
-                Debug.Assert(peopleCounter.Count == timedPacketQueue.NumPeople);
+                Debug.Assert(locationCounters.Mass == waitingResAmountsPackets.Mass + waitingPeople.Mass + timedPacketQueue.Mass);
+                Debug.Assert(locationCounters.NumPeople == waitingPeople.Count + timedPacketQueue.NumPeople);
                 return CurWorldManager.Overlay.SwitchExpression
                 (
                     singleResCase: resInd => timedPacketQueue.TotalResAmounts[resInd],
-                    allResCase: () => massCounter.Count.InKg,
-                    peopleCase: () => peopleCounter.Count.value,
+                    allResCase: () => timedPacketQueue.Mass.InKg,
+                    peopleCase: () => locationCounters.NumPeople.value,
                     powerCase: () => throw new InvalidOperationException()
                 );
             }
@@ -265,7 +263,7 @@ namespace Game1
             (
                 singleResCase: resInd => $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",
                 allResCase: () => $"{travellingAmount} kg of resources are travelling",
-                peopleCase: () => $"{travellingAmount} of people are travelling",
+                peopleCase: () => $"{travellingAmount} people are travelling",
                 powerCase: () => ""
             );
         }

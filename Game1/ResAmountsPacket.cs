@@ -8,8 +8,8 @@
         public Mass Mass
             => resPile.Mass;
 
-        public ResAmountsPacket(NodeID destination, MassCounter locationMassCounter)
-            : this(destination: destination, resPile: ResPile.CreateEmpty(locationMassCounter: locationMassCounter))
+        public ResAmountsPacket(NodeID destination, LocationCounters locationCounters)
+            : this(destination: destination, resPile: ResPile.CreateEmpty(locationCounters: locationCounters))
         { }
 
         private ResAmountsPacket(NodeID destination, ResPile resPile)

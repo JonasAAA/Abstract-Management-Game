@@ -147,7 +147,7 @@ namespace Game1.Inhabitants
         private NodeID lastNodeID;
         private readonly Event<IDeletedListener> deleted;
         private readonly ReservedResPile consistsOfResPile;
-        private PeopleCounter locationPeopleCounter;
+        private LocationCounters locationCounters;
 
         private RealPerson(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts, Score startingHappiness)
         {
@@ -178,7 +178,8 @@ namespace Game1.Inhabitants
             if (resSource.ResAmounts != consistsOfResAmounts)
                 throw new ArgumentException();
             consistsOfResPile = ReservedResPile.CreateFromSource(source: ref resSource);
-            locationPeopleCounter = PeopleCounter.CreateCounterByMagic(count: new(1));
+            // The counters here don't matter as this person will be immediately transfered to RealPeople where this person's Mass and NumPeople will be transferred to the appropriate counters
+            locationCounters = LocationCounters.CreateOnePersonByMagic();
             asVirtual = new(realPerson: this);
             deleted = new();
             Happiness = startingHappiness;
@@ -190,11 +191,12 @@ namespace Game1.Inhabitants
         public void Arrived(RealPeople realPersonSource)
             => (activityCenter ?? throw new InvalidOperationException()).TakePersonFrom(realPersonSource: realPersonSource, realPerson: this);
 
-        public void SetLocationCounters(MassCounter locationMassCounter, PeopleCounter locationPeopleCounter)
+        public void SetLocationCounters(LocationCounters locationCounters)
         {
-            consistsOfResPile.LocationMassCounter = locationMassCounter;
-            locationPeopleCounter.TransferFrom(source: this.locationPeopleCounter, count: new(1));
-            this.locationPeopleCounter = locationPeopleCounter;
+            consistsOfResPile.LocationCounters = locationCounters;
+            // Mass transfer is zero in the following line as the previous line did the mass transfer of this person already
+            locationCounters.TransferFrom(source: this.locationCounters, mass: Mass.zero, numPeople: NumPeople.one);
+            this.locationCounters = locationCounters;
         }
 
         /// <param name="updateSkillsParams">if null, will use default update</param>
@@ -257,7 +259,7 @@ namespace Game1.Inhabitants
             => EnergyPropor = energyPropor;
 
         public bool IfSeeksNewActivity()
-            => timeSinceActivitySearch >= seekChangeTime && activityCenter?.CanPersonLeave(person: asVirtual) is null or true;
+            => activityCenter is null || timeSinceActivitySearch >= seekChangeTime && activityCenter.CanPersonLeave(person: asVirtual);
 
         public IPersonFacingActivityCenter ChooseActivityCenter(IEnumerable<IPersonFacingActivityCenter> activityCenters)
         {
@@ -284,7 +286,8 @@ namespace Game1.Inhabitants
 
         private void SetActivityCenter(IPersonFacingActivityCenter? newActivityCenter)
         {
-            timeSinceActivitySearch = TimeSpan.Zero;
+            if (newActivityCenter is not null)
+                timeSinceActivitySearch = TimeSpan.Zero;
             if (activityCenter == newActivityCenter)
                 return;
 

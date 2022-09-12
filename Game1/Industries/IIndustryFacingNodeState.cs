@@ -16,8 +16,7 @@ namespace Game1.Industries
         public BasicRes ConsistsOfRes { get; }
         public bool TooManyResStored { get; }
         public UDouble WattsHittingSurfaceOrIndustry { get; }
-        public MassCounter MassCounter { get; }
-        public PeopleCounter PeopleCounter { get; }
+        public LocationCounters LocationCounters { get; }
 
         public bool CanRemove(ulong resAmount);
 

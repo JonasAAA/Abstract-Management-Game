@@ -63,7 +63,7 @@ namespace Game1.Industries
                 => false;
 
             public Score PersonalSpace()
-                => PersonalSpace(numPeople: realPeopleHere.Count.value);
+                => PersonalSpace(numPeople: PeopleHereStats.NumPeople.value);
 
             private Score PersonalSpace(ulong numPeople)
                 // TODO: get rid of hard-coded constant
@@ -88,11 +88,14 @@ namespace Game1.Industries
                 => true;
 
             public string GetInfo()
-                => $"{realPeopleHere.Count} people live here\n{allPeople.Count - realPeopleHere.Count} people travel here\n";
+                => $"{PeopleHereStats.NumPeople} people live here\n{allPeople.Count - PeopleHereStats.NumPeople} people travel here\n{PeopleHereStats.HappinessStats()}";
         }
 
         public override bool PeopleWorkOnTop
             => true;
+
+        public override RealPeople.Statistics RealPeopleStats
+            => housing.PeopleHereStats;
 
         protected override UDouble Height
             => CurWorldConfig.defaultIndustryHeight;
@@ -103,7 +106,7 @@ namespace Game1.Industries
             : base(parameters: parameters, building: building)
             => housing = new(parameters: parameters);
 
-        public override void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams)
+        protected override void UpdatePeopleInternal(RealPerson.UpdateLocationParams updateLocationParams)
             => housing.UpdatePeople(updateLocationParams: updateLocationParams);
 
         public override ResAmounts TargetStoredResAmounts()

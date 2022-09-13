@@ -3,8 +3,50 @@
 namespace Game1.Inhabitants
 {
     [Serializable]
-    public class RealPeople
+    public class RealPeople : IWithRealPeopleStats
     {
+        [Serializable]
+        public readonly record struct Statistics(Mass Mass, NumPeople NumPeople, Score AverageHappiness, Score AverageMomentaryHappiness)
+        {
+            public static readonly Statistics empty;
+
+            static Statistics()
+                => empty = new
+                (
+                    Mass: Mass.zero,
+                    NumPeople: NumPeople.zero,
+                    AverageHappiness: Score.lowest,
+                    AverageMomentaryHappiness: Score.lowest
+                );
+
+            public Statistics CombineWith(Statistics other)
+                => new
+                (
+                    Mass: Mass + other.Mass,
+                    NumPeople: NumPeople + other.NumPeople,
+                    AverageHappiness: Score.WeightedAverage
+                    (
+                        (weight: NumPeople.value, score: AverageHappiness),
+                        (weight: other.NumPeople.value, score: other.AverageHappiness)
+                    ),
+                    AverageMomentaryHappiness: Score.WeightedAverage
+                    (
+                        (weight: NumPeople.value, score: AverageMomentaryHappiness),
+                        (weight: other.NumPeople.value, score: other.AverageMomentaryHappiness)
+                    )
+                );
+
+            public string HappinessStats()
+                => NumPeople.IsZero switch
+                {
+                    true => "no happiness stats as no\npeople are here\n",
+                    false => $"average happiness {AverageHappiness:0.00}\naverage momentary happiness {AverageMomentaryHappiness:0.00}\n"
+                };
+
+            public override string ToString()
+                => $"Number of people {NumPeople}\n{HappinessStats()}";
+        }
+
         public static RealPeople CreateEmpty(LocationCounters locationCounters)
             => new(locationCounters: locationCounters);
 
@@ -18,17 +60,17 @@ namespace Game1.Inhabitants
             return newRealPeople;
         }
 
-        public NumPeople Count
-            => new((ulong)virtualToRealPeople.Count);
+        public NumPeople NumPeople
+            => RealPeopleStats.NumPeople;
 
-        public Mass Mass { get; private set; }
+        public Statistics RealPeopleStats { get; private set;}
 
         private readonly LocationCounters locationCounters;
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
 
         private RealPeople(LocationCounters locationCounters)
         {
-            Mass = Mass.zero;
+            RealPeopleStats = new(Mass: Mass.zero, NumPeople: NumPeople.zero, AverageHappiness: Score.lowest, AverageMomentaryHappiness: Score.lowest);
             virtualToRealPeople = new();
             this.locationCounters = locationCounters;
         }
@@ -53,30 +95,22 @@ namespace Game1.Inhabitants
             personalUpdateSkillsParams ??= realPerson => null;
             foreach (var realPerson in virtualToRealPeople.Values)
                 realPerson.Update(updateLocationParams: updateLocationParams, updateSkillsParams: personalUpdateSkillsParams(realPerson));
-        }
-
-        public Score AverageHappiness()
-        {
-            if (Count.IsZero)
-                throw new InvalidOperationException("0 people don't have average happiness");
-            return Score.Average
-            (
-                scores:
-                    (from person in virtualToRealPeople.Values
-                     select person.Happiness).ToArray()
-            );
-        }
-
-        public Score AverageMomentaryHappiness()
-        {
-            if (Count.IsZero)
-                throw new InvalidOperationException("0 people don't have average mometary happiness");
-            return Score.Average
-            (
-                scores:
-                    (from person in virtualToRealPeople.Values
-                     select person.MomentaryHappiness).ToArray()
-            );
+            RealPeopleStats = RealPeopleStats with
+            {
+                AverageHappiness = Score.Average
+                (
+                    scores:
+                        (from person in virtualToRealPeople.Values
+                         select person.Happiness).ToArray()
+                ),
+                AverageMomentaryHappiness = Score.Average
+                (
+                    scores:
+                        (from person in virtualToRealPeople.Values
+                         select person.MomentaryHappiness).ToArray()
+                )
+            };
+            Debug.Assert(RealPeopleStats.NumPeople.value == (ulong)virtualToRealPeople.Count);
         }
 
         public UDouble TotalSkill(IndustryType industryType)
@@ -107,15 +141,23 @@ namespace Game1.Inhabitants
         private void Add(RealPerson realPerson)
         {
             realPerson.SetLocationCounters(locationCounters: locationCounters);
-            Mass += realPerson.Mass;
             virtualToRealPeople.Add(key: realPerson.asVirtual, value: realPerson);
+            RealPeopleStats = RealPeopleStats with
+            {
+                Mass = RealPeopleStats.Mass + realPerson.Mass,
+                NumPeople = RealPeopleStats.NumPeople + NumPeople.one
+            };
         }
 
         private bool Remove(VirtualPerson person)
         {
             if (virtualToRealPeople.Remove(key: person, value: out RealPerson? realPerson))
             {
-                Mass -= realPerson.Mass;
+                RealPeopleStats = RealPeopleStats with
+                {
+                    Mass = RealPeopleStats.Mass - realPerson.Mass,
+                    NumPeople = RealPeopleStats.NumPeople - NumPeople.one
+                };
                 return true;
             }
             return false;

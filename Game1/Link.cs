@@ -8,10 +8,10 @@ namespace Game1
 {
     // TODO: consider making this record class, but see comment below (where operator == is commented out)
     [Serializable]
-    public sealed class Link : WorldUIElement
+    public sealed class Link : WorldUIElement, IWithRealPeopleStats
     {
         [Serializable]
-        private sealed class DirLink : IEnergyConsumer
+        private sealed class DirLink : IEnergyConsumer, IWithRealPeopleStats
         {
             private static readonly Texture2D diskTexture;
 
@@ -23,6 +23,8 @@ namespace Game1
             /// </summary>
             public IEvent<IDeletedListener> Deleted
                 => deleted;
+
+            public RealPeople.Statistics RealPeopleStats { get; private set; }
 
             public readonly ILinkFacingPlanet startNode, endNode;
 
@@ -64,8 +66,8 @@ namespace Game1
 
             public ulong GetTravellingAmount()
             {
-                Debug.Assert(locationCounters.Mass == waitingResAmountsPackets.Mass + waitingPeople.Mass + timedPacketQueue.Mass);
-                Debug.Assert(locationCounters.NumPeople == waitingPeople.Count + timedPacketQueue.NumPeople);
+                Debug.Assert(locationCounters.Mass == waitingResAmountsPackets.Mass + waitingPeople.RealPeopleStats.Mass + timedPacketQueue.Mass);
+                Debug.Assert(locationCounters.NumPeople == waitingPeople.NumPeople + timedPacketQueue.NumPeople);
                 return CurWorldManager.Overlay.SwitchExpression
                 (
                     singleResCase: resInd => timedPacketQueue.TotalResAmounts[resInd],
@@ -91,7 +93,7 @@ namespace Game1
                 endNode.Arrive(resAmountsPackets: resAmountsPackets);
                 endNode.Arrive(realPeople: people);
 
-                if ((!waitingResAmountsPackets.Empty || !waitingPeople.Count.IsZero)
+                if ((!waitingResAmountsPackets.Empty || !waitingPeople.NumPeople.IsZero)
                     && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionPropor() >= minSafePropor))
                     timedPacketQueue.Enqueue(resAmountsPackets: waitingResAmountsPackets, realPeople: waitingPeople);
             }
@@ -101,6 +103,7 @@ namespace Game1
                 RealPerson.UpdateLocationParams personUpdateParams = new(LastNodeID: startNode.NodeID, ClosestNodeID: endNode.NodeID);
                 timedPacketQueue.UpdatePeople(updateLocationParams: personUpdateParams, personalUpdate: null);
                 waitingPeople.Update(updateLocationParams: personUpdateParams, personalUpdateSkillsParams: null);
+                RealPeopleStats = timedPacketQueue.RealPeopleStats.CombineWith(other: waitingPeople.RealPeopleStats);
             }
 
             public void DrawTravelingRes()
@@ -167,6 +170,7 @@ namespace Game1
         public readonly ILinkFacingPlanet node1, node2;
         public UDouble JoulesPerKg { get; private set; }
         public TimeSpan TravelTime { get; private set; }
+        public RealPeople.Statistics RealPeopleStats { get; private set; }
 
         private readonly DirLink link1To2, link2To1;
         private readonly TextBox infoTextBox;
@@ -251,6 +255,13 @@ namespace Game1
                     _ => (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
                 }
             );
+        }
+
+        public void UpdatePeople()
+        {
+            link1To2.UpdatePeople();
+            link2To1.UpdatePeople();
+            RealPeopleStats = link1To2.RealPeopleStats.CombineWith(other: link2To1.RealPeopleStats);
 
             if (CurWorldManager.Overlay is IPowerOverlay)
                 return;
@@ -259,19 +270,13 @@ namespace Game1
             // in order to not have two switch statements mirroring each other
             ulong travellingAmount = link1To2.GetTravellingAmount() + link2To1.GetTravellingAmount();
 
-            infoTextBox.Text = $"Travel cost is {JoulesPerKg:.###} J/Kg\n" + CurWorldManager.Overlay.SwitchExpression
+            infoTextBox.Text = $"Travel cost is {JoulesPerKg:0.000} J/Kg\n" + CurWorldManager.Overlay.SwitchExpression
             (
                 singleResCase: resInd => $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",
                 allResCase: () => $"{travellingAmount} kg of resources are travelling",
-                peopleCase: () => $"{travellingAmount} people are travelling",
+                peopleCase: () => $"travelling people stats:\n{RealPeopleStats}",
                 powerCase: () => ""
             );
-        }
-
-        public void UpdatePeople()
-        {
-            link1To2.UpdatePeople();
-            link2To1.UpdatePeople();
         }
 
         protected override void DrawChildren()

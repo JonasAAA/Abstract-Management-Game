@@ -17,6 +17,9 @@ namespace Game1.Industries
 
         public EnergyPriority EnergyPriority { get; private set; }
 
+        public RealPeople.Statistics PeopleHereStats
+            => realPeopleHere.RealPeopleStats;
+
         protected readonly RealPeople realPeopleHere;
         protected readonly VirtualPeople allPeople;
         protected readonly IIndustryFacingNodeState state;
@@ -71,12 +74,6 @@ namespace Game1.Industries
 
         public abstract bool CanPersonLeave(VirtualPerson person);
 
-        public Score AverageHappiness()
-            => realPeopleHere.AverageHappiness();
-
-        public Score AverageMomentaryHappiness()
-            => realPeopleHere.AverageMomentaryHappiness();
-
         public void RemovePerson(VirtualPerson person, bool force = false)
         {
             if (peopleInProcessOfRemoving.Contains(person))
@@ -102,7 +99,7 @@ namespace Game1.Industries
         {
             foreach (var person in allPeople)
                 RemovePerson(person: person);
-            Debug.Assert(allPeople.Count.IsZero && realPeopleHere.Count.IsZero);
+            Debug.Assert(allPeople.Count.IsZero && PeopleHereStats.NumPeople.IsZero);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
     }

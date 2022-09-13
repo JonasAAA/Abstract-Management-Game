@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using Game1.Inhabitants;
+using System.Text;
 
 namespace Game1
 {
@@ -49,6 +50,15 @@ namespace Game1
 
         public static TSource? ArgMinOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
             => source.OrderBy(value => selector(value)).FirstOrDefault();
+
+        public static RealPeople.Statistics CombineRealPeopleStats<TSource>(this TSource source)
+            where TSource : IEnumerable<IWithRealPeopleStats>
+        {
+            var result = RealPeople.Statistics.empty;
+            foreach (var item in source)
+                result = result.CombineWith(other: item.RealPeopleStats);
+            return result;
+        }
 
         public static Dictionary<TKey, double> ClampValues<TKey>(this IReadOnlyDictionary<TKey, double> dictionary, double min, double max)
             where TKey : notnull

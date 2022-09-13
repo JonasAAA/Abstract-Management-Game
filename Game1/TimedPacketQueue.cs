@@ -3,10 +3,11 @@
 namespace Game1
 {
     [Serializable]
-    public sealed class TimedPacketQueue
+    public sealed class TimedPacketQueue : IWithRealPeopleStats
     {
         public int Count
             => timedQueue.Count;
+        public RealPeople.Statistics RealPeopleStats { get; private set; }
         public NumPeople NumPeople { get; private set; }
         public ResAmounts TotalResAmounts { get; private set; }
         public Mass Mass { get; private set; }
@@ -29,20 +30,24 @@ namespace Game1
         /// <param name="personalUpdate"> if null, will use default update</param>
         public void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams, Func<RealPerson, UpdatePersonSkillsParams?>? personalUpdate)
         {
+            RealPeopleStats = RealPeople.Statistics.empty;
             foreach (var (_, realPeople) in timedQueue)
+            {
                 realPeople.Update(updateLocationParams: updateLocationParams, personalUpdateSkillsParams: personalUpdate);
+                RealPeopleStats = RealPeopleStats.CombineWith(other: realPeople.RealPeopleStats);
+            }
         }
 
         public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)
         {
             resAmountsPackets = ResAmountsPacketsByDestin.CreateFromSource(sourcePackets: resAmountsPackets, locationCounters: locationCounters);
             realPeople = RealPeople.CreateFromSource(realPeopleSource: realPeople, locationCounters: locationCounters);
-            if (resAmountsPackets.Empty && realPeople.Count.IsZero)
+            if (resAmountsPackets.Empty && realPeople.NumPeople.IsZero)
                 return;
             timedQueue.Enqueue(element: (resAmountsPackets, realPeople));
             TotalResAmounts += resAmountsPackets.ResAmounts;
-            Mass += resAmountsPackets.Mass + realPeople.Mass;
-            NumPeople += realPeople.Count;
+            Mass += resAmountsPackets.Mass + realPeople.RealPeopleStats.Mass;
+            NumPeople += realPeople.NumPeople;
         }
 
         public IEnumerable<(Propor complPropor, ResAmounts resAmounts, NumPeople numPeople)> GetData()
@@ -52,7 +57,7 @@ namespace Game1
                 (
                     complPropor: complPropor,
                     resAmounts: resAmountsPackets.ResAmounts,
-                    numPeople: people.Count
+                    numPeople: people.NumPeople
                 );
         }
 
@@ -63,8 +68,8 @@ namespace Game1
             foreach (var (resAmountsPackets, people) in timedQueue.DoneElements())
             {
                 TotalResAmounts -= resAmountsPackets.ResAmounts;
-                Mass -= resAmountsPackets.Mass + people.Mass;
-                NumPeople -= people.Count;
+                Mass -= resAmountsPackets.Mass + people.RealPeopleStats.Mass;
+                NumPeople -= people.NumPeople;
 
                 doneResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
                 donePeople.TransferAllFrom(realPeopleSource: people);

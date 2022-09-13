@@ -501,19 +501,8 @@ namespace Game1
 
             activityManager.ManageActivities(people: people);
 
-            Score averageHappiness = Score.Average
-            (
-                scores:
-                    (from person in people
-                     select person.Happiness).ToArray()
-            );
-            Score averageMomentaryHappiness = Score.Average
-            (
-                scores:
-                    (from person in people
-                     select person.MomentaryHappiness).ToArray()
-            );
-            globalTextBox.Text = (energyManager.Summary() + $"population {people.Count}\naverage happiness {averageHappiness:0.##}\naverage momentary happiness {averageMomentaryHappiness:0.##}").Trim();
+            Debug.Assert(people.Count == CurGraph.RealPeopleStats.NumPeople);
+            globalTextBox.Text = (energyManager.Summary() + CurGraph.RealPeopleStats.ToString()).Trim();
 
             activeUIManager.Update(elapsed: elapsedUITime);
 

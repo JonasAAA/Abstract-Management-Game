@@ -80,13 +80,19 @@ namespace Game1.PrimitiveTypeWrappers
             => new(value: C.Random(min: (double)0, max: 1));
 
         public static Score WeightedAverage(params (ulong weight, Score score)[] weightsAndScores)
-            => GetScoreFromNotNull
-            (
-                score: Create
+        {
+            return weightsAndScores.Sum(weightAndScore => weightAndScore.weight) switch
+            {
+                0 => new(value: 0),
+                var weightSum => GetScoreFromNotNull
                 (
-                    value: weightsAndScores.Sum(weightAndScore => weightAndScore.weight * (UDouble)weightAndScore.score) / weightsAndScores.Sum(weightAndScore => weightAndScore.weight)
+                    score: Create
+                    (
+                        value: weightsAndScores.Sum(weightAndScore => weightAndScore.weight * (UDouble)weightAndScore.score) / weightSum
+                    )
                 )
-            );
+            };
+        }
 
         public static Score WeightedAverageOfTwo(Score score1, Score score2, Propor score1Propor)
         => GetScoreFromNotNull
@@ -154,6 +160,9 @@ namespace Game1.PrimitiveTypeWrappers
             => ((double)this).CompareTo((double)other);
 
         public string ToString(string? format, IFormatProvider? formatProvider)
-            => $"score {value.ToString(format, formatProvider)}";
+            => value.ToString(format, formatProvider);
+
+        //public string ToString(string? format, IFormatProvider? formatProvider)
+        //    => $"score {value.ToString(format, formatProvider)}";
     }
 }

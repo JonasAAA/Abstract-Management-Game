@@ -1,4 +1,5 @@
 ﻿using Game1.Delegates;
+using Game1.Inhabitants;
 using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
@@ -9,7 +10,7 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [Serializable]
-    public sealed class Graph : UIElement<IUIElement>, IChoiceChangedListener<IOverlay>, IActiveChangedListener
+    public sealed class Graph : UIElement<IUIElement>, IChoiceChangedListener<IOverlay>, IActiveChangedListener, IWithRealPeopleStats
     {
         [Serializable]
         private sealed class NodeInfo
@@ -91,6 +92,7 @@ namespace Game1
 
         public override bool CanBeClicked
             => true;
+        public RealPeople.Statistics RealPeopleStats { get; private set; }
 
         protected override Color Color
             => CurWorldConfig.cosmosBackgroundColor;
@@ -334,7 +336,7 @@ namespace Game1
 
             links.ForEach(link => link.UpdatePeople());
             nodes.ForEach(node => node.UpdatePeople());
-
+            RealPeopleStats = nodes.CombineRealPeopleStats().CombineWith(other: links.CombineRealPeopleStats());
             nodes.ForEach(node => node.StartSplitRes());
 
             foreach (var resInd in ResInd.All)

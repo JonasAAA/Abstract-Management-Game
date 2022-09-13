@@ -21,8 +21,6 @@ namespace Game1.Inhabitants
             => realPerson.seekChangeTime;
         public Score Happiness
             => realPerson.Happiness;
-        public Score MomentaryHappiness
-            => realPerson.MomentaryHappiness;
 
         private readonly RealPerson realPerson;
 

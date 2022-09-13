@@ -10,7 +10,7 @@ using Game1.Inhabitants;
 namespace Game1
 {
     [Serializable]
-    public sealed class Planet : WorldUIElement, ILinkFacingPlanet, INodeAsLocalEnergyProducer, INodeAsResDestin, ILightCatchingObject
+    public sealed class Planet : WorldUIElement, ILinkFacingPlanet, INodeAsLocalEnergyProducer, INodeAsResDestin, ILightCatchingObject, IWithRealPeopleStats
     {
         [Serializable]
         private readonly record struct ResDesinArrowEventListener(Planet Node, ResInd ResInd) : IDeletedListener, INumberChangedListener
@@ -96,6 +96,7 @@ namespace Game1
             => state.NodeID;
         public MyVector2 Position
             => state.Position;
+        public RealPeople.Statistics RealPeopleStats { get; private set; }
 
         private Industry? Industry
         {
@@ -288,7 +289,7 @@ namespace Game1
                         childDestin: state.WaitingPeople
                     );
                 }
-                startingNonPlanetMass += state.WaitingPeople.Mass;
+                startingNonPlanetMass += state.WaitingPeople.RealPeopleStats.Mass;
                 resSource.TransferAllFrom(source: state.StoredResPile);
             }
             else
@@ -375,6 +376,8 @@ namespace Game1
             RealPerson.UpdateLocationParams personUpdateParams = new(LastNodeID: NodeID, ClosestNodeID: NodeID);
             Industry?.UpdatePeople(updateLocationParams: personUpdateParams);
             state.WaitingPeople.Update(updateLocationParams: personUpdateParams, personalUpdateSkillsParams: null);
+            Debug.Assert(state.LocationCounters.NumPeople == state.WaitingPeople.NumPeople + (Industry?.RealPeopleStats.NumPeople ?? NumPeople.zero));
+            RealPeopleStats = state.WaitingPeople.RealPeopleStats.CombineWith(Industry?.RealPeopleStats ?? RealPeople.Statistics.empty);
         }
 
         public void StartSplitRes()
@@ -449,7 +452,15 @@ namespace Game1
             state.TooManyResStored = !(state.StoredResPile.ResAmounts <= targetStoredResAmounts);
 
             // TODO: look at this
-            infoTextBox.Text = $"consists of {state.MainResAmount} {state.ConsistsOfResInd}\nstores {state.StoredResPile}\ntarget {targetStoredResAmounts}\nMass of everything {state.LocationCounters.Mass}\nMass of planet {state.PlanetMass}\nNumber of people {state.LocationCounters.NumPeople}\n";
+            infoTextBox.Text = @$"
+consists of {state.MainResAmount} {state.ConsistsOfResInd}
+stores {state.StoredResPile}
+target {targetStoredResAmounts}
+Mass of everything {state.LocationCounters.Mass}
+Mass of planet {state.PlanetMass}
+Number of people {state.LocationCounters.NumPeople}
+travelling people stats:
+{state.WaitingPeople.RealPeopleStats}";
 
             // update text
             textBox.Text = CurWorldManager.Overlay.SwitchExpression
@@ -479,6 +490,7 @@ namespace Game1
             ).Trim();
 
             infoTextBox.Text += textBox.Text;
+            infoTextBox.Text = infoTextBox.Text.Trim();
         }
 
         protected override void DrawPreBackground(Color otherColor, Propor otherColorPropor)
@@ -536,7 +548,7 @@ namespace Game1
 
         void ILinkFacingPlanet.Arrive(RealPeople realPeople)
         {
-            if (realPeople.Count.IsZero)
+            if (realPeople.NumPeople.IsZero)
                 return;
             state.WaitingPeople.TransferAllFrom(realPeopleSource: realPeople);
         }

@@ -163,7 +163,7 @@ namespace Game1.Industries
                 => workingPropor = Propor.Create((UDouble)energyPropor, MyMathHelper.Max((UDouble)1, curUnboundedSkillPropor))!.Value;
 
             public string GetInfo()
-                => $"have {realPeopleHere.TotalSkill(industryType: parameters.industryType) / parameters.ReqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\nemployed {realPeopleHere.Count}\ntravel here {allPeople.Count - realPeopleHere.Count}\n";
+                => $"have {realPeopleHere.TotalSkill(industryType: parameters.industryType) / parameters.ReqSkill * 100:0.}% skill\n{PeopleHereStats.HappinessStats()}desperation {(UDouble)desperationScore * 100:0.}%\nemployed {PeopleHereStats.NumPeople}\ntravel here {allPeople.Count - PeopleHereStats.NumPeople}\n";
 
             private UDouble HiredSkill()
                 => allPeople.Sum(person => (UDouble)person.Skills[parameters.industryType]);
@@ -198,6 +198,9 @@ namespace Game1.Industries
             }
         }
 
+        public override RealPeople.Statistics RealPeopleStats
+            => employer.PeopleHereStats;
+
         protected Propor CurSkillPropor
             => employer.CurSkillPropor;
 
@@ -217,7 +220,7 @@ namespace Game1.Industries
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
         }
 
-        public override void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams)
+        protected override void UpdatePeopleInternal(RealPerson.UpdateLocationParams updateLocationParams)
             => employer.UpdatePeople(updateLocationParams: updateLocationParams);
 
         // TODO: Compute this value only once per frame

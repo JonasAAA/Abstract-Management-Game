@@ -9,7 +9,7 @@ using Game1.Inhabitants;
 namespace Game1.Industries
 {
     [Serializable]
-    public abstract class Industry : IDeletable
+    public abstract class Industry : IWithRealPeopleStats, IDeletable
     {
         // TODO: could rename this class to ParamsOfParams or ParamsIndepFromState
         // all fields and properties in this and derived classes must have unchangeable state
@@ -97,6 +97,8 @@ namespace Game1.Industries
 
         public abstract bool PeopleWorkOnTop { get; }
 
+        public abstract RealPeople.Statistics RealPeopleStats { get; }
+
         public IHUDElement UIElement
             => UIPanel;
 
@@ -138,7 +140,13 @@ namespace Game1.Industries
             UIPanel.AddChild(child: deleteButton);
         }
 
-        public abstract void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams);
+        public void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams)
+        {
+            UpdatePeopleInternal(updateLocationParams: updateLocationParams);
+            textBox.Text = GetInfo();
+        }
+
+        protected abstract void UpdatePeopleInternal(RealPerson.UpdateLocationParams updateLocationParams);
 
         public abstract ResAmounts TargetStoredResAmounts();
 
@@ -149,17 +157,10 @@ namespace Game1.Industries
                 PlayerDelete();
                 return null;
             }
-            try
-            {
-                if (MyMathHelper.AreClose(CurWorldManager.Elapsed, TimeSpan.Zero))
-                    return this;
+            if (MyMathHelper.AreClose(CurWorldManager.Elapsed, TimeSpan.Zero))
+                return this;
 
-                return InternalUpdate();
-            }
-            finally
-            {
-                textBox.Text = GetInfo();
-            }
+            return InternalUpdate();
         }
 
         protected abstract Industry InternalUpdate();

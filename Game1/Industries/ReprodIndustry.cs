@@ -118,11 +118,14 @@ namespace Game1.Industries
                 => unpairedPeople.TryRemove(element: person);
 
             public string GetInfo()
-                => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - realPeopleHere.Count} people travelling here\n";
+                => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - PeopleHereStats.NumPeople} people travelling here\n{PeopleHereStats.HappinessStats()}";
         }
 
         public override bool PeopleWorkOnTop
             => false;
+
+        public override RealPeople.Statistics RealPeopleStats
+            => base.RealPeopleStats.CombineWith(other: reprodCenter.PeopleHereStats);
 
         protected override UDouble Height
             => CurWorldConfig.defaultIndustryHeight;
@@ -140,9 +143,9 @@ namespace Game1.Industries
             birthQueue = new();
         }
 
-        public override void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams)
+        protected override void UpdatePeopleInternal(RealPerson.UpdateLocationParams updateLocationParams)
         {
-            base.UpdatePeople(updateLocationParams: updateLocationParams);
+            base.UpdatePeopleInternal(updateLocationParams: updateLocationParams);
 
             reprodCenter.UpdatePeople(updateLocationParams: updateLocationParams);
         }

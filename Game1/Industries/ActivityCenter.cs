@@ -17,7 +17,7 @@ namespace Game1.Industries
 
         public EnergyPriority EnergyPriority { get; private set; }
 
-        public RealPeople.Statistics PeopleHereStats
+        public RealPeopleStats PeopleHereStats
             => realPeopleHere.RealPeopleStats;
 
         protected readonly RealPeople realPeopleHere;

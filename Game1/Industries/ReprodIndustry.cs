@@ -124,7 +124,7 @@ namespace Game1.Industries
         public override bool PeopleWorkOnTop
             => false;
 
-        public override RealPeople.Statistics RealPeopleStats
+        public override RealPeopleStats RealPeopleStats
             => base.RealPeopleStats.CombineWith(other: reprodCenter.PeopleHereStats);
 
         protected override UDouble Height

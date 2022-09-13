@@ -92,7 +92,7 @@ namespace Game1
 
         public override bool CanBeClicked
             => true;
-        public RealPeople.Statistics RealPeopleStats { get; private set; }
+        public RealPeopleStats RealPeopleStats { get; private set; }
 
         protected override Color Color
             => CurWorldConfig.cosmosBackgroundColor;

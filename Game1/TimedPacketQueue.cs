@@ -7,7 +7,7 @@ namespace Game1
     {
         public int Count
             => timedQueue.Count;
-        public RealPeople.Statistics RealPeopleStats { get; private set; }
+        public RealPeopleStats RealPeopleStats { get; private set; }
         public NumPeople NumPeople { get; private set; }
         public ResAmounts TotalResAmounts { get; private set; }
         public Mass Mass { get; private set; }
@@ -30,7 +30,7 @@ namespace Game1
         /// <param name="personalUpdate"> if null, will use default update</param>
         public void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams, Func<RealPerson, UpdatePersonSkillsParams?>? personalUpdate)
         {
-            RealPeopleStats = RealPeople.Statistics.empty;
+            RealPeopleStats = RealPeopleStats.empty;
             foreach (var (_, realPeople) in timedQueue)
             {
                 realPeople.Update(updateLocationParams: updateLocationParams, personalUpdateSkillsParams: personalUpdate);

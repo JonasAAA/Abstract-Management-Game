@@ -81,27 +81,38 @@ namespace Game1.PrimitiveTypeWrappers
 
         public static Score WeightedAverage(params (ulong weight, Score score)[] weightsAndScores)
         {
-            return weightsAndScores.Sum(weightAndScore => weightAndScore.weight) switch
+            ulong weightSum = 0;
+            UDouble weightedScoreSum = 0;
+            foreach (var (weight, score) in weightsAndScores)
             {
-                0 => new(value: 0),
-                var weightSum => GetScoreFromNotNull
-                (
-                    score: Create
-                    (
-                        value: weightsAndScores.Sum(weightAndScore => weightAndScore.weight * (UDouble)weightAndScore.score) / weightSum
-                    )
-                )
-            };
+                weightSum += weight;
+                weightedScoreSum += weight * score.value;
+            }
+            if (weightSum is 0)
+                return new(value: 0);
+            return GetScoreFromNotNull(Create(value: weightedScoreSum / weightSum));
+        }
+
+        public static Score WeightedAverageWithPossiblyNegativeWeights(params (long weight, Score score)[] weightsAndScores)
+        {
+            long weightSum = 0;
+            double weightedScoreSum = 0;
+            foreach (var (weight, score) in weightsAndScores)
+            {
+                weightSum += weight;
+                weightedScoreSum += weight * score.value;
+            }
+            return CreateOrThrow(value: weightedScoreSum / weightSum);
         }
 
         public static Score WeightedAverageOfTwo(Score score1, Score score2, Propor score1Propor)
-        => GetScoreFromNotNull
-        (
-            Create
+            => GetScoreFromNotNull
             (
-                value: (UDouble)score1 * score1Propor + (UDouble)score2 * score1Propor.Opposite()
-            )
-        );
+                Create
+                (
+                    value: (UDouble)score1 * score1Propor + (UDouble)score2 * score1Propor.Opposite()
+                )
+            );
 
         private static Score GetScoreFromNotNull(Score? score)
         {

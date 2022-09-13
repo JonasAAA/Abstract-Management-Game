@@ -97,7 +97,7 @@ namespace Game1.Industries
 
         public abstract bool PeopleWorkOnTop { get; }
 
-        public abstract RealPeople.Statistics RealPeopleStats { get; }
+        public abstract RealPeopleStats RealPeopleStats { get; }
 
         public IHUDElement UIElement
             => UIPanel;

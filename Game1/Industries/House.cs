@@ -94,7 +94,7 @@ namespace Game1.Industries
         public override bool PeopleWorkOnTop
             => true;
 
-        public override RealPeople.Statistics RealPeopleStats
+        public override RealPeopleStats RealPeopleStats
             => housing.PeopleHereStats;
 
         protected override UDouble Height

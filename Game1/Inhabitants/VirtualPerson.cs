@@ -20,7 +20,7 @@ namespace Game1.Inhabitants
         public TimeSpan SeekChangeTime
             => realPerson.seekChangeTime;
         public Score Happiness
-            => realPerson.Happiness;
+            => realPerson.RealPeopleStats.AverageHappiness;
 
         private readonly RealPerson realPerson;
 

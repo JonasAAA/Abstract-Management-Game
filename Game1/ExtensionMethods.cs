@@ -42,6 +42,21 @@ namespace Game1
             return max;
         }
 
+        public static TimeSpan Average<TSource>(this IEnumerable<TSource> source, Func<TSource, TimeSpan> selector)
+        {
+            var sum = TimeSpan.Zero;
+            uint count = 0;
+            foreach (var item in source)
+            {
+                sum += selector(item);
+                count++;
+            }
+            if (count is 0)
+                return TimeSpan.Zero;
+            else
+                return sum / count;
+        }
+
         public static IEnumerable<T> Clone<T>(this IEnumerable<T> source)
             => source.ToArray();
 
@@ -51,10 +66,10 @@ namespace Game1
         public static TSource? ArgMinOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
             => source.OrderBy(value => selector(value)).FirstOrDefault();
 
-        public static RealPeople.Statistics CombineRealPeopleStats<TSource>(this TSource source)
+        public static RealPeopleStats CombineRealPeopleStats<TSource>(this TSource source)
             where TSource : IEnumerable<IWithRealPeopleStats>
         {
-            var result = RealPeople.Statistics.empty;
+            var result = RealPeopleStats.empty;
             foreach (var item in source)
                 result = result.CombineWith(other: item.RealPeopleStats);
             return result;

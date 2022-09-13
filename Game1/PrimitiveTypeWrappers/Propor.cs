@@ -1,7 +1,7 @@
 ﻿namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly struct Propor : IClose<Propor>, IExponentiable<UDouble, Propor>, IPrimitiveTypeWrapper
+    public readonly struct Propor : IClose<Propor>, IExponentiable<UDouble, Propor>
     {
         public static readonly Propor full = new(value: 1);
         public static readonly Propor empty = new(value: 0);
@@ -83,7 +83,7 @@
         public static bool operator >=(Propor propor1, Propor propor2)
             => propor1.value >= propor2.value;
 
-        public string ToString(string? format, IFormatProvider? formatProvider)
-            => $"proportion {value.ToString(format, formatProvider)}";
+        public override string ToString()
+            => $"{value:0.00}";
     }
 }

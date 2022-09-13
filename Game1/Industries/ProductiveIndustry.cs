@@ -198,7 +198,7 @@ namespace Game1.Industries
             }
         }
 
-        public override RealPeople.Statistics RealPeopleStats
+        public override RealPeopleStats RealPeopleStats
             => employer.PeopleHereStats;
 
         protected Propor CurSkillPropor

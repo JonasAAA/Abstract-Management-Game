@@ -1,4 +1,6 @@
-﻿namespace Game1
+﻿using Game1.Inhabitants;
+
+namespace Game1
 {
     [Serializable]
     public readonly struct LocationCounters
@@ -49,11 +51,11 @@
         public static LocationCounters CreateEmpty()
             => new(massCounter: Counter<Mass>.CreateEmpty(), peopleCounter: Counter<NumPeople>.CreateEmpty());
 
-        public static LocationCounters CreateOnePersonByMagic()
+        public static LocationCounters CreatePersonCounterByMagic(NumPeople numPeople)
             => new
             (
                 massCounter: Counter<Mass>.CreateEmpty(),
-                peopleCounter: Counter<NumPeople>.CreateCounterByMagic(count: NumPeople.one)
+                peopleCounter: Counter<NumPeople>.CreateCounterByMagic(count: numPeople)
             );
 
         public static LocationCounters CreateMassByMagic(Mass mass)

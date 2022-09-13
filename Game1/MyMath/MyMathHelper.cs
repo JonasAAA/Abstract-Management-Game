@@ -40,6 +40,9 @@
         public static int Max(int value1, int value2)
             => Math.Max(value1, value2);
 
+        public static TimeSpan Max(TimeSpan value1, TimeSpan value2)
+            => value1 > value2 ? value1 : value2;
+
         public static UDouble Abs(double value)
             => (UDouble)Math.Abs(value);
 

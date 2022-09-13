@@ -10,7 +10,7 @@ namespace Game1.Inhabitants
     /// person must be unhappy when don't get enough energy
     /// </summary>
     [Serializable]
-    public sealed class RealPerson : IEnergyConsumer
+    public sealed class RealPerson : IEnergyConsumer, IWithRealPeopleStats
     {
         [Serializable]
         public readonly record struct UpdateLocationParams(NodeID LastNodeID, NodeID ClosestNodeID);
@@ -40,7 +40,8 @@ namespace Game1.Inhabitants
                     seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
                     consistsOfResAmounts: resAmountsPerPerson,
-                    startingHappiness: CurWorldConfig.startingHappiness
+                    startingHappiness: CurWorldConfig.startingHappiness,
+                    age: TimeSpan.FromSeconds(C.Random(min: 0, max: 200))
                 )
             );
 
@@ -74,7 +75,8 @@ namespace Game1.Inhabitants
                         + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
                     consistsOfResAmounts: resAmountsPerPerson,
-                    startingHappiness: Score.Average(parent1.Happiness, parent2.Happiness)
+                    startingHappiness: Score.Average(parent1.Happiness, parent2.Happiness),
+                    age: TimeSpan.Zero
                 )
             );
 
@@ -120,13 +122,10 @@ namespace Game1.Inhabitants
         public Propor EnergyPropor { get; private set; }
         public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
             => lastActivityTimes;
-        public Mass Mass
-            => consistsOfResPile.Mass;
+        // Happiness currently only influences productivity
+        public RealPeopleStats RealPeopleStats { get; private set; }
         public readonly UDouble reqWatts;
         public readonly TimeSpan seekChangeTime;
-        // Currently only influences productivity
-        public Score Happiness { get; private set; }
-        public Score MomentaryHappiness { get; private set; }
         /// <summary>
         /// CURRENTLY UNUSED
         /// If used, needs to transfer the resources the person consists of somewhere else
@@ -148,8 +147,8 @@ namespace Game1.Inhabitants
         private readonly Event<IDeletedListener> deleted;
         private readonly ReservedResPile consistsOfResPile;
         private LocationCounters locationCounters;
-
-        private RealPerson(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts, Score startingHappiness)
+        
+        private RealPerson(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts, Score startingHappiness, TimeSpan age)
         {
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
@@ -179,10 +178,19 @@ namespace Game1.Inhabitants
                 throw new ArgumentException();
             consistsOfResPile = ReservedResPile.CreateFromSource(source: ref resSource);
             // The counters here don't matter as this person will be immediately transfered to RealPeople where this person's Mass and NumPeople will be transferred to the appropriate counters
-            locationCounters = LocationCounters.CreateOnePersonByMagic();
             asVirtual = new(realPerson: this);
             deleted = new();
-            Happiness = startingHappiness;
+            Debug.Assert(age >= TimeSpan.Zero);
+            RealPeopleStats = new
+            (
+                Mass: consistsOfResPile.Mass,
+                NumPeople: new(1),
+                AverageTimeCoefficient: Propor.empty,
+                AverageAge: age,
+                AverageHappiness: startingHappiness,
+                AverageMomentaryHappiness: startingHappiness
+            );
+            locationCounters = LocationCounters.CreatePersonCounterByMagic(numPeople: RealPeopleStats.NumPeople);
 
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
             CurWorldManager.AddPerson(realPerson: this);
@@ -195,7 +203,7 @@ namespace Game1.Inhabitants
         {
             consistsOfResPile.LocationCounters = locationCounters;
             // Mass transfer is zero in the following line as the previous line did the mass transfer of this person already
-            locationCounters.TransferFrom(source: this.locationCounters, mass: Mass.zero, numPeople: NumPeople.one);
+            locationCounters.TransferFrom(source: this.locationCounters, mass: Mass.zero, numPeople: RealPeopleStats.NumPeople);
             this.locationCounters = locationCounters;
         }
 
@@ -204,23 +212,33 @@ namespace Game1.Inhabitants
         {
             lastNodeID = updateLocationParams.LastNodeID;
             ClosestNodeID = updateLocationParams.ClosestNodeID;
+            var timeCoeff = ReqWatts.IsCloseTo(other: 0) ? Propor.empty : EnergyPropor;
+            var elapsed = timeCoeff * CurWorldManager.Elapsed;
+            var momentaryHappiness = CalculateMomentaryHappiness();
+            RealPeopleStats = new
+            (
+                Mass: consistsOfResPile.Mass,
+                NumPeople: RealPeopleStats.NumPeople,
+                AverageTimeCoefficient: timeCoeff,
+                AverageAge: RealPeopleStats.AverageAge + elapsed,
+                AverageHappiness: Score.BringCloser
+                (
+                    current: RealPeopleStats.AverageHappiness,
+                    paramsOfChange: new Score.ParamsOfChange
+                    (
+                        target: momentaryHappiness,
+                        elapsed: elapsed,
+                        halvingDifferenceDuration: CurWorldConfig.happinessDifferenceHalvingDuration
+                    )
+                ),
+                AverageMomentaryHappiness: momentaryHappiness
+            );
             if (IsInActivityCenter)
             {
-                lastActivityTimes[activityCenter.ActivityType] = CurWorldManager.CurTime;
-                timeSinceActivitySearch += CurWorldManager.Elapsed;
+                lastActivityTimes[activityCenter.ActivityType] = RealPeopleStats.AverageAge;
+                timeSinceActivitySearch += elapsed;
             }
-            MomentaryHappiness = CalculateMomentaryHappiness();
-            var elapsed = CurWorldManager.Elapsed * EnergyPropor;
-            Happiness = Score.BringCloser
-            (
-                current: Happiness,
-                paramsOfChange: new Score.ParamsOfChange
-                (
-                    target: MomentaryHappiness,
-                    elapsed: elapsed,
-                    halvingDifferenceDuration: CurWorldConfig.happinessDifferenceHalvingDuration
-                )
-            );
+            
             if (updateSkillsParams is null)
             {
 #warning implement default update
@@ -238,7 +256,7 @@ namespace Game1.Inhabitants
         {
             if (!IsInActivityCenter)
                 // When person is asleep, happiness doesn't change
-                return Happiness;
+                return RealPeopleStats.AverageHappiness;
 
             // TODO: include how much space they get, gravity preference, other's happiness maybe, etc.
             return activityCenter.PersonEnjoymentOfThis(person: asVirtual);
@@ -247,13 +265,16 @@ namespace Game1.Inhabitants
         public Score ActualSkill(IndustryType industryType)
             => Score.WeightedAverageOfTwo
             (
-                score1: Happiness,
+                score1: RealPeopleStats.AverageHappiness,
                 score2: skills[industryType],
                 score1Propor: CurWorldConfig.actualSkillHappinessWeight
             );
 
-        UDouble IEnergyConsumer.ReqWatts()
+        private UDouble ReqWatts
             => IsInActivityCenter ? reqWatts : 0;
+
+        UDouble IEnergyConsumer.ReqWatts()
+            => ReqWatts;
 
         void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
             => EnergyPropor = energyPropor;

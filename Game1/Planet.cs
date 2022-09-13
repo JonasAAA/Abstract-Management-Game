@@ -96,7 +96,7 @@ namespace Game1
             => state.NodeID;
         public MyVector2 Position
             => state.Position;
-        public RealPeople.Statistics RealPeopleStats { get; private set; }
+        public RealPeopleStats RealPeopleStats { get; private set; }
 
         private Industry? Industry
         {
@@ -377,7 +377,7 @@ namespace Game1
             Industry?.UpdatePeople(updateLocationParams: personUpdateParams);
             state.WaitingPeople.Update(updateLocationParams: personUpdateParams, personalUpdateSkillsParams: null);
             Debug.Assert(state.LocationCounters.NumPeople == state.WaitingPeople.NumPeople + (Industry?.RealPeopleStats.NumPeople ?? NumPeople.zero));
-            RealPeopleStats = state.WaitingPeople.RealPeopleStats.CombineWith(Industry?.RealPeopleStats ?? RealPeople.Statistics.empty);
+            RealPeopleStats = state.WaitingPeople.RealPeopleStats.CombineWith(Industry?.RealPeopleStats ?? RealPeopleStats.empty);
         }
 
         public void StartSplitRes()

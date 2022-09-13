@@ -24,7 +24,7 @@ namespace Game1
             public IEvent<IDeletedListener> Deleted
                 => deleted;
 
-            public RealPeople.Statistics RealPeopleStats { get; private set; }
+            public RealPeopleStats RealPeopleStats { get; private set; }
 
             public readonly ILinkFacingPlanet startNode, endNode;
 
@@ -170,7 +170,7 @@ namespace Game1
         public readonly ILinkFacingPlanet node1, node2;
         public UDouble JoulesPerKg { get; private set; }
         public TimeSpan TravelTime { get; private set; }
-        public RealPeople.Statistics RealPeopleStats { get; private set; }
+        public RealPeopleStats RealPeopleStats { get; private set; }
 
         private readonly DirLink link1To2, link2To1;
         private readonly TextBox infoTextBox;

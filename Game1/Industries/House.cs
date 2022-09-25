@@ -88,7 +88,7 @@ namespace Game1.Industries
                 => true;
 
             public string GetInfo()
-                => $"{PeopleHereStats.NumPeople} people live here\n{allPeople.Count - PeopleHereStats.NumPeople} people travel here\n{PeopleHereStats.HappinessStats()}";
+                => $"{PeopleHereStats}\npeople travelling to here {allPeople.Count - PeopleHereStats.NumPeople}\n";
         }
 
         public override bool PeopleWorkOnTop

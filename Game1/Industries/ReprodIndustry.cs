@@ -118,7 +118,7 @@ namespace Game1.Industries
                 => unpairedPeople.TryRemove(element: person);
 
             public string GetInfo()
-                => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - PeopleHereStats.NumPeople} people travelling here\n{PeopleHereStats.HappinessStats()}";
+                => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - PeopleHereStats.NumPeople} people travelling here\n{PeopleHereStats}\n";
         }
 
         public override bool PeopleWorkOnTop

@@ -459,8 +459,10 @@ target {targetStoredResAmounts}
 Mass of everything {state.LocationCounters.Mass}
 Mass of planet {state.PlanetMass}
 Number of people {state.LocationCounters.NumPeople}
+
 travelling people stats:
-{state.WaitingPeople.RealPeopleStats}";
+{state.WaitingPeople.RealPeopleStats}
+";
 
             // update text
             textBox.Text = CurWorldManager.Overlay.SwitchExpression

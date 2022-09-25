@@ -73,14 +73,11 @@
             );
         }
 
-        public string HappinessStats()
-            => NumPeople.IsZero switch
-            {
-                true => "no happiness stats as no\npeople are here\n",
-                false => $"average happiness {AverageHappiness:0.00}\naverage momentary happiness {AverageMomentaryHappiness:0.00}\n"
-            };
-
         public override string ToString()
-            => $"Number of people {NumPeople}\naverage time coefficient {AverageTimeCoefficient}\naverage age {AverageAge}\n{HappinessStats()}";
+            => IsEmpty switch
+            {
+                true => "No people are here",
+                false => $"Number of people {NumPeople}\naverage time coefficient {AverageTimeCoefficient}\naverage age {AverageAge}\naverage happiness {AverageHappiness:0.00}\naverage momentary happiness {AverageMomentaryHappiness:0.00}\n"
+            };
     }
 }

@@ -97,7 +97,7 @@ namespace Game1.Industries
                 // The more time passes since last having a child, the more person wants to have a new child
                 => Score.FromUnboundedUDouble
                 (
-                    value: (UDouble)(CurWorldManager.CurTime - person.LastActivityTimes[ActivityType]).TotalSeconds,
+                    value: (UDouble)(person.Age - person.LastActivityTimes[ActivityType]).TotalSeconds,
                     valueGettingAverageScore: 100
                 );
 

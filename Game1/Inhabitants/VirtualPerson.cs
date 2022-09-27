@@ -5,15 +5,15 @@ namespace Game1.Inhabitants
     [Serializable]
     public class VirtualPerson
     {
-        public IReadOnlyDictionary<IndustryType, Score> Enjoyments
+        public EnumDict<IndustryType, Score> Enjoyments
             => realPerson.enjoyments;
-        public IReadOnlyDictionary<IndustryType, Score> Talents
+        public EnumDict<IndustryType, Score> Talents
             => realPerson.talents;
-        public IReadOnlyDictionary<IndustryType, Score> Skills
+        public EnumDict<IndustryType, Score> Skills
             => realPerson.Skills;
         public NodeID ClosestNodeID
             => realPerson.ClosestNodeID;
-        public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
+        public EnumDict<ActivityType, TimeSpan> LastActivityTimes
             => realPerson.LastActivityTimes;
         public UDouble ReqWatts
             => realPerson.reqWatts;

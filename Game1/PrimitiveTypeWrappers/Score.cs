@@ -142,17 +142,16 @@ namespace Game1.PrimitiveTypeWrappers
             );
         }
 
-        public static void ScaleToHaveHighestAndLowest(Dictionary<IndustryType, Score> scores)
+        public static EnumDict<IndustryType, Score> ScaleToHaveHighestAndLowest(EnumDict<IndustryType, Score> scores)
         {
             double highestScore = scores.Values.Max().value,
                 lowestScore = scores.Values.Min().value;
             if (MyMathHelper.AreClose(highestScore, lowestScore))
             {
                 Debug.Fail("Enjoyments shouldn't all be basically the same");
-                return;
+                return scores;
             }
-            foreach (var industryType in Enum.GetValues<IndustryType>())
-                scores[industryType] = CreateOrThrow((scores[industryType].value - lowestScore) / (highestScore - lowestScore));
+            return new(selector: industryType => CreateOrThrow((scores[industryType].value - lowestScore) / (highestScore - lowestScore)));
         }
 
         public static explicit operator UDouble(Score score)

@@ -21,21 +21,9 @@ namespace Game1.Inhabitants
                 realPerson: new
                 (
                     nodeID: nodeID,
-                    enjoyments: Enum.GetValues<IndustryType>().ToDictionary
-                    (
-                        keySelector: indType => indType,
-                        elementSelector: indType => Score.GenerateRandom()
-                    ),
-                    talents: Enum.GetValues<IndustryType>().ToDictionary
-                    (
-                        keySelector: indType => indType,
-                        elementSelector: indType => Score.GenerateRandom()
-                    ),
-                    skills: Enum.GetValues<IndustryType>().ToDictionary
-                    (
-                        keySelector: indType => indType,
-                        elementSelector: indType => Score.GenerateRandom()
-                    ),
+                    enjoyments: new(selector: indType => Score.GenerateRandom()),
+                    talents: new(selector: indType => Score.GenerateRandom()),
+                    skills: new(selector: indType => Score.GenerateRandom()),
                     reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                     seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
@@ -62,11 +50,7 @@ namespace Game1.Inhabitants
                     (
                         personalScore: (person, indType) => person.Talents[indType]
                     ),
-                    skills: Enum.GetValues<IndustryType>().ToDictionary
-                    (
-                        keySelector: indType => indType,
-                        elementSelector: indType => Score.lowest
-                    ),
+                    skills: new(selector: indType => Score.lowest),
                     reqWatts:
                         CurWorldConfig.parentContribToChildPropor * (parent1.ReqWatts + parent2.ReqWatts) * (UDouble).5
                         + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
@@ -82,17 +66,15 @@ namespace Game1.Inhabitants
 
             return;
 
-            Dictionary<IndustryType, Score> CreateIndustryScoreDict(Func<VirtualPerson, IndustryType, Score> personalScore)
-                => Enum.GetValues<IndustryType>().ToDictionary
+            EnumDict<IndustryType, Score> CreateIndustryScoreDict(Func<VirtualPerson, IndustryType, Score> personalScore)
+                => new
                 (
-                    keySelector: indType => indType,
-                    elementSelector: indType
-                        => Score.WeightedAverageOfTwo
-                        (
-                            score1: Score.Average(personalScore(parent1, indType), personalScore(parent2, indType)),
-                            score2: Score.GenerateRandom(),
-                            score1Propor: CurWorldConfig.parentContribToChildPropor
-                        )
+                    selector: indType => Score.WeightedAverageOfTwo
+                    (
+                        score1: Score.Average(personalScore(parent1, indType), personalScore(parent2, indType)),
+                        score2: Score.GenerateRandom(),
+                        score1Propor: CurWorldConfig.parentContribToChildPropor
+                    )
                 );
         }
 
@@ -112,16 +94,14 @@ namespace Game1.Inhabitants
         /// <summary>
         /// At least one enjoyment will have Score.highest value, and at leat one enjoyment will value Score.lowest value
         /// </summary>
-        public readonly IReadOnlyDictionary<IndustryType, Score> enjoyments;
-        public readonly IReadOnlyDictionary<IndustryType, Score> talents;
-        public IReadOnlyDictionary<IndustryType, Score> Skills
-            => skills;
+        public readonly EnumDict<IndustryType, Score> enjoyments;
+        public readonly EnumDict<IndustryType, Score> talents;
+        public EnumDict<IndustryType, Score> Skills { get; private set; }
         public NodeID? ActivityCenterNodeID
             => activityCenter?.NodeID;
         public NodeID ClosestNodeID { get; private set; }
         public Propor EnergyPropor { get; private set; }
-        public IReadOnlyDictionary<ActivityType, TimeSpan> LastActivityTimes
-            => lastActivityTimes;
+        public EnumDict<ActivityType, TimeSpan> LastActivityTimes { get; private set; }
         // Happiness currently only influences productivity
         public RealPeopleStats RealPeopleStats { get; private set; }
         public readonly UDouble reqWatts;
@@ -136,26 +116,24 @@ namespace Game1.Inhabitants
         [MemberNotNullWhen(returnValue: true, member: nameof(activityCenter))]
         private bool IsInActivityCenter
             => activityCenter?.IsPersonHere(person: asVirtual) ?? false;
-        private readonly Dictionary<IndustryType, Score> skills;
         /// <summary>
         /// is null if just been let go from activity center
         /// </summary>
         private IPersonFacingActivityCenter? activityCenter;
         private TimeSpan timeSinceActivitySearch;
-        private readonly Dictionary<ActivityType, TimeSpan> lastActivityTimes;
         private NodeID lastNodeID;
         private readonly Event<IDeletedListener> deleted;
         private readonly ReservedResPile consistsOfResPile;
         private LocationCounters locationCounters;
         
-        private RealPerson(NodeID nodeID, Dictionary<IndustryType, Score> enjoyments, Dictionary<IndustryType, Score> talents, Dictionary<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts, Score startingHappiness, TimeSpan age)
+        private RealPerson(NodeID nodeID, EnumDict<IndustryType, Score> enjoyments, EnumDict<IndustryType, Score> talents, EnumDict<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts, Score startingHappiness, TimeSpan age)
         {
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
-            Score.ScaleToHaveHighestAndLowest(scores: enjoyments);
+            enjoyments = Score.ScaleToHaveHighestAndLowest(scores: enjoyments);
             this.enjoyments = enjoyments;
             this.talents = talents;
-            this.skills = skills;
+            Skills = skills;
 
             activityCenter = null;
 
@@ -169,11 +147,7 @@ namespace Game1.Inhabitants
                 throw new ArgumentOutOfRangeException();
             this.seekChangeTime = seekChangeTime;
             timeSinceActivitySearch = seekChangeTime;
-            lastActivityTimes = Enum.GetValues<ActivityType>().ToDictionary
-            (
-                keySelector: activityType => activityType,
-                elementSelector: activityType => TimeSpan.MinValue / 3
-            );
+            LastActivityTimes = new(selector: activityType => TimeSpan.MinValue / 3);
             if (resSource.ResAmounts != consistsOfResAmounts)
                 throw new ArgumentException();
             consistsOfResPile = ReservedResPile.CreateFromSource(source: ref resSource);
@@ -235,7 +209,7 @@ namespace Game1.Inhabitants
             );
             if (IsInActivityCenter)
             {
-                lastActivityTimes[activityCenter.ActivityType] = RealPeopleStats.Age;
+                LastActivityTimes = LastActivityTimes.Update(key: activityCenter.ActivityType, newValue: RealPeopleStats.Age);
                 timeSinceActivitySearch += elapsed;
             }
             
@@ -244,12 +218,20 @@ namespace Game1.Inhabitants
 #warning implement default update
                 return;
             }
-            foreach (var (industryType, paramsOfSkillChange) in updateSkillsParams)
-                skills[industryType] = Score.BringCloser
-                (
-                    current: Skills[industryType],
-                    paramsOfChange: paramsOfSkillChange
-                );
+            Skills = Skills.Update
+            (
+                newValues:
+                    from updateSkillParams in updateSkillsParams
+                    select
+                    (
+                        updateSkillParams.industryType,
+                        Score.BringCloser
+                        (
+                            current: Skills[updateSkillParams.industryType],
+                            paramsOfChange: updateSkillParams.paramsOfSkillChange
+                        )
+                    )
+            );
         }
 
         private Score CalculateMomentaryHappiness()
@@ -266,7 +248,7 @@ namespace Game1.Inhabitants
             => Score.WeightedAverageOfTwo
             (
                 score1: RealPeopleStats.Happiness,
-                score2: skills[industryType],
+                score2: Skills[industryType],
                 score1Propor: CurWorldConfig.actualSkillHappinessWeight
             );
 

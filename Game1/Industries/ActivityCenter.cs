@@ -99,7 +99,7 @@ namespace Game1.Industries
         {
             foreach (var person in allPeople)
                 RemovePerson(person: person);
-            Debug.Assert(allPeople.Count.IsZero && PeopleHereStats.TotalNumPeople.IsZero);
+            Debug.Assert(allPeople.Count.IsZero && PeopleHereStats.totalNumPeople.IsZero);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
     }

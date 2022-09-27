@@ -6,11 +6,11 @@ namespace Game1.Inhabitants
     public class VirtualPerson
     {
         public EnumDict<IndustryType, Score> Enjoyments
-            => realPerson.enjoyments;
+            => realPerson.RealPeopleStats.enjoyments;
         public EnumDict<IndustryType, Score> Talents
-            => realPerson.talents;
+            => realPerson.RealPeopleStats.talents;
         public EnumDict<IndustryType, Score> Skills
-            => realPerson.Skills;
+            => realPerson.RealPeopleStats.skills;
         public NodeID ClosestNodeID
             => realPerson.ClosestNodeID;
         public EnumDict<ActivityType, TimeSpan> LastActivityTimes
@@ -20,9 +20,9 @@ namespace Game1.Inhabitants
         public TimeSpan SeekChangeTime
             => realPerson.seekChangeTime;
         public Score Happiness
-            => realPerson.RealPeopleStats.Happiness;
+            => realPerson.RealPeopleStats.happiness;
         public TimeSpan Age
-            => realPerson.RealPeopleStats.Age;
+            => realPerson.RealPeopleStats.age;
 
         private readonly RealPerson realPerson;
 

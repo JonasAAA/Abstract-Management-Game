@@ -46,7 +46,7 @@ namespace Game1
                 return;
             timedQueue.Enqueue(element: (resAmountsPackets, realPeople));
             TotalResAmounts += resAmountsPackets.ResAmounts;
-            Mass += resAmountsPackets.Mass + realPeople.RealPeopleStats.TotalMass;
+            Mass += resAmountsPackets.Mass + realPeople.RealPeopleStats.totalMass;
             NumPeople += realPeople.NumPeople;
         }
 
@@ -68,7 +68,7 @@ namespace Game1
             foreach (var (resAmountsPackets, people) in timedQueue.DoneElements())
             {
                 TotalResAmounts -= resAmountsPackets.ResAmounts;
-                Mass -= resAmountsPackets.Mass + people.RealPeopleStats.TotalMass;
+                Mass -= resAmountsPackets.Mass + people.RealPeopleStats.totalMass;
                 NumPeople -= people.NumPeople;
 
                 doneResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);

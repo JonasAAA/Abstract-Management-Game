@@ -501,7 +501,7 @@ namespace Game1
 
             activityManager.ManageActivities(people: people);
 
-            Debug.Assert(people.Count == CurGraph.RealPeopleStats.TotalNumPeople);
+            Debug.Assert(people.Count == CurGraph.RealPeopleStats.totalNumPeople);
             globalTextBox.Text = (energyManager.Summary() + CurGraph.RealPeopleStats.ToString()).Trim();
 
             activeUIManager.Update(elapsed: elapsedUITime);

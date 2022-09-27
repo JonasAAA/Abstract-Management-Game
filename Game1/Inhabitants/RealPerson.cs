@@ -20,16 +20,20 @@ namespace Game1.Inhabitants
             (
                 realPerson: new
                 (
+                    realPeopleStats: RealPeopleStats.ForNewPerson
+                    (
+                        totalMass: resSource.Mass,
+                        age: TimeSpan.FromSeconds(C.Random(min: 0, max: 200)),
+                        startingHappiness: CurWorldConfig.startingHappiness,
+                        enjoyments: new(selector: indType => Score.GenerateRandom()),
+                        talents: new(selector: indType => Score.GenerateRandom()),
+                        skills: new(selector: indType => Score.GenerateRandom())
+                    ),
                     nodeID: nodeID,
-                    enjoyments: new(selector: indType => Score.GenerateRandom()),
-                    talents: new(selector: indType => Score.GenerateRandom()),
-                    skills: new(selector: indType => Score.GenerateRandom()),
                     reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                     seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
-                    consistsOfResAmounts: resAmountsPerPerson,
-                    startingHappiness: CurWorldConfig.startingHappiness,
-                    age: TimeSpan.FromSeconds(C.Random(min: 0, max: 200))
+                    consistsOfResAmounts: resAmountsPerPerson
                 )
             );
 
@@ -41,16 +45,23 @@ namespace Game1.Inhabitants
             (
                 realPerson: new
                 (
+                    realPeopleStats: RealPeopleStats.ForNewPerson
+                    (
+                        totalMass: resSource.Mass,
+                        age: TimeSpan.Zero,
+                        startingHappiness: Score.Average(parent1.Happiness, parent2.Happiness),
+                        enjoyments: CreateIndustryScoreDict
+                        (
+                            personalScore: (person, indType) => person.Enjoyments[indType]
+                        ),
+                        talents: CreateIndustryScoreDict
+                        (
+                            personalScore: (person, indType) => person.Talents[indType]
+                        ),
+                        skills: new(selector: indType => Score.lowest)
+
+                    ),
                     nodeID: nodeID,
-                    enjoyments: CreateIndustryScoreDict
-                    (
-                        personalScore: (person, indType) => person.Enjoyments[indType]
-                    ),
-                    talents: CreateIndustryScoreDict
-                    (
-                        personalScore: (person, indType) => person.Talents[indType]
-                    ),
-                    skills: new(selector: indType => Score.lowest),
                     reqWatts:
                         CurWorldConfig.parentContribToChildPropor * (parent1.ReqWatts + parent2.ReqWatts) * (UDouble).5
                         + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
@@ -58,9 +69,7 @@ namespace Game1.Inhabitants
                         CurWorldConfig.parentContribToChildPropor * (parent1.SeekChangeTime + parent2.SeekChangeTime) * (UDouble).5
                         + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
-                    consistsOfResAmounts: resAmountsPerPerson,
-                    startingHappiness: Score.Average(parent1.Happiness, parent2.Happiness),
-                    age: TimeSpan.Zero
+                    consistsOfResAmounts: resAmountsPerPerson
                 )
             );
 
@@ -89,20 +98,12 @@ namespace Game1.Inhabitants
             };
 
         public readonly VirtualPerson asVirtual;
-
-        // TODO(performance): could replace these with array-backed custom dictionaries when use enums as keys
-        /// <summary>
-        /// At least one enjoyment will have Score.highest value, and at leat one enjoyment will value Score.lowest value
-        /// </summary>
-        public readonly EnumDict<IndustryType, Score> enjoyments;
-        public readonly EnumDict<IndustryType, Score> talents;
-        public EnumDict<IndustryType, Score> Skills { get; private set; }
+        
         public NodeID? ActivityCenterNodeID
             => activityCenter?.NodeID;
         public NodeID ClosestNodeID { get; private set; }
         public Propor EnergyPropor { get; private set; }
         public EnumDict<ActivityType, TimeSpan> LastActivityTimes { get; private set; }
-        // Happiness currently only influences productivity
         public RealPeopleStats RealPeopleStats { get; private set; }
         public readonly UDouble reqWatts;
         public readonly TimeSpan seekChangeTime;
@@ -126,14 +127,11 @@ namespace Game1.Inhabitants
         private readonly ReservedResPile consistsOfResPile;
         private LocationCounters locationCounters;
         
-        private RealPerson(NodeID nodeID, EnumDict<IndustryType, Score> enjoyments, EnumDict<IndustryType, Score> talents, EnumDict<IndustryType, Score> skills, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts, Score startingHappiness, TimeSpan age)
+        private RealPerson(RealPeopleStats realPeopleStats, NodeID nodeID, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts)
         {
+            RealPeopleStats = realPeopleStats;
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
-            enjoyments = Score.ScaleToHaveHighestAndLowest(scores: enjoyments);
-            this.enjoyments = enjoyments;
-            this.talents = talents;
-            Skills = skills;
 
             activityCenter = null;
 
@@ -154,17 +152,8 @@ namespace Game1.Inhabitants
             // The counters here don't matter as this person will be immediately transfered to RealPeople where this person's Mass and NumPeople will be transferred to the appropriate counters
             asVirtual = new(realPerson: this);
             deleted = new();
-            Debug.Assert(age >= TimeSpan.Zero);
-            RealPeopleStats = new
-            (
-                TotalMass: consistsOfResPile.Mass,
-                TotalNumPeople: new(1),
-                TimeCoefficient: Propor.empty,
-                Age: age,
-                Happiness: startingHappiness,
-                MomentaryHappiness: startingHappiness
-            );
-            locationCounters = LocationCounters.CreatePersonCounterByMagic(numPeople: RealPeopleStats.TotalNumPeople);
+            
+            locationCounters = LocationCounters.CreatePersonCounterByMagic(numPeople: this.RealPeopleStats.totalNumPeople);
 
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
             CurWorldManager.AddPerson(realPerson: this);
@@ -177,7 +166,7 @@ namespace Game1.Inhabitants
         {
             consistsOfResPile.LocationCounters = locationCounters;
             // Mass transfer is zero in the following line as the previous line did the mass transfer of this person already
-            locationCounters.TransferFrom(source: this.locationCounters, mass: Mass.zero, numPeople: RealPeopleStats.TotalNumPeople);
+            locationCounters.TransferFrom(source: this.locationCounters, mass: Mass.zero, numPeople: RealPeopleStats.totalNumPeople);
             this.locationCounters = locationCounters;
         }
 
@@ -189,15 +178,17 @@ namespace Game1.Inhabitants
             var timeCoeff = ReqWatts.IsCloseTo(other: 0) ? Propor.empty : EnergyPropor;
             var elapsed = timeCoeff * CurWorldManager.Elapsed;
             var momentaryHappiness = CalculateMomentaryHappiness();
+#warning implement update for unused skills
+            updateSkillsParams ??= new UpdatePersonSkillsParams();
             RealPeopleStats = new
             (
-                TotalMass: consistsOfResPile.Mass,
-                TotalNumPeople: RealPeopleStats.TotalNumPeople,
-                TimeCoefficient: timeCoeff,
-                Age: RealPeopleStats.Age + elapsed,
-                Happiness: Score.BringCloser
+                totalMass: consistsOfResPile.Mass,
+                totalNumPeople: RealPeopleStats.totalNumPeople,
+                timeCoefficient: timeCoeff,
+                age: RealPeopleStats.age + elapsed,
+                happiness: Score.BringCloser
                 (
-                    current: RealPeopleStats.Happiness,
+                    current: RealPeopleStats.happiness,
                     paramsOfChange: new Score.ParamsOfChange
                     (
                         target: momentaryHappiness,
@@ -205,52 +196,40 @@ namespace Game1.Inhabitants
                         halvingDifferenceDuration: CurWorldConfig.happinessDifferenceHalvingDuration
                     )
                 ),
-                MomentaryHappiness: momentaryHappiness
+                momentaryHappiness: momentaryHappiness,
+                enjoyments: RealPeopleStats.enjoyments,
+                talents: RealPeopleStats.talents,
+                skills: RealPeopleStats.skills.Update
+                (
+                    newValues:
+                        from updateSkillParams in updateSkillsParams
+                        select
+                        (
+                            updateSkillParams.industryType,
+                            Score.BringCloser
+                            (
+                                current: RealPeopleStats.skills[updateSkillParams.industryType],
+                                paramsOfChange: updateSkillParams.paramsOfSkillChange
+                            )
+                        )
+                )
             );
             if (IsInActivityCenter)
             {
-                LastActivityTimes = LastActivityTimes.Update(key: activityCenter.ActivityType, newValue: RealPeopleStats.Age);
+                LastActivityTimes = LastActivityTimes.Update(key: activityCenter.ActivityType, newValue: RealPeopleStats.age);
                 timeSinceActivitySearch += elapsed;
             }
-            
-            if (updateSkillsParams is null)
-            {
-#warning implement default update
-                return;
-            }
-            Skills = Skills.Update
-            (
-                newValues:
-                    from updateSkillParams in updateSkillsParams
-                    select
-                    (
-                        updateSkillParams.industryType,
-                        Score.BringCloser
-                        (
-                            current: Skills[updateSkillParams.industryType],
-                            paramsOfChange: updateSkillParams.paramsOfSkillChange
-                        )
-                    )
-            );
         }
 
         private Score CalculateMomentaryHappiness()
         {
             if (!IsInActivityCenter)
                 // When person is asleep, happiness doesn't change
-                return RealPeopleStats.Happiness;
+                return RealPeopleStats.happiness;
 
             // TODO: include how much space they get, gravity preference, other's happiness maybe, etc.
             return activityCenter.PersonEnjoymentOfThis(person: asVirtual);
         }
-
-        public Score ActualSkill(IndustryType industryType)
-            => Score.WeightedAverageOfTwo
-            (
-                score1: RealPeopleStats.Happiness,
-                score2: Skills[industryType],
-                score1Propor: CurWorldConfig.actualSkillHappinessWeight
-            );
 
         private UDouble ReqWatts
             => IsInActivityCenter ? reqWatts : 0;

@@ -66,7 +66,7 @@ namespace Game1
 
             public ulong GetTravellingAmount()
             {
-                Debug.Assert(locationCounters.Mass == waitingResAmountsPackets.Mass + waitingPeople.RealPeopleStats.TotalMass + timedPacketQueue.Mass);
+                Debug.Assert(locationCounters.Mass == waitingResAmountsPackets.Mass + waitingPeople.RealPeopleStats.totalMass + timedPacketQueue.Mass);
                 Debug.Assert(locationCounters.NumPeople == waitingPeople.NumPeople + timedPacketQueue.NumPeople);
                 return CurWorldManager.Overlay.SwitchExpression
                 (

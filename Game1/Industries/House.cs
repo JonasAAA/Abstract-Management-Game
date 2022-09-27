@@ -63,7 +63,7 @@ namespace Game1.Industries
                 => false;
 
             public Score PersonalSpace()
-                => PersonalSpace(numPeople: PeopleHereStats.TotalNumPeople.value);
+                => PersonalSpace(numPeople: PeopleHereStats.totalNumPeople.value);
 
             private Score PersonalSpace(ulong numPeople)
                 // TODO: get rid of hard-coded constant
@@ -88,7 +88,7 @@ namespace Game1.Industries
                 => true;
 
             public string GetInfo()
-                => $"{PeopleHereStats}\npeople travelling to here {allPeople.Count - PeopleHereStats.TotalNumPeople}\n";
+                => $"{PeopleHereStats}\npeople travelling to here {allPeople.Count - PeopleHereStats.totalNumPeople}\n";
         }
 
         public override bool PeopleWorkOnTop

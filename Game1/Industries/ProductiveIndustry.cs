@@ -123,7 +123,7 @@ namespace Game1.Industries
 
             public void EndUpdate()
             {
-                curUnboundedSkillPropor = realPeopleHere.TotalSkill(industryType: parameters.industryType) / parameters.ReqSkill;
+                curUnboundedSkillPropor = realPeopleHere.RealPeopleStats.ActualTotalSkill(industryType: parameters.industryType) / parameters.ReqSkill;
                 CurSkillPropor = (Propor)MyMathHelper.Min((UDouble)1, curUnboundedSkillPropor);
             }
 
@@ -163,7 +163,7 @@ namespace Game1.Industries
                 => workingPropor = Propor.Create((UDouble)energyPropor, MyMathHelper.Max((UDouble)1, curUnboundedSkillPropor))!.Value;
 
             public string GetInfo()
-                => $"have {realPeopleHere.TotalSkill(industryType: parameters.industryType) / parameters.ReqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\n{PeopleHereStats}\ntravel here {allPeople.Count - PeopleHereStats.TotalNumPeople}\n";
+                => $"have {realPeopleHere.RealPeopleStats.ActualTotalSkill(industryType: parameters.industryType) / parameters.ReqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\n{PeopleHereStats}\ntravel here {allPeople.Count - PeopleHereStats.totalNumPeople}\n";
 
             private UDouble HiredSkill()
                 => allPeople.Sum(person => (UDouble)person.Skills[parameters.industryType]);

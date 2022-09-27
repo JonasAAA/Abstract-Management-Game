@@ -1,74 +1,74 @@
 ﻿namespace Game1.Inhabitants
 {
     [Serializable]
-    public readonly record struct RealPeopleStats(Mass Mass, NumPeople NumPeople, Propor AverageTimeCoefficient, TimeSpan AverageAge, Score AverageHappiness, Score AverageMomentaryHappiness)
+    public readonly record struct RealPeopleStats(Mass TotalMass, NumPeople TotalNumPeople, Propor TimeCoefficient, TimeSpan Age, Score Happiness, Score MomentaryHappiness)
     {
         public static readonly RealPeopleStats empty;
 
         static RealPeopleStats()
             => empty = new
             (
-                Mass: Mass.zero,
-                NumPeople: NumPeople.zero,
-                AverageTimeCoefficient: Propor.empty,
-                AverageAge: TimeSpan.Zero,
-                AverageHappiness: Score.lowest,
-                AverageMomentaryHappiness: Score.lowest
+                TotalMass: Mass.zero,
+                TotalNumPeople: NumPeople.zero,
+                TimeCoefficient: Propor.empty,
+                Age: TimeSpan.Zero,
+                Happiness: Score.lowest,
+                MomentaryHappiness: Score.lowest
             );
 
         public bool IsEmpty
-            => NumPeople.IsZero;
+            => TotalNumPeople.IsZero;
 
         public RealPeopleStats CombineWith(RealPeopleStats other)
         {
-            if (NumPeople + other.NumPeople == NumPeople.zero)
+            if (TotalNumPeople + other.TotalNumPeople == NumPeople.zero)
                 return empty;
             return new
             (
-                Mass: Mass + other.Mass,
-                NumPeople: NumPeople + other.NumPeople,
-                AverageTimeCoefficient: Propor.Create
+                TotalMass: TotalMass + other.TotalMass,
+                TotalNumPeople: TotalNumPeople + other.TotalNumPeople,
+                TimeCoefficient: Propor.Create
                 (
-                    part: NumPeople.value * AverageTimeCoefficient + other.NumPeople.value * other.AverageTimeCoefficient,
-                    whole: NumPeople.value + other.NumPeople.value
+                    part: TotalNumPeople.value * TimeCoefficient + other.TotalNumPeople.value * other.TimeCoefficient,
+                    whole: TotalNumPeople.value + other.TotalNumPeople.value
                 )!.Value,
-                AverageAge: (NumPeople.value * AverageAge + other.NumPeople.value * other.AverageAge) / (NumPeople.value + other.NumPeople.value),
-                AverageHappiness: Score.WeightedAverage
+                Age: (TotalNumPeople.value * Age + other.TotalNumPeople.value * other.Age) / (TotalNumPeople.value + other.TotalNumPeople.value),
+                Happiness: Score.WeightedAverage
                 (
-                    (weight: NumPeople.value, score: AverageHappiness),
-                    (weight: other.NumPeople.value, score: other.AverageHappiness)
+                    (weight: TotalNumPeople.value, score: Happiness),
+                    (weight: other.TotalNumPeople.value, score: other.Happiness)
                 ),
-                AverageMomentaryHappiness: Score.WeightedAverage
+                MomentaryHappiness: Score.WeightedAverage
                 (
-                    (weight: NumPeople.value, score: AverageMomentaryHappiness),
-                    (weight: other.NumPeople.value, score: other.AverageMomentaryHappiness)
+                    (weight: TotalNumPeople.value, score: MomentaryHappiness),
+                    (weight: other.TotalNumPeople.value, score: other.MomentaryHappiness)
                 )
             );
         }
 
         public RealPeopleStats Subtract(RealPeopleStats other)
         {
-            if (NumPeople == other.NumPeople)
+            if (TotalNumPeople == other.TotalNumPeople)
                 return empty;
             return new
             (
-                Mass: Mass - other.Mass,
-                NumPeople: NumPeople - other.NumPeople,
-                AverageTimeCoefficient: Propor.Create
+                TotalMass: TotalMass - other.TotalMass,
+                TotalNumPeople: TotalNumPeople - other.TotalNumPeople,
+                TimeCoefficient: Propor.Create
                 (
-                    part: NumPeople.value * AverageTimeCoefficient - other.NumPeople.value * other.AverageTimeCoefficient,
-                    whole: NumPeople.value - other.NumPeople.value
+                    part: TotalNumPeople.value * TimeCoefficient - other.TotalNumPeople.value * other.TimeCoefficient,
+                    whole: TotalNumPeople.value - other.TotalNumPeople.value
                 )!.Value,
-                AverageAge: MyMathHelper.Max(TimeSpan.Zero, (NumPeople.value * AverageAge - other.NumPeople.value * other.AverageAge) / (NumPeople.value - other.NumPeople.value)),
-                AverageHappiness: Score.WeightedAverageWithPossiblyNegativeWeights
+                Age: MyMathHelper.Max(TimeSpan.Zero, (TotalNumPeople.value * Age - other.TotalNumPeople.value * other.Age) / (TotalNumPeople.value - other.TotalNumPeople.value)),
+                Happiness: Score.WeightedAverageWithPossiblyNegativeWeights
                 (
-                    (weight: (long)NumPeople.value, score: AverageHappiness),
-                    (weight: -(long)other.NumPeople.value, score: other.AverageHappiness)
+                    (weight: (long)TotalNumPeople.value, score: Happiness),
+                    (weight: -(long)other.TotalNumPeople.value, score: other.Happiness)
                 ),
-                AverageMomentaryHappiness: Score.WeightedAverageWithPossiblyNegativeWeights
+                MomentaryHappiness: Score.WeightedAverageWithPossiblyNegativeWeights
                 (
-                    (weight: (long)NumPeople.value, score: AverageMomentaryHappiness),
-                    (weight: -(long)other.NumPeople.value, score: other.AverageMomentaryHappiness)
+                    (weight: (long)TotalNumPeople.value, score: MomentaryHappiness),
+                    (weight: -(long)other.TotalNumPeople.value, score: other.MomentaryHappiness)
                 )
             );
         }
@@ -77,7 +77,7 @@
             => IsEmpty switch
             {
                 true => "No people are here",
-                false => $"Number of people {NumPeople}\naverage time coefficient {AverageTimeCoefficient}\naverage age {AverageAge}\naverage happiness {AverageHappiness:0.00}\naverage momentary happiness {AverageMomentaryHappiness:0.00}\n"
+                false => $"Number of people {TotalNumPeople}\naverage time coefficient {TimeCoefficient}\naverage age {Age}\naverage happiness {Happiness:0.00}\naverage momentary happiness {MomentaryHappiness:0.00}\n"
             };
     }
 }

@@ -289,7 +289,7 @@ namespace Game1
                         childDestin: state.WaitingPeople
                     );
                 }
-                startingNonPlanetMass += state.WaitingPeople.RealPeopleStats.Mass;
+                startingNonPlanetMass += state.WaitingPeople.RealPeopleStats.TotalMass;
                 resSource.TransferAllFrom(source: state.StoredResPile);
             }
             else
@@ -376,7 +376,7 @@ namespace Game1
             RealPerson.UpdateLocationParams personUpdateParams = new(LastNodeID: NodeID, ClosestNodeID: NodeID);
             Industry?.UpdatePeople(updateLocationParams: personUpdateParams);
             state.WaitingPeople.Update(updateLocationParams: personUpdateParams, personalUpdateSkillsParams: null);
-            Debug.Assert(state.LocationCounters.NumPeople == state.WaitingPeople.NumPeople + (Industry?.RealPeopleStats.NumPeople ?? NumPeople.zero));
+            Debug.Assert(state.LocationCounters.NumPeople == state.WaitingPeople.NumPeople + (Industry?.RealPeopleStats.TotalNumPeople ?? NumPeople.zero));
             RealPeopleStats = state.WaitingPeople.RealPeopleStats.CombineWith(Industry?.RealPeopleStats ?? RealPeopleStats.empty);
         }
 

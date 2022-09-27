@@ -19,7 +19,7 @@ namespace Game1.Inhabitants
         }
 
         public NumPeople NumPeople
-            => RealPeopleStats.NumPeople;
+            => RealPeopleStats.TotalNumPeople;
 
         public RealPeopleStats RealPeopleStats { get; private set;}
 
@@ -54,7 +54,7 @@ namespace Game1.Inhabitants
             foreach (var realPerson in virtualToRealPeople.Values)
                 realPerson.Update(updateLocationParams: updateLocationParams, updateSkillsParams: personalUpdateSkillsParams(realPerson));
             RealPeopleStats = virtualToRealPeople.Values.CombineRealPeopleStats();
-            Debug.Assert(RealPeopleStats.NumPeople.value == (ulong)virtualToRealPeople.Count);
+            Debug.Assert(RealPeopleStats.TotalNumPeople.value == (ulong)virtualToRealPeople.Count);
         }
 
         public UDouble TotalSkill(IndustryType industryType)

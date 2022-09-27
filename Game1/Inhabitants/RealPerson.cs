@@ -183,14 +183,14 @@ namespace Game1.Inhabitants
             Debug.Assert(age >= TimeSpan.Zero);
             RealPeopleStats = new
             (
-                Mass: consistsOfResPile.Mass,
-                NumPeople: new(1),
-                AverageTimeCoefficient: Propor.empty,
-                AverageAge: age,
-                AverageHappiness: startingHappiness,
-                AverageMomentaryHappiness: startingHappiness
+                TotalMass: consistsOfResPile.Mass,
+                TotalNumPeople: new(1),
+                TimeCoefficient: Propor.empty,
+                Age: age,
+                Happiness: startingHappiness,
+                MomentaryHappiness: startingHappiness
             );
-            locationCounters = LocationCounters.CreatePersonCounterByMagic(numPeople: RealPeopleStats.NumPeople);
+            locationCounters = LocationCounters.CreatePersonCounterByMagic(numPeople: RealPeopleStats.TotalNumPeople);
 
             CurWorldManager.AddEnergyConsumer(energyConsumer: this);
             CurWorldManager.AddPerson(realPerson: this);
@@ -203,7 +203,7 @@ namespace Game1.Inhabitants
         {
             consistsOfResPile.LocationCounters = locationCounters;
             // Mass transfer is zero in the following line as the previous line did the mass transfer of this person already
-            locationCounters.TransferFrom(source: this.locationCounters, mass: Mass.zero, numPeople: RealPeopleStats.NumPeople);
+            locationCounters.TransferFrom(source: this.locationCounters, mass: Mass.zero, numPeople: RealPeopleStats.TotalNumPeople);
             this.locationCounters = locationCounters;
         }
 
@@ -217,13 +217,13 @@ namespace Game1.Inhabitants
             var momentaryHappiness = CalculateMomentaryHappiness();
             RealPeopleStats = new
             (
-                Mass: consistsOfResPile.Mass,
-                NumPeople: RealPeopleStats.NumPeople,
-                AverageTimeCoefficient: timeCoeff,
-                AverageAge: RealPeopleStats.AverageAge + elapsed,
-                AverageHappiness: Score.BringCloser
+                TotalMass: consistsOfResPile.Mass,
+                TotalNumPeople: RealPeopleStats.TotalNumPeople,
+                TimeCoefficient: timeCoeff,
+                Age: RealPeopleStats.Age + elapsed,
+                Happiness: Score.BringCloser
                 (
-                    current: RealPeopleStats.AverageHappiness,
+                    current: RealPeopleStats.Happiness,
                     paramsOfChange: new Score.ParamsOfChange
                     (
                         target: momentaryHappiness,
@@ -231,11 +231,11 @@ namespace Game1.Inhabitants
                         halvingDifferenceDuration: CurWorldConfig.happinessDifferenceHalvingDuration
                     )
                 ),
-                AverageMomentaryHappiness: momentaryHappiness
+                MomentaryHappiness: momentaryHappiness
             );
             if (IsInActivityCenter)
             {
-                lastActivityTimes[activityCenter.ActivityType] = RealPeopleStats.AverageAge;
+                lastActivityTimes[activityCenter.ActivityType] = RealPeopleStats.Age;
                 timeSinceActivitySearch += elapsed;
             }
             
@@ -256,7 +256,7 @@ namespace Game1.Inhabitants
         {
             if (!IsInActivityCenter)
                 // When person is asleep, happiness doesn't change
-                return RealPeopleStats.AverageHappiness;
+                return RealPeopleStats.Happiness;
 
             // TODO: include how much space they get, gravity preference, other's happiness maybe, etc.
             return activityCenter.PersonEnjoymentOfThis(person: asVirtual);
@@ -265,7 +265,7 @@ namespace Game1.Inhabitants
         public Score ActualSkill(IndustryType industryType)
             => Score.WeightedAverageOfTwo
             (
-                score1: RealPeopleStats.AverageHappiness,
+                score1: RealPeopleStats.Happiness,
                 score2: skills[industryType],
                 score1Propor: CurWorldConfig.actualSkillHappinessWeight
             );

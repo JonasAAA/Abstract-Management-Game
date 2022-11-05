@@ -4,8 +4,8 @@ using static Game1.WorldManager;
 namespace Game1.Inhabitants
 {
     /// <summary>
-    /// For each person, at least one enjoyment will have Score.highest value, and at leat one enjoyment will value Score.lowest value
-    /// Happiness currently only influences productivity
+    /// For each person, at least one enjoyment will have Score.highest value, and at leat one enjoyment will value Score.lowest value.
+    /// Happiness currently only influences productivity.
     /// </summary>
     [Serializable]
     public readonly struct RealPeopleStats

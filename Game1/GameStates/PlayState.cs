@@ -53,7 +53,7 @@ namespace Game1.GameStates
 
         public override void Draw()
         {
-            C.GraphicsDevice.Clear(Color.Transparent);
+            C.GraphicsDevice.Clear(WorldManager.CurWorldConfig.cosmosBackgroundColor);
             WorldManager.CurWorldManager.Draw();
         }
     }

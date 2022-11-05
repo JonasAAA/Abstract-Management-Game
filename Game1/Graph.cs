@@ -94,6 +94,7 @@ namespace Game1
             => true;
         public RealPeopleStats RealPeopleStats { get; private set; }
 
+        // THIS COLOR IS NOT USED
         protected override Color Color
             => CurWorldConfig.cosmosBackgroundColor;
 

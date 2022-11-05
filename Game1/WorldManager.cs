@@ -104,7 +104,7 @@ namespace Game1
                             radius: 20,
                             prodWatts: 20000
                         ),
-                        color: Color.Lerp(Color.White, Color.Red, .3f)
+                        color: CurWorldConfig.starColor // Color.Lerp(Color.White, Color.Red, .3f)
                     ),
                     new
                     (
@@ -115,7 +115,7 @@ namespace Game1
                             radius: 30,
                             prodWatts: 30000
                         ),
-                        color: Color.Lerp(Color.White, Color.Blue, .3f)
+                        color: CurWorldConfig.starColor //Color.Lerp(Color.White, Color.Blue, .3f)
                     ),
                     new
                     (
@@ -126,7 +126,7 @@ namespace Game1
                             radius: 40,
                             prodWatts: 40000
                         ),
-                        color: Color.Lerp(Color.White, new Color(0f, 1f, 0f), .3f)
+                        color: CurWorldConfig.starColor // Color.Lerp(Color.White, new Color(0f, 1f, 0f), .3f)
                     ),
                 };
 

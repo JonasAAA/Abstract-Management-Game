@@ -244,17 +244,18 @@ namespace Game1
             link1To2.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
             link2To1.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
 
+            inactiveColor = C.ColorFromRGB(rgb: 0x003654);
             // TODO(color): turn activeColor and inactiveColor into abstract properties
-            inactiveColor = Color.Lerp
-            (
-                value1: Color.White,
-                value2: Color.Green,
-                amount: CurWorldManager.Overlay switch
-                {
-                    IPeopleOverlay => (float)(TravelTime / CurWorldManager.MaxLinkTravelTime),
-                    _ => (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
-                }
-            );
+            //inactiveColor = Color.Lerp
+            //(
+            //    value1: Color.White,
+            //    value2: Color.Green,
+            //    amount: CurWorldManager.Overlay switch
+            //    {
+            //        IPeopleOverlay => (float)(TravelTime / CurWorldManager.MaxLinkTravelTime),
+            //        _ => (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
+            //    }
+            //);
         }
 
         public void UpdatePeople()

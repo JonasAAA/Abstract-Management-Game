@@ -3,25 +3,18 @@
     [Serializable]
     public sealed class UIConfig
     {
-        public readonly uint standardScreenHeight;
-        public readonly UDouble rectOutlineWidth;
-        public readonly UDouble letterHeight;
-        public readonly Color mouseOnColor, UIBackgroundColor, textColor, almostWhiteColor, buttonColor, selectedButtonColor, deselectedButtonColor, tooltipBackgroundColor, deleteButtonColor;
-        
-        public UIConfig()
-        {
-            standardScreenHeight = 1080;
-            rectOutlineWidth = 0;
-            letterHeight = 20;
-            mouseOnColor = Color.Yellow;
-            UIBackgroundColor = Color.White;
-            textColor = Color.Black;
-            almostWhiteColor = Color.Aqua;
-            buttonColor = Color.Aqua;
-            selectedButtonColor = Color.White;
-            deselectedButtonColor = Color.Gray;
-            tooltipBackgroundColor = Color.LightPink;
+        public readonly uint standardScreenHeight = 1080;
+        public readonly UDouble rectOutlineWidth = 0;
+        public readonly UDouble letterHeight = 20;
+        public readonly Color
+            mouseOnColor = Color.Yellow,
+            UIBackgroundColor = C.ColorFromRGB(rgb: 0x8193AE),
+            textColor = C.ColorFromRGB(rgb: 0x0F1826),
+            almostWhiteColor = Color.Aqua,
+            buttonColor = Color.Aqua,
+            selectedButtonColor = Color.White,
+            deselectedButtonColor = Color.Gray,
+            tooltipBackgroundColor = Color.LightPink,
             deleteButtonColor = Color.Red;
-        }
     }
 }

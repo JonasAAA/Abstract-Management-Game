@@ -76,8 +76,12 @@
         public readonly UDouble
             defaultIndustryHeight = 10;
 
+
         public readonly Color
-            cosmosBackgroundColor = Color.Black,
+            Res0Color = C.ColorFromRGB(rgb: 0x008555),
+            Res1Color = C.ColorFromRGB(rgb: 0x00632D),
+            cosmosBackgroundColor = C.ColorFromRGB(rgb: 0x001426),
+            starColor = C.ColorFromRGB(rgb: 0x8ED000),
             houseIndustryColor = Color.Yellow,
             linkTravellerColor = Color.Black;
         public readonly UDouble

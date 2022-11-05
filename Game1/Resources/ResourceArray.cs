@@ -18,14 +18,14 @@
                             resInd: (BasicResInd)resInd,
                             mass: Mass.CreateFromKg(massInKg: 2),
                             area: 1,
-                            color: Color.Gray
+                            color: WorldManager.CurWorldConfig.Res0Color
                         ),
                         1 => new BasicRes
                         (
                             resInd: (BasicResInd)resInd,
                             mass: Mass.CreateFromKg(massInKg: 1),
                             area: 2,
-                            color: Color.Brown
+                            color: WorldManager.CurWorldConfig.Res1Color
                         ),
                         _ => throw new ArgumentOutOfRangeException()
                     },

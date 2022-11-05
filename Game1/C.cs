@@ -146,5 +146,8 @@ namespace Game1
 
             return texture;
         }
+
+        public static Color ColorFromRGB(int rgb)
+            => new(r: (rgb >> 16) & 255, g: (rgb >> 8) & 255, b: rgb & 255);
     }
 }

@@ -101,7 +101,7 @@ namespace Game1
                         (
                             starID: StarID.Create(),
                             position: new MyVector2(0, -300),
-                            radius: 20,
+                            radius: 100,
                             prodWatts: 20000
                         ),
                         color: CurWorldConfig.starColor // Color.Lerp(Color.White, Color.Red, .3f)
@@ -111,64 +111,69 @@ namespace Game1
                         state: new
                         (
                             starID: StarID.Create(),
-                            position: new MyVector2(200, 300),
-                            radius: 30,
+                            position: new MyVector2(700, 300),
+                            radius: 150,
                             prodWatts: 30000
                         ),
                         color: CurWorldConfig.starColor //Color.Lerp(Color.White, Color.Blue, .3f)
                     ),
-                    new
-                    (
-                        state: new
-                        (
-                            starID: StarID.Create(),
-                            position: new MyVector2(-200, 100),
-                            radius: 40,
-                            prodWatts: 40000
-                        ),
-                        color: CurWorldConfig.starColor // Color.Lerp(Color.White, new Color(0f, 1f, 0f), .3f)
-                    ),
+                    //new
+                    //(
+                    //    state: new
+                    //    (
+                    //        starID: StarID.Create(),
+                    //        position: new MyVector2(-200, 100),
+                    //        radius: 400,
+                    //        prodWatts: 40000
+                    //    ),
+                    //    color: CurWorldConfig.starColor // Color.Lerp(Color.White, new Color(0f, 1f, 0f), .3f)
+                    //),
                 };
 
-                
-                const int width = 10, height = 10, dist = 200;
+                const int width = 10, height = 10, dist = 200, minAllowedDistToStar = 200;
+                const double minPlanetRadiusExponet = 3, maxPlanetRadiusExponent = 5.5, startingPlanetExponent = 4.5;
                 const double maxRandomPositionOffset = dist * .3;
                 int startPlanetI = C.Random(min: width / 2 - 1, max: width / 2),
                     startPlanetJ = C.Random(min: height / 2 - 1, max: height / 2);
-                Planet[,] nodes = new Planet[width, height];
+                Planet?[,] planets = new Planet[width, height];
                 ResPile magicResPile = ResPile.CreateMagicUnlimitedPile();
                 for (int i = 0; i < width; i++)
                     for (int j = 0; j < height; j++)
                     {
                         bool startPlanet = i == startPlanetI && j == startPlanetJ;
                         BasicResInd consistsOfResInd = BasicResInd.Random();
-                        nodes[i, j] = new
-                        (
-                            state: new
+                        MyVector2 position = new MyVector2(i - (width - 1) * .5, j - (height - 1) * .5) * dist + new MyVector2(C.Random(min: -1, max: 1), C.Random(min: -1, max: 1)) * maxRandomPositionOffset;
+                        planets[i, j] = stars.All(star => MyVector2.Distance(value1: star.Position, value2: position) >= minAllowedDistToStar) switch
+                        {
+                            true => new
                             (
-                                nodeID: NodeID.Create(),
-                                position: new MyVector2(i - (width - 1) * .5, j - (height - 1) * .5) * dist + new MyVector2(C.Random(min: -1, max: 1), C.Random(min: -1, max: 1)) * maxRandomPositionOffset,
-                                consistsOfResInd: consistsOfResInd,
-                                mainResAmount: NodeState.ResAmountFromApproxRadius
+                                state: new
                                 (
-                                    basicResInd: consistsOfResInd,
-                                    approxRadius: MyMathHelper.Pow((UDouble)2, startPlanet ? 4.5 : C.Random(min: (double)3, max: 6))
+                                    nodeID: NodeID.Create(),
+                                    position: position,
+                                    consistsOfResInd: consistsOfResInd,
+                                    mainResAmount: NodeState.ResAmountFromApproxRadius
+                                    (
+                                        basicResInd: consistsOfResInd,
+                                        approxRadius: MyMathHelper.Pow((UDouble)2, startPlanet ? startingPlanetExponent : C.Random(min: minPlanetRadiusExponet, max: maxPlanetRadiusExponent))
+                                    ),
+                                    resSource: magicResPile,
+                                    maxBatchDemResStored: 2
                                 ),
-                                resSource: magicResPile,
-                                maxBatchDemResStored: 2
+                                activeColor: Color.White,
+                                startingConditions: startPlanet switch
+                                {
+                                    true =>
+                                    (
+                                        houseFactory: CurIndustryConfig.basicHouseFactory,
+                                        personCount: 20,
+                                        resSource: magicResPile
+                                    ),
+                                    false => null
+                                }
                             ),
-                            activeColor: Color.White,
-                            startingConditions: startPlanet switch
-                            {
-                                true =>
-                                (
-                                    houseFactory: CurIndustryConfig.basicHouseFactory,
-                                    personCount: 20,
-                                    resSource: magicResPile
-                                ),
-                                false => null
-                            }
-                        );
+                            false => null
+                        };
                     }
 
                 UDouble distScale = (UDouble).1;
@@ -177,37 +182,34 @@ namespace Game1
                 List<Link> links = new();
                 for (int i = 0; i < width; i++)
                     for (int j = 0; j < height - 1; j++)
-                        if (C.RandomBool(probOfTrue: linkExistsProb))
-                            links.Add
-                            (
-                                item: new
-                                (
-                                    node1: nodes[i, j],
-                                    node2: nodes[i, j + 1],
-                                    minSafeDist: CurWorldConfig.minSafeDist
-                                )
-                            );
+                        AddLinkIfAppropriate(planet1: planets[i, j], planet2: planets[i, j + 1]);
 
                 for (int i = 0; i < width - 1; i++)
                     for (int j = 0; j < height; j++)
-                        if (C.RandomBool(probOfTrue: linkExistsProb))
-                            links.Add
-                            (
-                                item: new
-                                (
-                                    node1: nodes[i, j],
-                                    node2: nodes[i + 1, j],
-                                    minSafeDist: CurWorldConfig.minSafeDist
-                                )
-                            );
+                        AddLinkIfAppropriate(planet1: planets[i, j], planet2: planets[i + 1, j]);
 
                 return new
                 (
                     stars: stars,
-                    nodes: from Planet node in nodes
-                           select node,
+                    nodes: from Planet planet in planets
+                           where planet is not null
+                           select planet,
                     links: links
                 );
+
+                void AddLinkIfAppropriate(Planet? planet1, Planet? planet2)
+                {
+                    if (planet1 is not null && planet2 is not null && C.RandomBool(probOfTrue: linkExistsProb))
+                        links.Add
+                        (
+                            item: new
+                            (
+                                node1: planet1,
+                                node2: planet2,
+                                minSafeDist: CurWorldConfig.minSafeDist
+                            )
+                        );
+                }
             }
         }
 

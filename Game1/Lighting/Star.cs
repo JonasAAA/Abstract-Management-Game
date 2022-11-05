@@ -1,6 +1,5 @@
 ﻿using Game1.Shapes;
 using Game1.UI;
-using Microsoft.Toolkit.HighPerformance;
 using static Game1.WorldManager;
 
 namespace Game1.Lighting
@@ -17,6 +16,9 @@ namespace Game1.Lighting
             public UDouble Radius
                 => State.radius;
         }
+
+        public MyVector2 Position
+            => state.position;
 
         private readonly StarState state;
         private readonly LightPolygon polygon;

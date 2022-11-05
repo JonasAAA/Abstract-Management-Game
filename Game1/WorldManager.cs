@@ -99,7 +99,6 @@ namespace Game1
                     (
                         state: new
                         (
-                            starID: StarID.Create(),
                             position: new MyVector2(0, -300),
                             radius: 100,
                             prodWatts: 20000
@@ -110,7 +109,6 @@ namespace Game1
                     (
                         state: new
                         (
-                            starID: StarID.Create(),
                             position: new MyVector2(700, 300),
                             radius: 150,
                             prodWatts: 30000
@@ -149,7 +147,6 @@ namespace Game1
                             (
                                 state: new
                                 (
-                                    nodeID: NodeID.Create(),
                                     position: position,
                                     consistsOfResInd: consistsOfResInd,
                                     mainResAmount: NodeState.ResAmountFromApproxRadius

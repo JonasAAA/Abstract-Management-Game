@@ -39,10 +39,10 @@ namespace Game1
 
         private readonly ResPile consistsOfResPile;
 
-        public NodeState(NodeID nodeID, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
+        public NodeState(MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
             LocationCounters = LocationCounters.CreateEmpty();
-            NodeID = nodeID;
+            NodeID = NodeID.Create();
             Position = position;
             ConsistsOfResInd = consistsOfResInd;
             ConsistsOfRes = CurResConfig.resources[consistsOfResInd];

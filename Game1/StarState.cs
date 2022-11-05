@@ -9,9 +9,9 @@
         public readonly UDouble radius;
         public readonly UDouble prodWatts;
 
-        public StarState(StarID starID, MyVector2 position, UDouble radius, UDouble prodWatts)
+        public StarState(MyVector2 position, UDouble radius, UDouble prodWatts)
         {
-            this.starID = starID;
+            starID = StarID.Create();
             this.position = position;
             this.radius = radius;
             this.prodWatts = prodWatts;

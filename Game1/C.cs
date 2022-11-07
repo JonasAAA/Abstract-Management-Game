@@ -14,10 +14,14 @@ namespace Game1
         public static SpriteBatch SpriteBatch
             => spriteBatch ?? throw new InvalidOperationException(mustInitializeMessage);
 
+        public static Texture2D PixelTexture
+            => pixelTexture ?? throw new InvalidOperationException(mustInitializeMessage);
+
         private const string mustInitializeMessage = $"must initialize {nameof(C)} first";
         private static ContentManager? contentManager;
         private static GraphicsDevice? graphicsDevice;
         private static SpriteBatch? spriteBatch;
+        private static Texture2D? pixelTexture;
         private static readonly Random random;
 
         static C()
@@ -28,6 +32,7 @@ namespace Game1
             C.contentManager = contentManager;
             C.graphicsDevice = graphicsDevice;
             spriteBatch = new(graphicsDevice);
+            pixelTexture = LoadTexture(name: "pixel");
         }
 
         /// <summary>

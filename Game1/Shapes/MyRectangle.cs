@@ -7,11 +7,6 @@ namespace Game1.Shapes
     {
         private static class OutlineDrawer
         {
-            private static readonly Texture2D pixelTexture;
-
-            static OutlineDrawer()
-                => pixelTexture = C.LoadTexture(name: "pixel");
-
             /// <param name="toLeft">is start top, end is bottom</param>
             public static void Draw(MyVector2 Start, MyVector2 End, Color Color, bool toLeft = false)
             {
@@ -23,7 +18,7 @@ namespace Game1.Shapes
                 };
                 C.Draw
                 (
-                    texture: pixelTexture,
+                    texture: C.PixelTexture,
                     position: (Start + End) / 2,
                     color: Color,
                     rotation: MyMathHelper.Rotation(vector: direction),
@@ -33,11 +28,6 @@ namespace Game1.Shapes
                 );
             }
         }
-
-        private static readonly Texture2D pixelTexture;
-
-        static MyRectangle()
-            => pixelTexture = C.LoadTexture(name: "pixel");
 
         public MyRectangle()
             : this(width: 2 * ActiveUIManager.RectOutlineWidth, height: 2 * ActiveUIManager.RectOutlineWidth)
@@ -63,7 +53,7 @@ namespace Game1.Shapes
 
             C.Draw
             (
-                texture: pixelTexture,
+                texture: C.PixelTexture,
                 position: TopLeftCorner,
                 color: color,
                 rotation: 0,

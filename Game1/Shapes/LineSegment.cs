@@ -3,13 +3,8 @@
     [Serializable]
     public sealed class LineSegment : VectorShape
     {
-        private static readonly Texture2D pixelTexture;
-
-        static LineSegment()
-            => pixelTexture = C.LoadTexture(name: "pixel");
-
         protected override Texture2D Texture
-            => pixelTexture;
+            => C.PixelTexture;
 
         public LineSegment(IParams parameters)
             : base(parameters: parameters)

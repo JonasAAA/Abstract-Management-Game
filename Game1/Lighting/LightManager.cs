@@ -1,5 +1,4 @@
 ﻿using Game1.Delegates;
-
 using static Game1.WorldManager;
 
 namespace Game1.Lighting
@@ -56,7 +55,7 @@ namespace Game1.Lighting
                     (
                         width: CurWorldConfig.lightTextureWidthAndHeight,
                         height: CurWorldConfig.lightTextureWidthAndHeight,
-                        colorFromRelToCenterPos: relToCenterPos => Color.White * (float)MyMathHelper.Min(1, (CurWorldConfig.standardStarRadius + brightness) / (relToCenterPos.Length() + brightness))
+                        colorFromRelToCenterPos: relToCenterPos => Color.White * (float)MyMathHelper.Min(1, MyMathHelper.Pow((CurWorldConfig.standardStarRadius + brightness) / (relToCenterPos.Length() + brightness), 2))
                     )
                 };
             }
@@ -88,10 +87,26 @@ namespace Game1.Lighting
 
         public void Draw(Matrix worldToScreenTransform)
         {
+            // RenderTarger stores things in reverse color and alpha values for ease of computation
+            // i.e. to get the real image, need to apply x -> 1 - x tranform to all channels
+            // TODO: give blending to custom shader, which should blend alphas like so:
+            // a = 1 - (1 - a1) * (1 - a2),
+            // and all other channels like so:
+            // x = (a1 * x1 + a2 * x2) / (a1 + a2)
+            // Currently all channels follow x = 1 - (1 - x1) * (1 - x2), which creates some unwanted artifacts on stars
             C.GraphicsDevice.SetRenderTarget(RenderTarget);
-            C.GraphicsDevice.Clear(Color.Transparent);
+            C.GraphicsDevice.Clear(Color.White);
+            //BlendState.Additive
 
-            C.GraphicsDevice.BlendState = BlendState.Additive;
+            C.GraphicsDevice.BlendState = new()
+            {
+                ColorSourceBlend = Blend.Zero,
+                AlphaSourceBlend = Blend.Zero,
+                ColorDestinationBlend = Blend.InverseSourceColor,
+                AlphaDestinationBlend = Blend.InverseSourceColor,
+                ColorBlendFunction = BlendFunction.Add,
+                AlphaBlendFunction = BlendFunction.Add,
+            };
             // to correctly draw clockwise and counterclocwise triangles
             C.GraphicsDevice.RasterizerState = new()
             {
@@ -111,10 +126,26 @@ namespace Game1.Lighting
                     actualScreenHeight: actualScreenHeight
                 );
 
-            C.GraphicsDevice.SetRenderTarget(null);
+            // invert the image, i.e.each color channel transforms x -> 1 - x, same with alpha channel
+            C.SpriteBatch.Begin
+            (
+                blendState: new()
+                {
+                    ColorSourceBlend = Blend.InverseDestinationColor,
+                    AlphaSourceBlend = Blend.InverseDestinationColor,
+                    ColorDestinationBlend = Blend.Zero,
+                    AlphaDestinationBlend = Blend.Zero,
+                    ColorBlendFunction = BlendFunction.Add,
+                    AlphaBlendFunction = BlendFunction.Add,
+                }
+            );
+            C.SpriteBatch.Draw(C.PixelTexture, destinationRectangle: new Rectangle(0, 0, actualScreenWidth, actualScreenHeight), Color.White);
+            C.SpriteBatch.End();
 
-            C.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
-            C.SpriteBatch.Draw(RenderTarget, (Vector2)MyVector2.zero, Color.White);
+            // render the lighting to the screen
+            C.GraphicsDevice.SetRenderTarget(null);
+            C.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
+            C.SpriteBatch.Draw(RenderTarget, Vector2.Zero, Color.White);
             C.SpriteBatch.End();
         }
 

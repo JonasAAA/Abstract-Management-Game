@@ -113,7 +113,7 @@ namespace Game1
                             radius: 150,
                             prodWatts: 30000
                         ),
-                        color: CurWorldConfig.starColor //Color.Lerp(Color.White, Color.Blue, .3f)
+                        color: Color.Red //CurWorldConfig.starColor //Color.Lerp(Color.White, Color.Blue, .3f)
                     ),
                     //new
                     //(

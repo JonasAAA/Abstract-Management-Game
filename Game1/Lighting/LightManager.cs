@@ -56,7 +56,7 @@ namespace Game1.Lighting
                     (
                         width: CurWorldConfig.lightTextureWidthAndHeight,
                         height: CurWorldConfig.lightTextureWidthAndHeight,
-                        colorFromRelToCenterPos: relToCenterPos => Color.White * (float)MyMathHelper.Min(1, (CurWorldConfig.standardStarRadius + brightness) / (relToCenterPos.Length() + brightness))
+                        colorFromRelToCenterPos: relToCenterPos => new Color(1, 1, 1, (float)MyMathHelper.Min(1, MyMathHelper.Pow((CurWorldConfig.standardStarRadius + brightness) / (relToCenterPos.Length() + brightness), 2)))
                     )
                 };
             }
@@ -90,8 +90,17 @@ namespace Game1.Lighting
         {
             C.GraphicsDevice.SetRenderTarget(RenderTarget);
             C.GraphicsDevice.Clear(Color.Transparent);
-
-            C.GraphicsDevice.BlendState = BlendState.Additive;
+            //BlendState.Additive
+            
+            C.GraphicsDevice.BlendState = new()
+            {
+                ColorSourceBlend = Blend.One,
+                AlphaSourceBlend = Blend.One,
+                ColorDestinationBlend = Blend.One,
+                AlphaDestinationBlend = Blend.One,
+                ColorBlendFunction = BlendFunction.Max,
+                AlphaBlendFunction = BlendFunction.Add,
+            };
             // to correctly draw clockwise and counterclocwise triangles
             C.GraphicsDevice.RasterizerState = new()
             {
@@ -113,8 +122,8 @@ namespace Game1.Lighting
 
             C.GraphicsDevice.SetRenderTarget(null);
 
-            C.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, null, null, null, null, null);
-            C.SpriteBatch.Draw(RenderTarget, (Vector2)MyVector2.zero, Color.White);
+            C.SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied, null, null, null, null, null);
+            C.SpriteBatch.Draw(RenderTarget, Vector2.Zero, Color.White);
             C.SpriteBatch.End();
         }
 

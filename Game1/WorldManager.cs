@@ -99,11 +99,11 @@ namespace Game1
                     (
                         state: new
                         (
-                            position: new MyVector2(0, -300),
+                            position: new MyVector2(-400, -300),
                             radius: 100,
                             prodWatts: 20000
                         ),
-                        color: CurWorldConfig.starColor // Color.Lerp(Color.White, Color.Red, .3f)
+                        color: CurWorldConfig.starColor
                     ),
                     new
                     (
@@ -113,7 +113,7 @@ namespace Game1
                             radius: 150,
                             prodWatts: 30000
                         ),
-                        color: CurWorldConfig.starColor //Color.Lerp(Color.White, Color.Blue, .3f)
+                        color: CurWorldConfig.starColor
                     ),
                     //new
                     //(
@@ -124,7 +124,7 @@ namespace Game1
                     //        radius: 400,
                     //        prodWatts: 40000
                     //    ),
-                    //    color: CurWorldConfig.starColor // Color.Lerp(Color.White, new Color(0f, 1f, 0f), .3f)
+                    //    color: CurWorldConfig.starColor
                     //),
                 };
 

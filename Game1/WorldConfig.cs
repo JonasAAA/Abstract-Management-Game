@@ -17,7 +17,7 @@
         public readonly EnergyPriority
             linkEnergyPriority = new(value: 10);
         public readonly UDouble
-            standardStarRadius = 50,
+            standardStarRadius = 100,
             scrollSpeed = 60;
         public readonly UDouble
             personMinReqWatts = (UDouble).1,
@@ -56,8 +56,8 @@
             nodeLayer = 10,
             linkLayer = 0;
         public readonly UDouble
-            brightStarTextureBrigthness = 100,
-            dimStarTextureBrightness = 1,
+            brightStarTextureBrigthness = (UDouble)1.2,
+            dimStarTextureBrightness = (UDouble).6,
             startingWorldScale = 1,
             screenBoundWidthForMapMoving = 10,
             minSafeDist = 10;

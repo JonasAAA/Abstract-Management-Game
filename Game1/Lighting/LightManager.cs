@@ -44,9 +44,6 @@ namespace Game1.Lighting
 
             static BasicEffect GetBasicEffect(UDouble brightness)
             {
-                if (brightness.IsCloseTo(other: 0))
-                    throw new ArgumentOutOfRangeException();
-
                 return new(C.GraphicsDevice)
                 {
                     TextureEnabled = true,
@@ -55,9 +52,12 @@ namespace Game1.Lighting
                     (
                         width: CurWorldConfig.lightTextureWidthAndHeight,
                         height: CurWorldConfig.lightTextureWidthAndHeight,
-                        colorFromRelToCenterPos: relToCenterPos => Color.White * (float)MyMathHelper.Min(1, MyMathHelper.Pow((CurWorldConfig.standardStarRadius + brightness) / (relToCenterPos.Length() + brightness), 2))
+                        colorFromRelToCenterPos: relToCenterPos => Color.White * (float)Brightness(distFromCenter: relToCenterPos.Length())
                     )
                 };
+
+                UDouble Brightness(UDouble distFromCenter)
+                    => (UDouble)MyMathHelper.Pow(brightness * CurWorldConfig.standardStarRadius / (MyMathHelper.Max(1, distFromCenter - CurWorldConfig.standardStarRadius) + brightness * CurWorldConfig.standardStarRadius), 2);
             }
         }
 
@@ -92,11 +92,10 @@ namespace Game1.Lighting
             // TODO: give blending to custom shader, which should blend alphas like so:
             // a = 1 - (1 - a1) * (1 - a2),
             // and all other channels like so:
-            // x = (a1 * x1 + a2 * x2) / (a1 + a2)
+            // x = (a1 * (1 - a2) * x1 + a2 * (1 - a1) * x2) / (a1 * (1 - a2) + a2 * (1 - a1))
             // Currently all channels follow x = 1 - (1 - x1) * (1 - x2), which creates some unwanted artifacts on stars
             C.GraphicsDevice.SetRenderTarget(RenderTarget);
             C.GraphicsDevice.Clear(Color.White);
-            //BlendState.Additive
 
             C.GraphicsDevice.BlendState = new()
             {

@@ -39,13 +39,10 @@ namespace Game1.Lighting
 
         double ILightBlockingObject.CloserInterPoint(MyVector2 lightPos, MyVector2 lightDir)
         {
-            MyVector2 relLightPos = lightPos - Center;
-            double e = MyVector2.Dot(lightDir, relLightPos),
-                f = MyVector2.Dot(relLightPos, relLightPos) - parameters.Radius * parameters.Radius,
-                g = e * e - f,
-                h = MyMathHelper.Sqrt((UDouble)g);
-            // the two intersection points are -e + h and -e - h
-            return -e - h;
+            // This actually returns a number such that exactly half of the disk is lit
+            MyVector2 myRelPos = Center - lightPos;
+            double lightDirComponentToMe = MyVector2.Dot(lightDir, myRelPos);
+            return myRelPos.LengthSquared() / lightDirComponentToMe;
         }
     }
 }

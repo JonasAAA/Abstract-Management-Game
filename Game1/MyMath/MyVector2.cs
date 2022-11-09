@@ -20,8 +20,11 @@
             Y = y;
         }
 
+        public UDouble LengthSquared()
+            => MyMathHelper.Square(X) + MyMathHelper.Square(Y);
+
         public UDouble Length()
-            => MyMathHelper.Sqrt(MyMathHelper.Square(X) + MyMathHelper.Square(Y));
+            => MyMathHelper.Sqrt(LengthSquared());
 
         public static double Dot(MyVector2 value1, MyVector2 value2)
             => value1.X * value2.X + value1.Y * value2.Y;

@@ -78,10 +78,10 @@
 
 
         public readonly Color
-            Res0Color = C.ColorFromRGB(rgb: 0x008555),
+            Res0Color = C.ColorFromRGB(rgb: 0x00754D),
             Res1Color = C.ColorFromRGB(rgb: 0x00632D),
-            cosmosBackgroundColor = C.ColorFromRGB(rgb: 0x001426),
-            starColor = C.ColorFromRGB(rgb: 0x8ED000),
+            cosmosBackgroundColor = C.ColorFromRGB(rgb: 0x000E24),
+            starColor = C.ColorFromRGB(rgb: 0xB0FF00),
             houseIndustryColor = Color.Yellow,
             linkTravellerColor = Color.Black;
         public readonly UDouble

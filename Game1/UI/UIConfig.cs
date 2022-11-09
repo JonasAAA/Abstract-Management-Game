@@ -8,8 +8,8 @@
         public readonly UDouble letterHeight = 20;
         public readonly Color
             mouseOnColor = Color.Yellow,
-            UIBackgroundColor = C.ColorFromRGB(rgb: 0x8193AE),
-            textColor = C.ColorFromRGB(rgb: 0x0F1826),
+            UIBackgroundColor = C.ColorFromRGB(rgb: 0x124A5E),
+            textColor = C.ColorFromRGB(rgb: 0xADE38F),
             almostWhiteColor = Color.Aqua,
             buttonColor = Color.Aqua,
             selectedButtonColor = Color.White,

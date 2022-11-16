@@ -9,7 +9,7 @@ namespace Game1.UI
         private static readonly SpriteFont font;
 
         static TextBox()
-            => font = C.LoadFont(name: "font");
+            => font = C.LoadFont(name: "Fonts/MainFont");
 
         public string? Text
         {
@@ -39,7 +39,7 @@ namespace Game1.UI
         public TextBox(Color? backgroundColor = null, Color? textColor = null)
             : base(shape: new MyRectangle())
         {
-            scale = curUIConfig.letterHeight / (UDouble)font.MeasureString("F").Y;
+            scale = (UDouble).5;
             Color = backgroundColor ?? Color.Transparent;
             this.textColor = textColor ?? curUIConfig.textColor;
             Text = null;

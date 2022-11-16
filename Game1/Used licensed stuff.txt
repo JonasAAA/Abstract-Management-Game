@@ -1,2 +1,4 @@
 This file contains links to libraries, assets, etc. which I used.
 Some of the licences for these may need to appear in the finished game somewhere.
+
+Red Hat font families. See their OFL files for licence info.

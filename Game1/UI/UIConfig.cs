@@ -5,7 +5,6 @@
     {
         public readonly uint standardScreenHeight = 1080;
         public readonly UDouble rectOutlineWidth = 0;
-        public readonly UDouble letterHeight = 20;
         public readonly Color
             mouseOnColor = Color.Yellow,
             UIBackgroundColor = C.ColorFromRGB(rgb: 0x124A5E),

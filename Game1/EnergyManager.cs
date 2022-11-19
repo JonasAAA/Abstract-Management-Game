@@ -129,7 +129,13 @@ namespace Game1
         }
 
         public string Summary()
-            => $"required energy: {totReqWatts:0.##} W\nproduced energy: {totProdWatts:0.##} W\nused local energy {totUsedLocalWatts:0.##} W\nused power plant energy {totUsedPowerPlantWatts:0.##} W\n";
+            => $"""
+            required energy: {totReqWatts:0.##} W
+            produced energy: {totProdWatts:0.##} W
+            used local energy {totUsedLocalWatts:0.##} W
+            used power plant energy {totUsedPowerPlantWatts:0.##} W
+
+            """;
 
         void IDeletedListener.DeletedResponse(IDeletable deletable)
         {

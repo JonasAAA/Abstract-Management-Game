@@ -57,7 +57,16 @@ namespace Game1.Industries
                 => industryFactory.BuildingCost(state: state);
 
             public override string TooltipText
-                => base.TooltipText + $"Construction parameters:\n{nameof(ReqWatts)}: {ReqWatts}\n{nameof(duration)}: {duration}\n{nameof(Cost)}: {Cost}\n\nBuilding paramerers:\n{industryFactory.CreateParams(state: state).TooltipText}";
+                => $"""
+                {base.TooltipText}
+                Construction parameters:
+                {nameof(ReqWatts)}: {ReqWatts}
+                {nameof(duration)}: {duration}
+                {nameof(Cost)}: {Cost}
+
+                Building parameters:
+                {industryFactory.CreateParams(state: state).TooltipText}
+                """;
 
             private readonly Factory factory;
 
@@ -112,7 +121,10 @@ namespace Game1.Industries
             => base.IsBusy() & BoolWithExplanationIfFalse.Create
             (
                 value: StartedConstruction,
-                explanationIfFalse: "not enough resources\nto start construction\n"
+                explanationIfFalse: """
+                    not enough resources
+                    to start construction
+                    """
             );
 
         private bool StartedConstruction

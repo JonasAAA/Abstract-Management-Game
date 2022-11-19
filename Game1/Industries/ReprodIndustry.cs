@@ -55,7 +55,14 @@ namespace Game1.Industries
                 => (ulong)(state.ApproxSurfaceLength * factory.maxCouplesPerUnitSurface);
             public readonly TimeSpan birthDuration;
             public override string TooltipText
-                => base.TooltipText + $"{nameof(BuildingCost)}: {BuildingCost}\n{nameof(reqWattsPerChild)}: {reqWattsPerChild}\n{nameof(MaxCouples)}: {MaxCouples}\nresPerChild: {RealPerson.resAmountsPerPerson}\n{nameof(birthDuration)}: {birthDuration}";
+                => $"""
+                {base.TooltipText}
+                {nameof(BuildingCost)}: {BuildingCost}
+                {nameof(reqWattsPerChild)}: {reqWattsPerChild}
+                {nameof(MaxCouples)}: {MaxCouples}
+                resPerChild: {RealPerson.resAmountsPerPerson}
+                {nameof(birthDuration)}: {birthDuration}
+                """;
 
             private readonly Factory factory;
 
@@ -118,7 +125,12 @@ namespace Game1.Industries
                 => unpairedPeople.TryRemove(element: person);
 
             public string GetInfo()
-                => $"{unpairedPeople.Count} waiting people\n{allPeople.Count - PeopleHereStats.totalNumPeople} people travelling here\n{PeopleHereStats}\n";
+                => $"""
+                {unpairedPeople.Count} waiting people
+                {allPeople.Count - PeopleHereStats.totalNumPeople} people travelling here
+                {PeopleHereStats}
+                
+                """;
         }
 
         public override bool PeopleWorkOnTop
@@ -206,7 +218,11 @@ namespace Game1.Industries
         protected override string GetBusyInfo()
             => CurWorldManager.Overlay switch
             {
-                IPeopleOverlay => $"{birthQueue.Count} children are being born\n(maximum supported is {parameters.MaxCouples})\n" + reprodCenter.GetInfo(),
+                IPeopleOverlay => $"""
+                    {birthQueue.Count} children are being born
+                    (maximum supported is {parameters.MaxCouples})
+                    {reprodCenter.GetInfo()}
+                    """,
                 _ => ""
             };
     }

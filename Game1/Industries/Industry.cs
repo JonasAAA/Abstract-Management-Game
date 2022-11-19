@@ -53,7 +53,7 @@ namespace Game1.Industries
             private readonly ITooltip tooltip;
 
             public virtual string TooltipText
-                => $"{nameof(name)}: {name}\n";
+                => $"{nameof(name)}: {name}";
 
             public Params(IIndustryFacingNodeState state, Factory factory)
             {

@@ -38,7 +38,12 @@ namespace Game1.Industries
                 => state.ApproxSurfaceLength * factory.reqSkillPerUnitSurface;
 
             public override string TooltipText
-                => base.TooltipText + $"{nameof(industryType)}: {industryType}\n{nameof(energyPriority)}: {energyPriority}\n{nameof(ReqSkill)}: {ReqSkill}\n";
+                => $"""
+                {base.TooltipText}
+                {nameof(industryType)}: {industryType}
+                {nameof(energyPriority)}: {energyPriority}
+                {nameof(ReqSkill)}: {ReqSkill}
+                """;
 
             private readonly Factory factory;
 
@@ -163,7 +168,13 @@ namespace Game1.Industries
                 => workingPropor = Propor.Create((UDouble)energyPropor, MyMathHelper.Max((UDouble)1, curUnboundedSkillPropor))!.Value;
 
             public string GetInfo()
-                => $"have {realPeopleHere.RealPeopleStats.ActualTotalSkill(industryType: parameters.industryType) / parameters.ReqSkill * 100:0.}% skill\ndesperation {(UDouble)desperationScore * 100:0.}%\n{PeopleHereStats}\ntravel here {allPeople.Count - PeopleHereStats.totalNumPeople}\n";
+                => $"""
+                have {realPeopleHere.RealPeopleStats.ActualTotalSkill(industryType: parameters.industryType) / parameters.ReqSkill * 100:0.}% skill
+                desperation {(UDouble)desperationScore * 100:0.}%
+                {PeopleHereStats}
+                travel here {allPeople.Count - PeopleHereStats.totalNumPeople}
+                
+                """;
 
             private UDouble HiredSkill()
                 => allPeople.Sum(person => (UDouble)person.Skills[parameters.industryType]);
@@ -231,7 +242,10 @@ namespace Game1.Industries
             => BoolWithExplanationIfFalse.Create
             (
                 value: !parameters.state.TooManyResStored,
-                explanationIfFalse: "the planet contains\nunwanted resources\n"
+                explanationIfFalse: """
+                    the planet contains
+                    unwanted resources
+                    """
             );
 
         protected sealed override Industry InternalUpdate()

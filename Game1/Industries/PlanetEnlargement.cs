@@ -49,7 +49,11 @@ namespace Game1.Industries
                 => state.ApproxSurfaceLength * factory.addedResPerUnitSurfacePerSec;
 
             public override string TooltipText
-                => base.TooltipText + $"{nameof(ReqWatts)}: {ReqWatts}\n{nameof(AddedResPerSec)}: {AddedResPerSec}\n";
+                => $"""
+                {base.TooltipText}
+                {nameof(ReqWatts)}: {ReqWatts}
+                {nameof(AddedResPerSec)}: {AddedResPerSec}
+                """;
 
             private readonly Factory factory;
 

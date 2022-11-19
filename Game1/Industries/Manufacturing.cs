@@ -62,7 +62,13 @@ namespace Game1.Industries
                 => state.ApproxSurfaceLength * factory.prodResPerUnitSurface * factory.baseResRecipe;
 
             public override string TooltipText
-                => base.TooltipText + $"{nameof(ReqWatts)}: {ReqWatts}\n{nameof(prodDuration)}: {prodDuration}\nSupply: {ResRecipe.results}\nDemand: {ResRecipe.ingredients}\n";
+                => $"""
+                {base.TooltipText}
+                {nameof(ReqWatts)}: {ReqWatts}
+                {nameof(prodDuration)}: {prodDuration}
+                Supply: {ResRecipe.results}
+                Demand: {ResRecipe.ingredients}
+                """;
 
             private readonly Factory factory;
 
@@ -144,7 +150,11 @@ namespace Game1.Industries
             => base.IsBusy() & BoolWithExplanationIfFalse.Create
             (
                 value: production is not null,
-                explanationIfFalse: "not enough resources\nto start manufacturing\n"
+                explanationIfFalse: """
+                    not enough resources
+                    to start manufacturing
+
+                    """
             );
 
         protected override Manufacturing InternalUpdate(Propor workingPropor)

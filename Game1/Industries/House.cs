@@ -42,7 +42,11 @@ namespace Game1.Industries
             public UDouble FloorSpace
                 => state.ApproxSurfaceLength * factory.floorSpacePerUnitSurface;
             public override string TooltipText
-                => base.TooltipText + $"BuildingCost: {factory.BuildingCost(state: state)}\n{nameof(FloorSpace)}: {FloorSpace}\n";
+                => $"""
+                {base.TooltipText}
+                {nameof(factory.BuildingCost)}: {factory.BuildingCost(state: state)}
+                {nameof(FloorSpace)}: {FloorSpace}
+                """;
 
             private readonly Factory factory;
 
@@ -89,7 +93,11 @@ namespace Game1.Industries
                 => true;
 
             public string GetInfo()
-                => $"{PeopleHereStats}\npeople travelling to here {allPeople.Count - PeopleHereStats.totalNumPeople}\n";
+                => $"""
+                {PeopleHereStats}
+                people travelling to here {allPeople.Count - PeopleHereStats.totalNumPeople}
+
+                """;
         }
 
         public override bool PeopleWorkOnTop

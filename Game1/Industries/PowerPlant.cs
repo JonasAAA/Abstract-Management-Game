@@ -48,7 +48,10 @@ namespace Game1.Industries
             private readonly Factory factory;
 
             public override string TooltipText
-                => base.TooltipText + $"{nameof(ProdWatts)}: {ProdWatts}\n";
+                => $"""
+                {base.TooltipText}
+                {nameof(ProdWatts)}: {ProdWatts}
+                """;
 
             public Params(IIndustryFacingNodeState state, Factory factory)
                 : base(state: state, factory: factory)

@@ -1,5 +1,6 @@
 ﻿using Game1.Inhabitants;
 using static Game1.WorldManager;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.Industries
 {
@@ -13,7 +14,7 @@ namespace Game1.Industries
             private readonly ResAmounts buildingCostPerUnitSurface;
 
             public Factory(string name, UDouble floorSpacePerUnitSurface, ResAmounts buildingCostPerUnitSurface)
-                : base(name: name, color: CurWorldConfig.houseIndustryColor)
+                : base(name: name, color: colorConfig.houseIndustryColor)
             {
                 this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
                 if (buildingCostPerUnitSurface.IsEmpty())

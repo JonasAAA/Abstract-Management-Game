@@ -1,4 +1,6 @@
-﻿namespace Game1.Resources
+﻿using static Game1.UI.ActiveUIManager;
+
+namespace Game1.Resources
 {
     [Serializable]
     public sealed class ResourceArray : IMyArray<IResource>
@@ -18,14 +20,14 @@
                             resInd: (BasicResInd)resInd,
                             mass: Mass.CreateFromKg(massInKg: 2),
                             area: 1,
-                            color: WorldManager.CurWorldConfig.Res0Color
+                            color: colorConfig.Res0Color
                         ),
                         1 => new BasicRes
                         (
                             resInd: (BasicResInd)resInd,
                             mass: Mass.CreateFromKg(massInKg: 1),
                             area: 2,
-                            color: WorldManager.CurWorldConfig.Res1Color
+                            color: colorConfig.Res1Color
                         ),
                         _ => throw new ArgumentOutOfRangeException()
                     },

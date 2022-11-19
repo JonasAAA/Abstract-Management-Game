@@ -1,4 +1,5 @@
 ﻿using Game1.Delegates;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.GameStates
 {
@@ -53,7 +54,7 @@ namespace Game1.GameStates
 
         public override void Draw()
         {
-            C.GraphicsDevice.Clear(WorldManager.CurWorldConfig.cosmosBackgroundColor);
+            C.GraphicsDevice.Clear(colorConfig.cosmosBackgroundColor);
             WorldManager.CurWorldManager.Draw();
         }
     }

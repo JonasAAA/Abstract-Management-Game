@@ -12,7 +12,7 @@ namespace Game1.UI
             => children.Count;
 
         protected sealed override Color Color
-            => curUIConfig.UIBackgroundColor;
+            => colorConfig.UIBackgroundColor;
 
         protected readonly List<TChild> children;
 

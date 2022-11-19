@@ -20,7 +20,7 @@ namespace Game1.UI
         }
 
         protected override Color Color
-            => curUIConfig.UIBackgroundColor;
+            => colorConfig.UIBackgroundColor;
 
         private readonly MultipleChoicePanel<string> tabChoicePanel;
         private readonly Dictionary<string, TTab> tabs;

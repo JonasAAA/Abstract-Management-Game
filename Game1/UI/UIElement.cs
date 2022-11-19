@@ -1,5 +1,6 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -138,8 +139,8 @@ namespace Game1.UI
         {
             (Color otherColor, Propor otherColorPropor) = (Enabled, CanBeClicked && MouseOn) switch
             {
-                (true, true) => (ActiveUIManager.curUIConfig.mouseOnColor, (Propor).5),
-                (true, false) => (ActiveUIManager.curUIConfig.mouseOnColor, (Propor)0),
+                (true, true) => (colorConfig.mouseOnColor, (Propor).5),
+                (true, false) => (colorConfig.mouseOnColor, (Propor)0),
                 (false, _) => (Color.Transparent, (Propor).3)
             };
 

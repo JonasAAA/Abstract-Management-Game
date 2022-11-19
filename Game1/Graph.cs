@@ -6,6 +6,7 @@ using Game1.UI;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using static Game1.WorldManager;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1
 {
@@ -96,7 +97,7 @@ namespace Game1
 
         // THIS COLOR IS NOT USED
         protected override Color Color
-            => CurWorldConfig.cosmosBackgroundColor;
+            => colorConfig.cosmosBackgroundColor;
 
         private ReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
         private ReadOnlyDictionary<(NodeID, NodeID), UDouble> resDists;

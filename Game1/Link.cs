@@ -3,6 +3,7 @@ using Game1.Inhabitants;
 using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1
 {
@@ -134,7 +135,7 @@ namespace Game1
                     (
                         texture: diskTexture,
                         position: startNode.Position + (double)complProp * (endNode.Position - startNode.Position),
-                        color: CurWorldConfig.linkTravellerColor,
+                        color: colorConfig.linkTravellerColor,
                         rotation: 0,
                         origin: new MyVector2(diskTexture.Width * .5, diskTexture.Height * .5),
                         scale: MyMathHelper.Sqrt(size) * 2 / (UDouble)diskTexture.Width

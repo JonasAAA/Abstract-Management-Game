@@ -41,7 +41,7 @@ namespace Game1.UI
         {
             scale = (UDouble).5;
             Color = backgroundColor ?? Color.Transparent;
-            this.textColor = textColor ?? curUIConfig.textColor;
+            this.textColor = textColor ?? colorConfig.textColor;
             Text = null;
         }
 

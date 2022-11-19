@@ -13,7 +13,7 @@ namespace Game1.UI
 
         public ImmutableTextTooltip(string text)
         {
-            textBox = new(backgroundColor: curUIConfig.tooltipBackgroundColor)
+            textBox = new(backgroundColor: colorConfig.tooltipBackgroundColor)
             {
                 Text = text
             };

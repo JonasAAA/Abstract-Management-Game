@@ -134,7 +134,7 @@ namespace Game1.Industries
                 ),
                 tooltip: new ImmutableTextTooltip(text: "Delete this industry"),
                 text: "delete",
-                color: curUIConfig.deleteButtonColor
+                color: colorConfig.deleteButtonColor
             );
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(Industry: this));
             UIPanel.AddChild(child: deleteButton);

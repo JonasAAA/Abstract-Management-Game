@@ -103,7 +103,7 @@ namespace Game1
                             radius: 100,
                             prodWatts: 20000
                         ),
-                        color: CurWorldConfig.starColor
+                        color: colorConfig.starColor
                     ),
                     new
                     (
@@ -113,7 +113,7 @@ namespace Game1
                             radius: 150,
                             prodWatts: 30000
                         ),
-                        color: CurWorldConfig.starColor
+                        color: colorConfig.starColor
                     ),
                     //new
                     //(
@@ -124,7 +124,7 @@ namespace Game1
                     //        radius: 400,
                     //        prodWatts: 40000
                     //    ),
-                    //    color: CurWorldConfig.starColor
+                    //    color: colorConfig.starColor
                     //),
                 };
 
@@ -378,7 +378,7 @@ namespace Game1
             activeUIManager = new();
             activeUIManager.clickedNowhere.Add(listener: this);
 
-            globalTextBox = new(backgroundColor: curUIConfig.UIBackgroundColor);
+            globalTextBox = new(backgroundColor: colorConfig.UIBackgroundColor);
             // TODO: move these constants to a contants file
             globalTextBox.Shape.MinWidth = 300;
 

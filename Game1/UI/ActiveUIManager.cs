@@ -7,6 +7,7 @@ namespace Game1.UI
     public sealed class ActiveUIManager
     {
         public static readonly UIConfig curUIConfig;
+        public static readonly ColorConfig colorConfig;
         public static readonly UDouble screenWidth, screenHeight;
         public static MyVector2 MouseHUDPos
             => HUDCamera.HUDPos(screenPos: (MyVector2)Mouse.GetState().Position);
@@ -18,6 +19,7 @@ namespace Game1.UI
         static ActiveUIManager()
         {
             curUIConfig = new();
+            colorConfig = new();
             Camera.Initialize();
             screenWidth = (UDouble)C.GraphicsDevice.Viewport.Width * curUIConfig.standardScreenHeight / (UDouble)C.GraphicsDevice.Viewport.Height;
             screenHeight = curUIConfig.standardScreenHeight;

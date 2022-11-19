@@ -42,7 +42,7 @@ namespace Game1.UI
         public Event<INumberChangedListener> numberChanged;
 
         protected override Color Color
-            => curUIConfig.UIBackgroundColor;
+            => colorConfig.UIBackgroundColor;
 
         private int number;
         private readonly Button numDecrButton;

@@ -94,7 +94,7 @@ namespace Game1
                 endNode.Arrive(resAmountsPackets: resAmountsPackets);
                 endNode.Arrive(realPeople: people);
 
-                if ((!waitingResAmountsPackets.Empty || !waitingPeople.NumPeople.isZero)
+                if ((!waitingResAmountsPackets.Empty || !waitingPeople.NumPeople.IsZero)
                     && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionPropor() >= minSafePropor))
                     timedPacketQueue.Enqueue(resAmountsPackets: waitingResAmountsPackets, realPeople: waitingPeople);
             }

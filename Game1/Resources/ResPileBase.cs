@@ -10,7 +10,7 @@
 
         public Mass Mass { get; private set; }
         public bool IsEmpty
-            => Mass.isZero;
+            => Mass.IsZero;
 
         public ResAmounts ResAmounts
         {

@@ -10,18 +10,17 @@ namespace Game1.Resources
         static NumPeople IAdditiveIdentity<NumPeople, NumPeople>.AdditiveIdentity
             => zero;
 
-        public readonly bool isZero;
-
         static NumPeople()
             => zero = new(value: 0);
+
+        // This must be property rather than field so that auto-initialized numPeople IsZero returns true
+        public bool IsZero
+            => this == zero;
 
         public readonly ulong value;
 
         public NumPeople(ulong value)
-        {
-            this.value = value;
-            isZero = value == 0;
-        }
+            => this.value = value;
 
         public override string ToString()
             => value.ToString();

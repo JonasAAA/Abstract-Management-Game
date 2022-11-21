@@ -21,7 +21,7 @@ namespace Game1
         public ResAmounts ResAmounts { get; private set; }
         public Mass Mass { get; private set; }
         public bool Empty
-            => Mass.isZero;
+            => Mass.IsZero;
 
         private readonly LocationCounters locationCounters;
         private Dictionary<NodeID, ResAmountsPacket> resAmountsPacketsByDestin;

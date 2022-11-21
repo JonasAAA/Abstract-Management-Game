@@ -87,7 +87,7 @@ namespace Game1.Resources
                 Debug.Assert(resources[nonBasicResInd] is NonBasicRes);
 
             foreach (var resource in resources)
-                Debug.Assert(!resource.Mass.isZero);
+                Debug.Assert(!resource.Mass.IsZero);
         }
 
         public IResource this[ResInd resInd]

@@ -10,8 +10,6 @@ namespace Game1.Resources
         static Mass IAdditiveIdentity<Mass, Mass>.AdditiveIdentity
             => zero;
 
-        public readonly bool isZero;
-
         static Mass()
             => zero = new(valueInKg: 0);
 
@@ -21,13 +19,14 @@ namespace Game1.Resources
         public ulong InKg
             => valueInKg;
 
+        // This must be property rather than field so that auto-initialized mass IsZero returns true
+        public bool IsZero
+            => this == zero;
+
         private readonly ulong valueInKg;
 
         private Mass(ulong valueInKg)
-        {
-            this.valueInKg = valueInKg;
-            isZero = valueInKg == 0;
-        }
+            => this.valueInKg = valueInKg;
 
         public override string ToString()
             => $"{valueInKg} Kg";

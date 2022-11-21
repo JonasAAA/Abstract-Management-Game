@@ -1,4 +1,5 @@
 ﻿using Game1.Inhabitants;
+using System.Numerics;
 using System.Text;
 
 namespace Game1
@@ -30,7 +31,7 @@ namespace Game1
             => source.Select(selector).Sum();
 
         public static TResult Max<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
-            where TResult : IMaxable<TResult>
+            where TResult : IComparisonOperators<TResult, TResult, bool>
         {
             using var enumerator = source.GetEnumerator();
             if (!enumerator.MoveNext())

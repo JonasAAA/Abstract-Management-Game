@@ -45,7 +45,7 @@ namespace Game1.Inhabitants
         }
 
         public bool IsEmpty
-            => totalNumPeople.IsZero;
+            => totalNumPeople.isZero;
 
         public readonly Mass totalMass;
         public readonly NumPeople totalNumPeople;

@@ -1,12 +1,19 @@
-﻿using static Game1.WorldManager;
+﻿using System.Numerics;
+using static Game1.WorldManager;
 
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly struct ResAmounts : IMyArray<ulong>, IEquatable<ResAmounts>, IMinable<ResAmounts>
+    public readonly struct ResAmounts : IMyArray<ulong>, IEquatable<ResAmounts>, IAdditionOperators<ResAmounts, ResAmounts, ResAmounts>, IAdditiveIdentity<ResAmounts, ResAmounts>, IMultiplyOperators<ResAmounts, ulong, ResAmounts>, IMultiplicativeIdentity<ResAmounts, ulong>
     {
         public static ResAmounts Empty
             => emptyResAmounts;
+
+        static ResAmounts IAdditiveIdentity<ResAmounts, ResAmounts>.AdditiveIdentity
+            => Empty;
+
+        static ulong IMultiplicativeIdentity<ResAmounts, ulong>.MultiplicativeIdentity
+            => 1;
 
         private static readonly ResAmounts emptyResAmounts;
 
@@ -61,8 +68,8 @@ namespace Game1.Resources
         public bool IsEmpty()
             => this == emptyResAmounts || array.Sum() is 0;
 
-        public ResAmounts Min(ResAmounts resAmounts)
-            => new(array.Zip(resAmounts, (a, b) => MyMathHelper.Min(a, b)));
+        public ResAmounts Min(ResAmounts other)
+            => new(array.Zip(other, (a, b) => MyMathHelper.Min(a, b)));
 
         public Mass TotalMass()
             => Mass.CreateFromKg(massInKg: CurResConfig.resources.Zip(array).Sum(item => item.First.Mass.InKg * item.Second));

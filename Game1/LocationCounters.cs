@@ -1,6 +1,4 @@
-﻿using Game1.Inhabitants;
-
-namespace Game1
+﻿namespace Game1
 {
     [Serializable]
     public readonly struct LocationCounters
@@ -35,8 +33,8 @@ namespace Game1
             {
                 if (source == this)
                     return;
-                source.Count = source.Count.Subtract(count: count);
-                Count = Count.Add(count: count);
+                source.Count -= count;
+                Count += count;
             }
 
 #if DEBUG2

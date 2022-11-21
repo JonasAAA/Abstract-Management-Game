@@ -1,4 +1,6 @@
-﻿namespace Game1.MyMath
+﻿using System.Numerics;
+
+namespace Game1.MyMath
 {
     public static class MyMathHelper
     {
@@ -19,26 +21,14 @@
         public static bool AreClose(TimeSpan value1, TimeSpan value2)
             => value1 == value2;
 
-        public static T Min<T>(T value1, T value2) where T : IMinable<T>
+        public static T Min<T>(T value1, T value2) where T : IComparisonOperators<T, T, bool>
+            => value1 < value2 ? value1 : value2;
+
+        public static ResAmounts Min(ResAmounts value1, ResAmounts value2)
             => value1.Min(other: value2);
 
-        public static double Min(double value1, double value2)
-            => Math.Min(value1, value2);
-
-        public static int Min(int value1, int value2)
-            => Math.Min(value1, value2);
-
-        public static ulong Min(ulong value1, ulong value2)
-            => Math.Min(value1, value2);
-
-        public static T Max<T>(T value1, T value2) where T : IMaxable<T>
-            => value1.Max(other: value2);
-
-        public static double Max(double value1, double value2)
-            => Math.Max(value1, value2);
-
-        public static int Max(int value1, int value2)
-            => Math.Max(value1, value2);
+        public static T Max<T>(T value1, T value2) where T : IComparisonOperators<T, T, bool>
+            => value1 > value2 ? value1 : value2;
 
         public static TimeSpan Max(TimeSpan value1, TimeSpan value2)
             => value1 > value2 ? value1 : value2;

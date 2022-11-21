@@ -1,9 +1,16 @@
-﻿namespace Game1.Resources
+﻿using System.Numerics;
+
+namespace Game1.Resources
 {
     [Serializable]
     public readonly record struct Mass : ICountable<Mass>
     {
         public static readonly Mass zero;
+
+        static Mass IAdditiveIdentity<Mass, Mass>.AdditiveIdentity
+            => zero;
+
+        public readonly bool isZero;
 
         static Mass()
             => zero = new(valueInKg: 0);
@@ -17,24 +24,18 @@
         private readonly ulong valueInKg;
 
         private Mass(ulong valueInKg)
-            => this.valueInKg = valueInKg;
-
-        public bool IsZero
-            => valueInKg is 0;
+        {
+            this.valueInKg = valueInKg;
+            isZero = valueInKg == 0;
+        }
 
         public override string ToString()
             => $"{valueInKg} Kg";
 
-        public static Mass operator +(Mass mass1, Mass mass2)
-            => new(valueInKg: mass1.valueInKg + mass2.valueInKg);
+        public static Mass operator +(Mass left, Mass right)
+            => new(valueInKg: left.valueInKg + right.valueInKg);
 
-        public static Mass operator -(Mass mass1, Mass mass2)
-            => new(valueInKg: mass1.valueInKg - mass2.valueInKg);
-
-        Mass ICountable<Mass>.Add(Mass count)
-            => this + count;
-
-        Mass ICountable<Mass>.Subtract(Mass count)
-            => this - count;
+        public static Mass operator -(Mass left, Mass right)
+            => new(valueInKg: left.valueInKg - right.valueInKg);
     }
 }

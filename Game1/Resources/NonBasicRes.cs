@@ -8,7 +8,7 @@ namespace Game1.Resources
         private const string unitializedExceptionMessage = $"must initialize {nameof(NonBasicRes)} by calling {nameof(Initialize)} first";
 
         public Mass Mass
-            => mass.IsZero switch
+            => mass.isZero switch
             {
                 true => throw new InvalidOperationException(unitializedExceptionMessage),
                 false => mass
@@ -46,7 +46,7 @@ namespace Game1.Resources
 
         public void Initialize()
         {
-            if (!mass.IsZero)
+            if (!mass.isZero)
                 throw new InvalidOperationException($"{nameof(NonBasicRes)} is alrealy initialized, so can't initialize it a second time");
             ulong massInKg = 0;
             ResAmounts curBasicIngredients = ResAmounts.Empty;

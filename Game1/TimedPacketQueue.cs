@@ -42,7 +42,7 @@ namespace Game1
         {
             resAmountsPackets = ResAmountsPacketsByDestin.CreateFromSource(sourcePackets: resAmountsPackets, locationCounters: locationCounters);
             realPeople = RealPeople.CreateFromSource(realPeopleSource: realPeople, locationCounters: locationCounters);
-            if (resAmountsPackets.Empty && realPeople.NumPeople.IsZero)
+            if (resAmountsPackets.Empty && realPeople.NumPeople.isZero)
                 return;
             timedQueue.Enqueue(element: (resAmountsPackets, realPeople));
             TotalResAmounts += resAmountsPackets.ResAmounts;

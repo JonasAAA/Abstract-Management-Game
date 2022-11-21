@@ -1,10 +1,19 @@
-﻿namespace Game1.PrimitiveTypeWrappers
+﻿using System.Numerics;
+
+namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly struct Propor : IClose<Propor>, IExponentiable<UDouble, Propor>
+    public readonly struct Propor : IClose<Propor>, IExponentiable<UDouble, Propor>, IComparisonOperators<Propor, Propor, bool>,
+        IMultiplyOperators<Propor, Propor, Propor>, IMultiplicativeIdentity<Propor, Propor>,
+        IMultiplyOperators<Propor, double, double>,
+        IMultiplyOperators<Propor, UDouble, UDouble>,
+        IMultiplyOperators<Propor, TimeSpan, TimeSpan>
     {
         public static readonly Propor full = new(value: 1);
         public static readonly Propor empty = new(value: 0);
+
+        static Propor IMultiplicativeIdentity<Propor, Propor>.MultiplicativeIdentity
+            => full;
 
         public static Propor? Create(double part, double whole)
             => Create(value: part / whole);
@@ -77,13 +86,31 @@
         public static TimeSpan operator *(TimeSpan timeSpan, Propor propor)
             => propor * timeSpan;
 
-        public static bool operator <=(Propor propor1, Propor propor2)
-            => propor1.value <= propor2.value;
+        public static bool operator >(Propor left, Propor right)
+            => left.value > right.value;
 
-        public static bool operator >=(Propor propor1, Propor propor2)
-            => propor1.value >= propor2.value;
+        public static bool operator >=(Propor left, Propor right)
+            => left.value >= right.value;
+
+        public static bool operator <(Propor left, Propor right)
+            => left.value < right.value;
+
+        public static bool operator <=(Propor left, Propor right)
+            => left.value <= right.value;
+
+        public static bool operator ==(Propor left, Propor right)
+            => left.value == right.value;
+
+        public static bool operator !=(Propor left, Propor right)
+            => left.value == right.value;
 
         public override string ToString()
             => $"{value:0.00}";
+
+        public override bool Equals(object? obj)
+            => obj is Propor propor && value == propor.value;
+
+        public override int GetHashCode()
+            => value.GetHashCode();
     }
 }

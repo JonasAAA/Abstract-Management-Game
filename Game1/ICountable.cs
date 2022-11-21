@@ -1,11 +1,8 @@
-﻿namespace Game1
+﻿using System.Numerics;
+
+namespace Game1
 {
-    public interface ICountable<T>
-    {
-        public bool IsZero { get; }
-
-        public T Add(T count);
-
-        public T Subtract(T count);
-    }
+    public interface ICountable<T> : IAdditionOperators<T, T, T>, ISubtractionOperators<T, T, T>, IAdditiveIdentity<T, T>, IEqualityOperators<T, T, bool>
+        where T : ICountable<T>
+    { }
 }

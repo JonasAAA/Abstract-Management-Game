@@ -1,9 +1,10 @@
 ﻿using Game1.Industries;
+using System.Numerics;
 
 namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly struct Score : IClose<Score>, IComparable<Score>, IPrimitiveTypeWrapper
+    public readonly struct Score : IClose<Score>, IComparable<Score>, IComparisonOperators<Score, Score, bool>, IPrimitiveTypeWrapper
     {
         [Serializable]
         public readonly struct ParamsOfChange
@@ -160,17 +161,35 @@ namespace Game1.PrimitiveTypeWrappers
         public static explicit operator double(Score score)
             => score.value;
 
-        public static bool operator <=(Score score1, Score score2)
-            => score1.value <= score2.value;
+        public static bool operator >(Score left, Score right)
+            => left.value > right.value;
 
-        public static bool operator >=(Score score1, Score score2)
-            => score1.value >= score2.value;
+        public static bool operator >=(Score left, Score right)
+            => left.value >= right.value;
+
+        public static bool operator <(Score left, Score right)
+            => left.value < right.value;
+
+        public static bool operator <=(Score left, Score right)
+            => left.value <= right.value;
+
+        public static bool operator ==(Score left, Score right)
+            => left.value == right.value;
+
+        public static bool operator !=(Score left, Score right)
+            => left.value != right.value;
 
         int IComparable<Score>.CompareTo(Score other)
             => ((double)this).CompareTo((double)other);
 
         public string ToString(string? format, IFormatProvider? formatProvider)
             => value.ToString(format, formatProvider);
+
+        public override bool Equals(object? obj)
+            => obj is Score score && value == score.value;
+
+        public override int GetHashCode()
+            => value.GetHashCode();
 
         //public string ToString(string? format, IFormatProvider? formatProvider)
         //    => $"score {value.ToString(format, formatProvider)}";

@@ -482,7 +482,7 @@ namespace Game1
                 allResCase: () =>
                 {
                     Mass totalStoredMass = state.StoredResPile.Mass;
-                    return totalStoredMass.IsZero switch
+                    return totalStoredMass.isZero switch
                     {
                         true => "",
                         false => $"stored total res mass {totalStoredMass}"
@@ -551,7 +551,7 @@ namespace Game1
 
         void ILinkFacingPlanet.Arrive(RealPeople realPeople)
         {
-            if (realPeople.NumPeople.IsZero)
+            if (realPeople.NumPeople.isZero)
                 return;
             state.WaitingPeople.TransferAllFrom(realPeopleSource: realPeople);
         }

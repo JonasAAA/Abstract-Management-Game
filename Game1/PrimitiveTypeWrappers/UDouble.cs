@@ -1,10 +1,20 @@
-﻿namespace Game1.PrimitiveTypeWrappers
+﻿using System.Numerics;
+
+namespace Game1.PrimitiveTypeWrappers
 {
     // TODO: could rename to MyUFloat
     [Serializable]
-    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>, IMinable<UDouble>, IMaxable<UDouble>, IComparable<UDouble>, IPrimitiveTypeWrapper
+    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>, IComparisonOperators<UDouble, UDouble, bool>, IComparable<UDouble>, IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>, IMultiplyOperators<UDouble, UDouble, UDouble>, IMultiplicativeIdentity<UDouble, UDouble>, IPrimitiveTypeWrapper
     {
         public static readonly UDouble positiveInfinity = new(value: double.PositiveInfinity);
+
+        public static readonly UDouble zero = 0;
+
+        static UDouble IAdditiveIdentity<UDouble, UDouble>.AdditiveIdentity
+            => zero;
+
+        static UDouble IMultiplicativeIdentity<UDouble, UDouble>.MultiplicativeIdentity
+            => 1;
 
         public static UDouble? Create(double value)
         {
@@ -26,6 +36,12 @@
 
         public UDouble Pow(double exponent)
             => (UDouble)MyMathHelper.Pow(value, exponent);
+
+        public static bool operator ==(UDouble value1, UDouble value2)
+            => value1.value == value2.value;
+
+        public static bool operator !=(UDouble value1, UDouble value2)
+            => value1.value != value2.value;
 
         public static bool operator <(UDouble value1, UDouble value2)
             => value1.value < value2.value;
@@ -70,16 +86,16 @@
         public static UDouble operator /(UDouble value1, UDouble value2)
            => new(value1.value / value2.value);
 
-        UDouble IMinable<UDouble>.Min(UDouble other)
-            => new(MyMathHelper.Min(value, other.value));
-
-        UDouble IMaxable<UDouble>.Max(UDouble other)
-            => new(MyMathHelper.Max(value, other.value));
-
         public string ToString(string? format, IFormatProvider? formatProvider)
             => value.ToString(format, formatProvider);
 
         public int CompareTo(UDouble other)
             => value.CompareTo(other.value);
+
+        public override bool Equals(object? obj)
+            => obj is UDouble UDouble && value == UDouble.value;
+
+        public override int GetHashCode()
+            => value.GetHashCode();
     }
 }

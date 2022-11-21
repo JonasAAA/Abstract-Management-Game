@@ -13,7 +13,7 @@
         public BasicRes(BasicResInd resInd, Mass mass, ulong area, Color color)
         {
             this.resInd = resInd;
-            if (mass.IsZero)
+            if (mass.isZero)
                 throw new ArgumentOutOfRangeException();
             this.mass = mass;
             if (area is 0)

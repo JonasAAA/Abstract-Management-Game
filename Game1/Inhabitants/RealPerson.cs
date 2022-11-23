@@ -165,8 +165,8 @@ namespace Game1.Inhabitants
         public void SetLocationCounters(LocationCounters locationCounters)
         {
             consistsOfResPile.LocationCounters = locationCounters;
-            // Mass transfer is zero in the following line as the previous line did the mass transfer of this person already
-            locationCounters.TransferFrom(source: this.locationCounters, mass: Mass.zero, numPeople: RealPeopleStats.totalNumPeople);
+            // Resource transfer is zero in the following line as the previous line did the resAmounts transfer of this person already
+            locationCounters.TransferPeopleFrom(source: this.locationCounters, numPeople: RealPeopleStats.totalNumPeople);
             this.locationCounters = locationCounters;
         }
 

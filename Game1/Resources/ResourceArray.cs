@@ -18,14 +18,16 @@ namespace Game1.Resources
                         0 => new BasicRes
                         (
                             resInd: (BasicResInd)resInd,
-                            mass: Mass.CreateFromKg(massInKg: 2),
+                            mass: Mass.CreateFromKg(valueInKg: 2),
+                            heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 3),
                             area: 1,
                             color: colorConfig.Res0Color
                         ),
                         1 => new BasicRes
                         (
                             resInd: (BasicResInd)resInd,
-                            mass: Mass.CreateFromKg(massInKg: 1),
+                            mass: Mass.CreateFromKg(valueInKg: 1),
+                            heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 4),
                             area: 2,
                             color: colorConfig.Res1Color
                         ),

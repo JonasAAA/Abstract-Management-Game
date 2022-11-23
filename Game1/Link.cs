@@ -72,7 +72,7 @@ namespace Game1
                 return CurWorldManager.Overlay.SwitchExpression
                 (
                     singleResCase: resInd => timedPacketQueue.TotalResAmounts[resInd],
-                    allResCase: () => timedPacketQueue.Mass.InKg,
+                    allResCase: () => timedPacketQueue.Mass.valueInKg,
                     peopleCase: () => locationCounters.NumPeople.value,
                     powerCase: () => throw new InvalidOperationException()
                 );
@@ -120,7 +120,7 @@ namespace Game1
                     allResCase: () =>
                     {
                         foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmounts.TotalMass().InKg);
+                            DrawDisk(complProp: complProp, size: resAmounts.Mass().valueInKg);
                     },
                     powerCase: () => { },
                     peopleCase: () =>
@@ -149,7 +149,7 @@ namespace Game1
                 => startNode.NodeID;
 
             UDouble IEnergyConsumer.ReqWatts()
-                => timedPacketQueue.Mass.InKg * reqWattsPerKg;
+                => timedPacketQueue.Mass.valueInKg * reqWattsPerKg;
 
             void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
                 => this.energyPropor = energyPropor;

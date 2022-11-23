@@ -47,40 +47,66 @@
         }
 
         public static LocationCounters CreateEmpty()
-            => new(massCounter: Counter<Mass>.CreateEmpty(), peopleCounter: Counter<NumPeople>.CreateEmpty());
+            => new
+            (
+                massCounter: Counter<Mass>.CreateEmpty(),
+                peopleCounter: Counter<NumPeople>.CreateEmpty(),
+                heatEnergyCounter: Counter<HeatEnergy>.CreateEmpty(),
+                heatCapacityCounter: Counter<HeatCapacity>.CreateEmpty()
+            );
 
         public static LocationCounters CreatePersonCounterByMagic(NumPeople numPeople)
             => new
             (
+                peopleCounter: Counter<NumPeople>.CreateCounterByMagic(count: numPeople),
                 massCounter: Counter<Mass>.CreateEmpty(),
-                peopleCounter: Counter<NumPeople>.CreateCounterByMagic(count: numPeople)
+                heatEnergyCounter: Counter<HeatEnergy>.CreateEmpty(),
+                heatCapacityCounter: Counter<HeatCapacity>.CreateEmpty()
             );
 
-        public static LocationCounters CreateMassByMagic(Mass mass)
-            => new
-            (
-                massCounter: Counter<Mass>.CreateCounterByMagic(count: mass),
-                peopleCounter: Counter<NumPeople>.CreateEmpty()
-            );
-
-        public Mass Mass
-            => massCounter.Count;
-        public NumPeople NumPeople
-            => peopleCounter.Count;
-
-        private readonly Counter<Mass> massCounter;
-        private readonly Counter<NumPeople> peopleCounter;
-
-        private LocationCounters(Counter<Mass> massCounter, Counter<NumPeople> peopleCounter)
+        public static LocationCounters CreateResAmountsCountersByMagic(ResAmounts resAmounts, UDouble temperatureInK)
         {
-            this.massCounter = massCounter;
-            this.peopleCounter = peopleCounter;
+            var resHeatCapacity = resAmounts.HeatCapacity();
+            return new
+            (
+                peopleCounter: Counter<NumPeople>.CreateEmpty(),
+                massCounter: Counter<Mass>.CreateCounterByMagic(count: resAmounts.Mass()),
+                heatEnergyCounter: Counter<HeatEnergy>.CreateCounterByMagic(count: HeatEnergy.CreateFromJoules(valueInJoules: temperatureInK * resHeatCapacity.valueInJPerK)),
+                heatCapacityCounter: Counter<HeatCapacity>.CreateCounterByMagic(count: resHeatCapacity)
+            );
         }
 
-        public void TransferFrom(LocationCounters source, Mass mass, NumPeople numPeople)
+        public NumPeople NumPeople
+            => peopleCounter.Count;
+        public Mass Mass
+            => massCounter.Count;
+        public HeatEnergy HeatEnergy
+            => heatEnergyCounter.Count;
+        public HeatCapacity HeatCapacity
+            => heatCapacityCounter.Count;
+
+        private readonly Counter<NumPeople> peopleCounter;
+        private readonly Counter<Mass> massCounter;
+        private readonly Counter<HeatEnergy> heatEnergyCounter;
+        private readonly Counter<HeatCapacity> heatCapacityCounter;
+
+        private LocationCounters(Counter<NumPeople> peopleCounter, Counter<Mass> massCounter, Counter<HeatEnergy> heatEnergyCounter, Counter<HeatCapacity> heatCapacityCounter)
         {
-            massCounter.TransferFrom(source: source.massCounter, count: mass);
-            peopleCounter.TransferFrom(source: source.peopleCounter, count: numPeople);
+            this.peopleCounter = peopleCounter;
+            this.massCounter = massCounter;
+            this.heatEnergyCounter = heatEnergyCounter;
+            this.heatCapacityCounter = heatCapacityCounter;
+        }
+
+        public void TransferPeopleFrom(LocationCounters source, NumPeople numPeople)
+            => peopleCounter.TransferFrom(source: source.peopleCounter, count: numPeople);
+
+        public void TransferResFrom(LocationCounters source, ResAmounts resAmounts)
+        {
+            massCounter.TransferFrom(source: source.massCounter, count: resAmounts.Mass());
+            var resHeatCapacity = resAmounts.HeatCapacity();
+            heatEnergyCounter.TransferFrom(source: source.heatEnergyCounter, count: source.HeatEnergy * (resHeatCapacity / source.HeatCapacity));
+            heatCapacityCounter.TransferFrom(source: source.heatCapacityCounter, count: resHeatCapacity);
         }
     }
 }

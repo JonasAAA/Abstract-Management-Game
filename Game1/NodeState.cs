@@ -32,7 +32,7 @@ namespace Game1
         public BasicRes ConsistsOfRes { get; }
         public bool TooManyResStored { get; set; }
         public UDouble WattsHittingSurfaceOrIndustry { get; set; }
-        // TODO: could include linkEndPoints mass in the Counter<Mass> in this NodeState
+        // TODO: could include linkEndPoints Mass in the Counter<Mass> in this NodeState
         public LocationCounters LocationCounters { get; }
         public UDouble SurfaceGravity
             => WorldFunctions.SurfaceGravity(mass: LocationCounters.Mass, radius: Radius);

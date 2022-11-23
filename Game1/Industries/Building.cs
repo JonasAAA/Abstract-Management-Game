@@ -8,7 +8,7 @@ namespace Game1.Industries
     {
         public ResAmounts Cost
             => ResPile.ResAmounts;
-        // TODO: should probably have a separate type for mass
+        // TODO: should probably have a separate type for Mass
         public readonly Mass mass;
 
         private ReservedResPile ResPile
@@ -22,7 +22,7 @@ namespace Game1.Industries
             if (resSource.IsEmpty)
                 throw new ArgumentException();
             resPile = ReservedResPile.CreateFromSource(source: ref resSource);
-            mass = Cost.TotalMass();
+            mass = Cost.Mass();
         }
 
         public static void Delete([DisallowNull] ref Building? building, ResPile resDestin)

@@ -134,7 +134,7 @@ namespace Game1
                 int startPlanetI = C.Random(min: width / 2 - 1, max: width / 2),
                     startPlanetJ = C.Random(min: height / 2 - 1, max: height / 2);
                 Planet?[,] planets = new Planet[width, height];
-                ResPile magicResPile = ResPile.CreateMagicUnlimitedPile();
+                ResPile magicResPile = ResPile.CreateMagicUnlimitedPile(temperatureInK: CurWorldConfig.startingMagicResTemperatureInK);
                 for (int i = 0; i < width; i++)
                     for (int j = 0; j < height; j++)
                     {

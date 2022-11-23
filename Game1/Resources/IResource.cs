@@ -4,6 +4,7 @@
     {
         public ResInd ResInd { get; }
         public Mass Mass { get; }
+        public HeatCapacity HeatCapacity { get; }
         public ResAmounts BasicIngredients { get; }
     }
 }

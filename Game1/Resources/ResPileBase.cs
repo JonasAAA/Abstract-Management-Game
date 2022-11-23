@@ -18,7 +18,8 @@
             private set
             {
                 resAmounts = value;
-                Mass = resAmounts.TotalMass();
+                Mass = resAmounts.Mass();
+                heatCapacity = resAmounts.HeatCapacity();
             }
         }
         public LocationCounters LocationCounters
@@ -26,7 +27,7 @@
             get => locationCounters;
             set
             {
-                value.TransferFrom(source: locationCounters, mass: Mass, numPeople: NumPeople.zero);
+                value.TransferResFrom(source: locationCounters, resAmounts: ResAmounts);
                 locationCounters = value;
             }
         }
@@ -35,6 +36,7 @@
         /// NEVER use directly
         /// </summary>
         private ResAmounts resAmounts;
+        private HeatCapacity heatCapacity;
 #if DEBUG2
         private readonly bool createdByMagic;
 #endif
@@ -59,7 +61,7 @@
 
             source.ResAmounts -= resAmounts;
             destin.ResAmounts += resAmounts;
-            destin.LocationCounters.TransferFrom(source: source.locationCounters, mass: resAmounts.TotalMass(), numPeople: NumPeople.zero);
+            destin.LocationCounters.TransferResFrom(source: source.locationCounters, resAmounts: resAmounts);
         }
 
         protected static void Transfer(ResPileBase source, ResPileBase destin, ResAmount resAmount)

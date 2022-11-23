@@ -13,6 +13,12 @@ namespace Game1.Resources
                 true => throw new InvalidOperationException(unitializedExceptionMessage),
                 false => mass
             };
+        public HeatCapacity HeatCapacity
+            => heatCapacity.IsZero switch
+            {
+                true => throw new InvalidOperationException(unitializedExceptionMessage),
+                false => heatCapacity
+            };
         public ResRecipe Recipe
             => recipe switch
             {
@@ -31,6 +37,7 @@ namespace Game1.Resources
         public readonly ResAmounts ingredients;
         private ResRecipe? recipe;
         private Mass mass;
+        private HeatCapacity heatCapacity;
         private ResAmounts? basicIngredients;
 
         public NonBasicRes(NonBasicResInd resInd, ResAmounts ingredients)
@@ -48,15 +55,16 @@ namespace Game1.Resources
         {
             if (!mass.IsZero)
                 throw new InvalidOperationException($"{nameof(NonBasicRes)} is alrealy initialized, so can't initialize it a second time");
-            ulong massInKg = 0;
+            mass = Mass.zero;
+            heatCapacity = HeatCapacity.zero;
             ResAmounts curBasicIngredients = ResAmounts.Empty;
             foreach (var otherResInd in ResInd.All)
                 if (ingredients[otherResInd] != 0)
                 {
-                    massInKg += ingredients[otherResInd] * CurResConfig.resources[otherResInd].Mass.InKg;
+                    mass += ingredients[otherResInd] * CurResConfig.resources[otherResInd].Mass;
+                    heatCapacity += ingredients[otherResInd] * CurResConfig.resources[otherResInd].HeatCapacity;
                     curBasicIngredients += ingredients[otherResInd] * CurResConfig.resources[otherResInd].BasicIngredients;
                 }
-            mass = Mass.CreateFromKg(massInKg: massInKg);
             basicIngredients = curBasicIngredients;
 
             recipe = ResRecipe.Create

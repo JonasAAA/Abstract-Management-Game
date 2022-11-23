@@ -15,11 +15,11 @@ namespace Game1.Resources
             return resPile;
         }
 
-        public static ResPile CreateMagicUnlimitedPile()
-            // It's OK to create locationMassCounter here as this magic res pile is the only place where the "magic location mass counter" is used
+        public static ResPile CreateMagicUnlimitedPile(UDouble temperatureInK)
+            // It's OK to create locationMassCounter here as this magic res pile is the only place where the "magic location Mass counter" is used
             => new
             (
-                locationCounters: LocationCounters.CreateMassByMagic(mass: magicResPileStartingResAmounts.TotalMass()),
+                locationCounters: LocationCounters.CreateResAmountsCountersByMagic(resAmounts: magicResPileStartingResAmounts, temperatureInK),
                 createdByMagic: true
             );
 

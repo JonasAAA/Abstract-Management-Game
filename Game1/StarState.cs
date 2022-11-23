@@ -3,7 +3,7 @@
     [Serializable]
     public sealed class StarState
     {
-        // TODO: make prodWatts and color the consequence of mass/radius/material
+        // TODO: make prodWatts and color the consequence of Mass/radius/material
         public readonly StarID starID;
         public readonly MyVector2 position;
         public readonly UDouble radius;

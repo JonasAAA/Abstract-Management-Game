@@ -80,5 +80,8 @@
             linkTravelSpeed = (UDouble)100,
             linkJoulesPerNewtonOfGravity = (UDouble).001,
             linkJoulesPerMeterOfDistance = (UDouble).00001;
+
+        public readonly UDouble
+            startingMagicResTemperatureInK = 300;
     }
 }

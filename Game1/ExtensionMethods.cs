@@ -24,11 +24,23 @@ namespace Game1
         }
 
         // could be optimized a la https://stackoverflow.com/questions/11030109/aggregate-vs-sum-performance-in-linq
-        public static ulong Sum<T>(this IEnumerable<T> source, Func<T, ulong> selector)
-            => source.Select(selector).Sum();
+        public static TVector CombineLinearly<TSource, TVector, TScalar>(this IEnumerable<TSource> source, Func<TSource, TVector> vectorSelector, IEnumerable<TScalar> scalars)
+            where TVector : IAdditionOperators<TVector, TVector, TVector>, IAdditiveIdentity<TVector, TVector>, IMultiplyOperators<TVector, TScalar, TVector>
+        {
+            var result = TVector.AdditiveIdentity;
+            foreach (var (item, scalar) in source.Zip(scalars))
+                result += vectorSelector(item) * scalar;
+            return result;
+        }
 
-        public static UDouble Sum<T>(this IEnumerable<T> source, Func<T, UDouble> selector)
-            => source.Select(selector).Sum();
+        public static TResult Sum<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+            where TResult : IAdditionOperators<TResult, TResult, TResult>, IAdditiveIdentity<TResult, TResult>
+        {
+            var result = TResult.AdditiveIdentity;
+            foreach (var item in source)
+                result += selector(item);
+            return result;
+        }
 
         public static TResult Max<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
             where TResult : IComparisonOperators<TResult, TResult, bool>

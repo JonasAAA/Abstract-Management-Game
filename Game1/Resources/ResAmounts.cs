@@ -71,8 +71,11 @@ namespace Game1.Resources
         public ResAmounts Min(ResAmounts other)
             => new(array.Zip(other, (a, b) => MyMathHelper.Min(a, b)));
 
-        public Mass TotalMass()
-            => Mass.CreateFromKg(massInKg: CurResConfig.resources.Zip(array).Sum(item => item.First.Mass.InKg * item.Second));
+        public Mass Mass()
+            => CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Mass, scalars: array);
+
+        public HeatCapacity HeatCapacity()
+            => CurResConfig.resources.CombineLinearly(vectorSelector: res => res.HeatCapacity, scalars: array);
 
         // analogous to with expression from https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/with-expression
         public ResAmounts With(ResAmount resAmount)

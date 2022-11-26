@@ -3,7 +3,7 @@
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly record struct HeatEnergy : ICountable<HeatEnergy>, IMultiplyOperators<HeatEnergy, UDouble, HeatEnergy>
+    public readonly record struct HeatEnergy : IUnconstrainedFormOfEnergy<HeatEnergy> //IMultiplyOperators<HeatEnergy, UDouble, HeatEnergy>
     {
         private static readonly HeatEnergy zero;
 
@@ -11,29 +11,38 @@ namespace Game1.Resources
             => zero;
 
         static HeatEnergy()
-            => zero = new(valueInJoules: 0);
+            => zero = new(energy: Energy.zero);
 
-        private readonly UDouble valueInJoules;
+        public ulong ValueInJ
+            => energy.valueInJ;
 
-        public static HeatEnergy CreateFromJoules(UDouble valueInJoules)
-            => new(valueInJoules: valueInJoules);
+        static HeatEnergy IUnconstrainedFormOfEnergy<HeatEnergy>.CreateFromEnergy(Energy energy)
+            => new(energy: energy);
 
-        private HeatEnergy(UDouble valueInJoules)
-            => this.valueInJoules = valueInJoules;
+        Energy IFormOfEnergy<HeatEnergy>.Energy
+            => energy;
+
+        private readonly Energy energy;
+
+        public static HeatEnergy CreateFromJoules(ulong valueInJ)
+            => new(energy: Energy.CreateFromJoules(valueInJ: valueInJ));
+
+        private HeatEnergy(Energy energy)
+            => this.energy = energy;
 
         public override string ToString()
-            => $"{valueInJoules} J";
+            => energy.ToString();
 
         public static HeatEnergy operator +(HeatEnergy left, HeatEnergy right)
-            => new(valueInJoules: left.valueInJoules + right.valueInJoules);
+            => new(energy: left.energy + right.energy);
 
         public static HeatEnergy operator -(HeatEnergy left, HeatEnergy right)
-            => new(valueInJoules: (UDouble)(left.valueInJoules - right.valueInJoules));
+            => new(energy: left.energy - right.energy);
 
-        public static HeatEnergy operator *(UDouble left, HeatEnergy right)
-            => new(valueInJoules: left * right.valueInJoules);
+        //public static HeatEnergy operator *(ulong left, HeatEnergy right)
+        //    => new(energy: left * right.energy);
 
-        public static HeatEnergy operator *(HeatEnergy left, UDouble right)
-            => right * left;
+        //public static HeatEnergy operator *(HeatEnergy left, ulong right)
+        //    => right * left;
     }
 }

@@ -6,7 +6,7 @@ namespace Game1.Resources
     /// The amount of energy needed to increase the temperature by one degree
     /// </summary>
     [Serializable]
-    public readonly record struct HeatCapacity : ICountable<HeatCapacity>, IMultiplyOperators<HeatCapacity, ulong, HeatCapacity>, IMultiplicativeIdentity<HeatCapacity, ulong>, IDivisionOperators<HeatCapacity, HeatCapacity, UDouble>
+    public readonly record struct HeatCapacity : ICountable<HeatCapacity>, IMultiplyOperators<HeatCapacity, ulong, HeatCapacity>, IMultiplicativeIdentity<HeatCapacity, ulong>
     {
         public static readonly HeatCapacity zero;
 
@@ -46,8 +46,5 @@ namespace Game1.Resources
 
         public static HeatCapacity operator *(ulong left, HeatCapacity right)
             => right * left;
-
-        public static UDouble operator /(HeatCapacity left, HeatCapacity right)
-            => (UDouble)left.valueInJPerK / right.valueInJPerK;
     }
 }

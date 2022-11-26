@@ -119,5 +119,18 @@ namespace Game1.MyMath
 
         public static bool IsTiny(decimal value)
             => Abs(value) < minPosDecimal;
+
+        /// <returns>dividend / divisor rounded using the usual half to even rule https://en.wikipedia.org/wiki/Rounding#Rounding_half_to_even</returns>
+        public static ulong RoundedDivision(ulong dividend, ulong divisor)
+        {
+            ulong quotient = dividend / divisor,
+                remainder = dividend % divisor;
+            return ((long)remainder * 2 - (long)divisor) switch
+            {
+                < 0 => quotient,
+                0 => quotient + (quotient % 2),
+                > 0 => quotient + 1
+            };
+        }
     }
 }

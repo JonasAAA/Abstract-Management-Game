@@ -81,7 +81,10 @@
             linkJoulesPerNewtonOfGravity = (UDouble).001,
             linkJoulesPerMeterOfDistance = (UDouble).00001;
 
-        public readonly UDouble
+        public readonly ulong
             startingMagicResTemperatureInK = 300;
+
+        public readonly ulong
+            energyInJPerKgOfMass = 1000000;
     }
 }

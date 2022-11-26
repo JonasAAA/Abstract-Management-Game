@@ -15,7 +15,7 @@ namespace Game1.Resources
             return resPile;
         }
 
-        public static ResPile CreateMagicUnlimitedPile(UDouble temperatureInK)
+        public static ResPile CreateMagicUnlimitedPile(ulong temperatureInK)
             // It's OK to create locationMassCounter here as this magic res pile is the only place where the "magic location Mass counter" is used
             => new
             (

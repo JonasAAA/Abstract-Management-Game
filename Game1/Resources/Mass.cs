@@ -1,9 +1,10 @@
 ﻿using System.Numerics;
+using static Game1.WorldManager;
 
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly record struct Mass : ICountable<Mass>, IMultiplyOperators<Mass, ulong, Mass>, IMultiplicativeIdentity<Mass, ulong>
+    public readonly record struct Mass : IFormOfEnergy<Mass>, IMultiplyOperators<Mass, ulong, Mass>, IMultiplicativeIdentity<Mass, ulong>
     {
         public static readonly Mass zero;
 
@@ -22,6 +23,9 @@ namespace Game1.Resources
         // This must be property rather than field so that auto-initialized Mass IsZero returns true
         public bool IsZero
             => this == zero;
+
+        Energy IFormOfEnergy<Mass>.Energy
+            => Energy.CreateFromJoules(valueInJ: valueInKg * CurWorldConfig.energyInJPerKgOfMass);
 
         public readonly ulong valueInKg;
 

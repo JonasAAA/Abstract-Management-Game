@@ -23,7 +23,7 @@
 
             protected Counter(bool createdByMagic)
             {
-                Count = default;
+                Count = T.AdditiveIdentity;
 #if DEBUG2
                 this.createdByMagic = createdByMagic;
 #endif
@@ -46,6 +46,7 @@
 #endif
         }
 
+        [Serializable]
         private class EnergyCounter<T> : Counter<T>
             where T : struct, IFormOfEnergy<T>
         {
@@ -80,10 +81,9 @@
         public static LocationCounters CreateEmpty()
             => new
             (
-                massCounter: EnergyCounter<Mass>.CreateEmpty(),
                 peopleCounter: Counter<NumPeople>.CreateEmpty(),
+                resCounter: Counter<ResAmounts>.CreateEmpty(),
                 heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateEmpty(),
-                heatCapacityCounter: Counter<HeatCapacity>.CreateEmpty(),
                 radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty()
             );
 
@@ -91,51 +91,44 @@
             => new
             (
                 peopleCounter: Counter<NumPeople>.CreateCounterByMagic(count: numPeople),
-                massCounter: EnergyCounter<Mass>.CreateEmpty(),
+                resCounter: EnergyCounter<ResAmounts>.CreateEmpty(),
                 heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateEmpty(),
-                heatCapacityCounter: Counter<HeatCapacity>.CreateEmpty(),
                 radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty()
             );
 
         public static LocationCounters CreateResAmountsCountersByMagic(ResAmounts resAmounts, ulong temperatureInK)
-        {
-            var resHeatCapacity = resAmounts.HeatCapacity();
             // TODO: Look at this, want to insure that the (total amount of energy) * (max heat capacity) fit comfortably into ulong
             // If run into problems with overflow, could use int128 or uint128 instead of ulong from
             // https://learn.microsoft.com/en-us/dotnet/api/system.int128?view=net-7.0 https://learn.microsoft.com/en-us/dotnet/api/system.uint128?view=net-7.0
-            return new
+            => new
             (
                 peopleCounter: Counter<NumPeople>.CreateEmpty(),
-                massCounter: EnergyCounter<Mass>.CreateCounterByMagic(count: resAmounts.Mass()),
-                heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateCounterByMagic(count: HeatEnergy.CreateFromJoules(valueInJ: temperatureInK * resHeatCapacity.valueInJPerK)),
-                heatCapacityCounter: Counter<HeatCapacity>.CreateCounterByMagic(count: resHeatCapacity),
+                resCounter: EnergyCounter<ResAmounts>.CreateCounterByMagic(count: resAmounts),
+                heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateCounterByMagic(count: HeatEnergy.CreateFromJoules(valueInJ: temperatureInK * resAmounts.HeatCapacity().valueInJPerK)),
                 radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty() 
             );
-        }
 
         public NumPeople NumPeople
             => peopleCounter.Count;
         public HeatCapacity HeatCapacity
-            => heatCapacityCounter.Count;
+            => resCounter.Count.HeatCapacity();
         public HeatEnergy HeatEnergy
             => heatEnergyCounter.Count;
         public Mass Mass
-            => massCounter.Count;
+            => resCounter.Count.Mass();
         public RadiantEnergy RadiantEnergy
             => radiantEnergyCounter.Count;
 
         private readonly Counter<NumPeople> peopleCounter;
-        private readonly Counter<HeatCapacity> heatCapacityCounter;
+        private readonly Counter<ResAmounts> resCounter;
         private readonly EnergyCounter<HeatEnergy> heatEnergyCounter;
-        private readonly EnergyCounter<Mass> massCounter;
         private readonly EnergyCounter<RadiantEnergy> radiantEnergyCounter;
 
-        private LocationCounters(Counter<NumPeople> peopleCounter, Counter<HeatCapacity> heatCapacityCounter, EnergyCounter<HeatEnergy> heatEnergyCounter, EnergyCounter<Mass> massCounter, EnergyCounter<RadiantEnergy> radiantEnergyCounter)
+        private LocationCounters(Counter<NumPeople> peopleCounter, Counter<ResAmounts> resCounter, EnergyCounter<HeatEnergy> heatEnergyCounter, EnergyCounter<RadiantEnergy> radiantEnergyCounter)
         {
             this.peopleCounter = peopleCounter;
-            this.heatCapacityCounter = heatCapacityCounter;
+            this.resCounter = resCounter;
             this.heatEnergyCounter = heatEnergyCounter;
-            this.massCounter = massCounter;
             this.radiantEnergyCounter = radiantEnergyCounter;
         }
 
@@ -144,25 +137,33 @@
 
         public void TransferResFrom(LocationCounters source, ResAmounts resAmounts)
         {
-            massCounter.TransferFrom(source: source.massCounter, count: resAmounts.Mass());
-            var resHeatCapacity = resAmounts.HeatCapacity();
+            // This must be done first to get accurate source heat capacity in the calculations
             heatEnergyCounter.TransferFrom
             (
                 source: source.heatEnergyCounter,
                 count: HeatEnergy.CreateFromJoules
                 (
-                    valueInJ: MyMathHelper.RoundedDivision
+                    valueInJ: MyMathHelper.MultThenDivideRoundDown
                     (
-                        dividend: source.HeatEnergy.ValueInJ * resHeatCapacity.valueInJPerK,
+                        factor1: source.HeatEnergy.ValueInJ,
+                        factor2: resAmounts.HeatCapacity().valueInJPerK,
                         divisor: source.HeatCapacity.valueInJPerK
                     )
                 )
             );
-            heatCapacityCounter.TransferFrom(source: source.heatCapacityCounter, count: resHeatCapacity);
+            resCounter.TransferFrom(source: source.resCounter, count: resAmounts);
         }
 
-        public void TransformMassToRadiantEnergy(LocationCounters source, Mass mass)
-            => source.massCounter.TransformTo(destin: radiantEnergyCounter, count: mass);
+        //public void TransformResToRadiantEnergy(LocationCounters source, ResAmounts resAmounts)
+        //{
+        //    return 5;
+        //    //"need to:
+        //    //"    destroy appropriate amount of HeatCapacity,
+        //    //"    maybe transfer appropriate amount of heat to radiant energy,
+        //    //"    transform energy from Mass to RadiantEnergy
+
+        //    //source.massCounter.TransformTo(destin: radiantEnergyCounter, count: mass);
+        //}
 
         public void TransformRadiantEnergyToHeat(LocationCounters source, RadiantEnergy radiantEnergy)
             => source.radiantEnergyCounter.TransformTo(destin: heatEnergyCounter, count: radiantEnergy);

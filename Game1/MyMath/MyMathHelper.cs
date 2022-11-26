@@ -120,11 +120,12 @@ namespace Game1.MyMath
         public static bool IsTiny(decimal value)
             => Abs(value) < minPosDecimal;
 
-        /// <returns>dividend / divisor rounded using the usual half to even rule https://en.wikipedia.org/wiki/Rounding#Rounding_half_to_even</returns>
-        public static ulong RoundedDivision(ulong dividend, ulong divisor)
+        /// <returns>factor1 * factor2 / divisor rounded using the usual half to even rule https://en.wikipedia.org/wiki/Rounding#Rounding_half_to_even</returns>
+        public static ulong MultThenDivideRoundDown(ulong factor1, ulong factor2, ulong divisor)
         {
-            ulong quotient = dividend / divisor,
-                remainder = dividend % divisor;
+            UInt128 product = (UInt128)factor1 * factor2;
+            ulong quotient = (ulong)(product / divisor),
+                remainder = (ulong)(product % divisor);
             return ((long)remainder * 2 - (long)divisor) switch
             {
                 < 0 => quotient,

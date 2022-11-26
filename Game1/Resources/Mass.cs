@@ -4,7 +4,7 @@ using static Game1.WorldManager;
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly record struct Mass : IFormOfEnergy<Mass>, IMultiplyOperators<Mass, ulong, Mass>, IMultiplicativeIdentity<Mass, ulong>
+    public readonly record struct Mass : IAdditionOperators<Mass, Mass, Mass>, IAdditiveIdentity<Mass, Mass>, IMultiplyOperators<Mass, ulong, Mass>, IMultiplicativeIdentity<Mass, ulong>
     {
         public static readonly Mass zero;
 
@@ -24,8 +24,8 @@ namespace Game1.Resources
         public bool IsZero
             => this == zero;
 
-        Energy IFormOfEnergy<Mass>.Energy
-            => Energy.CreateFromJoules(valueInJ: valueInKg * CurWorldConfig.energyInJPerKgOfMass);
+        //Energy IFormOfEnergy<Mass>.Energy
+        //    => Energy.CreateFromJoules(valueInJ: valueInKg * CurWorldConfig.energyInJPerKgOfMass);
 
         public readonly ulong valueInKg;
 

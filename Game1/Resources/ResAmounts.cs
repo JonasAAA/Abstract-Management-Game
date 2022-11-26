@@ -4,7 +4,7 @@ using static Game1.WorldManager;
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly struct ResAmounts : IMyArray<ulong>, IEquatable<ResAmounts>, IAdditionOperators<ResAmounts, ResAmounts, ResAmounts>, IAdditiveIdentity<ResAmounts, ResAmounts>, IMultiplyOperators<ResAmounts, ulong, ResAmounts>, IMultiplicativeIdentity<ResAmounts, ulong>
+    public readonly struct ResAmounts : IFormOfEnergy<ResAmounts>, IMyArray<ulong>, IEquatable<ResAmounts>, IAdditionOperators<ResAmounts, ResAmounts, ResAmounts>, IAdditiveIdentity<ResAmounts, ResAmounts>, IMultiplyOperators<ResAmounts, ulong, ResAmounts>, IMultiplicativeIdentity<ResAmounts, ulong>
     {
         public static ResAmounts Empty
             => emptyResAmounts;
@@ -19,6 +19,9 @@ namespace Game1.Resources
 
         static ResAmounts()
             => emptyResAmounts = new();
+
+        Energy IFormOfEnergy<ResAmounts>.Energy
+            => Energy.CreateFromJoules(valueInJ: Mass().valueInKg * CurWorldConfig.energyInJPerKgOfMass);
 
         private readonly ulong[] array;
 

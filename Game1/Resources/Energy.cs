@@ -2,6 +2,7 @@
 
 namespace Game1.Resources
 {
+    [Serializable]
     public readonly record struct Energy //: ICountable<Energy> //, IMultiplyOperators<Energy, ulong, Energy>
     {
         public static readonly Energy zero;

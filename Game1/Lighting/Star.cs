@@ -200,6 +200,7 @@ namespace Game1.Lighting
                     UDouble curArc = MyMathHelper.Abs(MyMathHelper.WrapAngle(angles[i] - angles[(i + 1) % angles.Count]));
                     UseArc(rayCatchingObject: rayCatchingObjects[i], usedArc: ref usedArc);
                     UseArc(rayCatchingObject: rayCatchingObjects[(i + 1) % rayCatchingObjects.Count], usedArc: ref usedArc);
+
                     void UseArc(ILightCatchingObject? rayCatchingObject, ref UDouble usedArc)
                     {
                         if (rayCatchingObject is not null)

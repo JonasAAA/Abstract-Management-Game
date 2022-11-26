@@ -47,10 +47,7 @@ namespace Game1.Lighting
             CurWorldManager.AddLightSource(lightSource: this);
         }
 
-        // let N = lightCatchingObject.Count()
-        // the complexity is O(N ^ 2) as each object has O(1) relevant angles
-        // and each object checks intersection with all the rays
-        // could maybe get the time down to O(N log N) by using modified interval tree
+        // The complexity is O(N log N) where N is lightCatchingObject.Count()
         void ILightSource.GiveWattsToObjects(List<ILightCatchingObject> lightCatchingObjects)
         {
             GetAnglesAndBlockedAngleArcs
@@ -181,7 +178,7 @@ namespace Game1.Lighting
                     {
                         null => maxDist,
                         // adding 1 looks better, even though it's not needed mathematically
-                        // TODO: move the constant 1 to the constants fileooooooooooooooooooooooooooo
+                        // TODO: move the constant 1 to the constants file
                         ILightCatchingObject lightCatchingObject => 1 + lightCatchingObject.CloserInterPoint(lightPos: state.position, lightDir: rayDir)
                     };
                     vertices.Add(state.position + minDist * rayDir);

@@ -76,6 +76,12 @@
             resPileBase.ResAmounts += recipe.results;
         }
 
+        protected static void TransformIntoRadiantEnergy(ResPileBase source, ResAmounts resAmounts)
+        {
+            source.ResAmounts -= resAmounts;
+            source.locationCounters.TransformResToRadiantEnergy(resAmounts: resAmounts);
+        }
+
 #if DEBUG2
         ~ResPileBase()
         {

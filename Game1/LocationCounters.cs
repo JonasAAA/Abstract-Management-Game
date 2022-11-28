@@ -82,7 +82,7 @@
             => new
             (
                 peopleCounter: Counter<NumPeople>.CreateEmpty(),
-                resCounter: Counter<ResAmounts>.CreateEmpty(),
+                resCounter: EnergyCounter<ResAmounts>.CreateEmpty(),
                 heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateEmpty(),
                 radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty()
             );
@@ -120,11 +120,11 @@
             => radiantEnergyCounter.Count;
 
         private readonly Counter<NumPeople> peopleCounter;
-        private readonly Counter<ResAmounts> resCounter;
+        private readonly EnergyCounter<ResAmounts> resCounter;
         private readonly EnergyCounter<HeatEnergy> heatEnergyCounter;
         private readonly EnergyCounter<RadiantEnergy> radiantEnergyCounter;
 
-        private LocationCounters(Counter<NumPeople> peopleCounter, Counter<ResAmounts> resCounter, EnergyCounter<HeatEnergy> heatEnergyCounter, EnergyCounter<RadiantEnergy> radiantEnergyCounter)
+        private LocationCounters(Counter<NumPeople> peopleCounter, EnergyCounter<ResAmounts> resCounter, EnergyCounter<HeatEnergy> heatEnergyCounter, EnergyCounter<RadiantEnergy> radiantEnergyCounter)
         {
             this.peopleCounter = peopleCounter;
             this.resCounter = resCounter;
@@ -154,18 +154,11 @@
             resCounter.TransferFrom(source: source.resCounter, count: resAmounts);
         }
 
-        //public void TransformResToRadiantEnergy(LocationCounters source, ResAmounts resAmounts)
-        //{
-        //    return 5;
-        //    //"need to:
-        //    //"    destroy appropriate amount of HeatCapacity,
-        //    //"    maybe transfer appropriate amount of heat to radiant energy,
-        //    //"    transform energy from Mass to RadiantEnergy
+        public void TransformResToRadiantEnergy(ResAmounts resAmounts)
+            //  TODO: Maybe transfer appropriate amount of heat to radiant energy
+            => resCounter.TransformTo(destin: radiantEnergyCounter, count: resAmounts);
 
-        //    //source.massCounter.TransformTo(destin: radiantEnergyCounter, count: mass);
-        //}
-
-        public void TransformRadiantEnergyToHeat(LocationCounters source, RadiantEnergy radiantEnergy)
-            => source.radiantEnergyCounter.TransformTo(destin: heatEnergyCounter, count: radiantEnergy);
+        public void TransformRadiantEnergyToHeat(RadiantEnergy radiantEnergy)
+            => radiantEnergyCounter.TransformTo(destin: heatEnergyCounter, count: radiantEnergy);
     }
 }

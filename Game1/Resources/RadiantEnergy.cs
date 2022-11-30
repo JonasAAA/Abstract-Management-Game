@@ -19,9 +19,6 @@ namespace Game1.Resources
         static RadiantEnergy IUnconstrainedFormOfEnergy<RadiantEnergy>.CreateFromEnergy(Energy energy)
             => new(energy: energy);
 
-        Energy IFormOfEnergy<RadiantEnergy>.Energy
-            => energy;
-
         private readonly Energy energy;
 
         public static RadiantEnergy CreateFromJoules(ulong valueInJ)
@@ -30,8 +27,14 @@ namespace Game1.Resources
         private RadiantEnergy(Energy energy)
             => this.energy = energy;
 
+        public RadiantEnergy TakeApproxPropor(Propor propor)
+            => new(energy: Energy.CreateFromJoules(valueInJ: Convert.ToUInt64(ValueInJ * (decimal)propor)));
+
         public override string ToString()
             => energy.ToString();
+
+        public static explicit operator Energy(RadiantEnergy radiantEnergy)
+            => radiantEnergy.energy;
 
         public static RadiantEnergy operator +(RadiantEnergy left, RadiantEnergy right)
             => new(energy: left.energy + right.energy);

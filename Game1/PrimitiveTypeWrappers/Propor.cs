@@ -65,6 +65,9 @@ namespace Game1.PrimitiveTypeWrappers
         public static explicit operator UDouble(Propor propor)
             => propor.value;
 
+        public static explicit operator decimal(Propor propor)
+            => (decimal)(double)propor.value;
+
         public static Propor operator *(Propor propor1, Propor propor2)
             => (Propor)(propor1.value * propor2.value);
 

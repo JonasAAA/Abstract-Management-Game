@@ -8,10 +8,10 @@ namespace Game1.Industries
         [Serializable]
         public new sealed class Factory : ProductiveIndustry.Factory, IFactoryForIndustryWithBuilding
         {
-            public readonly Propor surfaceWattsAbsorbedPropor;
+            public readonly Propor surfaceAbsorbtionPropor;
             private readonly ResAmounts buildingCostPerUnitSurface;
 
-            public Factory(string name, UDouble reqSkillPerUnitSurface, Propor surfaceWattsAbsorbedPropor, ResAmounts buildingCostPerUnitSurface)
+            public Factory(string name, UDouble reqSkillPerUnitSurface, Propor surfaceAbsorbtionPropor, ResAmounts buildingCostPerUnitSurface)
                 : base
                 (
                     industryType: IndustryType.PowerPlant,
@@ -21,9 +21,9 @@ namespace Game1.Industries
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
             {
-                if (surfaceWattsAbsorbedPropor.IsCloseTo(other: Propor.empty))
+                if (surfaceAbsorbtionPropor.IsCloseTo(other: Propor.empty))
                     throw new ArgumentOutOfRangeException();
-                this.surfaceWattsAbsorbedPropor = surfaceWattsAbsorbedPropor;
+                this.surfaceAbsorbtionPropor = surfaceAbsorbtionPropor;
                 if (buildingCostPerUnitSurface.IsEmpty())
                     throw new ArgumentException();
                 this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
@@ -42,22 +42,22 @@ namespace Game1.Industries
         [Serializable]
         public new sealed class Params : ProductiveIndustry.Params
         {
-            public UDouble ProdWatts
-                => state.WattsHittingSurfaceOrIndustry * factory.surfaceWattsAbsorbedPropor;
-
-            private readonly Factory factory;
+            public readonly Propor surfaceAbsorbtionPropor;
 
             public override string TooltipText
                 => $"""
                 {base.TooltipText}
-                {nameof(ProdWatts)}: {ProdWatts}
+                Prod watts: {ProdEnergy(curSkillPropor: Propor.full).valueInJ / CurWorldManager.Elapsed.TotalSeconds} W
                 """;
 
             public Params(IIndustryFacingNodeState state, Factory factory)
                 : base(state: state, factory: factory)
             {
-                this.factory = factory;
+                surfaceAbsorbtionPropor = factory.surfaceAbsorbtionPropor;
             }
+
+            public Energy ProdEnergy(Propor curSkillPropor)
+                => (Energy)state.LocationCounters.RadiantEnergy.TakeApproxPropor(propor: factory.surfaceAbsorbtionPropor * curSkillPropor);
         }
 
         public override bool PeopleWorkOnTop
@@ -86,19 +86,26 @@ namespace Game1.Industries
         }
 
         protected override string GetBusyInfo()
-            => $"produce {ProdWatts:0.##} W\n";
+            => $"produce {ProdEnergy.valueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W\n";
 
         protected override UDouble ReqWatts()
             => 0;
 
-        UDouble IEnergyProducer.ProdWatts()
-            => ProdWatts;
+        void IEnergyProducer.ProduceEnergy<T>(T destin)
+        {
+            destin.TransferEnergyFrom(source: parameters.state.LocationCounters, energy: ProdEnergy);
+            parameters.state.LocationCounters.TransformRadiantToElectricalEnergyAndTransfer
+            (
+                destin: destin,
+                proporToTransform: parameters.surfaceAbsorbtionPropor * CurSkillPropor
+            );
+        }
 
-        private UDouble ProdWatts
+        private ElectricalEnergy ProdEnergy
             => IsBusy().SwitchExpression
             (
-                trueCase: () => parameters.ProdWatts * CurSkillPropor,
-                falseCase: () => (UDouble)0
+                trueCase: () => parameters.ProdEnergy(curSkillPropor: CurSkillPropor),
+                falseCase: () => Energy.zero
             );
     }
 }

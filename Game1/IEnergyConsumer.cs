@@ -15,8 +15,9 @@
         /// </summary>
         public NodeID NodeID { get; }
 
-        public UDouble ReqWatts();
+        public ElectricalEnergy ReqEnergy();
 
-        public void ConsumeEnergy(Propor energyPropor);
+        public void ConsumeEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
+            where T : IEnergySouce<ElectricalEnergy>;
     }
 }

@@ -20,9 +20,6 @@ namespace Game1.Resources
         static ResAmounts()
             => emptyResAmounts = new();
 
-        Energy IFormOfEnergy<ResAmounts>.Energy
-            => Energy.CreateFromJoules(valueInJ: Mass().valueInKg * CurWorldConfig.energyInJPerKgOfMass);
-
         private readonly ulong[] array;
 
         public ResAmounts()
@@ -103,6 +100,9 @@ namespace Game1.Resources
                     result += $"res{resInd}: {this[resInd]}, ";
             return result.Trim(' ', ',');
         }
+
+        public static explicit operator Energy(ResAmounts resAmounts)
+            => Energy.CreateFromJoules(valueInJ: resAmounts.Mass().valueInKg * CurWorldConfig.energyInJPerKgOfMass);
 
         public static ResAmounts operator +(ResAmounts resAmounts1, ResAmounts resAmounts2)
             => new(resAmounts1.Zip(resAmounts2, (a, b) => a + b));

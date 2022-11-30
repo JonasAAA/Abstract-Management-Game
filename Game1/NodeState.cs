@@ -31,7 +31,6 @@ namespace Game1
         public BasicResInd ConsistsOfResInd { get; }
         public BasicRes ConsistsOfRes { get; }
         public bool TooManyResStored { get; set; }
-        public UDouble WattsHittingSurfaceOrIndustry { get; set; }
         // TODO: could include linkEndPoints Mass in the Counter<Mass> in this NodeState
         public LocationCounters LocationCounters { get; }
         public UDouble SurfaceGravity
@@ -56,7 +55,6 @@ namespace Game1
             waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationCounters: LocationCounters);
             WaitingPeople = RealPeople.CreateEmpty(locationCounters: LocationCounters);
             TooManyResStored = false;
-            WattsHittingSurfaceOrIndustry = 0;
         }
 
         public bool CanRemove(ulong resAmount)

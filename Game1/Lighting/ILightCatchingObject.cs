@@ -9,8 +9,8 @@
                 lightCatchingObject: this
             );
 
-        public void BeginSetWatts();
-
-        public void SetWatts(StarID starPos, UDouble watts, Propor powerPropor);
+        // May have Propor powerPropor parameter as well
+        public void TakeRadiantEnergyFrom<T>(T source, RadiantEnergy radiantEnergy)
+            where T : IEnergySouce<RadiantEnergy>;
     }
 }

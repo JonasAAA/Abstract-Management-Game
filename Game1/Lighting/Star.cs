@@ -48,7 +48,7 @@ namespace Game1.Lighting
         }
 
         // The complexity is O(N log N) where N is lightCatchingObject.Count()
-        void ILightSource.GiveWattsToObjects(List<ILightCatchingObject> lightCatchingObjects)
+        void ILightSource.GiveRadiantEnergyToObjects(List<ILightCatchingObject> lightCatchingObjects)
         {
             GetAnglesAndBlockedAngleArcs
             (
@@ -60,7 +60,9 @@ namespace Game1.Lighting
 
             blockedAngleArcs.Sort
             (
-                comparison: (angleArc1, angleArc2) => angleArc1.angleArc.GetAngle(start: angleArc1.start).CompareTo(angleArc2.angleArc.GetAngle(start: angleArc2.start))
+                comparison: (angleArc1, angleArc2)
+                    => angleArc1.angleArc.GetAngle(start: angleArc1.start)
+                    .CompareTo(angleArc2.angleArc.GetAngle(start: angleArc2.start))
             );
 
             CalculateLightPolygonAndRayCatchingObjects
@@ -214,12 +216,13 @@ namespace Game1.Lighting
                 foreach (var lightCatchingObject in lightCatchingObjects)
                 {
                     Propor powerPropor = Propor.Create(part: arcsForObjects[lightCatchingObject], whole: 2 * MyMathHelper.pi)!.Value;
-                    lightCatchingObject.SetWatts
-                    (
-                        starPos: state.starID,
-                        watts: powerPropor * state.prodWatts,
-                        powerPropor: powerPropor
-                    );
+                    lightCatchingObject.TakeRadiantEnergyFrom(source:, radiantEnergy: );
+                    //lightCatchingObject.SetWatts
+                    //(
+                    //    starPos: state.starID,
+                    //    watts: powerPropor * state.prodWatts,
+                    //    powerPropor: powerPropor
+                    //);
                 }
             }
         }

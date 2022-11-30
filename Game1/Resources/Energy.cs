@@ -3,12 +3,12 @@
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly record struct Energy //: ICountable<Energy> //, IMultiplyOperators<Energy, ulong, Energy>
+    public readonly record struct Energy : IAdditionOperators<Energy, Energy, Energy>, IAdditiveIdentity<Energy, Energy>, IComparisonOperators<Energy, Energy, bool>
     {
         public static readonly Energy zero;
 
-        //static Energy IAdditiveIdentity<Energy, Energy>.AdditiveIdentity
-        //    => zero;
+        static Energy IAdditiveIdentity<Energy, Energy>.AdditiveIdentity
+            => zero;
 
         static Energy()
             => zero = new(valueInJ: 0);
@@ -33,6 +33,18 @@ namespace Game1.Resources
 
         public static Energy operator -(Energy left, Energy right)
             => new(valueInJ: left.valueInJ - right.valueInJ);
+
+        public static bool operator >(Energy left, Energy right)
+            => left.valueInJ > right.valueInJ;
+
+        public static bool operator >=(Energy left, Energy right)
+            => left.valueInJ >= right.valueInJ;
+
+        public static bool operator <(Energy left, Energy right)
+            => left.valueInJ < right.valueInJ;
+
+        public static bool operator <=(Energy left, Energy right)
+            => left.valueInJ <= right.valueInJ;
 
         //public static Energy operator *(ulong left, Energy right)
         //    => new(valueInJ: left * right.valueInJ);

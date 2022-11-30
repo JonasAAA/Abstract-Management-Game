@@ -10,7 +10,7 @@ using Game1.Inhabitants;
 namespace Game1
 {
     [Serializable]
-    public sealed class Planet : WorldUIElement, ILinkFacingPlanet, INodeAsLocalEnergyProducer, INodeAsResDestin, ILightCatchingObject, IWithRealPeopleStats
+    public sealed class Planet : WorldUIElement, ILinkFacingPlanet, INodeAsLocalEnergyProducerAndConsumer, INodeAsResDestin, ILightCatchingObject, IWithRealPeopleStats
     {
         [Serializable]
         private readonly record struct ResDesinArrowEventListener(Planet Node, ResInd ResInd) : IDeletedListener, INumberChangedListener
@@ -128,7 +128,7 @@ namespace Game1
         private readonly ResPile undecidedResPile;
         private ResAmounts resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
-        private UDouble usedLocalWatts;
+        private Energy usedLocalEnergy;
 
         private readonly TextBox textBox;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
@@ -160,7 +160,7 @@ namespace Game1
             targetStoredResAmounts = ResAmounts.Empty;
             undecidedResPile = ResPile.CreateEmpty(locationCounters: state.LocationCounters);
             resTravelHereAmounts = ResAmounts.Empty;
-            usedLocalWatts = 0;
+            usedLocalEnergy = Energy.zero;
 
             textBox = new(textColor: colorConfig.almostWhiteColor);
             textBox.Shape.Center = Position;
@@ -368,6 +368,10 @@ namespace Game1
 
             Industry = Industry?.Update();
 
+            // transform the remaining radiantEnergy into heat (maybe reflect some of it beforehand)
+            // and dissipate some heat
+            throw new NotImplementedException();
+
             textBox.Shape.Center = state.Position;
         }
 
@@ -559,15 +563,21 @@ namespace Game1
         void ILinkFacingPlanet.Arrive(RealPerson realPerson, RealPeople realPersonSource)
             => state.WaitingPeople.TransferFrom(realPerson: realPerson, realPersonSource: realPersonSource);
 
-        UDouble INodeAsLocalEnergyProducer.LocallyProducedWatts
-            => Industry?.PeopleWorkOnTop switch
-            {
-                true or null => state.WattsHittingSurfaceOrIndustry * (UDouble).001,
-                false => 0
-            };
+        void INodeAsLocalEnergyProducerAndConsumer.ProduceLocalEnergy<T>(T destin)
+        {
+            if (Industry?.PeopleWorkOnTop is true or null)
+                state.LocationCounters.TransformRadiantToElectricalEnergyAndTransfer(destin: destin, proporToTransform: (Propor).001);
+        }
 
-        void INodeAsLocalEnergyProducer.SetUsedLocalWatts(UDouble usedLocalWatts)
-            => this.usedLocalWatts = usedLocalWatts;
+        //Energy INodeAsLocalEnergyProducerAndConsumer.LocallyProducedEnergy
+        //    => Industry?.PeopleWorkOnTop switch
+        //    {
+        //        true or null => (Energy)state.LocationCounters.RadiantEnergy.TakeApproxPropor(propor: (Propor).001),
+        //        false => Energy.zero
+        //    };
+
+        void INodeAsLocalEnergyProducerAndConsumer.SetUsedLocalEnergy(Energy usedLocalEnergy)
+            => this.usedLocalEnergy = usedLocalEnergy;
 
         private ILightBlockingObject CurLightCatchingObject
             => Industry?.LightBlockingObject ?? shape;
@@ -578,11 +588,8 @@ namespace Game1
         double ILightBlockingObject.CloserInterPoint(MyVector2 lightPos, MyVector2 lightDir)
             => CurLightCatchingObject.CloserInterPoint(lightPos: lightPos, lightDir: lightDir);
 
-        void ILightCatchingObject.BeginSetWatts()
-            => state.WattsHittingSurfaceOrIndustry = 0;
-
-        void ILightCatchingObject.SetWatts(StarID starPos, UDouble watts, Propor powerPropor)
-            => state.WattsHittingSurfaceOrIndustry += watts;
+        void ILightCatchingObject.TakeRadiantEnergyFrom<T>(T source, RadiantEnergy radiantEnergy)
+            => source.TransferEnergyTo(destin: state.LocationCounters, energy: radiantEnergy);
 
         void INodeAsResDestin.AddResTravelHere(ResAmount resAmount)
             => resTravelHereAmounts = resTravelHereAmounts.WithAdd(resAmount: resAmount);

@@ -148,7 +148,7 @@ namespace Game1
             NodeID IEnergyConsumer.NodeID
                 => startNode.NodeID;
 
-            UDouble IEnergyConsumer.ReqWatts()
+            ElectricalEnergy IEnergyConsumer.ReqEnergy()
                 => timedPacketQueue.Mass.valueInKg * reqWattsPerKg;
 
             void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)

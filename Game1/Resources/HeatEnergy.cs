@@ -19,9 +19,6 @@ namespace Game1.Resources
         static HeatEnergy IUnconstrainedFormOfEnergy<HeatEnergy>.CreateFromEnergy(Energy energy)
             => new(energy: energy);
 
-        Energy IFormOfEnergy<HeatEnergy>.Energy
-            => energy;
-
         private readonly Energy energy;
 
         public static HeatEnergy CreateFromJoules(ulong valueInJ)
@@ -32,6 +29,9 @@ namespace Game1.Resources
 
         public override string ToString()
             => energy.ToString();
+
+        public static explicit operator Energy(HeatEnergy heatEnergy)
+            => heatEnergy.energy;
 
         public static HeatEnergy operator +(HeatEnergy left, HeatEnergy right)
             => new(energy: left.energy + right.energy);

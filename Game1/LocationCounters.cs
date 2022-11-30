@@ -1,7 +1,7 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public readonly struct LocationCounters
+    public readonly struct LocationCounters : IEnergyDestin<ElectricalEnergy>, IEnergySouce<ElectricalEnergy>
     {
         [Serializable]
         private class Counter<T>
@@ -66,14 +66,14 @@
             public void TransformFrom<U>(EnergyCounter<U> source, T count)
                 where U : struct, IUnconstrainedFormOfEnergy<U>
             {
-                source.Count -= U.CreateFromEnergy(energy: count.Energy);
+                source.Count -= U.CreateFromEnergy(energy: (Energy)count);
                 Count += count;
             }
 
             public void TransformTo<U>(EnergyCounter<U> destin, T count)
                 where U : struct, IUnconstrainedFormOfEnergy<U>
             {
-                destin.Count += U.CreateFromEnergy(energy: count.Energy);
+                destin.Count += U.CreateFromEnergy(energy: (Energy)count);
                 Count -= count;
             }
         }
@@ -118,11 +118,14 @@
             => resCounter.Count.Mass();
         public RadiantEnergy RadiantEnergy
             => radiantEnergyCounter.Count;
+        public ElectricalEnergy ElectricalEnergy
+            => electricalEnergyCounter.Count;
 
         private readonly Counter<NumPeople> peopleCounter;
         private readonly EnergyCounter<ResAmounts> resCounter;
         private readonly EnergyCounter<HeatEnergy> heatEnergyCounter;
         private readonly EnergyCounter<RadiantEnergy> radiantEnergyCounter;
+        private readonly EnergyCounter<ElectricalEnergy> electricalEnergyCounter;
 
         private LocationCounters(Counter<NumPeople> peopleCounter, EnergyCounter<ResAmounts> resCounter, EnergyCounter<HeatEnergy> heatEnergyCounter, EnergyCounter<RadiantEnergy> radiantEnergyCounter)
         {
@@ -154,11 +157,21 @@
             resCounter.TransferFrom(source: source.resCounter, count: resAmounts);
         }
 
+        void IEnergyDestin<ElectricalEnergy>.TransferEnergyFrom(LocationCounters source, ElectricalEnergy energy)
+            => electricalEnergyCounter.TransferFrom(source: source.electricalEnergyCounter, count: energy);
+
+        public void TransferRadiantEnergyFrom(LocationCounters source, RadiantEnergy radiantEnergy)
+            => radiantEnergyCounter.TransferFrom(source: source.radiantEnergyCounter, count: radiantEnergy);
+
         public void TransformResToRadiantEnergy(ResAmounts resAmounts)
             //  TODO: Maybe transfer appropriate amount of heat to radiant energy
             => resCounter.TransformTo(destin: radiantEnergyCounter, count: resAmounts);
 
-        public void TransformRadiantEnergyToHeat(RadiantEnergy radiantEnergy)
-            => radiantEnergyCounter.TransformTo(destin: heatEnergyCounter, count: radiantEnergy);
+        public void TransformRadiantToElectricalEnergyAndTransfer<T>(T destin, Propor proporToTransform)
+            where T : IEnergyDestin<ElectricalEnergy>
+            => ;
+
+        //public void TransformRadiantEnergyToHeat(RadiantEnergy radiantEnergy)
+        //    => radiantEnergyCounter.TransformTo(destin: heatEnergyCounter, count: radiantEnergy);
     }
 }

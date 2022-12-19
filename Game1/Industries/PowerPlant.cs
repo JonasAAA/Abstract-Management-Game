@@ -44,10 +44,11 @@ namespace Game1.Industries
         {
             public readonly Propor surfaceAbsorbtionPropor;
 
+            // TODO: may improve the tooltip text by showing the actual produced amount
             public override string TooltipText
                 => $"""
                 {base.TooltipText}
-                Prod watts: {ProdEnergy(curSkillPropor: Propor.full).valueInJ / CurWorldManager.Elapsed.TotalSeconds} W
+                {nameof(surfaceAbsorbtionPropor)}: {surfaceAbsorbtionPropor}
                 """;
 
             public Params(IIndustryFacingNodeState state, Factory factory)
@@ -55,9 +56,6 @@ namespace Game1.Industries
             {
                 surfaceAbsorbtionPropor = factory.surfaceAbsorbtionPropor;
             }
-
-            public Energy ProdEnergy(Propor curSkillPropor)
-                => (Energy)state.LocationCounters.RadiantEnergy.TakeApproxPropor(propor: factory.surfaceAbsorbtionPropor * curSkillPropor);
         }
 
         public override bool PeopleWorkOnTop
@@ -67,11 +65,13 @@ namespace Game1.Industries
             => CurWorldConfig.defaultIndustryHeight;
 
         private readonly Params parameters;
+        private ElectricalEnergy prodEnergy;
 
         private PowerPlant(Params parameters, Building building)
             : base(parameters: parameters, building: building)
         {
             this.parameters = parameters;
+            prodEnergy = ElectricalEnergy.zero;
             CurWorldManager.AddEnergyProducer(energyProducer: this);
         }
 
@@ -86,26 +86,18 @@ namespace Game1.Industries
         }
 
         protected override string GetBusyInfo()
-            => $"produce {ProdEnergy.valueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W\n";
+            => $"produce {prodEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W\n";
 
-        protected override UDouble ReqWatts()
-            => 0;
+        protected override ElectricalEnergy ReqEnergy()
+            => ElectricalEnergy.zero;
 
         void IEnergyProducer.ProduceEnergy<T>(T destin)
         {
-            destin.TransferEnergyFrom(source: parameters.state.LocationCounters, energy: ProdEnergy);
-            parameters.state.LocationCounters.TransformRadiantToElectricalEnergyAndTransfer
+            prodEnergy = parameters.state.LocationCounters.TransformRadiantToElectricalEnergyAndTransfer
             (
                 destin: destin,
                 proporToTransform: parameters.surfaceAbsorbtionPropor * CurSkillPropor
             );
         }
-
-        private ElectricalEnergy ProdEnergy
-            => IsBusy().SwitchExpression
-            (
-                trueCase: () => parameters.ProdEnergy(curSkillPropor: CurSkillPropor),
-                falseCase: () => Energy.zero
-            );
     }
 }

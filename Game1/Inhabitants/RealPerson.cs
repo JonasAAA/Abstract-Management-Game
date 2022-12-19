@@ -175,7 +175,7 @@ namespace Game1.Inhabitants
         {
             lastNodeID = updateLocationParams.LastNodeID;
             ClosestNodeID = updateLocationParams.ClosestNodeID;
-            var timeCoeff = ReqWatts.IsCloseTo(other: 0) ? Propor.empty : EnergyPropor;
+            var timeCoeff = ReqEnergy.IsZero ? Propor.empty : EnergyPropor;
             var elapsed = timeCoeff * CurWorldManager.Elapsed;
             var momentaryHappiness = CalculateMomentaryHappiness();
 #warning implement update for unused skills
@@ -231,11 +231,13 @@ namespace Game1.Inhabitants
             return activityCenter.PersonEnjoymentOfThis(person: asVirtual);
         }
 
-        private UDouble ReqWatts
-            => IsInActivityCenter ? reqWatts : 0;
+        private ElectricalEnergy ReqEnergy
+            => throw new NotImplementedException();
+        //=> IsInActivityCenter ? reqWatts * CurWorldManager.Elapsed : 0;
 
-        UDouble IEnergyConsumer.ReqWatts()
-            => ReqWatts;
+        ElectricalEnergy IEnergyConsumer.ReqEnergy()
+            => throw new NotImplementedException();
+            //=> ReqWatts;
 
         void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
             => EnergyPropor = energyPropor;

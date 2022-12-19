@@ -211,9 +211,10 @@ namespace Game1.Industries
             // first, births should finish, then people should evacuate, then can delete
             throw new NotImplementedException();
         }
-        
-        protected override UDouble ReqWatts()
-            => (UDouble)birthQueue.Count * parameters.reqWattsPerChild * CurSkillPropor;
+
+        protected override ElectricalEnergy ReqEnergy()
+            => throw new NotImplementedException();
+            //=> (UDouble)birthQueue.Count * parameters.reqWattsPerChild * CurSkillPropor;
 
         protected override string GetBusyInfo()
             => CurWorldManager.Overlay switch

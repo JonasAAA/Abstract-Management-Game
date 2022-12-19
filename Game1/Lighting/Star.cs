@@ -216,7 +216,8 @@ namespace Game1.Lighting
                 foreach (var lightCatchingObject in lightCatchingObjects)
                 {
                     Propor powerPropor = Propor.Create(part: arcsForObjects[lightCatchingObject], whole: 2 * MyMathHelper.pi)!.Value;
-                    lightCatchingObject.TakeRadiantEnergyFrom(source:, radiantEnergy: );
+                    throw new NotImplementedException();
+                    //lightCatchingObject.TakeRadiantEnergyFrom(source:, radiantEnergy: );
                     //lightCatchingObject.SetWatts
                     //(
                     //    starPos: state.starID,

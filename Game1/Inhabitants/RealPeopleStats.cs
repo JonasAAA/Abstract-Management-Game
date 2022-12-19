@@ -78,7 +78,7 @@ namespace Game1.Inhabitants
 
         public RealPeopleStats CombineWith(RealPeopleStats other)
         {
-            if (totalNumPeople + other.totalNumPeople == NumPeople.zero)
+            if ((totalNumPeople + other.totalNumPeople).IsZero)
                 return empty;
 
             var current = this;

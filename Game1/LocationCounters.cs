@@ -121,6 +121,8 @@
         public ElectricalEnergy ElectricalEnergy
             => electricalEnergyCounter.Count;
 
+        ElectricalEnergy IEnergySouce<ElectricalEnergy>.Energy => throw new NotImplementedException();
+
         private readonly Counter<NumPeople> peopleCounter;
         private readonly EnergyCounter<ResAmounts> resCounter;
         private readonly EnergyCounter<HeatEnergy> heatEnergyCounter;
@@ -167,9 +169,17 @@
             //  TODO: Maybe transfer appropriate amount of heat to radiant energy
             => resCounter.TransformTo(destin: radiantEnergyCounter, count: resAmounts);
 
-        public void TransformRadiantToElectricalEnergyAndTransfer<T>(T destin, Propor proporToTransform)
+        /// <returns>the amount of electrical energy transferred</returns>
+        public ElectricalEnergy TransformRadiantToElectricalEnergyAndTransfer<T>(T destin, Propor proporToTransform)
             where T : IEnergyDestin<ElectricalEnergy>
-            => ;
+        {
+            throw new NotImplementedException();
+        }
+
+        void IEnergySouce<ElectricalEnergy>.TransferEnergyTo(LocationCounters destin, ElectricalEnergy energy)
+        {
+            throw new NotImplementedException();
+        }
 
         //public void TransformRadiantEnergyToHeat(RadiantEnergy radiantEnergy)
         //    => radiantEnergyCounter.TransformTo(destin: heatEnergyCounter, count: radiantEnergy);

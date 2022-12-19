@@ -22,6 +22,9 @@ namespace Game1.Resources
 
         private readonly ulong[] array;
 
+        bool IFormOfEnergy<ResAmounts>.IsZero
+            => Mass().IsZero;
+
         public ResAmounts()
             => array = new ulong[ResInd.count];
 

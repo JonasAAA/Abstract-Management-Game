@@ -3,7 +3,7 @@
     public interface IEnergySouce<T>
         where T : struct, IFormOfEnergy<T>
     {
-        public T AvailableEnergy { get; }
+        public T Energy { get; }
 
         public void TransferEnergyTo(LocationCounters destin, T energy);
     }

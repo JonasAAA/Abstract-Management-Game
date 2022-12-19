@@ -133,14 +133,15 @@ namespace Game1.Industries
             => $"Mining {minedResPerSec:0.##} {parameters.state.ConsistsOfResInd} per second\n";
 
         // TODO: get rid of the duplication of this method code
-        protected override UDouble ReqWatts()
+        protected override ElectricalEnergy ReqEnergy()
             // this is correct as if more important people get full energy, this works
             // and if they don't, then the industry will get 0 energy anyway
-            => IsBusy().SwitchExpression
-            (
-                trueCase: () => parameters.ReqWatts * CurSkillPropor,
-                falseCase: () => (UDouble)0
-            );
+            => throw new NotImplementedException();
+            //=> IsBusy().SwitchExpression
+            //(
+            //    trueCase: () => parameters.ReqWatts * CurSkillPropor,
+            //    falseCase: () => (UDouble)0
+            //);
 
         public override void DrawAfterPlanet()
         {

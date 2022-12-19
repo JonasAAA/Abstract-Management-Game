@@ -17,7 +17,6 @@
 
         public ElectricalEnergy ReqEnergy();
 
-        public void ConsumeEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
-            where T : IEnergySouce<ElectricalEnergy>;
+        public void ConsumeEnergy(Propor energyPropor);
     }
 }

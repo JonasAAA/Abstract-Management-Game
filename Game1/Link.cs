@@ -8,6 +8,9 @@ using static Game1.UI.ActiveUIManager;
 namespace Game1
 {
     // TODO: consider making this record class, but see comment below (where operator == is commented out)
+    /// <summary>
+    /// Travellers take energy from the start node
+    /// </summary>
     [Serializable]
     public sealed class Link : WorldUIElement, IWithRealPeopleStats
     {
@@ -149,7 +152,8 @@ namespace Game1
                 => startNode.NodeID;
 
             ElectricalEnergy IEnergyConsumer.ReqEnergy()
-                => timedPacketQueue.Mass.valueInKg * reqWattsPerKg;
+                => throw new NotImplementedException();
+                //=> timedPacketQueue.Mass.valueInKg * reqWattsPerKg;
 
             void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
                 => this.energyPropor = energyPropor;

@@ -13,11 +13,14 @@ namespace Game1.Resources
         static HeatEnergy()
             => zero = new(energy: Energy.zero);
 
-        public ulong ValueInJ
-            => energy.valueInJ;
-
         static HeatEnergy IUnconstrainedFormOfEnergy<HeatEnergy>.CreateFromEnergy(Energy energy)
             => new(energy: energy);
+
+        public bool IsZero
+            => this == zero;
+
+        public ulong ValueInJ
+            => energy.valueInJ;
 
         private readonly Energy energy;
 

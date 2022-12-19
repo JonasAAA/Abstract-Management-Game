@@ -282,7 +282,7 @@ namespace Game1.Industries
 
         protected abstract string GetBusyInfo();
 
-        protected abstract UDouble ReqWatts();
+        protected abstract ElectricalEnergy ReqEnergy();
 
         EnergyPriority IEnergyConsumer.EnergyPriority
             => IsBusy().SwitchExpression
@@ -300,7 +300,7 @@ namespace Game1.Industries
             employer.SetEnergyPropor(energyPropor: energyPropor);
         }
 
-        UDouble IEnergyConsumer.ReqWatts()
-            => ReqWatts();
+        ElectricalEnergy IEnergyConsumer.ReqEnergy()
+            => ReqEnergy();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Game1.Inhabitants;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -41,7 +42,7 @@ namespace Game1
         public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)
         {
             resAmountsPackets = ResAmountsPacketsByDestin.CreateFromSource(sourcePackets: resAmountsPackets, locationCounters: locationCounters);
-            realPeople = RealPeople.CreateFromSource(realPeopleSource: realPeople, locationCounters: locationCounters);
+            realPeople = RealPeople.CreateFromSource(realPeopleSource: realPeople, locationCounters: locationCounters, energyDistributor: CurWorldManager.EnergyDistributor);
             if (resAmountsPackets.Empty && realPeople.NumPeople.IsZero)
                 return;
             timedQueue.Enqueue(element: (resAmountsPackets, realPeople));
@@ -64,7 +65,7 @@ namespace Game1
         public (ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople) DonePacketsAndPeople()
         {
             var doneResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationCounters: locationCounters);
-            var donePeople = RealPeople.CreateEmpty(locationCounters: locationCounters);
+            var donePeople = RealPeople.CreateEmpty(locationCounters: locationCounters, energyDistributor: CurWorldManager.EnergyDistributor);
             foreach (var (resAmountsPackets, people) in timedQueue.DoneElements())
             {
                 TotalResAmounts -= resAmountsPackets.ResAmounts;

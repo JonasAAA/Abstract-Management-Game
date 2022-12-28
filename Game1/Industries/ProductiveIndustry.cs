@@ -71,6 +71,9 @@ namespace Game1.Industries
             public Employer(Params parameters)
                 : base(activityType: ActivityType.Working, energyPriority: parameters.energyPriority, state: parameters.state)
             {
+                "Each building should have it's own energy distributor to distribute energy it gets to building, workers, clients, etc.
+                "The industry productivity is the minimum of proportions of required energy that workers, building, clients get
+                "Thus the goal of distribution is to maximise the minimum of those ratios
                 this.parameters = parameters;
                 CurSkillPropor = Propor.empty;
                 curUnboundedSkillPropor = 0;
@@ -294,10 +297,11 @@ namespace Game1.Industries
         NodeID IEnergyConsumer.NodeID
             => parameters.state.NodeID;
 
-        void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
+        void IEnergyConsumer.ConsumeEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
         {
-            this.energyPropor = energyPropor;
-            employer.SetEnergyPropor(energyPropor: energyPropor);
+            throw new NotImplementedException();
+            //this.energyPropor = energyPropor;
+            //employer.SetEnergyPropor(energyPropor: energyPropor);
         }
 
         ElectricalEnergy IEnergyConsumer.ReqEnergy()

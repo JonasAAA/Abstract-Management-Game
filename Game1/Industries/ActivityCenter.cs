@@ -27,12 +27,12 @@ namespace Game1.Industries
         private readonly Event<IDeletedListener> deleted;
         private readonly VirtualPeople peopleInProcessOfRemoving;
 
-        protected ActivityCenter(ActivityType activityType, EnergyPriority energyPriority, IIndustryFacingNodeState state)
+        protected ActivityCenter(IEnergyDistributor energyDistributor, ActivityType activityType, EnergyPriority energyPriority, IIndustryFacingNodeState state)
         {
             ActivityType = activityType;
             EnergyPriority = energyPriority;
             this.state = state;
-            realPeopleHere = RealPeople.CreateEmpty(locationCounters: state.LocationCounters);
+            realPeopleHere = RealPeople.CreateEmpty(locationCounters: state.LocationCounters, energyDistributor: energyDistributor);
             allPeople = new();
 
             deleted = new();

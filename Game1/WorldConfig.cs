@@ -19,9 +19,9 @@
         public readonly UDouble
             standardStarRadius = 100,
             scrollSpeed = 60;
-        public readonly UDouble
-            personMinReqWatts = (UDouble).1,
-            personMaxReqWatts = 1;
+        public readonly ulong
+            personMinReqWatts = 1,
+            personMaxReqWatts = 10;
         public readonly Propor
             parentContribToChildPropor = (Propor).9;
         public readonly Score

@@ -52,11 +52,11 @@ namespace Game1
                 locationCounters = LocationCounters.CreateEmpty();
                 timedPacketQueue = new(locationCounters: locationCounters);
                 waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationCounters: locationCounters);
-                waitingPeople = RealPeople.CreateEmpty(locationCounters: locationCounters);
+                waitingPeople = RealPeople.CreateEmpty(locationCounters: locationCounters, energyDistributor: CurWorldManager.EnergyDistributor);
                 energyPropor = Propor.empty;
                 deleted = new();
 
-                CurWorldManager.AddEnergyConsumer(energyConsumer: this);
+                CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
             }
 
             public void TransferAllFrom(ResAmountsPacket resAmountsPacket)
@@ -153,10 +153,11 @@ namespace Game1
 
             ElectricalEnergy IEnergyConsumer.ReqEnergy()
                 => throw new NotImplementedException();
-                //=> timedPacketQueue.Mass.valueInKg * reqWattsPerKg;
+            //=> timedPacketQueue.Mass.valueInKg * reqWattsPerKg;
 
-            void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
-                => this.energyPropor = energyPropor;
+            void IEnergyConsumer.ConsumeEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
+                => throw new NotImplementedException();
+                //=> this.energyPropor = energyPropor;
         }
 
         [Serializable]

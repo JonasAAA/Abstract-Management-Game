@@ -591,11 +591,6 @@ namespace Game1
         void INodeAsResDestin.AddResTravelHere(ResAmount resAmount)
             => resTravelHereAmounts = resTravelHereAmounts.WithAdd(resAmount: resAmount);
 
-        void INodeAsLocalEnergyProducerAndConsumer.ConsumeEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
-        {
-            throw new NotImplementedException();
-        }
-
         void INodeAsLocalEnergyProducerAndConsumer.ConsumeUnusedLocalEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
         {
              //=> this.usedLocalEnergy = usedLocalEnergy;

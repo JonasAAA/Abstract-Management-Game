@@ -10,7 +10,7 @@ namespace Game1.Inhabitants
     /// person must be unhappy when don't get enough energy
     /// </summary>
     [Serializable]
-    public sealed class RealPerson : IEnergyConsumer, IWithRealPeopleStats
+    public sealed class RealPerson : IWithRealPeopleStats, IDeletable
     {
         [Serializable]
         public readonly record struct UpdateLocationParams(NodeID LastNodeID, NodeID ClosestNodeID);
@@ -23,6 +23,7 @@ namespace Game1.Inhabitants
                     realPeopleStats: RealPeopleStats.ForNewPerson
                     (
                         totalMass: resSource.Mass,
+                        reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                         age: TimeSpan.FromSeconds(C.Random(min: 0, max: 200)),
                         startingHappiness: CurWorldConfig.startingHappiness,
                         enjoyments: new(selector: indType => Score.GenerateRandom()),
@@ -30,7 +31,6 @@ namespace Game1.Inhabitants
                         skills: new(selector: indType => Score.GenerateRandom())
                     ),
                     nodeID: nodeID,
-                    reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                     seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
                     consistsOfResAmounts: resAmountsPerPerson
@@ -41,6 +41,13 @@ namespace Game1.Inhabitants
         {
             if (!parentSource.Contains(person: parent1) || !parentSource.Contains(person: parent2))
                 throw new ArgumentException();
+
+            ulong childReqWatts;
+            // calculate child required watts
+            throw new NotImplementedException();
+            //= CurWorldConfig.parentContribToChildPropor * (parent1.ReqWatts + parent2.ReqWatts) * (UDouble).5
+            //    + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts);
+            Debug.Assert(CurWorldConfig.personMinReqWatts <= childReqWatts && childReqWatts <= CurWorldConfig.personMaxReqWatts);
             childDestin.AddByMagic
             (
                 realPerson: new
@@ -49,6 +56,7 @@ namespace Game1.Inhabitants
                     (
                         totalMass: resSource.Mass,
                         age: TimeSpan.Zero,
+                        reqWatts: childReqWatts,
                         startingHappiness: Score.Average(parent1.Happiness, parent2.Happiness),
                         enjoyments: CreateIndustryScoreDict
                         (
@@ -62,9 +70,6 @@ namespace Game1.Inhabitants
 
                     ),
                     nodeID: nodeID,
-                    reqWatts:
-                        CurWorldConfig.parentContribToChildPropor * (parent1.ReqWatts + parent2.ReqWatts) * (UDouble).5
-                        + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                     seekChangeTime:
                         CurWorldConfig.parentContribToChildPropor * (parent1.SeekChangeTime + parent2.SeekChangeTime) * (UDouble).5
                         + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
@@ -102,7 +107,6 @@ namespace Game1.Inhabitants
         public NodeID? ActivityCenterNodeID
             => activityCenter?.NodeID;
         public NodeID ClosestNodeID { get; private set; }
-        public Propor EnergyPropor { get; private set; }
         public EnumDict<ActivityType, TimeSpan> LastActivityTimes { get; private set; }
         public RealPeopleStats RealPeopleStats { get; private set; }
         public readonly UDouble reqWatts;
@@ -127,19 +131,13 @@ namespace Game1.Inhabitants
         private readonly ReservedResPile consistsOfResPile;
         private LocationCounters locationCounters;
         
-        private RealPerson(RealPeopleStats realPeopleStats, NodeID nodeID, UDouble reqWatts, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts)
+        private RealPerson(RealPeopleStats realPeopleStats, NodeID nodeID, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts)
         {
             RealPeopleStats = realPeopleStats;
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
 
             activityCenter = null;
-
-            if (reqWatts < CurWorldConfig.personMinReqWatts || reqWatts > CurWorldConfig.personMaxReqWatts)
-                throw new ArgumentOutOfRangeException();
-            this.reqWatts = reqWatts;
-
-            EnergyPropor = Propor.empty;
 
             if (seekChangeTime < CurWorldConfig.personMinSeekChangeTime || seekChangeTime > CurWorldConfig.personMaxSeekChangeTime)
                 throw new ArgumentOutOfRangeException();
@@ -155,7 +153,6 @@ namespace Game1.Inhabitants
             
             locationCounters = LocationCounters.CreatePersonCounterByMagic(numPeople: this.RealPeopleStats.totalNumPeople);
 
-            CurWorldManager.AddEnergyConsumer(energyConsumer: this);
             CurWorldManager.AddPerson(realPerson: this);
         }
 
@@ -171,11 +168,11 @@ namespace Game1.Inhabitants
         }
 
         /// <param name="updateSkillsParams">if null, will use default update</param>
-        public void Update(UpdateLocationParams updateLocationParams, UpdatePersonSkillsParams? updateSkillsParams)
+        public void Update(UpdateLocationParams updateLocationParams, UpdatePersonSkillsParams? updateSkillsParams, Propor energyPropor)
         {
             lastNodeID = updateLocationParams.LastNodeID;
             ClosestNodeID = updateLocationParams.ClosestNodeID;
-            var timeCoeff = ReqEnergy.IsZero ? Propor.empty : EnergyPropor;
+            var timeCoeff = RealPeopleStats.totalReqWatts == 0 ? Propor.empty : energyPropor;
             var elapsed = timeCoeff * CurWorldManager.Elapsed;
             var momentaryHappiness = CalculateMomentaryHappiness();
 #warning implement update for unused skills
@@ -184,8 +181,10 @@ namespace Game1.Inhabitants
             (
                 totalMass: consistsOfResPile.Mass,
                 totalNumPeople: RealPeopleStats.totalNumPeople,
+                totalReqWatts: RealPeopleStats.totalReqWatts,
                 timeCoefficient: timeCoeff,
                 age: RealPeopleStats.age + elapsed,
+                energyPropor: energyPropor,
                 happiness: Score.BringCloser
                 (
                     current: RealPeopleStats.happiness,
@@ -231,17 +230,6 @@ namespace Game1.Inhabitants
             return activityCenter.PersonEnjoymentOfThis(person: asVirtual);
         }
 
-        private ElectricalEnergy ReqEnergy
-            => throw new NotImplementedException();
-        //=> IsInActivityCenter ? reqWatts * CurWorldManager.Elapsed : 0;
-
-        ElectricalEnergy IEnergyConsumer.ReqEnergy()
-            => throw new NotImplementedException();
-            //=> ReqWatts;
-
-        void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
-            => EnergyPropor = energyPropor;
-
         public bool IfSeeksNewActivity()
             => activityCenter is null || timeSinceActivitySearch >= seekChangeTime && activityCenter.CanPersonLeave(person: asVirtual);
 
@@ -281,19 +269,6 @@ namespace Game1.Inhabitants
 
         public void LetGoFromActivityCenter()
             => SetActivityCenter(newActivityCenter: null);
-
-        EnergyPriority IEnergyConsumer.EnergyPriority
-            => IsInActivityCenter switch
-            {
-                // if person has higher priority then activityCenter,
-                // then activityCenter most likely can't work at full capacity
-                // so will not use all the available energy
-                true => MyMathHelper.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority),
-                false => CurWorldConfig.personDefaultEnergyPriority
-            };
-
-        NodeID IEnergyConsumer.NodeID
-            => lastNodeID;
 
 #if DEBUG2
 #pragma warning disable CA1821 // Remove empty Finalizers

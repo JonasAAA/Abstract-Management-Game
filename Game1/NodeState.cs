@@ -53,7 +53,7 @@ namespace Game1
                 throw new ArgumentOutOfRangeException();
             MaxBatchDemResStored = maxBatchDemResStored;
             waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationCounters: LocationCounters);
-            WaitingPeople = RealPeople.CreateEmpty(locationCounters: LocationCounters);
+            WaitingPeople = RealPeople.CreateEmpty(locationCounters: LocationCounters, energyDistributor: CurWorldManager.EnergyDistributor);
             TooManyResStored = false;
         }
 

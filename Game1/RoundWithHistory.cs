@@ -1,5 +1,6 @@
 ﻿namespace Game1
 {
+    [Serializable]
     public class RoundWithHistory
     {
         decimal historicalInaccuracy;

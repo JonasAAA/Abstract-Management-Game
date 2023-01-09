@@ -15,7 +15,7 @@ namespace Game1.Industries
                 : base
                 (
                     industryType: IndustryType.PowerPlant,
-                    energyPriority: EnergyPriority.minimal,
+                    energyPriority: EnergyPriority.mostImportant,
                     name: name,
                     color: Color.Blue,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface

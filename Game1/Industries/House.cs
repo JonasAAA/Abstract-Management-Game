@@ -60,8 +60,8 @@ namespace Game1.Industries
         {
             private readonly Params parameters;
 
-            public Housing(Params parameters)
-                : base(activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.maximal, state: parameters.state)
+            public Housing(Params parameters, IEnergyDistributor energyDistributor)
+                : base(energyDistributor: energyDistributor, activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.leastImportant, state: parameters.state)
                 => this.parameters = parameters;
 
             public override bool IsFull()
@@ -113,7 +113,7 @@ namespace Game1.Industries
         
         private House(Params parameters, Building building)
             : base(parameters: parameters, building: building)
-            => housing = new(parameters: parameters);
+            => housing = new(parameters: parameters, energyDistributor: combinedEnergyConsumer);
 
         protected override void UpdatePeopleInternal(RealPerson.UpdateLocationParams updateLocationParams)
             => housing.UpdatePeople(updateLocationParams: updateLocationParams);

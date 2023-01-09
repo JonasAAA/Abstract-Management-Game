@@ -4,7 +4,7 @@ namespace Game1.PrimitiveTypeWrappers
 {
     // TODO: could rename to MyUFloat
     [Serializable]
-    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>, IComparisonOperators<UDouble, UDouble, bool>, IComparable<UDouble>, IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>, IMultiplyOperators<UDouble, UDouble, UDouble>, IMultiplicativeIdentity<UDouble, UDouble>, IPrimitiveTypeWrapper
+    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>, IComparisonOperators<UDouble, UDouble, bool>, IComparable<UDouble>, IMinMaxValue<UDouble>, IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>, IMultiplyOperators<UDouble, UDouble, UDouble>, IMultiplicativeIdentity<UDouble, UDouble>, IPrimitiveTypeWrapper
     {
         public static readonly UDouble positiveInfinity = new(value: double.PositiveInfinity);
 
@@ -15,6 +15,15 @@ namespace Game1.PrimitiveTypeWrappers
 
         static UDouble IMultiplicativeIdentity<UDouble, UDouble>.MultiplicativeIdentity
             => 1;
+
+        /// <summary>
+        /// Note that this is maximum possible double value, not positive infinity!
+        /// </summary>
+        static UDouble IMinMaxValue<UDouble>.MaxValue
+            => new(value: double.MaxValue);
+
+        static UDouble IMinMaxValue<UDouble>.MinValue
+            => zero;
 
         public static UDouble? Create(double value)
         {

@@ -14,8 +14,6 @@
             jobVacDespValueConsideredAverage = 10;
         public readonly Score
             minAcceptablePersonScore = Score.CreateOrThrow(value: .1);
-        public readonly EnergyPriority
-            linkEnergyPriority = new(value: 10);
         public readonly UDouble
             standardStarRadius = 100,
             scrollSpeed = 60;
@@ -35,12 +33,6 @@
             personInertiaWeight = 1,
             personEnjoymentWeight = 10,
             personTravelCostWeight = 2;
-        /// <summary>
-        /// MUST always be the same for all people
-        /// as the way industry deals with required energy requires that
-        /// </summary>
-        public readonly EnergyPriority
-            personDefaultEnergyPriority = new(value: 100);
         public readonly TimeSpan
             personMinSeekChangeTime = TimeSpan.FromSeconds(5),
             personMaxSeekChangeTime = TimeSpan.FromSeconds(30);
@@ -86,5 +78,14 @@
 
         public readonly ulong
             energyInJPerKgOfMass = 1000000;
+
+        public readonly EnergyPriority
+            linkEnergyPrior = new(value: 90),
+            industryConstructionEnergyPrior = new(value: 90),
+            industryOperationEnergyPrior = new(value: 80),
+            reprodIndustryOperationEnergyPrior = new(value: 89),
+            // MUST always be the same for all people
+            // as the way industry deals with required energy requires that
+            personEnergyPrior = new(value: 10);
     }
 }

@@ -19,8 +19,8 @@ namespace Game1.Industries
                 : base(name: name, color: color)
             {
                 this.industryType = industryType;
-                if ((industryType is IndustryType.PowerPlant && energyPriority != EnergyPriority.minimal)
-                    || (industryType is not IndustryType.PowerPlant && energyPriority == EnergyPriority.minimal))
+                if ((industryType is IndustryType.PowerPlant && energyPriority != EnergyPriority.mostImportant)
+                    || (industryType is not IndustryType.PowerPlant && energyPriority == EnergyPriority.mostImportant))
                     throw new ArgumentException();
                 this.energyPriority = energyPriority;
                 if (reqSkillPerUnitSurface.IsCloseTo(other: 0))
@@ -68,12 +68,9 @@ namespace Game1.Industries
             private Propor workingPropor;
             private bool isBusy;
 
-            public Employer(Params parameters)
-                : base(activityType: ActivityType.Working, energyPriority: parameters.energyPriority, state: parameters.state)
+            public Employer(Params parameters, IEnergyDistributor energyDistributor)
+                : base(energyDistributor: energyDistributor, activityType: ActivityType.Working, energyPriority: parameters.energyPriority, state: parameters.state)
             {
-                "Each building should have it's own energy distributor to distribute energy it gets to building, workers, clients, etc.
-                "The industry productivity is the minimum of proportions of required energy that workers, building, clients get
-                "Thus the goal of distribution is to maximise the minimum of those ratios
                 this.parameters = parameters;
                 CurSkillPropor = Propor.empty;
                 curUnboundedSkillPropor = 0;
@@ -227,11 +224,11 @@ namespace Game1.Industries
         {
             this.parameters = parameters;
 
-            employer = new(parameters: parameters);
+            employer = new(parameters: parameters, energyDistributor: combinedEnergyConsumer);
 
             energyPropor = Propor.empty;
 
-            CurWorldManager.AddEnergyConsumer(energyConsumer: this);
+            combinedEnergyConsumer.AddEnergyConsumer(energyConsumer: this);
         }
 
         protected override void UpdatePeopleInternal(RealPerson.UpdateLocationParams updateLocationParams)
@@ -291,7 +288,7 @@ namespace Game1.Industries
             => IsBusy().SwitchExpression
             (
                 trueCase: () => parameters.energyPriority,
-                falseCase: () => EnergyPriority.maximal
+                falseCase: () => EnergyPriority.leastImportant
             );
 
         NodeID IEnergyConsumer.NodeID

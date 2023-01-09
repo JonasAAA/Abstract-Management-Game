@@ -146,7 +146,7 @@ namespace Game1
             }
 
             EnergyPriority IEnergyConsumer.EnergyPriority
-                => CurWorldConfig.linkEnergyPriority;
+                => CurWorldConfig.linkEnergyPrior;
 
             NodeID IEnergyConsumer.NodeID
                 => startNode.NodeID;

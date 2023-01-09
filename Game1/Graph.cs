@@ -191,8 +191,8 @@ namespace Game1
 
         private void CalcAndSetMaxLinkStats()
         {
-            MaxLinkTravelTime = this.links.Max(link => link.TravelTime);
-            MaxLinkJoulesPerKg = this.links.Max(link => link.JoulesPerKg);
+            MaxLinkTravelTime = links.MaxOrDefault(link => link.TravelTime);
+            MaxLinkJoulesPerKg = links.MaxOrDefault(link => link.JoulesPerKg);
         }
 
         [MemberNotNull(nameof(personDists), nameof(personFirstLinks), nameof(resDists), nameof(resFirstLinks))]

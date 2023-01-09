@@ -104,6 +104,7 @@ namespace Game1.Industries
 
         protected abstract UDouble Height { get; }
 
+        protected readonly CombinedEnergyConsumer combinedEnergyConsumer;
         protected readonly UIRectPanel<IHUDElement> UIPanel;
 
         private Building? building;
@@ -117,6 +118,12 @@ namespace Game1.Industries
         {
             this.parameters = parameters;
             this.building = building;
+
+            combinedEnergyConsumer = new
+            (
+                nodeID: parameters.state.NodeID,
+                energyDistributor: CurWorldManager.EnergyDistributor
+            );
             isDeleted = false;
             deleted = new();
 
@@ -172,6 +179,7 @@ namespace Game1.Industries
         {
             if (building is not null)
                 Building.Delete(building: ref building, resDestin: parameters.state.StoredResPile);
+            combinedEnergyConsumer.Delete();
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 

@@ -1,4 +1,5 @@
 ﻿using Game1.Inhabitants;
+using System.ComponentModel;
 using System.Numerics;
 using System.Text;
 
@@ -42,7 +43,10 @@ namespace Game1
             return result;
         }
 
-        public static TResult Max<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+        /// <summary>
+        /// Throws exception if source is empty
+        /// </summary>
+        public static TResult MaxOrThrow<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
             where TResult : IComparisonOperators<TResult, TResult, bool>
         {
             using var enumerator = source.GetEnumerator();
@@ -53,6 +57,29 @@ namespace Game1
             while (enumerator.MoveNext())
                 max = MyMathHelper.Max(max, selector(enumerator.Current));
             return max;
+        }
+
+        /// <summary>
+        /// Uses min value if source is empty
+        /// </summary>
+        public static TResult MaxOrDefault<TSource, TResult>(this IEnumerable<TSource> source, Func<TSource, TResult> selector)
+            where TResult : IComparisonOperators<TResult, TResult, bool>, IMinMaxValue<TResult>
+        {
+            var result = TResult.MinValue;
+            foreach (var item in source)
+                result = MyMathHelper.Max(result, selector(item));
+            return result;
+        }
+
+        /// <summary>
+        /// Uses min value if source is empty
+        /// </summary>
+        public static TimeSpan MaxOrDefault<TSource>(this IEnumerable<TSource> source, Func<TSource, TimeSpan> selector)
+        {
+            var result = TimeSpan.MinValue;
+            foreach (var item in source)
+                result = MyMathHelper.Max(result, selector(item));
+            return result;
         }
 
         public static TimeSpan Average<TSource>(this IEnumerable<TSource> source, Func<TSource, TimeSpan> selector)

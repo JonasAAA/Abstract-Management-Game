@@ -1,5 +1,6 @@
 ﻿using Game1.Delegates;
 using Game1.Industries;
+using static Game1.WorldManager;
 
 namespace Game1.Inhabitants
 {
@@ -116,15 +117,19 @@ namespace Game1.Inhabitants
             return false;
         }
 
+        // No need to take into account the energy priority of the industry as when it is in some industry,
+        // it will get energy from CombinedEnergyConsumer, which will take care of different energy priorities
+        // by choosing the most important energy priority
         EnergyPriority IEnergyConsumer.EnergyPriority
-            => throw new NotImplementedException();
+            => CurWorldConfig.personEnergyPrior;
+            // OLD implmementation follows
             //=> IsInActivityCenter switch
             //{
             //    // if person has higher priority then activityCenter,
             //    // then activityCenter most likely can't work at full capacity
             //    // so will not use all the available energy
-            //    true => MyMathHelper.Min(CurWorldConfig.personDefaultEnergyPriority, activityCenter.EnergyPriority),
-            //    false => CurWorldConfig.personDefaultEnergyPriority
+            //    true => MyMathHelper.Min(CurWorldConfig.personEnergyPrior, activityCenter.EnergyPriority),
+            //    false => CurWorldConfig.personEnergyPrior
             //};
 
         NodeID IEnergyConsumer.NodeID

@@ -5,9 +5,6 @@
     /// </summary>
     public interface IEnergyConsumer : IDeletable
     {
-        /// <summary>
-        /// the lower, the more important
-        /// </summary>
         public EnergyPriority EnergyPriority { get; }
 
         /// <summary>

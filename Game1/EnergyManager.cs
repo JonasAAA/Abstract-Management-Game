@@ -51,6 +51,8 @@ namespace Game1
         // TODO(performance, GC) allocate all intermediate collections on stack/reuse heap collections from previous frame where possible
         public void DistributeEnergy(IEnumerable<NodeID> nodeIDs, Func<NodeID, INodeAsLocalEnergyProducerAndConsumer> nodeIDToNode)
         {
+            // If possible, gather all energy meant for one consumer into one place and give it all at once
+            // If not possible/convenient enough to do so, change CombinedEnergyConsumer to only distribute energy when get it from all sources
             // Distribute energy
             throw new NotImplementedException();
             //CombinedEnergyConsumer[] combinedEnergyConsumers = CombineEnergyConsumers();
@@ -102,7 +104,7 @@ namespace Game1
             //        true => Propor.full,
             //        false => Propor.Create(reqEnergyByCombinedConsumer[combinedEnergyConsumer], curReqEnergy)!.Value.Opposite()
             //    };
-            //    if (combinedEnergyConsumer.EnergyPriority == EnergyPriority.minimal && !energyPropor.IsCloseTo(other: Propor.full))
+            //    if (combinedEnergyConsumer.EnergyPriority == EnergyPriority.mostImportant && !energyPropor.IsCloseTo(other: Propor.full))
             //        throw new Exception();
             //    combinedEnergyConsumer.ConsumeEnergy(energyPropor: energyPropor);
             //}

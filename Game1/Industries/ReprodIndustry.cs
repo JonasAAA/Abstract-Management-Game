@@ -85,8 +85,8 @@ namespace Game1.Industries
 
             private readonly Params parameters;
 
-            public ReprodCenter(Params parameters)
-                : base(activityType: ActivityType.Reproduction, energyPriority: parameters.energyPriority, state: parameters.state)
+            public ReprodCenter(Params parameters, IEnergyDistributor energyDistributor)
+                : base(energyDistributor: energyDistributor, activityType: ActivityType.Reproduction, energyPriority: parameters.energyPriority, state: parameters.state)
             {
                 this.parameters = parameters;
                 unpairedPeople = new();
@@ -150,7 +150,7 @@ namespace Game1.Industries
             : base(parameters: parameters, building: building)
         {
             this.parameters = parameters;
-            reprodCenter = new(parameters: parameters);
+            reprodCenter = new(parameters: parameters, energyDistributor: combinedEnergyConsumer);
 
             birthQueue = new();
         }

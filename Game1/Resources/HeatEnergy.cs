@@ -3,7 +3,7 @@
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly record struct HeatEnergy : IUnconstrainedFormOfEnergy<HeatEnergy> //IMultiplyOperators<HeatEnergy, UDouble, HeatEnergy>
+    public readonly record struct HeatEnergy : IUnconstrainedEnergy<HeatEnergy> //IMultiplyOperators<HeatEnergy, UDouble, HeatEnergy>
     {
         private static readonly HeatEnergy zero;
 
@@ -13,7 +13,7 @@ namespace Game1.Resources
         static HeatEnergy()
             => zero = new(energy: Energy.zero);
 
-        static HeatEnergy IUnconstrainedFormOfEnergy<HeatEnergy>.CreateFromEnergy(Energy energy)
+        static HeatEnergy IUnconstrainedEnergy<HeatEnergy>.CreateFromEnergy(Energy energy)
             => new(energy: energy);
 
         public bool IsZero

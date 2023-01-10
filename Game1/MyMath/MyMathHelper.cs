@@ -121,7 +121,7 @@ namespace Game1.MyMath
             => Abs(value) < minPosDecimal;
 
         /// <returns>factor1 * factor2 / divisor rounded using the usual half to even rule https://en.wikipedia.org/wiki/Rounding#Rounding_half_to_even</returns>
-        public static ulong MultThenDivideRoundDown(ulong factor1, ulong factor2, ulong divisor)
+        public static ulong MultThenDivideRound(ulong factor1, ulong factor2, ulong divisor)
         {
             UInt128 product = (UInt128)factor1 * factor2;
             ulong quotient = (ulong)(product / divisor),

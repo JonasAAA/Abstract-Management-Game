@@ -48,51 +48,18 @@ namespace Game1
 
         void IEnergyConsumer.ConsumeEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
         {
-            if (electricalEnergy.IsZero)
-                return;
-            var totalReqEnergy = TotalReqEnergy();
-            Debug.Assert(!totalReqEnergy.IsZero);
-            List<ConsumerWithEnergy> energySplit =
-               (from energyConsumer in energyConsumers
-                select new ConsumerWithEnergy
-                (
-                    EnergyConsumer: energyConsumer,
-                    ElectricalEnergy: ElectricalEnergy.CreateFromJoules
-                    (
-                        valueInJ: MyMathHelper.MultThenDivideRoundDown
-                        (
-                            factor1: energyConsumer.ReqEnergy().ValueInJ,
-                            factor2: electricalEnergy.ValueInJ,
-                            divisor: totalReqEnergy.ValueInJ
-                        )
-                    )
-                )).ToList();
-            energySplit.Sort
+            // Create this list of energyConsumers to ensure that looping through the list of them twice preserves ordering
+            // HashSet foreach ordering is very unlikely to change if the collection is not mutated
+            // https://stackoverflow.com/questions/27065754/relying-on-the-iteration-order-of-an-unmodified-hashset
+            // Though that is technically an implementation detail and doesn't have to be true in future versions
+            var localEnergyConsumers = energyConsumers.ToList();
+            var splitEnergy = Algorithms.SplitEnergyEvenly
             (
-                // This compares ElectricalEnergy / left.EnergyConsumer.ReqEnergy() (real number result) between the two
-                // and if ReqEnergy is 0, then that energy consumer will be considered big, i.e. at the end of the list
-                comparison: (left, right)
-                    => (left.EnergyConsumer.ReqEnergy().IsZero, right.EnergyConsumer.ReqEnergy().IsZero) switch
-                    {
-                        (true, true) => 0,
-                        (true, false) => 1,
-                        (false, true) => -1,
-                        (false, false) => (left.ElectricalEnergy.ValueInJ * right.EnergyConsumer.ReqEnergy().ValueInJ).CompareTo
-                            (
-                                right.ElectricalEnergy.ValueInJ * left.EnergyConsumer.ReqEnergy().ValueInJ
-                            )
-                    }
+                reqEnergies: localEnergyConsumers.Select(energyConsumer => energyConsumer.ReqEnergy()).ToList(),
+                availableEnergy: electricalEnergy
             );
-            var remainingEnergy = electricalEnergy - energySplit.Sum(energyConsumer => energyConsumer.ElectricalEnergy);
-            // Give the remaining energy to those that got the least of it.
-            for (int i = 0; i < (int)remainingEnergy.ValueInJ; i++)
-                energySplit[i] = energySplit[i] with
-                {
-                    ElectricalEnergy = energySplit[i].ElectricalEnergy + ElectricalEnergy.CreateFromJoules(valueInJ: 1)
-                };
-            Debug.Assert(energySplit.Sum(energyConsumer => energyConsumer.ElectricalEnergy) == electricalEnergy);
-            foreach (var consumerWithEnergy in energySplit)
-                consumerWithEnergy.EnergyConsumer.ConsumeEnergyFrom(source: source, electricalEnergy: consumerWithEnergy.ElectricalEnergy);
+            foreach (var (energyConsumer, allocEnergy) in localEnergyConsumers.Zip(splitEnergy))
+                energyConsumer.ConsumeEnergyFrom(source: source, electricalEnergy: allocEnergy);
         }
 
         public void AddEnergyConsumer(IEnergyConsumer energyConsumer)

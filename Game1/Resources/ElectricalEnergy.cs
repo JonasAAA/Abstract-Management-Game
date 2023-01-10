@@ -3,7 +3,7 @@
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly record struct ElectricalEnergy : IUnconstrainedFormOfEnergy<ElectricalEnergy>, IComparisonOperators<ElectricalEnergy, ElectricalEnergy, bool>
+    public readonly record struct ElectricalEnergy : IUnconstrainedEnergy<ElectricalEnergy>, IComparisonOperators<ElectricalEnergy, ElectricalEnergy, bool>
     {
         public static readonly ElectricalEnergy zero;
 
@@ -13,7 +13,7 @@ namespace Game1.Resources
         static ElectricalEnergy()
             => zero = new(energy: Energy.zero);
 
-        static ElectricalEnergy IUnconstrainedFormOfEnergy<ElectricalEnergy>.CreateFromEnergy(Energy energy)
+        static ElectricalEnergy IUnconstrainedEnergy<ElectricalEnergy>.CreateFromEnergy(Energy energy)
             => new(energy: energy);
 
         public ulong ValueInJ

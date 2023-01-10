@@ -64,14 +64,14 @@
             { }
 
             public void TransformFrom<U>(EnergyCounter<U> source, T count)
-                where U : struct, IUnconstrainedFormOfEnergy<U>
+                where U : struct, IUnconstrainedEnergy<U>
             {
                 source.Count -= U.CreateFromEnergy(energy: (Energy)count);
                 Count += count;
             }
 
             public void TransformTo<U>(EnergyCounter<U> destin, T count)
-                where U : struct, IUnconstrainedFormOfEnergy<U>
+                where U : struct, IUnconstrainedEnergy<U>
             {
                 destin.Count += U.CreateFromEnergy(energy: (Energy)count);
                 Count -= count;
@@ -148,7 +148,7 @@
                 source: source.heatEnergyCounter,
                 count: HeatEnergy.CreateFromJoules
                 (
-                    valueInJ: MyMathHelper.MultThenDivideRoundDown
+                    valueInJ: MyMathHelper.MultThenDivideRound
                     (
                         factor1: source.HeatEnergy.ValueInJ,
                         factor2: resAmounts.HeatCapacity().valueInJPerK,

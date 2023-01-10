@@ -1,4 +1,6 @@
-﻿namespace Game1.Resources
+﻿using System.Numerics;
+
+namespace Game1.Resources
 {
     public interface IFormOfEnergy<T> : ICountable<T>
         where T : IFormOfEnergy<T>

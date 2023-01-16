@@ -72,7 +72,7 @@ namespace Game1.Lighting
         {
             lightSources.Add(lightSource);
 
-            lightSource.Deleted.Add(listener: this);
+            (lightSource as IDeletable)?.Deleted.Add(listener: this);
         }
 
         public void Update()

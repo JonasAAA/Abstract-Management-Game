@@ -6,10 +6,8 @@ using static Game1.WorldManager;
 namespace Game1.UI
 {
     [Serializable]
-    public abstract class WorldUIElement : UIElement<IUIElement>, /*IWithTooltip,*/ IDeletable, IChoiceChangedListener<IOverlay>
+    public abstract class WorldUIElement : UIElement<IUIElement>, IChoiceChangedListener<IOverlay>
     {
-        public IEvent<IDeletedListener> Deleted
-            => deleted;
         public readonly Event<IActiveChangedListener> activeChanged;
 
         public override bool CanBeClicked
@@ -52,7 +50,7 @@ namespace Game1.UI
 
         private readonly HorizPos popupHorizPos;
         private readonly VertPos popupVertPos;
-        private readonly Event<IDeletedListener> deleted;
+        
         private bool active;
 
         private readonly Dictionary<IOverlay, IHUDElement?> popups;
@@ -66,7 +64,6 @@ namespace Game1.UI
             this.popupHorizPos = popupHorizPos;
             this.popupVertPos = popupVertPos;
             active = false;
-            deleted = new();
 
             popups = IOverlay.all.ToDictionary
             (
@@ -111,9 +108,6 @@ namespace Game1.UI
         }
 
         protected virtual void Delete()
-        {
-            CurOverlayChanged.Remove(listener: this);
-            deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
-        }
+            => CurOverlayChanged.Remove(listener: this);
     }
 }

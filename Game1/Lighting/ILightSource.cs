@@ -1,6 +1,6 @@
 ﻿namespace Game1.Lighting
 {
-    public interface ILightSource : IDeletable
+    public interface ILightSource
     {
         public void GiveRadiantEnergyToObjects(List<ILightCatchingObject> lightCatchingObjects);
 

@@ -1,11 +1,11 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public class RoundWithHistory
+    public class HistoricRounder
     {
-        decimal historicalInaccuracy;
+        private decimal historicalInaccuracy;
 
-        public RoundWithHistory()
+        public HistoricRounder()
             => historicalInaccuracy = 0;
 
         public ulong Round(decimal value)

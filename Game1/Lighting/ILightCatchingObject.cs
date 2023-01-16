@@ -1,6 +1,6 @@
 ﻿namespace Game1.Lighting
 {
-    public interface ILightCatchingObject : ILightBlockingObject, IDeletable
+    public interface ILightCatchingObject : ILightBlockingObject
     {
         public sealed AngleArc BlockedAngleArc(MyVector2 lightPos)
             => new

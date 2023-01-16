@@ -65,7 +65,7 @@ namespace Game1.Lighting
         {
             lightCatchingObjects.Add(lightCatchingObject);
 
-            lightCatchingObject.Deleted.Add(listener: this);
+            (lightCatchingObject as IDeletable)?.Deleted.Add(listener: this);
         }
 
         public void AddLightSource(ILightSource lightSource)

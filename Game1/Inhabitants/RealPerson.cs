@@ -10,7 +10,7 @@ namespace Game1.Inhabitants
     /// person must be unhappy when don't get enough energy
     /// </summary>
     [Serializable]
-    public sealed class RealPerson : IWithRealPeopleStats, IDeletable
+    public sealed class RealPerson : IWithRealPeopleStats
     {
         [Serializable]
         public readonly record struct UpdateLocationParams(NodeID LastNodeID, NodeID ClosestNodeID);
@@ -111,12 +111,6 @@ namespace Game1.Inhabitants
         public RealPeopleStats RealPeopleStats { get; private set; }
         public readonly UDouble reqWatts;
         public readonly TimeSpan seekChangeTime;
-        /// <summary>
-        /// CURRENTLY UNUSED
-        /// If used, needs to transfer the resources the person consists of somewhere else
-        /// </summary>
-        public IEvent<IDeletedListener> Deleted
-            => deleted;
 
         [MemberNotNullWhen(returnValue: true, member: nameof(activityCenter))]
         private bool IsInActivityCenter
@@ -127,7 +121,6 @@ namespace Game1.Inhabitants
         private IPersonFacingActivityCenter? activityCenter;
         private TimeSpan timeSinceActivitySearch;
         private NodeID lastNodeID;
-        private readonly Event<IDeletedListener> deleted;
         private readonly ReservedResPile consistsOfResPile;
         private LocationCounters locationCounters;
         
@@ -149,7 +142,6 @@ namespace Game1.Inhabitants
             consistsOfResPile = ReservedResPile.CreateFromSource(source: ref resSource);
             // The counters here don't matter as this person will be immediately transfered to RealPeople where this person's Mass and NumPeople will be transferred to the appropriate counters
             asVirtual = new(realPerson: this);
-            deleted = new();
             
             locationCounters = LocationCounters.CreatePersonCounterByMagic(numPeople: this.RealPeopleStats.totalNumPeople);
 

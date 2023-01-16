@@ -1,6 +1,4 @@
-﻿using Game1.Delegates;
-using Game1.Industries;
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1.Inhabitants
 {
@@ -29,8 +27,6 @@ namespace Game1.Inhabitants
             => RealPeopleStats.totalNumPeople;
 
         public RealPeopleStats RealPeopleStats { get; private set;}
-
-        IEvent<IDeletedListener> IDeletable.Deleted => throw new NotImplementedException();
 
         private readonly LocationCounters locationCounters;
         private readonly IEnergyDistributor energyDistributor;

@@ -3,7 +3,7 @@
     /// <summary>
     /// MUST call EnergyManager.AddEnergyConsumer() for each instance
     /// </summary>
-    public interface IEnergyConsumer : IDeletable
+    public interface IEnergyConsumer
     {
         public EnergyPriority EnergyPriority { get; }
 

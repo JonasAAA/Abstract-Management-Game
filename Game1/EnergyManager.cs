@@ -37,8 +37,7 @@ namespace Game1
         {
             energyConsumers.Add(energyConsumer);
 
-            if (!energyConsumer.Deleted.Contains(listener: this))
-                energyConsumer.Deleted.Add(listener: this);
+            (energyConsumer as IDeletable)?.Deleted.Add(listener: this);
         }
 
         // The energy is distributed as follows:

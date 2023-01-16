@@ -6,7 +6,7 @@ namespace Game1
     /// Combiner energy priority is the maximum of the constituents
     /// </summary>
     [Serializable]
-    public sealed class CombinedEnergyConsumer : IDeletedListener, IEnergyConsumer, IEnergyDistributor
+    public sealed class CombinedEnergyConsumer : IEnergyConsumer, IEnergyDistributor, IDeletedListener, IDeletable
     {
         private readonly MySet<IEnergyConsumer> energyConsumers;
 
@@ -35,7 +35,11 @@ namespace Game1
         }
 
         public void Delete()
-            => deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+        {
+            foreach (var energyConsumer in energyConsumers)
+                (energyConsumer as IDeletable)?.Deleted.Remove(listener: this);
+            deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+        }
 
         ElectricalEnergy IEnergyConsumer.ReqEnergy()
             => TotalReqEnergy();
@@ -66,8 +70,7 @@ namespace Game1
         {
             energyConsumers.Add(energyConsumer);
 
-            if (!energyConsumer.Deleted.Contains(listener: this))
-                energyConsumer.Deleted.Add(listener: this);
+            (energyConsumer as IDeletable)?.Deleted.Add(listener: this);
         }
 
         void IDeletedListener.DeletedResponse(IDeletable deletable)

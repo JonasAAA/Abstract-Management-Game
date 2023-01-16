@@ -15,7 +15,7 @@ using static Game1.UI.ActiveUIManager;
 namespace Game1
 {
     [Serializable]
-    public sealed class WorldManager : IDeletedListener, IClickedNowhereListener
+    public sealed class WorldManager : IClickedNowhereListener
     {
         [Serializable]
         private sealed class PauseButtonTooltip : TextTooltipBase
@@ -467,10 +467,7 @@ namespace Game1
             => lightManager.AddLightSource(lightSource: lightSource);
 
         public void AddPerson(RealPerson realPerson)
-        {
-            people.Add(realPerson.asVirtual);
-            realPerson.Deleted.Add(listener: this);
-        }
+            => people.Add(realPerson.asVirtual);
 
         public void Update(TimeSpan elapsed)
         {
@@ -539,14 +536,6 @@ namespace Game1
 
             using XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);
             serializer.WriteObject(writer, this);
-        }
-
-        void IDeletedListener.DeletedResponse(IDeletable deletable)
-        {
-            if (deletable is RealPerson realPerson)
-                people.Remove(realPerson.asVirtual);
-            else
-                throw new ArgumentException();
         }
 
         void IClickedNowhereListener.ClickedNowhereResponse()

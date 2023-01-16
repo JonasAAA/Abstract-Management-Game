@@ -40,7 +40,7 @@
 #if DEBUG2
             ~Counter()
             {
-                if (!createdByMagic && !Count.IsZero)
+                if (!createdByMagic && Count != T.AdditiveIdentity)
                     throw new Exception();
             }
 #endif
@@ -84,7 +84,8 @@
                 peopleCounter: Counter<NumPeople>.CreateEmpty(),
                 resCounter: EnergyCounter<ResAmounts>.CreateEmpty(),
                 heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateEmpty(),
-                radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty()
+                radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty(),
+                electricalEnergyCounter: EnergyCounter<ElectricalEnergy>.CreateEmpty()
             );
 
         public static LocationCounters CreatePersonCounterByMagic(NumPeople numPeople)
@@ -93,7 +94,8 @@
                 peopleCounter: Counter<NumPeople>.CreateCounterByMagic(count: numPeople),
                 resCounter: EnergyCounter<ResAmounts>.CreateEmpty(),
                 heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateEmpty(),
-                radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty()
+                radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty(),
+                electricalEnergyCounter: EnergyCounter<ElectricalEnergy>.CreateEmpty()
             );
 
         public static LocationCounters CreateResAmountsCountersByMagic(ResAmounts resAmounts, ulong temperatureInK)
@@ -105,7 +107,8 @@
                 peopleCounter: Counter<NumPeople>.CreateEmpty(),
                 resCounter: EnergyCounter<ResAmounts>.CreateCounterByMagic(count: resAmounts),
                 heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateCounterByMagic(count: HeatEnergy.CreateFromJoules(valueInJ: temperatureInK * resAmounts.HeatCapacity().valueInJPerK)),
-                radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty() 
+                radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty(),
+                electricalEnergyCounter: EnergyCounter<ElectricalEnergy>.CreateEmpty()
             );
 
         public NumPeople NumPeople
@@ -129,12 +132,14 @@
         private readonly EnergyCounter<RadiantEnergy> radiantEnergyCounter;
         private readonly EnergyCounter<ElectricalEnergy> electricalEnergyCounter;
 
-        private LocationCounters(Counter<NumPeople> peopleCounter, EnergyCounter<ResAmounts> resCounter, EnergyCounter<HeatEnergy> heatEnergyCounter, EnergyCounter<RadiantEnergy> radiantEnergyCounter)
+        private LocationCounters(Counter<NumPeople> peopleCounter, EnergyCounter<ResAmounts> resCounter, EnergyCounter<HeatEnergy> heatEnergyCounter,
+            EnergyCounter<RadiantEnergy> radiantEnergyCounter, EnergyCounter<ElectricalEnergy> electricalEnergyCounter)
         {
             this.peopleCounter = peopleCounter;
             this.resCounter = resCounter;
             this.heatEnergyCounter = heatEnergyCounter;
             this.radiantEnergyCounter = radiantEnergyCounter;
+            this.electricalEnergyCounter = electricalEnergyCounter;
         }
 
         public void TransferPeopleFrom(LocationCounters source, NumPeople numPeople)

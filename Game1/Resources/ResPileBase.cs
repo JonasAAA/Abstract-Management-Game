@@ -44,9 +44,6 @@
 
         protected ResPileBase(LocationCounters locationCounters, bool createdByMagic = false)
         {
-            // could remove the possibility of magic res pile alltogether
-            // could instead create a massive amount of energy at the start, and then just convert it to masses of planets, stars, heat, etc.
-            throw new NotImplementedException();
             this.locationCounters = locationCounters;
             ResAmounts = createdByMagic ? magicResPileStartingResAmounts : ResAmounts.Empty;
 #if DEBUG2

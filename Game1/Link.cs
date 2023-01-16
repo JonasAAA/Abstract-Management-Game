@@ -1,5 +1,4 @@
-﻿using Game1.Delegates;
-using Game1.Inhabitants;
+﻿using Game1.Inhabitants;
 using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
@@ -22,12 +21,6 @@ namespace Game1
             static DirLink()
                 => diskTexture = C.LoadTexture(name: "big disk");
 
-            /// <summary>
-            /// CURRENTLY UNUSED
-            /// </summary>
-            public IEvent<IDeletedListener> Deleted
-                => deleted;
-
             public RealPeopleStats RealPeopleStats { get; private set; }
 
             public readonly ILinkFacingPlanet startNode, endNode;
@@ -41,7 +34,6 @@ namespace Game1
             private Propor minSafePropor;
             private UDouble reqWattsPerKg;
             private Propor energyPropor;
-            private readonly Event<IDeletedListener> deleted;
 
             public DirLink(ILinkFacingPlanet startNode, ILinkFacingPlanet endNode, UDouble minSafeDist)
             {
@@ -54,7 +46,6 @@ namespace Game1
                 waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationCounters: locationCounters);
                 waitingPeople = RealPeople.CreateEmpty(locationCounters: locationCounters, energyDistributor: CurWorldManager.EnergyDistributor);
                 energyPropor = Propor.empty;
-                deleted = new();
 
                 CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
             }

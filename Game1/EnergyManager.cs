@@ -29,8 +29,7 @@ namespace Game1
         {
             energyProducers.Add(energyProducer);
 
-            if (!energyProducer.Deleted.Contains(listener: this))
-                energyProducer.Deleted.Add(listener: this);
+            energyProducer.Deleted.Add(listener: this);
         }
 
         public void AddEnergyConsumer(IEnergyConsumer energyConsumer)

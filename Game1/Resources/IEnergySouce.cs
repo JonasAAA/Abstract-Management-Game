@@ -5,6 +5,6 @@
     {
         public T Energy { get; }
 
-        public void TransferEnergyTo(LocationCounters destin, T energy);
+        public void TransferEnergyTo(EnergyPile<T> destin, T energy);
     }
 }

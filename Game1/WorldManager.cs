@@ -344,7 +344,7 @@ namespace Game1
         private readonly ResConfig resConfig;
         private readonly IndustryConfig industryConfig;
         private readonly VirtualPeople people;
-        private readonly EnergyManager energyManager;
+        private readonly ElectricalEnergyManager energyManager;
         private readonly ActivityManager activityManager;
         private readonly LightManager lightManager;
 

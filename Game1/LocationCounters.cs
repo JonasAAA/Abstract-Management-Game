@@ -1,7 +1,7 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public readonly struct LocationCounters : IEnergyDestin<ElectricalEnergy>, IEnergySouce<ElectricalEnergy>
+    public readonly struct LocationCounters
     {
         [Serializable]
         private class Counter<T>
@@ -124,8 +124,6 @@
         public ElectricalEnergy ElectricalEnergy
             => electricalEnergyCounter.Count;
 
-        ElectricalEnergy IEnergySouce<ElectricalEnergy>.Energy => throw new NotImplementedException();
-
         private readonly Counter<NumPeople> peopleCounter;
         private readonly EnergyCounter<ResAmounts> resCounter;
         private readonly EnergyCounter<HeatEnergy> heatEnergyCounter;
@@ -164,24 +162,19 @@
             resCounter.TransferFrom(source: source.resCounter, count: resAmounts);
         }
 
-        void IEnergyDestin<ElectricalEnergy>.TransferEnergyFrom(LocationCounters source, ElectricalEnergy energy)
-            => electricalEnergyCounter.TransferFrom(source: source.electricalEnergyCounter, count: energy);
-
         public void TransferRadiantEnergyFrom(LocationCounters source, RadiantEnergy radiantEnergy)
             => radiantEnergyCounter.TransferFrom(source: source.radiantEnergyCounter, count: radiantEnergy);
 
         public void TransformResToRadiantEnergy(ResAmounts resAmounts)
+        {
+            throw new NotImplementedException();
             //  TODO: Maybe transfer appropriate amount of heat to radiant energy
-            => resCounter.TransformTo(destin: radiantEnergyCounter, count: resAmounts);
+            resCounter.TransformTo(destin: radiantEnergyCounter, count: resAmounts);
+        }
 
         /// <returns>the amount of electrical energy transferred</returns>
         public ElectricalEnergy TransformRadiantToElectricalEnergyAndTransfer<T>(T destin, Propor proporToTransform)
             where T : IEnergyDestin<ElectricalEnergy>
-        {
-            throw new NotImplementedException();
-        }
-
-        void IEnergySouce<ElectricalEnergy>.TransferEnergyTo(LocationCounters destin, ElectricalEnergy energy)
         {
             throw new NotImplementedException();
         }

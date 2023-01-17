@@ -9,7 +9,7 @@
 
         public T Energy { get; private set; }
 
-        private readonly LocationCounters locationCounters;
+        public readonly LocationCounters locationCounters;
 
         private EnergyPile(LocationCounters locationCounters)
         {
@@ -17,12 +17,12 @@
             Energy = T.AdditiveIdentity;
         }
 
-        public void TransferEnergyFrom(LocationCounters source, T energy)
+        public void TransferEnergyFrom(EnergyPile<T> source, T energy)
         {
             throw new NotImplementedException();
         }
 
-        public void TransferEnergyTo(LocationCounters destin, T energy)
+        public void TransferEnergyTo(EnergyPile<T> destin, T energy)
         {
             throw new NotImplementedException();
         }

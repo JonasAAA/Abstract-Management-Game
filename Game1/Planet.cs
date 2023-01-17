@@ -125,7 +125,7 @@ namespace Game1
         private Industry? industry;
         private readonly MyArray<ProporSplitter<NodeID>> resSplittersToDestins;
         private ResAmounts targetStoredResAmounts;
-        private readonly ResPile undecidedResPile;
+        private readonly IPile<ResAmounts> undecidedResPile;
         private ResAmounts resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
         private Energy usedLocalEnergy;
@@ -138,7 +138,7 @@ namespace Game1
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
-        public Planet(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount, ResPile resSource)? startingConditions = null)
+        public Planet(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount, ISourcePile<ResAmounts> resSource)? startingConditions = null)
             : base
             (
                 shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
@@ -380,7 +380,7 @@ namespace Game1
             RealPerson.UpdateLocationParams personUpdateParams = new(LastNodeID: NodeID, ClosestNodeID: NodeID);
             Industry?.UpdatePeople(updateLocationParams: personUpdateParams);
             state.WaitingPeople.Update(updateLocationParams: personUpdateParams, personalUpdateSkillsParams: null);
-            Debug.Assert(state.LocationCounters.NumPeople == state.WaitingPeople.NumPeople + (Industry?.RealPeopleStats.totalNumPeople ?? NumPeople.zero));
+            Debug.Assert(state.LocationCounters.GetCount<NumPeople>() == state.WaitingPeople.NumPeople + (Industry?.RealPeopleStats.totalNumPeople ?? NumPeople.zero));
             RealPeopleStats = state.WaitingPeople.RealPeopleStats.CombineWith(Industry?.RealPeopleStats ?? RealPeopleStats.empty);
         }
 
@@ -460,9 +460,9 @@ namespace Game1
                 consists of {state.MainResAmount} {state.ConsistsOfResInd}
                 stores {state.StoredResPile}
                 target {targetStoredResAmounts}
-                Mass of everything {state.LocationCounters.Mass}
+                Mass of everything {state.LocationCounters.GetCount<ResAmounts>().Mass}
                 Mass of planet {state.PlanetMass}
-                Number of people {state.LocationCounters.NumPeople}
+                Number of people {state.LocationCounters.GetCount<NumPeople>()}
 
                 travelling people stats:
                 {state.WaitingPeople.RealPeopleStats}
@@ -586,7 +586,7 @@ namespace Game1
             => CurLightCatchingObject.CloserInterPoint(lightPos: lightPos, lightDir: lightDir);
 
         void ILightCatchingObject.TakeRadiantEnergyFrom<T>(T source, RadiantEnergy radiantEnergy)
-            => source.TransferEnergyTo(destin: state.LocationCounters, energy: radiantEnergy);
+            => source.TransferTo(destin: state.LocationCounters, amount: radiantEnergy);
 
         void INodeAsResDestin.AddResTravelHere(ResAmount resAmount)
             => resTravelHereAmounts = resTravelHereAmounts.WithAdd(resAmount: resAmount);

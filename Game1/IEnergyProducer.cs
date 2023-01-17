@@ -6,6 +6,6 @@
     public interface IEnergyProducer : IDeletable
     {
         public void ProduceEnergy<T>(T destin)
-            where T : IEnergyDestin<ElectricalEnergy>;
+            where T : IDestinPile<ElectricalEnergy>;
     }
 }

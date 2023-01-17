@@ -11,6 +11,6 @@
 
         // May have Propor powerPropor parameter as well
         public void TakeRadiantEnergyFrom<T>(T source, RadiantEnergy radiantEnergy)
-            where T : IEnergySouce<RadiantEnergy>;
+            where T : ISourcePile<RadiantEnergy>;
     }
 }

@@ -15,17 +15,17 @@ namespace Game1
         //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
         public NodeID NodeID { get; }
         public Mass PlanetMass
-            => consistsOfResPile.Mass;
+            => consistsOfResPile.Amount.Mass();
         public ulong Area { get; private set; }
         public UDouble Radius { get; private set; }
         public ulong ApproxSurfaceLength { get; private set; }
         public ulong MainResAmount
-            => consistsOfResPile[ConsistsOfResInd];
+            => consistsOfResPile.Amount[ConsistsOfResInd];
         public ulong MaxAvailableResAmount
             => MainResAmount - CurWorldConfig.minResAmountInPlanet;
         public MyVector2 Position { get; }
         public ulong MaxBatchDemResStored { get; }
-        public ResPile StoredResPile { get; }
+        public IPile<ResAmounts> StoredResPile { get; }
         public readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
         public RealPeople WaitingPeople { get; }
         public BasicResInd ConsistsOfResInd { get; }
@@ -34,11 +34,11 @@ namespace Game1
         // TODO: could include linkEndPoints Mass in the Counter<Mass> in this NodeState
         public LocationCounters LocationCounters { get; }
         public UDouble SurfaceGravity
-            => WorldFunctions.SurfaceGravity(mass: LocationCounters.Mass, radius: Radius);
+            => WorldFunctions.SurfaceGravity(mass: LocationCounters.GetCount<ResAmounts>().Mass(), radius: Radius);
 
-        private readonly ResPile consistsOfResPile;
+        private readonly IPile<ResAmounts> consistsOfResPile;
 
-        public NodeState(MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
+        public NodeState(MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ISourcePile<ResAmounts> resSource, ulong maxBatchDemResStored)
         {
             LocationCounters = LocationCounters.CreateEmpty();
             NodeID = NodeID.Create();
@@ -67,7 +67,8 @@ namespace Game1
             ApproxSurfaceLength = (ulong)(2 * MyMathHelper.pi * Radius);
         }
 
-        public void MineTo(ResPile destin, ulong resAmount)
+        public void MineTo<TDestinPile>(TDestinPile destin, ulong resAmount)
+            where TDestinPile : IDestinPile<ResAmounts>
         {
             if (!CanRemove(resAmount: resAmount))
                 throw new ArgumentException();
@@ -77,6 +78,11 @@ namespace Game1
                 resAmount: new(resInd: ConsistsOfResInd, amount: resAmount)
             );
             Debug.Assert(reservedResPile is not null);
+            destin.TransferFrom
+            (
+                source: consistsOfResPile,
+                amount:
+            );
             destin.TransferAllFrom(reservedSource: ref reservedResPile);
             RecalculateValues();
         }

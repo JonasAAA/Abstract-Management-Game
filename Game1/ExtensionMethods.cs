@@ -6,6 +6,16 @@ namespace Game1
 {
     public static class ExtensionMethods
     {
+        public static void TransferTo<TSourcePile, TDestinPile, TAmount>(this TSourcePile source, TDestinPile destin, TAmount amount)
+            where TSourcePile : ISourcePile<TAmount>
+            where TDestinPile : IDestinPile<TAmount>
+            where TAmount : struct, ICountable<TAmount>
+        {
+            IndividualCounters middleDestin = IndividualCounters.CreateEmpty(locationCounters: source.LocationCounters);
+            source.TransferTo(destin: middleDestin, amount: amount);
+            destin.TransferFrom(source: middleDestin, amount: amount);
+        }
+
         public static ulong ValueInJ<T>(this T formOfEnergy)
             where T : IFormOfEnergy<T>
             => ((Energy)formOfEnergy).valueInJ;

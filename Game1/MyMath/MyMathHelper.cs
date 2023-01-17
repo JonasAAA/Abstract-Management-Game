@@ -133,5 +133,8 @@ namespace Game1.MyMath
                 > 0 => quotient + 1
             };
         }
+
+        public static long Ceiling(decimal value)
+            => (long)Math.Ceiling(value);
     }
 }

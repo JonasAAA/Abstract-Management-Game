@@ -14,7 +14,7 @@ namespace TestProject
         {
             Assert.ThrowsException<ArgumentException>
             (
-                () => Algorithms.SplitEnergyEvenly<ElectricalEnergy>
+                () => Algorithms.SplitEnergyEvenly
                 (
                     reqEnergies: new()
                     {
@@ -29,15 +29,19 @@ namespace TestProject
         [TestMethod]
         public void WhenPossibleSplitsExactlyEvenly()
         {
-            CollectionAssert.AreEqual
+            AssertEquality
             (
-                expected: new List<ElectricalEnergy>()
-                {
-                    ElectricalEnergy.CreateFromJoules(valueInJ: 4),
-                    ElectricalEnergy.CreateFromJoules(valueInJ: 8),
-                    ElectricalEnergy.CreateFromJoules(valueInJ: 6)
-                },
-                actual: Algorithms.SplitEnergyEvenly<ElectricalEnergy>
+                expected:
+                (
+                    allocatedEnergies: new()
+                    {
+                        ElectricalEnergy.CreateFromJoules(valueInJ: 4),
+                        ElectricalEnergy.CreateFromJoules(valueInJ: 8),
+                        ElectricalEnergy.CreateFromJoules(valueInJ: 6)
+                    },
+                    unusedEnergy: ElectricalEnergy.zero
+                ),
+                actual: Algorithms.SplitEnergyEvenly
                 (
                     reqEnergies: new()
                     {
@@ -53,15 +57,19 @@ namespace TestProject
         [TestMethod]
         public void MaximizesMinimumAllocatedRatio()
         {
-            CollectionAssert.AreEqual
+            AssertEquality
             (
-                expected: new List<ElectricalEnergy>()
-                {
-                    ElectricalEnergy.CreateFromJoules(valueInJ: 4),
-                    ElectricalEnergy.CreateFromJoules(valueInJ: 9),
-                    ElectricalEnergy.CreateFromJoules(valueInJ: 5)
-                },
-                actual: Algorithms.SplitEnergyEvenly<ElectricalEnergy>
+                expected:
+                (
+                    allocatedEnergies: new()
+                    {
+                        ElectricalEnergy.CreateFromJoules(valueInJ: 4),
+                        ElectricalEnergy.CreateFromJoules(valueInJ: 9),
+                        ElectricalEnergy.CreateFromJoules(valueInJ: 5)
+                    },
+                    unusedEnergy: ElectricalEnergy.zero
+                ),
+                actual: Algorithms.SplitEnergyEvenly
                 (
                     reqEnergies: new()
                     {
@@ -72,6 +80,12 @@ namespace TestProject
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 18)
                 )
             );
+        }
+
+        private static void AssertEquality<T>((List<T> allocatedEnergies, T unusedEnergy) expected, (List<T> allocatedEnergies, T unusedEnergy) actual)
+        {
+            CollectionAssert.AreEqual(expected: expected.allocatedEnergies, actual: actual.allocatedEnergies);
+            Assert.AreEqual(expected: expected.unusedEnergy, actual: actual.unusedEnergy);
         }
     }
 }

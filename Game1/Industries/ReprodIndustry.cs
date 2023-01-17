@@ -212,9 +212,8 @@ namespace Game1.Industries
             throw new NotImplementedException();
         }
 
-        protected override ElectricalEnergy ReqEnergy()
-            => throw new NotImplementedException();
-            //=> (UDouble)birthQueue.Count * parameters.reqWattsPerChild * CurSkillPropor;
+        protected override UDouble ReqWatts()
+            => (UDouble)birthQueue.Count * parameters.reqWattsPerChild * CurSkillPropor;
 
         protected override string GetBusyInfo()
             => CurWorldManager.Overlay switch

@@ -67,6 +67,12 @@ namespace Game1.PrimitiveTypeWrappers
         public static implicit operator double(UDouble value)
             => value.value;
 
+        public static explicit operator decimal(UDouble value)
+            => (decimal)value.value;
+
+        public static explicit operator ulong(UDouble value)
+            => (ulong)value.value;
+
         public static implicit operator UDouble(uint value)
             => new(value: value);
 

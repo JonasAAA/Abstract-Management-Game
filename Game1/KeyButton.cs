@@ -36,13 +36,13 @@ namespace Game1
         }
     }
 
-    //public class KeyButton<T>
+    //public class KeyButton<T1>
     //{
     //    private readonly Keys key;
-    //    private readonly Func<T> func;
+    //    private readonly Func<T1> func;
     //    private bool prev;
 
-    //    public KeyButton(Keys key, Func<T> func)
+    //    public KeyButton(Keys key, Func<T1> func)
     //    {
     //        this.key = key;
     //        this.func = func;
@@ -50,10 +50,10 @@ namespace Game1
     //    }
 
     //    /// <returns>if key is pressed, func(), else default</returns>
-    //    public T Update()
+    //    public T1 Update()
     //    {
     //        bool cur = Keyboard.GetState().IsKeyDown(key: key);
-    //        T answer = default;
+    //        T1 answer = default;
     //        if (C.Click(prev: prev, cur: cur))
     //            answer = func();
     //        prev = cur;

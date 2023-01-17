@@ -14,6 +14,9 @@
 
         public ElectricalEnergy ReqEnergy();
 
+        /// <summary>
+        /// Will be called at most once per frame
+        /// </summary>
         public void ConsumeEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
             where T : IEnergySouce<ElectricalEnergy>;
     }

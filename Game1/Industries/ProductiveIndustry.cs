@@ -215,6 +215,8 @@ namespace Game1.Industries
         protected Propor CurSkillPropor
             => employer.CurSkillPropor;
 
+        protected readonly HistoricRounder reqEnergyHistoricRounder;
+
         private readonly Params parameters;
         private readonly Employer employer;
         private Propor energyPropor;
@@ -223,6 +225,8 @@ namespace Game1.Industries
             : base(parameters: parameters, building: building)
         {
             this.parameters = parameters;
+
+            reqEnergyHistoricRounder = new();
 
             employer = new(parameters: parameters, energyDistributor: combinedEnergyConsumer);
 
@@ -282,7 +286,7 @@ namespace Game1.Industries
 
         protected abstract string GetBusyInfo();
 
-        protected abstract ElectricalEnergy ReqEnergy();
+        protected abstract UDouble ReqWatts();
 
         EnergyPriority IEnergyConsumer.EnergyPriority
             => IsBusy().SwitchExpression
@@ -302,6 +306,12 @@ namespace Game1.Industries
         }
 
         ElectricalEnergy IEnergyConsumer.ReqEnergy()
-            => ReqEnergy();
+            => ElectricalEnergy.CreateFromJoules
+            (
+                valueInJ: reqEnergyHistoricRounder.Round
+                (
+                    value: (decimal)ReqWatts() * (decimal)CurWorldManager.Elapsed.TotalSeconds
+                )
+            );
     }
 }

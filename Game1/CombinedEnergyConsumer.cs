@@ -57,12 +57,13 @@ namespace Game1
             // https://stackoverflow.com/questions/27065754/relying-on-the-iteration-order-of-an-unmodified-hashset
             // Though that is technically an implementation detail and doesn't have to be true in future versions
             var localEnergyConsumers = energyConsumers.ToList();
-            var splitEnergy = Algorithms.SplitEnergyEvenly
+            var (allocEnergies, unusedEnergy) = Algorithms.SplitEnergyEvenly
             (
                 reqEnergies: localEnergyConsumers.Select(energyConsumer => energyConsumer.ReqEnergy()).ToList(),
                 availableEnergy: electricalEnergy
             );
-            foreach (var (energyConsumer, allocEnergy) in localEnergyConsumers.Zip(splitEnergy))
+            Debug.Assert(unusedEnergy.IsZero);
+            foreach (var (energyConsumer, allocEnergy) in localEnergyConsumers.Zip(allocEnergies))
                 energyConsumer.ConsumeEnergyFrom(source: source, electricalEnergy: allocEnergy);
         }
 

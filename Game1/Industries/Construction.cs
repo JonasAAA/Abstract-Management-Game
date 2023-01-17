@@ -182,15 +182,14 @@ namespace Game1.Industries
         protected override string GetBusyInfo()
             => $"constructing {donePropor * 100.0: 0.}%\n";
 
-        protected override ElectricalEnergy ReqEnergy()
+        protected override UDouble ReqWatts()
             // this is correct as if more important people get full energy, this works
             // and if they don't, then the industry will get 0 energy anyway
-            => throw new NotImplementedException();
-            //=> IsBusy().SwitchExpression
-            //(
-            //    trueCase: () => parameters.ReqWatts * CurSkillPropor,
-            //    falseCase: () => (UDouble)0
-            //);
+            => IsBusy().SwitchExpression
+            (
+                trueCase: () => parameters.ReqWatts * CurSkillPropor,
+                falseCase: () => (UDouble)0
+            );
 
         public override void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)
         {

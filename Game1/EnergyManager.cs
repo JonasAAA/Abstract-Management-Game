@@ -39,6 +39,34 @@ namespace Game1
             (energyConsumer as IDeletable)?.Deleted.Add(listener: this);
         }
 
+        [Serializable]
+        private class EnhancedEnergyConsumer
+        {
+            public ElectricalEnergy OwnedEnergy
+                => ownedEnergyPile.Energy;
+            public readonly ElectricalEnergy reqEnergy;
+            public readonly NodeID nodeID;
+            public readonly EnergyPriority energyPriority;
+            
+            private readonly IEnergyConsumer energyConsumer;
+            private readonly EnergyPile<ElectricalEnergy> ownedEnergyPile;
+
+            public EnhancedEnergyConsumer(IEnergyConsumer energyConsumer, LocationCounters locationCounters)
+            {
+                this.energyConsumer = energyConsumer;
+                nodeID = energyConsumer.NodeID;
+                energyPriority = energyConsumer.EnergyPriority;
+                reqEnergy = energyConsumer.ReqEnergy();
+                ownedEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: locationCounters);
+            }
+
+            public void TransferEnergyFrom(LocationCounters source, ElectricalEnergy energy)
+                => ownedEnergyPile.TransferEnergyFrom(source: source, energy);
+
+            public void ConsumeEnergy()
+                => energyConsumer.ConsumeEnergyFrom(source: ownedEnergyPile, electricalEnergy: OwnedEnergy);
+        }
+
         // The energy is distributed as follows:
         // 1. Each planet local energy is distributed evenly (i.e. to cover the same proportion of required energy) to priority 0 consumers,
         //    then if have enough, evenly to priority 1 consumers, etc.
@@ -49,145 +77,89 @@ namespace Game1
         // TODO(performance, GC) allocate all intermediate collections on stack/reuse heap collections from previous frame where possible
         public void DistributeEnergy(IEnumerable<NodeID> nodeIDs, Func<NodeID, INodeAsLocalEnergyProducerAndConsumer> nodeIDToNode)
         {
+            // TODO(performace): could probably improve performance by separating those requiring no electricity at the start
+            // Then only those requiring non-zero electricity would be involved in more costly calculations
+            List<EnhancedEnergyConsumer> enhancedConsumers =
+               (from energyConsumer in energyConsumers
+                select new EnhancedEnergyConsumer(energyConsumer: energyConsumer, locationCounters: locationCounters))
+                .ToList();
+
+            foreach (var energyProducer in energyProducers)
+                energyProducer.ProduceEnergy(destin: locationCounters);
+            totProdEnergy = locationCounters.ElectricalEnergy;
+            totReqEnergy = enhancedConsumers.Sum(enhancedConsumer => enhancedConsumer.reqEnergy);
+            totUsedLocalEnergy = ElectricalEnergy.zero;
+            totUsedPowerPlantEnergy = ElectricalEnergy.zero;
+
+            Dictionary<NodeID, MySet<EnhancedEnergyConsumer>> enhancedConsumersByNode = new();
+            foreach (var nodeID in nodeIDs)
+                enhancedConsumersByNode[nodeID] = new();
+            foreach (var enhancedConsumer in enhancedConsumers)
+                enhancedConsumersByNode[enhancedConsumer.nodeID].Add(enhancedConsumer);
+
+            foreach (var (nodeID, sameNodeEnhancedConsumers) in enhancedConsumersByNode)
+            {
+                var node = nodeIDToNode(nodeID);
+                var energySource = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: locationCounters);
+                node.ProduceLocalEnergy(destin: energySource);
+                var locallyProducedEnergy = energySource.Energy;
+                DistributePartOfEnergy
+                (
+                    enhancedConsumers: sameNodeEnhancedConsumers,
+                    energySource: energySource
+                );
+                totUsedLocalEnergy += locallyProducedEnergy - energySource.Energy;
+                node.ConsumeUnusedLocalEnergyFrom(source: energySource, electricalEnergy: energySource.Energy);
+            }
+
+            DistributePartOfEnergy
+            (
+                enhancedConsumers: enhancedConsumers,
+                energySource: 
+            );
+
+            totUsedPowerPlantEnergy = totProdEnergy - locationCounters.ElectricalEnergy;
+
+            foreach (var enhancedConsumer in enhancedConsumers)
+            {
+                Debug.Assert(enhancedConsumer.OwnedEnergy <= enhancedConsumer.reqEnergy);
+                if (enhancedConsumer.energyPriority == EnergyPriority.mostImportant && enhancedConsumer.OwnedEnergy < enhancedConsumer.reqEnergy)
+                    throw new Exception();
+                enhancedConsumer.ConsumeEnergy();
+            }
+
+            return;
+
+            // remaining energy is left in energySource
+            static void DistributePartOfEnergy<T>(IEnumerable<EnhancedEnergyConsumer> enhancedConsumers, T energySource)
+                where T : IEnergySouce<ElectricalEnergy>
+            {
+                SortedDictionary<EnergyPriority, List<EnhancedEnergyConsumer>> enhancedConsumersByPriority = new();
+                foreach (var enhancedConsumer in enhancedConsumers)
+                {
+                    EnergyPriority priority = enhancedConsumer.energyPriority;
+                    enhancedConsumersByPriority.TryAdd(key: priority, value: new List<EnhancedEnergyConsumer>());
+                    enhancedConsumersByPriority[priority].Add(enhancedConsumer);
+                }
+
+                foreach (var (priority, samePriorEnhancedConsumers) in enhancedConsumersByPriority)
+                {
+                    var energies =
+                       (from enhancedConsumer in samePriorEnhancedConsumers
+                        select (ownedEnergy: enhancedConsumer.OwnedEnergy, enhancedConsumer.reqEnergy)).ToList();
+                    var (allocatedEnergies, _) = Algorithms.SplitExtraEnergyEvenly
+                    (
+                        energies: energies,
+                        availableEnergy: energySource.Energy
+                    );
+                    foreach (var (enhancedConsumer, allocatedEnergy) in samePriorEnhancedConsumers.Zip(allocatedEnergies))
+                        enhancedConsumer.TransferEnergyFrom(source: energySource, energy: allocatedEnergy);
+                }
+            }
             // If possible, gather all energy meant for one consumer into one place and give it all at once
             // If not possible/convenient enough to do so, change CombinedEnergyConsumer to only distribute energy when get it from all sources
             // Distribute energy
             throw new NotImplementedException();
-            //CombinedEnergyConsumer[] combinedEnergyConsumers = CombineEnergyConsumers();
-
-            //foreach (var energyProducer in energyProducers)
-            //    energyProducer.ProduceEnergy(destin: locationCounters);
-            //totProdEnergy = locationCounters.ElectricalEnergy;
-            //totReqEnergy = combinedEnergyConsumers.Sum(combinedEnergyConsumer => combinedEnergyConsumer.TotalReqEnergy);
-            //totUsedLocalEnergy = ElectricalEnergy.zero;
-            //totUsedPowerPlantEnergy = ElectricalEnergy.zero;
-
-            //Dictionary<NodeID, List<CombinedEnergyConsumer>> combinedEnergyConsumersByNode = new();
-            //foreach (var nodeID in nodeIDs)
-            //    combinedEnergyConsumersByNode[nodeID] = new();
-            //foreach (var combinedEnergyConsumer in combinedEnergyConsumers)
-            //    combinedEnergyConsumersByNode[combinedEnergyConsumer.nodeID].Add(combinedEnergyConsumer);
-
-            //foreach (var (nodeID, sameNodeEnergyConsumers) in combinedEnergyConsumersByNode)
-            //{
-            //    var node = nodeIDToNode(nodeID);
-            //    var energyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: locationCounters);
-            //    node.ProduceLocalEnergy(destin: energyPile);
-            //    var producedLocalEnergy = energyPile.Energy;
-            //    DistributeLocallyProducedEnergy
-            //    (
-            //        nodeID: nodeID,
-            //        combinedEnergyConsumers: sameNodeEnergyConsumers,
-            //        energySource: energyPile
-            //    );
-            //    node.ConsumeUnusedLocalEnergyFrom(source: energyPile, electricalEnergy: energyPile.Energy);
-            //    totUsedLocalEnergy += producedLocalEnergy - energyPile.Energy;
-            //}
-
-            
-
-            //ElectricalEnergy totAvailableEnergy = DistributePartOfEnergy
-            //(
-            //    combinedEnergyConsumers: combinedEnergyConsumers,
-            //    availableEnergy: totProdEnergy
-            //);
-
-            //totUsedPowerPlantEnergy = totProdEnergy - totAvailableEnergy;
-
-            //foreach (var combinedEnergyConsumer in combinedEnergyConsumers)
-            //{
-            //    ElectricalEnergy curReqEnergy = combinedEnergyConsumer.ReqEnergy();
-            //    Propor energyPropor = MyMathHelper.IsTiny(value: curReqEnergy) switch
-            //    {
-            //        true => Propor.full,
-            //        false => Propor.Create(reqEnergyByCombinedConsumer[combinedEnergyConsumer], curReqEnergy)!.Value.Opposite()
-            //    };
-            //    if (combinedEnergyConsumer.EnergyPriority == EnergyPriority.mostImportant && !energyPropor.IsCloseTo(other: Propor.full))
-            //        throw new Exception();
-            //    combinedEnergyConsumer.ConsumeEnergy(energyPropor: energyPropor);
-            //}
-
-            //return;
-
-            //CombinedEnergyConsumer[] CombineEnergyConsumers()
-            //{
-            //    Dictionary<(NodeID nodeID, EnergyPriority energyPriority), CombinedEnergyConsumer> combinedEnergyConsumersDict = new();
-
-            //    foreach (var energyConsumer in energyConsumers)
-            //    {
-            //        var nodeIDAndEnergyPriority = (energyConsumer.NodeID, energyConsumer.EnergyPriority);
-            //        combinedEnergyConsumersDict.TryAdd
-            //        (
-            //            nodeIDAndEnergyPriority,
-            //            new
-            //            (
-            //                nodeID: energyConsumer.NodeID,
-            //                energyPriority: energyConsumer.EnergyPriority
-            //            )
-            //        );
-            //        combinedEnergyConsumersDict[nodeIDAndEnergyPriority].AddEnergyConsumer(energyConsumer: energyConsumer);
-            //    }
-            //    return combinedEnergyConsumersDict.Values.ToArray();
-            //}
-
-            //// remaining energy is left in energySource
-            //void DistributeLocallyProducedEnergy<T>(NodeID nodeID, List<CombinedEnergyConsumer> combinedEnergyConsumers, T energySource)
-            //    where T : IEnergySouce<ElectricalEnergy>
-            //{
-            //    Debug.Assert(combinedEnergyConsumers.All(combinedEnergyConsumer => combinedEnergyConsumer.nodeID == nodeID));
-            //    combinedEnergyConsumers.Sort();
-
-            //    foreach (var combinedEnergyConsumer in combinedEnergyConsumers)
-            //    {
-            //        combinedEnergyConsumer.ConsumeEnergyFrom
-            //        (
-            //            source: energySource,
-            //            electricalEnergy: MyMathHelper.Min
-            //            (
-            //                value1: energySource.Energy,
-            //                combinedEnergyConsumer.CurReqEnergy
-            //            ),
-            //            nodeIDToNode: nodeIDToNode
-            //        );
-            //        if (energySource.Energy.IsZero)
-            //            break;
-            //    }
-            //}
-
-            //// remaining energy is left in energySource
-            //void DistributeEnergy<T>(CombinedEnergyConsumer[] combinedEnergyConsumers, T energySource)
-            //    where T : IEnergySouce<ElectricalEnergy>
-            //{
-            //    SortedDictionary<EnergyPriority, List<CombinedEnergyConsumer>> combinedEnergyConsumersByPriority = new();
-            //    foreach (var combinedEnergyConsumer in combinedEnergyConsumers)
-            //    {
-            //        EnergyPriority priority = combinedEnergyConsumer.energyPriority;
-            //        if (!combinedEnergyConsumersByPriority.ContainsKey(key: priority))
-            //            combinedEnergyConsumersByPriority[priority] = new();
-            //        combinedEnergyConsumersByPriority[priority].Add(combinedEnergyConsumer);
-            //    }
-
-            //    foreach (var (priority, samePriorCombinedEnergyConsumers) in combinedEnergyConsumersByPriority)
-            //    {
-            //        ElectricalEnergy reqEnergy = samePriorCombinedEnergyConsumers.Sum(combinedEnergyConsumer => combinedEnergyConsumer.CurReqEnergy);
-                    
-            //        if (energySource.Energy < reqEnergy)
-            //        {
-            //            Propor energyPropor = (Propor)(availableEnergy / reqEnergy);
-            //            break;
-            //        }
-            //        else
-            //        {
-            //            foreach (var combinedEnergyConsumer in samePriorCombinedEnergyConsumers)
-            //                combinedEnergyConsumer.ConsumeEnergyFrom
-            //                (
-            //                    source: energySource,
-            //                    electricalEnergy: combinedEnergyConsumer.CurReqEnergy,
-            //                    nodeIDToNode: nodeIDToNode
-            //                );
-            //        }
-            //    }
-            //}
         }
 
         public string Summary()

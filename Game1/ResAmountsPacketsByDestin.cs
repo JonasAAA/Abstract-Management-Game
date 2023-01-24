@@ -43,7 +43,7 @@ namespace Game1
 
         public void TransferAllFrom(ResAmountsPacket sourcePacket)
         {
-            ResAmounts += sourcePacket.resPile.ResAmounts;
+            ResAmounts += sourcePacket.resPile.Amount;
             Mass += sourcePacket.Mass;
 
             if (!resAmountsPacketsByDestin.ContainsKey(sourcePacket.destination))
@@ -51,24 +51,26 @@ namespace Game1
             resAmountsPacketsByDestin[sourcePacket.destination].resPile.TransferAllFrom(source: sourcePacket.resPile);
         }
 
-        public void TransferAllFrom([DisallowNull] ref ReservedResPile? source, NodeID destination)
+        public void TransferAllFrom([DisallowNull] ref ReservedPile<ResAmounts>? source, NodeID destination)
         {
-            ResAmounts += source.ResAmounts;
-            Mass += source.Mass;
+            // ResAmounts should maybe be of type Counter<ResAmounts>?
+            throw new NotImplementedException();
+            ResAmounts += source.Amount;
+            Mass += source.Amount.Mass();
 
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination, locationCounters: locationCounters);
-            resAmountsPacketsByDestin[destination].resPile.TransferAllFrom(reservedSource: ref source);
+            resAmountsPacketsByDestin[destination].resPile.TransferAllFrom(source: source);
         }
 
-        public ResPile ReturnAndRemove(NodeID destination)
+        public Pile<ResAmounts> ReturnAndRemove(NodeID destination)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
-                return ResPile.CreateEmpty(locationCounters: locationCounters);
+                return Pile<ResAmounts>.CreateEmpty(locationCounters: locationCounters);
 
             var resAmountsPacket = resAmountsPacketsByDestin[destination];
             resAmountsPacketsByDestin.Remove(destination);
-            ResAmounts -= resAmountsPacket.resPile.ResAmounts;
+            ResAmounts -= resAmountsPacket.resPile.Amount;
             Mass -= resAmountsPacket.Mass;
             return resAmountsPacket.resPile;
         }
@@ -76,7 +78,7 @@ namespace Game1
         public ResAmounts ResToDestinAmounts(NodeID destination)
             => resAmountsPacketsByDestin.ContainsKey(destination) switch
             {
-                true => resAmountsPacketsByDestin[destination].resPile.ResAmounts,
+                true => resAmountsPacketsByDestin[destination].resPile.Amount,
                 false => ResAmounts.Empty
             };
 

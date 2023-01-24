@@ -98,7 +98,7 @@ namespace Game1.Inhabitants
 
         private void Add(RealPerson realPerson)
         {
-            realPerson.SetLocationCounters(locationCounters: locationCounters);
+            realPerson.ChangeLocation(locationCounters: locationCounters);
             virtualToRealPeople.Add(key: realPerson.asVirtual, value: realPerson);
             RealPeopleStats = RealPeopleStats.CombineWith(other: realPerson.RealPeopleStats);
         }

@@ -25,7 +25,7 @@ namespace Game1
             => MainResAmount - CurWorldConfig.minResAmountInPlanet;
         public MyVector2 Position { get; }
         public ulong MaxBatchDemResStored { get; }
-        public IPile<ResAmounts> StoredResPile { get; }
+        public Pile<ResAmounts> StoredResPile { get; }
         public readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
         public RealPeople WaitingPeople { get; }
         public BasicResInd ConsistsOfResInd { get; }
@@ -36,7 +36,7 @@ namespace Game1
         public UDouble SurfaceGravity
             => WorldFunctions.SurfaceGravity(mass: LocationCounters.GetCount<ResAmounts>().Mass(), radius: Radius);
 
-        private readonly IPile<ResAmounts> consistsOfResPile;
+        private readonly Pile<ResAmounts> consistsOfResPile;
 
         public NodeState(MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ISourcePile<ResAmounts> resSource, ulong maxBatchDemResStored)
         {
@@ -45,10 +45,10 @@ namespace Game1
             Position = position;
             ConsistsOfResInd = consistsOfResInd;
             ConsistsOfRes = CurResConfig.resources[consistsOfResInd];
-            consistsOfResPile = ResPile.CreateEmpty(locationCounters: LocationCounters);
+            consistsOfResPile = Pile<ResAmounts>.CreateEmpty(locationCounters: LocationCounters);
             EnlargeFrom(source: resSource, resAmount: mainResAmount);
             
-            StoredResPile = ResPile.CreateEmpty(locationCounters: LocationCounters);
+            StoredResPile = Pile<ResAmounts>.CreateEmpty(locationCounters: LocationCounters);
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             MaxBatchDemResStored = maxBatchDemResStored;
@@ -72,31 +72,27 @@ namespace Game1
         {
             if (!CanRemove(resAmount: resAmount))
                 throw new ArgumentException();
-            var reservedResPile = ReservedResPile.CreateIfHaveEnough
+            var reservedResPile = ReservedPile<ResAmounts>.CreateIfHaveEnough
             (
                 source: consistsOfResPile,
-                resAmount: new(resInd: ConsistsOfResInd, amount: resAmount)
+                amount: new(resInd: ConsistsOfResInd, amount: resAmount)
             );
             Debug.Assert(reservedResPile is not null);
-            destin.TransferFrom
-            (
-                source: consistsOfResPile,
-                amount:
-            );
-            destin.TransferAllFrom(reservedSource: ref reservedResPile);
+            destin.TransferAllFrom(source: reservedResPile);
             RecalculateValues();
         }
 
-        public void EnlargeFrom(ResPile source, ulong resAmount)
+        public void EnlargeFrom<TSourcePile>(TSourcePile source, ulong resAmount)
+            where TSourcePile : ISourcePile<ResAmounts>
         {
-            var reservedResPile = ReservedResPile.CreateIfHaveEnough
+            var reservedResPile = ReservedPile<ResAmounts>.CreateIfHaveEnough
             (
                 source: source,
-                resAmount: new(resInd: ConsistsOfResInd, amount: resAmount)
+                amount: new(resInd: ConsistsOfResInd, amount: resAmount)
             );
             if (reservedResPile is null)
                 throw new ArgumentException();
-            consistsOfResPile.TransferAllFrom(reservedSource: ref reservedResPile);
+            consistsOfResPile.TransferAllFrom(source: reservedResPile);
             RecalculateValues();
         }
     }

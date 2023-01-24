@@ -61,13 +61,13 @@ namespace Game1
 
             public ulong GetTravellingAmount()
             {
-                Debug.Assert(locationCounters.Mass == waitingResAmountsPackets.Mass + waitingPeople.RealPeopleStats.totalMass + timedPacketQueue.Mass);
-                Debug.Assert(locationCounters.NumPeople == waitingPeople.NumPeople + timedPacketQueue.NumPeople);
+                Debug.Assert(locationCounters.GetCount<ResAmounts>().Mass() == waitingResAmountsPackets.Mass + waitingPeople.RealPeopleStats.totalMass + timedPacketQueue.Mass);
+                Debug.Assert(locationCounters.GetCount<NumPeople>() == waitingPeople.NumPeople + timedPacketQueue.NumPeople);
                 return CurWorldManager.Overlay.SwitchExpression
                 (
                     singleResCase: resInd => timedPacketQueue.TotalResAmounts[resInd],
                     allResCase: () => timedPacketQueue.Mass.valueInKg,
-                    peopleCase: () => locationCounters.NumPeople.value,
+                    peopleCase: () => locationCounters.GetCount<NumPeople>().value,
                     powerCase: () => throw new InvalidOperationException()
                 );
             }

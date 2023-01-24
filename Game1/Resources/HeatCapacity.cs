@@ -46,5 +46,17 @@ namespace Game1.Resources
 
         public static HeatCapacity operator *(ulong left, HeatCapacity right)
             => right * left;
+
+        public static bool operator >(HeatCapacity left, HeatCapacity right)
+            => left.valueInJPerK > right.valueInJPerK;
+
+        public static bool operator >=(HeatCapacity left, HeatCapacity right)
+            => left.valueInJPerK >= right.valueInJPerK;
+
+        public static bool operator <(HeatCapacity left, HeatCapacity right)
+            => left.valueInJPerK < right.valueInJPerK;
+
+        public static bool operator <=(HeatCapacity left, HeatCapacity right)
+            => left.valueInJPerK <= right.valueInJPerK;
     }
 }

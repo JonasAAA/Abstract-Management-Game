@@ -84,7 +84,8 @@ namespace Game1.Industries
         [Serializable]
         private class Production
         {
-            private static Production? Create(ResPile source, ResRecipe recipe, TimeSpan duration)
+            private static Production? Create<TSourcePile>(TSourcePile source, ResRecipe recipe, TimeSpan duration)
+                where TSourcePile : ISourcePile<ResAmounts>
             {
                 if (duration <= TimeSpan.Zero)
                     throw new ArgumentException();

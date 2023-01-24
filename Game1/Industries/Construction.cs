@@ -136,14 +136,14 @@ namespace Game1.Industries
             {
                 if (!StartedConstruction)
                 {
-                    var reservedBuildingCost = ReservedResPile.CreateIfHaveEnough
+                    var reservedBuildingCost = ReservedPile<ResAmounts>.CreateIfHaveEnough
                     (
                         source: parameters.state.StoredResPile,
-                        resAmounts: parameters.Cost
+                        amount: parameters.Cost
                     );
                     if (reservedBuildingCost is not null)
                     {
-                        buildingBeingConstructed = new Building(resSource: ref reservedBuildingCost);
+                        buildingBeingConstructed = new(resSource: reservedBuildingCost);
                         constrTimeLeft = parameters.duration;
                     }
                     return this;
@@ -158,8 +158,9 @@ namespace Game1.Industries
                     Industry newIndustry = parameters.industryFactory.CreateIndustry
                     (
                         state: parameters.state,
-                        building: ref buildingBeingConstructed
+                        building: buildingBeingConstructed
                     );
+                    buildingBeingConstructed = null;
                     Delete();
                     return newIndustry;
                 }
@@ -173,8 +174,7 @@ namespace Game1.Industries
 
         protected override void PlayerDelete()
         {
-            if (buildingBeingConstructed is not null)
-                Building.Delete(building: ref buildingBeingConstructed, resDestin: parameters.state.StoredResPile);
+            buildingBeingConstructed?.Delete(resDestin: parameters.state.StoredResPile);
 
             base.PlayerDelete();
         }

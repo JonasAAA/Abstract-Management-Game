@@ -177,8 +177,7 @@ namespace Game1.Industries
 
         protected virtual void Delete()
         {
-            if (building is not null)
-                Building.Delete(building: ref building, resDestin: parameters.state.StoredResPile);
+            building?.Delete(resDestin: parameters.state.StoredResPile);
             combinedEnergyConsumer.Delete();
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }

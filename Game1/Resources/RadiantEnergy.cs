@@ -44,5 +44,17 @@ namespace Game1.Resources
 
         public static RadiantEnergy operator -(RadiantEnergy left, RadiantEnergy right)
             => new(energy: left.energy - right.energy);
+
+        public static bool operator >(RadiantEnergy left, RadiantEnergy right)
+            => left.ValueInJ > right.ValueInJ;
+
+        public static bool operator >=(RadiantEnergy left, RadiantEnergy right)
+            => left.ValueInJ >= right.ValueInJ;
+
+        public static bool operator <(RadiantEnergy left, RadiantEnergy right)
+            => left.ValueInJ < right.ValueInJ;
+
+        public static bool operator <=(RadiantEnergy left, RadiantEnergy right)
+            => left.ValueInJ <= right.ValueInJ;
     }
 }

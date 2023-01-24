@@ -34,6 +34,9 @@
             Count += count;
         }
 
+        public void TransferTo(Counter<T> destin, T count)
+            => destin.TransferFrom(source: this, count: count);
+
 #if DEBUG2
         ~Counter()
         {

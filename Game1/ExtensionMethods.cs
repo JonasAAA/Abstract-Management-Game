@@ -11,7 +11,7 @@ namespace Game1
             where TDestinPile : IDestinPile<TAmount>
             where TAmount : struct, ICountable<TAmount>
         {
-            IndividualCounters middleDestin = IndividualCounters.CreateEmpty(locationCounters: source.LocationCounters);
+            Pile<TAmount> middleDestin = Pile<TAmount>.CreateEmpty(locationCounters: source.LocationCounters);
             source.TransferTo(destin: middleDestin, amount: amount);
             destin.TransferFrom(source: middleDestin, amount: amount);
         }

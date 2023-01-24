@@ -11,7 +11,7 @@ namespace Game1
         private readonly MySet<IEnergyConsumer> energyConsumers;
         
         private ElectricalEnergy totReqEnergy, totProdEnergy, totUsedLocalEnergy, totUsedPowerPlantEnergy;
-        private readonly IPile<ElectricalEnergy> energyPile;
+        private readonly Pile<ElectricalEnergy> energyPile;
 
         public ElectricalEnergyManager()
         {
@@ -21,7 +21,7 @@ namespace Game1
             totProdEnergy = ElectricalEnergy.zero;
             totUsedLocalEnergy = ElectricalEnergy.zero;
             totUsedPowerPlantEnergy = ElectricalEnergy.zero;
-            energyPile = IndividualCounters.CreateEmpty(locationCounters: LocationCounters.CreateEmpty());
+            energyPile = Pile<ElectricalEnergy>.CreateEmpty(locationCounters: LocationCounters.CreateEmpty());
         }
 
         public void AddEnergyProducer(IEnergyProducer energyProducer)
@@ -39,8 +39,7 @@ namespace Game1
         }
 
         [Serializable]
-        private class EnhancedEnergyConsumer<TPile>
-            where TPile : IPile<ElectricalEnergy>
+        private class EnhancedEnergyConsumer
         {
             public ElectricalEnergy OwnedEnergy
                 => ownedEnergyPile.Amount;
@@ -49,15 +48,15 @@ namespace Game1
             public readonly EnergyPriority energyPriority;
             
             private readonly IEnergyConsumer energyConsumer;
-            private readonly TPile ownedEnergyPile;
+            private readonly Pile<ElectricalEnergy> ownedEnergyPile;
 
-            public EnhancedEnergyConsumer(IEnergyConsumer energyConsumer, TPile ownedEnergyPile)
+            public EnhancedEnergyConsumer(IEnergyConsumer energyConsumer, LocationCounters locationCounters)
             {
                 this.energyConsumer = energyConsumer;
                 nodeID = energyConsumer.NodeID;
                 energyPriority = energyConsumer.EnergyPriority;
                 reqEnergy = energyConsumer.ReqEnergy();
-                this.ownedEnergyPile = ownedEnergyPile;
+                ownedEnergyPile = Pile<ElectricalEnergy>.CreateEmpty(locationCounters: locationCounters);
             }
 
             public void TransferEnergyFrom<TSource>(TSource source, ElectricalEnergy energy)
@@ -80,12 +79,12 @@ namespace Game1
         {
             // TODO(performace): could probably improve performance by separating those requiring no electricity at the start
             // Then only those requiring non-zero electricity would be involved in more costly calculations
-            List<EnhancedEnergyConsumer<IndividualCounters>> enhancedConsumers =
+            List<EnhancedEnergyConsumer> enhancedConsumers =
                (from energyConsumer in energyConsumers
-                select new EnhancedEnergyConsumer<IndividualCounters>
+                select new EnhancedEnergyConsumer
                 (
                     energyConsumer: energyConsumer,
-                    ownedEnergyPile: IndividualCounters.CreateEmpty(locationCounters: energyPile.LocationCounters)
+                    locationCounters: energyPile.LocationCounters
                 )).ToList();
 
             foreach (var energyProducer in energyProducers)
@@ -95,7 +94,7 @@ namespace Game1
             totUsedLocalEnergy = ElectricalEnergy.zero;
             totUsedPowerPlantEnergy = ElectricalEnergy.zero;
 
-            Dictionary<NodeID, MySet<EnhancedEnergyConsumer<IndividualCounters>>> enhancedConsumersByNode = new();
+            Dictionary<NodeID, MySet<EnhancedEnergyConsumer>> enhancedConsumersByNode = new();
             foreach (var nodeID in nodeIDs)
                 enhancedConsumersByNode[nodeID] = new();
             foreach (var enhancedConsumer in enhancedConsumers)
@@ -104,7 +103,7 @@ namespace Game1
             foreach (var (nodeID, sameNodeEnhancedConsumers) in enhancedConsumersByNode)
             {
                 var node = nodeIDToNode(nodeID);
-                IPile<ElectricalEnergy> energySource = IndividualCounters.CreateEmpty(locationCounters: energyPile.LocationCounters);
+                Pile<ElectricalEnergy> energySource = Pile<ElectricalEnergy>.CreateEmpty(locationCounters: energyPile.LocationCounters);
                 node.ProduceLocalEnergy(destin: energySource);
                 var locallyProducedEnergy = energySource.Amount;
                 DistributePartOfEnergy
@@ -135,14 +134,14 @@ namespace Game1
             return;
 
             // remaining energy is left in energySource
-            static void DistributePartOfEnergy<T>(IEnumerable<EnhancedEnergyConsumer<IndividualCounters>> enhancedConsumers, T energySource)
+            static void DistributePartOfEnergy<T>(IEnumerable<EnhancedEnergyConsumer> enhancedConsumers, T energySource)
                 where T : ISourcePile<ElectricalEnergy>
             {
-                SortedDictionary<EnergyPriority, List<EnhancedEnergyConsumer<IndividualCounters>>> enhancedConsumersByPriority = new();
+                SortedDictionary<EnergyPriority, List<EnhancedEnergyConsumer>> enhancedConsumersByPriority = new();
                 foreach (var enhancedConsumer in enhancedConsumers)
                 {
                     EnergyPriority priority = enhancedConsumer.energyPriority;
-                    enhancedConsumersByPriority.TryAdd(key: priority, value: new List<EnhancedEnergyConsumer<IndividualCounters>>());
+                    enhancedConsumersByPriority.TryAdd(key: priority, value: new List<EnhancedEnergyConsumer>());
                     enhancedConsumersByPriority[priority].Add(enhancedConsumer);
                 }
 

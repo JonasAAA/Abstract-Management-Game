@@ -1,4 +1,6 @@
-﻿namespace Game1.Resources
+﻿using System.Diagnostics.Metrics;
+
+namespace Game1.Resources
 {
     public readonly struct Counters
     {

@@ -10,7 +10,7 @@ namespace Game1.Industries
         public ulong MaxAvailableResAmount { get; }
         public MyVector2 Position { get; }
         public ulong MaxBatchDemResStored { get; }
-        public IPile<ResAmounts> StoredResPile { get; }
+        public Pile<ResAmounts> StoredResPile { get; }
         public RealPeople WaitingPeople { get; }
         public BasicResInd ConsistsOfResInd { get; }
         public BasicRes ConsistsOfRes { get; }

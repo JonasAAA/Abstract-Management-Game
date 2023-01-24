@@ -125,7 +125,7 @@ namespace Game1
         private Industry? industry;
         private readonly MyArray<ProporSplitter<NodeID>> resSplittersToDestins;
         private ResAmounts targetStoredResAmounts;
-        private readonly IPile<ResAmounts> undecidedResPile;
+        private readonly Pile<ResAmounts> undecidedResPile;
         private ResAmounts resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
         private Energy usedLocalEnergy;
@@ -158,7 +158,7 @@ namespace Game1
                 selector: resInd => new ProporSplitter<NodeID>()
             );
             targetStoredResAmounts = ResAmounts.Empty;
-            undecidedResPile = ResPile.CreateEmpty(locationCounters: state.LocationCounters);
+            undecidedResPile = Pile<ResAmounts>.CreateEmpty(locationCounters: state.LocationCounters);
             resTravelHereAmounts = ResAmounts.Empty;
             usedLocalEnergy = Energy.zero;
 
@@ -257,6 +257,7 @@ namespace Game1
             // this is here beause it uses infoPanel, so that needs to be initialized first
             if (startingConditions is var (houseFactory, personCount, resSource))
             {
+                throw new NotImplementedException();
                 // This is done so that buildings and people take stuff from this planet (i.e. MassCounter is of this planet)
                 state.StoredResPile.TransferAllFrom(source: resSource);
                 ResAmounts houseBuildingCost = houseFactory.BuildingCost(state: state);
@@ -299,7 +300,7 @@ namespace Game1
         }
 
         public ulong TotalQueuedRes(ResInd resInd)
-            => state.StoredResPile[resInd] + resTravelHereAmounts[resInd];
+            => state.StoredResPile.Amount[resInd] + resTravelHereAmounts[resInd];
 
         public IEnumerable<NodeID> ResDestins(ResInd resInd)
             => resSplittersToDestins[resInd].Keys;
@@ -408,7 +409,7 @@ namespace Game1
         /// </summary>
         public void SplitRes(Func<NodeID, INodeAsResDestin> nodeIDToNode, ResInd resInd, Func<NodeID, ulong> maxExtraResFunc)
         {
-            if (undecidedResPile[resInd] is 0)
+            if (undecidedResPile.Amount[resInd] is 0)
                 return;
 
             var resSplitter = resSplittersToDestins[resInd];
@@ -416,18 +417,18 @@ namespace Game1
                 state.StoredResPile.TransferAllSingleResFrom(source: undecidedResPile, resInd: resInd);
             else
             {
-                var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile[resInd], maxAmountsFunc: maxExtraResFunc);
+                var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount[resInd], maxAmountsFunc: maxExtraResFunc);
 
                 {
-                    var unsplitResPile = ReservedResPile.CreateIfHaveEnough(source: undecidedResPile, resAmount: new(resInd: resInd, amount: unsplitResAmount));
+                    var unsplitResPile = ReservedPile<ResAmounts>.CreateIfHaveEnough(source: undecidedResPile, amount: new(resInd: resInd, amount: unsplitResAmount));
                     Debug.Assert(unsplitResPile is not null);
-                    state.StoredResPile.TransferAllFrom(reservedSource: ref unsplitResPile);
+                    state.StoredResPile.TransferAllFrom(source: unsplitResPile);
                 }
 
                 foreach (var (destination, resAmountNum) in splitResAmounts)
                 {
                     ResAmount resAmount = new(resInd: resInd, amount: resAmountNum);
-                    var resPileForDestin = ReservedResPile.CreateIfHaveEnough(source: undecidedResPile, resAmount: resAmount);
+                    var resPileForDestin = ReservedPile<ResAmounts>.CreateIfHaveEnough(source: undecidedResPile, resAmount: resAmount);
                     Debug.Assert(resPileForDestin is not null);
                     state.waitingResAmountsPackets.TransferAllFrom
                     (
@@ -437,7 +438,7 @@ namespace Game1
                     nodeIDToNode(destination).AddResTravelHere(resAmount: resAmount);
                 }
             }
-            Debug.Assert(undecidedResPile[resInd] == 0);
+            Debug.Assert(undecidedResPile.Amount[resInd] == 0);
         }
 
         /// <summary>
@@ -453,7 +454,7 @@ namespace Game1
                 resFirstLinks[(NodeID, destinationId)]!.TransferAllFrom(start: this, resAmountsPacket: resAmountsPacket);
             }
 
-            state.TooManyResStored = !(state.StoredResPile.ResAmounts <= targetStoredResAmounts);
+            state.TooManyResStored = !(state.StoredResPile.Amount <= targetStoredResAmounts);
 
             // TODO: look at this
             infoTextBox.Text = $"""
@@ -474,18 +475,18 @@ namespace Game1
             (
                 singleResCase: resInd =>
                 {
-                    if (state.StoredResPile[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
-                        return (state.StoredResPile[resInd] >= targetStoredResAmounts[resInd]) switch
+                    if (state.StoredResPile.Amount[resInd] is not 0 || targetStoredResAmounts[resInd] is not 0)
+                        return (state.StoredResPile.Amount[resInd] >= targetStoredResAmounts[resInd]) switch
                         {
-                            true => $"have {state.StoredResPile[resInd] - targetStoredResAmounts[resInd]} extra resources",
-                            false => $"have {(double)state.StoredResPile[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
+                            true => $"have {state.StoredResPile.Amount[resInd] - targetStoredResAmounts[resInd]} extra resources",
+                            false => $"have {(double)state.StoredResPile.Amount[resInd] / targetStoredResAmounts[resInd] * 100:0.}% of target stored resources\n",
                         };
                     else
                         return "";
                 },
                 allResCase: () =>
                 {
-                    Mass totalStoredMass = state.StoredResPile.Mass;
+                    Mass totalStoredMass = state.StoredResPile.Amount.Mass();
                     return totalStoredMass.IsZero switch
                     {
                         true => "",

@@ -70,10 +70,7 @@ namespace Game1.Resources
             recipe = ResRecipe.Create
             (
                 ingredients: ingredients,
-                results: new ResAmounts
-                (
-                    resAmount: new(resInd: resInd, amount: 1)
-                )
+                results: new(resInd: resInd, amount: 1)
             )!.Value;
         }
 

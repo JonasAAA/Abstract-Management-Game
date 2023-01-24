@@ -15,14 +15,14 @@ namespace Game1.Inhabitants
         [Serializable]
         public readonly record struct UpdateLocationParams(NodeID LastNodeID, NodeID ClosestNodeID);
 
-        public static void GeneratePersonByMagic(NodeID nodeID, ReservedResPile resSource, RealPeople childDestin)
+        public static void GeneratePersonByMagic(NodeID nodeID, ReservedPile<ResAmounts> resSource, RealPeople childDestin)
             => childDestin.AddByMagic
             (
                 realPerson: new
                 (
                     realPeopleStats: RealPeopleStats.ForNewPerson
                     (
-                        totalMass: resSource.Mass,
+                        totalMass: resSource.Amount.Mass(),
                         reqWatts: C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts),
                         age: TimeSpan.FromSeconds(C.Random(min: 0, max: 200)),
                         startingHappiness: CurWorldConfig.startingHappiness,
@@ -37,7 +37,7 @@ namespace Game1.Inhabitants
                 )
             );
 
-        public static void GenerateChild(VirtualPerson parent1, VirtualPerson parent2, NodeID nodeID, ReservedResPile resSource, RealPeople parentSource, RealPeople childDestin)
+        public static void GenerateChild(VirtualPerson parent1, VirtualPerson parent2, NodeID nodeID, ReservedPile<ResAmounts> resSource, RealPeople parentSource, RealPeople childDestin)
         {
             if (!parentSource.Contains(person: parent1) || !parentSource.Contains(person: parent2))
                 throw new ArgumentException();
@@ -54,7 +54,7 @@ namespace Game1.Inhabitants
                 (
                     realPeopleStats: RealPeopleStats.ForNewPerson
                     (
-                        totalMass: resSource.Mass,
+                        totalMass: resSource.Amount.Mass(),
                         age: TimeSpan.Zero,
                         reqWatts: childReqWatts,
                         startingHappiness: Score.Average(parent1.Happiness, parent2.Happiness),
@@ -121,10 +121,10 @@ namespace Game1.Inhabitants
         private IPersonFacingActivityCenter? activityCenter;
         private TimeSpan timeSinceActivitySearch;
         private NodeID lastNodeID;
-        private readonly ReservedResPile consistsOfResPile;
+        private readonly ReservedPile<ResAmounts> consistsOfResPile;
         private LocationCounters locationCounters;
         
-        private RealPerson(RealPeopleStats realPeopleStats, NodeID nodeID, TimeSpan seekChangeTime, [DisallowNull] ReservedResPile? resSource, ResAmounts consistsOfResAmounts)
+        private RealPerson(RealPeopleStats realPeopleStats, NodeID nodeID, TimeSpan seekChangeTime, ReservedPile<ResAmounts> resSource, ResAmounts consistsOfResAmounts)
         {
             RealPeopleStats = realPeopleStats;
             lastNodeID = nodeID;
@@ -137,9 +137,9 @@ namespace Game1.Inhabitants
             this.seekChangeTime = seekChangeTime;
             timeSinceActivitySearch = seekChangeTime;
             LastActivityTimes = new(selector: activityType => TimeSpan.MinValue / 3);
-            if (resSource.ResAmounts != consistsOfResAmounts)
+            if (resSource.Amount != consistsOfResAmounts)
                 throw new ArgumentException();
-            consistsOfResPile = ReservedResPile.CreateFromSource(source: ref resSource);
+            consistsOfResPile = resSource;
             // The counters here don't matter as this person will be immediately transfered to RealPeople where this person's Mass and NumPeople will be transferred to the appropriate counters
             asVirtual = new(realPerson: this);
             
@@ -151,11 +151,11 @@ namespace Game1.Inhabitants
         public void Arrived(RealPeople realPersonSource)
             => (activityCenter ?? throw new InvalidOperationException()).TakePersonFrom(realPersonSource: realPersonSource, realPerson: this);
 
-        public void SetLocationCounters(LocationCounters locationCounters)
+        public void ChangeLocation(LocationCounters locationCounters)
         {
-            consistsOfResPile.LocationCounters = locationCounters;
+            consistsOfResPile.ChangeLocation(newLocationCounters: locationCounters);
             // Resource transfer is zero in the following line as the previous line did the resAmounts transfer of this person already
-            locationCounters.TransferPeopleFrom(source: this.locationCounters, numPeople: RealPeopleStats.totalNumPeople);
+            locationCounters.TransferFrom(source: this.locationCounters, amount: RealPeopleStats.totalNumPeople);
             this.locationCounters = locationCounters;
         }
 
@@ -171,7 +171,7 @@ namespace Game1.Inhabitants
             updateSkillsParams ??= new UpdatePersonSkillsParams();
             RealPeopleStats = new
             (
-                totalMass: consistsOfResPile.Mass,
+                totalMass: consistsOfResPile.Amount.Mass(),
                 totalNumPeople: RealPeopleStats.totalNumPeople,
                 totalReqWatts: RealPeopleStats.totalReqWatts,
                 timeCoefficient: timeCoeff,

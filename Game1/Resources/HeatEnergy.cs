@@ -42,6 +42,18 @@ namespace Game1.Resources
         public static HeatEnergy operator -(HeatEnergy left, HeatEnergy right)
             => new(energy: left.energy - right.energy);
 
+        public static bool operator >(HeatEnergy left, HeatEnergy right)
+            => left.ValueInJ > right.ValueInJ;
+
+        public static bool operator >=(HeatEnergy left, HeatEnergy right)
+            => left.ValueInJ >= right.ValueInJ;
+
+        public static bool operator <(HeatEnergy left, HeatEnergy right)
+            => left.ValueInJ < right.ValueInJ;
+
+        public static bool operator <=(HeatEnergy left, HeatEnergy right)
+            => left.ValueInJ <= right.ValueInJ;
+
         //public static HeatEnergy operator *(ulong left, HeatEnergy right)
         //    => new(energy: left * right.energy);
 

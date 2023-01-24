@@ -29,14 +29,14 @@ namespace Game1.Resources
             => array = new ulong[ResInd.count];
 
         public ResAmounts(ResAmount resAmount)
-            : this()
-            => this[resAmount.resInd] = resAmount.amount;
+            : this(resInd: resAmount.resInd, amount: resAmount.amount)
+        { }
 
-        public ResAmounts(ulong value)
+        public ResAmounts(ResInd resInd, ulong amount)
             : this()
-            => Array.Fill(array: array, value: value);
+            => this[resInd] = amount;
 
-        public ResAmounts(IEnumerable<ulong> values)
+        private ResAmounts(IEnumerable<ulong> values)
         {
             array = values.ToArray();
             if (array.Length != (int)ResInd.count)
@@ -107,11 +107,11 @@ namespace Game1.Resources
         public static explicit operator Energy(ResAmounts resAmounts)
             => Energy.CreateFromJoules(valueInJ: resAmounts.Mass().valueInKg * CurWorldConfig.energyInJPerKgOfMass);
 
-        public static ResAmounts operator +(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => new(resAmounts1.Zip(resAmounts2, (a, b) => a + b));
+        public static ResAmounts operator +(ResAmounts left, ResAmounts right)
+            => new(left.Zip(right, (a, b) => a + b));
 
-        public static ResAmounts operator -(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => new(resAmounts1.Zip(resAmounts2, (a, b) => a - b));
+        public static ResAmounts operator -(ResAmounts left, ResAmounts right)
+            => new(left.Zip(right, (a, b) => a - b));
 
         public static ResAmounts operator *(ulong value, ResAmounts resAmounts)
             => new(from a in resAmounts select value * a);
@@ -123,20 +123,27 @@ namespace Game1.Resources
             => new(from a in resAmounts select a / value);
 
         ///// <returns> some elements can be None </returns>
-        //public static ConstArray<UDouble> operator /(ResAmounts resAmounts1, ResAmounts resAmounts2)
-        //    => new(resAmounts1.Zip(resAmounts2, (a, b) => (UDouble)a / b));
+        //public static ConstArray<UDouble> operator /(ResAmounts left, ResAmounts right)
+        //    => new(left.Zip(right, (a, b) => (UDouble)a / b));
 
-        public static bool operator <=(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => resAmounts1.Zip(resAmounts2).All(a => a.First <= a.Second);
+        static bool IComparisonOperators<ResAmounts, ResAmounts, bool>.operator >(ResAmounts left, ResAmounts right)
+            => left >= right && left != right;
 
-        public static bool operator >=(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => resAmounts1.Zip(resAmounts2).All(a => a.First >= a.Second);
+        static bool IComparisonOperators<ResAmounts, ResAmounts, bool>.operator <(ResAmounts left, ResAmounts right)
+            => left <= right && left != right;
 
-        public static bool operator ==(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => resAmounts1.array == resAmounts2.array || resAmounts1.array.Zip(resAmounts2.array).All(pair => pair.First == pair.Second);
+        public static bool operator <=(ResAmounts left, ResAmounts right)
+            => left.Zip(right).All(a => a.First <= a.Second);
 
-        public static bool operator !=(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => !(resAmounts1 == resAmounts2);
+        public static bool operator >=(ResAmounts left, ResAmounts right)
+            => left.Zip(right).All(a => a.First >= a.Second);
+
+        public static bool operator ==(ResAmounts left, ResAmounts right)
+            => left.array == right.array || left.array.Zip(right.array).All(pair => pair.First == pair.Second);
+
+        public static bool operator !=(ResAmounts left, ResAmounts right)
+            => !(left == right);
+
 
         public bool Equals(ResAmounts other)
             => this == other;

@@ -25,7 +25,7 @@ namespace Game1.Resources
             );
 
         public static Counters CreateResAmountsCountersByMagic(ResAmounts resAmounts, ulong temperatureInK)
-            // TODO: Look at this, want to insure that the (total amount of energy) * (max heat capacity) fit comfortably into ulong
+            // TODO: Look at this, want to insure that the (total sourceAmount of energy) * (max heat capacity) fit comfortably into ulong
             // If run into problems with overflow, could use int128 or uint128 instead of ulong from
             // https://learn.microsoft.com/en-us/dotnet/api/system.int128?view=net-7.0 https://learn.microsoft.com/en-us/dotnet/api/system.uint128?view=net-7.0
             => new
@@ -66,25 +66,35 @@ namespace Game1.Resources
             this.electricalEnergyCounter = electricalEnergyCounter;
         }
 
-        public void TransferFrom<T>(Counters source, T amount)
+        public void TransferFrom<TAmount>(Counters source, TAmount amount)
             where T : struct, ICountable<T>
         {
             throw new NotImplementedException();
         }
 
-        public void Transform<TFrom, TTo>(TFrom amount)
-            where TFrom : struct, IFormOfEnergy<TFrom>
-            where TTo : struct, IUnconstrainedEnergy<TTo>
+        public void TransferTo<TAmount>(Counters destin, TAmount amount)
+            => destin.TransferFrom(source: this, amount: amount);
+
+        public void TransformFrom<TSourceAmount, TDestinAmount>(Counters source, TSourceAmount sourceAmount)
+            where TSourceAmount : struct, IFormOfEnergy<TSourceAmount>
+            where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
         {
             throw new NotImplementedException();
         }
 
-        public T GetCount<T>()
-            where T : struct, ICountable<T>
-            => GetCounter<T>().Count;
+        public void TransformTo<TSourceAmount, TDestinAmount>(Counters destin, TDestinAmount destinAmount)
+            where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
+            where TDestinAmount : struct, IFormOfEnergy<TDestinAmount>
+        {
+            throw new NotImplementedException();
+        }
 
-        private Counter<T> GetCounter<T>()
-            where T : struct, ICountable<T>
+        public TAmount GetCount<TAmount>()
+            where TAmount : struct, ICountable<TAmount>
+            => GetCounter<TAmount>().Count;
+
+        private Counter<TAmount> GetCounter<TAmount>()
+            where TAmount : struct, ICountable<TAmount>
             => throw new NotImplementedException();
 
         //public void TransferPeopleFrom(Counters source, NumPeople numPeople)
@@ -116,13 +126,13 @@ namespace Game1.Resources
         //{
         //    // This should be called only from within EnergyPile
         //    throw new NotImplementedException();
-        //    //  TODO: Maybe transfer appropriate amount of heat to radiant energy
+        //    //  TODO: Maybe transfer appropriate sourceAmount of heat to radiant energy
         //    resCounter.TransformTo(destin: radiantEnergyCounter, count: resAmounts);
         //}
 
-        ///// <returns>the amount of electrical energy transferred</returns>
-        //public ElectricalEnergy TransformRadiantToElectricalEnergyAndTransfer<T>(T destin, Propor proporToTransform)
-        //    where T : IEnergyDestin<ElectricalEnergy>
+        ///// <returns>the sourceAmount of electrical energy transferred</returns>
+        //public ElectricalEnergy TransformRadiantToElectricalEnergyAndTransfer<TAmount>(TAmount destin, Propor proporToTransform)
+        //    where TAmount : IEnergyDestin<ElectricalEnergy>
         //{
         //    throw new NotImplementedException();
         //}

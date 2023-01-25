@@ -1,13 +1,13 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public class EnergyCounter<T> : Counter<T>
-        where T : struct, IFormOfEnergy<T>
+    public class EnergyCounter<TAmount> : Counter<TAmount>
+        where TAmount : struct, IFormOfEnergy<TAmount>
     {
-        public new static EnergyCounter<T> CreateEmpty()
+        public new static EnergyCounter<TAmount> CreateEmpty()
             => new(createdByMagic: false);
 
-        public new static EnergyCounter<T> CreateCounterByMagic(T count)
+        public new static EnergyCounter<TAmount> CreateCounterByMagic(TAmount count)
             => new(createdByMagic: true)
             {
                 Count = count
@@ -17,18 +17,18 @@
             : base(createdByMagic: createdByMagic)
         { }
 
-        public void TransformFrom<U>(EnergyCounter<U> source, T count)
-            where U : struct, IUnconstrainedEnergy<U>
+        public void TransformFrom<TSourceAmount>(EnergyCounter<TSourceAmount> source, TAmount destinCount)
+            where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
         {
-            source.Count -= U.CreateFromEnergy(energy: (Energy)count);
-            Count += count;
+            source.Count -= TSourceAmount.CreateFromEnergy(energy: (Energy)destinCount);
+            Count += destinCount;
         }
 
-        public void TransformTo<U>(EnergyCounter<U> destin, T count)
-            where U : struct, IUnconstrainedEnergy<U>
+        public void TransformTo<TDestinAmount>(EnergyCounter<TDestinAmount> destin, TAmount sourceCount)
+            where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
         {
-            destin.Count += U.CreateFromEnergy(energy: (Energy)count);
-            Count -= count;
+            destin.Count += TDestinAmount.CreateFromEnergy(energy: (Energy)sourceCount);
+            Count -= sourceCount;
         }
     }
 }

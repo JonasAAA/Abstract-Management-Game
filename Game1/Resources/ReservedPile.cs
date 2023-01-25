@@ -1,11 +1,15 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public class ReservedPile<TAmount>
+    public class ReservedPile<TAmount> : ISourcePile<TAmount>
         where TAmount : struct, ICountable<TAmount>
     {
         public TAmount Amount
             => pile.Amount;
+
+        TAmount ISourcePile<TAmount>.Amount => throw new NotImplementedException();
+
+        LocationCounters IPileBase.LocationCounters => throw new NotImplementedException();
 
         private readonly Pile<TAmount> pile;
 
@@ -37,6 +41,9 @@
 
         public void TransferAllTo<TDestinPile>(TDestinPile destin)
             where TDestinPile : IDestinPile<TAmount>
+            => pile.TransferAllTo(destin: destin);
+
+        void ISourcePile<TAmount>.TransferAllTo(Pile<TAmount> destin)
             => pile.TransferAllTo(destin: destin);
     }
 }

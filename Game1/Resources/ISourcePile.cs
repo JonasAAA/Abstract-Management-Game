@@ -5,7 +5,7 @@
     {
         public TAmount Amount { get; }
 
-        public void TransferTo(Pile<TAmount> destin, TAmount amount);
+        //public void TransferTo(Pile<TAmount> destin, TAmount amount);
 
         public void TransferAllTo(Pile<TAmount> destin);
     }

@@ -6,17 +6,19 @@
         public static Pile<TAmount> CreateEmpty(LocationCounters locationCounters)
             => new(locationCounters: locationCounters, counter: Counter<TAmount>.CreateEmpty());
 
-        public LocationCounters LocationCounters { get; private set; }
-
         public TAmount Amount
             => Counter.Count;
 
         public bool IsEmpty
             => Amount == TAmount.AdditiveIdentity;
-
+        
+        public LocationCounters LocationCounters { get; private set; }
+        /// <summary>
+        /// THIS MUST always be used together with LocationCounters
+        /// </summary>
         protected virtual Counter<TAmount> Counter { get; }
 
-        private Pile(LocationCounters locationCounters, Counter<TAmount> counter)
+        protected Pile(LocationCounters locationCounters, Counter<TAmount> counter)
         {
             LocationCounters = locationCounters;
             Counter = counter;
@@ -44,20 +46,29 @@
             where TDestinPile : IDestinPile<TAmount>
             => destin.TransferAllFrom(source: this);
 
+        private void TransferFrom(Pile<TAmount> source, TAmount amount)
+        {
+            Counter.TransferFrom(source: source.Counter, count: amount);
+            LocationCounters.TransferFrom(source: source.LocationCounters, amount: amount);
+        }
+
+        private void TransferTo(Pile<TAmount> destin, TAmount amount)
+            => destin.TransferFrom(source: this, amount: amount);
+
         void IDestinPile<TAmount>.TransferFrom(Pile<TAmount> source, TAmount amount)
-            => Counter.TransferFrom(source: source.Counter, count: amount);
+            => TransferFrom(source: source, amount: amount);
 
         void IDestinPile<TAmount>.TransferAllFrom(Pile<TAmount> source)
-            => Counter.TransferFrom(source: source.Counter, count: source.Amount);
+            => TransferFrom(source: source, amount: source.Amount);
 
         void IDestinPile<TAmount>.TransferAllFrom(ReservedPile<TAmount> source)
             => source.TransferAllTo(destin: this);
 
-        void ISourcePile<TAmount>.TransferTo(Pile<TAmount> destin, TAmount amount)
-            => Counter.TransferTo(destin: destin.Counter, count: amount);
+        //void ISourcePile<TAmount>.TransferTo(Pile<TAmount> destin, TAmount amount)
+        //    => TransferTo(destin: destin, amount: amount);
 
         void ISourcePile<TAmount>.TransferAllTo(Pile<TAmount> destin)
-            => Counter.TransferTo(destin: destin.Counter, count: Amount);
+            => TransferTo(destin: destin, amount: Amount);
     }
 }
 

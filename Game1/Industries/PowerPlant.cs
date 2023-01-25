@@ -93,6 +93,10 @@ namespace Game1.Industries
 
         void IEnergyProducer.ProduceEnergy<T>(T destin)
         {
+            //var electricalEnergyPile = Pile<ElectricalEnergy>.CreateEmpty(locationCounters: parameters.state.LocationCounters);
+            // Transform only this parameters.surfaceAbsorbtionPropor * CurSkillPropor proportion
+            throw new NotImplementedException();
+            parameters.state.RadiantEnergyPile.TransformAllTo(destin: destin);
             prodEnergy = parameters.state.LocationCounters.TransformRadiantToElectricalEnergyAndTransfer
             (
                 destin: destin,

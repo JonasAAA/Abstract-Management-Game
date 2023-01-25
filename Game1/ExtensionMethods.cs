@@ -16,6 +16,42 @@ namespace Game1
             destin.TransferFrom(source: middleDestin, amount: amount);
         }
 
+        private class EnergyPile<TAmount> : Pile<TAmount>
+            where TAmount : struct, IFormOfEnergy<TAmount>
+        {
+            public new static EnergyPile<TAmount> CreateEmpty(LocationCounters locationCounters)
+                => new(locationCounters: locationCounters, counter: EnergyCounter<TAmount>.CreateEmpty());
+
+            protected override EnergyCounter<TAmount> Counter { get; }
+
+            private EnergyPile(LocationCounters locationCounters, EnergyCounter<TAmount> counter)
+                : base(locationCounters: locationCounters, counter: counter)
+            {
+                Counter = counter;
+            }
+
+            public void TransformAllTo<TDestinAmount>(EnergyPile<TDestinAmount> destin)
+                where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount> 
+            {
+                TAmount amountToTransform = Amount;
+                Counter.TransformTo(destin: destin.Counter, sourceCount: amountToTransform);
+                destin.LocationCounters.TransformFrom<TAmount, TDestinAmount>(source: LocationCounters, sourceAmount: amountToTransform);
+            }
+        }
+
+        public static void TransformAllTo<TSourceAmount, TDestinAmount>(this ISourcePile<TSourceAmount> source, IDestinPile<TDestinAmount> destin)
+            //where TSourcePile : ISourcePile<TSourceAmount>
+            //where TDestinPile : IDestinPile<TDestinAmount>
+            where TSourceAmount : struct, IFormOfEnergy<TSourceAmount>
+            where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
+        {
+            var energySource = EnergyPile<TSourceAmount>.CreateEmpty(locationCounters: source.LocationCounters);
+            energySource.TransferAllFrom(source: source);
+            var energyDestin = EnergyPile<TDestinAmount>.CreateEmpty(locationCounters: destin.LocationCounters);
+            energySource.TransformAllTo(destin: energyDestin);
+            destin.TransferAllFrom(source: energyDestin);
+        }
+
         public static ulong ValueInJ<T>(this T formOfEnergy)
             where T : IFormOfEnergy<T>
             => ((Energy)formOfEnergy).valueInJ;

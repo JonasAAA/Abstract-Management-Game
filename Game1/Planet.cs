@@ -138,7 +138,7 @@ namespace Game1
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
-        public Planet(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount, ISourcePile<ResAmounts> resSource)? startingConditions = null)
+        public Planet(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount, Pile<ResAmounts> resSource)? startingConditions = null)
             : base
             (
                 shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
@@ -257,27 +257,23 @@ namespace Game1
             // this is here beause it uses infoPanel, so that needs to be initialized first
             if (startingConditions is var (houseFactory, personCount, resSource))
             {
-                throw new NotImplementedException();
                 // This is done so that buildings and people take stuff from this planet (i.e. MassCounter is of this planet)
                 state.StoredResPile.TransferAllFrom(source: resSource);
                 ResAmounts houseBuildingCost = houseFactory.BuildingCost(state: state);
 
                 {
-                    var reservedBuildingRes = ReservedResPile.CreateIfHaveEnough
+                    var reservedBuildingRes = ReservedPile<ResAmounts>.CreateIfHaveEnough
                     (
                         source: state.StoredResPile,
-                        resAmounts: houseBuildingCost
+                        amount: houseBuildingCost
                     );
                     Debug.Assert(reservedBuildingRes is not null);
-                    startingNonPlanetMass += reservedBuildingRes.Mass;
-                    Building? building = new
-                    (
-                        resSource: ref reservedBuildingRes
-                    );
+                    startingNonPlanetMass += reservedBuildingRes.Amount.Mass();
+                    Building building = new(resSource: reservedBuildingRes);
                     Industry = (houseFactory as IFactoryForIndustryWithBuilding).CreateIndustry
                     (
                         state: state,
-                        building: ref building
+                        building: building
                     );
                 }
 
@@ -286,7 +282,7 @@ namespace Game1
                     RealPerson.GeneratePersonByMagic
                     (
                         nodeID: NodeID,
-                        resSource: ReservedResPile.CreateIfHaveEnough(source: state.StoredResPile, resAmounts: RealPerson.resAmountsPerPerson)!,
+                        resSource: ReservedPile<ResAmounts>.CreateIfHaveEnough(source: state.StoredResPile, amount: RealPerson.resAmountsPerPerson)!,
                         childDestin: state.WaitingPeople
                     );
                 }
@@ -428,7 +424,7 @@ namespace Game1
                 foreach (var (destination, resAmountNum) in splitResAmounts)
                 {
                     ResAmount resAmount = new(resInd: resInd, amount: resAmountNum);
-                    var resPileForDestin = ReservedPile<ResAmounts>.CreateIfHaveEnough(source: undecidedResPile, resAmount: resAmount);
+                    var resPileForDestin = ReservedPile<ResAmounts>.CreateIfHaveEnough(source: undecidedResPile, amount: new(resAmount));
                     Debug.Assert(resPileForDestin is not null);
                     state.waitingResAmountsPackets.TransferAllFrom
                     (
@@ -586,8 +582,8 @@ namespace Game1
         double ILightBlockingObject.CloserInterPoint(MyVector2 lightPos, MyVector2 lightDir)
             => CurLightCatchingObject.CloserInterPoint(lightPos: lightPos, lightDir: lightDir);
 
-        void ILightCatchingObject.TakeRadiantEnergyFrom<T>(T source, RadiantEnergy radiantEnergy)
-            => source.TransferTo(destin: state.LocationCounters, amount: radiantEnergy);
+        void ILightCatchingObject.TakeRadiantEnergyFrom<T>(T source)
+            => source.TransferAllTo(destin: state.LocationCounters);
 
         void INodeAsResDestin.AddResTravelHere(ResAmount resAmount)
             => resTravelHereAmounts = resTravelHereAmounts.WithAdd(resAmount: resAmount);

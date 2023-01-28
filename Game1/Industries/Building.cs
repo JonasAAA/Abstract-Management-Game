@@ -7,17 +7,13 @@ namespace Game1.Industries
     public class Building
     {
         public ResAmounts Cost
-            => ResPile.Amount;
+            => resPile.Amount;
 
         public readonly Mass mass;
 
-        private ReservedPile<ResAmounts> ResPile
-            => resPile ?? throw new InvalidOperationException(buildingIsDeletedMessage);
+        private readonly ResPile resPile;
 
-        private readonly ReservedPile<ResAmounts> resPile;
-        private const string buildingIsDeletedMessage = "building has been deleted";
-
-        public Building(ReservedPile<ResAmounts> resSource)
+        public Building(ResPile resSource)
         {
             if (resSource.Amount.IsEmpty())
                 throw new ArgumentException();
@@ -25,12 +21,7 @@ namespace Game1.Industries
             mass = Cost.Mass();
         }
 
-        public void Delete<TDestinPile>(TDestinPile resDestin)
-            where TDestinPile : IDestinPile<ResAmounts>
-        {
-            if (resPile is null)
-                throw new InvalidOperationException(buildingIsDeletedMessage);
-            resDestin.TransferAllFrom(source: resPile);
-        }
+        public void Delete(ResPile resDestin)
+            => resDestin.TransferAllFrom(source: resPile);
     }
 }

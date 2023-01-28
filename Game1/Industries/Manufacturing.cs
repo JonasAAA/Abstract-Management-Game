@@ -84,15 +84,14 @@ namespace Game1.Industries
         [Serializable]
         private class Production
         {
-            private static Production? Create<TSourcePile>(TSourcePile source, ResRecipe recipe, TimeSpan duration)
-                where TSourcePile : ISourcePile<ResAmounts>
+            private static Production? Create(ResPile source, ResRecipe recipe, TimeSpan duration)
             {
                 if (duration <= TimeSpan.Zero)
                     throw new ArgumentException();
-                var resInUse = IngredientsResPile.CreateIfHaveEnough(source: source, recipe: recipe);
+                var resInUse = ResPile.CreateIfHaveEnough(source: source, amount: recipe.ingredients);
                 if (resInUse is null)
                     return null;
-                return new(resInUse: resInUse, duration: duration);
+                return new(resInUse: resInUse, recipe: recipe, duration: duration);
             }
 
             public static void Update(ref Production? product, Params parameters, Propor workingPropor)
@@ -110,19 +109,20 @@ namespace Game1.Industries
                 product.prodTimeLeft -= workingPropor * CurWorldManager.Elapsed;
                 if (product.prodTimeLeft <= TimeSpan.Zero)
                 {
-                    var resInUseCopy = product.resInUse;
-                    parameters.state.StoredResPile.TransformAndTransferAllFrom(ingredients: ref resInUseCopy);
+                    parameters.state.StoredResPile.TransformAndTransferFrom(source: product.resInUse, recipe: product.recipe);
                     product = null;
                 }
             }
 
-            private readonly IngredientsResPile resInUse;
+            private readonly ResPile resInUse;
+            private readonly ResRecipe recipe;
             private TimeSpan prodTimeLeft;
             private readonly TimeSpan duration;
 
-            private Production(IngredientsResPile resInUse, TimeSpan duration)
+            private Production(ResPile resInUse, ResRecipe recipe, TimeSpan duration)
             {
                 this.resInUse = resInUse;
+                this.recipe = recipe;
                 this.duration = duration;
                 prodTimeLeft = duration;
             }

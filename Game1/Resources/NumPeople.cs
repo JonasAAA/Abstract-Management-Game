@@ -25,6 +25,9 @@ namespace Game1.Resources
         public override string ToString()
             => value.ToString();
 
+        static NumPeople IMin<NumPeople>.Min(NumPeople left, NumPeople right)
+            => left < right ? left : right;
+
         public static NumPeople operator +(NumPeople numPeople1, NumPeople numPeople2)
             => new(value: numPeople1.value + numPeople2.value);
 

@@ -50,7 +50,7 @@ namespace Game1
         [Serializable]
         private readonly record struct ConsumerWithEnergy(IEnergyConsumer EnergyConsumer, ElectricalEnergy ElectricalEnergy);
 
-        void IEnergyConsumer.ConsumeEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
+        void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {
             // Create this list of energyConsumers to ensure that looping through the list of them twice preserves ordering
             // HashSet foreach ordering is very unlikely to change if the collection is not mutated

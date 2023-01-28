@@ -91,17 +91,17 @@ namespace Game1.Industries
         protected override UDouble ReqWatts()
             => 0;
 
-        void IEnergyProducer.ProduceEnergy<T>(T destin)
+        void IEnergyProducer.ProduceEnergy(Pile<ElectricalEnergy> destin)
         {
-            //var electricalEnergyPile = Pile<ElectricalEnergy>.CreateEmpty(locationCounters: parameters.state.LocationCounters);
+            //var electricalEnergyPile = Pile<ElectricalEnergy>.CreateEmpty(LocationCounters: parameters.state.LocationCounters);
             // Transform only this parameters.surfaceAbsorbtionPropor * CurSkillPropor proportion
             throw new NotImplementedException();
-            parameters.state.RadiantEnergyPile.TransformAllTo(destin: destin);
-            prodEnergy = parameters.state.LocationCounters.TransformRadiantToElectricalEnergyAndTransfer
-            (
-                destin: destin,
-                proporToTransform: parameters.surfaceAbsorbtionPropor * CurSkillPropor
-            );
+            //parameters.state.RadiantEnergyPile.TransformAllTo(destin: destin);
+            //prodEnergy = parameters.state.LocationCounters.TransformRadiantToElectricalEnergyAndTransfer
+            //(
+            //    destin: destin,
+            //    proporToTransform: parameters.surfaceAbsorbtionPropor * CurSkillPropor
+            //);
         }
     }
 }

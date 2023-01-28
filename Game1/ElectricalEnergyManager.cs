@@ -59,8 +59,7 @@ namespace Game1
                 ownedEnergyPile = Pile<ElectricalEnergy>.CreateEmpty(locationCounters: locationCounters);
             }
 
-            public void TransferEnergyFrom<TSource>(TSource source, ElectricalEnergy energy)
-                where TSource : ISourcePile<ElectricalEnergy>
+            public void TransferEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy energy)
                 => source.TransferTo(destin: ownedEnergyPile, amount: energy);
 
             public void ConsumeEnergy()
@@ -134,8 +133,7 @@ namespace Game1
             return;
 
             // remaining energy is left in energySource
-            static void DistributePartOfEnergy<T>(IEnumerable<EnhancedEnergyConsumer> enhancedConsumers, T energySource)
-                where T : ISourcePile<ElectricalEnergy>
+            static void DistributePartOfEnergy(IEnumerable<EnhancedEnergyConsumer> enhancedConsumers, Pile<ElectricalEnergy> energySource)
             {
                 SortedDictionary<EnergyPriority, List<EnhancedEnergyConsumer>> enhancedConsumersByPriority = new();
                 foreach (var enhancedConsumer in enhancedConsumers)

@@ -35,6 +35,9 @@ namespace Game1.Resources
         public override string ToString()
             => $"{valueInJPerK} J/K";
 
+        static HeatCapacity IMin<HeatCapacity>.Min(HeatCapacity left, HeatCapacity right)
+            => left < right ? left : right;
+
         public static HeatCapacity operator +(HeatCapacity left, HeatCapacity right)
             => new(valueInJPerK: left.valueInJPerK + right.valueInJPerK);
 

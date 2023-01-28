@@ -1,4 +1,6 @@
-﻿namespace Game1.Resources
+﻿using static Game1.WorldManager;
+
+namespace Game1.Resources
 {
     [Serializable]
     public class Counter<TAmount>
@@ -7,11 +9,14 @@
         public static Counter<TAmount> CreateEmpty()
             => new(createdByMagic: false);
 
-        public static Counter<TAmount> CreateCounterByMagic(TAmount count)
-            => new(createdByMagic: true)
+        public static Counter<TAmount> CreateByMagic(TAmount count)
+        {
+            
+            return new(createdByMagic: true)
             {
                 Count = count
             };
+        }
 
         public TAmount Count { get; protected set; }
 #if DEBUG2
@@ -20,6 +25,8 @@
 
         protected Counter(bool createdByMagic)
         {
+            if (createdByMagic && typeof(TAmount) != typeof(NumPeople) && CurWorldManager.CurTime != CurWorldManager.StartTime)
+                throw new Exception("Can only create non-people counters by magic at the very start of the game");
             Count = TAmount.AdditiveIdentity;
 #if DEBUG2
             this.createdByMagic = createdByMagic;

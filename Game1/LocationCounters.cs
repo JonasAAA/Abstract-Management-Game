@@ -1,10 +1,14 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public readonly struct LocationCounters
+    public readonly record struct LocationCounters
     {
         public static LocationCounters CreateEmpty()
             => new(counters: Counters.CreateEmpty());
+
+        public static LocationCounters CreateCounterByMagic<TAmount>(TAmount amount)
+            where TAmount : struct, ICountable<TAmount>
+            => new(counters: Counters.CreateCounterByMagic(amount: amount));
 
         private readonly Counters counters;
 

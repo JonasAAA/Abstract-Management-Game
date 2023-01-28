@@ -1,19 +1,17 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Game1
+﻿namespace Game1
 {
     [Serializable]
     public sealed class ResAmountsPacketsByDestin
     {
-        public static ResAmountsPacketsByDestin CreateEmpty(LocationCounters locationCounters)
-            => new(locationCounters: locationCounters);
+        public static ResAmountsPacketsByDestin CreateEmpty(ThermalBody thermalBody)
+            => new(thermalBody: thermalBody);
 
         public static ResAmountsPacketsByDestin CreateFromSource(ResAmountsPacketsByDestin sourcePackets)
-            => CreateFromSource(sourcePackets: sourcePackets, locationCounters: sourcePackets.locationCounters);
+            => CreateFromSource(sourcePackets: sourcePackets, thermalBody: sourcePackets.thermalBody);
 
-        public static ResAmountsPacketsByDestin CreateFromSource(ResAmountsPacketsByDestin sourcePackets, LocationCounters locationCounters)
+        public static ResAmountsPacketsByDestin CreateFromSource(ResAmountsPacketsByDestin sourcePackets, ThermalBody thermalBody)
         {
-            ResAmountsPacketsByDestin newPackets = new(locationCounters: locationCounters);
+            ResAmountsPacketsByDestin newPackets = new(thermalBody: thermalBody);
             newPackets.TransferAllFrom(sourcePackets: sourcePackets);
             return newPackets;
         }
@@ -23,12 +21,12 @@ namespace Game1
         public bool Empty
             => Mass.IsZero;
 
-        private readonly LocationCounters locationCounters;
+        private readonly ThermalBody thermalBody;
         private Dictionary<NodeID, ResAmountsPacket> resAmountsPacketsByDestin;
 
-        private ResAmountsPacketsByDestin(LocationCounters locationCounters)
+        private ResAmountsPacketsByDestin(ThermalBody thermalBody)
         {
-            this.locationCounters = locationCounters;
+            this.thermalBody = thermalBody;
             resAmountsPacketsByDestin = new();
 
             ResAmounts = ResAmounts.Empty;
@@ -47,11 +45,11 @@ namespace Game1
             Mass += sourcePacket.Mass;
 
             if (!resAmountsPacketsByDestin.ContainsKey(sourcePacket.destination))
-                resAmountsPacketsByDestin[sourcePacket.destination] = new(destination: sourcePacket.destination, locationCounters: locationCounters);
+                resAmountsPacketsByDestin[sourcePacket.destination] = new(destination: sourcePacket.destination, thermalBody: thermalBody);
             resAmountsPacketsByDestin[sourcePacket.destination].resPile.TransferAllFrom(source: sourcePacket.resPile);
         }
 
-        public void TransferAllFrom([DisallowNull] ref ReservedPile<ResAmounts>? source, NodeID destination)
+        public void TransferAllFrom(ResPile source, NodeID destination)
         {
             // ResAmounts should maybe be of type Counter<ResAmounts>?
             throw new NotImplementedException();
@@ -59,14 +57,14 @@ namespace Game1
             Mass += source.Amount.Mass();
 
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
-                resAmountsPacketsByDestin[destination] = new(destination: destination, locationCounters: locationCounters);
+                resAmountsPacketsByDestin[destination] = new(destination: destination, thermalBody: thermalBody);
             resAmountsPacketsByDestin[destination].resPile.TransferAllFrom(source: source);
         }
 
-        public Pile<ResAmounts> ReturnAndRemove(NodeID destination)
+        public ResPile ReturnAndRemove(NodeID destination)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
-                return Pile<ResAmounts>.CreateEmpty(locationCounters: locationCounters);
+                return ResPile.CreateEmpty(thermalBody: thermalBody);
 
             var resAmountsPacket = resAmountsPacketsByDestin[destination];
             resAmountsPacketsByDestin.Remove(destination);

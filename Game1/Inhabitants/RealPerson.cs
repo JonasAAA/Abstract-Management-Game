@@ -15,7 +15,7 @@ namespace Game1.Inhabitants
         [Serializable]
         public readonly record struct UpdateLocationParams(NodeID LastNodeID, NodeID ClosestNodeID);
 
-        public static void GeneratePersonByMagic(NodeID nodeID, ReservedPile<ResAmounts> resSource, RealPeople childDestin)
+        public static void GeneratePersonByMagic(NodeID nodeID, ResPile resSource, RealPeople childDestin)
             => childDestin.AddByMagic
             (
                 realPerson: new
@@ -37,7 +37,7 @@ namespace Game1.Inhabitants
                 )
             );
 
-        public static void GenerateChild(VirtualPerson parent1, VirtualPerson parent2, NodeID nodeID, ReservedPile<ResAmounts> resSource, RealPeople parentSource, RealPeople childDestin)
+        public static void GenerateChild(VirtualPerson parent1, VirtualPerson parent2, NodeID nodeID, ResPile resSource, RealPeople parentSource, RealPeople childDestin)
         {
             if (!parentSource.Contains(person: parent1) || !parentSource.Contains(person: parent2))
                 throw new ArgumentException();
@@ -121,10 +121,10 @@ namespace Game1.Inhabitants
         private IPersonFacingActivityCenter? activityCenter;
         private TimeSpan timeSinceActivitySearch;
         private NodeID lastNodeID;
-        private readonly ReservedPile<ResAmounts> consistsOfResPile;
+        private readonly ResPile consistsOfResPile;
         private LocationCounters locationCounters;
         
-        private RealPerson(RealPeopleStats realPeopleStats, NodeID nodeID, TimeSpan seekChangeTime, ReservedPile<ResAmounts> resSource, ResAmounts consistsOfResAmounts)
+        private RealPerson(RealPeopleStats realPeopleStats, NodeID nodeID, TimeSpan seekChangeTime, ResPile resSource, ResAmounts consistsOfResAmounts)
         {
             RealPeopleStats = realPeopleStats;
             lastNodeID = nodeID;
@@ -143,7 +143,7 @@ namespace Game1.Inhabitants
             // The counters here don't matter as this person will be immediately transfered to RealPeople where this person's Mass and NumPeople will be transferred to the appropriate counters
             asVirtual = new(realPerson: this);
             
-            locationCounters = LocationCounters.CreatePersonCounterByMagic(numPeople: this.RealPeopleStats.totalNumPeople);
+            locationCounters = LocationCounters.CreateCounterByMagic<NumPeople>(amount: RealPeopleStats.totalNumPeople);
 
             CurWorldManager.AddPerson(realPerson: this);
         }
@@ -151,12 +151,12 @@ namespace Game1.Inhabitants
         public void Arrived(RealPeople realPersonSource)
             => (activityCenter ?? throw new InvalidOperationException()).TakePersonFrom(realPersonSource: realPersonSource, realPerson: this);
 
-        public void ChangeLocation(LocationCounters locationCounters)
+        public void ChangeLocation(ThermalBody newThermalBody)
         {
-            consistsOfResPile.ChangeLocation(newLocationCounters: locationCounters);
+            consistsOfResPile.ChangeLocation(newThermalBody: newThermalBody);
             // Resource transfer is zero in the following line as the previous line did the resAmounts transfer of this person already
-            locationCounters.TransferFrom(source: this.locationCounters, amount: RealPeopleStats.totalNumPeople);
-            this.locationCounters = locationCounters;
+            newThermalBody.locationCounters.TransferFrom(source: locationCounters, amount: RealPeopleStats.totalNumPeople);
+            locationCounters = newThermalBody.locationCounters;
         }
 
         /// <param name="updateSkillsParams">if null, will use default update</param>

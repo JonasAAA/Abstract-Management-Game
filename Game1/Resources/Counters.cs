@@ -1,7 +1,6 @@
-﻿using System.Diagnostics.Metrics;
-
-namespace Game1.Resources
+﻿namespace Game1.Resources
 {
+    [Serializable]
     public readonly struct Counters
     {
         public static Counters CreateEmpty()
@@ -14,41 +13,38 @@ namespace Game1.Resources
                 electricalEnergyCounter: EnergyCounter<ElectricalEnergy>.CreateEmpty()
             );
 
-        public static Counters CreatePersonCounterByMagic(NumPeople numPeople)
-            => new
-            (
-                peopleCounter: Counter<NumPeople>.CreateCounterByMagic(count: numPeople),
-                resCounter: EnergyCounter<ResAmounts>.CreateEmpty(),
-                heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateEmpty(),
-                radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty(),
-                electricalEnergyCounter: EnergyCounter<ElectricalEnergy>.CreateEmpty()
-            );
+        public static Counters CreateCounterByMagic<TAmount>(TAmount amount)
+            where TAmount : struct, ICountable<TAmount>
+        {
+            if (amount is IFormOfEnergy<TAmount>)
+            {
 
-        public static Counters CreateResAmountsCountersByMagic(ResAmounts resAmounts, ulong temperatureInK)
-            // TODO: Look at this, want to insure that the (total sourceAmount of energy) * (max heat capacity) fit comfortably into ulong
-            // If run into problems with overflow, could use int128 or uint128 instead of ulong from
-            // https://learn.microsoft.com/en-us/dotnet/api/system.int128?view=net-7.0 https://learn.microsoft.com/en-us/dotnet/api/system.uint128?view=net-7.0
-            => new
-            (
-                peopleCounter: Counter<NumPeople>.CreateEmpty(),
-                resCounter: EnergyCounter<ResAmounts>.CreateCounterByMagic(count: resAmounts),
-                heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateCounterByMagic(count: HeatEnergy.CreateFromJoules(valueInJ: temperatureInK * resAmounts.HeatCapacity().valueInJPerK)),
-                radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty(),
-                electricalEnergyCounter: EnergyCounter<ElectricalEnergy>.CreateEmpty()
-            );
+            }
+            throw new NotImplementedException();
+        }
 
-        //public NumPeople NumPeople
-        //    => peopleCounter.Count;
-        //public HeatCapacity HeatCapacity
-        //    => resCounter.Count.HeatCapacity();
-        //public HeatEnergy HeatEnergy
-        //    => heatEnergyCounter.Count;
-        //public Mass Mass
-        //    => resCounter.Count.Mass();
-        //public RadiantEnergy RadiantEnergy
-        //    => radiantEnergyCounter.Count;
-        //public ElectricalEnergy ElectricalEnergy
-        //    => electricalEnergyCounter.Count;
+        //public static Counters CreatePersonCounterByMagic(NumPeople numPeople)
+        //    => new
+        //    (
+        //        peopleCounter: Counter<NumPeople>.CreateByMagic(count: numPeople),
+        //        resCounter: EnergyCounter<ResAmounts>.CreateEmpty(),
+        //        heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateEmpty(),
+        //        radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty(),
+        //        electricalEnergyCounter: EnergyCounter<ElectricalEnergy>.CreateEmpty()
+        //    );
+
+        //public static Counters CreateResAmountsCountersByMagic(ResAmounts resAmounts, ulong temperatureInK)
+        //    // TODO: Look at this, want to insure that the (total sourceAmount of energy) * (max heat capacity) fit comfortably into ulong
+        //    // If run into problems with overflow, could use int128 or uint128 instead of ulong from
+        //    // https://learn.microsoft.com/en-us/dotnet/api/system.int128?view=net-7.0 https://learn.microsoft.com/en-us/dotnet/api/system.uint128?view=net-7.0
+        //    => new
+        //    (
+        //        peopleCounter: Counter<NumPeople>.CreateEmpty(),
+        //        resCounter: EnergyCounter<ResAmounts>.CreateByMagic(count: resAmounts),
+        //        heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateByMagic(count: HeatEnergy.CreateFromJoules(valueInJ: temperatureInK * resAmounts.HeatCapacity().valueInJPerK)),
+        //        radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty(),
+        //        electricalEnergyCounter: EnergyCounter<ElectricalEnergy>.CreateEmpty()
+        //    );
 
         private readonly Counter<NumPeople> peopleCounter;
         private readonly EnergyCounter<ResAmounts> resCounter;
@@ -67,12 +63,13 @@ namespace Game1.Resources
         }
 
         public void TransferFrom<TAmount>(Counters source, TAmount amount)
-            where T : struct, ICountable<T>
+            where TAmount : struct, ICountable<TAmount>
         {
             throw new NotImplementedException();
         }
 
         public void TransferTo<TAmount>(Counters destin, TAmount amount)
+            where TAmount : struct, ICountable<TAmount>
             => destin.TransferFrom(source: this, amount: amount);
 
         public void TransformFrom<TSourceAmount, TDestinAmount>(Counters source, TSourceAmount sourceAmount)

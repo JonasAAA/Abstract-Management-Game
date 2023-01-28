@@ -2,10 +2,8 @@
 {
     public interface INodeAsLocalEnergyProducerAndConsumer
     {
-        public void ProduceLocalEnergy<T>(T destin)
-            where T : IDestinPile<ElectricalEnergy>;
+        public void ProduceLocalEnergy(Pile<ElectricalEnergy> destin);
 
-        public void ConsumeUnusedLocalEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
-            where T : ISourcePile<ElectricalEnergy>;
+        public void ConsumeUnusedLocalEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy);
     }
 }

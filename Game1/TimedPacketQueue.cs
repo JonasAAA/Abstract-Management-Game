@@ -13,12 +13,12 @@ namespace Game1
         public ResAmounts TotalResAmounts { get; private set; }
         public Mass Mass { get; private set; }
 
-        private readonly LocationCounters locationCounters;
+        private readonly ThermalBody thermalBody;
         private readonly TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)> timedQueue;
 
-        public TimedPacketQueue(LocationCounters locationCounters)
+        public TimedPacketQueue(ThermalBody thermalBody)
         {
-            this.locationCounters = locationCounters;
+            this.thermalBody = thermalBody;
             TotalResAmounts = ResAmounts.Empty;
             Mass = Mass.zero;
             NumPeople = NumPeople.zero;
@@ -41,8 +41,13 @@ namespace Game1
 
         public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)
         {
-            resAmountsPackets = ResAmountsPacketsByDestin.CreateFromSource(sourcePackets: resAmountsPackets, locationCounters: locationCounters);
-            realPeople = RealPeople.CreateFromSource(realPeopleSource: realPeople, locationCounters: locationCounters, energyDistributor: CurWorldManager.EnergyDistributor);
+            resAmountsPackets = ResAmountsPacketsByDestin.CreateFromSource(sourcePackets: resAmountsPackets, thermalBody: thermalBody);
+            realPeople = RealPeople.CreateFromSource
+            (
+                realPeopleSource: realPeople,
+                thermalBody: thermalBody,
+                energyDistributor: CurWorldManager.EnergyDistributor
+            );
             if (resAmountsPackets.Empty && realPeople.NumPeople.IsZero)
                 return;
             timedQueue.Enqueue(element: (resAmountsPackets, realPeople));
@@ -64,8 +69,8 @@ namespace Game1
 
         public (ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople) DonePacketsAndPeople()
         {
-            var doneResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationCounters: locationCounters);
-            var donePeople = RealPeople.CreateEmpty(locationCounters: locationCounters, energyDistributor: CurWorldManager.EnergyDistributor);
+            var doneResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(thermalBody: thermalBody);
+            var donePeople = RealPeople.CreateEmpty(thermalBody: thermalBody, energyDistributor: CurWorldManager.EnergyDistributor);
             foreach (var (resAmountsPackets, people) in timedQueue.DoneElements())
             {
                 TotalResAmounts -= resAmountsPackets.ResAmounts;

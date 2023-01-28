@@ -17,7 +17,6 @@
         /// <summary>
         /// Will be called at most once per frame
         /// </summary>
-        public void ConsumeEnergyFrom<TSourcePile>(TSourcePile source, ElectricalEnergy electricalEnergy)
-            where TSourcePile : ISourcePile<ElectricalEnergy>;
+        public void ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy);
     }
 }

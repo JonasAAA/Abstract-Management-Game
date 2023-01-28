@@ -9,6 +9,7 @@ namespace Game1
     // TODO: consider making this record class, but see comment below (where operator == is commented out)
     /// <summary>
     /// Travellers take energy from the start node
+    /// Travellers going to the same direction mix their heat
     /// </summary>
     [Serializable]
     public sealed class Link : WorldUIElement, IWithRealPeopleStats
@@ -27,6 +28,8 @@ namespace Game1
 
             // TODO: think about if DirLink or Link should have MassCounter
             private readonly LocationCounters locationCounters;
+            // Thermal body must definately be separate for each direction so that the resources traveling to opposite sides don't exchange heat
+            private readonly ThermalBody thermalBody;
             private readonly TimedPacketQueue timedPacketQueue;
             private readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
             private readonly RealPeople waitingPeople;
@@ -42,9 +45,10 @@ namespace Game1
                 this.minSafeDist = minSafeDist;
 
                 locationCounters = LocationCounters.CreateEmpty();
-                timedPacketQueue = new(locationCounters: locationCounters);
-                waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationCounters: locationCounters);
-                waitingPeople = RealPeople.CreateEmpty(locationCounters: locationCounters, energyDistributor: CurWorldManager.EnergyDistributor);
+                thermalBody = ThermalBody.CreateEmpty(locationCounters: locationCounters);
+                timedPacketQueue = new(thermalBody: thermalBody);
+                waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(thermalBody: thermalBody);
+                waitingPeople = RealPeople.CreateEmpty(thermalBody: thermalBody, energyDistributor: CurWorldManager.EnergyDistributor);
                 energyPropor = Propor.empty;
 
                 CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
@@ -146,7 +150,7 @@ namespace Game1
                 => throw new NotImplementedException();
             //=> timedPacketQueue.Mass.valueInKg * reqWattsPerKg;
 
-            void IEnergyConsumer.ConsumeEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
+            void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
                 => throw new NotImplementedException();
                 //=> this.energyPropor = energyPropor;
         }

@@ -5,20 +5,20 @@ namespace Game1.Inhabitants
     [Serializable]
     public class RealPeople : IEnergyConsumer, IWithRealPeopleStats
     {
-        public static RealPeople CreateEmpty(LocationCounters locationCounters, IEnergyDistributor energyDistributor)
-            => new(locationCounters: locationCounters, energyDistributor: energyDistributor);
+        public static RealPeople CreateEmpty(ThermalBody thermalBody, IEnergyDistributor energyDistributor)
+            => new(thermalBody: thermalBody, energyDistributor: energyDistributor);
 
         public static RealPeople CreateFromSource(RealPeople realPeopleSource)
             => CreateFromSource
             (
                 realPeopleSource: realPeopleSource,
-                locationCounters: realPeopleSource.locationCounters,
+                thermalBody: realPeopleSource.thermalBody,
                 energyDistributor: realPeopleSource.energyDistributor
             );
 
-        public static RealPeople CreateFromSource(RealPeople realPeopleSource, LocationCounters locationCounters, IEnergyDistributor energyDistributor)
+        public static RealPeople CreateFromSource(RealPeople realPeopleSource, ThermalBody thermalBody, IEnergyDistributor energyDistributor)
         {
-            RealPeople newRealPeople = new(locationCounters: locationCounters, energyDistributor: energyDistributor);
+            RealPeople newRealPeople = new(thermalBody: thermalBody, energyDistributor: energyDistributor);
             newRealPeople.TransferAllFrom(realPeopleSource: realPeopleSource);
             return newRealPeople;
         }
@@ -28,15 +28,17 @@ namespace Game1.Inhabitants
 
         public RealPeopleStats RealPeopleStats { get; private set;}
 
-        private readonly LocationCounters locationCounters;
+        private LocationCounters LocationCounters
+            => thermalBody.locationCounters;
+        private readonly ThermalBody thermalBody;
         private readonly IEnergyDistributor energyDistributor;
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
 
-        private RealPeople(LocationCounters locationCounters, IEnergyDistributor energyDistributor)
+        private RealPeople(ThermalBody thermalBody, IEnergyDistributor energyDistributor)
         {
+            this.thermalBody = thermalBody;
             RealPeopleStats = RealPeopleStats.empty;
             virtualToRealPeople = new();
-            this.locationCounters = locationCounters;
             this.energyDistributor = energyDistributor;
             energyDistributor.AddEnergyConsumer(energyConsumer: this);
         }
@@ -98,7 +100,7 @@ namespace Game1.Inhabitants
 
         private void Add(RealPerson realPerson)
         {
-            realPerson.ChangeLocation(locationCounters: locationCounters);
+            realPerson.ChangeLocation(newThermalBody: thermalBody);
             virtualToRealPeople.Add(key: realPerson.asVirtual, value: realPerson);
             RealPeopleStats = RealPeopleStats.CombineWith(other: realPerson.RealPeopleStats);
         }
@@ -136,7 +138,7 @@ namespace Game1.Inhabitants
             => throw new NotImplementedException();
         //=> IsInActivityCenter ? totReqWatts * CurWorldManager.Elapsed * worldSecondsPerRealSecond : 0;
 
-        void IEnergyConsumer.ConsumeEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
+        void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {
             throw new NotImplementedException();
         }

@@ -7,7 +7,7 @@
         public new static EnergyCounter<TAmount> CreateEmpty()
             => new(createdByMagic: false);
 
-        public new static EnergyCounter<TAmount> CreateCounterByMagic(TAmount count)
+        public new static EnergyCounter<TAmount> CreateByMagic(TAmount count)
             => new(createdByMagic: true)
             {
                 Count = count

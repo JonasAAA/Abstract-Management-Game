@@ -8,7 +8,7 @@ namespace Game1.PrimitiveTypeWrappers
     /// 0 - least important, 100 - most important
     /// </summary>
     [Serializable]
-    public readonly record struct EnergyPriority : IEquatable<EnergyPriority>, IComparable<EnergyPriority>, IPrimitiveTypeWrapper, IComparisonOperators<EnergyPriority, EnergyPriority, bool>, IMinMaxValue<EnergyPriority>
+    public readonly record struct EnergyPriority : IEquatable<EnergyPriority>, IComparable<EnergyPriority>, IPrimitiveTypeWrapper, IComparisonOperators<EnergyPriority, EnergyPriority, bool>, IMinMaxValue<EnergyPriority>, IMax<EnergyPriority>
     {
         /// <summary>
         /// I.e. ulong.MaxValue
@@ -49,6 +49,9 @@ namespace Game1.PrimitiveTypeWrappers
 
         public string ToString(string? format, IFormatProvider? formatProvider)
             => $"energy priority {value.ToString(format, formatProvider)}";
+
+        static EnergyPriority IMax<EnergyPriority>.Max(EnergyPriority left, EnergyPriority right)
+            => left > right ? left : right;
 
         public static bool operator >(EnergyPriority left, EnergyPriority right)
             => left.value > right.value;

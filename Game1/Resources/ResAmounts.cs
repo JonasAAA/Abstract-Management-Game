@@ -4,10 +4,12 @@ using static Game1.WorldManager;
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly struct ResAmounts : IFormOfEnergy<ResAmounts>, IMyArray<ulong>, IEquatable<ResAmounts>, IAdditionOperators<ResAmounts, ResAmounts, ResAmounts>, IAdditiveIdentity<ResAmounts, ResAmounts>, IMultiplyOperators<ResAmounts, ulong, ResAmounts>, IMultiplicativeIdentity<ResAmounts, ulong>
+    public readonly struct ResAmounts : IFormOfEnergy<ResAmounts>, IMyArray<ulong>, IEquatable<ResAmounts>, IAdditionOperators<ResAmounts, ResAmounts, ResAmounts>, IAdditiveIdentity<ResAmounts, ResAmounts>, IMultiplyOperators<ResAmounts, ulong, ResAmounts>, IMultiplicativeIdentity<ResAmounts, ulong>, IMin<ResAmounts>
     {
         public static ResAmounts Empty
             => emptyResAmounts;
+
+        public static readonly ResAmounts magicUnlimitedResAmounts; 
 
         static ResAmounts IAdditiveIdentity<ResAmounts, ResAmounts>.AdditiveIdentity
             => Empty;
@@ -18,7 +20,11 @@ namespace Game1.Resources
         private static readonly ResAmounts emptyResAmounts;
 
         static ResAmounts()
-            => emptyResAmounts = new();
+        {
+            emptyResAmounts = new();
+            Debug.Assert(CurWorldConfig.magicUnlimitedResAmounts.Length == (int)ResInd.count);
+            magicUnlimitedResAmounts = new(values: CurWorldConfig.magicUnlimitedResAmounts);
+        }
 
         private readonly ulong[] array;
 
@@ -70,9 +76,6 @@ namespace Game1.Resources
 
         public bool IsEmpty()
             => this == emptyResAmounts || array.Sum() is 0;
-
-        public ResAmounts Min(ResAmounts other)
-            => new(array.Zip(other, (a, b) => MyMathHelper.Min(a, b)));
 
         public Mass Mass()
             => CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Mass, scalars: array);
@@ -153,5 +156,8 @@ namespace Game1.Resources
 
         public override int GetHashCode()
             => HashCode.Combine(array);
+
+        static ResAmounts IMin<ResAmounts>.Min(ResAmounts left, ResAmounts right)
+            => new(left.array.Zip(right.array, (a, b) => MyMathHelper.Min(a, b)));
     }
 }

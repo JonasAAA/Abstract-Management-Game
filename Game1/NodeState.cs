@@ -25,7 +25,7 @@ namespace Game1
             => MainResAmount - CurWorldConfig.minResAmountInPlanet;
         public MyVector2 Position { get; }
         public ulong MaxBatchDemResStored { get; }
-        public Pile<ResAmounts> StoredResPile { get; }
+        public ResPile StoredResPile { get; }
         public Pile<RadiantEnergy> RadiantEnergyPile { get; }
         public readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
         public RealPeople WaitingPeople { get; }
@@ -34,27 +34,29 @@ namespace Game1
         public bool TooManyResStored { get; set; }
         // TODO: could include linkEndPoints Mass in the Counter<Mass> in this NodeState
         public LocationCounters LocationCounters { get; }
+        public ThermalBody ThermalBody { get; }
         public UDouble SurfaceGravity
             => WorldFunctions.SurfaceGravity(mass: LocationCounters.GetCount<ResAmounts>().Mass(), radius: Radius);
 
-        private readonly Pile<ResAmounts> consistsOfResPile;
+        private readonly ResPile consistsOfResPile;
 
-        public NodeState(MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ISourcePile<ResAmounts> resSource, ulong maxBatchDemResStored)
+        public NodeState(MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
             LocationCounters = LocationCounters.CreateEmpty();
+            ThermalBody = ThermalBody.CreateEmpty(locationCounters: LocationCounters);
             NodeID = NodeID.Create();
             Position = position;
             ConsistsOfResInd = consistsOfResInd;
             ConsistsOfRes = CurResConfig.resources[consistsOfResInd];
-            consistsOfResPile = Pile<ResAmounts>.CreateEmpty(locationCounters: LocationCounters);
+            consistsOfResPile = ResPile.CreateEmpty(thermalBody: ThermalBody);
             EnlargeFrom(source: resSource, resAmount: mainResAmount);
             
-            StoredResPile = Pile<ResAmounts>.CreateEmpty(locationCounters: LocationCounters);
+            StoredResPile = ResPile.CreateEmpty(thermalBody: ThermalBody);
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             MaxBatchDemResStored = maxBatchDemResStored;
-            waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationCounters: LocationCounters);
-            WaitingPeople = RealPeople.CreateEmpty(locationCounters: LocationCounters, energyDistributor: CurWorldManager.EnergyDistributor);
+            waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(thermalBody: ThermalBody);
+            WaitingPeople = RealPeople.CreateEmpty(thermalBody: ThermalBody, energyDistributor: CurWorldManager.EnergyDistributor);
             TooManyResStored = false;
         }
 
@@ -68,12 +70,11 @@ namespace Game1
             ApproxSurfaceLength = (ulong)(2 * MyMathHelper.pi * Radius);
         }
 
-        public void MineTo<TDestinPile>(TDestinPile destin, ulong resAmount)
-            where TDestinPile : IDestinPile<ResAmounts>
+        public void MineTo(ResPile destin, ulong resAmount)
         {
             if (!CanRemove(resAmount: resAmount))
                 throw new ArgumentException();
-            var reservedResPile = ReservedPile<ResAmounts>.CreateIfHaveEnough
+            var reservedResPile = ResPile.CreateIfHaveEnough
             (
                 source: consistsOfResPile,
                 amount: new(resInd: ConsistsOfResInd, amount: resAmount)
@@ -83,10 +84,9 @@ namespace Game1
             RecalculateValues();
         }
 
-        public void EnlargeFrom<TSourcePile>(TSourcePile source, ulong resAmount)
-            where TSourcePile : ISourcePile<ResAmounts>
+        public void EnlargeFrom(ResPile source, ulong resAmount)
         {
-            var reservedResPile = ReservedPile<ResAmounts>.CreateIfHaveEnough
+            var reservedResPile = ResPile.CreateIfHaveEnough
             (
                 source: source,
                 amount: new(resInd: ConsistsOfResInd, amount: resAmount)

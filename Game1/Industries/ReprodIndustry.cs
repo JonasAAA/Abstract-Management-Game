@@ -144,7 +144,7 @@ namespace Game1.Industries
 
         private readonly Params parameters;
         private readonly ReprodCenter reprodCenter;
-        private readonly TimedQueue<(VirtualPerson, VirtualPerson, ReservedPile<ResAmounts> childResPile)> birthQueue;
+        private readonly TimedQueue<(VirtualPerson, VirtualPerson, ResPile childResPile)> birthQueue;
 
         private ReprodIndustry(Params parameters, Building building)
             : base(parameters: parameters, building: building)
@@ -192,7 +192,7 @@ namespace Game1.Industries
                 reprodCenter.RemovePerson(person: parent2, force: true);
             }
 
-            while (reprodCenter.unpairedPeople.Count >= 2 && ReservedPile<ResAmounts>.CreateIfHaveEnough(source: parameters.state.StoredResPile, amount: RealPerson.resAmountsPerPerson) is ReservedPile<ResAmounts> childResPile)
+            while (reprodCenter.unpairedPeople.Count >= 2 && ResPile.CreateIfHaveEnough(source: parameters.state.StoredResPile, amount: RealPerson.resAmountsPerPerson) is ResPile childResPile)
             {
                 // TODO: move this logic into ReprodCenter class?
                 VirtualPerson person1 = reprodCenter.unpairedPeople.Dequeue(),

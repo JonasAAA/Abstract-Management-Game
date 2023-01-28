@@ -1,5 +1,6 @@
 ﻿namespace Game1
 {
+    [Serializable]
     public readonly struct GeneralEnum<T1, T2>
     {
         private readonly T1 value1;

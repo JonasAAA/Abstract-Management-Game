@@ -298,7 +298,7 @@ namespace Game1.Industries
         NodeID IEnergyConsumer.NodeID
             => parameters.state.NodeID;
 
-        void IEnergyConsumer.ConsumeEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
+        void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {
             throw new NotImplementedException();
             //this.energyPropor = energyPropor;

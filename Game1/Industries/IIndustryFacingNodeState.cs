@@ -10,20 +10,19 @@ namespace Game1.Industries
         public ulong MaxAvailableResAmount { get; }
         public MyVector2 Position { get; }
         public ulong MaxBatchDemResStored { get; }
-        public Pile<ResAmounts> StoredResPile { get; }
+        public ResPile StoredResPile { get; }
         public Pile<RadiantEnergy> RadiantEnergyPile { get; }
         public RealPeople WaitingPeople { get; }
         public BasicResInd ConsistsOfResInd { get; }
         public BasicRes ConsistsOfRes { get; }
         public bool TooManyResStored { get; }
         public LocationCounters LocationCounters { get; }
+        public ThermalBody ThermalBody { get; }
 
         public bool CanRemove(ulong resAmount);
 
-        public void MineTo<TDestinPile>(TDestinPile destin, ulong resAmount)
-            where TDestinPile : IDestinPile<ResAmounts>;
+        public void MineTo(ResPile destin, ulong resAmount);
 
-        public void EnlargeFrom<TSourcePile>(TSourcePile source, ulong resAmount)
-            where TSourcePile : ISourcePile<ResAmounts>;
+        public void EnlargeFrom(ResPile source, ulong resAmount);
     }
 }

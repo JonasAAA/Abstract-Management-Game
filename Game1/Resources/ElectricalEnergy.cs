@@ -33,6 +33,9 @@ namespace Game1.Resources
         public override string ToString()
             => energy.ToString();
 
+        static ElectricalEnergy IMin<ElectricalEnergy>.Min(ElectricalEnergy left, ElectricalEnergy right)
+            => left < right ? left : right;
+
         public static explicit operator Energy(ElectricalEnergy electricalEnergy)
             => electricalEnergy.energy;
 

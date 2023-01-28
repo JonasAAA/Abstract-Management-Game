@@ -125,7 +125,7 @@ namespace Game1
         private Industry? industry;
         private readonly MyArray<ProporSplitter<NodeID>> resSplittersToDestins;
         private ResAmounts targetStoredResAmounts;
-        private readonly Pile<ResAmounts> undecidedResPile;
+        private readonly ResPile undecidedResPile;
         private ResAmounts resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
         private Energy usedLocalEnergy;
@@ -138,7 +138,7 @@ namespace Game1
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
-        public Planet(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount, Pile<ResAmounts> resSource)? startingConditions = null)
+        public Planet(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount, ResPile resSource)? startingConditions = null)
             : base
             (
                 shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
@@ -158,7 +158,7 @@ namespace Game1
                 selector: resInd => new ProporSplitter<NodeID>()
             );
             targetStoredResAmounts = ResAmounts.Empty;
-            undecidedResPile = Pile<ResAmounts>.CreateEmpty(locationCounters: state.LocationCounters);
+            undecidedResPile = ResPile.CreateEmpty(thermalBody: state.ThermalBody);
             resTravelHereAmounts = ResAmounts.Empty;
             usedLocalEnergy = Energy.zero;
 
@@ -262,7 +262,7 @@ namespace Game1
                 ResAmounts houseBuildingCost = houseFactory.BuildingCost(state: state);
 
                 {
-                    var reservedBuildingRes = ReservedPile<ResAmounts>.CreateIfHaveEnough
+                    var reservedBuildingRes = ResPile.CreateIfHaveEnough
                     (
                         source: state.StoredResPile,
                         amount: houseBuildingCost
@@ -282,7 +282,7 @@ namespace Game1
                     RealPerson.GeneratePersonByMagic
                     (
                         nodeID: NodeID,
-                        resSource: ReservedPile<ResAmounts>.CreateIfHaveEnough(source: state.StoredResPile, amount: RealPerson.resAmountsPerPerson)!,
+                        resSource: ResPile.CreateIfHaveEnough(source: state.StoredResPile, amount: RealPerson.resAmountsPerPerson)!,
                         childDestin: state.WaitingPeople
                     );
                 }
@@ -397,7 +397,7 @@ namespace Game1
                 )
             );
 
-            state.StoredResPile.TransferAtMostFrom(source: undecidedResPile, resAmounts: targetStoredResAmounts);
+            state.StoredResPile.TransferAtMostFrom(source: undecidedResPile, maxAmount: targetStoredResAmounts);
         }
 
         /// <summary>
@@ -416,7 +416,7 @@ namespace Game1
                 var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount[resInd], maxAmountsFunc: maxExtraResFunc);
 
                 {
-                    var unsplitResPile = ReservedPile<ResAmounts>.CreateIfHaveEnough(source: undecidedResPile, amount: new(resInd: resInd, amount: unsplitResAmount));
+                    var unsplitResPile = ResPile.CreateIfHaveEnough(source: undecidedResPile, amount: new(resInd: resInd, amount: unsplitResAmount));
                     Debug.Assert(unsplitResPile is not null);
                     state.StoredResPile.TransferAllFrom(source: unsplitResPile);
                 }
@@ -424,11 +424,11 @@ namespace Game1
                 foreach (var (destination, resAmountNum) in splitResAmounts)
                 {
                     ResAmount resAmount = new(resInd: resInd, amount: resAmountNum);
-                    var resPileForDestin = ReservedPile<ResAmounts>.CreateIfHaveEnough(source: undecidedResPile, amount: new(resAmount));
+                    var resPileForDestin = ResPile.CreateIfHaveEnough(source: undecidedResPile, amount: new(resAmount));
                     Debug.Assert(resPileForDestin is not null);
                     state.waitingResAmountsPackets.TransferAllFrom
                     (
-                        source: ref resPileForDestin,
+                        source: resPileForDestin,
                         destination: destination
                     );
                     nodeIDToNode(destination).AddResTravelHere(resAmount: resAmount);
@@ -560,10 +560,11 @@ namespace Game1
         void ILinkFacingPlanet.Arrive(RealPerson realPerson, RealPeople realPersonSource)
             => state.WaitingPeople.TransferFrom(realPerson: realPerson, realPersonSource: realPersonSource);
 
-        void INodeAsLocalEnergyProducerAndConsumer.ProduceLocalEnergy<T>(T destin)
+        void INodeAsLocalEnergyProducerAndConsumer.ProduceLocalEnergy(Pile<ElectricalEnergy> destin)
         {
-            if (Industry?.PeopleWorkOnTop is true or null)
-                state.LocationCounters.TransformRadiantToElectricalEnergyAndTransfer(destin: destin, proporToTransform: (Propor).001);
+            throw new NotImplementedException();
+            //if (Industry?.PeopleWorkOnTop is true or null)
+            //    state.LocationCounters.TransformRadiantToElectricalEnergyAndTransfer(destin: destin, proporToTransform: (Propor).001);
         }
 
         //Energy INodeAsLocalEnergyProducerAndConsumer.LocallyProducedEnergy
@@ -582,13 +583,13 @@ namespace Game1
         double ILightBlockingObject.CloserInterPoint(MyVector2 lightPos, MyVector2 lightDir)
             => CurLightCatchingObject.CloserInterPoint(lightPos: lightPos, lightDir: lightDir);
 
-        void ILightCatchingObject.TakeRadiantEnergyFrom<T>(T source)
-            => source.TransferAllTo(destin: state.LocationCounters);
+        void ILightCatchingObject.TakeRadiantEnergyFrom(EnergyPile<RadiantEnergy> source, RadiantEnergy amount)
+            => state.RadiantEnergyPile.TransferFrom(source: source, amount: amount);
 
         void INodeAsResDestin.AddResTravelHere(ResAmount resAmount)
             => resTravelHereAmounts = resTravelHereAmounts.WithAdd(resAmount: resAmount);
 
-        void INodeAsLocalEnergyProducerAndConsumer.ConsumeUnusedLocalEnergyFrom<T>(T source, ElectricalEnergy electricalEnergy)
+        void INodeAsLocalEnergyProducerAndConsumer.ConsumeUnusedLocalEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {
              //=> this.usedLocalEnergy = usedLocalEnergy;
             throw new NotImplementedException();

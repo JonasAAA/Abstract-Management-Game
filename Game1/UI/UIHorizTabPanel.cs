@@ -59,8 +59,8 @@ namespace Game1.UI
 
             UDouble innerWidth = MyMathHelper.Max
             (
-                value1: tabChoicePanel.Shape.Width,
-                value2: tabs.Values.MaxOrDefault(tab => tab.Shape.Width)
+                left: tabChoicePanel.Shape.Width,
+                right: tabs.Values.MaxOrDefault(tab => tab.Shape.Width)
             );
             UDouble tabHeight = tabs.Values.MaxOrDefault(tab => tab.Shape.Height);
 

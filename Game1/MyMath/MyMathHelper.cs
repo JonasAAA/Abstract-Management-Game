@@ -21,17 +21,37 @@ namespace Game1.MyMath
         public static bool AreClose(TimeSpan value1, TimeSpan value2)
             => value1 == value2;
 
-        public static T Min<T>(T value1, T value2) where T : IComparisonOperators<T, T, bool>
-            => value1 < value2 ? value1 : value2;
+        // T is not IComparisonOperators<T, T, bool> since then if called from a generic method
+        // where T happens to be ResAmounts, the incorrect overload is called
+        public static T Min<T>(T left, T right) where T : IMin<T>
+            => T.Min(left, right);
 
-        public static ResAmounts Min(ResAmounts value1, ResAmounts value2)
-            => value1.Min(other: value2);
+        public static ulong Min(ulong left, ulong right)
+            => left < right ? left : right;
+        //{
+        //    Debug.Assert(left >= right || right >= left);
+        //    Debug.Assert(left is not ResAmounts);
+        //    return left < right ? left : right;
+        //}
 
-        public static T Max<T>(T value1, T value2) where T : IComparisonOperators<T, T, bool>
-            => value1 > value2 ? value1 : value2;
+        //public static ResAmounts Min(ResAmounts left, ResAmounts right)
+        //    => left.Min(other: right);
 
-        public static TimeSpan Max(TimeSpan value1, TimeSpan value2)
-            => value1 > value2 ? value1 : value2;
+        // T is not IComparisonOperators<T, T, bool> for the same reason as Min function
+        public static T Max<T>(T left, T right) where T : IMax<T>
+            => T.Max(left, right);
+
+        //public static T Max<T>(T left, T right) where T : IComparisonOperators<T, T, bool>
+        //    => left > right ? left : right;
+
+        public static double Max(double left, double right)
+            => left > right ? left : right;
+
+        public static ulong Max(ulong left, ulong right)
+            => left > right ? left : right;
+
+        public static TimeSpan Max(TimeSpan left, TimeSpan right)
+            => left > right ? left : right;
 
         public static UDouble Abs(double value)
             => (UDouble)Math.Abs(value);

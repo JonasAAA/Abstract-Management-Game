@@ -5,25 +5,40 @@ namespace Game1
     public static class Algorithms
     {
         // THIS IS A CLASS so that when it's later changed, it the changes are reflected everywhere
+        // Index is here only to resolve the ties when comparing elements.
+        // That is needed because SortedSet doesn't allow duplicates (i.e. elements which return 0 when compared)
         [Serializable]
-        private record class ConsumerWithEnergy<T>(T ReqEnergy, T AllocEnergy) : IComparable<ConsumerWithEnergy<T>>
+        private record class ConsumerWithEnergy<T>(int Index, T ReqEnergy, T AllocEnergy) : IComparable<ConsumerWithEnergy<T>>
             where T : struct, IUnconstrainedEnergy<T>
         {
             public T AllocEnergy { get; set; } = AllocEnergy;
 
-            // This compares AllocEnergy / ReqWatts (real number result) between the two
-            // and if ReqWatts is 0, then that energy consumer will be considered big, i.e. at the end of the list
-            public int CompareTo(ConsumerWithEnergy<T>? other)
-                => (ReqEnergy.IsZero, other!.ReqEnergy.IsZero) switch
-                {
-                    (true, true) => 0,
-                    (true, false) => 1,
-                    (false, true) => -1,
-                    (false, false) => ((UInt128)AllocEnergy.ValueInJ() * other.ReqEnergy.ValueInJ()).CompareTo
-                        (
-                            (UInt128)other.AllocEnergy.ValueInJ() * ReqEnergy.ValueInJ()
-                        )
-                };
+            // TODO: could randomise this a little so that the same things don't get consistently more energy
+            // The benefit would be miniscule, probabbly unnoticeable
+            int IComparable<ConsumerWithEnergy<T>>.CompareTo(ConsumerWithEnergy<T>? other)
+                => Compare
+                (
+                    left: (index: Index, totOwnedEnergy: AllocEnergy, reqEnergy: ReqEnergy),
+                    right: (index: other!.Index, totOwnedEnergy: other.AllocEnergy, reqEnergy: other.ReqEnergy)
+                );
+        }
+
+        // This compares totOwnedEnergy / reqEnergy (real number result) between the two
+        // and if reqEnergy is 0, then that energy consumer will be considered big, i.e. at the end of the list
+        private static int Compare<T>((int index, T totOwnedEnergy, T reqEnergy) left, (int index, T totOwnedEnergy, T reqEnergy) right)
+            where T : struct, IUnconstrainedEnergy<T>
+        {
+            int compareValues = (left.reqEnergy.IsZero, right.reqEnergy.IsZero) switch
+            {
+                (true, true) => 0,
+                (true, false) => 1,
+                (false, true) => -1,
+                (false, false) => ((UInt128)left.totOwnedEnergy.ValueInJ() * right.reqEnergy.ValueInJ()).CompareTo
+                    (
+                        (UInt128)right.totOwnedEnergy.ValueInJ() * left.reqEnergy.ValueInJ()
+                    )
+            };
+            return compareValues is 0 ? left.index.CompareTo(right.index) : compareValues;
         }
 
         public static (List<T> allocatedEnergies, T unusedEnergy) SplitEnergyEvenly<T>(List<T> reqEnergies, T availableEnergy)
@@ -48,8 +63,9 @@ namespace Game1
             (
                 reqEnergies.Select
                 (
-                    reqEnergy => new ConsumerWithEnergy<T>
+                    (reqEnergy, index) => new ConsumerWithEnergy<T>
                     (
+                        Index: index,
                         ReqEnergy: reqEnergy,
                         AllocEnergy: IUnconstrainedEnergy<T>.CreateFromJoules
                         (
@@ -79,19 +95,20 @@ namespace Game1
 
         // THIS IS A CLASS so that when it's later changed, it the changes are reflected everywhere
         [Serializable]
-        private record class ConsumerWithExtraEnergy<T>(T OwnedEnergy, T ReqEnergy, T AllocEnergy) : ConsumerWithEnergy<T>(ReqEnergy: ReqEnergy, AllocEnergy: AllocEnergy), IComparable<ConsumerWithExtraEnergy<T>>
+        private record class ConsumerWithExtraEnergy<T>(int Index, T OwnedEnergy, T ReqEnergy, T AllocEnergy) : ConsumerWithEnergy<T>(Index: Index, ReqEnergy: ReqEnergy, AllocEnergy: AllocEnergy), IComparable<ConsumerWithExtraEnergy<T>>
             where T : struct, IUnconstrainedEnergy<T>
         {
-            public int CompareTo(ConsumerWithExtraEnergy<T>? other)
-                => base.CompareTo(other: other);
+            int IComparable<ConsumerWithExtraEnergy<T>>.CompareTo(ConsumerWithExtraEnergy<T>? other)
+                => Compare
+                (
+                    left: (index: Index, totOwnedEnergy: OwnedEnergy + AllocEnergy, reqEnergy: ReqEnergy),
+                    right: (index: other!.Index, totOwnedEnergy: other.OwnedEnergy + other.AllocEnergy, reqEnergy: other.ReqEnergy)
+                );
         }
 
         public static (List<T> allocatedEnergies, T unusedEnergy) SplitExtraEnergyEvenly<T>(List<(T ownedEnergy, T reqEnergy)> energies, T availableEnergy)
             where T : struct, IUnconstrainedEnergy<T>, IComparisonOperators<T, T, bool>
         {
-
-            //TEST this method
-            throw new NotImplementedException();
             if (energies.All(energy => energy.ownedEnergy.IsZero))
                 return SplitEnergyEvenly
                 (
@@ -100,6 +117,7 @@ namespace Game1
                 );
 
             List<T> allocatedEnergies = SplitExtraEnergyEvenlyInternal();
+            Debug.Assert(energies.Zip(allocatedEnergies).All(energy => energy.First.ownedEnergy + energy.Second <= energy.First.reqEnergy));
             return (allocatedEnergies, unusedEnergy: availableEnergy - allocatedEnergies.Sum());
 
             List<T> SplitExtraEnergyEvenlyInternal()
@@ -148,8 +166,9 @@ namespace Game1
                 (
                     energies.Select
                     (
-                        energy => new ConsumerWithExtraEnergy<T>
+                        (energy, index) => new ConsumerWithExtraEnergy<T>
                         (
+                            Index: index,
                             OwnedEnergy: energy.ownedEnergy,
                             ReqEnergy: energy.reqEnergy,
                             AllocEnergy: IUnconstrainedEnergy<T>.CreateFromJoules

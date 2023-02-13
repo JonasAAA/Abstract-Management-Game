@@ -16,6 +16,7 @@
             return newPackets;
         }
 
+        // ResAmounts is not Counter, otherwise it would be impossible to implement void TransferAllFrom(ResAmountsPacket sourcePacket)
         public ResAmounts ResAmounts { get; private set; }
         public Mass Mass { get; private set; }
         public bool Empty
@@ -51,8 +52,6 @@
 
         public void TransferAllFrom(ResPile source, NodeID destination)
         {
-            // ResAmounts should maybe be of type Counter<ResAmounts>?
-            throw new NotImplementedException();
             ResAmounts += source.Amount;
             Mass += source.Amount.Mass();
 

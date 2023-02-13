@@ -1,5 +1,8 @@
 ﻿namespace Game1.Resources
 {
+    /// <summary>
+    /// The difference between Pile and Counter is that Pile is the owner of the resource, while Counter is just keeping tabs of what goes where.
+    /// </summary>
     [Serializable]
     public class Pile<TAmount>
         where TAmount : struct, ICountable<TAmount>

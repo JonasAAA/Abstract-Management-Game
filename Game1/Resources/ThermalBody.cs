@@ -7,44 +7,50 @@
             => new
             (
                 heatEnergyPile: Pile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
-                heatCapacityPile: Pile<HeatCapacity>.CreateEmpty(locationCounters: locationCounters)
+                resCounter: Counter<ResAmounts>.CreateEmpty()
+            );
+
+        public static ThermalBody CreateByMagic(LocationCounters locationCounters, ResAmounts amount)
+            => new
+            (
+                heatEnergyPile: Pile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
+                resCounter: Counter<ResAmounts>.CreateByMagic(count: amount)
             );
 
         public readonly LocationCounters locationCounters;
 
         private readonly Pile<HeatEnergy> heatEnergyPile;
-        private readonly Pile<HeatCapacity> heatCapacityPile;
+        private readonly Counter<ResAmounts> resCounter;
 
-        private ThermalBody(Pile<HeatEnergy> heatEnergyPile, Pile<HeatCapacity> heatCapacityPile)
+        private ThermalBody(Pile<HeatEnergy> heatEnergyPile, Counter<ResAmounts> resCounter)
         {
-            Debug.Assert(heatEnergyPile.LocationCounters == heatCapacityPile.LocationCounters);
             locationCounters = heatEnergyPile.LocationCounters;
             this.heatEnergyPile = heatEnergyPile;
-            this.heatCapacityPile = heatCapacityPile;
+            this.resCounter = resCounter;
         }
 
         public void TransferResFrom(ThermalBody source, ResAmounts amount)
         {
-            HeatCapacity heatCapacityInAmount = amount.HeatCapacity();
-
-            //This must be done first to get accurate source heat capacity in the calculations
-            heatEnergyPile.TransferFrom
-            (
-                source: source.heatEnergyPile,
-                amount: HeatEnergy.CreateFromJoules
+            var sourceHeatCapacityInJPerK = source.resCounter.Count.HeatCapacity().valueInJPerK;
+            if (sourceHeatCapacityInJPerK > 0)
+                //This must be done first to get accurate source heat capacity in the calculations
+                heatEnergyPile.TransferFrom
                 (
-                    valueInJ: MyMathHelper.MultThenDivideRound
+                    source: source.heatEnergyPile,
+                    amount: HeatEnergy.CreateFromJoules
                     (
-                        factor1: source.heatEnergyPile.Amount.ValueInJ,
-                        factor2: heatCapacityInAmount.valueInJPerK,
-                        divisor: source.heatCapacityPile.Amount.valueInJPerK
+                        valueInJ: MyMathHelper.MultThenDivideRound
+                        (
+                            factor1: source.heatEnergyPile.Amount.ValueInJ,
+                            factor2: amount.HeatCapacity().valueInJPerK,
+                            divisor: sourceHeatCapacityInJPerK
+                        )
                     )
-                )
-            );
-            heatCapacityPile.TransferFrom
+                );
+            resCounter.TransferFrom
             (
-                source: source.heatCapacityPile,
-                amount: heatCapacityInAmount
+                source: source.resCounter,
+                count: amount
             );
         }
     }

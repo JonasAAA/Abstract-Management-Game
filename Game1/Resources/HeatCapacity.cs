@@ -6,7 +6,7 @@ namespace Game1.Resources
     /// The amount of energy needed to increase the temperature by one degree
     /// </summary>
     [Serializable]
-    public readonly record struct HeatCapacity : ICountable<HeatCapacity>, IMultiplyOperators<HeatCapacity, ulong, HeatCapacity>, IMultiplicativeIdentity<HeatCapacity, ulong>
+    public readonly record struct HeatCapacity : IAdditionOperators<HeatCapacity, HeatCapacity, HeatCapacity>, IAdditiveIdentity<HeatCapacity, HeatCapacity>, IMultiplyOperators<HeatCapacity, ulong, HeatCapacity>, IMultiplicativeIdentity<HeatCapacity, ulong>
     {
         public static readonly HeatCapacity zero;
 
@@ -35,8 +35,8 @@ namespace Game1.Resources
         public override string ToString()
             => $"{valueInJPerK} J/K";
 
-        static HeatCapacity IMin<HeatCapacity>.Min(HeatCapacity left, HeatCapacity right)
-            => left < right ? left : right;
+        //static HeatCapacity IMin<HeatCapacity>.Min(HeatCapacity left, HeatCapacity right)
+        //    => left < right ? left : right;
 
         public static HeatCapacity operator +(HeatCapacity left, HeatCapacity right)
             => new(valueInJPerK: left.valueInJPerK + right.valueInJPerK);

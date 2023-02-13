@@ -23,6 +23,10 @@
             where TAmount : struct, ICountable<TAmount>
             => counters.TransferFrom(source: source.counters, amount: amount);
 
+        public void TransferTo<TAmount>(LocationCounters destin, TAmount amount)
+            where TAmount : struct, ICountable<TAmount>
+            => counters.TransferTo(destin: destin.counters, amount: amount);
+
         public void TransformFrom<TSourceAmount, TDestinAmount>(LocationCounters source, TSourceAmount sourceAmount)
             where TSourceAmount : struct, IFormOfEnergy<TSourceAmount>
             where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>

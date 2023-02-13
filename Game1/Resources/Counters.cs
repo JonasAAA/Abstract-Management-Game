@@ -1,71 +1,63 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public readonly struct Counters
+    public class Counters
     {
         public static Counters CreateEmpty()
-            => new
-            (
-                peopleCounter: Counter<NumPeople>.CreateEmpty(),
-                resCounter: EnergyCounter<ResAmounts>.CreateEmpty(),
-                heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateEmpty(),
-                radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty(),
-                electricalEnergyCounter: EnergyCounter<ElectricalEnergy>.CreateEmpty()
-            );
+            => new();
 
         public static Counters CreateCounterByMagic<TAmount>(TAmount amount)
             where TAmount : struct, ICountable<TAmount>
-        {
-            if (amount is IFormOfEnergy<TAmount>)
+            => amount switch
             {
+                NumPeople numPeople => new()
+                {
+                    PeopleCounter = Counter<NumPeople>.CreateByMagic(count: numPeople)
+                },
+                ResAmounts resAmounts => new()
+                {
+                    ResCounter = EnergyCounter<ResAmounts>.CreateByMagic(count: resAmounts)
+                },
+                HeatEnergy heatEnergy => new()
+                {
+                    HeatEnergyCounter = EnergyCounter<HeatEnergy>.CreateByMagic(count: heatEnergy)
+                },
+                RadiantEnergy radiantEnergy => new()
+                {
+                    RadiantEnergyCounter = EnergyCounter<RadiantEnergy>.CreateByMagic(count: radiantEnergy)
+                },
+                ElectricalEnergy electricalEnergy => new()
+                {
+                    ElectricalEnergyCounter = EnergyCounter<ElectricalEnergy>.CreateByMagic(count: electricalEnergy)
+                },
+                _ => throw new ArgumentException()
+            };
 
-            }
-            throw new NotImplementedException();
-        }
+        private Counter<NumPeople> PeopleCounter { get; init; }
+        private EnergyCounter<ResAmounts> ResCounter { get; init; }
+        private EnergyCounter<HeatEnergy> HeatEnergyCounter { get; init; }
+        private EnergyCounter<RadiantEnergy> RadiantEnergyCounter { get; init; }
+        private EnergyCounter<ElectricalEnergy> ElectricalEnergyCounter { get; init; }
 
-        //public static Counters CreatePersonCounterByMagic(NumPeople numPeople)
-        //    => new
-        //    (
-        //        peopleCounter: Counter<NumPeople>.CreateByMagic(count: numPeople),
-        //        resCounter: EnergyCounter<ResAmounts>.CreateEmpty(),
-        //        heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateEmpty(),
-        //        radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty(),
-        //        electricalEnergyCounter: EnergyCounter<ElectricalEnergy>.CreateEmpty()
-        //    );
-
-        //public static Counters CreateResAmountsCountersByMagic(ResAmounts resAmounts, ulong temperatureInK)
-        //    // TODO: Look at this, want to insure that the (total sourceAmount of energy) * (max heat capacity) fit comfortably into ulong
-        //    // If run into problems with overflow, could use int128 or uint128 instead of ulong from
-        //    // https://learn.microsoft.com/en-us/dotnet/api/system.int128?view=net-7.0 https://learn.microsoft.com/en-us/dotnet/api/system.uint128?view=net-7.0
-        //    => new
-        //    (
-        //        peopleCounter: Counter<NumPeople>.CreateEmpty(),
-        //        resCounter: EnergyCounter<ResAmounts>.CreateByMagic(count: resAmounts),
-        //        heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateByMagic(count: HeatEnergy.CreateFromJoules(valueInJ: temperatureInK * resAmounts.HeatCapacity().valueInJPerK)),
-        //        radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty(),
-        //        electricalEnergyCounter: EnergyCounter<ElectricalEnergy>.CreateEmpty()
-        //    );
-
-        private readonly Counter<NumPeople> peopleCounter;
-        private readonly EnergyCounter<ResAmounts> resCounter;
-        private readonly EnergyCounter<HeatEnergy> heatEnergyCounter;
-        private readonly EnergyCounter<RadiantEnergy> radiantEnergyCounter;
-        private readonly EnergyCounter<ElectricalEnergy> electricalEnergyCounter;
-
-        private Counters(Counter<NumPeople> peopleCounter, EnergyCounter<ResAmounts> resCounter, EnergyCounter<HeatEnergy> heatEnergyCounter,
-            EnergyCounter<RadiantEnergy> radiantEnergyCounter, EnergyCounter<ElectricalEnergy> electricalEnergyCounter)
+        public Counters()
         {
-            this.peopleCounter = peopleCounter;
-            this.resCounter = resCounter;
-            this.heatEnergyCounter = heatEnergyCounter;
-            this.radiantEnergyCounter = radiantEnergyCounter;
-            this.electricalEnergyCounter = electricalEnergyCounter;
+            PeopleCounter = Counter<NumPeople>.CreateEmpty();
+            ResCounter = EnergyCounter<ResAmounts>.CreateEmpty();
+            HeatEnergyCounter = EnergyCounter<HeatEnergy>.CreateEmpty();
+            RadiantEnergyCounter = EnergyCounter<RadiantEnergy>.CreateEmpty();
+            ElectricalEnergyCounter = EnergyCounter<ElectricalEnergy>.CreateEmpty();
         }
 
         public void TransferFrom<TAmount>(Counters source, TAmount amount)
             where TAmount : struct, ICountable<TAmount>
         {
-            throw new NotImplementedException();
+            if (this == source)
+                return;
+            GetCounter<TAmount>().TransferFrom
+            (
+                source: source.GetCounter<TAmount>(),
+                count: amount
+            );
         }
 
         public void TransferTo<TAmount>(Counters destin, TAmount amount)
@@ -76,14 +68,22 @@
             where TSourceAmount : struct, IFormOfEnergy<TSourceAmount>
             where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
         {
-            throw new NotImplementedException();
+            source.GetEnergyCounter<TSourceAmount>().TransformTo
+            (
+                destin: GetEnergyCounter<TDestinAmount>(),
+                sourceCount: sourceAmount
+            );
         }
 
         public void TransformTo<TSourceAmount, TDestinAmount>(Counters destin, TDestinAmount destinAmount)
             where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
             where TDestinAmount : struct, IFormOfEnergy<TDestinAmount>
         {
-            throw new NotImplementedException();
+            destin.GetEnergyCounter<TDestinAmount>().TransformFrom
+            (
+                source: GetEnergyCounter<TSourceAmount>(),
+                destinCount: destinAmount
+            );
         }
 
         public TAmount GetCount<TAmount>()
@@ -92,49 +92,23 @@
 
         private Counter<TAmount> GetCounter<TAmount>()
             where TAmount : struct, ICountable<TAmount>
-            => throw new NotImplementedException();
+        {
+            // This default(TAmount) switch statement only works since TAmount is a struct.
+            // If it were a class, then default would be null always, thus not holding any type information.
+            object counter = default(TAmount) switch
+            {
+                NumPeople => PeopleCounter,
+                ResAmounts => ResCounter,
+                HeatEnergy => HeatEnergyCounter,
+                RadiantEnergy => RadiantEnergyCounter,
+                ElectricalEnergy => ElectricalEnergyCounter,
+                _ => throw new ArgumentException()
+            };
+            return (Counter<TAmount>)counter;
+        }
 
-        //public void TransferPeopleFrom(Counters source, NumPeople numPeople)
-        //    => peopleCounter.TransferFrom(source: source.peopleCounter, count: numPeople);
-
-        //public void TransferResFrom(Counters source, ResAmounts resAmounts)
-        //{
-        //    // This must be done first to get accurate source heat capacity in the calculations
-        //    heatEnergyCounter.TransferFrom
-        //    (
-        //        source: source.heatEnergyCounter,
-        //        count: HeatEnergy.CreateFromJoules
-        //        (
-        //            valueInJ: MyMathHelper.MultThenDivideRound
-        //            (
-        //                factor1: source.HeatEnergy.ValueInJ,
-        //                factor2: resAmounts.HeatCapacity().valueInJPerK,
-        //                divisor: source.HeatCapacity.valueInJPerK
-        //            )
-        //        )
-        //    );
-        //    resCounter.TransferFrom(source: source.resCounter, count: resAmounts);
-        //}
-
-        //public void TransferRadiantEnergyFrom(Counters source, RadiantEnergy radiantEnergy)
-        //    => radiantEnergyCounter.TransferFrom(source: source.radiantEnergyCounter, count: radiantEnergy);
-
-        //public void TransformResToRadiantEnergy(ResAmounts resAmounts)
-        //{
-        //    // This should be called only from within EnergyPile
-        //    throw new NotImplementedException();
-        //    //  TODO: Maybe transfer appropriate sourceAmount of heat to radiant energy
-        //    resCounter.TransformTo(destin: radiantEnergyCounter, count: resAmounts);
-        //}
-
-        ///// <returns>the sourceAmount of electrical energy transferred</returns>
-        //public ElectricalEnergy TransformRadiantToElectricalEnergyAndTransfer<TAmount>(TAmount destin, Propor proporToTransform)
-        //    where TAmount : IEnergyDestin<ElectricalEnergy>
-        //{
-        //    throw new NotImplementedException();
-        //}
-
-        ////public void TransformRadiantEnergyToHeat(RadiantEnergy radiantEnergy)
-        ////    => radiantEnergyCounter.TransformTo(destin: heatEnergyCounter, count: radiantEnergy);
+        private EnergyCounter<TAmount> GetEnergyCounter<TAmount>()
+            where TAmount : struct, IFormOfEnergy<TAmount>
+            => (EnergyCounter<TAmount>)GetCounter<TAmount>();
     }
 }

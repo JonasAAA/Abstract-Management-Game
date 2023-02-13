@@ -27,12 +27,7 @@
             return new
             (
                 resPile: resPile,
-                thermalBody: ThermalBody.CreateEmpty(locationCounters: resPile.LocationCounters)
-            //peopleCounter: Counter<NumPeople>.CreateEmpty(),
-            //resCounter: EnergyCounter<ResAmounts>.CreateByMagic(count: resAmounts),
-            //heatEnergyCounter: EnergyCounter<HeatEnergy>.CreateByMagic(count: HeatEnergy.CreateFromJoules(valueInJ: temperatureInK * resAmounts.HeatCapacity().valueInJPerK)),
-            //radiantEnergyCounter: EnergyCounter<RadiantEnergy>.CreateEmpty(),
-            //electricalEnergyCounter: EnergyCounter<ElectricalEnergy>.CreateEmpty()
+                thermalBody: ThermalBody.CreateByMagic(locationCounters: resPile.LocationCounters, amount: amount)
             );
         }
 

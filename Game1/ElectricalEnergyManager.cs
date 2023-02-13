@@ -157,10 +157,6 @@ namespace Game1
                         enhancedConsumer.TransferEnergyFrom(source: energySource, energy: allocatedEnergy);
                 }
             }
-            // If possible, gather all energy meant for one consumer into one place and give it all at once
-            // If not possible/convenient enough to do so, change CombinedEnergyConsumer to only distribute energy when get it from all sources
-            // Distribute energy
-            throw new NotImplementedException();
         }
 
         public string Summary()

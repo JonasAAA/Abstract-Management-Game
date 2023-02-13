@@ -44,22 +44,25 @@ namespace Game1
                 );
 
             Debug.Assert(!totalReqEnergy.IsZero);
-            List<ConsumerWithEnergy<T>> consumersWithEnergy = reqEnergies.Select
+            ReadOnlyCollection<ConsumerWithEnergy<T>> consumersWithEnergy = new
             (
-                reqEnergy => new ConsumerWithEnergy<T>
+                reqEnergies.Select
                 (
-                    ReqEnergy: reqEnergy,
-                    AllocEnergy: IUnconstrainedEnergy<T>.CreateFromJoules
+                    reqEnergy => new ConsumerWithEnergy<T>
                     (
-                        valueInJ: (ulong)((UInt128)reqEnergy.ValueInJ() * availableEnergy.ValueInJ() / totalReqEnergy.ValueInJ())
+                        ReqEnergy: reqEnergy,
+                        AllocEnergy: IUnconstrainedEnergy<T>.CreateFromJoules
+                        (
+                            valueInJ: (ulong)((UInt128)reqEnergy.ValueInJ() * availableEnergy.ValueInJ() / totalReqEnergy.ValueInJ())
+                        )
                     )
-                )
-            ).ToList();
-            consumersWithEnergy.Sort();
-            var remainingEnergy = availableEnergy - consumersWithEnergy.Sum(energyConsumer => energyConsumer.AllocEnergy);
+                ).ToList()
+            );
+            var sortedConsumersWithEnergy = consumersWithEnergy.Order().ToList();
+            var remainingEnergy = availableEnergy - sortedConsumersWithEnergy.Sum(energyConsumer => energyConsumer.AllocEnergy);
             // Give the remaining energy to those that got the least of it.
             for (int i = 0; i < (int)remainingEnergy.ValueInJ(); i++)
-                consumersWithEnergy[i].AllocEnergy += IUnconstrainedEnergy<T>.CreateFromJoules(valueInJ: 1);
+                sortedConsumersWithEnergy[i].AllocEnergy += IUnconstrainedEnergy<T>.CreateFromJoules(valueInJ: 1);
             remainingEnergy = T.AdditiveIdentity;
             return
             (
@@ -86,7 +89,8 @@ namespace Game1
         public static (List<T> allocatedEnergies, T unusedEnergy) SplitExtraEnergyEvenly<T>(List<(T ownedEnergy, T reqEnergy)> energies, T availableEnergy)
             where T : struct, IUnconstrainedEnergy<T>, IComparisonOperators<T, T, bool>
         {
-            // TEST this method
+
+            //TEST this method
             throw new NotImplementedException();
             if (energies.All(energy => energy.ownedEnergy.IsZero))
                 return SplitEnergyEvenly
@@ -140,32 +144,35 @@ namespace Game1
             // Otherwise returns
             GeneralEnum<List<T>, Size> TryAllocPropor(decimal allocPropor)
             {
-                List<ConsumerWithExtraEnergy<T>> consumersWithExtraEnergy = energies.Select
+                ReadOnlyCollection<ConsumerWithExtraEnergy<T>> consumersWithExtraEnergy = new
                 (
-                    energy => new ConsumerWithExtraEnergy<T>
+                    energies.Select
                     (
-                        OwnedEnergy: energy.ownedEnergy,
-                        ReqEnergy: energy.reqEnergy,
-                        AllocEnergy: IUnconstrainedEnergy<T>.CreateFromJoules
+                        energy => new ConsumerWithExtraEnergy<T>
                         (
-                            valueInJ: (ulong)MyMathHelper.Max
+                            OwnedEnergy: energy.ownedEnergy,
+                            ReqEnergy: energy.reqEnergy,
+                            AllocEnergy: IUnconstrainedEnergy<T>.CreateFromJoules
                             (
-                                0,
-                                MyMathHelper.Ceiling
+                                valueInJ: (ulong)MyMathHelper.Max
                                 (
-                                    energy.reqEnergy.ValueInJ() * allocPropor - energy.ownedEnergy.ValueInJ()
+                                    0,
+                                    MyMathHelper.Ceiling
+                                    (
+                                        energy.reqEnergy.ValueInJ() * allocPropor - energy.ownedEnergy.ValueInJ()
+                                    )
                                 )
                             )
                         )
-                    )
-                ).ToList();
+                    ).ToList()
+                );
                 var totAllocEnergies = consumersWithExtraEnergy.Sum(consumer => consumer.AllocEnergy);
                 if (totAllocEnergies > availableEnergy)
                     return new(value2: Size.TooBig);
                 var remainingEnergyInJ = availableEnergy.ValueInJ() - totAllocEnergies.ValueInJ();
                 if (remainingEnergyInJ > (ulong)energies.Count)
                     return new(value2: Size.TooSmall);
-                SortedSet<ConsumerWithExtraEnergy<T>> sortedConsumersWithExtraEnergy = new();
+                SortedSet<ConsumerWithExtraEnergy<T>> sortedConsumersWithExtraEnergy = new(consumersWithExtraEnergy);
                 while (remainingEnergyInJ > 0)
                 {
                     var consumer = sortedConsumersWithExtraEnergy.Min!;

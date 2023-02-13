@@ -10,11 +10,20 @@ namespace TestProject
     public class SplitEnergyEvenlyTest
     {
         [TestMethod]
-        public void TooMuchAvailableEnergyThrowsError()
+        public void TooMuchAvailableEnergyFillsAndHasUnused()
         {
-            Assert.ThrowsException<ArgumentException>
+            AssertEquality
             (
-                () => Algorithms.SplitEnergyEvenly
+                expected:
+                (
+                    allocatedEnergies: new()
+                    {
+                        ElectricalEnergy.CreateFromJoules(valueInJ: 10),
+                        ElectricalEnergy.CreateFromJoules(valueInJ: 9)
+                    },
+                    unusedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 1)
+                ),
+                actual: Algorithms.SplitEnergyEvenly
                 (
                     reqEnergies: new()
                     {
@@ -84,6 +93,8 @@ namespace TestProject
 
         private static void AssertEquality<T>((List<T> allocatedEnergies, T unusedEnergy) expected, (List<T> allocatedEnergies, T unusedEnergy) actual)
         {
+            Console.WriteLine($"{string.Join(", ", expected.allocatedEnergies)}");
+            Console.WriteLine($"{string.Join(", ", actual.allocatedEnergies)}");
             CollectionAssert.AreEqual(expected: expected.allocatedEnergies, actual: actual.allocatedEnergies);
             Assert.AreEqual(expected: expected.unusedEnergy, actual: actual.unusedEnergy);
         }

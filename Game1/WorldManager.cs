@@ -473,20 +473,15 @@ namespace Game1
         public void AddPerson(RealPerson realPerson)
             => people.Add(realPerson.asVirtual);
 
-        public void Update(TimeSpan elapsed)
+        public void Update(TimeSpan elapsedGameTime)
         {
-            if (elapsed < TimeSpan.Zero)
+            if (elapsedGameTime < TimeSpan.Zero)
                 throw new ArgumentException();
 
-            TimeSpan elapsedUITime = elapsed;
-
-            if (pauseButton.On)
-                elapsed = TimeSpan.Zero;
-
-            Elapsed = elapsed;
+            Elapsed = pauseButton.On ? TimeSpan.Zero : elapsedGameTime * CurWorldConfig.worldSecondsInGameSecond;
             CurTime += Elapsed;
 
-            worldCamera.Update(elapsed: elapsed, canScroll: CurGraph.MouseOn);
+            worldCamera.Update(elapsed: elapsedGameTime, canScroll: CurGraph.MouseOn);
 
             lightManager.Update();
 
@@ -504,7 +499,7 @@ namespace Game1
             Debug.Assert(people.Count == CurGraph.RealPeopleStats.totalNumPeople);
             globalTextBox.Text = (energyManager.Summary() + CurGraph.RealPeopleStats.ToString()).Trim();
 
-            activeUIManager.Update(elapsed: elapsedUITime);
+            activeUIManager.Update(elapsed: elapsedGameTime);
 
             // THIS is a huge performance penalty
 #if DEBUG2

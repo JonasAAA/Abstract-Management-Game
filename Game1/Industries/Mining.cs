@@ -110,7 +110,7 @@ namespace Game1.Industries
 
         protected override Mining InternalUpdate(Propor workingPropor)
         {
-            UDouble targetMinedRes = workingPropor * parameters.MinedResPerSec * (UDouble)CurWorldManager.Elapsed.TotalSeconds,
+            UDouble targetMinedRes = workingPropor * parameters.MinedResPerSec * CurWorldManager.ElapsedSeconds,
                 resToMine = targetMinedRes + silentlyMinedBits;
             ulong minedRes = (ulong)resToMine;
             silentlyMinedBits = (UDouble)(resToMine - minedRes);
@@ -123,7 +123,7 @@ namespace Game1.Industries
                 silentlyMinedBits = 0;
             }
 
-            minedResPerSec = MyMathHelper.Min(targetMinedRes, maxMinedRes) / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
+            minedResPerSec = MyMathHelper.Min(targetMinedRes, maxMinedRes) / CurWorldManager.ElapsedSeconds;
             parameters.state.MineTo(destin: parameters.state.StoredResPile, resAmount: minedRes);
 
             return this;

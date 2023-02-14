@@ -136,7 +136,7 @@ namespace Game1.Inhabitants
 
         ElectricalEnergy IEnergyConsumer.ReqEnergy()
             => throw new NotImplementedException();
-        //=> IsInActivityCenter ? totReqWatts * CurWorldManager.Elapsed * worldSecondsPerRealSecond : 0;
+        //=> IsInActivityCenter ? totReqWatts * CurWorldManager.Elapsed : 0;
 
         void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {

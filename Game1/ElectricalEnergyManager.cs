@@ -161,10 +161,10 @@ namespace Game1
 
         public string Summary()
             => $"""
-            required energy: {totReqEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W
-            produced energy: {totProdEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W
-            used local energy {totUsedLocalEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W
-            used power plant energy {totUsedPowerPlantEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W
+            required energy: {totReqEnergy.ValueInJ / CurWorldManager.ElapsedSeconds:0.##} W
+            produced energy: {totProdEnergy.ValueInJ / CurWorldManager.ElapsedSeconds:0.##} W
+            used local energy {totUsedLocalEnergy.ValueInJ / CurWorldManager.ElapsedSeconds:0.##} W
+            used power plant energy {totUsedPowerPlantEnergy.ValueInJ / CurWorldManager.ElapsedSeconds:0.##} W
 
             """;
 

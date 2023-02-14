@@ -148,7 +148,7 @@ namespace Game1
 
             ElectricalEnergy IEnergyConsumer.ReqEnergy()
                 => throw new NotImplementedException();
-            //=> timedPacketQueue.Mass.valueInKg * reqWattsPerKg;
+                //=> timedPacketQueue.Mass.valueInKg * reqWattsPerKg * CurWorldManager.ElapsedSeconds;
 
             void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
                 => throw new NotImplementedException();

@@ -107,7 +107,7 @@ namespace Game1.Industries
 
         protected override PlanetEnlargement InternalUpdate(Propor workingPropor)
         {
-            UDouble targetAddedRes = workingPropor * parameters.AddedResPerSec * (UDouble)CurWorldManager.Elapsed.TotalSeconds,
+            UDouble targetAddedRes = workingPropor * parameters.AddedResPerSec * CurWorldManager.ElapsedSeconds,
                 resToAdd = targetAddedRes + silentlyAddedBits;
             ulong addedRes = (ulong)resToAdd;
             silentlyAddedBits = (UDouble)(resToAdd - addedRes);
@@ -120,7 +120,7 @@ namespace Game1.Industries
                 silentlyAddedBits = 0;
             }
 
-            curAddedResPerSec = MyMathHelper.Min(targetAddedRes, maxAddedRes) / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
+            curAddedResPerSec = MyMathHelper.Min(targetAddedRes, maxAddedRes) / CurWorldManager.ElapsedSeconds;
             parameters.state.EnlargeFrom(source: parameters.state.StoredResPile, resAmount: addedRes);
 
             return this;

@@ -305,6 +305,8 @@ namespace Game1
 
         public TimeSpan Elapsed { get; private set; }
 
+        public ulong ElapsedSeconds { get; private set; }
+
         public MyVector2 MouseWorldPos
             => worldCamera.WorldPos(screenPos: (MyVector2)Mouse.GetState().Position);
 
@@ -473,25 +475,20 @@ namespace Game1
         public void AddPerson(RealPerson realPerson)
             => people.Add(realPerson.asVirtual);
 
-        public void Update(TimeSpan elapsed)
+        public void Update(TimeSpan elapsedGameTime)
         {
-            // World stuff could use elapsedWorldSeconds, which would be ulong
-            // The update function would translate between real elapsed seconds and world seconds
-            // Since Monogame will attempt to have 60fps, could have something like 1/60 real seconds = 60 world seconds
-            // Then if some frame is 61 world seconds, and some 59, the player shouldn't notice
-            throw new NotImplementedException();
-            if (elapsed < TimeSpan.Zero)
+            if (elapsedGameTime < TimeSpan.Zero)
                 throw new ArgumentException();
 
-            TimeSpan elapsedUITime = elapsed;
+            TimeSpan elapsedUITime = elapsedGameTime;
 
-            if (pauseButton.On)
-                elapsed = TimeSpan.Zero;
-
-            Elapsed = elapsed;
+            ElapsedSeconds = pauseButton.On ? 0 : (ulong)MyMathHelper.Round((decimal)elapsedGameTime.TotalSeconds * CurWorldConfig.worldSecondsInGameSecond);
+            Elapsed = TimeSpan.FromSeconds(ElapsedSeconds);
             CurTime += Elapsed;
 
-            worldCamera.Update(elapsed: elapsed, canScroll: CurGraph.MouseOn);
+            Debug.Assert(TimeSpan.FromSeconds(ElapsedSeconds) == Elapsed);
+
+            worldCamera.Update(elapsed: elapsedGameTime, canScroll: CurGraph.MouseOn);
 
             lightManager.Update();
 

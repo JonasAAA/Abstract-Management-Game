@@ -156,5 +156,8 @@ namespace Game1.MyMath
 
         public static long Ceiling(decimal value)
             => (long)Math.Ceiling(value);
+
+        public static long Round(decimal value)
+            => Convert.ToInt64(value);
     }
 }

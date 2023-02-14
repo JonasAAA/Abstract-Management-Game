@@ -93,5 +93,7 @@
             // MUST always be the same for all people
             // as the way industry deals with required energy requires that
             personEnergyPrior = new(value: 10);
+
+        public readonly ulong worldSecondsInGameSecond = 3600;
     }
 }

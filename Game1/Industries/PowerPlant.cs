@@ -86,7 +86,7 @@ namespace Game1.Industries
         }
 
         protected override string GetBusyInfo()
-            => $"produce {prodEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W\n";
+            => $"produce {prodEnergy.ValueInJ / CurWorldManager.ElapsedSeconds:0.##} W\n";
 
         protected override UDouble ReqWatts()
             => 0;

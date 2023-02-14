@@ -310,7 +310,8 @@ namespace Game1.Industries
             (
                 valueInJ: reqEnergyHistoricRounder.Round
                 (
-                    value: (decimal)ReqWatts() * (decimal)CurWorldManager.Elapsed.TotalSeconds
+                    value: (decimal)ReqWatts() * (decimal)CurWorldManager.Elapsed.TotalSeconds,
+                    curTime: CurWorldManager.CurTime
                 )
             );
     }

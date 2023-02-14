@@ -1,25 +1,30 @@
-﻿using static Game1.WorldManager;
-
-namespace Game1
+﻿namespace Game1
 {
     [Serializable]
     public class HistoricRounder
     {
-        private decimal historicalInaccuracy;
+        private decimal historicalInaccuracy, lastValue;
         private ulong lastResult;
-        private readonly TimeSpan lastRoundTime;
+        private TimeSpan lastRoundTime;
 
         public HistoricRounder()
         {
             historicalInaccuracy = 0;
+            lastValue = -1;
             lastRoundTime = TimeSpan.MinValue;
             lastResult = 0;
         }
 
-        public ulong Round(decimal value)
+        public ulong Round(decimal value, TimeSpan curTime)
         {
-            if (lastRoundTime == CurWorldManager.CurTime)
+            if (lastRoundTime == curTime)
+            {
+                if (value != lastValue)
+                    throw new ArgumentException("If no time passed since last rounding, the value to round shouldn't change");
                 return lastResult;
+            }
+            lastValue = value;
+            lastRoundTime = curTime;
             value += historicalInaccuracy;
             lastResult = Convert.ToUInt64(value);
             historicalInaccuracy = value - lastResult;

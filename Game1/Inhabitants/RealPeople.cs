@@ -33,12 +33,14 @@ namespace Game1.Inhabitants
         private readonly ThermalBody thermalBody;
         private readonly IEnergyDistributor energyDistributor;
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
+        private readonly HistoricRounder reqEnergyHistoricRounder;
 
         private RealPeople(ThermalBody thermalBody, IEnergyDistributor energyDistributor)
         {
             this.thermalBody = thermalBody;
             RealPeopleStats = RealPeopleStats.empty;
             virtualToRealPeople = new();
+            reqEnergyHistoricRounder = new();
             this.energyDistributor = energyDistributor;
             energyDistributor.AddEnergyConsumer(energyConsumer: this);
         }
@@ -132,11 +134,20 @@ namespace Game1.Inhabitants
 
         NodeID IEnergyConsumer.NodeID
             => throw new NotImplementedException();
-            //=> lastNodeID;
+        //=> lastNodeID;
+
+        protected bool IsInActivityCenter
+            => throw new NotImplementedException();
 
         ElectricalEnergy IEnergyConsumer.ReqEnergy()
-            => throw new NotImplementedException();
-        //=> IsInActivityCenter ? totReqWatts * CurWorldManager.Elapsed * worldSecondsPerRealSecond : 0;
+            => ElectricalEnergy.CreateFromJoules
+            (
+                valueInJ: reqEnergyHistoricRounder.Round
+                (
+                    value: IsInActivityCenter ? RealPeopleStats.totalReqWatts * (decimal)CurWorldManager.Elapsed.TotalSeconds : 0,
+                    curTime: CurWorldManager.CurTime
+                )
+            );
 
         void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {

@@ -475,11 +475,6 @@ namespace Game1
 
         public void Update(TimeSpan elapsed)
         {
-            // World stuff could use elapsedWorldSeconds, which would be ulong
-            // The update function would translate between real elapsed seconds and world seconds
-            // Since Monogame will attempt to have 60fps, could have something like 1/60 real seconds = 60 world seconds
-            // Then if some frame is 61 world seconds, and some 59, the player shouldn't notice
-            throw new NotImplementedException();
             if (elapsed < TimeSpan.Zero)
                 throw new ArgumentException();
 

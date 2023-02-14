@@ -34,6 +34,7 @@ namespace Game1
             private readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
             private readonly RealPeople waitingPeople;
             private readonly UDouble minSafeDist;
+            private readonly HistoricRounder reqEnergyHistoricRounder;
             private Propor minSafePropor;
             private UDouble reqWattsPerKg;
             private Propor energyPropor;
@@ -49,6 +50,7 @@ namespace Game1
                 timedPacketQueue = new(thermalBody: thermalBody);
                 waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(thermalBody: thermalBody);
                 waitingPeople = RealPeople.CreateEmpty(thermalBody: thermalBody, energyDistributor: CurWorldManager.EnergyDistributor);
+                reqEnergyHistoricRounder = new();
                 energyPropor = Propor.empty;
 
                 CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
@@ -147,8 +149,14 @@ namespace Game1
                 => startNode.NodeID;
 
             ElectricalEnergy IEnergyConsumer.ReqEnergy()
-                => throw new NotImplementedException();
-            //=> timedPacketQueue.Mass.valueInKg * reqWattsPerKg;
+                => ElectricalEnergy.CreateFromJoules
+                (
+                    valueInJ: reqEnergyHistoricRounder.Round
+                    (
+                        value: timedPacketQueue.Mass.valueInKg * (decimal)(reqWattsPerKg * CurWorldManager.Elapsed.TotalSeconds),
+                        curTime: CurWorldManager.CurTime
+                    )
+                );
 
             void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
                 => throw new NotImplementedException();

@@ -13,7 +13,7 @@
                 Count = count
             };
 
-        private EnergyCounter(bool createdByMagic)
+        protected EnergyCounter(bool createdByMagic)
             : base(createdByMagic: createdByMagic)
         { }
 

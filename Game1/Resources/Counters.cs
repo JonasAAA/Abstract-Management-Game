@@ -16,7 +16,7 @@
                 },
                 ResAmounts resAmounts => new()
                 {
-                    ResCounter = EnergyCounter<ResAmounts>.CreateByMagic(count: resAmounts)
+                    ResCounter = ResCounter.CreateByMagic(count: resAmounts)
                 },
                 HeatEnergy heatEnergy => new()
                 {
@@ -34,18 +34,18 @@
             };
 
         private Counter<NumPeople> PeopleCounter { get; init; }
-        private EnergyCounter<ResAmounts> ResCounter { get; init; }
         private EnergyCounter<HeatEnergy> HeatEnergyCounter { get; init; }
         private EnergyCounter<RadiantEnergy> RadiantEnergyCounter { get; init; }
         private EnergyCounter<ElectricalEnergy> ElectricalEnergyCounter { get; init; }
+        private ResCounter ResCounter { get; init; }
 
         public Counters()
         {
             PeopleCounter = Counter<NumPeople>.CreateEmpty();
-            ResCounter = EnergyCounter<ResAmounts>.CreateEmpty();
             HeatEnergyCounter = EnergyCounter<HeatEnergy>.CreateEmpty();
             RadiantEnergyCounter = EnergyCounter<RadiantEnergy>.CreateEmpty();
             ElectricalEnergyCounter = EnergyCounter<ElectricalEnergy>.CreateEmpty();
+            ResCounter = ResCounter.CreateEmpty();
         }
 
         public void TransferFrom<TAmount>(Counters source, TAmount amount)
@@ -85,6 +85,12 @@
                 destinCount: destinAmount
             );
         }
+
+        public void TransformFrom(Counters source, ResRecipe recipe)
+            => ResCounter.TransformFrom(source: source.ResCounter, recipe: recipe);
+
+        public void TransformTo(Counters destin, ResRecipe recipe)
+            => ResCounter.TransformTo(destin: destin.ResCounter, recipe: recipe);
 
         public TAmount GetCount<TAmount>()
             where TAmount : struct, ICountable<TAmount>

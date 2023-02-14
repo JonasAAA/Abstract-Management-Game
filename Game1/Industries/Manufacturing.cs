@@ -109,7 +109,7 @@ namespace Game1.Industries
                 product.prodTimeLeft -= workingPropor * CurWorldManager.Elapsed;
                 if (product.prodTimeLeft <= TimeSpan.Zero)
                 {
-                    parameters.state.StoredResPile.TransformAndTransferFrom(source: product.resInUse, recipe: product.recipe);
+                    parameters.state.StoredResPile.TransformFrom(source: product.resInUse, recipe: product.recipe);
                     product = null;
                 }
             }

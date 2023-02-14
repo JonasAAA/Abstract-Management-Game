@@ -25,10 +25,10 @@
 
 //        //public static ReservedPile<TAmount> CreateFromSource([DisallowNull] ref ReservedPile<TAmount>? source)
 //        //{
-//        //    ReservedPile<TAmount> resPile = new(LocationCounters: source.LocationCounters);
-//        //    TransferAllFrom(source: source, destin: resPile);
+//        //    ReservedPile<TAmount> resPileInternal = new(LocationCounters: source.LocationCounters);
+//        //    TransferAllFrom(source: source, destin: resPileInternal);
 //        //    source = null;
-//        //    return resPile;
+//        //    return resPileInternal;
 //        //}
 
 //        private ReservedPile(LocationCounters LocationCounters)
@@ -70,10 +70,10 @@
 
 ////        //public static ReservedPile<TAmount> CreateFromSource([DisallowNull] ref ReservedPile<TAmount>? source)
 ////        //{
-////        //    ReservedPile<TAmount> resPile = new(LocationCounters: source.LocationCounters);
-////        //    TransferAllFrom(source: source, destin: resPile);
+////        //    ReservedPile<TAmount> resPileInternal = new(LocationCounters: source.LocationCounters);
+////        //    TransferAllFrom(source: source, destin: resPileInternal);
 ////        //    source = null;
-////        //    return resPile;
+////        //    return resPileInternal;
 ////        //}
 
 ////        private ReservedPile(LocationCounters LocationCounters)
@@ -95,9 +95,9 @@
 ////        {
 ////            if (source.ResAmounts >= resAmounts)
 ////            {
-////                ReservedResPile resPile = new(LocationCounters: source.LocationCounters);
-////                Transfer(source: source, destin: resPile, resAmounts: resAmounts);
-////                return resPile;
+////                ReservedResPile resPileInternal = new(LocationCounters: source.LocationCounters);
+////                Transfer(source: source, destin: resPileInternal, resAmounts: resAmounts);
+////                return resPileInternal;
 ////            }
 ////            return null;
 ////        }
@@ -107,10 +107,10 @@
 
 ////        public static ReservedResPile CreateFromSource([DisallowNull] ref ReservedResPile? source)
 ////        {
-////            ReservedResPile resPile = new(LocationCounters: source.LocationCounters);
-////            TransferAllFrom(source: source, destin: resPile);
+////            ReservedResPile resPileInternal = new(LocationCounters: source.LocationCounters);
+////            TransferAllFrom(source: source, destin: resPileInternal);
 ////            source = null;
-////            return resPile;
+////            return resPileInternal;
 ////        }
 
 ////        private ReservedResPile(LocationCounters LocationCounters)

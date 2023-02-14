@@ -27,7 +27,7 @@
 
         protected override EnergyCounter<TAmount> Counter { get; }
 
-        private EnergyPile(LocationCounters locationCounters, EnergyCounter<TAmount> counter)
+        protected EnergyPile(LocationCounters locationCounters, EnergyCounter<TAmount> counter)
             : base(locationCounters: locationCounters, counter: counter)
         {
             Counter = counter;

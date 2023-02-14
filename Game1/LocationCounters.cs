@@ -36,5 +36,11 @@
             where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
             where TDestinAmount : struct, IFormOfEnergy<TDestinAmount>
             => counters.TransformTo<TSourceAmount, TDestinAmount>(destin: destin.counters, destinAmount: destinAmount);
+
+        public void TransformFrom(LocationCounters source, ResRecipe recipe)
+            => counters.TransformFrom(source: source.counters, recipe: recipe);
+
+        public void TransformTo(LocationCounters destin, ResRecipe recipe)
+            => counters.TransformTo(destin: destin.counters, recipe: recipe);
     }
 }

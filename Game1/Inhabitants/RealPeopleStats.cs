@@ -20,7 +20,7 @@ namespace Game1.Inhabitants
                 totalReqWatts: 0,
                 timeCoefficient: Propor.empty,
                 age: TimeSpan.Zero,
-                energyPropor: Propor.empty,
+                allocEnergyPropor: Propor.empty,
                 happiness: Score.lowest,
                 momentaryHappiness: Score.lowest,
                 enjoyments: new(value: Score.lowest),
@@ -39,7 +39,7 @@ namespace Game1.Inhabitants
                 totalReqWatts: reqWatts, 
                 timeCoefficient: Propor.full,
                 age: age,
-                energyPropor: Propor.full,
+                allocEnergyPropor: Propor.full,
                 happiness: startingHappiness,
                 momentaryHappiness: startingHappiness,
                 enjoyments: Score.ScaleToHaveHighestAndLowest(scores: enjoyments),
@@ -51,16 +51,22 @@ namespace Game1.Inhabitants
         public bool IsEmpty
             => totalNumPeople.IsZero;
 
+        // This is init-only property to allow Stats with { AllocEnergyPropor = ... } type of syntax
+        /// <summary>
+        /// How much of REQUESTED energy is given. So if request 0, get 0, the proportion is full
+        /// </summary>
+        public readonly Propor AllocEnergyPropor { get; init; }
+
         public readonly Mass totalMass;
         public readonly NumPeople totalNumPeople;
         public readonly ulong totalReqWatts;
         public readonly Propor timeCoefficient;
         public readonly TimeSpan age;
-        public readonly Propor energyPropor;
         public readonly Score happiness, momentaryHappiness;
         public readonly EnumDict<IndustryType, Score> enjoyments, talents, skills;
+        public readonly EnumDict<IndustryType, UDouble> totalProductivities;
 
-        public RealPeopleStats(Mass totalMass, NumPeople totalNumPeople, ulong totalReqWatts, Propor timeCoefficient, TimeSpan age, Propor energyPropor, Score happiness,
+        public RealPeopleStats(Mass totalMass, NumPeople totalNumPeople, ulong totalReqWatts, Propor timeCoefficient, TimeSpan age, Propor allocEnergyPropor, Score happiness,
             Score momentaryHappiness, EnumDict<IndustryType, Score> enjoyments, EnumDict<IndustryType, Score> talents, EnumDict<IndustryType, Score> skills)
         {
             this.totalMass = totalMass;
@@ -68,21 +74,22 @@ namespace Game1.Inhabitants
             this.totalReqWatts = totalReqWatts;
             this.timeCoefficient = timeCoefficient;
             this.age = age;
-            this.energyPropor = energyPropor;
+            this.AllocEnergyPropor = allocEnergyPropor;
             this.happiness = happiness;
             this.momentaryHappiness = momentaryHappiness;
             this.enjoyments = enjoyments;
             this.talents = talents;
             this.skills = skills;
-        }
-
-        public UDouble ActualTotalSkill(IndustryType industryType)
-            => totalNumPeople.value * (UDouble)Score.WeightedAverageOfTwo
+            totalProductivities = new
             (
-                score1: happiness,
-                score2: skills[industryType],
-                score1Propor: CurWorldConfig.actualSkillHappinessWeight
+                selector: industryType => totalNumPeople.value * (UDouble)Score.WeightedAverageOfTwo
+                (
+                    score1: happiness,
+                    score2: skills[industryType],
+                    score1Propor: CurWorldConfig.productivityHappinessWeight
+                )
             );
+        }
 
         public RealPeopleStats CombineWith(RealPeopleStats other)
         {
@@ -102,9 +109,9 @@ namespace Game1.Inhabitants
                     whole: totalNumPeople.value + other.totalNumPeople.value
                 )!.Value,
                 age: (totalNumPeople.value * age + other.totalNumPeople.value * other.age) / (totalNumPeople.value + other.totalNumPeople.value),
-                energyPropor: Propor.Create
+                allocEnergyPropor: Propor.Create
                 (
-                    part: totalNumPeople.value * energyPropor + other.totalNumPeople.value * other.energyPropor,
+                    part: totalNumPeople.value * AllocEnergyPropor + other.totalNumPeople.value * other.AllocEnergyPropor,
                     whole: totalNumPeople.value + other.totalNumPeople.value
                 )!.Value,
                 happiness: CombinedScore(stats => stats.happiness),
@@ -140,9 +147,9 @@ namespace Game1.Inhabitants
                     whole: totalNumPeople.value - other.totalNumPeople.value
                 )!.Value,
                 age: MyMathHelper.Max(TimeSpan.Zero, (totalNumPeople.value * age - other.totalNumPeople.value * other.age) / (totalNumPeople.value - other.totalNumPeople.value)),
-                energyPropor: Propor.Create
+                allocEnergyPropor: Propor.Create
                 (
-                    part: totalNumPeople.value * energyPropor - other.totalNumPeople.value * other.energyPropor,
+                    part: totalNumPeople.value * AllocEnergyPropor - other.totalNumPeople.value * other.AllocEnergyPropor,
                     whole: totalNumPeople.value - other.totalNumPeople.value
                 )!.Value,
                 happiness: SubtractedScore(stats => stats.happiness),

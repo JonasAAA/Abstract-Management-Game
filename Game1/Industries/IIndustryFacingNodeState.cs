@@ -11,7 +11,7 @@ namespace Game1.Industries
         public MyVector2 Position { get; }
         public ulong MaxBatchDemResStored { get; }
         public ResPile StoredResPile { get; }
-        public Pile<RadiantEnergy> RadiantEnergyPile { get; }
+        public EnergyPile<RadiantEnergy> RadiantEnergyPile { get; }
         public RealPeople WaitingPeople { get; }
         public BasicResInd ConsistsOfResInd { get; }
         public BasicRes ConsistsOfRes { get; }

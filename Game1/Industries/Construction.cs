@@ -93,6 +93,9 @@ namespace Game1.Industries
         public override bool PeopleWorkOnTop
             => true;
 
+        public override Propor? SurfaceReflectance
+            => donePropor == Propor.empty ? null : parameters.Cost.Reflectance();
+
         protected override UDouble Height
             => CurWorldConfig.defaultIndustryHeight * donePropor;
 
@@ -108,6 +111,7 @@ namespace Game1.Industries
             this.parameters = parameters;
             industryOutline = new(new IndustryOutlineParams(Parameters: parameters));
             constrTimeLeft = TimeSpan.MaxValue;
+            donePropor = Propor.empty;
         }
 
         public override ResAmounts TargetStoredResAmounts()

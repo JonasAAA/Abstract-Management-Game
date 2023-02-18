@@ -17,5 +17,7 @@ namespace Game1
         public void Arrive(RealPeople realPeople);
 
         public void Arrive(RealPerson realPerson, RealPeople realPersonSource);
+
+        public void TransformAllElectricityToHeatAndTransferFrom(EnergyPile<ElectricalEnergy> source);
     }
 }

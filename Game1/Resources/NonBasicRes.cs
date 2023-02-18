@@ -19,19 +19,15 @@ namespace Game1.Resources
                 true => throw new InvalidOperationException(unitializedExceptionMessage),
                 false => heatCapacity
             };
+        //public ulong Area
+        //    => ;
+        //public Propor Reflectance
+        //    => ;
         public ResRecipe Recipe
-            => recipe switch
-            {
-                null => throw new InvalidOperationException(unitializedExceptionMessage),
-                ResRecipe recipe => recipe
-            };
+            => recipe ?? throw new InvalidOperationException(unitializedExceptionMessage);
 
         public ResAmounts BasicIngredients
-            => basicIngredients switch
-            {
-                null => throw new InvalidOperationException(unitializedExceptionMessage),
-                ResAmounts resAmounts => resAmounts
-            };
+            => basicIngredients ?? throw new InvalidOperationException(unitializedExceptionMessage);
 
         public readonly NonBasicResInd resInd;
         public readonly ResAmounts ingredients;
@@ -57,12 +53,14 @@ namespace Game1.Resources
                 throw new InvalidOperationException($"{nameof(NonBasicRes)} is alrealy initialized, so can't initialize it a second time");
             mass = Mass.zero;
             heatCapacity = HeatCapacity.zero;
+            UDouble reflectanceSum = UDouble.zero;
             ResAmounts curBasicIngredients = ResAmounts.Empty;
             foreach (var otherResInd in ResInd.All)
                 if (ingredients[otherResInd] != 0)
                 {
                     mass += ingredients[otherResInd] * CurResConfig.resources[otherResInd].Mass;
                     heatCapacity += ingredients[otherResInd] * CurResConfig.resources[otherResInd].HeatCapacity;
+                    reflectanceSum += ingredients[otherResInd] * CurResConfig.resources[otherResInd].Area * CurResConfig.resources[otherResInd].Reflectance;
                     curBasicIngredients += ingredients[otherResInd] * CurResConfig.resources[otherResInd].BasicIngredients;
                 }
             basicIngredients = curBasicIngredients;

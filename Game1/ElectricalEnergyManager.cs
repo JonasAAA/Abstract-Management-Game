@@ -11,7 +11,7 @@ namespace Game1
         private readonly MySet<IEnergyConsumer> energyConsumers;
         
         private ElectricalEnergy totReqEnergy, totProdEnergy, totUsedLocalEnergy, totUsedPowerPlantEnergy;
-        private readonly Pile<ElectricalEnergy> energyPile;
+        private readonly EnergyPile<ElectricalEnergy> energyPile;
 
         public ElectricalEnergyManager()
         {
@@ -21,7 +21,7 @@ namespace Game1
             totProdEnergy = ElectricalEnergy.zero;
             totUsedLocalEnergy = ElectricalEnergy.zero;
             totUsedPowerPlantEnergy = ElectricalEnergy.zero;
-            energyPile = Pile<ElectricalEnergy>.CreateEmpty(locationCounters: LocationCounters.CreateEmpty());
+            energyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: LocationCounters.CreateEmpty());
         }
 
         public void AddEnergyProducer(IEnergyProducer energyProducer)
@@ -102,7 +102,7 @@ namespace Game1
             foreach (var (nodeID, sameNodeEnhancedConsumers) in enhancedConsumersByNode)
             {
                 var node = nodeIDToNode(nodeID);
-                Pile<ElectricalEnergy> energySource = Pile<ElectricalEnergy>.CreateEmpty(locationCounters: energyPile.LocationCounters);
+                var energySource = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: energyPile.LocationCounters);
                 node.ProduceLocalEnergy(destin: energySource);
                 var locallyProducedEnergy = energySource.Amount;
                 DistributePartOfEnergy

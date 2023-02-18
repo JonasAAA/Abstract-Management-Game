@@ -496,8 +496,8 @@ namespace Game1
 
             activityManager.ManageActivities(people: people);
 
-            Debug.Assert(people.Count == CurGraph.RealPeopleStats.totalNumPeople);
-            globalTextBox.Text = (energyManager.Summary() + CurGraph.RealPeopleStats.ToString()).Trim();
+            Debug.Assert(people.Count == CurGraph.Stats.totalNumPeople);
+            globalTextBox.Text = (energyManager.Summary() + CurGraph.Stats.ToString()).Trim();
 
             activeUIManager.Update(elapsed: elapsedGameTime);
 

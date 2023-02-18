@@ -83,6 +83,9 @@ namespace Game1.Resources
         public HeatCapacity HeatCapacity()
             => CurResConfig.resources.CombineLinearly(vectorSelector: res => res.HeatCapacity, scalars: array);
 
+        public Propor Reflectance()
+            => ;
+
         // analogous to with expression from https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/with-expression
         public ResAmounts With(ResAmount resAmount)
             => new(this)

@@ -27,7 +27,7 @@
         public readonly TimeSpan
             happinessDifferenceHalvingDuration = TimeSpan.FromSeconds(10);
         public readonly Propor
-            actualSkillHappinessWeight = (Propor).2;
+            productivityHappinessWeight = (Propor).2;
         // Used to calculate score for each potential activity
         public readonly ulong
             personInertiaWeight = 1,
@@ -94,6 +94,10 @@
             // as the way industry deals with required energy requires that
             personEnergyPrior = new(value: 10);
 
-        public readonly ulong worldSecondsInGameSecond = 3600;
+        public readonly ulong
+            worldSecondsInGameSecond = 3600;
+
+        public readonly Propor
+            planetTransformRadiantToElectricalEnergyPropor = (Propor).001;
     }
 }

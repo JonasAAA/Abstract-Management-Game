@@ -86,7 +86,7 @@ namespace Game1.Industries
                 // may disallow far travel
                 => true;
 
-            protected override UpdatePersonSkillsParams? PersonUpdateParams(RealPerson realPerson)
+            protected override UpdatePersonSkillsParams? PersonUpdateParams
                 => null;
 
             public override bool CanPersonLeave(VirtualPerson person)
@@ -103,7 +103,7 @@ namespace Game1.Industries
         public override bool PeopleWorkOnTop
             => true;
 
-        public override RealPeopleStats RealPeopleStats
+        public override RealPeopleStats Stats
             => housing.PeopleHereStats;
 
         protected override UDouble Height

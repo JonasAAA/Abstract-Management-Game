@@ -27,19 +27,27 @@
 
         protected override EnergyCounter<TAmount> Counter { get; }
 
+        public readonly HistoricRounder transformedEnergyHistoricalRounder;
+
         protected EnergyPile(LocationCounters locationCounters, EnergyCounter<TAmount> counter)
             : base(locationCounters: locationCounters, counter: counter)
         {
             Counter = counter;
+            transformedEnergyHistoricalRounder = new();
+        }
+
+        public void TransformTo<TDestinAmount>(EnergyPile<TDestinAmount> destin, TAmount amount)
+            where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
+        {
+            Counter.TransformTo(destin: destin.Counter, sourceCount: amount);
+            destin.LocationCounters.TransformFrom<TAmount, TDestinAmount>(source: LocationCounters, sourceAmount: amount);
         }
 
         public void TransformAllTo<TDestinAmount>(EnergyPile<TDestinAmount> destin)
             where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
-        {
-            TAmount amountToTransform = Amount;
-            Counter.TransformTo(destin: destin.Counter, sourceCount: amountToTransform);
-            destin.LocationCounters.TransformFrom<TAmount, TDestinAmount>(source: LocationCounters, sourceAmount: amountToTransform);
-        }
+            => TransformTo(destin: destin, amount: Amount);
+
+        
     }
 
     //public static void TransformAllTo<TSourceAmount, TDestinAmount>(this ISourcePile<TSourceAmount> source, IDestinPile<TDestinAmount> destin)

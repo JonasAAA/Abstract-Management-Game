@@ -96,7 +96,7 @@ namespace Game1
             => state.NodeID;
         public MyVector2 Position
             => state.Position;
-        public RealPeopleStats RealPeopleStats { get; private set; }
+        public RealPeopleStats Stats { get; private set; }
 
         private Industry? Industry
         {
@@ -128,7 +128,7 @@ namespace Game1
         private readonly ResPile undecidedResPile;
         private ResAmounts resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
-        private Energy usedLocalEnergy;
+        private ElectricalEnergy locallyProducedEnergy, usedLocalEnergy;
 
         private readonly TextBox textBox;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
@@ -160,7 +160,7 @@ namespace Game1
             targetStoredResAmounts = ResAmounts.Empty;
             undecidedResPile = ResPile.CreateEmpty(thermalBody: state.ThermalBody);
             resTravelHereAmounts = ResAmounts.Empty;
-            usedLocalEnergy = Energy.zero;
+            usedLocalEnergy = ElectricalEnergy.zero;
 
             textBox = new(textColor: colorConfig.almostWhiteColor);
             textBox.Shape.Center = Position;
@@ -286,7 +286,7 @@ namespace Game1
                         childDestin: state.WaitingPeople
                     );
                 }
-                startingNonPlanetMass += state.WaitingPeople.RealPeopleStats.totalMass;
+                startingNonPlanetMass += state.WaitingPeople.Stats.totalMass;
                 resSource.TransferAllFrom(source: state.StoredResPile);
             }
             else
@@ -346,7 +346,7 @@ namespace Game1
             resDesinArrowEventListener.SyncSplittersWithArrows();
         }
 
-        public void Update(IReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks)
+        public void Update(IReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks, EnergyPile<HeatEnergy> vacuumHeatPile)
         {
             // deal with people
             state.WaitingPeople.ForEach
@@ -365,6 +365,13 @@ namespace Game1
 
             Industry = Industry?.Update();
 
+            state.RadiantEnergyPile.TransformProporTo
+            (
+                destin: vacuumHeatPile,
+                propor: Industry?.SurfaceReflectance ?? state.ConsistsOfRes.Reflectance,
+                curTime: CurWorldManager.CurTime
+            );
+
             // transform the remaining radiantEnergy into heat (maybe reflect some of it beforehand)
             // and dissipate some heat
             throw new NotImplementedException();
@@ -376,9 +383,9 @@ namespace Game1
         {
             RealPerson.UpdateLocationParams personUpdateParams = new(LastNodeID: NodeID, ClosestNodeID: NodeID);
             Industry?.UpdatePeople(updateLocationParams: personUpdateParams);
-            state.WaitingPeople.Update(updateLocationParams: personUpdateParams, personalUpdateSkillsParams: null);
-            Debug.Assert(state.LocationCounters.GetCount<NumPeople>() == state.WaitingPeople.NumPeople + (Industry?.RealPeopleStats.totalNumPeople ?? NumPeople.zero));
-            RealPeopleStats = state.WaitingPeople.RealPeopleStats.CombineWith(Industry?.RealPeopleStats ?? RealPeopleStats.empty);
+            state.WaitingPeople.Update(updateLocationParams: personUpdateParams, updatePersonSkillsParams: null);
+            Debug.Assert(state.LocationCounters.GetCount<NumPeople>() == state.WaitingPeople.NumPeople + (Industry?.Stats.totalNumPeople ?? NumPeople.zero));
+            Stats = state.WaitingPeople.Stats.CombineWith(Industry?.Stats ?? RealPeopleStats.empty);
         }
 
         public void StartSplitRes()
@@ -462,7 +469,7 @@ namespace Game1
                 Number of people {state.LocationCounters.GetCount<NumPeople>()}
 
                 travelling people stats:
-                {state.WaitingPeople.RealPeopleStats}
+                {state.WaitingPeople.Stats}
 
                 """;
 
@@ -560,11 +567,22 @@ namespace Game1
         void ILinkFacingPlanet.Arrive(RealPerson realPerson, RealPeople realPersonSource)
             => state.WaitingPeople.TransferFrom(realPerson: realPerson, realPersonSource: realPersonSource);
 
-        void INodeAsLocalEnergyProducerAndConsumer.ProduceLocalEnergy(Pile<ElectricalEnergy> destin)
+        void ILinkFacingPlanet.TransformAllElectricityToHeatAndTransferFrom(EnergyPile<ElectricalEnergy> source)
+            => state.ThermalBody.TransformAllElectricityToHeatAndTransferFrom(source: source);
+
+        void INodeAsLocalEnergyProducerAndConsumer.ProduceLocalEnergy(EnergyPile<ElectricalEnergy> destin)
         {
-            throw new NotImplementedException();
-            //if (Industry?.PeopleWorkOnTop is true or null)
-            //    state.LocationCounters.TransformRadiantToElectricalEnergyAndTransfer(destin: destin, proporToTransform: (Propor).001);
+            if (Industry?.PeopleWorkOnTop is true or null)
+            {
+                locallyProducedEnergy = state.RadiantEnergyPile.TransformProporTo
+                (
+                    destin: destin,
+                    propor: CurWorldConfig.planetTransformRadiantToElectricalEnergyPropor,
+                    curTime: CurWorldManager.CurTime
+                );
+            }
+            else
+                locallyProducedEnergy = ElectricalEnergy.zero;
         }
 
         //Energy INodeAsLocalEnergyProducerAndConsumer.LocallyProducedEnergy
@@ -589,10 +607,10 @@ namespace Game1
         void INodeAsResDestin.AddResTravelHere(ResAmount resAmount)
             => resTravelHereAmounts = resTravelHereAmounts.WithAdd(resAmount: resAmount);
 
-        void INodeAsLocalEnergyProducerAndConsumer.ConsumeUnusedLocalEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
+        void INodeAsLocalEnergyProducerAndConsumer.ConsumeUnusedLocalEnergyFrom(EnergyPile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {
-             //=> this.usedLocalEnergy = usedLocalEnergy;
-            throw new NotImplementedException();
+            state.ThermalBody.TransformAllElectricityToHeatAndTransferFrom(source: source);
+            usedLocalEnergy = locallyProducedEnergy - electricalEnergy;
         }
     }
 }

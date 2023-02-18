@@ -107,7 +107,7 @@ namespace Game1.Inhabitants
             => activityCenter?.NodeID;
         public NodeID ClosestNodeID { get; private set; }
         public EnumDict<ActivityType, TimeSpan> LastActivityTimes { get; private set; }
-        public RealPeopleStats RealPeopleStats { get; private set; }
+        public RealPeopleStats Stats { get; private set; }
         public readonly UDouble reqWatts;
         public readonly TimeSpan seekChangeTime;
 
@@ -125,7 +125,7 @@ namespace Game1.Inhabitants
         
         private RealPerson(RealPeopleStats realPeopleStats, NodeID nodeID, TimeSpan seekChangeTime, ResPile resSource, ResAmounts consistsOfResAmounts)
         {
-            RealPeopleStats = realPeopleStats;
+            Stats = realPeopleStats;
             lastNodeID = nodeID;
             ClosestNodeID = nodeID;
 
@@ -142,7 +142,7 @@ namespace Game1.Inhabitants
             // The counters here don't matter as this person will be immediately transfered to RealPeople where this person's Mass and NumPeople will be transferred to the appropriate counters
             asVirtual = new(realPerson: this);
             
-            locationCounters = LocationCounters.CreateCounterByMagic<NumPeople>(amount: RealPeopleStats.totalNumPeople);
+            locationCounters = LocationCounters.CreateCounterByMagic<NumPeople>(amount: Stats.totalNumPeople);
 
             CurWorldManager.AddPerson(realPerson: this);
         }
@@ -154,31 +154,31 @@ namespace Game1.Inhabitants
         {
             consistsOfResPile.ChangeLocation(newThermalBody: newThermalBody);
             // Resource transfer is zero in the following line as the previous line did the resAmounts transfer of this person already
-            newThermalBody.locationCounters.TransferFrom(source: locationCounters, amount: RealPeopleStats.totalNumPeople);
+            newThermalBody.locationCounters.TransferFrom(source: locationCounters, amount: Stats.totalNumPeople);
             locationCounters = newThermalBody.locationCounters;
         }
 
         /// <param name="updateSkillsParams">if null, will use default update</param>
-        public void Update(UpdateLocationParams updateLocationParams, UpdatePersonSkillsParams? updateSkillsParams, Propor energyPropor)
+        public void Update(UpdateLocationParams updateLocationParams, UpdatePersonSkillsParams? updateSkillsParams, Propor allocEnergyPropor)
         {
             lastNodeID = updateLocationParams.LastNodeID;
             ClosestNodeID = updateLocationParams.ClosestNodeID;
-            var timeCoeff = RealPeopleStats.totalReqWatts == 0 ? Propor.empty : energyPropor;
+            var timeCoeff = Stats.totalReqWatts == 0 ? Propor.empty : allocEnergyPropor;
             var elapsed = timeCoeff * CurWorldManager.Elapsed;
             var momentaryHappiness = CalculateMomentaryHappiness();
 #warning implement update for unused skills
             updateSkillsParams ??= new UpdatePersonSkillsParams();
-            RealPeopleStats = new
+            Stats = new
             (
                 totalMass: consistsOfResPile.Amount.Mass(),
-                totalNumPeople: RealPeopleStats.totalNumPeople,
-                totalReqWatts: RealPeopleStats.totalReqWatts,
+                totalNumPeople: Stats.totalNumPeople,
+                totalReqWatts: Stats.totalReqWatts,
                 timeCoefficient: timeCoeff,
-                age: RealPeopleStats.age + elapsed,
-                energyPropor: energyPropor,
+                age: Stats.age + elapsed,
+                allocEnergyPropor: allocEnergyPropor,
                 happiness: Score.BringCloser
                 (
-                    current: RealPeopleStats.happiness,
+                    current: Stats.happiness,
                     paramsOfChange: new Score.ParamsOfChange
                     (
                         target: momentaryHappiness,
@@ -187,9 +187,9 @@ namespace Game1.Inhabitants
                     )
                 ),
                 momentaryHappiness: momentaryHappiness,
-                enjoyments: RealPeopleStats.enjoyments,
-                talents: RealPeopleStats.talents,
-                skills: RealPeopleStats.skills.Update
+                enjoyments: Stats.enjoyments,
+                talents: Stats.talents,
+                skills: Stats.skills.Update
                 (
                     newValues:
                         from updateSkillParams in updateSkillsParams
@@ -198,7 +198,7 @@ namespace Game1.Inhabitants
                             updateSkillParams.industryType,
                             Score.BringCloser
                             (
-                                current: RealPeopleStats.skills[updateSkillParams.industryType],
+                                current: Stats.skills[updateSkillParams.industryType],
                                 paramsOfChange: updateSkillParams.paramsOfSkillChange
                             )
                         )
@@ -206,7 +206,7 @@ namespace Game1.Inhabitants
             );
             if (IsInActivityCenter)
             {
-                LastActivityTimes = LastActivityTimes.Update(key: activityCenter.ActivityType, newValue: RealPeopleStats.age);
+                LastActivityTimes = LastActivityTimes.Update(key: activityCenter.ActivityType, newValue: Stats.age);
                 timeSinceActivitySearch += elapsed;
             }
         }
@@ -215,7 +215,7 @@ namespace Game1.Inhabitants
         {
             if (!IsInActivityCenter)
                 // When person is asleep, happiness doesn't change
-                return RealPeopleStats.happiness;
+                return Stats.happiness;
 
             // TODO: include how much space they get, gravity preference, other's happiness maybe, etc.
             return activityCenter.PersonEnjoymentOfThis(person: asVirtual);

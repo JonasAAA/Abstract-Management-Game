@@ -114,7 +114,7 @@ namespace Game1.Industries
                 unpairedPeople.Enqueue(element: realPerson.asVirtual);
             }
 
-            protected override UpdatePersonSkillsParams? PersonUpdateParams(RealPerson realPerson)
+            protected override UpdatePersonSkillsParams? PersonUpdateParams
                 => null;
 
             public override bool CanPersonLeave(VirtualPerson person)
@@ -136,8 +136,8 @@ namespace Game1.Industries
         public override bool PeopleWorkOnTop
             => false;
 
-        public override RealPeopleStats RealPeopleStats
-            => base.RealPeopleStats.CombineWith(other: reprodCenter.PeopleHereStats);
+        public override RealPeopleStats Stats
+            => base.Stats.CombineWith(other: reprodCenter.PeopleHereStats);
 
         protected override UDouble Height
             => CurWorldConfig.defaultIndustryHeight;

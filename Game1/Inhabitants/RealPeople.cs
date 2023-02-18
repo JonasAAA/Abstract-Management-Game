@@ -24,9 +24,9 @@ namespace Game1.Inhabitants
         }
 
         public NumPeople NumPeople
-            => RealPeopleStats.totalNumPeople;
+            => Stats.totalNumPeople;
 
-        public RealPeopleStats RealPeopleStats { get; private set;}
+        public RealPeopleStats Stats { get; private set;}
 
         private LocationCounters LocationCounters
             => thermalBody.locationCounters;
@@ -34,14 +34,17 @@ namespace Game1.Inhabitants
         private readonly IEnergyDistributor energyDistributor;
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
         private readonly HistoricRounder reqEnergyHistoricRounder;
+        private readonly EnergyPile<ElectricalEnergy> allocElectricalEnergy;
 
         private RealPeople(ThermalBody thermalBody, IEnergyDistributor energyDistributor)
         {
             this.thermalBody = thermalBody;
-            RealPeopleStats = RealPeopleStats.empty;
+            Stats = RealPeopleStats.empty;
             virtualToRealPeople = new();
             reqEnergyHistoricRounder = new();
+            allocElectricalEnergy = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: LocationCounters);
             this.energyDistributor = energyDistributor;
+
             energyDistributor.AddEnergyConsumer(energyConsumer: this);
         }
 
@@ -59,23 +62,19 @@ namespace Game1.Inhabitants
                 personalAction(person);
         }
 
-        /// <param name="personalUpdateSkillsParams">if null, will use default update</param>
-        public void Update(RealPerson.UpdateLocationParams updateLocationParams, Func<RealPerson, UpdatePersonSkillsParams?>? personalUpdateSkillsParams)
+        /// <param name="updatePersonSkillsParams">if null, will use default update</param>
+        public void Update(RealPerson.UpdateLocationParams updateLocationParams, UpdatePersonSkillsParams? updatePersonSkillsParams)
         {
-            personalUpdateSkillsParams ??= realPerson => null;
-            Propor energyPropor = Propor.empty;
-            // Calculate energyPropor properly.
-            // KEEP in mind that people get slightly more energy than they use for work, thus not all energy can be used for skill improvement
-            throw new NotImplementedException();
+            thermalBody.TransformAllElectricityToHeatAndTransferFrom(source: allocElectricalEnergy);
             foreach (var realPerson in virtualToRealPeople.Values)
                 realPerson.Update
                 (
                     updateLocationParams: updateLocationParams,
-                    updateSkillsParams: personalUpdateSkillsParams(realPerson),
-                    energyPropor: energyPropor
+                    updateSkillsParams: updatePersonSkillsParams,
+                    allocEnergyPropor: Stats.AllocEnergyPropor
                 );
-            RealPeopleStats = virtualToRealPeople.Values.CombineRealPeopleStats();
-            Debug.Assert(RealPeopleStats.totalNumPeople.value == (ulong)virtualToRealPeople.Count);
+            Stats = virtualToRealPeople.Values.CombineRealPeopleStats();
+            Debug.Assert(Stats.totalNumPeople.value == (ulong)virtualToRealPeople.Count);
         }
 
         public bool Contains(VirtualPerson person)
@@ -104,14 +103,14 @@ namespace Game1.Inhabitants
         {
             realPerson.ChangeLocation(newThermalBody: thermalBody);
             virtualToRealPeople.Add(key: realPerson.asVirtual, value: realPerson);
-            RealPeopleStats = RealPeopleStats.CombineWith(other: realPerson.RealPeopleStats);
+            Stats = Stats.CombineWith(other: realPerson.Stats);
         }
 
         private bool Remove(VirtualPerson person)
         {
             if (virtualToRealPeople.Remove(key: person, value: out RealPerson? realPerson))
             {
-                RealPeopleStats = RealPeopleStats.Subtract(realPerson.RealPeopleStats);
+                Stats = Stats.Subtract(realPerson.Stats);
                 return true;
             }
             return false;
@@ -140,18 +139,25 @@ namespace Game1.Inhabitants
             => throw new NotImplementedException();
 
         ElectricalEnergy IEnergyConsumer.ReqEnergy()
+            => ReqEnergy();
+
+        private ElectricalEnergy ReqEnergy()
             => ElectricalEnergy.CreateFromJoules
             (
                 valueInJ: reqEnergyHistoricRounder.Round
                 (
-                    value: IsInActivityCenter ? RealPeopleStats.totalReqWatts * (decimal)CurWorldManager.Elapsed.TotalSeconds : 0,
+                    value: IsInActivityCenter ? Stats.totalReqWatts * (decimal)CurWorldManager.Elapsed.TotalSeconds : 0,
                     curTime: CurWorldManager.CurTime
                 )
             );
 
         void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {
-            throw new NotImplementedException();
+            allocElectricalEnergy.TransferFrom(source: source, amount: electricalEnergy);
+            Stats = Stats with
+            {
+                AllocEnergyPropor = MyMathHelper.CreatePropor(part: electricalEnergy, whole: ReqEnergy())
+            };
         }
 
 #if DEBUG2

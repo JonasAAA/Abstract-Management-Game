@@ -93,7 +93,7 @@ namespace Game1
 
         public override bool CanBeClicked
             => true;
-        public RealPeopleStats RealPeopleStats { get; private set; }
+        public RealPeopleStats Stats { get; private set; }
 
         // THIS COLOR IS NOT USED
         protected override Color Color
@@ -338,12 +338,11 @@ namespace Game1
 
             links.ForEach(link => link.UpdatePeople());
             nodes.ForEach(node => node.UpdatePeople());
-            RealPeopleStats = nodes.CombineRealPeopleStats().CombineWith(other: links.CombineRealPeopleStats());
+            Stats = nodes.CombineRealPeopleStats().CombineWith(other: links.CombineRealPeopleStats());
+            
             nodes.ForEach(node => node.StartSplitRes());
-
             foreach (var resInd in ResInd.All)
                 SplitRes(resInd: resInd);
-
             foreach (var node in nodes)
                 node.EndSplitRes(resFirstLinks: resFirstLinks);
         }

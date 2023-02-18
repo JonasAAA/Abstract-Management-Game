@@ -6,26 +6,26 @@
         public static ThermalBody CreateEmpty(LocationCounters locationCounters)
             => new
             (
-                heatEnergyPile: Pile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
+                heatEnergyPile: EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
                 resCounter: ResCounter.CreateEmpty()
             );
 
         public static ThermalBody CreateByMagic(LocationCounters locationCounters, ResAmounts amount)
             => new
             (
-                heatEnergyPile: Pile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
+                heatEnergyPile: EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
                 resCounter: ResCounter.CreateByMagic(count: amount)
             );
 
         public readonly LocationCounters locationCounters;
 
-        private readonly Pile<HeatEnergy> heatEnergyPile;
+        private readonly EnergyPile<HeatEnergy> heatEnergyPile;
         // This may need to not be any counter, as when resources are transformed into radiant energy,
         // there is no counter to transfer that stuff to. After all, this counter is just to keep track
         // of resources in this thermal body, not to enforce conservation of energy
         private readonly ResCounter resCounter;
 
-        private ThermalBody(Pile<HeatEnergy> heatEnergyPile, ResCounter resCounter)
+        private ThermalBody(EnergyPile<HeatEnergy> heatEnergyPile, ResCounter resCounter)
         {
             locationCounters = heatEnergyPile.LocationCounters;
             this.heatEnergyPile = heatEnergyPile;
@@ -62,5 +62,8 @@
 
         public void TransformResTo(ThermalBody destin, ResRecipe recipe)
             => resCounter.TransformTo(destin: destin.resCounter, recipe: recipe);
+
+        public void TransformAllElectricityToHeatAndTransferFrom(EnergyPile<ElectricalEnergy> source)
+            => source.TransformAllTo(destin: heatEnergyPile);
     }
 }

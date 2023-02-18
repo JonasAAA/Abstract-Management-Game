@@ -6,12 +6,14 @@
         public BasicResInd resInd;
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
-        public readonly ulong area;
+        public ulong Area { get; }
+        public Propor Reflectance { get; }
+        
         public readonly Color color;
 
         private readonly ResAmounts basicIngredients;
 
-        public BasicRes(BasicResInd resInd, Mass mass, HeatCapacity heatCapacity, ulong area, Color color)
+        public BasicRes(BasicResInd resInd, Mass mass, HeatCapacity heatCapacity, ulong area, Propor reflectance, Color color)
         {
             this.resInd = resInd;
             if (mass.IsZero)
@@ -20,9 +22,10 @@
             if (heatCapacity.IsZero)
                 throw new ArgumentOutOfRangeException();
             HeatCapacity = heatCapacity;
+            Reflectance = reflectance;
             if (area is 0)
                 throw new ArgumentOutOfRangeException();
-            this.area = area;
+            Area = area;
             if (color.A != byte.MaxValue)
                 throw new ArgumentException();
             this.color = color;

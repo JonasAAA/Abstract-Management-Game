@@ -18,7 +18,7 @@ namespace Game1.Industries
         public EnergyPriority EnergyPriority { get; private set; }
 
         public RealPeopleStats PeopleHereStats
-            => realPeopleHere.RealPeopleStats;
+            => realPeopleHere.Stats;
 
         protected readonly RealPeople realPeopleHere;
         protected readonly VirtualPeople allPeople;
@@ -61,10 +61,10 @@ namespace Game1.Industries
             => realPeopleHere.Update
             (
                 updateLocationParams: updateLocationParams,
-                personalUpdateSkillsParams: PersonUpdateParams
+                updatePersonSkillsParams: PersonUpdateParams
             );
 
-        protected abstract UpdatePersonSkillsParams? PersonUpdateParams(RealPerson realPerson);
+        protected abstract UpdatePersonSkillsParams? PersonUpdateParams { get; }
 
         public bool IsPersonHere(VirtualPerson person)
             => realPeopleHere.Contains(person);

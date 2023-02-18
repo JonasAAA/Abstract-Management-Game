@@ -1,5 +1,7 @@
 ﻿using Game1.Inhabitants;
+using Game1.Resources;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Game1
@@ -152,7 +154,7 @@ namespace Game1
         {
             var result = RealPeopleStats.empty;
             foreach (var item in source)
-                result = result.CombineWith(other: item.RealPeopleStats);
+                result = result.CombineWith(other: item.Stats);
             return result;
         }
 
@@ -186,6 +188,24 @@ namespace Game1
             }
             stringBuilder.Append('}');
             return stringBuilder.ToString();
+        }
+
+        /// <param name="curTime">Used for historical rounding of transformed energy</param>
+        /// <returns>The amount of energy transfered to destin</returns>
+        public static TDestinAmount TransformProporTo<TSourceAmount, TDestinAmount>(this EnergyPile<TSourceAmount> source, EnergyPile<TDestinAmount> destin, Propor propor, TimeSpan curTime)
+            where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
+            where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
+        {
+            TSourceAmount amountToTransform = IUnconstrainedEnergy<TSourceAmount>.CreateFromJoules
+            (
+                valueInJ: source.transformedEnergyHistoricalRounder.Round
+                (
+                    value: source.Amount.ValueInJ() * (decimal)propor,
+                    curTime: curTime
+                )
+            );
+            source.TransformTo(destin: destin, amount: amountToTransform);
+            return TDestinAmount.CreateFromEnergy(energy: (Energy)amountToTransform);
         }
     }
 }

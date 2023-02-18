@@ -13,7 +13,7 @@ namespace Game1.Lighting
         private readonly UDouble strength;
         private readonly Color color;
 
-        /// <param name="strength">a positive double which determins the radius of the lit area</param>
+        /// <param name="strength">a positive double which determins the radius of the lit Area</param>
         public LightPolygon(UDouble strength, Color color)
             : this(strength: strength, color: color, center: MyVector2.zero, vertices: new())
         {

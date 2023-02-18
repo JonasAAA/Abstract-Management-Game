@@ -156,5 +156,15 @@ namespace Game1.MyMath
 
         public static long Ceiling(decimal value)
             => (long)Math.Ceiling(value);
+
+        /// <summary>
+        /// If part and whole are zero, returns full
+        /// </summary>
+        public static Propor CreatePropor(ElectricalEnergy part, ElectricalEnergy whole)
+        {
+            if (part.IsZero && whole.IsZero)
+                return Propor.full;
+            return Propor.Create(part: part.ValueInJ, whole: whole.ValueInJ)!.Value;
+        }
     }
 }

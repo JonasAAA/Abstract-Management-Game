@@ -8,7 +8,7 @@ namespace Game1
     public sealed class NodeState : IIndustryFacingNodeState
     {
         public static ulong ResAmountFromApproxRadius(BasicResInd basicResInd, UDouble approxRadius)
-            => Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / CurResConfig.resources[basicResInd].area);
+            => Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / CurResConfig.resources[basicResInd].Area);
 
         // TODO: define using the new notation
         //public double SurfaceGravitationalAccel
@@ -26,7 +26,7 @@ namespace Game1
         public MyVector2 Position { get; }
         public ulong MaxBatchDemResStored { get; }
         public ResPile StoredResPile { get; }
-        public Pile<RadiantEnergy> RadiantEnergyPile { get; }
+        public EnergyPile<RadiantEnergy> RadiantEnergyPile { get; }
         public readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
         public RealPeople WaitingPeople { get; }
         public BasicResInd ConsistsOfResInd { get; }
@@ -52,6 +52,7 @@ namespace Game1
             EnlargeFrom(source: resSource, resAmount: mainResAmount);
             
             StoredResPile = ResPile.CreateEmpty(thermalBody: ThermalBody);
+            RadiantEnergyPile = EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: LocationCounters);
             if (maxBatchDemResStored is 0)
                 throw new ArgumentOutOfRangeException();
             MaxBatchDemResStored = maxBatchDemResStored;
@@ -65,7 +66,7 @@ namespace Game1
 
         private void RecalculateValues()
         {
-            Area = MainResAmount * ConsistsOfRes.area;
+            Area = MainResAmount * ConsistsOfRes.Area;
             Radius = MyMathHelper.Sqrt(value: Area / MyMathHelper.pi);
             ApproxSurfaceLength = (ulong)(2 * MyMathHelper.pi * Radius);
         }

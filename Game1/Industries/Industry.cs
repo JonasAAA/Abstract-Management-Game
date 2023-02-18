@@ -97,7 +97,13 @@ namespace Game1.Industries
 
         public abstract bool PeopleWorkOnTop { get; }
 
-        public abstract RealPeopleStats RealPeopleStats { get; }
+        /// <summary>
+        /// Null if no building
+        /// </summary>
+        public virtual Propor? SurfaceReflectance
+            => building?.Cost.Reflectance();
+
+        public abstract RealPeopleStats Stats { get; }
 
         public IHUDElement UIElement
             => UIPanel;
@@ -107,7 +113,7 @@ namespace Game1.Industries
         protected readonly CombinedEnergyConsumer combinedEnergyConsumer;
         protected readonly UIRectPanel<IHUDElement> UIPanel;
 
-        private Building? building;
+        private readonly Building? building;
         private bool isDeleted;
         private readonly Event<IDeletedListener> deleted;
         private readonly LightCatchingDisk lightCatchingDisk;

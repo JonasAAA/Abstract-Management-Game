@@ -6,7 +6,6 @@ using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
 using Game1.Inhabitants;
-using Microsoft.Xna.Framework;
 
 namespace Game1
 {

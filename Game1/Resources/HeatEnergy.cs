@@ -5,7 +5,7 @@ namespace Game1.Resources
     [Serializable]
     public readonly record struct HeatEnergy : IUnconstrainedEnergy<HeatEnergy> //IMultiplyOperators<HeatEnergy, UDouble, HeatEnergy>
     {
-        private static readonly HeatEnergy zero;
+        public static readonly HeatEnergy zero;
 
         static HeatEnergy IAdditiveIdentity<HeatEnergy, HeatEnergy>.AdditiveIdentity
             => zero;

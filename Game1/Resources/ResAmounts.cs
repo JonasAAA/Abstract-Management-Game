@@ -83,8 +83,22 @@ namespace Game1.Resources
         public HeatCapacity HeatCapacity()
             => CurResConfig.resources.CombineLinearly(vectorSelector: res => res.HeatCapacity, scalars: array);
 
+        public ulong Area()
+            => CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Area, scalars: array);
+
         public Propor Reflectance()
-            => ;
+            => Propor.Create
+            (
+                part: CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Area * res.Reflectance, scalars: array),
+                whole: CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Area, scalars: array)
+            )!.Value;
+
+        public Propor Emissivity()
+            => Propor.Create
+            (
+                part: CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Area * res.Emissivity, scalars: array),
+                whole: CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Area, scalars: array)
+            )!.Value;
 
         // analogous to with expression from https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/with-expression
         public ResAmounts With(ResAmount resAmount)

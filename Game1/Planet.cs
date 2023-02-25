@@ -6,6 +6,7 @@ using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
 using Game1.Inhabitants;
+using Microsoft.Xna.Framework;
 
 namespace Game1
 {
@@ -348,18 +349,13 @@ namespace Game1
 
         public void Update(IReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks, EnergyPile<HeatEnergy> vacuumHeatPile)
         {
-            // deal with people
+            // take people whose destination is this planet
             state.WaitingPeople.ForEach
             (
                 personalAction: realPerson =>
                 {
-                    NodeID? activityCenterPosition = realPerson.ActivityCenterNodeID;
-                    if (activityCenterPosition is null)
-                        return;
-                    if (activityCenterPosition == NodeID)
+                    if (realPerson.ActivityCenterNodeID == NodeID)
                         realPerson.Arrived(realPersonSource: state.WaitingPeople);
-                    else
-                        personFirstLinks[(NodeID, activityCenterPosition)]!.TransferFrom(start: this, realPersonSource: state.WaitingPeople, realPerson: realPerson);
                 }
             );
 
@@ -372,9 +368,41 @@ namespace Game1
                 curTime: CurWorldManager.CurTime
             );
 
-            // transform the remaining radiantEnergy into heat (maybe reflect some of it beforehand)
-            // and dissipate some heat
-            throw new NotImplementedException();
+            state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: state.RadiantEnergyPile);
+
+            state.ThermalBody.TransferHeatEnergyTo
+            (
+                destin: vacuumHeatPile,
+                amount: Algorithms.HeatEnergyToDissipate
+                (
+                    heatEnergy: state.ThermalBody.HeatEnergy,
+                    heatCapacity: state.ThermalBody.HeatCapacity,
+                    surfaceLength: state.ApproxSurfaceLength,
+                    emissivity: Industry?.SurfaceEmissivity ?? state.ConsistsOfRes.Emissivity,
+                    stefanBoltzmannConstant: CurWorldConfig.stefanBoltzmannConstant,
+                    temperatureExponent: CurWorldConfig.temperatureExponentInStefanBoltzmannLaw
+                )
+            );
+
+            // MAKE sure that all resources (and people) leaving the planet do so AFTER the the temperature is established for that frame,
+            // i.e. after appropriate amount of energy is radiated to space.
+
+            // IF need to use current planet temperature for something, calculate it once per frame here, then use it.
+            // Don't want to calculate temperature on the fly each time, as that would lead to higher temperatures at the beginning of the frame
+            // due to getting heat energy from electricity used in links and industry.
+
+            // transfer people who want to go to other places
+            state.WaitingPeople.ForEach
+            (
+                personalAction: realPerson =>
+                {
+                    NodeID? activityCenterPosition = realPerson.ActivityCenterNodeID;
+                    if (activityCenterPosition is null)
+                        return;
+                    Debug.Assert(activityCenterPosition != NodeID, "people who want to be here should have been taken already");
+                    personFirstLinks[(NodeID, activityCenterPosition)]!.TransferFrom(start: this, realPersonSource: state.WaitingPeople, realPerson: realPerson);
+                }
+            );
 
             textBox.Shape.Center = state.Position;
         }
@@ -568,7 +596,7 @@ namespace Game1
             => state.WaitingPeople.TransferFrom(realPerson: realPerson, realPersonSource: realPersonSource);
 
         void ILinkFacingPlanet.TransformAllElectricityToHeatAndTransferFrom(EnergyPile<ElectricalEnergy> source)
-            => state.ThermalBody.TransformAllElectricityToHeatAndTransferFrom(source: source);
+            => state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: source);
 
         void INodeAsLocalEnergyProducerAndConsumer.ProduceLocalEnergy(EnergyPile<ElectricalEnergy> destin)
         {
@@ -584,13 +612,6 @@ namespace Game1
             else
                 locallyProducedEnergy = ElectricalEnergy.zero;
         }
-
-        //Energy INodeAsLocalEnergyProducerAndConsumer.LocallyProducedEnergy
-        //    => Industry?.PeopleWorkOnTop switch
-        //    {
-        //        true or null => (Energy)state.LocationCounters.RadiantEnergy.TakeApproxPropor(propor: (Propor).001),
-        //        false => Energy.zero
-        //    };
 
         private ILightBlockingObject CurLightCatchingObject
             => Industry?.LightBlockingObject ?? shape;
@@ -609,7 +630,7 @@ namespace Game1
 
         void INodeAsLocalEnergyProducerAndConsumer.ConsumeUnusedLocalEnergyFrom(EnergyPile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {
-            state.ThermalBody.TransformAllElectricityToHeatAndTransferFrom(source: source);
+            state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: source);
             usedLocalEnergy = locallyProducedEnergy - electricalEnergy;
         }
     }

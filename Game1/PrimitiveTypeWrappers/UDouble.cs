@@ -4,7 +4,12 @@ namespace Game1.PrimitiveTypeWrappers
 {
     // TODO: could rename to MyUFloat
     [Serializable]
-    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>, IComparisonOperators<UDouble, UDouble, bool>, IMin<UDouble>, IMax<UDouble>, IComparable<UDouble>, IMinMaxValue<UDouble>, IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>, IMultiplyOperators<UDouble, UDouble, UDouble>, IMultiplicativeIdentity<UDouble, UDouble>, IPrimitiveTypeWrapper
+    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>,
+        IComparisonOperators<UDouble, UDouble, bool>, IMin<UDouble>, IMax<UDouble>, IComparable<UDouble>, IMinMaxValue<UDouble>,
+        IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>,
+        IMultiplyOperators<UDouble, UDouble, UDouble>, IMultiplicativeIdentity<UDouble, UDouble>,
+        IMultiplyOperators<UDouble, ulong, UDouble>, IMultiplicativeIdentity<UDouble, ulong>,
+        IPrimitiveTypeWrapper
     {
         public static readonly UDouble positiveInfinity = new(value: double.PositiveInfinity);
 
@@ -14,6 +19,9 @@ namespace Game1.PrimitiveTypeWrappers
             => zero;
 
         static UDouble IMultiplicativeIdentity<UDouble, UDouble>.MultiplicativeIdentity
+            => 1;
+
+        static ulong IMultiplicativeIdentity<UDouble, ulong>.MultiplicativeIdentity
             => 1;
 
         /// <summary>
@@ -94,6 +102,9 @@ namespace Game1.PrimitiveTypeWrappers
 
         public static UDouble operator *(UDouble value1, UDouble value2)
             => new(value1.value * value2.value);
+
+        public static UDouble operator *(UDouble value1, ulong value2)
+            => new(value1.value * value2);
 
         public static TimeSpan operator *(UDouble scale, TimeSpan timeSpan)
             => scale.value * timeSpan;

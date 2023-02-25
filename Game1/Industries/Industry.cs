@@ -103,6 +103,12 @@ namespace Game1.Industries
         public virtual Propor? SurfaceReflectance
             => building?.Cost.Reflectance();
 
+        /// <summary>
+        /// Null if no building
+        /// </summary>
+        public virtual Propor? SurfaceEmissivity
+            => building?.Cost.Emissivity();
+
         public abstract RealPeopleStats Stats { get; }
 
         public IHUDElement UIElement

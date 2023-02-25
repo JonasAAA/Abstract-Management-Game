@@ -99,5 +99,8 @@
 
         public readonly Propor
             planetTransformRadiantToElectricalEnergyPropor = (Propor).001;
+
+        public readonly UDouble stefanBoltzmannConstant = 1;
+        public readonly ulong temperatureExponentInStefanBoltzmannLaw = 4;
     }
 }

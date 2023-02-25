@@ -21,6 +21,8 @@ namespace Game1.Resources
                             mass: Mass.CreateFromKg(valueInKg: 2),
                             heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 3),
                             area: 1,
+                            reflectance: (Propor).2,
+                            emissivity: (Propor).3,
                             color: colorConfig.Res0Color
                         ),
                         1 => new BasicRes
@@ -29,6 +31,8 @@ namespace Game1.Resources
                             mass: Mass.CreateFromKg(valueInKg: 1),
                             heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 4),
                             area: 2,
+                            reflectance: (Propor).8,
+                            emissivity: (Propor).7,
                             color: colorConfig.Res1Color
                         ),
                         _ => throw new ArgumentOutOfRangeException()

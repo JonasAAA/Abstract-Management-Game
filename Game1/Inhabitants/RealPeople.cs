@@ -65,7 +65,7 @@ namespace Game1.Inhabitants
         /// <param name="updatePersonSkillsParams">if null, will use default update</param>
         public void Update(RealPerson.UpdateLocationParams updateLocationParams, UpdatePersonSkillsParams? updatePersonSkillsParams)
         {
-            thermalBody.TransformAllElectricityToHeatAndTransferFrom(source: allocElectricalEnergy);
+            thermalBody.TransformAllEnergyToHeatAndTransferFrom(source: allocElectricalEnergy);
             foreach (var realPerson in virtualToRealPeople.Values)
                 realPerson.Update
                 (

@@ -261,7 +261,7 @@ namespace Game1.Industries
 
         protected sealed override Industry InternalUpdate()
         {
-            parameters.state.ThermalBody.TransformAllElectricityToHeatAndTransferFrom(source: electricalEnergyPile);
+            parameters.state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
             var workingPropor = employer.Update(isBusy: (bool)IsBusy(), industryEnergyPropor: allocEnergyPropor);
             return (bool)CanBeBusy ? InternalUpdate(workingPropor: workingPropor) : this;
         }

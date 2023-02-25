@@ -17,6 +17,10 @@
                 resCounter: ResCounter.CreateByMagic(count: amount)
             );
 
+        public readonly HeatEnergy HeatEnergy
+            => heatEnergyPile.Amount;
+        public readonly HeatCapacity HeatCapacity
+            => resCounter.Count.HeatCapacity();
         public readonly LocationCounters locationCounters;
 
         private readonly EnergyPile<HeatEnergy> heatEnergyPile;
@@ -63,7 +67,11 @@
         public void TransformResTo(ThermalBody destin, ResRecipe recipe)
             => resCounter.TransformTo(destin: destin.resCounter, recipe: recipe);
 
-        public void TransformAllElectricityToHeatAndTransferFrom(EnergyPile<ElectricalEnergy> source)
+        public void TransformAllEnergyToHeatAndTransferFrom<TSourceAmount>(EnergyPile<TSourceAmount> source)
+            where TSourceAmount : struct, IFormOfEnergy<TSourceAmount>
             => source.TransformAllTo(destin: heatEnergyPile);
+
+        public void TransferHeatEnergyTo(EnergyPile<HeatEnergy> destin, HeatEnergy amount)
+            => heatEnergyPile.TransferTo(destin: destin, amount: amount);
     }
 }

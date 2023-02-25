@@ -126,6 +126,8 @@ namespace Game1
         private readonly List<Star> stars;
         private readonly List<Planet> nodes;
         private readonly List<Link> links;
+        private readonly LocationCounters vacuumLocationCounters;
+        private readonly EnergyPile<HeatEnergy> vacuumHeatPile;
 
         [NonSerialized] private Task<PersonAndResShortestPaths> shortestPathsTask;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDestinArrows;
@@ -138,6 +140,8 @@ namespace Game1
             this.stars = stars.ToMyHashSet().ToList();
             this.nodes = nodes.ToMyHashSet().ToList();
             this.links = links.ToMyHashSet().ToList();
+            vacuumLocationCounters = LocationCounters.CreateEmpty();
+            vacuumHeatPile = EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: vacuumLocationCounters);
             foreach (var link in this.links)
             {
                 link.node1.AddLink(link: link);
@@ -334,7 +338,7 @@ namespace Game1
             CalcAndSetMaxLinkStats();
             links.ForEach(link => link.Update());
             foreach (var node in nodes)
-                node.Update(personFirstLinks: personFirstLinks);
+                node.Update(personFirstLinks: personFirstLinks, vacuumHeatPile: vacuumHeatPile);
 
             links.ForEach(link => link.UpdatePeople());
             nodes.ForEach(node => node.UpdatePeople());

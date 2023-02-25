@@ -204,5 +204,43 @@ namespace Game1
                 return new(value1: consumersWithExtraEnergy.Select(consumer => consumer.AllocEnergy).ToList());
             }
         }
+
+        /// <summary>
+        /// Implements Stefan-Boltzmann law https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law
+        /// assuming that all the stats (temperature, heat energy, heat capacity, etc.) were constant throughout the frame
+        /// </summary>
+        public static HeatEnergy HeatEnergyToDissipate(HeatEnergy heatEnergy, HeatCapacity heatCapacity, UDouble surfaceLength, Propor emissivity, UDouble stefanBoltzmannConstant, ulong temperatureExponent)
+        {
+            if (heatCapacity.IsZero)
+            {
+                if (heatEnergy.IsZero)
+                    return HeatEnergy.zero;
+                else
+                    throw new ArgumentException();
+            }
+            ulong heatCapacityInJPerK = heatCapacity.valueInJPerK,
+                heatEnergyInJ = heatEnergy.ValueInJ(),
+                minFinalHeatEnergyInJ = 0,
+                maxFinalHeatEnergyInJ = heatEnergyInJ;
+
+            while (minFinalHeatEnergyInJ + 1 < maxFinalHeatEnergyInJ)
+            {
+                ulong midFinalHeatEnergyInJ = (minFinalHeatEnergyInJ + maxFinalHeatEnergyInJ) / 2;
+                if (diffBetweenEnergyLossAndDissipatedEnergy(finalHeatEnergyInJ: midFinalHeatEnergyInJ) > 0)
+                    minFinalHeatEnergyInJ = midFinalHeatEnergyInJ;
+                else
+                    maxFinalHeatEnergyInJ = midFinalHeatEnergyInJ;
+            }
+            
+            ulong finalHeatEnergyInJ =
+                MyMathHelper.Abs(diffBetweenEnergyLossAndDissipatedEnergy(finalHeatEnergyInJ: minFinalHeatEnergyInJ)) <
+                MyMathHelper.Abs(diffBetweenEnergyLossAndDissipatedEnergy(finalHeatEnergyInJ: maxFinalHeatEnergyInJ))
+                ? minFinalHeatEnergyInJ : maxFinalHeatEnergyInJ;
+
+            return HeatEnergy.CreateFromJoules(valueInJ: heatEnergyInJ - finalHeatEnergyInJ);
+
+            double diffBetweenEnergyLossAndDissipatedEnergy(ulong finalHeatEnergyInJ)
+                => heatEnergyInJ - finalHeatEnergyInJ - surfaceLength * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: (double)finalHeatEnergyInJ / heatCapacityInJPerK, exponent: temperatureExponent);
+        }
     }
 }

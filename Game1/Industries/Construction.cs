@@ -96,6 +96,9 @@ namespace Game1.Industries
         public override Propor? SurfaceReflectance
             => donePropor == Propor.empty ? null : parameters.Cost.Reflectance();
 
+        public override Propor? SurfaceEmissivity
+            => donePropor == Propor.empty ? null : parameters.Cost.Emissivity();
+
         protected override UDouble Height
             => CurWorldConfig.defaultIndustryHeight * donePropor;
 

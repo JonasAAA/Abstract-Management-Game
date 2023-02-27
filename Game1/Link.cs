@@ -103,6 +103,7 @@ namespace Game1
                 var (resAmountsPackets, people) = timedPacketQueue.DonePacketsAndPeople();
                 endNode.Arrive(resAmountsPackets: resAmountsPackets);
                 endNode.Arrive(realPeople: people);
+                people.Delete();
 
                 if ((!waitingResAmountsPackets.Empty || !waitingPeople.NumPeople.IsZero)
                     && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionPropor() >= minSafePropor))

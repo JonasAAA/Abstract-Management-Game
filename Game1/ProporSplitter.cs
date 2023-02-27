@@ -103,10 +103,10 @@
             => Count is 0;
         public IEnumerable<TKey> Keys
             => importances.Keys;
-        public IReadOnlyDictionary<TKey, ulong> Importances
+        public IReadOnlyDictionary<TKey, UDouble> Importances
             => importances;
 
-        private readonly Dictionary<TKey, ulong> importances;
+        private readonly Dictionary<TKey, UDouble> importances;
         private readonly NecAdds necAdds;
 
         private int Count
@@ -121,7 +121,7 @@
         public bool ContainsKey(TKey key)
             => importances.ContainsKey(key);
 
-        private void AddKey(TKey key, ulong importance)
+        private void AddKey(TKey key, UDouble importance)
         {
             importances.Add(key, importance);
             necAdds.Add(key: key);
@@ -133,7 +133,7 @@
             necAdds.Remove(key: key);
         }
 
-        public void SetImportance(TKey key, ulong importance)
+        public void SetImportance(TKey key, UDouble importance)
         {
             if (importance < 0)
                 throw new ArgumentOutOfRangeException();
@@ -146,7 +146,7 @@
             }
             else
                 AddKey(key: key, importance: importance);
-            if (importances[key] is 0)
+            if (importances[key] == 0)
                 RemoveKey(key: key);
         }
 
@@ -165,18 +165,18 @@
             Dictionary<TKey, ulong> maxAmounts = MakeDictionary(func: key => maxAmountsFunc(key)),
                 splitAmounts = new();
             HashSet<TKey> unusedKeys = new(Keys);
-            decimal unusedPropSum = importances.Values.Sum();
+            decimal unusedPropSum = (decimal)importances.Values.Sum();
 
             while (true)
             {
                 bool didSomething = false;
                 foreach (var key in unusedKeys.Clone())
-                    if ((ulong)(amount * importances[key] / unusedPropSum + necAdds[key]) >= maxAmounts[key])
+                    if ((ulong)(amount * (decimal)importances[key] / unusedPropSum + necAdds[key]) >= maxAmounts[key])
                     {
                         //could turn this into a function
                         necAdds.LockAtZero(key: key);
                         unusedKeys.Remove(key);
-                        unusedPropSum -= importances[key];
+                        unusedPropSum -= (decimal)importances[key];
                         splitAmounts.Add(key, maxAmounts[key]);
                         amount -= maxAmounts[key];
 
@@ -191,7 +191,7 @@
             ulong splitAmount = amount;
             foreach (var key in unusedKeys)
             {
-                perfect.Add(key, splitAmount * importances[key] / unusedPropSum + necAdds[key]);
+                perfect.Add(key, splitAmount * (decimal)importances[key] / unusedPropSum + necAdds[key]);
                 splitAmounts.Add(key, (ulong)perfect[key]);
                 amount -= splitAmounts[key];
             }

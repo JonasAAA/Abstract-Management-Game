@@ -6,22 +6,24 @@ namespace Game1.Inhabitants
     [Serializable]
     public class RealPeople : IEnergyConsumer, IDeletable, IWithRealPeopleStats
     {
-        public static RealPeople CreateEmpty(ThermalBody thermalBody, IEnergyDistributor energyDistributor, NodeID electricalEnergySourceNodeID, bool isInActivityCenter)
+        public static RealPeople CreateEmpty(ThermalBody thermalBody, IEnergyDistributor energyDistributor, NodeID electricalEnergySourceNodeID, NodeID closestNodeID, bool isInActivityCenter)
             => new
             (
                 thermalBody: thermalBody,
                 energyDistributor: energyDistributor,
                 electricalEnergySourceNodeID: electricalEnergySourceNodeID,
+                closestNodeID: closestNodeID,
                 isInActivityCenter: isInActivityCenter
             );
 
-        public static RealPeople CreateFromSource(RealPeople realPeopleSource, ThermalBody thermalBody, IEnergyDistributor energyDistributor, NodeID electricalEnergySourceNodeID, bool isInActivityCenter)
+        public static RealPeople CreateFromSource(RealPeople realPeopleSource, ThermalBody thermalBody, IEnergyDistributor energyDistributor, NodeID electricalEnergySourceNodeID, NodeID closestNodeID, bool isInActivityCenter)
         {
             RealPeople newRealPeople = new
             (
                 thermalBody: thermalBody,
                 energyDistributor: energyDistributor,
                 electricalEnergySourceNodeID: electricalEnergySourceNodeID,
+                closestNodeID: closestNodeID,
                 isInActivityCenter: isInActivityCenter
             );
             newRealPeople.TransferAllFrom(realPeopleSource: realPeopleSource);
@@ -43,10 +45,10 @@ namespace Game1.Inhabitants
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
         private readonly HistoricRounder reqEnergyHistoricRounder;
         private readonly EnergyPile<ElectricalEnergy> allocElectricalEnergy;
-        private readonly NodeID electricalEnergySourceNodeID;
+        private readonly NodeID electricalEnergySourceNodeID, closestNodeID;
         private readonly bool isInActivityCenter;
 
-        private RealPeople(ThermalBody thermalBody, IEnergyDistributor energyDistributor, NodeID electricalEnergySourceNodeID, bool isInActivityCenter)
+        private RealPeople(ThermalBody thermalBody, IEnergyDistributor energyDistributor, NodeID electricalEnergySourceNodeID, NodeID closestNodeID, bool isInActivityCenter)
         {
             this.thermalBody = thermalBody;
             deleted = new();
@@ -54,6 +56,7 @@ namespace Game1.Inhabitants
             virtualToRealPeople = new();
             reqEnergyHistoricRounder = new();
             allocElectricalEnergy = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: LocationCounters);
+            this.closestNodeID = closestNodeID;
             this.electricalEnergySourceNodeID = electricalEnergySourceNodeID;
             this.isInActivityCenter = isInActivityCenter;
 
@@ -75,13 +78,12 @@ namespace Game1.Inhabitants
         }
 
         /// <param name="updatePersonSkillsParams">if null, will use default update</param>
-        public void Update(RealPerson.UpdateLocationParams updateLocationParams, UpdatePersonSkillsParams? updatePersonSkillsParams)
+        public void Update(UpdatePersonSkillsParams? updatePersonSkillsParams)
         {
             thermalBody.TransformAllEnergyToHeatAndTransferFrom(source: allocElectricalEnergy);
             foreach (var realPerson in virtualToRealPeople.Values)
                 realPerson.Update
                 (
-                    updateLocationParams: updateLocationParams,
                     updateSkillsParams: updatePersonSkillsParams,
                     allocEnergyPropor: Stats.AllocEnergyPropor
                 );
@@ -113,7 +115,7 @@ namespace Game1.Inhabitants
 
         private void Add(RealPerson realPerson)
         {
-            realPerson.ChangeLocation(newThermalBody: thermalBody);
+            realPerson.ChangeLocation(newThermalBody: thermalBody, closestNodeID: closestNodeID);
             virtualToRealPeople.Add(key: realPerson.asVirtual, value: realPerson);
             Stats = Stats.CombineWith(other: realPerson.Stats);
         }

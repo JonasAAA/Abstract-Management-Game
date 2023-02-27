@@ -281,7 +281,7 @@ namespace Game1
                 {
                     RealPerson.GeneratePersonByMagic
                     (
-                        nodeID: NodeID,
+                        closestNodeID: NodeID,
                         resSource: ResPile.CreateIfHaveEnough(source: state.StoredResPile, amount: RealPerson.resAmountsPerPerson)!,
                         childDestin: state.WaitingPeople
                     );
@@ -408,9 +408,8 @@ namespace Game1
 
         public void UpdatePeople()
         {
-            RealPerson.UpdateLocationParams personUpdateParams = new(LastNodeID: NodeID, ClosestNodeID: NodeID);
-            Industry?.UpdatePeople(updateLocationParams: personUpdateParams);
-            state.WaitingPeople.Update(updateLocationParams: personUpdateParams, updatePersonSkillsParams: null);
+            Industry?.UpdatePeople();
+            state.WaitingPeople.Update(updatePersonSkillsParams: null);
             Debug.Assert(state.LocationCounters.GetCount<NumPeople>() == state.WaitingPeople.NumPeople + (Industry?.Stats.totalNumPeople ?? NumPeople.zero));
             Stats = state.WaitingPeople.Stats.CombineWith(Industry?.Stats ?? RealPeopleStats.empty);
         }

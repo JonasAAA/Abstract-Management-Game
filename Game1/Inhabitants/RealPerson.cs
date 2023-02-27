@@ -11,10 +11,7 @@ namespace Game1.Inhabitants
     [Serializable]
     public sealed class RealPerson : IWithRealPeopleStats
     {
-        [Serializable]
-        public readonly record struct UpdateLocationParams(NodeID LastNodeID, NodeID ClosestNodeID);
-
-        public static void GeneratePersonByMagic(NodeID nodeID, ResPile resSource, RealPeople childDestin)
+        public static void GeneratePersonByMagic(NodeID closestNodeID, ResPile resSource, RealPeople childDestin)
             => childDestin.AddByMagic
             (
                 realPerson: new
@@ -29,14 +26,14 @@ namespace Game1.Inhabitants
                         talents: new(selector: indType => Score.GenerateRandom()),
                         skills: new(selector: indType => Score.GenerateRandom())
                     ),
-                    nodeID: nodeID,
+                    closestNodeID: closestNodeID,
                     seekChangeTime: C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
                     consistsOfResAmounts: resAmountsPerPerson
                 )
             );
 
-        public static void GenerateChild(VirtualPerson parent1, VirtualPerson parent2, NodeID nodeID, ResPile resSource, RealPeople parentSource, RealPeople childDestin)
+        public static void GenerateChild(VirtualPerson parent1, VirtualPerson parent2, NodeID closestNodeID, ResPile resSource, RealPeople parentSource, RealPeople childDestin)
         {
             if (!parentSource.Contains(person: parent1) || !parentSource.Contains(person: parent2))
                 throw new ArgumentException();
@@ -68,7 +65,7 @@ namespace Game1.Inhabitants
                         skills: new(selector: indType => Score.lowest)
 
                     ),
-                    nodeID: nodeID,
+                    closestNodeID: closestNodeID,
                     seekChangeTime:
                         CurWorldConfig.parentContribToChildPropor * (parent1.SeekChangeTime + parent2.SeekChangeTime) * (UDouble).5
                         + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
@@ -119,15 +116,13 @@ namespace Game1.Inhabitants
         /// </summary>
         private IPersonFacingActivityCenter? activityCenter;
         private TimeSpan timeSinceActivitySearch;
-        private NodeID lastNodeID;
         private readonly ResPile consistsOfResPile;
         private LocationCounters locationCounters;
         
-        private RealPerson(RealPeopleStats realPeopleStats, NodeID nodeID, TimeSpan seekChangeTime, ResPile resSource, ResAmounts consistsOfResAmounts)
+        private RealPerson(RealPeopleStats realPeopleStats, NodeID closestNodeID, TimeSpan seekChangeTime, ResPile resSource, ResAmounts consistsOfResAmounts)
         {
             Stats = realPeopleStats;
-            lastNodeID = nodeID;
-            ClosestNodeID = nodeID;
+            ClosestNodeID = closestNodeID;
 
             activityCenter = null;
 
@@ -150,19 +145,19 @@ namespace Game1.Inhabitants
         public void Arrived(RealPeople realPersonSource)
             => (activityCenter ?? throw new InvalidOperationException()).TakePersonFrom(realPersonSource: realPersonSource, realPerson: this);
 
-        public void ChangeLocation(ThermalBody newThermalBody)
+        public void ChangeLocation(ThermalBody newThermalBody, NodeID closestNodeID)
         {
             consistsOfResPile.ChangeLocation(newThermalBody: newThermalBody);
             // Resource transfer is zero in the following line as the previous line did the resAmounts transfer of this person already
             newThermalBody.locationCounters.TransferFrom(source: locationCounters, amount: Stats.totalNumPeople);
             locationCounters = newThermalBody.locationCounters;
+
+            ClosestNodeID = closestNodeID;
         }
 
         /// <param name="updateSkillsParams">if null, will use default update</param>
-        public void Update(UpdateLocationParams updateLocationParams, UpdatePersonSkillsParams? updateSkillsParams, Propor allocEnergyPropor)
+        public void Update(UpdatePersonSkillsParams? updateSkillsParams, Propor allocEnergyPropor)
         {
-            lastNodeID = updateLocationParams.LastNodeID;
-            ClosestNodeID = updateLocationParams.ClosestNodeID;
             var timeCoeff = Stats.totalReqWatts == 0 ? Propor.empty : allocEnergyPropor;
             var elapsed = timeCoeff * CurWorldManager.Elapsed;
             var momentaryHappiness = CalculateMomentaryHappiness();

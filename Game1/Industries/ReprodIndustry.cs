@@ -114,7 +114,7 @@ namespace Game1.Industries
                 unpairedPeople.Enqueue(element: realPerson.asVirtual);
             }
 
-            protected override UpdatePersonSkillsParams? PersonUpdateParams
+            protected override UpdatePersonSkillsParams? UpdatePersonSkillsParams
                 => null;
 
             public override bool CanPersonLeave(VirtualPerson person)
@@ -155,11 +155,11 @@ namespace Game1.Industries
             birthQueue = new();
         }
 
-        protected override void UpdatePeopleInternal(RealPerson.UpdateLocationParams updateLocationParams)
+        protected override void UpdatePeopleInternal()
         {
-            base.UpdatePeopleInternal(updateLocationParams: updateLocationParams);
+            base.UpdatePeopleInternal();
 
-            reprodCenter.UpdatePeople(updateLocationParams: updateLocationParams);
+            reprodCenter.UpdatePeople();
         }
 
         public override ResAmounts TargetStoredResAmounts()
@@ -180,7 +180,7 @@ namespace Game1.Industries
             {
                 RealPerson.GenerateChild
                 (
-                    nodeID: parameters.state.NodeID,
+                    closestNodeID: parameters.state.NodeID,
                     parent1: parent1,
                     parent2: parent2,
                     resSource: childResPile,

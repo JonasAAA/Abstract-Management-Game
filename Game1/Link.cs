@@ -48,13 +48,19 @@ namespace Game1
 
                 locationCounters = LocationCounters.CreateEmpty();
                 thermalBody = ThermalBody.CreateEmpty(locationCounters: locationCounters);
-                timedPacketQueue = new(thermalBody: thermalBody, electricalEnergySourceNodeID: EnergySourceNode.NodeID);
+                timedPacketQueue = new
+                (
+                    thermalBody: thermalBody,
+                    electricalEnergySourceNodeID: EnergySourceNode.NodeID,
+                    closestNodeID: endNode.NodeID
+                );
                 waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(thermalBody: thermalBody);
                 waitingPeople = RealPeople.CreateEmpty
                 (
                     thermalBody: thermalBody,
                     energyDistributor: CurWorldManager.EnergyDistributor,
                     electricalEnergySourceNodeID: EnergySourceNode.NodeID,
+                    closestNodeID: endNode.NodeID,
                     isInActivityCenter: false
                 );
                 reqEnergyHistoricRounder = new();
@@ -111,9 +117,8 @@ namespace Game1
 
             public void UpdatePeople()
             {
-                RealPerson.UpdateLocationParams personUpdateParams = new(LastNodeID: startNode.NodeID, ClosestNodeID: endNode.NodeID);
-                timedPacketQueue.UpdatePeople(updateLocationParams: personUpdateParams, personalUpdate: null);
-                waitingPeople.Update(updateLocationParams: personUpdateParams, updatePersonSkillsParams: null);
+                timedPacketQueue.UpdatePeople(personalUpdate: null);
+                waitingPeople.Update(updatePersonSkillsParams: null);
                 Stats = timedPacketQueue.Stats.CombineWith(other: waitingPeople.Stats);
             }
 

@@ -86,7 +86,7 @@ namespace Game1.Industries
                 // may disallow far travel
                 => true;
 
-            protected override UpdatePersonSkillsParams? PersonUpdateParams
+            protected override UpdatePersonSkillsParams? UpdatePersonSkillsParams
                 => null;
 
             public override bool CanPersonLeave(VirtualPerson person)
@@ -115,8 +115,8 @@ namespace Game1.Industries
             : base(parameters: parameters, building: building)
             => housing = new(parameters: parameters, energyDistributor: combinedEnergyConsumer);
 
-        protected override void UpdatePeopleInternal(RealPerson.UpdateLocationParams updateLocationParams)
-            => housing.UpdatePeople(updateLocationParams: updateLocationParams);
+        protected override void UpdatePeopleInternal()
+            => housing.UpdatePeople();
 
         public override ResAmounts TargetStoredResAmounts()
             => ResAmounts.Empty;

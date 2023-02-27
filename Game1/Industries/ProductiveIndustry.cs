@@ -154,7 +154,7 @@ namespace Game1.Industries
                 return NewEmploymentScore(person: person) >= CurWorldConfig.minAcceptablePersonScore;
             }
 
-            protected override UpdatePersonSkillsParams PersonUpdateParams
+            protected override UpdatePersonSkillsParams UpdatePersonSkillsParams
                 => new()
                 {
                     (
@@ -242,8 +242,8 @@ namespace Game1.Industries
             combinedEnergyConsumer.AddEnergyConsumer(energyConsumer: this);
         }
 
-        protected override void UpdatePeopleInternal(RealPerson.UpdateLocationParams updateLocationParams)
-            => employer.UpdatePeople(updateLocationParams: updateLocationParams);
+        protected override void UpdatePeopleInternal()
+            => employer.UpdatePeople();
 
         // TODO: Compute this value only once per frame
         protected virtual BoolWithExplanationIfFalse IsBusy()

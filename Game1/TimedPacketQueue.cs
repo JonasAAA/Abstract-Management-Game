@@ -15,12 +15,13 @@ namespace Game1
 
         private readonly ThermalBody thermalBody;
         private readonly TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)> timedQueue;
-        private readonly NodeID electricalEnergySourceNodeID;
+        private readonly NodeID electricalEnergySourceNodeID, closestNodeID;
 
-        public TimedPacketQueue(ThermalBody thermalBody, NodeID electricalEnergySourceNodeID)
+        public TimedPacketQueue(ThermalBody thermalBody, NodeID electricalEnergySourceNodeID, NodeID closestNodeID)
         {
             this.thermalBody = thermalBody;
             this.electricalEnergySourceNodeID = electricalEnergySourceNodeID;
+            this.closestNodeID = closestNodeID;
             TotalResAmounts = ResAmounts.Empty;
             Mass = Mass.zero;
             NumPeople = NumPeople.zero;
@@ -31,12 +32,12 @@ namespace Game1
             => timedQueue.Update(duration: duration, workingPropor: workingPropor);
 
         /// <param name="personalUpdate"> if null, will use default update</param>
-        public void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams, UpdatePersonSkillsParams? personalUpdate)
+        public void UpdatePeople(UpdatePersonSkillsParams? personalUpdate)
         {
             Stats = RealPeopleStats.empty;
             foreach (var (_, realPeople) in timedQueue)
             {
-                realPeople.Update(updateLocationParams: updateLocationParams, updatePersonSkillsParams: personalUpdate);
+                realPeople.Update(updatePersonSkillsParams: personalUpdate);
                 Stats = Stats.CombineWith(other: realPeople.Stats);
             }
         }
@@ -50,6 +51,7 @@ namespace Game1
                 thermalBody: thermalBody,
                 energyDistributor: CurWorldManager.EnergyDistributor,
                 electricalEnergySourceNodeID: electricalEnergySourceNodeID,
+                closestNodeID: closestNodeID,
                 isInActivityCenter: false
             );
             if (resAmountsPackets.Empty && realPeople.NumPeople.IsZero)
@@ -79,6 +81,7 @@ namespace Game1
                 thermalBody: thermalBody,
                 energyDistributor: CurWorldManager.EnergyDistributor,
                 electricalEnergySourceNodeID: electricalEnergySourceNodeID,
+                closestNodeID: closestNodeID,
                 isInActivityCenter: false
             );
             foreach (var (resAmountsPackets, people) in timedQueue.DoneElements())

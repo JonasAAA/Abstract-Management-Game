@@ -62,6 +62,7 @@ namespace Game1
                 thermalBody: ThermalBody,
                 energyDistributor: CurWorldManager.EnergyDistributor,
                 electricalEnergySourceNodeID: NodeID,
+                closestNodeID: NodeID,
                 isInActivityCenter: false
             );
             TooManyResStored = false;

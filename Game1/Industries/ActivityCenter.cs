@@ -37,6 +37,7 @@ namespace Game1.Industries
                 thermalBody: state.ThermalBody,
                 energyDistributor: energyDistributor,
                 electricalEnergySourceNodeID: state.NodeID,
+                closestNodeID: state.NodeID,
                 isInActivityCenter: true
             );
             allPeople = new();
@@ -63,14 +64,10 @@ namespace Game1.Industries
             realPeopleHere.TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
         }
 
-        public void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams)
-            => realPeopleHere.Update
-            (
-                updateLocationParams: updateLocationParams,
-                updatePersonSkillsParams: PersonUpdateParams
-            );
+        public void UpdatePeople()
+            => realPeopleHere.Update(updatePersonSkillsParams: UpdatePersonSkillsParams);
 
-        protected abstract UpdatePersonSkillsParams? PersonUpdateParams { get; }
+        protected abstract UpdatePersonSkillsParams? UpdatePersonSkillsParams { get; }
 
         public bool IsPersonHere(VirtualPerson person)
             => realPeopleHere.Contains(person);

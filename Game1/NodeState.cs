@@ -57,7 +57,13 @@ namespace Game1
                 throw new ArgumentOutOfRangeException();
             MaxBatchDemResStored = maxBatchDemResStored;
             waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(thermalBody: ThermalBody);
-            WaitingPeople = RealPeople.CreateEmpty(thermalBody: ThermalBody, energyDistributor: CurWorldManager.EnergyDistributor);
+            WaitingPeople = RealPeople.CreateEmpty
+            (
+                thermalBody: ThermalBody,
+                energyDistributor: CurWorldManager.EnergyDistributor,
+                electricalEnergySourceNodeID: NodeID,
+                isInActivityCenter: false
+            );
             TooManyResStored = false;
         }
 

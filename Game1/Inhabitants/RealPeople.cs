@@ -5,20 +5,24 @@ namespace Game1.Inhabitants
     [Serializable]
     public class RealPeople : IEnergyConsumer, IWithRealPeopleStats
     {
-        public static RealPeople CreateEmpty(ThermalBody thermalBody, IEnergyDistributor energyDistributor)
-            => new(thermalBody: thermalBody, energyDistributor: energyDistributor);
-
-        public static RealPeople CreateFromSource(RealPeople realPeopleSource)
-            => CreateFromSource
+        public static RealPeople CreateEmpty(ThermalBody thermalBody, IEnergyDistributor energyDistributor, NodeID electricalEnergySourceNodeID, bool isInActivityCenter)
+            => new
             (
-                realPeopleSource: realPeopleSource,
-                thermalBody: realPeopleSource.thermalBody,
-                energyDistributor: realPeopleSource.energyDistributor
+                thermalBody: thermalBody,
+                energyDistributor: energyDistributor,
+                electricalEnergySourceNodeID: electricalEnergySourceNodeID,
+                isInActivityCenter: isInActivityCenter
             );
 
-        public static RealPeople CreateFromSource(RealPeople realPeopleSource, ThermalBody thermalBody, IEnergyDistributor energyDistributor)
+        public static RealPeople CreateFromSource(RealPeople realPeopleSource, ThermalBody thermalBody, IEnergyDistributor energyDistributor, NodeID electricalEnergySourceNodeID, bool isInActivityCenter)
         {
-            RealPeople newRealPeople = new(thermalBody: thermalBody, energyDistributor: energyDistributor);
+            RealPeople newRealPeople = new
+            (
+                thermalBody: thermalBody,
+                energyDistributor: energyDistributor,
+                electricalEnergySourceNodeID: electricalEnergySourceNodeID,
+                isInActivityCenter: isInActivityCenter
+            );
             newRealPeople.TransferAllFrom(realPeopleSource: realPeopleSource);
             return newRealPeople;
         }
@@ -31,19 +35,21 @@ namespace Game1.Inhabitants
         private LocationCounters LocationCounters
             => thermalBody.locationCounters;
         private readonly ThermalBody thermalBody;
-        private readonly IEnergyDistributor energyDistributor;
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
         private readonly HistoricRounder reqEnergyHistoricRounder;
         private readonly EnergyPile<ElectricalEnergy> allocElectricalEnergy;
+        private readonly NodeID electricalEnergySourceNodeID;
+        private readonly bool isInActivityCenter;
 
-        private RealPeople(ThermalBody thermalBody, IEnergyDistributor energyDistributor)
+        private RealPeople(ThermalBody thermalBody, IEnergyDistributor energyDistributor, NodeID electricalEnergySourceNodeID, bool isInActivityCenter)
         {
             this.thermalBody = thermalBody;
             Stats = RealPeopleStats.empty;
             virtualToRealPeople = new();
             reqEnergyHistoricRounder = new();
             allocElectricalEnergy = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: LocationCounters);
-            this.energyDistributor = energyDistributor;
+            this.electricalEnergySourceNodeID = electricalEnergySourceNodeID;
+            this.isInActivityCenter = isInActivityCenter;
 
             energyDistributor.AddEnergyConsumer(energyConsumer: this);
         }
@@ -121,22 +127,9 @@ namespace Game1.Inhabitants
         // by choosing the most important energy priority
         EnergyPriority IEnergyConsumer.EnergyPriority
             => CurWorldConfig.personEnergyPrior;
-            // OLD implmementation follows
-            //=> IsInActivityCenter switch
-            //{
-            //    // if person has higher priority then activityCenter,
-            //    // then activityCenter most likely can't work at full capacity
-            //    // so will not use all the available energy
-            //    true => MyMathHelper.Min(CurWorldConfig.personEnergyPrior, activityCenter.EnergyPriority),
-            //    false => CurWorldConfig.personEnergyPrior
-            //};
 
         NodeID IEnergyConsumer.NodeID
-            => throw new NotImplementedException();
-        //=> lastNodeID;
-
-        protected bool IsInActivityCenter
-            => throw new NotImplementedException();
+            => electricalEnergySourceNodeID;
 
         ElectricalEnergy IEnergyConsumer.ReqEnergy()
             => ReqEnergy();
@@ -146,7 +139,7 @@ namespace Game1.Inhabitants
             (
                 valueInJ: reqEnergyHistoricRounder.Round
                 (
-                    value: IsInActivityCenter ? Stats.totalReqWatts * (decimal)CurWorldManager.Elapsed.TotalSeconds : 0,
+                    value: isInActivityCenter ? Stats.totalReqWatts * (decimal)CurWorldManager.Elapsed.TotalSeconds : 0,
                     curTime: CurWorldManager.CurTime
                 )
             );

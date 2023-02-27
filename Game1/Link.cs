@@ -48,9 +48,15 @@ namespace Game1
 
                 locationCounters = LocationCounters.CreateEmpty();
                 thermalBody = ThermalBody.CreateEmpty(locationCounters: locationCounters);
-                timedPacketQueue = new(thermalBody: thermalBody);
+                timedPacketQueue = new(thermalBody: thermalBody, electricalEnergySourceNodeID: EnergySourceNode.NodeID);
                 waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(thermalBody: thermalBody);
-                waitingPeople = RealPeople.CreateEmpty(thermalBody: thermalBody, energyDistributor: CurWorldManager.EnergyDistributor);
+                waitingPeople = RealPeople.CreateEmpty
+                (
+                    thermalBody: thermalBody,
+                    energyDistributor: CurWorldManager.EnergyDistributor,
+                    electricalEnergySourceNodeID: EnergySourceNode.NodeID,
+                    isInActivityCenter: false
+                );
                 reqEnergyHistoricRounder = new();
                 allocEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: locationCounters);
                 allocEnergyPropor = Propor.empty;

@@ -15,10 +15,12 @@ namespace Game1
 
         private readonly ThermalBody thermalBody;
         private readonly TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)> timedQueue;
+        private readonly NodeID electricalEnergySourceNodeID;
 
-        public TimedPacketQueue(ThermalBody thermalBody)
+        public TimedPacketQueue(ThermalBody thermalBody, NodeID electricalEnergySourceNodeID)
         {
             this.thermalBody = thermalBody;
+            this.electricalEnergySourceNodeID = electricalEnergySourceNodeID;
             TotalResAmounts = ResAmounts.Empty;
             Mass = Mass.zero;
             NumPeople = NumPeople.zero;
@@ -46,7 +48,9 @@ namespace Game1
             (
                 realPeopleSource: realPeople,
                 thermalBody: thermalBody,
-                energyDistributor: CurWorldManager.EnergyDistributor
+                energyDistributor: CurWorldManager.EnergyDistributor,
+                electricalEnergySourceNodeID: electricalEnergySourceNodeID,
+                isInActivityCenter: false
             );
             if (resAmountsPackets.Empty && realPeople.NumPeople.IsZero)
                 return;
@@ -70,7 +74,13 @@ namespace Game1
         public (ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople) DonePacketsAndPeople()
         {
             var doneResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(thermalBody: thermalBody);
-            var donePeople = RealPeople.CreateEmpty(thermalBody: thermalBody, energyDistributor: CurWorldManager.EnergyDistributor);
+            var donePeople = RealPeople.CreateEmpty
+            (
+                thermalBody: thermalBody,
+                energyDistributor: CurWorldManager.EnergyDistributor,
+                electricalEnergySourceNodeID: electricalEnergySourceNodeID,
+                isInActivityCenter: false
+            );
             foreach (var (resAmountsPackets, people) in timedQueue.DoneElements())
             {
                 TotalResAmounts -= resAmountsPackets.ResAmounts;

@@ -106,6 +106,7 @@ namespace Game1.Industries
             foreach (var person in allPeople)
                 RemovePerson(person: person);
             Debug.Assert(allPeople.Count.IsZero && PeopleHereStats.totalNumPeople.IsZero);
+            realPeopleHere.Delete();
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
     }

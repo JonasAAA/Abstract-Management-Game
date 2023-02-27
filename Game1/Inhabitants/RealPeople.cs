@@ -1,9 +1,10 @@
-﻿using static Game1.WorldManager;
+﻿using Game1.Delegates;
+using static Game1.WorldManager;
 
 namespace Game1.Inhabitants
 {
     [Serializable]
-    public class RealPeople : IEnergyConsumer, IWithRealPeopleStats
+    public class RealPeople : IEnergyConsumer, IDeletable, IWithRealPeopleStats
     {
         public static RealPeople CreateEmpty(ThermalBody thermalBody, IEnergyDistributor energyDistributor, NodeID electricalEnergySourceNodeID, bool isInActivityCenter)
             => new
@@ -27,6 +28,9 @@ namespace Game1.Inhabitants
             return newRealPeople;
         }
 
+        public IEvent<IDeletedListener> Deleted
+            => deleted;
+
         public NumPeople NumPeople
             => Stats.totalNumPeople;
 
@@ -34,6 +38,7 @@ namespace Game1.Inhabitants
 
         private LocationCounters LocationCounters
             => thermalBody.locationCounters;
+        private readonly Event<IDeletedListener> deleted;
         private readonly ThermalBody thermalBody;
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
         private readonly HistoricRounder reqEnergyHistoricRounder;
@@ -44,6 +49,7 @@ namespace Game1.Inhabitants
         private RealPeople(ThermalBody thermalBody, IEnergyDistributor energyDistributor, NodeID electricalEnergySourceNodeID, bool isInActivityCenter)
         {
             this.thermalBody = thermalBody;
+            deleted = new();
             Stats = RealPeopleStats.empty;
             virtualToRealPeople = new();
             reqEnergyHistoricRounder = new();
@@ -122,6 +128,17 @@ namespace Game1.Inhabitants
             return false;
         }
 
+        /// <summary>
+        /// Call this ONLY when removed all people from here already
+        /// </summary>
+        public void Delete()
+        {
+            if (virtualToRealPeople.Count > 0)
+                throw new InvalidOperationException();
+            //realPeopleDestin.TransferAllFrom(realPeopleSource: this);
+            deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+        }
+
         // No need to take into account the energy priority of the industry as when it is in some industry,
         // it will get energy from CombinedEnergyConsumer, which will take care of different energy priorities
         // by choosing the most important energy priority
@@ -156,7 +173,7 @@ namespace Game1.Inhabitants
 #if DEBUG2
         ~RealPeople()
         {
-            if (virtualToRealPeople.Count != 0)
+            if (virtualToRealPeople.Count > 0)
                 throw new();
         }
 #endif

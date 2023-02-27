@@ -89,6 +89,7 @@ namespace Game1
 
                 doneResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
                 donePeople.TransferAllFrom(realPeopleSource: people);
+                people.Delete();
             }
             return
             (

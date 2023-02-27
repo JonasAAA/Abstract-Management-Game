@@ -584,12 +584,8 @@ namespace Game1
             state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
         }
 
-        void ILinkFacingPlanet.Arrive(RealPeople realPeople)
-        {
-            if (realPeople.NumPeople.IsZero)
-                return;
-            state.WaitingPeople.TransferAllFrom(realPeopleSource: realPeople);
-        }
+        void ILinkFacingPlanet.ArriveAndDeleteSource(RealPeople realPeopleSource)
+            => state.WaitingPeople.TransferAllFromAndDeleteSource(realPeopleSource: realPeopleSource);
 
         void ILinkFacingPlanet.Arrive(RealPerson realPerson, RealPeople realPersonSource)
             => state.WaitingPeople.TransferFrom(realPerson: realPerson, realPersonSource: realPersonSource);

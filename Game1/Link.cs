@@ -67,8 +67,8 @@ namespace Game1
             public void TransferAllFrom(ResAmountsPacket resAmountsPacket)
                 => waitingResAmountsPackets.TransferAllFrom(sourcePacket: resAmountsPacket);
 
-            public void TransferAllFrom(RealPeople realPeople)
-                => waitingPeople.TransferAllFrom(realPeopleSource: realPeople);
+            public void TransferAllFromAndDeleteSource(RealPeople realPeopleSource)
+                => waitingPeople.TransferAllFromAndDeleteSource(realPeopleSource: realPeopleSource);
 
             public void TransferFrom(RealPeople realPersonSource, RealPerson realPerson)
                 => waitingPeople.TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
@@ -102,8 +102,7 @@ namespace Game1
                 timedPacketQueue.Update(duration: travelTime, workingPropor: allocEnergyPropor);
                 var (resAmountsPackets, people) = timedPacketQueue.DonePacketsAndPeople();
                 endNode.Arrive(resAmountsPackets: resAmountsPackets);
-                endNode.Arrive(realPeople: people);
-                people.Delete();
+                endNode.ArriveAndDeleteSource(realPeopleSource: people);
 
                 if ((!waitingResAmountsPackets.Empty || !waitingPeople.NumPeople.IsZero)
                     && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionPropor() >= minSafePropor))
@@ -251,8 +250,8 @@ namespace Game1
         public void TransferAllFrom(ILinkFacingPlanet start, ResAmountsPacket resAmountsPacket)
             => GetDirLink(start: start).TransferAllFrom(resAmountsPacket: resAmountsPacket);
 
-        public void TransferAllFrom(ILinkFacingPlanet start, RealPeople realPeople)
-            => GetDirLink(start: start).TransferAllFrom(realPeople: realPeople);
+        public void TransferAllFromAndDeletePeopleSource(ILinkFacingPlanet start, RealPeople realPeopleSource)
+            => GetDirLink(start: start).TransferAllFromAndDeleteSource(realPeopleSource: realPeopleSource);
 
         public void TransferFrom(ILinkFacingPlanet start, RealPeople realPersonSource, RealPerson realPerson)
             => GetDirLink(start: start).TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);

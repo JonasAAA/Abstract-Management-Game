@@ -14,7 +14,7 @@ namespace Game1
 
         public void Arrive(ResAmountsPacketsByDestin resAmountsPackets);
 
-        public void Arrive(RealPeople realPeople);
+        public void ArriveAndDeleteSource(RealPeople realPeopleSource);
 
         public void Arrive(RealPerson realPerson, RealPeople realPersonSource);
 

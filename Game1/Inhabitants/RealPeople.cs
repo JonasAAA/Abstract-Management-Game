@@ -105,7 +105,7 @@ namespace Game1.Inhabitants
             Add(realPerson: realPerson);
         }
 
-        public void TransferAllFrom(RealPeople realPeopleSource)
+        private void TransferAllFrom(RealPeople realPeopleSource)
         {
             foreach (var realPerson in realPeopleSource.virtualToRealPeople.Values)
                 TransferFrom(realPersonSource: realPeopleSource, realPerson: realPerson);
@@ -128,6 +128,12 @@ namespace Game1.Inhabitants
             return false;
         }
 
+        public void TransferAllFromAndDeleteSource(RealPeople realPeopleSource)
+        {
+            TransferAllFrom(realPeopleSource: realPeopleSource);
+            realPeopleSource.Delete();
+        }
+
         /// <summary>
         /// Call this ONLY when removed all people from here already
         /// </summary>
@@ -135,7 +141,6 @@ namespace Game1.Inhabitants
         {
             if (virtualToRealPeople.Count > 0)
                 throw new InvalidOperationException();
-            //realPeopleDestin.TransferAllFrom(realPeopleSource: this);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 

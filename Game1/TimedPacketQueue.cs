@@ -88,8 +88,7 @@ namespace Game1
                 NumPeople -= people.NumPeople;
 
                 doneResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
-                donePeople.TransferAllFrom(realPeopleSource: people);
-                people.Delete();
+                donePeople.TransferAllFromAndDeleteSource(realPeopleSource: people);
             }
             return
             (

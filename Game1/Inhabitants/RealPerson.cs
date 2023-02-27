@@ -41,11 +41,11 @@ namespace Game1.Inhabitants
             if (!parentSource.Contains(person: parent1) || !parentSource.Contains(person: parent2))
                 throw new ArgumentException();
 
-            ulong childReqWatts;
-            // calculate child required watts
-            throw new NotImplementedException();
-            //= CurWorldConfig.parentContribToChildPropor * (parent1.ReqWatts + parent2.ReqWatts) * (UDouble).5
-            //    + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts);
+            ulong childReqWatts = MyMathHelper.Round
+            (
+                value: CurWorldConfig.parentContribToChildPropor * (parent1.ReqWatts + parent2.ReqWatts) * (UDouble).5
+                    + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts)
+            );
             Debug.Assert(CurWorldConfig.personMinReqWatts <= childReqWatts && childReqWatts <= CurWorldConfig.personMaxReqWatts);
             childDestin.AddByMagic
             (
@@ -108,7 +108,7 @@ namespace Game1.Inhabitants
         public NodeID ClosestNodeID { get; private set; }
         public EnumDict<ActivityType, TimeSpan> LastActivityTimes { get; private set; }
         public RealPeopleStats Stats { get; private set; }
-        public readonly UDouble reqWatts;
+        public readonly ulong reqWatts;
         public readonly TimeSpan seekChangeTime;
 
         [MemberNotNullWhen(returnValue: true, member: nameof(activityCenter))]

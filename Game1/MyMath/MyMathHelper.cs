@@ -154,6 +154,15 @@ namespace Game1.MyMath
             };
         }
 
+        public static ulong Round(UDouble value)
+            => (ulong)Math.Round(value);
+
+        public static long Round(double value)
+            => (long)Math.Round(value);
+
+        public static long Ceiling(double value)
+            => (long)Math.Ceiling(value);
+
         public static long Ceiling(decimal value)
             => (long)Math.Ceiling(value);
 

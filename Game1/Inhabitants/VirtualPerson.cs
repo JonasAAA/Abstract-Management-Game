@@ -15,7 +15,7 @@ namespace Game1.Inhabitants
             => realPerson.ClosestNodeID;
         public EnumDict<ActivityType, TimeSpan> LastActivityTimes
             => realPerson.LastActivityTimes;
-        public UDouble ReqWatts
+        public ulong ReqWatts
             => realPerson.reqWatts;
         public TimeSpan SeekChangeTime
             => realPerson.seekChangeTime;

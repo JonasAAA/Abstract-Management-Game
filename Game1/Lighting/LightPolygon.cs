@@ -1,4 +1,5 @@
-﻿using static Game1.WorldManager;
+﻿using System.Runtime.CompilerServices;
+using static Game1.WorldManager;
 
 namespace Game1.Lighting
 {
@@ -9,38 +10,36 @@ namespace Game1.Lighting
         private List<MyVector2> vertices;
         private VertexPositionColorTexture[] vertPosTexs;
         private ushort[] inds;
+        private UDouble strength;
 
-        private readonly UDouble strength;
         private readonly Color color;
 
-        /// <param name="strength">a positive double which determins the radius of the lit Area</param>
-        public LightPolygon(UDouble strength, Color color)
-            : this(strength: strength, color: color, center: MyVector2.zero, vertices: new())
+        public LightPolygon(Color color)
         {
             vertices = new List<MyVector2>();
             vertPosTexs = Array.Empty<VertexPositionColorTexture>();
             inds = Array.Empty<ushort>();
-            if (strength.IsCloseTo(other: 0))
-                throw new ArgumentOutOfRangeException();
-            this.strength = strength;
             this.color = color;
         }
 
-        public LightPolygon(UDouble strength, Color color, MyVector2 center, List<MyVector2> vertices)
+        //public LightPolygon(Color color, MyVector2 center, List<MyVector2> vertices)
+        //{
+        //    if (strength.IsCloseTo(other: 0))
+        //        throw new ArgumentOutOfRangeException();
+        //    this.color = color;
+        //    this.center = center;
+        //    this.vertices = vertices;
+        //    vertPosTexs = Array.Empty<VertexPositionColorTexture>();
+        //    inds = Array.Empty<ushort>();
+        //    Update(center: center, vertices: vertices);
+        //}
+
+        /// <param name="strength">a positive double which determins the Radius of the lit Area</param>
+        public void Update(UDouble strength, MyVector2 center, List<MyVector2> vertices)
         {
             if (strength.IsCloseTo(other: 0))
                 throw new ArgumentOutOfRangeException();
             this.strength = strength;
-            this.color = color;
-            this.center = center;
-            this.vertices = vertices;
-            vertPosTexs = Array.Empty<VertexPositionColorTexture>();
-            inds = Array.Empty<ushort>();
-            Update(center: center, vertices: vertices);
-        }
-
-        public void Update(MyVector2 center, List<MyVector2> vertices)
-        {
             this.center = center;
             this.vertices = vertices;
             ushort centerInd = (ushort)vertices.Count;

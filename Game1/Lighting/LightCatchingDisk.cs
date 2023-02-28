@@ -17,7 +17,7 @@ namespace Game1.Lighting
                 // light source in inside the disk
                 // just return empty interval for the time being
                 return new();
-                //return new(startAngle: -MyMathHelper.pi + MyMathHelper.minPosDouble, endAngle: MyMathHelper.pi - MyMathHelper.minPosDouble, radius: parameters.Radius);
+                //return new(startAngle: -MyMathHelper.pi + MyMathHelper.minPosDouble, endAngle: MyMathHelper.pi - MyMathHelper.minPosDouble, Radius: parameters.Radius);
             }
 
             double halfArcSin = parameters.Radius / dist,

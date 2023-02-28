@@ -12,7 +12,7 @@ namespace Game1
 
         // TODO: define using the new notation
         //public double SurfaceGravitationalAccel
-        //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(radius, CurWorldConfig.gravitPower);
+        //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(Radius, CurWorldConfig.gravitPower);
         public NodeID NodeID { get; }
         public Mass PlanetMass
             => consistsOfResPile.Amount.Mass();

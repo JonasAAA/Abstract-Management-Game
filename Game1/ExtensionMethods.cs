@@ -1,7 +1,6 @@
 ﻿using Game1.Inhabitants;
-using Game1.Resources;
+using System.Linq;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace Game1
@@ -157,6 +156,10 @@ namespace Game1
                 result = result.CombineWith(other: item.Stats);
             return result;
         }
+
+        public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IEnumerable<TKey> keys, Func<TKey, TValue> elementSelector)
+            where TKey : notnull
+            => keys.ToDictionary(keySelector: key => key, elementSelector: elementSelector);
 
         public static Dictionary<TKey, double> ClampValues<TKey>(this IReadOnlyDictionary<TKey, double> dictionary, double min, double max)
             where TKey : notnull

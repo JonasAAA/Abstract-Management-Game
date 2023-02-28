@@ -67,7 +67,6 @@ namespace Game1.UI
 
             popups = IOverlay.all.ToDictionary
             (
-                keySelector: overlay => overlay,
                 elementSelector: overlay => (IHUDElement?)null
             );
             CurOverlayChanged.Add(listener: this);

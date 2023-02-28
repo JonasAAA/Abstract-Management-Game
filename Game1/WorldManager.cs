@@ -121,7 +121,7 @@ namespace Game1
                     //    (
                     //        starID: StarID.Create(),
                     //        position: new MyVector2(-200, 100),
-                    //        radius: 400,
+                    //        Radius: 400,
                     //        prodWatts: 40000
                     //    ),
                     //    color: colorConfig.starColor

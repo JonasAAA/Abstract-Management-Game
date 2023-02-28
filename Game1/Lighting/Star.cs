@@ -14,7 +14,7 @@ namespace Game1.Lighting
                 => State.position;
 
             public UDouble Radius
-                => State.radius;
+                => State.Radius;
         }
 
         public MyVector2 Position
@@ -35,7 +35,7 @@ namespace Game1.Lighting
             )
         {
             this.state = state;
-            polygon = new LightPolygon(strength: state.radius / CurWorldConfig.standardStarRadius, color: color);
+            polygon = new LightPolygon(color: color);
 
             popupTextBox = new(backgroundColor: Color.White);
             SetPopup
@@ -47,9 +47,12 @@ namespace Game1.Lighting
             CurWorldManager.AddLightSource(lightSource: this);
         }
 
-        // The complexity is O(N log N) where N is lightCatchingObject.Count()
-        void ILightSource.GiveRadiantEnergyToObjects(List<ILightCatchingObject> lightCatchingObjects)
+        // The complexity is O(N log N) where N is lightCatchingObjects.Count
+        void ILightSource.ProduceAndDistributeRadiantEnergy(List<ILightCatchingObject> lightCatchingObjects, IRadiantEnergyConsumer vacuumAsRadiantEnergyConsumer)
         {
+            var producedRadiantEnergyPile = ProduceRadiantEnergy();
+            RadiantEnergy producedRadiantEnergy = producedRadiantEnergyPile.Amount;
+
             GetAnglesAndBlockedAngleArcs
             (
                 angles: out List<double> angles,
@@ -73,11 +76,11 @@ namespace Game1.Lighting
 
             Debug.Assert(rayCatchingObjects.Count == angles.Count && vertices.Count == angles.Count);
 
-            polygon.Update(center: state.position, vertices: vertices);
+            polygon.Update(strength: state.Radius / CurWorldConfig.standardStarRadius, center: state.position, vertices: vertices);
 
             DistributeStarPower(usedArc: out UDouble usedArc);
 
-            popupTextBox.Text = $"generates {state.prodWatts} power\n{usedArc / (2 * MyMathHelper.pi) * 100:0.}% of it hits planet";
+            popupTextBox.Text = $"generates {producedRadiantEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds} power\n{usedArc / (2 * MyMathHelper.pi) * 100:0.}% of it hits planets";
 
             return;
 
@@ -189,13 +192,21 @@ namespace Game1.Lighting
                 }
             }
 
+            EnergyPile<RadiantEnergy> ProduceRadiantEnergy()
+            {
+                producedRadiantEnergyPile = EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: state.locationCounters);
+                state.consistsOfResPile
+                throw new NotImplementedException();
+            }
+
             void DistributeStarPower(out UDouble usedArc)
             {
-                Dictionary<ILightCatchingObject, UDouble> arcsForObjects = lightCatchingObjects.ToDictionary
+                Dictionary<IRadiantEnergyConsumer, UDouble> arcsForObjects = lightCatchingObjects.ToDictionary
                 (
-                    keySelector: lightCatchingObject => lightCatchingObject,
+                    keySelector: lightCatchingObject => lightCatchingObject as IRadiantEnergyConsumer,
                     elementSelector: lightCatchingObject => (UDouble)0
                 );
+                arcsForObjects.Add(key: vacuumAsRadiantEnergyConsumer, value: 0);
                 usedArc = 0;
                 for (int i = 0; i < rayCatchingObjects.Count; i++)
                 {
@@ -205,7 +216,9 @@ namespace Game1.Lighting
 
                     void UseArc(ILightCatchingObject? rayCatchingObject, ref UDouble usedArc)
                     {
-                        if (rayCatchingObject is not null)
+                        if (rayCatchingObject is null)
+                            arcsForObjects[vacuumAsRadiantEnergyConsumer] += curArc / 2;
+                        else
                         {
                             arcsForObjects[rayCatchingObject] += curArc / 2;
                             usedArc += curArc / 2;
@@ -213,18 +226,17 @@ namespace Game1.Lighting
                     }
                 }
 
-                foreach (var lightCatchingObject in lightCatchingObjects)
-                {
-                    Propor powerPropor = Propor.Create(part: arcsForObjects[lightCatchingObject], whole: 2 * MyMathHelper.pi)!.Value;
-                    throw new NotImplementedException();
-                    //lightCatchingObject.TakeRadiantEnergyFrom(source:, radiantEnergy: );
-                    //lightCatchingObject.SetWatts
-                    //(
-                    //    starPos: state.starID,
-                    //    watts: powerPropor * state.prodWatts,
-                    //    powerPropor: powerPropor
-                    //);
-                }
+                Debug.Assert(arcsForObjects.Values.Sum().IsCloseTo(other: 2 * MyMathHelper.pi));
+
+                Dictionary<IRadiantEnergyConsumer, ulong> splitAmounts = state.radiantEnergySplitter.Split
+                (
+                    amount: producedRadiantEnergy.ValueInJ,
+                    importances: arcsForObjects
+                );
+
+                foreach (var (radiantEnergyConsumer, allocAmount) in splitAmounts)
+                    radiantEnergyConsumer.TakeRadiantEnergyFrom(source: producedRadiantEnergyPile, amount: RadiantEnergy.CreateFromJoules(valueInJ: allocAmount));
+                Debug.Assert(producedRadiantEnergyPile.Amount.IsZero);
             }
         }
 

@@ -1,7 +1,7 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public sealed class ProporSplitter<TKey>
+    public sealed class HistoricProporSplitter<TKey>
         where TKey : notnull
     {
         /// <summary>
@@ -35,7 +35,6 @@
             {
                 necNotLockedAdds = keys.ToDictionary
                 (
-                    keySelector: key => key,
                     elementSelector: key => this[key]
                 );
                 sum = necNotLockedAdds.Values.Sum();
@@ -89,7 +88,6 @@
 
                 necNotLockedAdds = necNotLockedAdds.Keys.ToDictionary
                 (
-                    keySelector: key => key,
                     elementSelector: key => this[key]
                 );
                 sum = necNotLockedAdds.Values.Sum();
@@ -112,7 +110,7 @@
         private int Count
             => importances.Count;
 
-        public ProporSplitter()
+        public HistoricProporSplitter()
         {
             importances = new();
             necAdds = new();
@@ -135,19 +133,10 @@
 
         public void SetImportance(TKey key, UDouble importance)
         {
-            if (importance < 0)
-                throw new ArgumentOutOfRangeException();
-
             if (ContainsKey(key: key))
-            {
-                if (importances[key] == importance)
-                    return;
                 importances[key] = importance;
-            }
             else
                 AddKey(key: key, importance: importance);
-            if (importances[key] == 0)
-                RemoveKey(key: key);
         }
 
         public (Dictionary<TKey, ulong> splitAmounts, ulong unsplitAmount) Split(ulong amount, Func<TKey, ulong> maxAmountsFunc)
@@ -228,8 +217,7 @@
         private Dictionary<TKey, TValue> MakeDictionary<TValue>(Func<TKey, TValue> func, IEnumerable<TKey>? keys = null)
             => (keys ?? Keys).ToDictionary
             (
-                keySelector: key => key,
-                elementSelector: key => func(key)
+                elementSelector: func
             );
     }
 }

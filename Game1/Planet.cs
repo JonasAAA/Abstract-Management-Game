@@ -123,7 +123,7 @@ namespace Game1
         /// NEVER use this directly, use Planet.Industry instead
         /// </summary>
         private Industry? industry;
-        private readonly MyArray<ProporSplitter<NodeID>> resSplittersToDestins;
+        private readonly MyArray<HistoricProporSplitter<NodeID>> resSplittersToDestins;
         private ResAmounts targetStoredResAmounts;
         private readonly ResPile undecidedResPile;
         private ResAmounts resTravelHereAmounts;
@@ -155,7 +155,7 @@ namespace Game1
 
             resSplittersToDestins = new
             (
-                selector: resInd => new ProporSplitter<NodeID>()
+                selector: resInd => new HistoricProporSplitter<NodeID>()
             );
             targetStoredResAmounts = ResAmounts.Empty;
             undecidedResPile = ResPile.CreateEmpty(thermalBody: state.ThermalBody);
@@ -616,7 +616,7 @@ namespace Game1
         double ILightBlockingObject.CloserInterPoint(MyVector2 lightPos, MyVector2 lightDir)
             => CurLightCatchingObject.CloserInterPoint(lightPos: lightPos, lightDir: lightDir);
 
-        void ILightCatchingObject.TakeRadiantEnergyFrom(EnergyPile<RadiantEnergy> source, RadiantEnergy amount)
+        void IRadiantEnergyConsumer.TakeRadiantEnergyFrom(EnergyPile<RadiantEnergy> source, RadiantEnergy amount)
             => state.RadiantEnergyPile.TransferFrom(source: source, amount: amount);
 
         void INodeAsResDestin.AddResTravelHere(ResAmount resAmount)

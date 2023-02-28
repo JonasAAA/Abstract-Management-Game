@@ -6,6 +6,18 @@ namespace Game1.Lighting
     [Serializable]
     public sealed class LightManager : IDeletedListener
     {
+        [Serializable]
+        private class VacuumAsRadiantEnergyConsumer : IRadiantEnergyConsumer
+        {
+            private readonly EnergyPile<HeatEnergy> vacuumHeatEnergyPile;
+
+            public VacuumAsRadiantEnergyConsumer(EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
+                => this.vacuumHeatEnergyPile = vacuumHeatEnergyPile;
+
+            void IRadiantEnergyConsumer.TakeRadiantEnergyFrom(EnergyPile<RadiantEnergy> source, RadiantEnergy amount)
+                => source.TransformTo(destin: vacuumHeatEnergyPile, amount: amount);
+        }
+
         private static readonly int actualScreenWidth, actualScreenHeight;
 
         static LightManager()
@@ -23,15 +35,16 @@ namespace Game1.Lighting
             => brightEffect ?? throw new InvalidOperationException(mustInitializeMessage);
         private BasicEffect DimEffect
             => dimEffect ?? throw new InvalidOperationException(mustInitializeMessage);
-
+        private readonly VacuumAsRadiantEnergyConsumer vacuumAsRadiantEnergyConsumer;
         private const string mustInitializeMessage = $"must initialize {nameof(LightManager)} first by calling {nameof(Initialize)}";
         [NonSerialized] private RenderTarget2D? renderTarget;
         [NonSerialized] private BasicEffect? brightEffect, dimEffect;
 
-        public LightManager()
+        public LightManager(EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
             lightCatchingObjects = new();
             lightSources = new();
+            vacuumAsRadiantEnergyConsumer = new(vacuumHeatEnergyPile: vacuumHeatEnergyPile);
         }
 
         public void Initialize()
@@ -79,7 +92,11 @@ namespace Game1.Lighting
         {
             // could return from this method if nothing changed since last call (including all positions)
             foreach (var lightSource in lightSources)
-                lightSource.ProduceAndDistributeRadiantEnergy(lightCatchingObjects: lightCatchingObjects.ToList());
+                lightSource.ProduceAndDistributeRadiantEnergy
+                (
+                    lightCatchingObjects: lightCatchingObjects.ToList(),
+                    vacuumAsRadiantEnergyConsumer
+                );
         }
 
         public void Draw(Matrix worldToScreenTransform)

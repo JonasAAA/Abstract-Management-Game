@@ -346,7 +346,7 @@ namespace Game1
             resDesinArrowEventListener.SyncSplittersWithArrows();
         }
 
-        public void Update(IReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks, EnergyPile<HeatEnergy> vacuumHeatPile)
+        public void Update(IReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks, EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
             // take people whose destination is this planet
             state.WaitingPeople.ForEach
@@ -362,7 +362,7 @@ namespace Game1
 
             state.RadiantEnergyPile.TransformProporTo
             (
-                destin: vacuumHeatPile,
+                destin: vacuumHeatEnergyPile,
                 propor: Industry?.SurfaceReflectance ?? state.ConsistsOfRes.Reflectance,
                 curTime: CurWorldManager.CurTime
             );
@@ -371,7 +371,7 @@ namespace Game1
 
             state.ThermalBody.TransferHeatEnergyTo
             (
-                destin: vacuumHeatPile,
+                destin: vacuumHeatEnergyPile,
                 amount: Algorithms.HeatEnergyToDissipate
                 (
                     heatEnergy: state.ThermalBody.HeatEnergy,

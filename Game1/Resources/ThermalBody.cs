@@ -1,44 +1,44 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public readonly struct ThermalBody
+    public class ThermalBody
     {
         public static ThermalBody CreateEmpty(LocationCounters locationCounters)
             => new
             (
                 heatEnergyPile: EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
-                resCounter: ResCounter.CreateEmpty()
+                magicResAmounts: ResAmounts.Empty
             );
 
         public static ThermalBody CreateByMagic(LocationCounters locationCounters, ResAmounts amount)
             => new
             (
                 heatEnergyPile: EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
-                resCounter: ResCounter.CreateByMagic(count: amount)
+                magicResAmounts: amount
             );
 
-        public readonly HeatEnergy HeatEnergy
+        public HeatEnergy HeatEnergy
             => heatEnergyPile.Amount;
-        public readonly HeatCapacity HeatCapacity
-            => resCounter.Count.HeatCapacity();
+        public HeatCapacity HeatCapacity
+            => resAmounts.HeatCapacity();
         public readonly LocationCounters locationCounters;
 
         private readonly EnergyPile<HeatEnergy> heatEnergyPile;
         // This may need to not be any counter, as when resources are transformed into radiant energy,
         // there is no counter to transfer that stuff to. After all, this counter is just to keep track
         // of resources in this thermal body, not to enforce conservation of energy
-        private readonly ResCounter resCounter;
+        private ResAmounts resAmounts;
 
-        private ThermalBody(EnergyPile<HeatEnergy> heatEnergyPile, ResCounter resCounter)
+        private ThermalBody(EnergyPile<HeatEnergy> heatEnergyPile, ResAmounts magicResAmounts)
         {
             locationCounters = heatEnergyPile.LocationCounters;
             this.heatEnergyPile = heatEnergyPile;
-            this.resCounter = resCounter;
+            resAmounts = magicResAmounts;
         }
 
         public void TransferResFrom(ThermalBody source, ResAmounts amount)
         {
-            var sourceHeatCapacityInJPerK = source.resCounter.Count.HeatCapacity().valueInJPerK;
+            var sourceHeatCapacityInJPerK = source.resAmounts.HeatCapacity().valueInJPerK;
             if (sourceHeatCapacityInJPerK > 0)
                 //This must be done first to get accurate source heat capacity in the calculations
                 heatEnergyPile.TransferFrom
@@ -54,18 +54,24 @@
                         )
                     )
                 );
-            resCounter.TransferFrom
-            (
-                source: source.resCounter,
-                count: amount
-            );
+
+            source.resAmounts -= amount;
+            resAmounts += amount;
+            //resAmounts.TransferFrom
+            //(
+            //    source: source.resAmounts,
+            //    count: amount
+            //);
         }
 
         public void TransformResFrom(ThermalBody source, ResRecipe recipe)
-            => resCounter.TransformFrom(source: source.resCounter, recipe: recipe);
+        {
+            source.resAmounts -= recipe.ingredients;
+            resAmounts += recipe.results;
+        }
 
         public void TransformResTo(ThermalBody destin, ResRecipe recipe)
-            => resCounter.TransformTo(destin: destin.resCounter, recipe: recipe);
+            => destin.TransformResFrom(source: this, recipe: recipe);
 
         public void TransformAllEnergyToHeatAndTransferFrom<TSourceAmount>(EnergyPile<TSourceAmount> source)
             where TSourceAmount : struct, IFormOfEnergy<TSourceAmount>
@@ -73,5 +79,14 @@
 
         public void TransferHeatEnergyTo(EnergyPile<HeatEnergy> destin, HeatEnergy amount)
             => heatEnergyPile.TransferTo(destin: destin, amount: amount);
+
+        /// <summary>
+        /// Source must be from this thermal body
+        /// </summary>
+        public void TransformResToHeatEnergy(EnergyPile<ResAmounts> source, ResAmounts amount)
+        {
+            source.TransformTo(destin: heatEnergyPile, amount: amount);
+            resAmounts -= amount;
+        }
     }
 }

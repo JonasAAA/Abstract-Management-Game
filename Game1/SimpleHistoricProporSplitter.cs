@@ -1,5 +1,6 @@
 ﻿namespace Game1
 {
+    [Serializable]
     public sealed class SimpleHistoricProporSplitter<TKey>
         where TKey : notnull
     {

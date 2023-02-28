@@ -93,6 +93,12 @@ namespace Game1
 
             static Graph CreateGraph()
             {
+                ResPile magicResPile = ResPile.CreateByMagic(amount: ResAmounts.magicUnlimitedResAmounts);
+                List<BasicResInd> basicResInds = new()
+                {
+                    BasicResInd.Random(),
+                    BasicResInd.Random()
+                };
                 Star[] stars = new Star[]
                 {
                     new
@@ -100,8 +106,13 @@ namespace Game1
                         state: new
                         (
                             position: new MyVector2(-400, -300),
-                            radius: 100,
-                            prodWatts: 20000
+                            consistsOfResInd: basicResInds[0],
+                            mainResAmount: NodeState.ResAmountFromApproxRadius
+                            (
+                                basicResInd: basicResInds[0],
+                                approxRadius: 500
+                            ),
+                            resSource: magicResPile
                         ),
                         color: colorConfig.starColor
                     ),
@@ -110,8 +121,13 @@ namespace Game1
                         state: new
                         (
                             position: new MyVector2(700, 300),
-                            radius: 150,
-                            prodWatts: 30000
+                            consistsOfResInd: basicResInds[1],
+                            mainResAmount: NodeState.ResAmountFromApproxRadius
+                            (
+                                basicResInd: basicResInds[1],
+                                approxRadius: 600
+                            ),
+                            resSource: magicResPile
                         ),
                         color: colorConfig.starColor
                     ),
@@ -134,7 +150,7 @@ namespace Game1
                 int startPlanetI = C.Random(min: width / 2 - 1, max: width / 2),
                     startPlanetJ = C.Random(min: height / 2 - 1, max: height / 2);
                 Planet?[,] planets = new Planet[width, height];
-                ResPile magicResPile = ResPile.CreateByMagic(amount: ResAmounts.magicUnlimitedResAmounts);
+                
                 for (int i = 0; i < width; i++)
                     for (int j = 0; j < height; j++)
                     {
@@ -348,6 +364,7 @@ namespace Game1
         private readonly VirtualPeople people;
         private readonly ElectricalEnergyManager energyManager;
         private readonly ActivityManager activityManager;
+        private readonly EnergyPile<HeatEnergy> vacuumHeatEnergyPile;
         private readonly LightManager lightManager;
 
         private readonly ActiveUIManager activeUIManager;
@@ -375,7 +392,8 @@ namespace Game1
 
             activityManager = new();
             energyManager = new();
-            lightManager = new();
+            vacuumHeatEnergyPile = EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: LocationCounters.CreateEmpty());
+            lightManager = new(vacuumHeatEnergyPile: vacuumHeatEnergyPile);
 
             worldCamera = new(startingWorldScale: worldConfig.startingWorldScale);
 
@@ -492,7 +510,7 @@ namespace Game1
                 nodeIDToNode: nodeID => CurGraph.nodeIDToNode[nodeID]
             );
 
-            CurGraph.Update();
+            CurGraph.Update(vacuumHeatEnergyPile: vacuumHeatEnergyPile);
 
             activityManager.ManageActivities(people: people);
 

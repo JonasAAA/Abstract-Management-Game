@@ -122,13 +122,7 @@
             resPileInternal.TransformFrom(source: source.resPileInternal, recipe: recipe);
         }
 
-        public void TransformTo<TDestinAmount>(EnergyPile<TDestinAmount> destin, ResAmounts amount)
-            where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
-        {
-            // Should I also transform an appropriate proportion of heat to TDestinAmount?
-            throw new NotImplementedException();
-            thermalBody.TransformResToEnergy(amount: amount);
-            resPileInternal.TransformTo(destin: destin, amount: amount);
-        }
+        public void TransformResToHeatEnergy(ResAmounts amount)
+            => thermalBody.TransformResToHeatEnergy(source: resPileInternal, amount: amount);
     }
 }

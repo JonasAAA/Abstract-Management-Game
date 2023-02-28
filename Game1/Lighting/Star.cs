@@ -195,7 +195,6 @@ namespace Game1.Lighting
             EnergyPile<RadiantEnergy> ProduceRadiantEnergy()
             {
                 producedRadiantEnergyPile = EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: state.locationCounters);
-                state.consistsOfResPile
                 throw new NotImplementedException();
             }
 

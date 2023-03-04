@@ -27,15 +27,15 @@
             where TAmount : struct, ICountable<TAmount>
             => counters.TransferTo(destin: destin.counters, amount: amount);
 
-        public void TransformFrom<TSourceAmount, TDestinAmount>(LocationCounters source, TSourceAmount sourceAmount)
-            where TSourceAmount : struct, IFormOfEnergy<TSourceAmount>
-            where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
-            => counters.TransformFrom<TSourceAmount, TDestinAmount>(source: source.counters, sourceAmount: sourceAmount);
-
-        public void TransformTo<TSourceAmount, TDestinAmount>(LocationCounters destin, TDestinAmount destinAmount)
+        public void TransformFrom<TAmount, TSourceAmount>(LocationCounters source, TAmount amount)
+            where TAmount : struct, IFormOfEnergy<TAmount>
             where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
-            where TDestinAmount : struct, IFormOfEnergy<TDestinAmount>
-            => counters.TransformTo<TSourceAmount, TDestinAmount>(destin: destin.counters, destinAmount: destinAmount);
+            => counters.TransformFrom<TAmount, TSourceAmount>(source: source.counters, amount: amount);
+
+        public void TransformTo<TAmount, TDestinAmount>(LocationCounters destin, TAmount amount)
+            where TAmount : struct, IFormOfEnergy<TAmount>
+            where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
+            => counters.TransformTo<TAmount, TDestinAmount>(destin: destin.counters, amount: amount);
 
         public void TransformFrom(LocationCounters source, ResRecipe recipe)
             => counters.TransformFrom(source: source.counters, recipe: recipe);

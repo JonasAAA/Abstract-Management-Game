@@ -24,7 +24,7 @@ namespace Game1
 
             public RealPeopleStats Stats { get; private set; }
 
-            public readonly ILinkFacingPlanet startNode, endNode;
+            public readonly ILinkFacingCosmicBody startNode, endNode;
 
             // TODO: think about if DirLink or Link should have MassCounter
             private readonly LocationCounters locationCounters;
@@ -40,7 +40,7 @@ namespace Game1
             private UDouble reqWattsPerKg;
             private Propor allocEnergyPropor;
 
-            public DirLink(ILinkFacingPlanet startNode, ILinkFacingPlanet endNode, UDouble minSafeDist)
+            public DirLink(ILinkFacingCosmicBody startNode, ILinkFacingCosmicBody endNode, UDouble minSafeDist)
             {
                 this.startNode = startNode;
                 this.endNode = endNode;
@@ -166,7 +166,7 @@ namespace Game1
             ElectricalEnergy IEnergyConsumer.ReqEnergy()
                 => ReqEnergy();
 
-            private ILinkFacingPlanet EnergySourceNode
+            private ILinkFacingCosmicBody EnergySourceNode
                 => startNode;
 
             private ElectricalEnergy ReqEnergy()
@@ -187,7 +187,7 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct ShapeParams(ILinkFacingPlanet Node1, ILinkFacingPlanet Node2) : VectorShape.IParams
+        private readonly record struct ShapeParams(ILinkFacingCosmicBody Node1, ILinkFacingCosmicBody Node2) : VectorShape.IParams
         {
             public MyVector2 StartPos
                 => Node1.Position;
@@ -199,7 +199,7 @@ namespace Game1
                 => CurWorldConfig.linkWidth;
         }
 
-        public readonly ILinkFacingPlanet node1, node2;
+        public readonly ILinkFacingCosmicBody node1, node2;
         public UDouble JoulesPerKg { get; private set; }
         public TimeSpan TravelTime { get; private set; }
         public RealPeopleStats Stats { get; private set; }
@@ -207,7 +207,7 @@ namespace Game1
         private readonly DirLink link1To2, link2To1;
         private readonly TextBox infoTextBox;
 
-        public Link(ILinkFacingPlanet node1, ILinkFacingPlanet node2, UDouble minSafeDist)
+        public Link(ILinkFacingCosmicBody node1, ILinkFacingCosmicBody node2, UDouble minSafeDist)
             : base
             (
                 shape: new LineSegment
@@ -233,17 +233,17 @@ namespace Game1
             SetPopup(HUDElement: infoTextBox, overlays: IOverlay.all);
         }
 
-        public ILinkFacingPlanet OtherNode(ILinkFacingPlanet node)
+        public ILinkFacingCosmicBody OtherNode(ILinkFacingCosmicBody node)
         {
             if (!Contains(node))
                 throw new ArgumentException();
             return node == node1 ? node2 : node1;
         }
 
-        public bool Contains(ILinkFacingPlanet node)
+        public bool Contains(ILinkFacingCosmicBody node)
             => node == node1 || node == node2;
 
-        private DirLink GetDirLink(ILinkFacingPlanet start)
+        private DirLink GetDirLink(ILinkFacingCosmicBody start)
         {
             if (start == node1)
                 return link1To2;
@@ -252,13 +252,13 @@ namespace Game1
             throw new ArgumentException();
         }
 
-        public void TransferAllFrom(ILinkFacingPlanet start, ResAmountsPacket resAmountsPacket)
+        public void TransferAllFrom(ILinkFacingCosmicBody start, ResAmountsPacket resAmountsPacket)
             => GetDirLink(start: start).TransferAllFrom(resAmountsPacket: resAmountsPacket);
 
-        public void TransferAllFromAndDeletePeopleSource(ILinkFacingPlanet start, RealPeople realPeopleSource)
+        public void TransferAllFromAndDeletePeopleSource(ILinkFacingCosmicBody start, RealPeople realPeopleSource)
             => GetDirLink(start: start).TransferAllFromAndDeleteSource(realPeopleSource: realPeopleSource);
 
-        public void TransferFrom(ILinkFacingPlanet start, RealPeople realPersonSource, RealPerson realPerson)
+        public void TransferFrom(ILinkFacingCosmicBody start, RealPeople realPersonSource, RealPerson realPerson)
             => GetDirLink(start: start).TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
 
         public void Update()

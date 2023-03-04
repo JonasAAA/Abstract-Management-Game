@@ -5,7 +5,7 @@ namespace Game1.Resources
     [Serializable]
     public readonly record struct RadiantEnergy : IUnconstrainedEnergy<RadiantEnergy>
     {
-        private static readonly RadiantEnergy zero;
+        public static readonly RadiantEnergy zero;
 
         static RadiantEnergy IAdditiveIdentity<RadiantEnergy, RadiantEnergy>.AdditiveIdentity
             => zero;

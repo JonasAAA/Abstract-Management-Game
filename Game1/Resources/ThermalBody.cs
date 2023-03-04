@@ -73,6 +73,10 @@
         public void TransformResTo(ThermalBody destin, ResRecipe recipe)
             => destin.TransformResFrom(source: this, recipe: recipe);
 
+        public void TransformHeatEnergyTo<TDestinAmount>(EnergyPile<TDestinAmount> destin, TDestinAmount amount)
+            where TDestinAmount : struct, IFormOfEnergy<TDestinAmount>
+            => destin.TransformFrom(source: heatEnergyPile, amount: amount);
+
         public void TransformAllEnergyToHeatAndTransferFrom<TSourceAmount>(EnergyPile<TSourceAmount> source)
             where TSourceAmount : struct, IFormOfEnergy<TSourceAmount>
             => source.TransformAllTo(destin: heatEnergyPile);

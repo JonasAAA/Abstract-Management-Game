@@ -10,10 +10,10 @@ using Game1.Inhabitants;
 namespace Game1
 {
     [Serializable]
-    public sealed class Planet : WorldUIElement, ILinkFacingPlanet, INodeAsLocalEnergyProducerAndConsumer, INodeAsResDestin, ILightCatchingObject, IWithRealPeopleStats
+    public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, INodeAsResDestin, ILightCatchingObject, IWithRealPeopleStats
     {
         [Serializable]
-        private readonly record struct ResDesinArrowEventListener(Planet Node, ResInd ResInd) : IDeletedListener, INumberChangedListener
+        private readonly record struct ResDesinArrowEventListener(CosmicBody Node, ResInd ResInd) : IDeletedListener, INumberChangedListener
         {
             public void SyncSplittersWithArrows()
             {
@@ -46,7 +46,7 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct BuildIndustryButtonClickedListener(Planet Node, IBuildableFactory BuildableParams) : IClickedListener
+        private readonly record struct BuildIndustryButtonClickedListener(CosmicBody Node, IBuildableFactory BuildableParams) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => Node.Industry = BuildableParams.CreateIndustry(state: Node.state);
@@ -118,6 +118,7 @@ namespace Game1
             }
         }
         private readonly NodeState state;
+        private readonly LightPolygon lightPolygon;
         private readonly List<Link> links;
         /// <summary>
         /// NEVER use this directly, use Planet.Industry instead
@@ -129,6 +130,12 @@ namespace Game1
         private ResAmounts resTravelHereAmounts;
         private readonly new LightCatchingDisk shape;
         private ElectricalEnergy locallyProducedEnergy, usedLocalEnergy;
+        private readonly SimpleHistoricProporSplitter<IRadiantEnergyConsumer> radiantEnergySplitter;
+        private readonly HistoricRounder heatEnergyDissipationRounder, massFusionRounder, reflectedRadiantEnergyRounder, capturedForUseRadiantEnergyRounder;
+        private readonly EnergyPile<RadiantEnergy> radiantEnergyToDissipatePile;
+        private RadiantEnergy radiantEnergyToDissipate;
+        private UDouble temperatureInK;
+        private ulong matterCountConvertedToEnergy;
 
         private readonly TextBox textBox;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
@@ -138,7 +145,7 @@ namespace Game1
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
-        public Planet(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount, ResPile resSource)? startingConditions = null)
+        public CosmicBody(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount, ResPile resSource)? startingConditions = null)
             : base
             (
                 shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
@@ -149,6 +156,7 @@ namespace Game1
             )
         {
             this.state = state;
+            lightPolygon = new(color: state.ConsistsOfRes.color);
             shape = (LightCatchingDisk)base.shape;
 
             links = new();
@@ -161,6 +169,16 @@ namespace Game1
             undecidedResPile = ResPile.CreateEmpty(thermalBody: state.ThermalBody);
             resTravelHereAmounts = ResAmounts.Empty;
             usedLocalEnergy = ElectricalEnergy.zero;
+            radiantEnergySplitter = new();
+            heatEnergyDissipationRounder = new();
+            massFusionRounder = new();
+            reflectedRadiantEnergyRounder = new();
+            capturedForUseRadiantEnergyRounder = new();
+            radiantEnergyToDissipatePile = EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: state.LocationCounters);
+            radiantEnergyToDissipate = RadiantEnergy.zero;
+#warning have a config parameter for that
+            temperatureInK = 100;
+            matterCountConvertedToEnergy = 0;
 
             textBox = new(textColor: colorConfig.almostWhiteColor);
             textBox.Shape.Center = Position;
@@ -292,6 +310,7 @@ namespace Game1
             else
                 Industry = null;
 
+            CurWorldManager.AddLightSource(lightSource: this);
             CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
         }
 
@@ -364,30 +383,75 @@ namespace Game1
             (
                 destin: vacuumHeatEnergyPile,
                 propor: Industry?.SurfaceReflectance ?? state.ConsistsOfRes.Reflectance,
-                curTime: CurWorldManager.CurTime
+                amountToTransformRoundFunc: amount => reflectedRadiantEnergyRounder.Round(value: amount, curTime: CurWorldManager.CurTime)
             );
 
             state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: state.RadiantEnergyPile);
 
-            state.ThermalBody.TransferHeatEnergyTo
+            var aaa = state.MainResAmount;
+
+            matterCountConvertedToEnergy = Algorithms.MatterToConvertToEnergy
             (
-                destin: vacuumHeatEnergyPile,
-                amount: Algorithms.HeatEnergyToDissipate
+                basicRes: state.ConsistsOfRes,
+                resAmount: state.MainResAmount,
+                temperatureInK: temperatureInK,
+                surfaceGravity: state.SurfaceGravity,
+                duration: CurWorldManager.Elapsed,
+                massInKgRoundFunc: mass => massFusionRounder.Round(value: mass, curTime: CurWorldManager.CurTime)
+            );
+
+            state.consistsOfResPile.TransformResToHeatEnergy
+            (
+                amount: new ResAmounts
                 (
-                    heatEnergy: state.ThermalBody.HeatEnergy,
-                    heatCapacity: state.ThermalBody.HeatCapacity,
-                    surfaceLength: state.ApproxSurfaceLength,
-                    emissivity: Industry?.SurfaceEmissivity ?? state.ConsistsOfRes.Emissivity,
-                    stefanBoltzmannConstant: CurWorldConfig.stefanBoltzmannConstant,
-                    temperatureExponent: CurWorldConfig.temperatureExponentInStefanBoltzmannLaw
+                    resInd: state.ConsistsOfResInd,
+                    amount: matterCountConvertedToEnergy
                 )
             );
 
-            // MAKE sure that all resources (and people) leaving the planet do so AFTER the the temperature is established for that frame,
+            state.RecalculateValues();
+
+#warning TEMPERATURE will always be zero for now, as it's zero at the start, and fusion reactions only happen for non-zero temperatures
+
+            Energy energyToDissipate = Algorithms.EnergyToDissipate
+            (
+                heatEnergy: state.ThermalBody.HeatEnergy,
+                heatCapacity: state.ThermalBody.HeatCapacity,
+                surfaceLength: state.ApproxSurfaceLength,
+                emissivity: Industry?.SurfaceEmissivity ?? state.ConsistsOfRes.Emissivity,
+                stefanBoltzmannConstant: CurWorldConfig.stefanBoltzmannConstant,
+                temperatureExponent: CurWorldConfig.temperatureExponentInStefanBoltzmannLaw
+            );
+
+            temperatureInK = (UDouble)(state.ThermalBody.HeatEnergy.ValueInJ() - energyToDissipate.valueInJ) / state.ThermalBody.HeatCapacity.valueInJPerK;
+
+            (HeatEnergy heatEnergyToDissipate, radiantEnergyToDissipate) = Algorithms.SplitEnergyToDissipate
+            (
+                energyToDissipate: energyToDissipate,
+                temperatureInK: temperatureInK,
+                heatEnergyInJRoundFunc: heatEnergyInJ => heatEnergyDissipationRounder.Round(value: heatEnergyInJ, curTime: CurWorldManager.CurTime),
+                allHeatMaxTemper: CurWorldConfig.allHeatMaxTemper,
+                halfHeatTemper: CurWorldConfig.halfHeatTemper,
+                heatEnergyDropoffExponent: CurWorldConfig.heatEnergyDropoffExponent
+            );
+
+            state.ThermalBody.TransferHeatEnergyTo
+            (
+                destin: vacuumHeatEnergyPile,
+                amount: heatEnergyToDissipate
+            );
+
+            state.ThermalBody.TransformHeatEnergyTo
+            (
+                destin: radiantEnergyToDissipatePile,
+                amount: radiantEnergyToDissipate
+            );
+
+            // MAKE sure that all resources (and people) leaving the planet do so AFTER the the temperatureInK is established for that frame,
             // i.e. after appropriate amount of energy is radiated to space.
 
-            // IF need to use current planet temperature for something, calculate it once per frame here, then use it.
-            // Don't want to calculate temperature on the fly each time, as that would lead to higher temperatures at the beginning of the frame
+            // IF need to use current planet temperatureInK for something, calculate it once per frame here, then use it.
+            // Don't want to calculate temperatureInK on the fly each time, as that would lead to higher temperatures at the beginning of the frame
             // due to getting heat energy from electricity used in links and industry.
 
             // transfer people who want to go to other places
@@ -490,7 +554,7 @@ namespace Game1
                 consists of {state.MainResAmount} {state.ConsistsOfResInd}
                 stores {state.StoredResPile}
                 target {targetStoredResAmounts}
-                Mass of everything {state.LocationCounters.GetCount<ResAmounts>().Mass}
+                Mass of everything {state.LocationCounters.GetCount<ResAmounts>().Mass()}
                 Mass of planet {state.PlanetMass}
                 Number of people {state.LocationCounters.GetCount<NumPeople>()}
 
@@ -524,7 +588,10 @@ namespace Game1
                 },
                 powerCase: () => "",
                 peopleCase: () => ""
-            ).Trim();
+            );
+
+            textBox.Text += $"T = {temperatureInK:0.} K\nM to E = {matterCountConvertedToEnergy}\n";
+            textBox.Text = textBox.Text.Trim();
 
             infoTextBox.Text += textBox.Text;
             infoTextBox.Text = infoTextBox.Text.Trim();
@@ -567,29 +634,29 @@ namespace Game1
                 );
         }
 
-        UDouble ILinkFacingPlanet.SurfaceGravity
+        UDouble ILinkFacingCosmicBody.SurfaceGravity
             => state.SurfaceGravity;
 
-        void ILinkFacingPlanet.AddLink(Link link)
+        void ILinkFacingCosmicBody.AddLink(Link link)
         {
             if (!link.Contains(this))
                 throw new ArgumentException();
             links.Add(link);
         }
 
-        void ILinkFacingPlanet.Arrive(ResAmountsPacketsByDestin resAmountsPackets)
+        void ILinkFacingCosmicBody.Arrive(ResAmountsPacketsByDestin resAmountsPackets)
         {
             resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeID);
             state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
         }
 
-        void ILinkFacingPlanet.ArriveAndDeleteSource(RealPeople realPeopleSource)
+        void ILinkFacingCosmicBody.ArriveAndDeleteSource(RealPeople realPeopleSource)
             => state.WaitingPeople.TransferAllFromAndDeleteSource(realPeopleSource: realPeopleSource);
 
-        void ILinkFacingPlanet.Arrive(RealPerson realPerson, RealPeople realPersonSource)
+        void ILinkFacingCosmicBody.Arrive(RealPerson realPerson, RealPeople realPersonSource)
             => state.WaitingPeople.TransferFrom(realPerson: realPerson, realPersonSource: realPersonSource);
 
-        void ILinkFacingPlanet.TransformAllElectricityToHeatAndTransferFrom(EnergyPile<ElectricalEnergy> source)
+        void ILinkFacingCosmicBody.TransformAllElectricityToHeatAndTransferFrom(EnergyPile<ElectricalEnergy> source)
             => state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: source);
 
         void INodeAsLocalEnergyProducerAndConsumer.ProduceLocalEnergy(EnergyPile<ElectricalEnergy> destin)
@@ -600,7 +667,7 @@ namespace Game1
                 (
                     destin: destin,
                     propor: CurWorldConfig.planetTransformRadiantToElectricalEnergyPropor,
-                    curTime: CurWorldManager.CurTime
+                    amountToTransformRoundFunc: amount => capturedForUseRadiantEnergyRounder.Round(value: amount, curTime: CurWorldManager.CurTime)
                 );
             }
             else
@@ -626,6 +693,218 @@ namespace Game1
         {
             state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: source);
             usedLocalEnergy = locallyProducedEnergy - electricalEnergy;
+        }
+
+        // The complexity is O(N log N) where N is lightCatchingObjects.Count
+        void ILightSource.ProduceAndDistributeRadiantEnergy(List<ILightCatchingObject> lightCatchingObjects, IRadiantEnergyConsumer vacuumAsRadiantEnergyConsumer)
+        {
+            if (radiantEnergyToDissipatePile.Amount.IsZero)
+                return;
+            // Removed in oder to not catch the radiant energy from itself
+            bool isInLightCatchingObjects = lightCatchingObjects.Remove(this);
+
+            RadiantEnergy producedRadiantEnergy = radiantEnergyToDissipatePile.Amount;
+
+            GetAnglesAndBlockedAngleArcs
+            (
+                angles: out List<double> angles,
+                blockedAngleArcs: out List<(bool start, AngleArc angleArc)> blockedAngleArcs
+            );
+
+            PrepareAngles(ref angles);
+
+            blockedAngleArcs.Sort
+            (
+                comparison: (angleArc1, angleArc2)
+                    => angleArc1.angleArc.GetAngle(start: angleArc1.start)
+                    .CompareTo(angleArc2.angleArc.GetAngle(start: angleArc2.start))
+            );
+
+            CalculateLightPolygonAndRayCatchingObjects
+            (
+                vertices: out List<MyVector2> vertices,
+                rayCatchingObjects: out List<ILightCatchingObject?> rayCatchingObjects
+            );
+
+            Debug.Assert(rayCatchingObjects.Count == angles.Count && vertices.Count == angles.Count);
+
+            lightPolygon.Update
+            (
+                strength: state.Radius / CurWorldConfig.standardStarRadius,
+                center: state.Position,
+                vertices: vertices
+            );
+
+            DistributeStarPower(usedArc: out UDouble usedArc);
+
+#warning Add that info to the text text box
+            // popupTextBox.Text = $"generates {producedRadiantEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds} power\n{usedArc / (2 * MyMathHelper.pi) * 100:0.}% of it hits planets";
+
+            if (isInLightCatchingObjects)
+                lightCatchingObjects.Add(this);
+
+            return;
+
+            void GetAnglesAndBlockedAngleArcs(out List<double> angles, out List<(bool start, AngleArc angleArc)> blockedAngleArcs)
+            {
+                angles = new();
+                blockedAngleArcs = new();
+                foreach (var lightCatchingObject in lightCatchingObjects)
+                {
+                    var blockedAngleArc = lightCatchingObject.BlockedAngleArc(lightPos: state.Position);
+
+                    angles.Add(blockedAngleArc.startAngle);
+                    angles.Add(blockedAngleArc.endAngle);
+
+                    if (blockedAngleArc.startAngle <= blockedAngleArc.endAngle)
+                        addProperAngleArc(blockedAngleArcs: blockedAngleArcs, angleArc: blockedAngleArc);
+                    else
+                    {
+                        addProperAngleArc
+                        (
+                            blockedAngleArcs: blockedAngleArcs,
+                            angleArc: new
+                            (
+                                startAngle: blockedAngleArc.startAngle - 2 * MyMathHelper.pi,
+                                endAngle: blockedAngleArc.endAngle,
+                                radius: blockedAngleArc.radius,
+                                lightCatchingObject: blockedAngleArc.lightCatchingObject
+                            )
+                        );
+                        addProperAngleArc
+                        (
+                            blockedAngleArcs: blockedAngleArcs,
+                            angleArc: new
+                            (
+                                startAngle: blockedAngleArc.startAngle,
+                                endAngle: blockedAngleArc.endAngle + 2 * MyMathHelper.pi,
+                                radius: blockedAngleArc.radius,
+                                lightCatchingObject: blockedAngleArc.lightCatchingObject
+                            )
+                        );
+                    }
+                }
+                void addProperAngleArc(List<(bool start, AngleArc angleArc)> blockedAngleArcs, AngleArc angleArc)
+                {
+                    blockedAngleArcs.Add((start: true, angleArc));
+                    blockedAngleArcs.Add((start: false, angleArc));
+                }
+            }
+
+            void PrepareAngles(ref List<double> angles)
+            {
+                // TODO: move to constants file
+                const double small = .0001;
+                int oldAngleCount = angles.Count;
+                List<double> newAngles = new(2 * angles.Count);
+
+                foreach (var angle in angles)
+                {
+                    newAngles.Add(angle - small);
+                    newAngles.Add(angle + small);
+                }
+
+                for (int i = 0; i < 4; i++)
+                    newAngles.Add(i * 2 * MyMathHelper.pi / 4);
+
+                for (int i = 0; i < newAngles.Count; i++)
+                    newAngles[i] = MyMathHelper.WrapAngle(angle: newAngles[i]);
+
+                newAngles.Sort();
+                angles = newAngles;
+            }
+
+            void CalculateLightPolygonAndRayCatchingObjects(out List<MyVector2> vertices, out List<ILightCatchingObject?> rayCatchingObjects)
+            {
+                vertices = new();
+                rayCatchingObjects = new();
+                // TODO: consider moving this to constants class
+                UDouble maxDist = 2000;
+
+                SortedSet<AngleArc> curAngleArcs = new();
+                int angleInd = 0, angleArcInd = 0;
+                while (angleInd < angles.Count)
+                {
+                    double curAngle = angles[angleInd];
+                    while (angleArcInd < blockedAngleArcs.Count)
+                    {
+                        var (curStart, curAngleArc) = blockedAngleArcs[angleArcInd];
+                        if (curAngleArc.GetAngle(start: curStart) >= curAngle)
+                            break;
+                        if (curStart)
+                            curAngleArcs.Add(curAngleArc);
+                        else
+                            curAngleArcs.Remove(curAngleArc);
+                        angleArcInd++;
+                    }
+
+                    MyVector2 rayDir = MyMathHelper.Direction(rotation: curAngle);
+                    rayCatchingObjects.Add(curAngleArcs.Count == 0 ? null : curAngleArcs.Min.lightCatchingObject);
+                    double minDist = rayCatchingObjects[^1] switch
+                    {
+                        null => maxDist,
+                        // adding 1 looks better, even though it's not needed mathematically
+                        // TODO: move the constant 1 to the constants file
+                        ILightCatchingObject lightCatchingObject => 1 + lightCatchingObject.CloserInterPoint(lightPos: state.Position, lightDir: rayDir)
+                    };
+                    vertices.Add(state.Position + minDist * rayDir);
+
+                    angleInd++;
+                }
+            }
+
+            void DistributeStarPower(out UDouble usedArc)
+            {
+                Dictionary<IRadiantEnergyConsumer, UDouble> arcsForObjects = lightCatchingObjects.ToDictionary
+                (
+                    keySelector: lightCatchingObject => lightCatchingObject as IRadiantEnergyConsumer,
+                    elementSelector: lightCatchingObject => (UDouble)0
+                );
+                arcsForObjects.Add(key: vacuumAsRadiantEnergyConsumer, value: 0);
+                usedArc = 0;
+                for (int i = 0; i < rayCatchingObjects.Count; i++)
+                {
+                    UDouble curArc = MyMathHelper.Abs(MyMathHelper.WrapAngle(angles[i] - angles[(i + 1) % angles.Count]));
+                    UseArc(rayCatchingObject: rayCatchingObjects[i], usedArc: ref usedArc);
+                    UseArc(rayCatchingObject: rayCatchingObjects[(i + 1) % rayCatchingObjects.Count], usedArc: ref usedArc);
+
+                    void UseArc(ILightCatchingObject? rayCatchingObject, ref UDouble usedArc)
+                    {
+                        if (rayCatchingObject is null)
+                            arcsForObjects[vacuumAsRadiantEnergyConsumer] += curArc / 2;
+                        else
+                        {
+                            arcsForObjects[rayCatchingObject] += curArc / 2;
+                            usedArc += curArc / 2;
+                        }
+                    }
+                }
+
+                Debug.Assert(arcsForObjects.Values.Sum().IsCloseTo(other: 2 * MyMathHelper.pi));
+
+                Dictionary<IRadiantEnergyConsumer, ulong> splitAmounts = radiantEnergySplitter.Split
+                (
+                    amount: producedRadiantEnergy.ValueInJ,
+                    importances: arcsForObjects
+                );
+
+                foreach (var (radiantEnergyConsumer, allocAmount) in splitAmounts)
+                    radiantEnergyConsumer.TakeRadiantEnergyFrom(source: radiantEnergyToDissipatePile, amount: RadiantEnergy.CreateFromJoules(valueInJ: allocAmount));
+                Debug.Assert(radiantEnergyToDissipatePile.Amount.IsZero);
+            }
+        }
+
+        void ILightSource.Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
+        {
+            if (radiantEnergyToDissipate.IsZero)
+                return;
+            lightPolygon.Draw
+            (
+                worldToScreenTransform: worldToScreenTransform,
+                basicEffect: basicEffect,
+                actualScreenWidth: actualScreenWidth,
+                actualScreenHeight: actualScreenHeight
+            );
         }
     }
 }

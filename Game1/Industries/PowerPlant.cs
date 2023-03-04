@@ -66,12 +66,14 @@ namespace Game1.Industries
 
         private readonly Params parameters;
         private ElectricalEnergy prodEnergy;
+        private readonly HistoricRounder producedEnergyRounder;
 
         private PowerPlant(Params parameters, Building building)
             : base(parameters: parameters, building: building)
         {
             this.parameters = parameters;
             prodEnergy = ElectricalEnergy.zero;
+            producedEnergyRounder = new();
             CurWorldManager.AddEnergyProducer(energyProducer: this);
         }
 
@@ -92,11 +94,11 @@ namespace Game1.Industries
             => 0;
 
         void IEnergyProducer.ProduceEnergy(EnergyPile<ElectricalEnergy> destin)
-            => parameters.state.RadiantEnergyPile.TransformProporTo
+            => prodEnergy = parameters.state.RadiantEnergyPile.TransformProporTo
             (
                 destin: destin,
                 propor: parameters.surfaceAbsorbtionPropor * CurSkillPropor,
-                curTime: CurWorldManager.CurTime
+                amountToTransformRoundFunc: amount => producedEnergyRounder.Round(value: amount, curTime: CurWorldManager.CurTime)
             );
     }
 }

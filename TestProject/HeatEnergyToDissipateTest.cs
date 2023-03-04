@@ -13,7 +13,7 @@ namespace TestProject
         public void ZeroHeatCapacityNonZeroHeatEnergyThrowsError()
             => Assert.ThrowsException<ArgumentException>
             (
-                () => Algorithms.HeatEnergyToDissipate
+                () => Algorithms.EnergyToDissipate
                 (
                     heatEnergy: HeatEnergy.CreateFromJoules(valueInJ: 10),
                     heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 0),
@@ -26,11 +26,11 @@ namespace TestProject
 
         [TestMethod]
         public void WhenPossibleDissipatesExactNeededEnergy()
-            => Assert.AreEqual<HeatEnergy>
+            => Assert.AreEqual<Energy>
             (
-                expected: HeatEnergy.CreateFromJoules(valueInJ: 840),
+                expected: Energy.CreateFromJoules(valueInJ: 840),
                 // 
-                actual: Algorithms.HeatEnergyToDissipate
+                actual: Algorithms.EnergyToDissipate
                 (
                     heatEnergy: HeatEnergy.CreateFromJoules(valueInJ: 844),
                     heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 2),
@@ -43,10 +43,10 @@ namespace TestProject
 
         [TestMethod]
         public void ChooseLessInacurateDissipation()
-            => Assert.AreEqual<HeatEnergy>
+            => Assert.AreEqual<Energy>
             (
-                expected: HeatEnergy.CreateFromJoules(valueInJ: 2),
-                actual: Algorithms.HeatEnergyToDissipate
+                expected: Energy.CreateFromJoules(valueInJ: 2),
+                actual: Algorithms.EnergyToDissipate
                 (
                     heatEnergy: HeatEnergy.CreateFromJoules(valueInJ: 5),
                     heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 2),

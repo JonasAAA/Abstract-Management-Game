@@ -64,27 +64,23 @@
             where TAmount : struct, ICountable<TAmount>
             => destin.TransferFrom(source: this, amount: amount);
 
-        public void TransformFrom<TSourceAmount, TDestinAmount>(Counters source, TSourceAmount sourceAmount)
-            where TSourceAmount : struct, IFormOfEnergy<TSourceAmount>
-            where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
-        {
-            source.GetEnergyCounter<TSourceAmount>().TransformTo
-            (
-                destin: GetEnergyCounter<TDestinAmount>(),
-                sourceCount: sourceAmount
-            );
-        }
-
-        public void TransformTo<TSourceAmount, TDestinAmount>(Counters destin, TDestinAmount destinAmount)
+        public void TransformFrom<TAmount, TSourceAmount>(Counters source, TAmount amount)
+            where TAmount : struct, IFormOfEnergy<TAmount>
             where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
-            where TDestinAmount : struct, IFormOfEnergy<TDestinAmount>
-        {
-            destin.GetEnergyCounter<TDestinAmount>().TransformFrom
+            => GetEnergyCounter<TAmount>().TransformFrom
             (
-                source: GetEnergyCounter<TSourceAmount>(),
-                destinCount: destinAmount
+                source: source.GetEnergyCounter<TSourceAmount>(),
+                destinCount: amount
             );
-        }
+
+        public void TransformTo<TAmount, TDestinAmount>(Counters destin, TAmount amount)
+            where TAmount : struct, IFormOfEnergy<TAmount>
+            where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
+            => GetEnergyCounter<TAmount>().TransformTo
+            (
+                destin: destin.GetEnergyCounter<TDestinAmount>(),
+                sourceCount: amount
+            );
 
         public void TransformFrom(Counters source, ResRecipe recipe)
             => ResCounter.TransformFrom(source: source.ResCounter, recipe: recipe);

@@ -38,7 +38,7 @@ namespace Game1
         public UDouble SurfaceGravity
             => WorldFunctions.SurfaceGravity(mass: LocationCounters.GetCount<ResAmounts>().Mass(), radius: Radius);
 
-        private readonly ResPile consistsOfResPile;
+        public readonly ResPile consistsOfResPile;
 
         public NodeState(MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
@@ -71,7 +71,7 @@ namespace Game1
         public bool CanRemove(ulong resAmount)
             => MainResAmount >= resAmount + CurWorldConfig.minResAmountInPlanet;
 
-        private void RecalculateValues()
+        public void RecalculateValues()
         {
             Area = MainResAmount * ConsistsOfRes.Area;
             Radius = MyMathHelper.Sqrt(value: Area / MyMathHelper.pi);

@@ -2,7 +2,7 @@
 
 namespace Game1
 {
-    public interface ILinkFacingPlanet
+    public interface ILinkFacingCosmicBody
     {
         public MyVector2 Position { get; }
 

@@ -27,39 +27,28 @@
 
         protected override EnergyCounter<TAmount> Counter { get; }
 
-        public readonly HistoricRounder transformedEnergyHistoricalRounder;
-
         protected EnergyPile(LocationCounters locationCounters, EnergyCounter<TAmount> counter)
             : base(locationCounters: locationCounters, counter: counter)
         {
             Counter = counter;
-            transformedEnergyHistoricalRounder = new();
         }
 
         public void TransformTo<TDestinAmount>(EnergyPile<TDestinAmount> destin, TAmount amount)
             where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
         {
             Counter.TransformTo(destin: destin.Counter, sourceCount: amount);
-            destin.LocationCounters.TransformFrom<TAmount, TDestinAmount>(source: LocationCounters, sourceAmount: amount);
+            LocationCounters.TransformTo<TAmount, TDestinAmount>(destin: destin.LocationCounters, amount: amount);
+        }
+
+        public void TransformFrom<TSourceAmount>(EnergyPile<TSourceAmount> source, TAmount amount)
+            where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
+        {
+            Counter.TransformFrom(source: source.Counter, destinCount: amount);
+            LocationCounters.TransformFrom<TAmount, TSourceAmount>(source: source.LocationCounters, amount: amount);
         }
 
         public void TransformAllTo<TDestinAmount>(EnergyPile<TDestinAmount> destin)
             where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
             => TransformTo(destin: destin, amount: Amount);
-
-        
     }
-
-    //public static void TransformAllTo<TSourceAmount, TDestinAmount>(this ISourcePile<TSourceAmount> source, IDestinPile<TDestinAmount> destin)
-    //    //where TSourcePile : ISourcePile<TSourceAmount>
-    //    //where TDestinPile : IDestinPile<TDestinAmount>
-    //    where TSourceAmount : struct, IFormOfEnergy<TSourceAmount>
-    //    where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
-    //{
-    //    var energySource = EnergyPile<TSourceAmount>.CreateEmpty(LocationCounters: source.LocationCounters);
-    //    energySource.TransferAllFrom(source: source);
-    //    var energyDestin = EnergyPile<TDestinAmount>.CreateEmpty(LocationCounters: destin.LocationCounters);
-    //    energySource.TransformAllTo(destin: energyDestin);
-    //    destin.TransferAllFrom(source: energyDestin);
-    //}
 }

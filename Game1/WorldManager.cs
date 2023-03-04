@@ -93,100 +93,45 @@ namespace Game1
 
             static Graph CreateGraph()
             {
-                ResPile magicResPile = ResPile.CreateByMagic(amount: ResAmounts.magicUnlimitedResAmounts);
-                List<BasicResInd> basicResInds = new()
-                {
-                    BasicResInd.Random(),
-                    BasicResInd.Random()
-                };
-                Star[] stars = new Star[]
-                {
-                    new
-                    (
-                        state: new
-                        (
-                            position: new MyVector2(-400, -300),
-                            consistsOfResInd: basicResInds[0],
-                            mainResAmount: NodeState.ResAmountFromApproxRadius
-                            (
-                                basicResInd: basicResInds[0],
-                                approxRadius: 500
-                            ),
-                            resSource: magicResPile
-                        ),
-                        color: colorConfig.starColor
-                    ),
-                    new
-                    (
-                        state: new
-                        (
-                            position: new MyVector2(700, 300),
-                            consistsOfResInd: basicResInds[1],
-                            mainResAmount: NodeState.ResAmountFromApproxRadius
-                            (
-                                basicResInd: basicResInds[1],
-                                approxRadius: 600
-                            ),
-                            resSource: magicResPile
-                        ),
-                        color: colorConfig.starColor
-                    ),
-                    //new
-                    //(
-                    //    state: new
-                    //    (
-                    //        starID: StarID.Create(),
-                    //        position: new MyVector2(-200, 100),
-                    //        Radius: 400,
-                    //        prodWatts: 40000
-                    //    ),
-                    //    color: colorConfig.starColor
-                    //),
-                };
-
                 const int width = 10, height = 10, dist = 200, minAllowedDistToStar = 200;
-                const double minPlanetRadiusExponet = 3, maxPlanetRadiusExponent = 5.5, startingPlanetExponent = 4.5;
+                const double minPlanetRadiusExponet = 3, maxPlanetRadiusExponent = 7, startingPlanetExponent = 4.5;
                 const double maxRandomPositionOffset = dist * .3;
                 int startPlanetI = C.Random(min: width / 2 - 1, max: width / 2),
                     startPlanetJ = C.Random(min: height / 2 - 1, max: height / 2);
-                Planet?[,] planets = new Planet[width, height];
-                
+                CosmicBody?[,] cosmicBodies = new CosmicBody[width, height];
+                ResPile magicResPile = ResPile.CreateByMagic(amount: ResAmounts.magicUnlimitedResAmounts);
                 for (int i = 0; i < width; i++)
                     for (int j = 0; j < height; j++)
                     {
                         bool startPlanet = i == startPlanetI && j == startPlanetJ;
                         BasicResInd consistsOfResInd = BasicResInd.Random();
                         MyVector2 position = new MyVector2(i - (width - 1) * .5, j - (height - 1) * .5) * dist + new MyVector2(C.Random(min: -1, max: 1), C.Random(min: -1, max: 1)) * maxRandomPositionOffset;
-                        planets[i, j] = stars.All(star => MyVector2.Distance(value1: star.Position, value2: position) >= minAllowedDistToStar) switch
-                        {
-                            true => new
+                        cosmicBodies[i, j] = new
+                        (
+                            state: new
                             (
-                                state: new
+                                position: position,
+                                consistsOfResInd: consistsOfResInd,
+                                mainResAmount: NodeState.ResAmountFromApproxRadius
                                 (
-                                    position: position,
-                                    consistsOfResInd: consistsOfResInd,
-                                    mainResAmount: NodeState.ResAmountFromApproxRadius
-                                    (
-                                        basicResInd: consistsOfResInd,
-                                        approxRadius: MyMathHelper.Pow((UDouble)2, startPlanet ? startingPlanetExponent : C.Random(min: minPlanetRadiusExponet, max: maxPlanetRadiusExponent))
-                                    ),
-                                    resSource: magicResPile,
-                                    maxBatchDemResStored: 2
+                                    basicResInd: consistsOfResInd,
+                                    approxRadius: MyMathHelper.Pow((UDouble)2, startPlanet ? startingPlanetExponent : C.Random(min: minPlanetRadiusExponet, max: maxPlanetRadiusExponent))
                                 ),
-                                activeColor: Color.White,
-                                startingConditions: startPlanet switch
-                                {
-                                    true =>
-                                    (
-                                        houseFactory: CurIndustryConfig.basicHouseFactory,
-                                        personCount: 20,
-                                        resSource: magicResPile
-                                    ),
-                                    false => null
-                                }
+                                resSource: magicResPile,
+                                maxBatchDemResStored: 2
                             ),
-                            false => null
-                        };
+                            activeColor: Color.White,
+                            startingConditions: startPlanet switch
+                            {
+                                true =>
+                                (
+                                    houseFactory: CurIndustryConfig.basicHouseFactory,
+                                    personCount: 20,
+                                    resSource: magicResPile
+                                ),
+                                false => null
+                            }
+                        );
                     }
 
                 UDouble distScale = (UDouble).1;
@@ -195,22 +140,21 @@ namespace Game1
                 List<Link> links = new();
                 for (int i = 0; i < width; i++)
                     for (int j = 0; j < height - 1; j++)
-                        AddLinkIfAppropriate(planet1: planets[i, j], planet2: planets[i, j + 1]);
+                        AddLinkIfAppropriate(planet1: cosmicBodies[i, j], planet2: cosmicBodies[i, j + 1]);
 
                 for (int i = 0; i < width - 1; i++)
                     for (int j = 0; j < height; j++)
-                        AddLinkIfAppropriate(planet1: planets[i, j], planet2: planets[i + 1, j]);
+                        AddLinkIfAppropriate(planet1: cosmicBodies[i, j], planet2: cosmicBodies[i + 1, j]);
 
                 return new
                 (
-                    stars: stars,
-                    nodes: from Planet planet in planets
-                           where planet is not null
-                           select planet,
+                    nodes: from CosmicBody cosmicBody in cosmicBodies
+                           where cosmicBody is not null
+                           select cosmicBody,
                     links: links
                 );
 
-                void AddLinkIfAppropriate(Planet? planet1, Planet? planet2)
+                void AddLinkIfAppropriate(CosmicBody? planet1, CosmicBody? planet2)
                 {
                     if (planet1 is not null && planet2 is not null && C.RandomBool(probOfTrue: linkExistsProb))
                         links.Add
@@ -278,7 +222,7 @@ namespace Game1
             {
                 typeof(Dictionary<IndustryType, Score>),
                 typeof(Dictionary<IOverlay, IHUDElement>),
-                typeof(ReadOnlyDictionary<NodeID, Planet>),
+                typeof(ReadOnlyDictionary<NodeID, CosmicBody>),
                 typeof(UIHorizTabPanel<IHUDElement>),
                 typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
                 typeof(MultipleChoicePanel<string>),
@@ -289,6 +233,11 @@ namespace Game1
                 typeof(UIRectHorizPanel<SelectButton>),
                 typeof(UIRectVertPanel<IHUDElement>),
                 typeof(UITransparentPanel<ResDestinArrow>),
+                //typeof(Counter<NumPeople>),
+                typeof(EnergyCounter<HeatEnergy>),
+                typeof(EnergyCounter<RadiantEnergy>),
+                typeof(EnergyCounter<ElectricalEnergy>),
+                //typeof(EnergyCounter<ResAmounts>),
             };
             List<Type> unserializedTypeList = new();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
@@ -344,7 +293,7 @@ namespace Game1
                     if (CurWorldManager.Overlay is not ResInd)
                         throw new Exception();
                     activeUIManager.DisableAllUIElements();
-                    if (CurGraph.ActiveWorldElement is Planet activeNode)
+                    if (CurGraph.ActiveWorldElement is CosmicBody activeNode)
                     {
                         foreach (var node in CurGraph.Nodes)
                             if (activeNode.CanHaveDestin(destinationId: node.NodeID))

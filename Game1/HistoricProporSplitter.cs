@@ -93,7 +93,9 @@
                 sum = necNotLockedAdds.Values.Sum();
 
                 Debug.Assert(MyMathHelper.IsTiny(sum));
-                Debug.Assert(necNotLockedAdds.Count is 0 || necNotLockedAdds.Values.Max() - necNotLockedAdds.Values.Min() < 1 + MyMathHelper.minPosDecimal);
+                // The max - min can be digger than 1 by quite a bit.
+                // This can happen when some necAdd (from previous frame) is negative, and the importance is 0.
+                //Debug.Assert(necNotLockedAdds.Count is 0 || necNotLockedAdds.Values.Max() - necNotLockedAdds.Values.Min() < 1 + MyMathHelper.minPosDecimal);
             }
         }
 

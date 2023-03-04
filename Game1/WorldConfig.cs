@@ -59,7 +59,7 @@
             linkWidth = 10;
         // So gravitational force between masses M1 and M2 at distance R is gravitConst * M1 * M2 / (R ^ gravitExponent)
         public readonly UDouble
-            gravitExponent = (UDouble)1.5,
+            gravitExponent = 1,
             gravitConst = 1;
         public readonly Propor
             desperationMemoryPropor = (Propor).9;
@@ -100,7 +100,11 @@
         public readonly Propor
             planetTransformRadiantToElectricalEnergyPropor = (Propor).001;
 
-        public readonly UDouble stefanBoltzmannConstant = 1;
+        public readonly UDouble stefanBoltzmannConstant = (UDouble).000005;
         public readonly ulong temperatureExponentInStefanBoltzmannLaw = 4;
+        public readonly UDouble
+            allHeatMaxTemper = 500,
+            halfHeatTemper = 2000,
+            heatEnergyDropoffExponent = 2;
     }
 }

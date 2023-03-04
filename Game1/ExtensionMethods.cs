@@ -7,51 +7,6 @@ namespace Game1
 {
     public static class ExtensionMethods
     {
-        //public static void TransferTo<TSourcePile, TDestinPile, TAmount>(this TSourcePile source, TDestinPile destin, TAmount amount)
-        //    where TSourcePile : ISourcePile<TAmount>
-        //    where TDestinPile : IDestinPile<TAmount>
-        //    where TAmount : struct, ICountable<TAmount>
-        //{
-        //    Pile<TAmount> middleDestin = Pile<TAmount>.CreateEmpty(LocationCounters: source.LocationCounters);
-        //    source.TransferTo(destin: middleDestin, amount: amount);
-        //    destin.TransferFrom(source: middleDestin, amount: amount);
-        //}
-
-        //private class EnergyPile<TAmount> : Pile<TAmount>
-        //    where TAmount : struct, IFormOfEnergy<TAmount>
-        //{
-        //    public new static EnergyPile<TAmount> CreateEmpty(LocationCounters LocationCounters)
-        //        => new(LocationCounters: LocationCounters, counter: EnergyCounter<TAmount>.CreateEmpty());
-
-        //    protected override EnergyCounter<TAmount> Counter { get; }
-
-        //    private EnergyPile(LocationCounters LocationCounters, EnergyCounter<TAmount> counter)
-        //        : base(LocationCounters: LocationCounters, counter: counter)
-        //    {
-        //        Counter = counter;
-        //    }
-
-        //    public void TransformAllTo<TDestinAmount>(EnergyPile<TDestinAmount> destin)
-        //        where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount> 
-        //    {
-        //        TAmount amountToTransform = Amount;
-        //        Counter.TransformTo(destin: destin.Counter, sourceCount: amountToTransform);
-        //        destin.LocationCounters.TransformFrom<TAmount, TDestinAmount>(source: LocationCounters, sourceAmount: amountToTransform);
-        //    }
-        //}
-
-        //public static void TransformAllTo<TSourceAmount, TDestinAmount>(this ISourcePile<TSourceAmount> source, IDestinPile<TDestinAmount> destin)
-        //    //where TSourcePile : ISourcePile<TSourceAmount>
-        //    //where TDestinPile : IDestinPile<TDestinAmount>
-        //    where TSourceAmount : struct, IFormOfEnergy<TSourceAmount>
-        //    where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
-        //{
-        //    var energySource = EnergyPile<TSourceAmount>.CreateEmpty(LocationCounters: source.LocationCounters);
-        //    energySource.TransferAllFrom(source: source);
-        //    var energyDestin = EnergyPile<TDestinAmount>.CreateEmpty(LocationCounters: destin.LocationCounters);
-        //    energySource.TransformAllTo(destin: energyDestin);
-        //    destin.TransferAllFrom(source: energyDestin);
-        //}
 
         public static ulong ValueInJ<T>(this T formOfEnergy)
             where T : IFormOfEnergy<T>
@@ -195,17 +150,13 @@ namespace Game1
 
         /// <param name="curTime">Used for historical rounding of transformed energy</param>
         /// <returns>The amount of energy transfered to destin</returns>
-        public static TDestinAmount TransformProporTo<TSourceAmount, TDestinAmount>(this EnergyPile<TSourceAmount> source, EnergyPile<TDestinAmount> destin, Propor propor, TimeSpan curTime)
+        public static TDestinAmount TransformProporTo<TSourceAmount, TDestinAmount>(this EnergyPile<TSourceAmount> source, EnergyPile<TDestinAmount> destin, Propor propor, Func<decimal, ulong> amountToTransformRoundFunc)
             where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
             where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
         {
             TSourceAmount amountToTransform = IUnconstrainedEnergy<TSourceAmount>.CreateFromJoules
             (
-                valueInJ: source.transformedEnergyHistoricalRounder.Round
-                (
-                    value: source.Amount.ValueInJ() * (decimal)propor,
-                    curTime: curTime
-                )
+                valueInJ: amountToTransformRoundFunc(source.Amount.ValueInJ() * (decimal)propor)
             );
             source.TransformTo(destin: destin, amount: amountToTransform);
             return TDestinAmount.CreateFromEnergy(energy: (Energy)amountToTransform);

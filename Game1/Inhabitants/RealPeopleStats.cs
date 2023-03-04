@@ -10,7 +10,7 @@ namespace Game1.Inhabitants
     [Serializable]
     public readonly struct RealPeopleStats
     {
-        public static readonly RealPeopleStats empty;
+        public static readonly RealPeopleStats empty = default;
 
         static RealPeopleStats()
             => empty = new
@@ -25,7 +25,8 @@ namespace Game1.Inhabitants
                 momentaryHappiness: Score.lowest,
                 enjoyments: new(value: Score.lowest),
                 talents: new(value: Score.lowest),
-                skills: new(value: Score.lowest)
+                skills: new(value: Score.lowest),
+                totalProductivities: new(value: 0)
             );
 
         public static RealPeopleStats ForNewPerson(Mass totalMass, ulong reqWatts, TimeSpan age, Score startingHappiness, EnumDict<IndustryType, Score> enjoyments, EnumDict<IndustryType, Score> talents, EnumDict<IndustryType, Score> skills)
@@ -68,6 +69,33 @@ namespace Game1.Inhabitants
 
         public RealPeopleStats(Mass totalMass, NumPeople totalNumPeople, ulong totalReqWatts, Propor timeCoefficient, TimeSpan age, Propor allocEnergyPropor, Score happiness,
             Score momentaryHappiness, EnumDict<IndustryType, Score> enjoyments, EnumDict<IndustryType, Score> talents, EnumDict<IndustryType, Score> skills)
+            : this
+            (
+                totalMass: totalMass,
+                totalNumPeople: totalNumPeople,
+                totalReqWatts: totalReqWatts,
+                timeCoefficient: timeCoefficient,
+                age: age,
+                allocEnergyPropor: allocEnergyPropor,
+                happiness: happiness,
+                momentaryHappiness: momentaryHappiness,
+                enjoyments: enjoyments,
+                talents: talents,
+                skills: skills,
+                totalProductivities: new
+                (
+                    selector: industryType => totalNumPeople.value * (UDouble)Score.WeightedAverageOfTwo
+                    (
+                        score1: happiness,
+                        score2: skills[industryType],
+                        score1Propor: CurWorldConfig.productivityHappinessWeight
+                    )
+                )
+            )
+        { }
+
+        private RealPeopleStats(Mass totalMass, NumPeople totalNumPeople, ulong totalReqWatts, Propor timeCoefficient, TimeSpan age, Propor allocEnergyPropor, Score happiness,
+            Score momentaryHappiness, EnumDict<IndustryType, Score> enjoyments, EnumDict<IndustryType, Score> talents, EnumDict<IndustryType, Score> skills, EnumDict<IndustryType, UDouble> totalProductivities)
         {
             this.totalMass = totalMass;
             this.totalNumPeople = totalNumPeople;
@@ -80,15 +108,7 @@ namespace Game1.Inhabitants
             this.enjoyments = enjoyments;
             this.talents = talents;
             this.skills = skills;
-            totalProductivities = new
-            (
-                selector: industryType => totalNumPeople.value * (UDouble)Score.WeightedAverageOfTwo
-                (
-                    score1: happiness,
-                    score2: skills[industryType],
-                    score1Propor: CurWorldConfig.productivityHappinessWeight
-                )
-            );
+            this.totalProductivities = totalProductivities;
         }
 
         public RealPeopleStats CombineWith(RealPeopleStats other)

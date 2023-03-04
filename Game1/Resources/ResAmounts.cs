@@ -22,8 +22,14 @@ namespace Game1.Resources
         static ResAmounts()
         {
             emptyResAmounts = new();
-            Debug.Assert(CurWorldConfig.magicUnlimitedResAmounts.Length == (int)ResInd.count);
-            magicUnlimitedResAmounts = new(values: CurWorldConfig.magicUnlimitedResAmounts);
+            magicUnlimitedResAmounts = new
+            (
+                values: Enumerable.Repeat
+                (
+                    element: (ulong)uint.MaxValue,
+                    count: (int)ResInd.count
+                )
+            );
         }
 
         private readonly ulong[] array;
@@ -138,13 +144,6 @@ namespace Game1.Resources
 
         public static ResAmounts operator *(ResAmounts resAmounts, ulong value)
             => value * resAmounts;
-
-        public static ResAmounts operator /(ResAmounts resAmounts, ulong value)
-            => new(from a in resAmounts select a / value);
-
-        ///// <returns> some elements can be None </returns>
-        //public static ConstArray<UDouble> operator /(ResAmounts left, ResAmounts right)
-        //    => new(left.Zip(right, (a, b) => (UDouble)a / b));
 
         static bool IComparisonOperators<ResAmounts, ResAmounts, bool>.operator >(ResAmounts left, ResAmounts right)
             => left >= right && left != right;

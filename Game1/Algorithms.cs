@@ -243,14 +243,14 @@ namespace Game1
                 => heatEnergyInJ - finalHeatEnergyInJ - surfaceLength * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: (double)finalHeatEnergyInJ / heatCapacityInJPerK, exponent: temperatureExponent);
         }
 
-        public static ulong MatterToConvertToEnergy(BasicRes basicRes, ulong resAmount, UDouble temperatureInK, UDouble surfaceGravity, TimeSpan duration, Func<decimal, ulong> massInKgRoundFunc)
+        public static ulong MatterToConvertToEnergy(BasicRes basicRes, ulong resAmount, UDouble temperatureInK, UDouble surfaceGravity, TimeSpan duration, Func<decimal, ulong> massInKgRoundFunc, UDouble reactionStrengthCoeff, Propor nonConvertedMassForUnitReactionStrengthUnitTime)
         {
 #warning test this
 
 #warning parametrise these formulas
             double density = (double)basicRes.Area / basicRes.Mass.valueInKg,
-                reactionStrength = 0.000000000001 * density * surfaceGravity * temperatureInK;
-            var nonConvertedMassPropor = (decimal)MyMathHelper.Pow(@base: (UDouble).99, exponent: reactionStrength * duration.TotalSeconds);
+                reactionStrength = reactionStrengthCoeff * density * surfaceGravity * temperatureInK;
+            var nonConvertedMassPropor = (decimal)MyMathHelper.Pow(@base: (UDouble)nonConvertedMassForUnitReactionStrengthUnitTime, exponent: reactionStrength * duration.TotalSeconds);
             ulong matterToConvert = resAmount - massInKgRoundFunc(nonConvertedMassPropor * resAmount);
             return matterToConvert;
         }

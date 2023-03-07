@@ -1,6 +1,5 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
-using System.Diagnostics.CodeAnalysis;
 
 namespace Game1.UI
 {

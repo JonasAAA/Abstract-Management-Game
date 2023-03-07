@@ -182,7 +182,7 @@ namespace Game1
 
             textBox = new(textColor: colorConfig.almostWhiteColor);
             textBox.Shape.MinWidth = 100;
-            UpdateTextBoxPosition();
+            UpdateHUDPos();
             CurWorldManager.AddWorldHUDElement(worldHUDElement: textBox);
 
             List<(string tabLabelText, ITooltip tabTooltip, IHUDElement tab)> UITabs = new();
@@ -315,7 +315,7 @@ namespace Game1
             CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
         }
 
-        private void UpdateTextBoxPosition()
+        public void UpdateHUDPos()
             => textBox.Shape.Center = CurWorldManager.WorldPosToScreenPos(worldPos: Position);
 
         public ulong TotalQueuedRes(ResInd resInd)
@@ -399,12 +399,14 @@ namespace Game1
                 temperatureInK: temperatureInK,
                 surfaceGravity: state.SurfaceGravity,
                 duration: CurWorldManager.Elapsed,
-                massInKgRoundFunc: mass => massFusionRounder.Round(value: mass, curTime: CurWorldManager.CurTime)
+                massInKgRoundFunc: mass => massFusionRounder.Round(value: mass, curTime: CurWorldManager.CurTime),
+                reactionStrengthCoeff: CurWorldConfig.reactionStrengthCoeff,
+                nonConvertedMassForUnitReactionStrengthUnitTime: CurWorldConfig.nonConvertedMassForUnitReactionStrengthUnitTime
             );
 
             state.consistsOfResPile.TransformResToHeatEnergy
             (
-                amount: new ResAmounts
+                amount: new
                 (
                     resInd: state.ConsistsOfResInd,
                     amount: matterCountConvertedToEnergy
@@ -467,7 +469,7 @@ namespace Game1
                 }
             );
 
-            UpdateTextBoxPosition();
+            UpdateHUDPos();
         }
 
         public void UpdatePeople()
@@ -819,7 +821,7 @@ namespace Game1
                 vertices = new();
                 rayCatchingObjects = new();
                 // TODO: consider moving this to constants class
-                UDouble maxDist = 2000;
+                UDouble maxDist = 2000 * CurWorldConfig.metersPerStartingPixel;
 
                 SortedSet<AngleArc> curAngleArcs = new();
                 int angleInd = 0, angleArcInd = 0;

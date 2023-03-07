@@ -50,7 +50,7 @@
         public readonly UDouble
             brightStarTextureBrigthness = (UDouble)1.2,
             dimStarTextureBrightness = (UDouble).6,
-            metersPerPixel = 10,
+            metersPerStartingPixel = 100,
             screenBoundWidthForMapMoving = 10,
             minSafeDist = 10;
         public readonly ulong
@@ -99,16 +99,19 @@
         public readonly Propor
             planetTransformRadiantToElectricalEnergyPropor = (Propor).001;
 
-        public readonly UDouble stefanBoltzmannConstant = (UDouble).000005;
+        public readonly UDouble stefanBoltzmannConstant = (UDouble).0000001;
         public readonly ulong temperatureExponentInStefanBoltzmannLaw = 4;
         public readonly UDouble
             allHeatMaxTemper = 500,
             halfHeatTemper = 2000,
-            heatEnergyDropoffExponent = 2;
+            heatEnergyDropoffExponent = 2,
+            reactionStrengthCoeff = (UDouble)0.00000000001;
+        public readonly Propor
+            nonConvertedMassForUnitReactionStrengthUnitTime = (Propor)0.99;
 
         public WorldConfig()
         {
-            linkWidth = 10 * metersPerPixel;
+            linkWidth = 10 * metersPerStartingPixel;
         }
     }
 }

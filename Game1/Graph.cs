@@ -342,6 +342,9 @@ namespace Game1
                 node.EndSplitRes(resFirstLinks: resFirstLinks);
         }
 
+        public void UpdateHUDPos()
+            => nodes.ForEach(node => node.UpdateHUDPos());
+
         /// <summary>
         /// TODO:
         /// choose random leafs

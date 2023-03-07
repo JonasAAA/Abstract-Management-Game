@@ -45,9 +45,6 @@
                 if (necAdds.Count != necNotLockedAdds.Count)
                     throw new ArgumentException();
 
-                if (!MyMathHelper.IsTiny(necAdds.Values.Sum()))
-                    throw new ArgumentException();
-
                 // this also checks if keys are the same
                 foreach (var key in necAdds.Keys)
                     necNotLockedAdds[key] = necAdds[key];

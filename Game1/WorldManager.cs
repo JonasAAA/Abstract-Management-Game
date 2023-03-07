@@ -94,7 +94,7 @@ namespace Game1
             static Graph CreateGraph()
             {
                 const int width = 5, height = 5;
-                double dist = 200 * (double)CurWorldConfig.metersPerPixel;
+                double dist = 200 * (double)CurWorldConfig.metersPerStartingPixel;
                 const double minPlanetRadiusExponet = 1, maxPlanetRadiusExponent = 2.5, startingPlanetExponent = 4.5;
                 double maxRandomPositionOffset = dist * .3;
                 int startPlanetI = C.Random(min: width / 2 - 1, max: width / 2),
@@ -116,7 +116,7 @@ namespace Game1
                                 mainResAmount: NodeState.ResAmountFromApproxRadius
                                 (
                                     basicResInd: consistsOfResInd,
-                                    approxRadius: CurWorldConfig.metersPerPixel * MyMathHelper.Pow
+                                    approxRadius: CurWorldConfig.metersPerStartingPixel * MyMathHelper.Pow
                                     (
                                         (UDouble)2,
                                         startPlanet ? startingPlanetExponent : MyMathHelper.Pow
@@ -353,7 +353,7 @@ namespace Game1
             vacuumHeatEnergyPile = EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: LocationCounters.CreateEmpty());
             lightManager = new(vacuumHeatEnergyPile: vacuumHeatEnergyPile);
 
-            worldCamera = new(startingWorldScale: 1 / worldConfig.metersPerPixel);
+            worldCamera = new(startingWorldScale: 1 / worldConfig.metersPerStartingPixel);
 
             activeUIManager = new(worldCamera: worldCamera);
             activeUIManager.clickedNowhere.Add(listener: this);
@@ -465,22 +465,26 @@ namespace Game1
 
             worldCamera.Update(elapsed: elapsedGameTime, canScroll: CurGraph.MouseOn);
 
-            lightManager.Update();
+            if (Elapsed > TimeSpan.Zero)
+            {
+                lightManager.Update();
 
-            energyManager.DistributeEnergy
-            (
-                nodeIDs: from node in CurGraph.Nodes
-                         select node.NodeID,
-                nodeIDToNode: nodeID => CurGraph.nodeIDToNode[nodeID]
-            );
+                energyManager.DistributeEnergy
+                (
+                    nodeIDs: from node in CurGraph.Nodes
+                             select node.NodeID,
+                    nodeIDToNode: nodeID => CurGraph.nodeIDToNode[nodeID]
+                );
 
-            CurGraph.Update(vacuumHeatEnergyPile: vacuumHeatEnergyPile);
+                CurGraph.Update(vacuumHeatEnergyPile: vacuumHeatEnergyPile);
 
-            activityManager.ManageActivities(people: people);
+                activityManager.ManageActivities(people: people);
 
-            Debug.Assert(people.Count == CurGraph.Stats.totalNumPeople);
-            globalTextBox.Text = (energyManager.Summary() + CurGraph.Stats.ToString()).Trim();
-
+                Debug.Assert(people.Count == CurGraph.Stats.totalNumPeople);
+                globalTextBox.Text = (energyManager.Summary() + CurGraph.Stats.ToString()).Trim();
+            }
+            else
+                CurGraph.UpdateHUDPos();
             activeUIManager.Update(elapsed: elapsedGameTime);
 
             // THIS is a huge performance penalty

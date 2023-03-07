@@ -31,14 +31,6 @@ namespace Game1.MyMath
 
         public static decimal Min(decimal left, decimal right)
             => left < right ? left : right;
-        //{
-        //    Debug.Assert(left >= right || right >= left);
-        //    Debug.Assert(left is not ResAmounts);
-        //    return left < right ? left : right;
-        //}
-
-        //public static ResAmounts Min(ResAmounts left, ResAmounts right)
-        //    => left.Min(other: right);
 
         // T is not IComparisonOperators<T, T, bool> for the same reason as Min function
         public static T Max<T>(T left, T right) where T : IMax<T>

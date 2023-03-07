@@ -22,18 +22,6 @@ namespace Game1.Lighting
             this.color = color;
         }
 
-        //public LightPolygon(Color color, MyVector2 center, List<MyVector2> vertices)
-        //{
-        //    if (strength.IsCloseTo(other: 0))
-        //        throw new ArgumentOutOfRangeException();
-        //    this.color = color;
-        //    this.center = center;
-        //    this.vertices = vertices;
-        //    vertPosTexs = Array.Empty<VertexPositionColorTexture>();
-        //    inds = Array.Empty<ushort>();
-        //    Update(center: center, vertices: vertices);
-        //}
-
         /// <param name="strength">a positive double which determins the Radius of the lit Area</param>
         public void Update(UDouble strength, MyVector2 center, List<MyVector2> vertices)
         {

@@ -10,9 +10,6 @@ namespace Game1
         public static ulong ResAmountFromApproxRadius(BasicResInd basicResInd, UDouble approxRadius)
             => Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / CurResConfig.resources[basicResInd].Area);
 
-        // TODO: define using the new notation
-        //public double SurfaceGravitationalAccel
-        //    => CurWorldConfig.gravitConst * Mass / MathHelper.Pow(Radius, CurWorldConfig.gravitPower);
         public NodeID NodeID { get; }
         public Mass PlanetMass
             => consistsOfResPile.Amount.Mass();

@@ -72,15 +72,6 @@
             linkJoulesPerNewtonOfGravity = (UDouble).001,
             linkJoulesPerMeterOfDistance = (UDouble).00001;
 
-        public readonly ulong[] magicUnlimitedResAmounts = Enumerable.Repeat
-        (
-            element: (ulong)uint.MaxValue,
-            count: (int)ResInd.count
-        ).ToArray();
-
-        //public readonly ulong
-        //    startingMagicResTemperatureInK = 300;
-
         public readonly ulong
             energyInJPerKgOfMass = 1000000;
 

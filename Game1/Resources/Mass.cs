@@ -24,9 +24,6 @@ namespace Game1.Resources
         public bool IsZero
             => this == zero;
 
-        //Energy IFormOfEnergy<Mass>.Energy
-        //    => Energy.CreateFromJoules(valueInJ: valueInKg * CurWorldConfig.energyInJPerKgOfMass);
-
         public readonly ulong valueInKg;
 
         private Mass(ulong valueInKg)

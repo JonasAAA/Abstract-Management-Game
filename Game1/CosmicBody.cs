@@ -134,6 +134,11 @@ namespace Game1
         private readonly HistoricRounder energyToDissipateRounder, heatEnergyToDissipateRounder, massFusionRounder, reflectedRadiantEnergyRounder, capturedForUseRadiantEnergyRounder;
         private readonly EnergyPile<RadiantEnergy> radiantEnergyToDissipatePile;
         private RadiantEnergy radiantEnergyToDissipate;
+
+        /// <summary>
+        /// This is current temperature to be used until the new value is calculated.
+        /// Don't calculate temperature on the fly each time, as that would lead to temperature variations during the frame.
+        /// </summary>
         private UDouble temperatureInK;
         private ulong matterCountConvertedToEnergy;
 
@@ -447,10 +452,6 @@ namespace Game1
 
             // MAKE sure that all resources (and people) leaving the planet do so AFTER the the temperatureInK is established for that frame,
             // i.e. after appropriate amount of energy is radiated to space.
-
-            // IF need to use current planet temperatureInK for something, calculate it once per frame here, then use it.
-            // Don't want to calculate temperatureInK on the fly each time, as that would lead to higher temperatures at the beginning of the frame
-            // due to getting heat energy from electricity used in links and industry.
 
             // transfer people who want to go to other places
             state.WaitingPeople.ForEach

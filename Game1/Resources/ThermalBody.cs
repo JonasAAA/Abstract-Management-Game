@@ -57,11 +57,6 @@
 
             source.resAmounts -= amount;
             resAmounts += amount;
-            //resAmounts.TransferFrom
-            //(
-            //    source: source.resAmounts,
-            //    count: amount
-            //);
         }
 
         public void TransformResFrom(ThermalBody source, ResRecipe recipe)

@@ -1,5 +1,6 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Game1.UI
 {
@@ -29,17 +30,19 @@ namespace Game1.UI
         public Event<IClickedNowhereListener> clickedNowhere;
 
         private readonly List<IUIElement> activeUIElements;
-        private readonly HashSet<IHUDElement> HUDElements;
-        private readonly Dictionary<IUIElement, IPosTransformer> nonHUDElementsToTransform;
+        private readonly HashSet<IHUDElement> HUDElements, worldHUDElements;
+        private readonly HashSet<IUIElement> worldUIElements;
         private bool leftDown, prevLeftDown;
         private IUIElement? halfClicked, contMouse;
         private readonly TimeSpan minDurationToGetTooltip;
         private TimeSpan hoverDuration;
         private ITooltip? tooltip;
         private readonly HUDPosSetter HUDPosSetter;
+        private readonly WorldCamera? worldCamera;
 
-        public ActiveUIManager()
+        public ActiveUIManager(WorldCamera? worldCamera)
         {
+            this.worldCamera = worldCamera;
             clickedNowhere = new();
 
             activeUIElements = new();
@@ -52,23 +55,30 @@ namespace Game1.UI
             hoverDuration = TimeSpan.Zero;
 
             HUDPosSetter = new();
-            nonHUDElementsToTransform = new();
+            worldUIElements = new();
+            worldHUDElements = new();
 
             tooltip = null;
         }
 
-        public void AddNonHUDElement(IUIElement UIElement, IPosTransformer posTransformer)
+        /// <summary>
+        /// HUDElement is will not be drawn by this
+        /// </summary>
+        public void AddWorldUIElement(IUIElement UIElement)
         {
             activeUIElements.Add(UIElement);
-            nonHUDElementsToTransform.Add(UIElement, posTransformer);
+            worldUIElements.Add(UIElement);
         }
 
-        public void RemoveNonHUDElement(IUIElement UIElement)
+        public void RemoveWorldUIElement(IUIElement UIElement)
         {
             activeUIElements.Remove(UIElement);
-            nonHUDElementsToTransform.Remove(UIElement);
+            worldUIElements.Remove(UIElement);
         }
 
+        /// <summary>
+        /// HUDElement will be drawn by this
+        /// </summary>
         public void AddHUDElement(IHUDElement? HUDElement, HorizPos horizPos, VertPos vertPos)
         {
             if (HUDElement is null)
@@ -79,6 +89,21 @@ namespace Game1.UI
             activeUIElements.Add(HUDElement);
             if (!HUDElements.Add(HUDElement))
                 throw new ArgumentException();
+        }
+
+        /// <summary>
+        /// worldHUDElement will be drawn by this
+        /// </summary>
+        public void AddWorldHUDElement(IHUDElement worldHUDElement)
+        {
+            activeUIElements.Add(worldHUDElement);
+            worldHUDElements.Add(worldHUDElement);
+        }
+
+        public void RemoveWorldHUDElement(IHUDElement worldHUDElement)
+        {
+            activeUIElements.Remove(worldHUDElement);
+            worldHUDElements.Remove(worldHUDElement);
         }
 
         public void RemoveHUDElement(IHUDElement? HUDElement)
@@ -114,20 +139,23 @@ namespace Game1.UI
                 mouseHUDPos = HUDCamera.HUDPos(screenPos: mouseScreenPos);
 
             contMouse = null;
-            foreach (var UIElement in Enumerable.Reverse(activeUIElements))
+            foreach (IUIElement UIElement in Enumerable.Reverse(activeUIElements))
             {
-                MyVector2 mousePos = nonHUDElementsToTransform.ContainsKey(UIElement) switch
-                {
-                    true => nonHUDElementsToTransform[UIElement].Transform(screenPos: mouseScreenPos),
-                    false => mouseHUDPos
-                };
-
-                IUIElement? catchingUIElement = UIElement.CatchUIElement(mousePos: mousePos);
+                IUIElement? catchingUIElement = UIElement.CatchUIElement(mousePos: getMousePos());
 
                 if (catchingUIElement is not null)
                 {
                     contMouse = catchingUIElement;
                     break;
+                }
+
+                MyVector2 getMousePos()
+                {
+                    if (HUDElements.Contains(UIElement) || worldHUDElements.Contains(UIElement))
+                        return mouseScreenPos;
+                    if (worldUIElements.Contains(UIElement))
+                        return worldCamera!.WorldPos(screenPos: mouseScreenPos);
+                    throw new();
                 }
             }
 
@@ -179,8 +207,10 @@ namespace Game1.UI
         public void DrawHUD()
         {
             HUDCamera.BeginDraw();
-            foreach (var UIElement in HUDElements)
-                UIElement.Draw();
+            foreach (var worldHUDElement in worldHUDElements)
+                worldHUDElement.Draw();
+            foreach (var HUDElement in HUDElements)
+                HUDElement.Draw();
             tooltip?.Draw();
             HUDCamera.EndDraw();
         }

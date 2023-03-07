@@ -183,6 +183,7 @@
             foreach (var key in unusedKeys)
             {
                 perfect.Add(key, splitAmount * (decimal)importances[key] / unusedPropSum + necAdds[key]);
+#warning Now that we know that (ulong)perfect[key] doesn't always round down, need to ensure that will not give out more than have
                 splitAmounts.Add(key, (ulong)perfect[key]);
                 amount -= splitAmounts[key];
             }

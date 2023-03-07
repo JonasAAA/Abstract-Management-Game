@@ -249,8 +249,8 @@ namespace Game1
 
 #warning parametrise these formulas
             double density = (double)basicRes.Area / basicRes.Mass.valueInKg,
-                reactionStrength = .0000001 * density * surfaceGravity * temperatureInK;
-            var nonConvertedMassPropor = (decimal)MyMathHelper.Pow(@base: (UDouble).5, exponent: reactionStrength * duration.TotalSeconds);
+                reactionStrength = 0.000000000001 * density * surfaceGravity * temperatureInK;
+            var nonConvertedMassPropor = (decimal)MyMathHelper.Pow(@base: (UDouble).99, exponent: reactionStrength * duration.TotalSeconds);
             ulong matterToConvert = resAmount - massInKgRoundFunc(nonConvertedMassPropor * resAmount);
             return matterToConvert;
         }

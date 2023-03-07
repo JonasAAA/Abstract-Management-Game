@@ -1,5 +1,4 @@
 ﻿using Game1.Inhabitants;
-using System.Linq;
 using System.Numerics;
 using System.Text;
 
@@ -96,6 +95,9 @@ namespace Game1
 
         public static IEnumerable<T> Clone<T>(this IEnumerable<T> source)
             => source.ToArray();
+
+        public static TValue? GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
+            => dictionary.TryGetValue(key: key, out var value) ? value : default;
 
         public static TSource? ArgMaxOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
             => source.OrderBy(value => selector(value)).LastOrDefault();

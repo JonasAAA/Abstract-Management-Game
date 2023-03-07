@@ -181,8 +181,9 @@ namespace Game1
             matterCountConvertedToEnergy = 0;
 
             textBox = new(textColor: colorConfig.almostWhiteColor);
-            textBox.Shape.Center = Position;
-            AddChild(child: textBox);
+            textBox.Shape.MinWidth = 100;
+            UpdateTextBoxPosition();
+            CurWorldManager.AddWorldHUDElement(worldHUDElement: textBox);
 
             List<(string tabLabelText, ITooltip tabTooltip, IHUDElement tab)> UITabs = new();
 
@@ -314,6 +315,9 @@ namespace Game1
             CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
         }
 
+        private void UpdateTextBoxPosition()
+            => textBox.Shape.Center = CurWorldManager.WorldPosToScreenPos(worldPos: Position);
+
         public ulong TotalQueuedRes(ResInd resInd)
             => state.StoredResPile.Amount[resInd] + resTravelHereAmounts[resInd];
 
@@ -388,8 +392,6 @@ namespace Game1
 
             state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: state.RadiantEnergyPile);
 
-            var aaa = state.MainResAmount;
-
             matterCountConvertedToEnergy = Algorithms.MatterToConvertToEnergy
             (
                 basicRes: state.ConsistsOfRes,
@@ -410,8 +412,6 @@ namespace Game1
             );
 
             state.RecalculateValues();
-
-#warning TEMPERATURE will always be zero for now, as it's zero at the start, and fusion reactions only happen for non-zero temperatures
 
             Energy energyToDissipate = Algorithms.EnergyToDissipate
             (
@@ -467,7 +467,7 @@ namespace Game1
                 }
             );
 
-            textBox.Shape.Center = state.Position;
+            UpdateTextBoxPosition();
         }
 
         public void UpdatePeople()

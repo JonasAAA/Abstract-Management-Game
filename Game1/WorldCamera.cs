@@ -6,7 +6,7 @@ using static Game1.WorldManager;
 namespace Game1
 {
     [Serializable]
-    public sealed class WorldCamera : Camera, IPosTransformer
+    public sealed class WorldCamera : Camera
     {
         private Matrix worldToScreen, screenToWorld;
         private UDouble scale;
@@ -65,8 +65,5 @@ namespace Game1
 
         public override Matrix GetToScreenTransform()
             => worldToScreen;
-
-        MyVector2 IPosTransformer.Transform(MyVector2 screenPos)
-            => WorldPos(screenPos: screenPos);
     }
 }

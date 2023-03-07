@@ -6,7 +6,10 @@ using static Game1.WorldManager;
 namespace Game1.UI
 {
     [Serializable]
-    public abstract class WorldUIElement : UIElement<IUIElement>, IChoiceChangedListener<IOverlay>
+    // TChild is WorldUIElement to disallow text and similar UI elements which would should not scale when player zooms in/out
+    // The correct approach here would be to have TChild IWorldUIElement (that being new interface) but I'm not sure if that'll work
+    // with the save system (as UIElement<IUIElement> and UIElement<IWorldUIElement> would be indistinguishable types for the save system
+    public abstract class WorldUIElement : UIElement<WorldUIElement>, IChoiceChangedListener<IOverlay>
     {
         public readonly Event<IActiveChangedListener> activeChanged;
 

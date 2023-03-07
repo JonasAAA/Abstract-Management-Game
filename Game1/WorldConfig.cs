@@ -50,13 +50,12 @@
         public readonly UDouble
             brightStarTextureBrigthness = (UDouble)1.2,
             dimStarTextureBrightness = (UDouble).6,
-            startingWorldScale = 1,
+            metersPerPixel = 10,
             screenBoundWidthForMapMoving = 10,
             minSafeDist = 10;
         public readonly ulong
             resDistribArrowsUILayer = 1;
-        public readonly UDouble
-            linkWidth = 10;
+        public readonly UDouble linkWidth;
         // So gravitational force between masses M1 and M2 at distance R is gravitConst * M1 * M2 / (R ^ gravitExponent)
         public readonly UDouble
             gravitExponent = 1,
@@ -106,5 +105,10 @@
             allHeatMaxTemper = 500,
             halfHeatTemper = 2000,
             heatEnergyDropoffExponent = 2;
+
+        public WorldConfig()
+        {
+            linkWidth = 10 * metersPerPixel;
+        }
     }
 }

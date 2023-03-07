@@ -70,7 +70,7 @@ namespace Game1
 
             static void AddUIElements()
             {
-                CurWorldManager.activeUIManager.AddNonHUDElement(UIElement: CurWorldManager.CurGraph, posTransformer: CurWorldManager.worldCamera);
+                CurWorldManager.activeUIManager.AddWorldUIElement(UIElement: CurWorldManager.CurGraph);
                 CurWorldManager.AddHUDElement
                 (
                     HUDElement: CurWorldManager.globalTextBox,
@@ -93,9 +93,10 @@ namespace Game1
 
             static Graph CreateGraph()
             {
-                const int width = 10, height = 10, dist = 200, minAllowedDistToStar = 200;
-                const double minPlanetRadiusExponet = 3, maxPlanetRadiusExponent = 7, startingPlanetExponent = 4.5;
-                const double maxRandomPositionOffset = dist * .3;
+                const int width = 5, height = 5;
+                double dist = 200 * (double)CurWorldConfig.metersPerPixel;
+                const double minPlanetRadiusExponet = 1, maxPlanetRadiusExponent = 2.5, startingPlanetExponent = 4.5;
+                double maxRandomPositionOffset = dist * .3;
                 int startPlanetI = C.Random(min: width / 2 - 1, max: width / 2),
                     startPlanetJ = C.Random(min: height / 2 - 1, max: height / 2);
                 CosmicBody?[,] cosmicBodies = new CosmicBody[width, height];
@@ -115,7 +116,15 @@ namespace Game1
                                 mainResAmount: NodeState.ResAmountFromApproxRadius
                                 (
                                     basicResInd: consistsOfResInd,
-                                    approxRadius: MyMathHelper.Pow((UDouble)2, startPlanet ? startingPlanetExponent : C.Random(min: minPlanetRadiusExponet, max: maxPlanetRadiusExponent))
+                                    approxRadius: CurWorldConfig.metersPerPixel * MyMathHelper.Pow
+                                    (
+                                        (UDouble)2,
+                                        startPlanet ? startingPlanetExponent : MyMathHelper.Pow
+                                        (
+                                            @base: C.Random(min: minPlanetRadiusExponet, max: maxPlanetRadiusExponent),
+                                            exponent: 2
+                                        )
+                                    )
                                 ),
                                 resSource: magicResPile,
                                 maxBatchDemResStored: 2
@@ -344,9 +353,9 @@ namespace Game1
             vacuumHeatEnergyPile = EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: LocationCounters.CreateEmpty());
             lightManager = new(vacuumHeatEnergyPile: vacuumHeatEnergyPile);
 
-            worldCamera = new(startingWorldScale: worldConfig.startingWorldScale);
+            worldCamera = new(startingWorldScale: 1 / worldConfig.metersPerPixel);
 
-            activeUIManager = new();
+            activeUIManager = new(worldCamera: worldCamera);
             activeUIManager.clickedNowhere.Add(listener: this);
 
             globalTextBox = new(backgroundColor: colorConfig.UIBackgroundColor);
@@ -416,8 +425,14 @@ namespace Game1
         public void RemoveResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
             => CurGraph.RemoveResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
+        public MyVector2 WorldPosToScreenPos(MyVector2 worldPos)
+            => worldCamera.ScreenPos(worldPos: worldPos);
+
         public void AddHUDElement(IHUDElement? HUDElement, HorizPos horizPos, VertPos vertPos)
             => activeUIManager.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
+
+        public void AddWorldHUDElement(IHUDElement worldHUDElement)
+            => activeUIManager.AddWorldHUDElement(worldHUDElement: worldHUDElement);
 
         public void RemoveHUDElement(IHUDElement? HUDElement)
             => activeUIManager.RemoveHUDElement(HUDElement: HUDElement);

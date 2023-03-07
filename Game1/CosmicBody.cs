@@ -857,7 +857,7 @@ namespace Game1
                 Dictionary<IRadiantEnergyConsumer, UDouble> arcsForObjects = lightCatchingObjects.ToDictionary
                 (
                     keySelector: lightCatchingObject => lightCatchingObject as IRadiantEnergyConsumer,
-                    elementSelector: lightCatchingObject => (UDouble)0
+                    elementSelector: lightCatchingObject => UDouble.zero
                 );
                 arcsForObjects.Add(key: vacuumAsRadiantEnergyConsumer, value: 0);
                 usedArc = 0;

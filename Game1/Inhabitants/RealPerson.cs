@@ -155,6 +155,9 @@ namespace Game1.Inhabitants
             ClosestNodeID = closestNodeID;
         }
 
+        public void UpdateAllocEnergyPropor(Propor newAllocEnergyPropor)
+            => Stats = Stats with { AllocEnergyPropor = newAllocEnergyPropor };
+
         /// <param name="updateSkillsParams">if null, will use default update</param>
         public void Update(UpdatePersonSkillsParams? updateSkillsParams, Propor allocEnergyPropor)
         {

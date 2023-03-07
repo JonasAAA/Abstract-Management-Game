@@ -95,7 +95,7 @@ namespace Game1
             {
                 const int width = 5, height = 5;
                 double dist = 200 * (double)CurWorldConfig.metersPerStartingPixel;
-                const double minPlanetRadiusExponet = 1, maxPlanetRadiusExponent = 2.5, startingPlanetExponent = 4.5;
+                const double minPlanetRadiusExponet = 1, maxPlanetRadiusExponent = 2.6, startingPlanetExponent = 4.5;
                 double maxRandomPositionOffset = dist * .3;
                 int startPlanetI = C.Random(min: width / 2 - 1, max: width / 2),
                     startPlanetJ = C.Random(min: height / 2 - 1, max: height / 2);

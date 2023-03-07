@@ -82,16 +82,16 @@ namespace Game1.Industries
             }
 
             /// <summary>
-            /// Returns industryWorkingPropor
+            /// Returns industry working propor
             /// </summary>
             public Propor Update(bool isBusy, Propor industryEnergyPropor)
             {
-                var industryWorkingPropor = MyMathHelper.Min(industryEnergyPropor, realPeopleHere.Stats.AllocEnergyPropor);
+                var finalIndustryEnergyPropor = MyMathHelper.Min(industryEnergyPropor, realPeopleHere.Stats.AllocEnergyPropor);
                 personalWorkingPropor = isBusy switch
                 {
                     true => Propor.Create
                     (
-                        part: (UDouble)industryWorkingPropor,
+                        part: (UDouble)finalIndustryEnergyPropor,
                         whole: MyMathHelper.Max((UDouble)1, CurUnboundedSkillPropor)
                     )!.Value,
                     false => Propor.empty
@@ -137,7 +137,7 @@ namespace Game1.Industries
                         halvingDifferenceDuration: TimeSpan.FromSeconds(20)
                     )
                 );
-                return industryWorkingPropor;
+                return finalIndustryEnergyPropor * CurSkillPropor;
             }
 
             public override bool IsFull()

@@ -135,7 +135,7 @@ namespace Game1.Industries
             => IsBusy().SwitchExpression
             (
                 trueCase: () => parameters.ReqWatts * CurSkillPropor,
-                falseCase: () => (UDouble)0
+                falseCase: () => UDouble.zero
             );
 
         public override void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)

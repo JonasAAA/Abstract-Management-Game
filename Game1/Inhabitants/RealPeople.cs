@@ -171,9 +171,12 @@ namespace Game1.Inhabitants
         void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {
             allocElectricalEnergy.TransferFrom(source: source, amount: electricalEnergy);
+            var allocEnergyPropor = MyMathHelper.CreatePropor(part: electricalEnergy, whole: ReqEnergy());
+            foreach (var realPerson in virtualToRealPeople.Values)
+                realPerson.UpdateAllocEnergyPropor(newAllocEnergyPropor: allocEnergyPropor);
             Stats = Stats with
             {
-                AllocEnergyPropor = MyMathHelper.CreatePropor(part: electricalEnergy, whole: ReqEnergy())
+                AllocEnergyPropor = allocEnergyPropor
             };
         }
 

@@ -28,6 +28,9 @@ namespace Game1.MyMath
 
         public static ulong Min(ulong left, ulong right)
             => left < right ? left : right;
+
+        public static decimal Min(decimal left, decimal right)
+            => left < right ? left : right;
         //{
         //    Debug.Assert(left >= right || right >= left);
         //    Debug.Assert(left is not ResAmounts);

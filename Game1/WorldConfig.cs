@@ -65,7 +65,7 @@
         public readonly ulong
             minResAmountInPlanet = 100;
         public readonly UDouble
-            defaultIndustryHeight = 10;
+            defaultIndustryHeight = 500;
 
         public readonly UDouble
             linkTravelSpeed = (UDouble)100,
@@ -105,7 +105,7 @@
             allHeatMaxTemper = 500,
             halfHeatTemper = 2000,
             heatEnergyDropoffExponent = 2,
-            reactionStrengthCoeff = (UDouble)0.00000000001;
+            reactionStrengthCoeff = (UDouble)0.000000000001;
         public readonly Propor
             nonConvertedMassForUnitReactionStrengthUnitTime = (Propor)0.99;
 

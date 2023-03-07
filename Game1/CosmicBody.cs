@@ -131,7 +131,7 @@ namespace Game1
         private readonly new LightCatchingDisk shape;
         private ElectricalEnergy locallyProducedEnergy, usedLocalEnergy;
         private readonly SimpleHistoricProporSplitter<IRadiantEnergyConsumer> radiantEnergySplitter;
-        private readonly HistoricRounder heatEnergyDissipationRounder, massFusionRounder, reflectedRadiantEnergyRounder, capturedForUseRadiantEnergyRounder;
+        private readonly HistoricRounder energyToDissipateRounder, heatEnergyToDissipateRounder, massFusionRounder, reflectedRadiantEnergyRounder, capturedForUseRadiantEnergyRounder;
         private readonly EnergyPile<RadiantEnergy> radiantEnergyToDissipatePile;
         private RadiantEnergy radiantEnergyToDissipate;
         private UDouble temperatureInK;
@@ -170,7 +170,8 @@ namespace Game1
             resTravelHereAmounts = ResAmounts.Empty;
             usedLocalEnergy = ElectricalEnergy.zero;
             radiantEnergySplitter = new();
-            heatEnergyDissipationRounder = new();
+            energyToDissipateRounder = new();
+            heatEnergyToDissipateRounder = new();
             massFusionRounder = new();
             reflectedRadiantEnergyRounder = new();
             capturedForUseRadiantEnergyRounder = new();
@@ -415,23 +416,16 @@ namespace Game1
 
             state.RecalculateValues();
 
-            Energy energyToDissipate = Algorithms.EnergyToDissipate
+            (HeatEnergy heatEnergyToDissipate, radiantEnergyToDissipate) = Algorithms.EnergiesToDissipate
             (
                 heatEnergy: state.ThermalBody.HeatEnergy,
-                heatCapacity: state.ThermalBody.HeatCapacity,
                 surfaceLength: state.ApproxSurfaceLength,
                 emissivity: Industry?.SurfaceEmissivity ?? state.ConsistsOfRes.Emissivity,
-                stefanBoltzmannConstant: CurWorldConfig.stefanBoltzmannConstant,
-                temperatureExponent: CurWorldConfig.temperatureExponentInStefanBoltzmannLaw
-            );
-
-            temperatureInK = (UDouble)(state.ThermalBody.HeatEnergy.ValueInJ() - energyToDissipate.valueInJ) / state.ThermalBody.HeatCapacity.valueInJPerK;
-
-            (HeatEnergy heatEnergyToDissipate, radiantEnergyToDissipate) = Algorithms.SplitEnergyToDissipate
-            (
-                energyToDissipate: energyToDissipate,
                 temperatureInK: temperatureInK,
-                heatEnergyInJRoundFunc: heatEnergyInJ => heatEnergyDissipationRounder.Round(value: heatEnergyInJ, curTime: CurWorldManager.CurTime),
+                energyInJToDissipateRoundFunc: energyInJ => energyToDissipateRounder.Round(value: energyInJ, curTime: CurWorldManager.CurTime),
+                stefanBoltzmannConstant: CurWorldConfig.stefanBoltzmannConstant,
+                temperatureExponent: CurWorldConfig.temperatureExponentInStefanBoltzmannLaw,
+                heatEnergyInJRoundFunc: heatEnergyInJ => heatEnergyToDissipateRounder.Round(value: heatEnergyInJ, curTime: CurWorldManager.CurTime),
                 allHeatMaxTemper: CurWorldConfig.allHeatMaxTemper,
                 halfHeatTemper: CurWorldConfig.halfHeatTemper,
                 heatEnergyDropoffExponent: CurWorldConfig.heatEnergyDropoffExponent
@@ -448,6 +442,8 @@ namespace Game1
                 destin: radiantEnergyToDissipatePile,
                 amount: radiantEnergyToDissipate
             );
+
+            temperatureInK = (UDouble)state.ThermalBody.HeatEnergy.ValueInJ() / state.ThermalBody.HeatCapacity.valueInJPerK;
 
             // MAKE sure that all resources (and people) leaving the planet do so AFTER the the temperatureInK is established for that frame,
             // i.e. after appropriate amount of energy is radiated to space.

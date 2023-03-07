@@ -205,49 +205,10 @@ namespace Game1
             }
         }
 
-        /// <summary>
-        /// Implements Stefan-Boltzmann law https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law
-        /// assuming that all the stats (temperatureInK, heat energy, heat capacity, etc.) were constant throughout the frame
-        /// </summary>
-        public static Energy EnergyToDissipate(HeatEnergy heatEnergy, HeatCapacity heatCapacity, UDouble surfaceLength, Propor emissivity, UDouble stefanBoltzmannConstant, ulong temperatureExponent)
-        {
-            if (heatCapacity.IsZero)
-            {
-                if (heatEnergy.IsZero)
-                    return Energy.zero;
-                else
-                    throw new ArgumentException();
-            }
-            ulong heatCapacityInJPerK = heatCapacity.valueInJPerK,
-                heatEnergyInJ = heatEnergy.ValueInJ(),
-                minFinalHeatEnergyInJ = 0,
-                maxFinalHeatEnergyInJ = heatEnergyInJ;
-
-            while (minFinalHeatEnergyInJ + 1 < maxFinalHeatEnergyInJ)
-            {
-                ulong midFinalHeatEnergyInJ = (minFinalHeatEnergyInJ + maxFinalHeatEnergyInJ) / 2;
-                if (diffBetweenEnergyLossAndDissipatedEnergy(finalHeatEnergyInJ: midFinalHeatEnergyInJ) > 0)
-                    minFinalHeatEnergyInJ = midFinalHeatEnergyInJ;
-                else
-                    maxFinalHeatEnergyInJ = midFinalHeatEnergyInJ;
-            }
-            
-            ulong finalHeatEnergyInJ =
-                MyMathHelper.Abs(diffBetweenEnergyLossAndDissipatedEnergy(finalHeatEnergyInJ: minFinalHeatEnergyInJ)) <
-                MyMathHelper.Abs(diffBetweenEnergyLossAndDissipatedEnergy(finalHeatEnergyInJ: maxFinalHeatEnergyInJ))
-                ? minFinalHeatEnergyInJ : maxFinalHeatEnergyInJ;
-
-            return Energy.CreateFromJoules(valueInJ: heatEnergyInJ - finalHeatEnergyInJ);
-
-            double diffBetweenEnergyLossAndDissipatedEnergy(ulong finalHeatEnergyInJ)
-                => heatEnergyInJ - finalHeatEnergyInJ - surfaceLength * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: (double)finalHeatEnergyInJ / heatCapacityInJPerK, exponent: temperatureExponent);
-        }
-
-        public static ulong MatterToConvertToEnergy(BasicRes basicRes, ulong resAmount, UDouble temperatureInK, UDouble surfaceGravity, TimeSpan duration, Func<decimal, ulong> massInKgRoundFunc, UDouble reactionStrengthCoeff, Propor nonConvertedMassForUnitReactionStrengthUnitTime)
+        public static ulong MatterToConvertToEnergy(BasicRes basicRes, ulong resAmount, UDouble temperatureInK, UDouble surfaceGravity, TimeSpan duration,
+            Func<decimal, ulong> massInKgRoundFunc, UDouble reactionStrengthCoeff, Propor nonConvertedMassForUnitReactionStrengthUnitTime)
         {
 #warning test this
-
-#warning parametrise these formulas
             double density = (double)basicRes.Area / basicRes.Mass.valueInKg,
                 reactionStrength = reactionStrengthCoeff * density * surfaceGravity * temperatureInK;
             var nonConvertedMassPropor = (decimal)MyMathHelper.Pow(@base: (UDouble)nonConvertedMassForUnitReactionStrengthUnitTime, exponent: reactionStrength * duration.TotalSeconds);
@@ -255,22 +216,32 @@ namespace Game1
             return matterToConvert;
         }
 
-        public static (HeatEnergy heatEnergy, RadiantEnergy radiantEnergy) SplitEnergyToDissipate(Energy energyToDissipate, UDouble temperatureInK, Func<decimal, ulong> heatEnergyInJRoundFunc, UDouble allHeatMaxTemper, UDouble halfHeatTemper, UDouble heatEnergyDropoffExponent)
+        /// <summary>
+        /// Implements Stefan-Boltzmann law https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law to calculate how much energy in total to dissipate
+        /// The splitting into heat energy and radiant energy algorithm is my creation
+        /// </summary>
+        public static (HeatEnergy heatEnergy, RadiantEnergy radiantEnergy) EnergiesToDissipate(HeatEnergy heatEnergy, UDouble surfaceLength, Propor emissivity, UDouble temperatureInK,
+            Func<decimal, ulong> energyInJToDissipateRoundFunc, UDouble stefanBoltzmannConstant, ulong temperatureExponent, Func<decimal, ulong> heatEnergyInJRoundFunc,
+            UDouble allHeatMaxTemper, UDouble halfHeatTemper, UDouble heatEnergyDropoffExponent)
         {
 #warning test this
+            ulong energyInJToDissipate = MyMathHelper.Min
+            (
+                heatEnergy.ValueInJ,
+                energyInJToDissipateRoundFunc((decimal)(surfaceLength * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: temperatureInK, exponent: temperatureExponent)))
+            );
             double heatEnergyPropor = (temperatureInK <= allHeatMaxTemper) switch
             {
                 true => 1,
                 false => 1 / (1 + MyMathHelper.Pow(@base: (temperatureInK - allHeatMaxTemper) / (halfHeatTemper - allHeatMaxTemper), exponent: heatEnergyDropoffExponent))
             };
 
-            ulong energyToDissipateInJ = energyToDissipate.valueInJ,
-                heatEnergyInJ = heatEnergyInJRoundFunc(energyToDissipateInJ * (decimal)heatEnergyPropor);
+            ulong heatEnergyInJ = heatEnergyInJRoundFunc(energyInJToDissipate * (decimal)heatEnergyPropor);
             return
             (
                 heatEnergy: HeatEnergy.CreateFromJoules(valueInJ: heatEnergyInJ),
-                radiantEnergy: RadiantEnergy.CreateFromJoules(valueInJ: energyToDissipateInJ - heatEnergyInJ)
+                radiantEnergy: RadiantEnergy.CreateFromJoules(valueInJ: energyInJToDissipate - heatEnergyInJ)
             );
-        } 
+        }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace Game1
 {
-    public interface ILinkFacingPlanet
+    public interface ILinkFacingCosmicBody
     {
         public MyVector2 Position { get; }
 
@@ -14,8 +14,10 @@ namespace Game1
 
         public void Arrive(ResAmountsPacketsByDestin resAmountsPackets);
 
-        public void Arrive(RealPeople realPeople);
+        public void ArriveAndDeleteSource(RealPeople realPeopleSource);
 
         public void Arrive(RealPerson realPerson, RealPeople realPersonSource);
+
+        public void TransformAllElectricityToHeatAndTransferFrom(EnergyPile<ElectricalEnergy> source);
     }
 }

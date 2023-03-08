@@ -97,16 +97,29 @@ namespace Game1.Industries
 
         public abstract bool PeopleWorkOnTop { get; }
 
-        public abstract RealPeopleStats RealPeopleStats { get; }
+        /// <summary>
+        /// Null if no building
+        /// </summary>
+        public virtual Propor? SurfaceReflectance
+            => building?.Cost.Reflectance();
+
+        /// <summary>
+        /// Null if no building
+        /// </summary>
+        public virtual Propor? SurfaceEmissivity
+            => building?.Cost.Emissivity();
+
+        public abstract RealPeopleStats Stats { get; }
 
         public IHUDElement UIElement
             => UIPanel;
 
         protected abstract UDouble Height { get; }
 
+        protected readonly CombinedEnergyConsumer combinedEnergyConsumer;
         protected readonly UIRectPanel<IHUDElement> UIPanel;
 
-        private Building? building;
+        private readonly Building? building;
         private bool isDeleted;
         private readonly Event<IDeletedListener> deleted;
         private readonly LightCatchingDisk lightCatchingDisk;
@@ -117,6 +130,12 @@ namespace Game1.Industries
         {
             this.parameters = parameters;
             this.building = building;
+
+            combinedEnergyConsumer = new
+            (
+                nodeID: parameters.state.NodeID,
+                energyDistributor: CurWorldManager.EnergyDistributor
+            );
             isDeleted = false;
             deleted = new();
 
@@ -140,13 +159,13 @@ namespace Game1.Industries
             UIPanel.AddChild(child: deleteButton);
         }
 
-        public void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams)
+        public void UpdatePeople()
         {
-            UpdatePeopleInternal(updateLocationParams: updateLocationParams);
+            UpdatePeopleInternal();
             textBox.Text = GetInfo();
         }
 
-        protected abstract void UpdatePeopleInternal(RealPerson.UpdateLocationParams updateLocationParams);
+        protected abstract void UpdatePeopleInternal();
 
         public abstract ResAmounts TargetStoredResAmounts();
 
@@ -170,8 +189,8 @@ namespace Game1.Industries
 
         protected virtual void Delete()
         {
-            if (building is not null)
-                Building.Delete(building: ref building, resDestin: parameters.state.StoredResPile);
+            building?.Delete(resDestin: parameters.state.StoredResPile);
+            combinedEnergyConsumer.Delete();
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 

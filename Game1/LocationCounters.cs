@@ -1,86 +1,46 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public readonly struct LocationCounters
+    public readonly record struct LocationCounters
     {
-        [Serializable]
-        private class Counter<T>
-            where T : struct, ICountable<T>
-        {
-            public static Counter<T> CreateEmpty()
-                => new(createdByMagic: false);
-
-            public static Counter<T> CreateCounterByMagic(T count)
-                => new(createdByMagic: true)
-                {
-                    Count = count
-                };
-
-            public T Count { get; private set; }
-#if DEBUG2
-            private readonly bool createdByMagic;
-#endif
-
-            private Counter(bool createdByMagic)
-            {
-                Count = default;
-#if DEBUG2
-                this.createdByMagic = createdByMagic;
-#endif
-            }
-
-            public void TransferFrom(Counter<T> source, T count)
-            {
-                if (source == this)
-                    return;
-                source.Count -= count;
-                Count += count;
-            }
-
-#if DEBUG2
-            ~Counter()
-            {
-                if (!createdByMagic && !Count.IsZero)
-                    throw new Exception();
-            }
-#endif
-        }
-
         public static LocationCounters CreateEmpty()
-            => new(massCounter: Counter<Mass>.CreateEmpty(), peopleCounter: Counter<NumPeople>.CreateEmpty());
+            => new(counters: Counters.CreateEmpty());
 
-        public static LocationCounters CreatePersonCounterByMagic(NumPeople numPeople)
-            => new
-            (
-                massCounter: Counter<Mass>.CreateEmpty(),
-                peopleCounter: Counter<NumPeople>.CreateCounterByMagic(count: numPeople)
-            );
+        public static LocationCounters CreateCounterByMagic<TAmount>(TAmount amount)
+            where TAmount : struct, ICountable<TAmount>
+            => new(counters: Counters.CreateCounterByMagic(amount: amount));
 
-        public static LocationCounters CreateMassByMagic(Mass mass)
-            => new
-            (
-                massCounter: Counter<Mass>.CreateCounterByMagic(count: mass),
-                peopleCounter: Counter<NumPeople>.CreateEmpty()
-            );
+        private readonly Counters counters;
 
-        public Mass Mass
-            => massCounter.Count;
-        public NumPeople NumPeople
-            => peopleCounter.Count;
+        private LocationCounters(Counters counters)
+            => this.counters = counters;
 
-        private readonly Counter<Mass> massCounter;
-        private readonly Counter<NumPeople> peopleCounter;
+        public TAmount GetCount<TAmount>()
+            where TAmount : struct, ICountable<TAmount>
+            => counters.GetCount<TAmount>();
 
-        private LocationCounters(Counter<Mass> massCounter, Counter<NumPeople> peopleCounter)
-        {
-            this.massCounter = massCounter;
-            this.peopleCounter = peopleCounter;
-        }
+        public void TransferFrom<TAmount>(LocationCounters source, TAmount amount)
+            where TAmount : struct, ICountable<TAmount>
+            => counters.TransferFrom(source: source.counters, amount: amount);
 
-        public void TransferFrom(LocationCounters source, Mass mass, NumPeople numPeople)
-        {
-            massCounter.TransferFrom(source: source.massCounter, count: mass);
-            peopleCounter.TransferFrom(source: source.peopleCounter, count: numPeople);
-        }
+        public void TransferTo<TAmount>(LocationCounters destin, TAmount amount)
+            where TAmount : struct, ICountable<TAmount>
+            => counters.TransferTo(destin: destin.counters, amount: amount);
+
+        public void TransformFrom<TAmount, TSourceAmount>(LocationCounters source, TAmount amount)
+            where TAmount : struct, IFormOfEnergy<TAmount>
+            where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
+            => counters.TransformFrom<TAmount, TSourceAmount>(source: source.counters, amount: amount);
+
+        public void TransformTo<TAmount, TDestinAmount>(LocationCounters destin, TAmount amount)
+            where TAmount : struct, IFormOfEnergy<TAmount>
+            where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
+            => counters.TransformTo<TAmount, TDestinAmount>(destin: destin.counters, amount: amount);
+
+        public void TransformFrom(LocationCounters source, ResRecipe recipe)
+            => counters.TransformFrom(source: source.counters, recipe: recipe);
+
+        public void TransformTo(LocationCounters destin, ResRecipe recipe)
+            => counters.TransformTo(destin: destin.counters, recipe: recipe);
     }
 }

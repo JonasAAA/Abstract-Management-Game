@@ -7,14 +7,7 @@ namespace Game1.Industries
         public string Name { get; }
         public Color Color { get; }
 
-        public sealed Industry CreateIndustry(IIndustryFacingNodeState state, [DisallowNull] ref Building? building)
-        {
-            var result = CreateIndustry(state: state, building: building);
-            building = null;
-            return result;
-        }
-
-        protected Industry CreateIndustry(IIndustryFacingNodeState state, Building building);
+        public Industry CreateIndustry(IIndustryFacingNodeState state, Building building);
 
         public Industry.Params CreateParams(IIndustryFacingNodeState state);
 

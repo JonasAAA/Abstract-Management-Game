@@ -101,11 +101,8 @@ namespace Game1.Industries
         public override ResAmounts TargetStoredResAmounts()
             => new
             (
-                resAmount: new
-                (
-                    resInd: parameters.state.ConsistsOfResInd,
-                    amount: (ulong)(parameters.AddedResPerSec * 60)
-                )
+                resInd: parameters.state.ConsistsOfResInd,
+                amount: (ulong)(parameters.AddedResPerSec * 60)
             );
 
         protected override PlanetEnlargement InternalUpdate(Propor workingPropor)
@@ -116,7 +113,7 @@ namespace Game1.Industries
             silentlyAddedBits = (UDouble)(resToAdd - addedRes);
             Debug.Assert(0 <= silentlyAddedBits && silentlyAddedBits <= 1);
 
-            ulong maxAddedRes = parameters.state.StoredResPile[parameters.state.ConsistsOfResInd];
+            ulong maxAddedRes = parameters.state.StoredResPile.Amount[parameters.state.ConsistsOfResInd];
             if (addedRes > maxAddedRes)
             {
                 addedRes = maxAddedRes;
@@ -138,7 +135,7 @@ namespace Game1.Industries
             => IsBusy().SwitchExpression
             (
                 trueCase: () => parameters.ReqWatts * CurSkillPropor,
-                falseCase: () => (UDouble)0
+                falseCase: () => UDouble.zero
             );
 
         public override void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)

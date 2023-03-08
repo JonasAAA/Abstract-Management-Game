@@ -1,5 +1,4 @@
-﻿using Game1.Delegates;
-using Game1.Inhabitants;
+﻿using Game1.Inhabitants;
 using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
@@ -8,6 +7,10 @@ using static Game1.UI.ActiveUIManager;
 namespace Game1
 {
     // TODO: consider making this record class, but see comment below (where operator == is commented out)
+    /// <summary>
+    /// Travellers take energy from the start node
+    /// Travellers going to the same direction mix their heat
+    /// </summary>
     [Serializable]
     public sealed class Link : WorldUIElement, IWithRealPeopleStats
     {
@@ -19,61 +22,72 @@ namespace Game1
             static DirLink()
                 => diskTexture = C.LoadTexture(name: "big disk");
 
-            /// <summary>
-            /// CURRENTLY UNUSED
-            /// </summary>
-            public IEvent<IDeletedListener> Deleted
-                => deleted;
+            public RealPeopleStats Stats { get; private set; }
 
-            public RealPeopleStats RealPeopleStats { get; private set; }
-
-            public readonly ILinkFacingPlanet startNode, endNode;
+            public readonly ILinkFacingCosmicBody startNode, endNode;
 
             // TODO: think about if DirLink or Link should have MassCounter
             private readonly LocationCounters locationCounters;
+            // Thermal body must definately be separate for each direction so that the resources traveling to opposite sides don't exchange heat
+            private readonly ThermalBody thermalBody;
             private readonly TimedPacketQueue timedPacketQueue;
             private readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
             private readonly RealPeople waitingPeople;
             private readonly UDouble minSafeDist;
+            private readonly HistoricRounder reqEnergyHistoricRounder;
+            private readonly EnergyPile<ElectricalEnergy> allocEnergyPile;
             private Propor minSafePropor;
             private UDouble reqWattsPerKg;
-            private Propor energyPropor;
-            private readonly Event<IDeletedListener> deleted;
+            private Propor allocEnergyPropor;
 
-            public DirLink(ILinkFacingPlanet startNode, ILinkFacingPlanet endNode, UDouble minSafeDist)
+            public DirLink(ILinkFacingCosmicBody startNode, ILinkFacingCosmicBody endNode, UDouble minSafeDist)
             {
                 this.startNode = startNode;
                 this.endNode = endNode;
                 this.minSafeDist = minSafeDist;
 
                 locationCounters = LocationCounters.CreateEmpty();
-                timedPacketQueue = new(locationCounters: locationCounters);
-                waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationCounters: locationCounters);
-                waitingPeople = RealPeople.CreateEmpty(locationCounters: locationCounters);
-                energyPropor = Propor.empty;
-                deleted = new();
+                thermalBody = ThermalBody.CreateEmpty(locationCounters: locationCounters);
+                timedPacketQueue = new
+                (
+                    thermalBody: thermalBody,
+                    electricalEnergySourceNodeID: EnergySourceNode.NodeID,
+                    closestNodeID: endNode.NodeID
+                );
+                waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(thermalBody: thermalBody);
+                waitingPeople = RealPeople.CreateEmpty
+                (
+                    thermalBody: thermalBody,
+                    energyDistributor: CurWorldManager.EnergyDistributor,
+                    electricalEnergySourceNodeID: EnergySourceNode.NodeID,
+                    closestNodeID: endNode.NodeID,
+                    isInActivityCenter: false
+                );
+                reqEnergyHistoricRounder = new();
+                allocEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: locationCounters);
+                allocEnergyPropor = Propor.empty;
 
-                CurWorldManager.AddEnergyConsumer(energyConsumer: this);
+                CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
             }
 
             public void TransferAllFrom(ResAmountsPacket resAmountsPacket)
                 => waitingResAmountsPackets.TransferAllFrom(sourcePacket: resAmountsPacket);
 
-            public void TransferAllFrom(RealPeople realPeople)
-                => waitingPeople.TransferAllFrom(realPeopleSource: realPeople);
+            public void TransferAllFromAndDeleteSource(RealPeople realPeopleSource)
+                => waitingPeople.TransferAllFromAndDeleteSource(realPeopleSource: realPeopleSource);
 
             public void TransferFrom(RealPeople realPersonSource, RealPerson realPerson)
                 => waitingPeople.TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
 
             public ulong GetTravellingAmount()
             {
-                Debug.Assert(locationCounters.Mass == waitingResAmountsPackets.Mass + waitingPeople.RealPeopleStats.totalMass + timedPacketQueue.Mass);
-                Debug.Assert(locationCounters.NumPeople == waitingPeople.NumPeople + timedPacketQueue.NumPeople);
+                Debug.Assert(locationCounters.GetCount<ResAmounts>().Mass() == waitingResAmountsPackets.Mass + waitingPeople.Stats.totalMass + timedPacketQueue.Mass);
+                Debug.Assert(locationCounters.GetCount<NumPeople>() == waitingPeople.NumPeople + timedPacketQueue.NumPeople);
                 return CurWorldManager.Overlay.SwitchExpression
                 (
                     singleResCase: resInd => timedPacketQueue.TotalResAmounts[resInd],
-                    allResCase: () => timedPacketQueue.Mass.InKg,
-                    peopleCase: () => locationCounters.NumPeople.value,
+                    allResCase: () => timedPacketQueue.Mass.valueInKg,
+                    peopleCase: () => locationCounters.GetCount<NumPeople>().value,
                     powerCase: () => throw new InvalidOperationException()
                 );
             }
@@ -89,10 +103,12 @@ namespace Game1
                     null => throw new ArgumentException()
                 };
 
-                timedPacketQueue.Update(duration: travelTime, workingPropor: energyPropor);
+                EnergySourceNode.TransformAllElectricityToHeatAndTransferFrom(source: allocEnergyPile);
+
+                timedPacketQueue.Update(duration: travelTime, workingPropor: allocEnergyPropor);
                 var (resAmountsPackets, people) = timedPacketQueue.DonePacketsAndPeople();
                 endNode.Arrive(resAmountsPackets: resAmountsPackets);
-                endNode.Arrive(realPeople: people);
+                endNode.ArriveAndDeleteSource(realPeopleSource: people);
 
                 if ((!waitingResAmountsPackets.Empty || !waitingPeople.NumPeople.IsZero)
                     && (timedPacketQueue.Count is 0 || timedPacketQueue.LastCompletionPropor() >= minSafePropor))
@@ -101,10 +117,9 @@ namespace Game1
 
             public void UpdatePeople()
             {
-                RealPerson.UpdateLocationParams personUpdateParams = new(LastNodeID: startNode.NodeID, ClosestNodeID: endNode.NodeID);
-                timedPacketQueue.UpdatePeople(updateLocationParams: personUpdateParams, personalUpdate: null);
-                waitingPeople.Update(updateLocationParams: personUpdateParams, personalUpdateSkillsParams: null);
-                RealPeopleStats = timedPacketQueue.RealPeopleStats.CombineWith(other: waitingPeople.RealPeopleStats);
+                timedPacketQueue.UpdatePeople(personalUpdate: null);
+                waitingPeople.Update(updatePersonSkillsParams: null);
+                Stats = timedPacketQueue.Stats.CombineWith(other: waitingPeople.Stats);
             }
 
             public void DrawTravelingRes()
@@ -120,7 +135,7 @@ namespace Game1
                     allResCase: () =>
                     {
                         foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmounts.TotalMass().InKg);
+                            DrawDisk(complProp: complProp, size: resAmounts.Mass().valueInKg);
                     },
                     powerCase: () => { },
                     peopleCase: () =>
@@ -143,20 +158,36 @@ namespace Game1
             }
 
             EnergyPriority IEnergyConsumer.EnergyPriority
-                => CurWorldConfig.linkEnergyPriority;
+                => CurWorldConfig.linkEnergyPrior;
 
             NodeID IEnergyConsumer.NodeID
-                => startNode.NodeID;
+                => EnergySourceNode.NodeID;
 
-            UDouble IEnergyConsumer.ReqWatts()
-                => timedPacketQueue.Mass.InKg * reqWattsPerKg;
+            ElectricalEnergy IEnergyConsumer.ReqEnergy()
+                => ReqEnergy();
 
-            void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
-                => this.energyPropor = energyPropor;
+            private ILinkFacingCosmicBody EnergySourceNode
+                => startNode;
+
+            private ElectricalEnergy ReqEnergy()
+                => ElectricalEnergy.CreateFromJoules
+                (
+                    valueInJ: reqEnergyHistoricRounder.Round
+                    (
+                        value: timedPacketQueue.Mass.valueInKg * (decimal)(reqWattsPerKg * CurWorldManager.Elapsed.TotalSeconds),
+                        curTime: CurWorldManager.CurTime
+                    )
+                );
+
+            void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
+            {
+                allocEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
+                allocEnergyPropor = MyMathHelper.CreatePropor(part: electricalEnergy, whole: ReqEnergy());
+            }
         }
 
         [Serializable]
-        private readonly record struct ShapeParams(ILinkFacingPlanet Node1, ILinkFacingPlanet Node2) : VectorShape.IParams
+        private readonly record struct ShapeParams(ILinkFacingCosmicBody Node1, ILinkFacingCosmicBody Node2) : VectorShape.IParams
         {
             public MyVector2 StartPos
                 => Node1.Position;
@@ -168,15 +199,15 @@ namespace Game1
                 => CurWorldConfig.linkWidth;
         }
 
-        public readonly ILinkFacingPlanet node1, node2;
+        public readonly ILinkFacingCosmicBody node1, node2;
         public UDouble JoulesPerKg { get; private set; }
         public TimeSpan TravelTime { get; private set; }
-        public RealPeopleStats RealPeopleStats { get; private set; }
+        public RealPeopleStats Stats { get; private set; }
 
         private readonly DirLink link1To2, link2To1;
         private readonly TextBox infoTextBox;
 
-        public Link(ILinkFacingPlanet node1, ILinkFacingPlanet node2, UDouble minSafeDist)
+        public Link(ILinkFacingCosmicBody node1, ILinkFacingCosmicBody node2, UDouble minSafeDist)
             : base
             (
                 shape: new LineSegment
@@ -202,17 +233,17 @@ namespace Game1
             SetPopup(HUDElement: infoTextBox, overlays: IOverlay.all);
         }
 
-        public ILinkFacingPlanet OtherNode(ILinkFacingPlanet node)
+        public ILinkFacingCosmicBody OtherNode(ILinkFacingCosmicBody node)
         {
             if (!Contains(node))
                 throw new ArgumentException();
             return node == node1 ? node2 : node1;
         }
 
-        public bool Contains(ILinkFacingPlanet node)
+        public bool Contains(ILinkFacingCosmicBody node)
             => node == node1 || node == node2;
 
-        private DirLink GetDirLink(ILinkFacingPlanet start)
+        private DirLink GetDirLink(ILinkFacingCosmicBody start)
         {
             if (start == node1)
                 return link1To2;
@@ -221,13 +252,13 @@ namespace Game1
             throw new ArgumentException();
         }
 
-        public void TransferAllFrom(ILinkFacingPlanet start, ResAmountsPacket resAmountsPacket)
+        public void TransferAllFrom(ILinkFacingCosmicBody start, ResAmountsPacket resAmountsPacket)
             => GetDirLink(start: start).TransferAllFrom(resAmountsPacket: resAmountsPacket);
 
-        public void TransferAllFrom(ILinkFacingPlanet start, RealPeople realPeople)
-            => GetDirLink(start: start).TransferAllFrom(realPeople: realPeople);
+        public void TransferAllFromAndDeletePeopleSource(ILinkFacingCosmicBody start, RealPeople realPeopleSource)
+            => GetDirLink(start: start).TransferAllFromAndDeleteSource(realPeopleSource: realPeopleSource);
 
-        public void TransferFrom(ILinkFacingPlanet start, RealPeople realPersonSource, RealPerson realPerson)
+        public void TransferFrom(ILinkFacingCosmicBody start, RealPeople realPersonSource, RealPerson realPerson)
             => GetDirLink(start: start).TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
 
         public void Update()
@@ -263,7 +294,7 @@ namespace Game1
         {
             link1To2.UpdatePeople();
             link2To1.UpdatePeople();
-            RealPeopleStats = link1To2.RealPeopleStats.CombineWith(other: link2To1.RealPeopleStats);
+            Stats = link1To2.Stats.CombineWith(other: link2To1.Stats);
 
             if (CurWorldManager.Overlay is IPowerOverlay)
                 return;
@@ -276,7 +307,7 @@ namespace Game1
             (
                 singleResCase: resInd => $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",
                 allResCase: () => $"{travellingAmount} kg of resources are travelling",
-                peopleCase: () => $"travelling people stats:\n{RealPeopleStats}",
+                peopleCase: () => $"travelling people stats:\n{Stats}",
                 powerCase: () => ""
             );
         }

@@ -57,16 +57,12 @@ namespace Game1.UI
         {
             base.PartOfRecalcSizeAndPos();
 
-            UDouble innerWidth = MyMathHelper.Max(tabChoicePanel.Shape.Width, tabs.Count switch
-            {
-                0 => 0,
-                not 0 => tabs.Values.Max(tab => tab.Shape.Width)
-            });
-            UDouble tabHeight = tabs.Count switch
-            {
-                0 => 0,
-                not 0 => tabs.Values.Max(tab => tab.Shape.Height)
-            };
+            UDouble innerWidth = MyMathHelper.Max
+            (
+                left: tabChoicePanel.Shape.Width,
+                right: tabs.Values.MaxOrDefault(tab => tab.Shape.Width)
+            );
+            UDouble tabHeight = tabs.Values.MaxOrDefault(tab => tab.Shape.Height);
 
             Shape.Width = 2 * ActiveUIManager.RectOutlineWidth + innerWidth;
             Shape.Height = 2 * ActiveUIManager.RectOutlineWidth + tabChoicePanel.Shape.Height + tabHeight;

@@ -93,6 +93,12 @@ namespace Game1.Industries
         public override bool PeopleWorkOnTop
             => true;
 
+        public override Propor? SurfaceReflectance
+            => donePropor == Propor.empty ? null : parameters.Cost.Reflectance();
+
+        public override Propor? SurfaceEmissivity
+            => donePropor == Propor.empty ? null : parameters.Cost.Emissivity();
+
         protected override UDouble Height
             => CurWorldConfig.defaultIndustryHeight * donePropor;
 
@@ -108,6 +114,7 @@ namespace Game1.Industries
             this.parameters = parameters;
             industryOutline = new(new IndustryOutlineParams(Parameters: parameters));
             constrTimeLeft = TimeSpan.MaxValue;
+            donePropor = Propor.empty;
         }
 
         public override ResAmounts TargetStoredResAmounts()
@@ -136,14 +143,14 @@ namespace Game1.Industries
             {
                 if (!StartedConstruction)
                 {
-                    var reservedBuildingCost = ReservedResPile.CreateIfHaveEnough
+                    var reservedBuildingCost = ResPile.CreateIfHaveEnough
                     (
                         source: parameters.state.StoredResPile,
-                        resAmounts: parameters.Cost
+                        amount: parameters.Cost
                     );
                     if (reservedBuildingCost is not null)
                     {
-                        buildingBeingConstructed = new Building(resSource: ref reservedBuildingCost);
+                        buildingBeingConstructed = new(resSource: reservedBuildingCost);
                         constrTimeLeft = parameters.duration;
                     }
                     return this;
@@ -158,8 +165,9 @@ namespace Game1.Industries
                     Industry newIndustry = parameters.industryFactory.CreateIndustry
                     (
                         state: parameters.state,
-                        building: ref buildingBeingConstructed
+                        building: buildingBeingConstructed
                     );
+                    buildingBeingConstructed = null;
                     Delete();
                     return newIndustry;
                 }
@@ -173,8 +181,7 @@ namespace Game1.Industries
 
         protected override void PlayerDelete()
         {
-            if (buildingBeingConstructed is not null)
-                Building.Delete(building: ref buildingBeingConstructed, resDestin: parameters.state.StoredResPile);
+            buildingBeingConstructed?.Delete(resDestin: parameters.state.StoredResPile);
 
             base.PlayerDelete();
         }
@@ -188,7 +195,7 @@ namespace Game1.Industries
             => IsBusy().SwitchExpression
             (
                 trueCase: () => parameters.ReqWatts * CurSkillPropor,
-                falseCase: () => (UDouble)0
+                falseCase: () => UDouble.zero
             );
 
         public override void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)

@@ -4,10 +4,12 @@ using static Game1.WorldManager;
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly struct ResAmounts : IMyArray<ulong>, IEquatable<ResAmounts>, IAdditionOperators<ResAmounts, ResAmounts, ResAmounts>, IAdditiveIdentity<ResAmounts, ResAmounts>, IMultiplyOperators<ResAmounts, ulong, ResAmounts>, IMultiplicativeIdentity<ResAmounts, ulong>
+    public readonly struct ResAmounts : IFormOfEnergy<ResAmounts>, IMyArray<ulong>, IEquatable<ResAmounts>, IAdditionOperators<ResAmounts, ResAmounts, ResAmounts>, IAdditiveIdentity<ResAmounts, ResAmounts>, IMultiplyOperators<ResAmounts, ulong, ResAmounts>, IMultiplicativeIdentity<ResAmounts, ulong>, IMin<ResAmounts>
     {
         public static ResAmounts Empty
             => emptyResAmounts;
+
+        public static readonly ResAmounts magicUnlimitedResAmounts; 
 
         static ResAmounts IAdditiveIdentity<ResAmounts, ResAmounts>.AdditiveIdentity
             => Empty;
@@ -18,22 +20,35 @@ namespace Game1.Resources
         private static readonly ResAmounts emptyResAmounts;
 
         static ResAmounts()
-            => emptyResAmounts = new();
+        {
+            emptyResAmounts = new();
+            magicUnlimitedResAmounts = new
+            (
+                values: Enumerable.Repeat
+                (
+                    element: (ulong)uint.MaxValue,
+                    count: (int)ResInd.count
+                )
+            );
+        }
 
         private readonly ulong[] array;
+
+        bool IFormOfEnergy<ResAmounts>.IsZero
+            => Mass().IsZero;
 
         public ResAmounts()
             => array = new ulong[ResInd.count];
 
         public ResAmounts(ResAmount resAmount)
-            : this()
-            => this[resAmount.resInd] = resAmount.amount;
+            : this(resInd: resAmount.resInd, amount: resAmount.amount)
+        { }
 
-        public ResAmounts(ulong value)
+        public ResAmounts(ResInd resInd, ulong amount)
             : this()
-            => Array.Fill(array: array, value: value);
+            => this[resInd] = amount;
 
-        public ResAmounts(IEnumerable<ulong> values)
+        private ResAmounts(IEnumerable<ulong> values)
         {
             array = values.ToArray();
             if (array.Length != (int)ResInd.count)
@@ -68,11 +83,28 @@ namespace Game1.Resources
         public bool IsEmpty()
             => this == emptyResAmounts || array.Sum() is 0;
 
-        public ResAmounts Min(ResAmounts other)
-            => new(array.Zip(other, (a, b) => MyMathHelper.Min(a, b)));
+        public Mass Mass()
+            => CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Mass, scalars: array);
 
-        public Mass TotalMass()
-            => Mass.CreateFromKg(massInKg: CurResConfig.resources.Zip(array).Sum(item => item.First.Mass.InKg * item.Second));
+        public HeatCapacity HeatCapacity()
+            => CurResConfig.resources.CombineLinearly(vectorSelector: res => res.HeatCapacity, scalars: array);
+
+        public ulong Area()
+            => CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Area, scalars: array);
+
+        public Propor Reflectance()
+            => Propor.Create
+            (
+                part: CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Area * res.Reflectance, scalars: array),
+                whole: CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Area, scalars: array)
+            )!.Value;
+
+        public Propor Emissivity()
+            => Propor.Create
+            (
+                part: CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Area * res.Emissivity, scalars: array),
+                whole: CurResConfig.resources.CombineLinearly(vectorSelector: res => res.Area, scalars: array)
+            )!.Value;
 
         // analogous to with expression from https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/operators/with-expression
         public ResAmounts With(ResAmount resAmount)
@@ -98,11 +130,14 @@ namespace Game1.Resources
             return result.Trim(' ', ',');
         }
 
-        public static ResAmounts operator +(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => new(resAmounts1.Zip(resAmounts2, (a, b) => a + b));
+        public static explicit operator Energy(ResAmounts resAmounts)
+            => Energy.CreateFromJoules(valueInJ: resAmounts.Mass().valueInKg * CurWorldConfig.energyInJPerKgOfMass);
 
-        public static ResAmounts operator -(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => new(resAmounts1.Zip(resAmounts2, (a, b) => a - b));
+        public static ResAmounts operator +(ResAmounts left, ResAmounts right)
+            => new(left.Zip(right, (a, b) => a + b));
+
+        public static ResAmounts operator -(ResAmounts left, ResAmounts right)
+            => new(left.Zip(right, (a, b) => a - b));
 
         public static ResAmounts operator *(ulong value, ResAmounts resAmounts)
             => new(from a in resAmounts select value * a);
@@ -110,24 +145,24 @@ namespace Game1.Resources
         public static ResAmounts operator *(ResAmounts resAmounts, ulong value)
             => value * resAmounts;
 
-        public static ResAmounts operator /(ResAmounts resAmounts, ulong value)
-            => new(from a in resAmounts select a / value);
+        static bool IComparisonOperators<ResAmounts, ResAmounts, bool>.operator >(ResAmounts left, ResAmounts right)
+            => left >= right && left != right;
 
-        ///// <returns> some elements can be None </returns>
-        //public static ConstArray<UDouble> operator /(ResAmounts resAmounts1, ResAmounts resAmounts2)
-        //    => new(resAmounts1.Zip(resAmounts2, (a, b) => (UDouble)a / b));
+        static bool IComparisonOperators<ResAmounts, ResAmounts, bool>.operator <(ResAmounts left, ResAmounts right)
+            => left <= right && left != right;
 
-        public static bool operator <=(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => resAmounts1.Zip(resAmounts2).All(a => a.First <= a.Second);
+        public static bool operator <=(ResAmounts left, ResAmounts right)
+            => left.Zip(right).All(a => a.First <= a.Second);
 
-        public static bool operator >=(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => resAmounts1.Zip(resAmounts2).All(a => a.First >= a.Second);
+        public static bool operator >=(ResAmounts left, ResAmounts right)
+            => left.Zip(right).All(a => a.First >= a.Second);
 
-        public static bool operator ==(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => resAmounts1.array == resAmounts2.array || resAmounts1.array.Zip(resAmounts2.array).All(pair => pair.First == pair.Second);
+        public static bool operator ==(ResAmounts left, ResAmounts right)
+            => left.array == right.array || left.array.Zip(right.array).All(pair => pair.First == pair.Second);
 
-        public static bool operator !=(ResAmounts resAmounts1, ResAmounts resAmounts2)
-            => !(resAmounts1 == resAmounts2);
+        public static bool operator !=(ResAmounts left, ResAmounts right)
+            => !(left == right);
+
 
         public bool Equals(ResAmounts other)
             => this == other;
@@ -137,5 +172,8 @@ namespace Game1.Resources
 
         public override int GetHashCode()
             => HashCode.Combine(array);
+
+        static ResAmounts IMin<ResAmounts>.Min(ResAmounts left, ResAmounts right)
+            => new(left.array.Zip(right.array, (a, b) => MyMathHelper.Min(a, b)));
     }
 }

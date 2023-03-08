@@ -1,7 +1,7 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public sealed class ProporSplitter<TKey>
+    public sealed class HistoricProporSplitter<TKey>
         where TKey : notnull
     {
         /// <summary>
@@ -35,7 +35,6 @@
             {
                 necNotLockedAdds = keys.ToDictionary
                 (
-                    keySelector: key => key,
                     elementSelector: key => this[key]
                 );
                 sum = necNotLockedAdds.Values.Sum();
@@ -44,9 +43,6 @@
             public void SetNotLocked(Dictionary<TKey, decimal> necAdds)
             {
                 if (necAdds.Count != necNotLockedAdds.Count)
-                    throw new ArgumentException();
-
-                if (!MyMathHelper.IsTiny(necAdds.Values.Sum()))
                     throw new ArgumentException();
 
                 // this also checks if keys are the same
@@ -89,13 +85,14 @@
 
                 necNotLockedAdds = necNotLockedAdds.Keys.ToDictionary
                 (
-                    keySelector: key => key,
                     elementSelector: key => this[key]
                 );
                 sum = necNotLockedAdds.Values.Sum();
 
                 Debug.Assert(MyMathHelper.IsTiny(sum));
-                Debug.Assert(necNotLockedAdds.Count is 0 || necNotLockedAdds.Values.Max() - necNotLockedAdds.Values.Min() < 1 + MyMathHelper.minPosDecimal);
+                // The max - min can be digger than 1 by quite a bit.
+                // This can happen when some necAdd (from previous frame) is negative, and the importance is 0.
+                //Debug.Assert(necNotLockedAdds.Count is 0 || necNotLockedAdds.Values.Max() - necNotLockedAdds.Values.Min() < 1 + MyMathHelper.minPosDecimal);
             }
         }
 
@@ -103,16 +100,16 @@
             => Count is 0;
         public IEnumerable<TKey> Keys
             => importances.Keys;
-        public IReadOnlyDictionary<TKey, ulong> Importances
+        public IReadOnlyDictionary<TKey, UDouble> Importances
             => importances;
 
-        private readonly Dictionary<TKey, ulong> importances;
+        private readonly Dictionary<TKey, UDouble> importances;
         private readonly NecAdds necAdds;
 
         private int Count
             => importances.Count;
 
-        public ProporSplitter()
+        public HistoricProporSplitter()
         {
             importances = new();
             necAdds = new();
@@ -121,7 +118,7 @@
         public bool ContainsKey(TKey key)
             => importances.ContainsKey(key);
 
-        private void AddKey(TKey key, ulong importance)
+        private void AddKey(TKey key, UDouble importance)
         {
             importances.Add(key, importance);
             necAdds.Add(key: key);
@@ -133,21 +130,12 @@
             necAdds.Remove(key: key);
         }
 
-        public void SetImportance(TKey key, ulong importance)
+        public void SetImportance(TKey key, UDouble importance)
         {
-            if (importance < 0)
-                throw new ArgumentOutOfRangeException();
-
             if (ContainsKey(key: key))
-            {
-                if (importances[key] == importance)
-                    return;
                 importances[key] = importance;
-            }
             else
                 AddKey(key: key, importance: importance);
-            if (importances[key] is 0)
-                RemoveKey(key: key);
         }
 
         public (Dictionary<TKey, ulong> splitAmounts, ulong unsplitAmount) Split(ulong amount, Func<TKey, ulong> maxAmountsFunc)
@@ -165,18 +153,18 @@
             Dictionary<TKey, ulong> maxAmounts = MakeDictionary(func: key => maxAmountsFunc(key)),
                 splitAmounts = new();
             HashSet<TKey> unusedKeys = new(Keys);
-            decimal unusedPropSum = importances.Values.Sum();
+            decimal unusedPropSum = (decimal)importances.Values.Sum();
 
             while (true)
             {
                 bool didSomething = false;
                 foreach (var key in unusedKeys.Clone())
-                    if ((ulong)(amount * importances[key] / unusedPropSum + necAdds[key]) >= maxAmounts[key])
+                    if ((ulong)(amount * (decimal)importances[key] / unusedPropSum + necAdds[key]) >= maxAmounts[key])
                     {
                         //could turn this into a function
                         necAdds.LockAtZero(key: key);
                         unusedKeys.Remove(key);
-                        unusedPropSum -= importances[key];
+                        unusedPropSum -= (decimal)importances[key];
                         splitAmounts.Add(key, maxAmounts[key]);
                         amount -= maxAmounts[key];
 
@@ -191,7 +179,8 @@
             ulong splitAmount = amount;
             foreach (var key in unusedKeys)
             {
-                perfect.Add(key, splitAmount * importances[key] / unusedPropSum + necAdds[key]);
+                perfect.Add(key, splitAmount * (decimal)importances[key] / unusedPropSum + necAdds[key]);
+#warning Now that we know that (ulong)perfect[key] doesn't always round down, need to ensure that will not give out more than have
                 splitAmounts.Add(key, (ulong)perfect[key]);
                 amount -= splitAmounts[key];
             }
@@ -228,8 +217,7 @@
         private Dictionary<TKey, TValue> MakeDictionary<TValue>(Func<TKey, TValue> func, IEnumerable<TKey>? keys = null)
             => (keys ?? Keys).ToDictionary
             (
-                keySelector: key => key,
-                elementSelector: key => func(key)
+                elementSelector: func
             );
     }
 }

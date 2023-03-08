@@ -11,6 +11,6 @@ namespace Game1
             => (surfaceGravity1 + surfaceGravity2) * CurWorldConfig.linkJoulesPerNewtonOfGravity + linkLength * CurWorldConfig.linkJoulesPerMeterOfDistance;
 
         public static UDouble SurfaceGravity(Mass mass, UDouble radius)
-            => CurWorldConfig.gravitConst * mass.InKg / MyMathHelper.Pow<UDouble, double>(@base: radius, exponent: CurWorldConfig.gravitExponent);
+            => CurWorldConfig.gravitConst * mass.valueInKg / MyMathHelper.Pow<UDouble, double>(@base: radius, exponent: CurWorldConfig.gravitExponent);
     }
 }

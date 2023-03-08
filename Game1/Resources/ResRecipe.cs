@@ -17,9 +17,9 @@
 
         private ResRecipe(ResAmounts ingredients, ResAmounts results)
         {
+            Debug.Assert(AreValid(ingredients: ingredients, results: results));
             this.ingredients = ingredients;
             this.results = results;
-            Debug.Assert(AreValid(ingredients: ingredients, results: results));
         }
 
         private static bool AreValid(ResAmounts ingredients, ResAmounts results)
@@ -32,3 +32,34 @@
             => scalar * resRecipe;
     }
 }
+
+// TODO: could create energy recipe with something like
+//namespace Game1.Resources
+//{
+//    public class EnergyRecipe<TAmount, TAmount>
+//        where TAmount : struct, IFormOfEnergy<TAmount>
+//        where TAmount : struct, IFormOfEnergy<TAmount>
+//    {
+//        public static EnergyRecipe<TAmount, TAmount>? Create(TAmount ingredients, TAmount results)
+//        {
+//            if (AreValid(ingredients: ingredients, results: results))
+//                return new(ingredients: ingredients, results: results);
+//            return null;
+//        }
+
+//        public readonly TAmount ingredients;
+//        public readonly TAmount results;
+
+//        private EnergyRecipe(TAmount ingredients, TAmount results)
+//        {
+//            "Do I make stuff use this instead of current energy conversion methods?
+//            Debug.Assert(AreValid(ingredients: ingredients, results: results));
+//            this.ingredients = ingredients;
+//            this.results = results;
+//        }
+
+//        private static bool AreValid(TAmount ingredients, TAmount results)
+//            => (Energy)ingredients == (Energy)results;
+//    }
+//}
+

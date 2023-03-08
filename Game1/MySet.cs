@@ -32,6 +32,9 @@ namespace Game1
                 throw new ArgumentException();
         }
 
+        public void TryAdd(T item)
+            => set.Add(item);
+
         public void UnionWith(IEnumerable<T> collection)
         {
             foreach (var item in collection)

@@ -6,7 +6,7 @@ namespace Game1.MyMath
     {
         public static readonly UDouble pi = (UDouble)Math.PI;
         public static readonly UDouble minPosDouble = (UDouble)1e-6;
-        public static readonly decimal minPosDecimal = 1e-6m;
+        public static readonly decimal minPosDecimal = 1e-5m;
 
         public static bool AreClose<T>(T value1, T value2) where T : IClose<T>
             => value1.IsCloseTo(other: value2);
@@ -21,17 +21,32 @@ namespace Game1.MyMath
         public static bool AreClose(TimeSpan value1, TimeSpan value2)
             => value1 == value2;
 
-        public static T Min<T>(T value1, T value2) where T : IComparisonOperators<T, T, bool>
-            => value1 < value2 ? value1 : value2;
+        // T is not IComparisonOperators<T, T, bool> since then if called from a generic method
+        // where T happens to be ResAmounts, the incorrect overload is called
+        public static T Min<T>(T left, T right) where T : IMin<T>
+            => T.Min(left, right);
 
-        public static ResAmounts Min(ResAmounts value1, ResAmounts value2)
-            => value1.Min(other: value2);
+        public static ulong Min(ulong left, ulong right)
+            => left < right ? left : right;
 
-        public static T Max<T>(T value1, T value2) where T : IComparisonOperators<T, T, bool>
-            => value1 > value2 ? value1 : value2;
+        public static decimal Min(decimal left, decimal right)
+            => left < right ? left : right;
 
-        public static TimeSpan Max(TimeSpan value1, TimeSpan value2)
-            => value1 > value2 ? value1 : value2;
+        // T is not IComparisonOperators<T, T, bool> for the same reason as Min function
+        public static T Max<T>(T left, T right) where T : IMax<T>
+            => T.Max(left, right);
+
+        //public static T Max<T>(T left, T right) where T : IComparisonOperators<T, T, bool>
+        //    => left > right ? left : right;
+
+        public static double Max(double left, double right)
+            => left > right ? left : right;
+
+        public static ulong Max(ulong left, ulong right)
+            => left > right ? left : right;
+
+        public static TimeSpan Max(TimeSpan left, TimeSpan right)
+            => left > right ? left : right;
 
         public static UDouble Abs(double value)
             => (UDouble)Math.Abs(value);
@@ -119,5 +134,41 @@ namespace Game1.MyMath
 
         public static bool IsTiny(decimal value)
             => Abs(value) < minPosDecimal;
+
+        /// <returns>factor1 * factor2 / divisor rounded using the usual half to even rule https://en.wikipedia.org/wiki/Rounding#Rounding_half_to_even</returns>
+        public static ulong MultThenDivideRound(ulong factor1, ulong factor2, ulong divisor)
+        {
+            UInt128 product = (UInt128)factor1 * factor2;
+            ulong quotient = (ulong)(product / divisor),
+                remainder = (ulong)(product % divisor);
+            return ((long)remainder * 2 - (long)divisor) switch
+            {
+                < 0 => quotient,
+                0 => quotient + (quotient % 2),
+                > 0 => quotient + 1
+            };
+        }
+
+        public static ulong Round(UDouble value)
+            => (ulong)Math.Round(value);
+
+        public static long Round(double value)
+            => (long)Math.Round(value);
+
+        public static long Ceiling(double value)
+            => (long)Math.Ceiling(value);
+
+        public static long Ceiling(decimal value)
+            => (long)Math.Ceiling(value);
+
+        /// <summary>
+        /// If part and whole are zero, returns full
+        /// </summary>
+        public static Propor CreatePropor(ElectricalEnergy part, ElectricalEnergy whole)
+        {
+            if (part.IsZero && whole.IsZero)
+                return Propor.full;
+            return Propor.Create(part: part.ValueInJ, whole: whole.ValueInJ)!.Value;
+        }
     }
 }

@@ -1,34 +1,33 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace Game1
+﻿namespace Game1
 {
     [Serializable]
     public sealed class ResAmountsPacketsByDestin
     {
-        public static ResAmountsPacketsByDestin CreateEmpty(LocationCounters locationCounters)
-            => new(locationCounters: locationCounters);
+        public static ResAmountsPacketsByDestin CreateEmpty(ThermalBody thermalBody)
+            => new(thermalBody: thermalBody);
 
         public static ResAmountsPacketsByDestin CreateFromSource(ResAmountsPacketsByDestin sourcePackets)
-            => CreateFromSource(sourcePackets: sourcePackets, locationCounters: sourcePackets.locationCounters);
+            => CreateFromSource(sourcePackets: sourcePackets, thermalBody: sourcePackets.thermalBody);
 
-        public static ResAmountsPacketsByDestin CreateFromSource(ResAmountsPacketsByDestin sourcePackets, LocationCounters locationCounters)
+        public static ResAmountsPacketsByDestin CreateFromSource(ResAmountsPacketsByDestin sourcePackets, ThermalBody thermalBody)
         {
-            ResAmountsPacketsByDestin newPackets = new(locationCounters: locationCounters);
+            ResAmountsPacketsByDestin newPackets = new(thermalBody: thermalBody);
             newPackets.TransferAllFrom(sourcePackets: sourcePackets);
             return newPackets;
         }
 
+        // ResAmounts is not Counter, otherwise it would be impossible to implement void TransferAllFrom(ResAmountsPacket sourcePacket)
         public ResAmounts ResAmounts { get; private set; }
         public Mass Mass { get; private set; }
         public bool Empty
             => Mass.IsZero;
 
-        private readonly LocationCounters locationCounters;
+        private readonly ThermalBody thermalBody;
         private Dictionary<NodeID, ResAmountsPacket> resAmountsPacketsByDestin;
 
-        private ResAmountsPacketsByDestin(LocationCounters locationCounters)
+        private ResAmountsPacketsByDestin(ThermalBody thermalBody)
         {
-            this.locationCounters = locationCounters;
+            this.thermalBody = thermalBody;
             resAmountsPacketsByDestin = new();
 
             ResAmounts = ResAmounts.Empty;
@@ -43,32 +42,32 @@ namespace Game1
 
         public void TransferAllFrom(ResAmountsPacket sourcePacket)
         {
-            ResAmounts += sourcePacket.resPile.ResAmounts;
+            ResAmounts += sourcePacket.resPile.Amount;
             Mass += sourcePacket.Mass;
 
             if (!resAmountsPacketsByDestin.ContainsKey(sourcePacket.destination))
-                resAmountsPacketsByDestin[sourcePacket.destination] = new(destination: sourcePacket.destination, locationCounters: locationCounters);
+                resAmountsPacketsByDestin[sourcePacket.destination] = new(destination: sourcePacket.destination, thermalBody: thermalBody);
             resAmountsPacketsByDestin[sourcePacket.destination].resPile.TransferAllFrom(source: sourcePacket.resPile);
         }
 
-        public void TransferAllFrom([DisallowNull] ref ReservedResPile? source, NodeID destination)
+        public void TransferAllFrom(ResPile source, NodeID destination)
         {
-            ResAmounts += source.ResAmounts;
-            Mass += source.Mass;
+            ResAmounts += source.Amount;
+            Mass += source.Amount.Mass();
 
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
-                resAmountsPacketsByDestin[destination] = new(destination: destination, locationCounters: locationCounters);
-            resAmountsPacketsByDestin[destination].resPile.TransferAllFrom(reservedSource: ref source);
+                resAmountsPacketsByDestin[destination] = new(destination: destination, thermalBody: thermalBody);
+            resAmountsPacketsByDestin[destination].resPile.TransferAllFrom(source: source);
         }
 
         public ResPile ReturnAndRemove(NodeID destination)
         {
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
-                return ResPile.CreateEmpty(locationCounters: locationCounters);
+                return ResPile.CreateEmpty(thermalBody: thermalBody);
 
             var resAmountsPacket = resAmountsPacketsByDestin[destination];
             resAmountsPacketsByDestin.Remove(destination);
-            ResAmounts -= resAmountsPacket.resPile.ResAmounts;
+            ResAmounts -= resAmountsPacket.resPile.Amount;
             Mass -= resAmountsPacket.Mass;
             return resAmountsPacket.resPile;
         }
@@ -76,7 +75,7 @@ namespace Game1
         public ResAmounts ResToDestinAmounts(NodeID destination)
             => resAmountsPacketsByDestin.ContainsKey(destination) switch
             {
-                true => resAmountsPacketsByDestin[destination].resPile.ResAmounts,
+                true => resAmountsPacketsByDestin[destination].resPile.Amount,
                 false => ResAmounts.Empty
             };
 

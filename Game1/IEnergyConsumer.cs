@@ -3,11 +3,8 @@
     /// <summary>
     /// MUST call EnergyManager.AddEnergyConsumer() for each instance
     /// </summary>
-    public interface IEnergyConsumer : IDeletable
+    public interface IEnergyConsumer
     {
-        /// <summary>
-        /// the lower, the more important
-        /// </summary>
         public EnergyPriority EnergyPriority { get; }
 
         /// <summary>
@@ -15,8 +12,11 @@
         /// </summary>
         public NodeID NodeID { get; }
 
-        public UDouble ReqWatts();
+        public ElectricalEnergy ReqEnergy();
 
-        public void ConsumeEnergy(Propor energyPropor);
+        /// <summary>
+        /// Will be called at most once per frame
+        /// </summary>
+        public void ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy);
     }
 }

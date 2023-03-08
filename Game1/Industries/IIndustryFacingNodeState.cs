@@ -11,12 +11,13 @@ namespace Game1.Industries
         public MyVector2 Position { get; }
         public ulong MaxBatchDemResStored { get; }
         public ResPile StoredResPile { get; }
+        public EnergyPile<RadiantEnergy> RadiantEnergyPile { get; }
         public RealPeople WaitingPeople { get; }
         public BasicResInd ConsistsOfResInd { get; }
         public BasicRes ConsistsOfRes { get; }
         public bool TooManyResStored { get; }
-        public UDouble WattsHittingSurfaceOrIndustry { get; }
         public LocationCounters LocationCounters { get; }
+        public ThermalBody ThermalBody { get; }
 
         public bool CanRemove(ulong resAmount);
 

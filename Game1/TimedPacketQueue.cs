@@ -1,4 +1,5 @@
 ﻿using Game1.Inhabitants;
+using static Game1.WorldManager;
 
 namespace Game1
 {
@@ -7,17 +8,20 @@ namespace Game1
     {
         public int Count
             => timedQueue.Count;
-        public RealPeopleStats RealPeopleStats { get; private set; }
+        public RealPeopleStats Stats { get; private set; }
         public NumPeople NumPeople { get; private set; }
         public ResAmounts TotalResAmounts { get; private set; }
         public Mass Mass { get; private set; }
 
-        private readonly LocationCounters locationCounters;
+        private readonly ThermalBody thermalBody;
         private readonly TimedQueue<(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)> timedQueue;
+        private readonly NodeID electricalEnergySourceNodeID, closestNodeID;
 
-        public TimedPacketQueue(LocationCounters locationCounters)
+        public TimedPacketQueue(ThermalBody thermalBody, NodeID electricalEnergySourceNodeID, NodeID closestNodeID)
         {
-            this.locationCounters = locationCounters;
+            this.thermalBody = thermalBody;
+            this.electricalEnergySourceNodeID = electricalEnergySourceNodeID;
+            this.closestNodeID = closestNodeID;
             TotalResAmounts = ResAmounts.Empty;
             Mass = Mass.zero;
             NumPeople = NumPeople.zero;
@@ -28,25 +32,33 @@ namespace Game1
             => timedQueue.Update(duration: duration, workingPropor: workingPropor);
 
         /// <param name="personalUpdate"> if null, will use default update</param>
-        public void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams, Func<RealPerson, UpdatePersonSkillsParams?>? personalUpdate)
+        public void UpdatePeople(UpdatePersonSkillsParams? personalUpdate)
         {
-            RealPeopleStats = RealPeopleStats.empty;
+            Stats = RealPeopleStats.empty;
             foreach (var (_, realPeople) in timedQueue)
             {
-                realPeople.Update(updateLocationParams: updateLocationParams, personalUpdateSkillsParams: personalUpdate);
-                RealPeopleStats = RealPeopleStats.CombineWith(other: realPeople.RealPeopleStats);
+                realPeople.Update(updatePersonSkillsParams: personalUpdate);
+                Stats = Stats.CombineWith(other: realPeople.Stats);
             }
         }
 
         public void Enqueue(ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople)
         {
-            resAmountsPackets = ResAmountsPacketsByDestin.CreateFromSource(sourcePackets: resAmountsPackets, locationCounters: locationCounters);
-            realPeople = RealPeople.CreateFromSource(realPeopleSource: realPeople, locationCounters: locationCounters);
+            resAmountsPackets = ResAmountsPacketsByDestin.CreateFromSource(sourcePackets: resAmountsPackets, thermalBody: thermalBody);
+            realPeople = RealPeople.CreateFromSource
+            (
+                realPeopleSource: realPeople,
+                thermalBody: thermalBody,
+                energyDistributor: CurWorldManager.EnergyDistributor,
+                electricalEnergySourceNodeID: electricalEnergySourceNodeID,
+                closestNodeID: closestNodeID,
+                isInActivityCenter: false
+            );
             if (resAmountsPackets.Empty && realPeople.NumPeople.IsZero)
                 return;
             timedQueue.Enqueue(element: (resAmountsPackets, realPeople));
             TotalResAmounts += resAmountsPackets.ResAmounts;
-            Mass += resAmountsPackets.Mass + realPeople.RealPeopleStats.totalMass;
+            Mass += resAmountsPackets.Mass + realPeople.Stats.totalMass;
             NumPeople += realPeople.NumPeople;
         }
 
@@ -63,16 +75,23 @@ namespace Game1
 
         public (ResAmountsPacketsByDestin resAmountsPackets, RealPeople realPeople) DonePacketsAndPeople()
         {
-            var doneResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(locationCounters: locationCounters);
-            var donePeople = RealPeople.CreateEmpty(locationCounters: locationCounters);
+            var doneResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(thermalBody: thermalBody);
+            var donePeople = RealPeople.CreateEmpty
+            (
+                thermalBody: thermalBody,
+                energyDistributor: CurWorldManager.EnergyDistributor,
+                electricalEnergySourceNodeID: electricalEnergySourceNodeID,
+                closestNodeID: closestNodeID,
+                isInActivityCenter: false
+            );
             foreach (var (resAmountsPackets, people) in timedQueue.DoneElements())
             {
                 TotalResAmounts -= resAmountsPackets.ResAmounts;
-                Mass -= resAmountsPackets.Mass + people.RealPeopleStats.totalMass;
+                Mass -= resAmountsPackets.Mass + people.Stats.totalMass;
                 NumPeople -= people.NumPeople;
 
                 doneResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
-                donePeople.TransferAllFrom(realPeopleSource: people);
+                donePeople.TransferAllFromAndDeleteSource(realPeopleSource: people);
             }
             return
             (

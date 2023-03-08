@@ -4,21 +4,29 @@
     public sealed class BasicRes : IResource
     {
         public BasicResInd resInd;
-        public readonly Mass mass;
-        public readonly ulong area;
+        public Mass Mass { get; }
+        public HeatCapacity HeatCapacity { get; }
+        public ulong Area { get; }
+        public Propor Reflectance { get; }
+        public Propor Emissivity { get; }
+        
         public readonly Color color;
-
         private readonly ResAmounts basicIngredients;
 
-        public BasicRes(BasicResInd resInd, Mass mass, ulong area, Color color)
+        public BasicRes(BasicResInd resInd, Mass mass, HeatCapacity heatCapacity, ulong area, Propor reflectance, Propor emissivity, Color color)
         {
             this.resInd = resInd;
             if (mass.IsZero)
                 throw new ArgumentOutOfRangeException();
-            this.mass = mass;
+            Mass = mass;
+            if (heatCapacity.IsZero)
+                throw new ArgumentOutOfRangeException();
+            HeatCapacity = heatCapacity;
+            Reflectance = reflectance;
+            Emissivity = emissivity;
             if (area is 0)
                 throw new ArgumentOutOfRangeException();
-            this.area = area;
+            Area = area;
             if (color.A != byte.MaxValue)
                 throw new ArgumentException();
             this.color = color;
@@ -31,9 +39,6 @@
 
         ResInd IResource.ResInd
             => resInd;
-
-        Mass IResource.Mass
-            => mass;
 
         ResAmounts IResource.BasicIngredients
             => basicIngredients;

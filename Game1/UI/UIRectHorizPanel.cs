@@ -15,17 +15,9 @@ namespace Game1.UI
         {
             base.PartOfRecalcSizeAndPos();
 
-            Shape.Width = 2 * ActiveUIManager.RectOutlineWidth + children.Count switch
-            {
-                0 => (UDouble)0,
-                not 0 => children.Sum(child => child.Shape.Width)
-            };
+            Shape.Width = 2 * ActiveUIManager.RectOutlineWidth + children.Sum(child => child.Shape.Width);
 
-            Shape.Height = 2 * ActiveUIManager.RectOutlineWidth + children.Count switch
-            {
-                0 => 0,
-                not 0 => children.Max(child => child.Shape.Height)
-            };
+            Shape.Height = 2 * ActiveUIManager.RectOutlineWidth + children.MaxOrDefault(child => child.Shape.Height);
 
             UDouble curWidthSum = 0;
             foreach (var child in children)

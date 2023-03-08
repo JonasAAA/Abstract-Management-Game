@@ -6,10 +6,11 @@ using static Game1.WorldManager;
 namespace Game1.UI
 {
     [Serializable]
-    public abstract class WorldUIElement : UIElement<IUIElement>, /*IWithTooltip,*/ IDeletable, IChoiceChangedListener<IOverlay>
+    // TChild is WorldUIElement to disallow text and similar UI elements which would should not scale when player zooms in/out
+    // The correct approach here would be to have TChild IWorldUIElement (that being new interface) but I'm not sure if that'll work
+    // with the save system (as UIElement<IUIElement> and UIElement<IWorldUIElement> would be indistinguishable types for the save system
+    public abstract class WorldUIElement : UIElement<WorldUIElement>, IChoiceChangedListener<IOverlay>
     {
-        public IEvent<IDeletedListener> Deleted
-            => deleted;
         public readonly Event<IActiveChangedListener> activeChanged;
 
         public override bool CanBeClicked
@@ -52,7 +53,7 @@ namespace Game1.UI
 
         private readonly HorizPos popupHorizPos;
         private readonly VertPos popupVertPos;
-        private readonly Event<IDeletedListener> deleted;
+        
         private bool active;
 
         private readonly Dictionary<IOverlay, IHUDElement?> popups;
@@ -66,11 +67,9 @@ namespace Game1.UI
             this.popupHorizPos = popupHorizPos;
             this.popupVertPos = popupVertPos;
             active = false;
-            deleted = new();
 
             popups = IOverlay.all.ToDictionary
             (
-                keySelector: overlay => overlay,
                 elementSelector: overlay => (IHUDElement?)null
             );
             CurOverlayChanged.Add(listener: this);
@@ -111,9 +110,6 @@ namespace Game1.UI
         }
 
         protected virtual void Delete()
-        {
-            CurOverlayChanged.Remove(listener: this);
-            deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
-        }
+            => CurOverlayChanged.Remove(listener: this);
     }
 }

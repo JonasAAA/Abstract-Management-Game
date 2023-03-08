@@ -8,22 +8,22 @@ namespace Game1.Industries
         [Serializable]
         public new sealed class Factory : ProductiveIndustry.Factory, IFactoryForIndustryWithBuilding
         {
-            public readonly Propor surfaceWattsAbsorbedPropor;
+            public readonly Propor surfaceAbsorbtionPropor;
             private readonly ResAmounts buildingCostPerUnitSurface;
 
-            public Factory(string name, UDouble reqSkillPerUnitSurface, Propor surfaceWattsAbsorbedPropor, ResAmounts buildingCostPerUnitSurface)
+            public Factory(string name, UDouble reqSkillPerUnitSurface, Propor surfaceAbsorbtionPropor, ResAmounts buildingCostPerUnitSurface)
                 : base
                 (
                     industryType: IndustryType.PowerPlant,
-                    energyPriority: EnergyPriority.minimal,
+                    energyPriority: EnergyPriority.mostImportant,
                     name: name,
                     color: Color.Blue,
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
             {
-                if (surfaceWattsAbsorbedPropor.IsCloseTo(other: Propor.empty))
+                if (surfaceAbsorbtionPropor.IsCloseTo(other: Propor.empty))
                     throw new ArgumentOutOfRangeException();
-                this.surfaceWattsAbsorbedPropor = surfaceWattsAbsorbedPropor;
+                this.surfaceAbsorbtionPropor = surfaceAbsorbtionPropor;
                 if (buildingCostPerUnitSurface.IsEmpty())
                     throw new ArgumentException();
                 this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
@@ -42,21 +42,19 @@ namespace Game1.Industries
         [Serializable]
         public new sealed class Params : ProductiveIndustry.Params
         {
-            public UDouble ProdWatts
-                => state.WattsHittingSurfaceOrIndustry * factory.surfaceWattsAbsorbedPropor;
+            public readonly Propor surfaceAbsorbtionPropor;
 
-            private readonly Factory factory;
-
+            // TODO: may improve the tooltip text by showing the actual produced amount
             public override string TooltipText
                 => $"""
                 {base.TooltipText}
-                {nameof(ProdWatts)}: {ProdWatts}
+                {nameof(surfaceAbsorbtionPropor)}: {surfaceAbsorbtionPropor}
                 """;
 
             public Params(IIndustryFacingNodeState state, Factory factory)
                 : base(state: state, factory: factory)
             {
-                this.factory = factory;
+                surfaceAbsorbtionPropor = factory.surfaceAbsorbtionPropor;
             }
         }
 
@@ -67,11 +65,15 @@ namespace Game1.Industries
             => CurWorldConfig.defaultIndustryHeight;
 
         private readonly Params parameters;
+        private ElectricalEnergy prodEnergy;
+        private readonly HistoricRounder producedEnergyRounder;
 
         private PowerPlant(Params parameters, Building building)
             : base(parameters: parameters, building: building)
         {
             this.parameters = parameters;
+            prodEnergy = ElectricalEnergy.zero;
+            producedEnergyRounder = new();
             CurWorldManager.AddEnergyProducer(energyProducer: this);
         }
 
@@ -86,19 +88,17 @@ namespace Game1.Industries
         }
 
         protected override string GetBusyInfo()
-            => $"produce {ProdWatts:0.##} W\n";
+            => $"produce {prodEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W\n";
 
         protected override UDouble ReqWatts()
             => 0;
 
-        UDouble IEnergyProducer.ProdWatts()
-            => ProdWatts;
-
-        private UDouble ProdWatts
-            => IsBusy().SwitchExpression
+        void IEnergyProducer.ProduceEnergy(EnergyPile<ElectricalEnergy> destin)
+            => prodEnergy = parameters.state.RadiantEnergyPile.TransformProporTo
             (
-                trueCase: () => parameters.ProdWatts * CurSkillPropor,
-                falseCase: () => (UDouble)0
+                destin: destin,
+                propor: parameters.surfaceAbsorbtionPropor * CurSkillPropor,
+                amountToTransformRoundFunc: amount => producedEnergyRounder.Round(value: amount, curTime: CurWorldManager.CurTime)
             );
     }
 }

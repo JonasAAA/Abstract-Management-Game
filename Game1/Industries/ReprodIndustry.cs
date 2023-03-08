@@ -85,8 +85,8 @@ namespace Game1.Industries
 
             private readonly Params parameters;
 
-            public ReprodCenter(Params parameters)
-                : base(activityType: ActivityType.Reproduction, energyPriority: parameters.energyPriority, state: parameters.state)
+            public ReprodCenter(Params parameters, IEnergyDistributor energyDistributor)
+                : base(energyDistributor: energyDistributor, activityType: ActivityType.Reproduction, energyPriority: parameters.energyPriority, state: parameters.state)
             {
                 this.parameters = parameters;
                 unpairedPeople = new();
@@ -114,7 +114,7 @@ namespace Game1.Industries
                 unpairedPeople.Enqueue(element: realPerson.asVirtual);
             }
 
-            protected override UpdatePersonSkillsParams? PersonUpdateParams(RealPerson realPerson)
+            protected override UpdatePersonSkillsParams? UpdatePersonSkillsParams
                 => null;
 
             public override bool CanPersonLeave(VirtualPerson person)
@@ -136,30 +136,30 @@ namespace Game1.Industries
         public override bool PeopleWorkOnTop
             => false;
 
-        public override RealPeopleStats RealPeopleStats
-            => base.RealPeopleStats.CombineWith(other: reprodCenter.PeopleHereStats);
+        public override RealPeopleStats Stats
+            => base.Stats.CombineWith(other: reprodCenter.PeopleHereStats);
 
         protected override UDouble Height
             => CurWorldConfig.defaultIndustryHeight;
 
         private readonly Params parameters;
         private readonly ReprodCenter reprodCenter;
-        private readonly TimedQueue<(VirtualPerson, VirtualPerson, ReservedResPile childResPile)> birthQueue;
+        private readonly TimedQueue<(VirtualPerson, VirtualPerson, ResPile childResPile)> birthQueue;
 
         private ReprodIndustry(Params parameters, Building building)
             : base(parameters: parameters, building: building)
         {
             this.parameters = parameters;
-            reprodCenter = new(parameters: parameters);
+            reprodCenter = new(parameters: parameters, energyDistributor: combinedEnergyConsumer);
 
             birthQueue = new();
         }
 
-        protected override void UpdatePeopleInternal(RealPerson.UpdateLocationParams updateLocationParams)
+        protected override void UpdatePeopleInternal()
         {
-            base.UpdatePeopleInternal(updateLocationParams: updateLocationParams);
+            base.UpdatePeopleInternal();
 
-            reprodCenter.UpdatePeople(updateLocationParams: updateLocationParams);
+            reprodCenter.UpdatePeople();
         }
 
         public override ResAmounts TargetStoredResAmounts()
@@ -180,7 +180,7 @@ namespace Game1.Industries
             {
                 RealPerson.GenerateChild
                 (
-                    nodeID: parameters.state.NodeID,
+                    closestNodeID: parameters.state.NodeID,
                     parent1: parent1,
                     parent2: parent2,
                     resSource: childResPile,
@@ -192,7 +192,7 @@ namespace Game1.Industries
                 reprodCenter.RemovePerson(person: parent2, force: true);
             }
 
-            while (reprodCenter.unpairedPeople.Count >= 2 && ReservedResPile.CreateIfHaveEnough(source: parameters.state.StoredResPile, resAmounts: RealPerson.resAmountsPerPerson) is ReservedResPile childResPile)
+            while (reprodCenter.unpairedPeople.Count >= 2 && ResPile.CreateIfHaveEnough(source: parameters.state.StoredResPile, amount: RealPerson.resAmountsPerPerson) is ResPile childResPile)
             {
                 // TODO: move this logic into ReprodCenter class?
                 VirtualPerson person1 = reprodCenter.unpairedPeople.Dequeue(),
@@ -211,7 +211,7 @@ namespace Game1.Industries
             // first, births should finish, then people should evacuate, then can delete
             throw new NotImplementedException();
         }
-        
+
         protected override UDouble ReqWatts()
             => (UDouble)birthQueue.Count * parameters.reqWattsPerChild * CurSkillPropor;
 

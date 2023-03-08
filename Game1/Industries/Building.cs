@@ -7,30 +7,21 @@ namespace Game1.Industries
     public class Building
     {
         public ResAmounts Cost
-            => ResPile.ResAmounts;
-        // TODO: should probably have a separate type for mass
+            => resPile.Amount;
+
         public readonly Mass mass;
 
-        private ReservedResPile ResPile
-            => resPile ?? throw new InvalidOperationException(buildingIsDeletedMessage);
+        private readonly ResPile resPile;
 
-        private ReservedResPile? resPile;
-        private const string buildingIsDeletedMessage = "building has been deleted";
-
-        public Building([DisallowNull] ref ReservedResPile? resSource)
+        public Building(ResPile resSource)
         {
-            if (resSource.IsEmpty)
+            if (resSource.Amount.IsEmpty())
                 throw new ArgumentException();
-            resPile = ReservedResPile.CreateFromSource(source: ref resSource);
-            mass = Cost.TotalMass();
+            resPile = resSource;
+            mass = Cost.Mass();
         }
 
-        public static void Delete([DisallowNull] ref Building? building, ResPile resDestin)
-        {
-            if (building.resPile is null)
-                throw new InvalidOperationException(buildingIsDeletedMessage);
-            resDestin.TransferAllFrom(reservedSource: ref building.resPile);
-            building = null;
-        }
+        public void Delete(ResPile resDestin)
+            => resDestin.TransferAllFrom(source: resPile);
     }
 }

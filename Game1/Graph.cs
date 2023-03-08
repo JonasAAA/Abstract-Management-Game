@@ -21,12 +21,12 @@ namespace Game1
             public static void Init(ResInd resInd)
                 => NodeInfo.resInd = resInd;
 
-            public readonly Planet node;
+            public readonly CosmicBody node;
             public readonly List<NodeInfo> nodesIn, nodesOut;
             public uint unvisitedDestinsCount;
             public bool isSplitAleady;
 
-            public NodeInfo(Planet node)
+            public NodeInfo(CosmicBody node)
             {
                 this.node = node;
                 nodesIn = new();
@@ -84,16 +84,16 @@ namespace Game1
         [Serializable]
         private readonly record struct PersonAndResShortestPaths(ShortestPaths PersonShortestPaths, ShortestPaths ResShortestPaths);
 
-        public IEnumerable<Planet> Nodes
+        public IEnumerable<CosmicBody> Nodes
             => nodes;
 
-        public readonly ReadOnlyDictionary<NodeID, Planet> nodeIDToNode;
+        public readonly ReadOnlyDictionary<NodeID, CosmicBody> nodeIDToNode;
         public TimeSpan MaxLinkTravelTime { get; private set; }
         public UDouble MaxLinkJoulesPerKg { get; private set; }
 
         public override bool CanBeClicked
             => true;
-        public RealPeopleStats RealPeopleStats { get; private set; }
+        public RealPeopleStats Stats { get; private set; }
 
         // THIS COLOR IS NOT USED
         protected override Color Color
@@ -111,8 +111,6 @@ namespace Game1
         {
             get
             {
-                foreach (var star in stars)
-                    yield return star;
                 foreach (var node in nodes)
                     yield return node;
                 foreach (var link in links)
@@ -123,8 +121,7 @@ namespace Game1
             }
         }
 
-        private readonly List<Star> stars;
-        private readonly List<Planet> nodes;
+        private readonly List<CosmicBody> nodes;
         private readonly List<Link> links;
 
         [NonSerialized] private Task<PersonAndResShortestPaths> shortestPathsTask;
@@ -132,12 +129,12 @@ namespace Game1
 
         public WorldUIElement? ActiveWorldElement { get; private set; }
 
-        public Graph(IEnumerable<Star> stars, IEnumerable<Planet> nodes, IEnumerable<Link> links)
+        public Graph(IEnumerable<CosmicBody> nodes, IEnumerable<Link> links)
             : base(shape: new InfinitePlane())
         {
-            this.stars = stars.ToMyHashSet().ToList();
             this.nodes = nodes.ToMyHashSet().ToList();
             this.links = links.ToMyHashSet().ToList();
+            
             foreach (var link in this.links)
             {
                 link.node1.AddLink(link: link);
@@ -157,8 +154,6 @@ namespace Game1
                 )
             );
 
-            foreach (var star in stars)
-                AddChild(child: star, layer: CurWorldConfig.lightLayer);
             foreach (var node in nodes)
                 AddChild(child: node, layer: CurWorldConfig.nodeLayer);
             foreach (var link in links)
@@ -191,8 +186,8 @@ namespace Game1
 
         private void CalcAndSetMaxLinkStats()
         {
-            MaxLinkTravelTime = this.links.Max(link => link.TravelTime);
-            MaxLinkJoulesPerKg = this.links.Max(link => link.JoulesPerKg);
+            MaxLinkTravelTime = links.MaxOrDefault(link => link.TravelTime);
+            MaxLinkJoulesPerKg = links.MaxOrDefault(link => link.JoulesPerKg);
         }
 
         [MemberNotNull(nameof(personDists), nameof(personFirstLinks), nameof(resDists), nameof(resFirstLinks))]
@@ -205,7 +200,7 @@ namespace Game1
             (
                 function: state =>
                 {
-                    var (nodes, links) = (ValueTuple<List<Planet>, List<Link>>)state!;
+                    var (nodes, links) = (ValueTuple<List<CosmicBody>, List<Link>>)state!;
                     return FindPersonAndResShortestPaths(nodes: nodes, links: links);
                 },
                 // TODO: decide if it's needed. it probably executes the function on another thread, but causes massive performance problems in Debug mode
@@ -213,7 +208,7 @@ namespace Game1
                 state: (nodes.ToList(), links.ToList())
             );
 
-        private static PersonAndResShortestPaths FindPersonAndResShortestPaths(List<Planet> nodes, List<Link> links)
+        private static PersonAndResShortestPaths FindPersonAndResShortestPaths(List<CosmicBody> nodes, List<Link> links)
             => new
             (
                 PersonShortestPaths: FindShortestPaths
@@ -235,7 +230,7 @@ namespace Game1
         // currently uses Floyd-Warshall;
         // Dijkstra would be more efficient
         // TODO: implement Dijkstra and use pre-allocated buffers for computations to reduce GC pressure
-        private static ShortestPaths FindShortestPaths(List<Planet> nodes, List<Link> links, UDouble distTimeCoeff, UDouble distEnergyCoeff)
+        private static ShortestPaths FindShortestPaths(List<CosmicBody> nodes, List<Link> links, UDouble distTimeCoeff, UDouble distEnergyCoeff)
         {
             UDouble[,] distsArray = new UDouble[nodes.Count, nodes.Count];
             Link?[,] firstLinksArray = new Link[nodes.Count, nodes.Count];
@@ -252,7 +247,7 @@ namespace Game1
 
             foreach (var link in links)
             {
-                int i = nodes.IndexOf((Planet)link.node1), j = nodes.IndexOf((Planet)link.node2);
+                int i = nodes.IndexOf((CosmicBody)link.node1), j = nodes.IndexOf((CosmicBody)link.node2);
                 Debug.Assert(i >= 0 && j >= 0);
                 distsArray[i, j] = distTimeCoeff * (UDouble)link.TravelTime.TotalSeconds + distEnergyCoeff * link.JoulesPerKg;
                 distsArray[j, i] = distsArray[i, j];
@@ -322,7 +317,7 @@ namespace Game1
             resDestinArrows[resInd].RemoveChild(child: resDestinArrow);
         }
 
-        public void Update()
+        public void Update(EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
             // TODO: improve performance of this
             if (shortestPathsTask.IsCompleted)
@@ -334,19 +329,21 @@ namespace Game1
             CalcAndSetMaxLinkStats();
             links.ForEach(link => link.Update());
             foreach (var node in nodes)
-                node.Update(personFirstLinks: personFirstLinks);
+                node.Update(personFirstLinks: personFirstLinks, vacuumHeatEnergyPile: vacuumHeatEnergyPile);
 
             links.ForEach(link => link.UpdatePeople());
             nodes.ForEach(node => node.UpdatePeople());
-            RealPeopleStats = nodes.CombineRealPeopleStats().CombineWith(other: links.CombineRealPeopleStats());
+            Stats = nodes.CombineRealPeopleStats().CombineWith(other: links.CombineRealPeopleStats());
+            
             nodes.ForEach(node => node.StartSplitRes());
-
             foreach (var resInd in ResInd.All)
                 SplitRes(resInd: resInd);
-
             foreach (var node in nodes)
                 node.EndSplitRes(resFirstLinks: resFirstLinks);
         }
+
+        public void UpdateHUDPos()
+            => nodes.ForEach(node => node.UpdateHUDPos());
 
         /// <summary>
         /// TODO:
@@ -450,8 +447,8 @@ namespace Game1
             {
                 if (worldUIElement.Active)
                 {
-                    var sourceNode = ActiveWorldElement as Planet;
-                    var destinationNode = worldUIElement as Planet;
+                    var sourceNode = ActiveWorldElement as CosmicBody;
+                    var destinationNode = worldUIElement as CosmicBody;
                     Debug.Assert(sourceNode is not null && destinationNode is not null);
                     sourceNode.AddResDestin(destinationId: destinationNode.NodeID);
                     worldUIElement.Active = false;

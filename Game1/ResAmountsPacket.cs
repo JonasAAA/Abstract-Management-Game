@@ -6,10 +6,10 @@
         public readonly NodeID destination;
         public readonly ResPile resPile;
         public Mass Mass
-            => resPile.Mass;
+            => resPile.Amount.Mass();
 
-        public ResAmountsPacket(NodeID destination, LocationCounters locationCounters)
-            : this(destination: destination, resPile: ResPile.CreateEmpty(locationCounters: locationCounters))
+        public ResAmountsPacket(NodeID destination, ThermalBody thermalBody)
+            : this(destination: destination, resPile: ResPile.CreateEmpty(thermalBody: thermalBody))
         { }
 
         private ResAmountsPacket(NodeID destination, ResPile resPile)

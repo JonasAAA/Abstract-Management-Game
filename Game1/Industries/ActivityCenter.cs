@@ -18,7 +18,7 @@ namespace Game1.Industries
         public EnergyPriority EnergyPriority { get; private set; }
 
         public RealPeopleStats PeopleHereStats
-            => realPeopleHere.RealPeopleStats;
+            => realPeopleHere.Stats;
 
         protected readonly RealPeople realPeopleHere;
         protected readonly VirtualPeople allPeople;
@@ -27,12 +27,19 @@ namespace Game1.Industries
         private readonly Event<IDeletedListener> deleted;
         private readonly VirtualPeople peopleInProcessOfRemoving;
 
-        protected ActivityCenter(ActivityType activityType, EnergyPriority energyPriority, IIndustryFacingNodeState state)
+        protected ActivityCenter(IEnergyDistributor energyDistributor, ActivityType activityType, EnergyPriority energyPriority, IIndustryFacingNodeState state)
         {
             ActivityType = activityType;
             EnergyPriority = energyPriority;
             this.state = state;
-            realPeopleHere = RealPeople.CreateEmpty(locationCounters: state.LocationCounters);
+            realPeopleHere = RealPeople.CreateEmpty
+            (
+                thermalBody: state.ThermalBody,
+                energyDistributor: energyDistributor,
+                electricalEnergySourceNodeID: state.NodeID,
+                closestNodeID: state.NodeID,
+                isInActivityCenter: true
+            );
             allPeople = new();
 
             deleted = new();
@@ -57,14 +64,10 @@ namespace Game1.Industries
             realPeopleHere.TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
         }
 
-        public void UpdatePeople(RealPerson.UpdateLocationParams updateLocationParams)
-            => realPeopleHere.Update
-            (
-                updateLocationParams: updateLocationParams,
-                personalUpdateSkillsParams: PersonUpdateParams
-            );
+        public void UpdatePeople()
+            => realPeopleHere.Update(updatePersonSkillsParams: UpdatePersonSkillsParams);
 
-        protected abstract UpdatePersonSkillsParams? PersonUpdateParams(RealPerson realPerson);
+        protected abstract UpdatePersonSkillsParams? UpdatePersonSkillsParams { get; }
 
         public bool IsPersonHere(VirtualPerson person)
             => realPeopleHere.Contains(person);
@@ -100,6 +103,7 @@ namespace Game1.Industries
             foreach (var person in allPeople)
                 RemovePerson(person: person);
             Debug.Assert(allPeople.Count.IsZero && PeopleHereStats.totalNumPeople.IsZero);
+            realPeopleHere.Delete();
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
     }

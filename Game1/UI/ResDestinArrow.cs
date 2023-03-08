@@ -4,8 +4,11 @@ using Game1.Shapes;
 namespace Game1.UI
 {
     [Serializable]
-    public sealed class ResDestinArrow : WorldUIElement
+    public sealed class ResDestinArrow : WorldUIElement, IDeletable
     {
+        public IEvent<IDeletedListener> Deleted
+            => deleted;
+
         [Serializable]
         private readonly record struct DeleteButtonClickedListener(ResDestinArrow ResDestinArrow) : IClickedListener
         {
@@ -37,6 +40,7 @@ namespace Game1.UI
         public Event<INumberChangedListener> ImportanceNumberChanged
             => importanceIncDecrPanel.numberChanged;
 
+        private readonly Event<IDeletedListener> deleted;
         private int totalImportance;
         private readonly NodeID destinId;
         private readonly Color defaultActiveColor, defaultInactiveColor;
@@ -57,6 +61,7 @@ namespace Game1.UI
             this.defaultActiveColor = defaultActiveColor;
             this.defaultInactiveColor = defaultInactiveColor;
 
+            deleted = new();
             UIRectPanel<IHUDElement> popup = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
             SetPopup(HUDElement: popup, overlay: resInd);
 
@@ -96,6 +101,11 @@ namespace Game1.UI
             );
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(ResDestinArrow: this));
             popup.AddChild(deleteButton);
+        }
+
+        protected override void Delete()
+        {
+            deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
     }
 }

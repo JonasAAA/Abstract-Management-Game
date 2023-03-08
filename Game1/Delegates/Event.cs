@@ -15,6 +15,12 @@
         public void Add(T listener)
             => listeners.Add(listener);
 
+        /// <summary>
+        /// Add if such doesn't already exist
+        /// </summary>
+        public void TryAdd(T listener)
+            => listeners.TryAdd(listener);
+
         public void Remove(T listener)
             => listeners.Remove(listener);
 

@@ -2,6 +2,6 @@
 {
     public interface IWithRealPeopleStats
     {
-        public RealPeopleStats RealPeopleStats { get; }
+        public RealPeopleStats Stats { get; }
     }
 }

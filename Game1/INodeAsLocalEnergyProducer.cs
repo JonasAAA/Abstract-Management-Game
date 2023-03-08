@@ -1,9 +1,9 @@
 ﻿namespace Game1
 {
-    public interface INodeAsLocalEnergyProducer
+    public interface INodeAsLocalEnergyProducerAndConsumer
     {
-        public UDouble LocallyProducedWatts { get; }
+        public void ProduceLocalEnergy(EnergyPile<ElectricalEnergy> destin);
 
-        public void SetUsedLocalWatts(UDouble remainingLocalWatts);
+        public void ConsumeUnusedLocalEnergyFrom(EnergyPile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy);
     }
 }

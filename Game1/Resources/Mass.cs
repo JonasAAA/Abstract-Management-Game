@@ -3,27 +3,27 @@
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly record struct Mass : ICountable<Mass>
+    public readonly record struct Mass : IAdditionOperators<Mass, Mass, Mass>, IAdditiveIdentity<Mass, Mass>, IMultiplyOperators<Mass, ulong, Mass>, IMultiplicativeIdentity<Mass, ulong>
     {
         public static readonly Mass zero;
 
         static Mass IAdditiveIdentity<Mass, Mass>.AdditiveIdentity
             => zero;
 
+        static ulong IMultiplicativeIdentity<Mass, ulong>.MultiplicativeIdentity
+            => 1;
+
         static Mass()
             => zero = new(valueInKg: 0);
 
-        public static Mass CreateFromKg(ulong massInKg)
-            => new(valueInKg: massInKg);
+        public static Mass CreateFromKg(ulong valueInKg)
+            => new(valueInKg: valueInKg);
 
-        public ulong InKg
-            => valueInKg;
-
-        // This must be property rather than field so that auto-initialized mass IsZero returns true
+        // This must be property rather than field so that auto-initialized Mass IsZero returns true
         public bool IsZero
             => this == zero;
 
-        private readonly ulong valueInKg;
+        public readonly ulong valueInKg;
 
         private Mass(ulong valueInKg)
             => this.valueInKg = valueInKg;
@@ -36,5 +36,11 @@ namespace Game1.Resources
 
         public static Mass operator -(Mass left, Mass right)
             => new(valueInKg: left.valueInKg - right.valueInKg);
+
+        public static Mass operator *(Mass left, ulong right)
+            => new(valueInKg: left.valueInKg * right);
+
+        public static Mass operator *(ulong left, Mass right)
+            => right * left;
     }
 }

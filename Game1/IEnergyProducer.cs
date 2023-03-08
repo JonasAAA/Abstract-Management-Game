@@ -5,6 +5,6 @@
     /// </summary>
     public interface IEnergyProducer : IDeletable
     {
-        public UDouble ProdWatts();
+        public void ProduceEnergy(EnergyPile<ElectricalEnergy> destin);
     }
 }

@@ -19,8 +19,8 @@ namespace Game1.Industries
                 : base(name: name, color: color)
             {
                 this.industryType = industryType;
-                if ((industryType is IndustryType.PowerPlant && energyPriority != EnergyPriority.minimal)
-                    || (industryType is not IndustryType.PowerPlant && energyPriority == EnergyPriority.minimal))
+                if ((industryType is IndustryType.PowerPlant && energyPriority != EnergyPriority.mostImportant)
+                    || (industryType is not IndustryType.PowerPlant && energyPriority == EnergyPriority.mostImportant))
                     throw new ArgumentException();
                 this.energyPriority = energyPriority;
                 if (reqSkillPerUnitSurface.IsCloseTo(other: 0))
@@ -60,29 +60,42 @@ namespace Game1.Industries
         [Serializable]
         private sealed class Employer : ActivityCenter
         {
-            public Propor CurSkillPropor { get; private set; }
+            public Propor CurSkillPropor
+                => (Propor)MyMathHelper.Min((UDouble)1, CurUnboundedSkillPropor);
 
+            private UDouble CurUnboundedSkillPropor
+                => realPeopleHere.Stats.totalProductivities[parameters.industryType] / parameters.ReqSkill;
             private readonly Params parameters;
             private Score desperationScore;
-            private UDouble curUnboundedSkillPropor;
-            private Propor workingPropor;
-            private bool isBusy;
+            /// <summary>
+            /// What propor is each person working
+            /// </summary>
+            private Propor personalWorkingPropor;
 
-            public Employer(Params parameters)
-                : base(activityType: ActivityType.Working, energyPriority: parameters.energyPriority, state: parameters.state)
+            public Employer(Params parameters, IEnergyDistributor energyDistributor)
+                : base(energyDistributor: energyDistributor, activityType: ActivityType.Working, energyPriority: parameters.energyPriority, state: parameters.state)
             {
                 this.parameters = parameters;
-                CurSkillPropor = Propor.empty;
-                curUnboundedSkillPropor = 0;
                 // TODO: could initialize to some other value
                 desperationScore = Score.lowest;
-                workingPropor = Propor.empty;
-                isBusy = false;
+                personalWorkingPropor = Propor.empty;
             }
 
-            public void StartUpdate(bool isBusy)
+            /// <summary>
+            /// Returns industry working propor
+            /// </summary>
+            public Propor Update(bool isBusy, Propor industryEnergyPropor)
             {
-                this.isBusy = isBusy;
+                var finalIndustryEnergyPropor = MyMathHelper.Min(industryEnergyPropor, realPeopleHere.Stats.AllocEnergyPropor);
+                personalWorkingPropor = isBusy switch
+                {
+                    true => Propor.Create
+                    (
+                        part: (UDouble)finalIndustryEnergyPropor,
+                        whole: MyMathHelper.Max((UDouble)1, CurUnboundedSkillPropor)
+                    )!.Value,
+                    false => Propor.empty
+                };
                 UDouble totalHiredSkill = HiredSkill();
                 if (totalHiredSkill >= parameters.ReqSkill)
                 {
@@ -124,12 +137,7 @@ namespace Game1.Industries
                         halvingDifferenceDuration: TimeSpan.FromSeconds(20)
                     )
                 );
-            }
-
-            public void EndUpdate()
-            {
-                curUnboundedSkillPropor = realPeopleHere.RealPeopleStats.ActualTotalSkill(industryType: parameters.industryType) / parameters.ReqSkill;
-                CurSkillPropor = (Propor)MyMathHelper.Min((UDouble)1, curUnboundedSkillPropor);
+                return finalIndustryEnergyPropor * CurSkillPropor;
             }
 
             public override bool IsFull()
@@ -146,7 +154,7 @@ namespace Game1.Industries
                 return NewEmploymentScore(person: person) >= CurWorldConfig.minAcceptablePersonScore;
             }
 
-            protected override UpdatePersonSkillsParams PersonUpdateParams(RealPerson realPerson)
+            protected override UpdatePersonSkillsParams UpdatePersonSkillsParams
                 => new()
                 {
                     (
@@ -154,7 +162,7 @@ namespace Game1.Industries
                         paramsOfSkillChange: new Score.ParamsOfChange
                         (
                             target: Score.highest,
-                            elapsed: isBusy ? CurWorldManager.Elapsed * workingPropor : TimeSpan.Zero,
+                            elapsed: CurWorldManager.Elapsed * personalWorkingPropor,
                             // TODO: get rid of hard-coded constant
                             halvingDifferenceDuration: TimeSpan.FromSeconds(20)
                         )
@@ -164,12 +172,9 @@ namespace Game1.Industries
             public override bool CanPersonLeave(VirtualPerson person)
                 => true;
 
-            public void SetEnergyPropor(Propor energyPropor)
-                => workingPropor = Propor.Create((UDouble)energyPropor, MyMathHelper.Max((UDouble)1, curUnboundedSkillPropor))!.Value;
-
             public string GetInfo()
                 => $"""
-                have {realPeopleHere.RealPeopleStats.ActualTotalSkill(industryType: parameters.industryType) / parameters.ReqSkill * 100:0.}% skill
+                have {realPeopleHere.Stats.totalProductivities[parameters.industryType] / parameters.ReqSkill * 100:0.}% skill
                 desperation {(UDouble)desperationScore * 100:0.}%
                 {PeopleHereStats}
                 travel here {allPeople.Count - PeopleHereStats.totalNumPeople}
@@ -209,30 +214,36 @@ namespace Game1.Industries
             }
         }
 
-        public override RealPeopleStats RealPeopleStats
+        public override RealPeopleStats Stats
             => employer.PeopleHereStats;
 
         protected Propor CurSkillPropor
             => employer.CurSkillPropor;
 
+        protected readonly HistoricRounder reqEnergyHistoricRounder;
+
         private readonly Params parameters;
         private readonly Employer employer;
-        private Propor energyPropor;
+        private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
+        /// <summary>
+        /// How much of REQUESTED energy is given. So if request 0, get 0, the proportion is full
+        /// </summary>
+        private Propor allocEnergyPropor;
 
         protected ProductiveIndustry(Params parameters, Building? building)
             : base(parameters: parameters, building: building)
         {
             this.parameters = parameters;
+            reqEnergyHistoricRounder = new();
+            employer = new(parameters: parameters, energyDistributor: combinedEnergyConsumer);
+            allocEnergyPropor = Propor.empty;
+            electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: parameters.state.LocationCounters);
 
-            employer = new(parameters: parameters);
-
-            energyPropor = Propor.empty;
-
-            CurWorldManager.AddEnergyConsumer(energyConsumer: this);
+            combinedEnergyConsumer.AddEnergyConsumer(energyConsumer: this);
         }
 
-        protected override void UpdatePeopleInternal(RealPerson.UpdateLocationParams updateLocationParams)
-            => employer.UpdatePeople(updateLocationParams: updateLocationParams);
+        protected override void UpdatePeopleInternal()
+            => employer.UpdatePeople();
 
         // TODO: Compute this value only once per frame
         protected virtual BoolWithExplanationIfFalse IsBusy()
@@ -250,13 +261,9 @@ namespace Game1.Industries
 
         protected sealed override Industry InternalUpdate()
         {
-            employer.StartUpdate(isBusy: (bool)IsBusy());
-
-            var result = (bool)CanBeBusy ? InternalUpdate(workingPropor: energyPropor * CurSkillPropor) : this;
-
-            employer.EndUpdate();
-
-            return result;
+            parameters.state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
+            var workingPropor = employer.Update(isBusy: (bool)IsBusy(), industryEnergyPropor: allocEnergyPropor);
+            return (bool)CanBeBusy ? InternalUpdate(workingPropor: workingPropor) : this;
         }
 
         protected abstract Industry InternalUpdate(Propor workingPropor);
@@ -272,7 +279,7 @@ namespace Game1.Industries
             (
                 singleResCase: resInd => "",
                 allResCase: () => "",
-                powerCase: () => $"have {energyPropor * 100.0:0.}% of required energy\n",
+                powerCase: () => $"have {allocEnergyPropor * 100.0:0.}% of required energy\n",
                 peopleCase: () => employer.GetInfo()
             ) + $"{parameters.name}\n" + IsBusy().SwitchExpression
             (
@@ -288,19 +295,29 @@ namespace Game1.Industries
             => IsBusy().SwitchExpression
             (
                 trueCase: () => parameters.energyPriority,
-                falseCase: () => EnergyPriority.maximal
+                falseCase: () => EnergyPriority.leastImportant
             );
 
         NodeID IEnergyConsumer.NodeID
             => parameters.state.NodeID;
 
-        void IEnergyConsumer.ConsumeEnergy(Propor energyPropor)
+        void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {
-            this.energyPropor = energyPropor;
-            employer.SetEnergyPropor(energyPropor: energyPropor);
+            electricalEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
+            allocEnergyPropor = MyMathHelper.CreatePropor(part: electricalEnergy, whole: ReqEnergy());
         }
 
-        UDouble IEnergyConsumer.ReqWatts()
-            => ReqWatts();
+        private ElectricalEnergy ReqEnergy()
+            => ElectricalEnergy.CreateFromJoules
+            (
+                valueInJ: reqEnergyHistoricRounder.Round
+                (
+                    value: (decimal)ReqWatts() * (decimal)CurWorldManager.Elapsed.TotalSeconds,
+                    curTime: CurWorldManager.CurTime
+                )
+            );
+
+        ElectricalEnergy IEnergyConsumer.ReqEnergy()
+            => ReqEnergy();
     }
 }

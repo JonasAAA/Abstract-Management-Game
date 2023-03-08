@@ -43,7 +43,7 @@ namespace Game1.GameStates
 
         public override void Update(TimeSpan elapsed)
         {
-            WorldManager.CurWorldManager.Update(elapsed: elapsed);
+            WorldManager.CurWorldManager.Update(elapsedGameTime: elapsed);
             if (switchToPauseMenuButton is null)
                 throw new InvalidOperationException($"Must call {nameof(Initialize)} first");
             switchToPauseMenuButton.Update();

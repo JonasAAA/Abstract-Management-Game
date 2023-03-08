@@ -4,7 +4,12 @@ namespace Game1.PrimitiveTypeWrappers
 {
     // TODO: could rename to MyUFloat
     [Serializable]
-    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>, IComparisonOperators<UDouble, UDouble, bool>, IComparable<UDouble>, IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>, IMultiplyOperators<UDouble, UDouble, UDouble>, IMultiplicativeIdentity<UDouble, UDouble>, IPrimitiveTypeWrapper
+    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>,
+        IComparisonOperators<UDouble, UDouble, bool>, IMin<UDouble>, IMax<UDouble>, IComparable<UDouble>, IMinMaxValue<UDouble>,
+        IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>,
+        IMultiplyOperators<UDouble, UDouble, UDouble>, IMultiplicativeIdentity<UDouble, UDouble>,
+        IMultiplyOperators<UDouble, ulong, UDouble>, IMultiplicativeIdentity<UDouble, ulong>,
+        IPrimitiveTypeWrapper
     {
         public static readonly UDouble positiveInfinity = new(value: double.PositiveInfinity);
 
@@ -15,6 +20,18 @@ namespace Game1.PrimitiveTypeWrappers
 
         static UDouble IMultiplicativeIdentity<UDouble, UDouble>.MultiplicativeIdentity
             => 1;
+
+        static ulong IMultiplicativeIdentity<UDouble, ulong>.MultiplicativeIdentity
+            => 1;
+
+        /// <summary>
+        /// Note that this is maximum possible double value, not positive infinity!
+        /// </summary>
+        static UDouble IMinMaxValue<UDouble>.MaxValue
+            => new(value: double.MaxValue);
+
+        static UDouble IMinMaxValue<UDouble>.MinValue
+            => zero;
 
         public static UDouble? Create(double value)
         {
@@ -58,6 +75,15 @@ namespace Game1.PrimitiveTypeWrappers
         public static implicit operator double(UDouble value)
             => value.value;
 
+        public static explicit operator float(UDouble value)
+            => (float)value.value;
+
+        public static explicit operator decimal(UDouble value)
+            => (decimal)value.value;
+
+        public static explicit operator ulong(UDouble value)
+            => (ulong)value.value;
+
         public static implicit operator UDouble(uint value)
             => new(value: value);
 
@@ -76,6 +102,9 @@ namespace Game1.PrimitiveTypeWrappers
 
         public static UDouble operator *(UDouble value1, UDouble value2)
             => new(value1.value * value2.value);
+
+        public static UDouble operator *(UDouble value1, ulong value2)
+            => new(value1.value * value2);
 
         public static TimeSpan operator *(UDouble scale, TimeSpan timeSpan)
             => scale.value * timeSpan;
@@ -97,5 +126,11 @@ namespace Game1.PrimitiveTypeWrappers
 
         public override int GetHashCode()
             => value.GetHashCode();
+
+        static UDouble IMin<UDouble>.Min(UDouble left, UDouble right)
+            => left < right ? left : right;
+
+        static UDouble IMax<UDouble>.Max(UDouble left, UDouble right)
+            => left > right ? left : right;
     }
 }

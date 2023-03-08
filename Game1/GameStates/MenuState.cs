@@ -15,7 +15,7 @@ namespace Game1.GameStates
             foreach (var actionButton in actionButtons)
                 UIPanel.AddChild(child: actionButton);
 
-            activeUIManager = new();
+            activeUIManager = new(worldCamera: null);
             activeUIManager.AddHUDElement(HUDElement: UIPanel, horizPos: HorizPos.Middle, vertPos: VertPos.Middle);
         }
 

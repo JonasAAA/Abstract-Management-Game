@@ -3,7 +3,7 @@
 namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly struct Propor : IClose<Propor>, IExponentiable<UDouble, Propor>, IComparisonOperators<Propor, Propor, bool>,
+    public readonly struct Propor : IClose<Propor>, IMin<Propor>, IExponentiable<UDouble, Propor>, IComparisonOperators<Propor, Propor, bool>,
         IMultiplyOperators<Propor, Propor, Propor>, IMultiplicativeIdentity<Propor, Propor>,
         IMultiplyOperators<Propor, double, double>,
         IMultiplyOperators<Propor, UDouble, UDouble>,
@@ -65,6 +65,9 @@ namespace Game1.PrimitiveTypeWrappers
         public static explicit operator UDouble(Propor propor)
             => propor.value;
 
+        public static explicit operator decimal(Propor propor)
+            => (decimal)(double)propor.value;
+
         public static Propor operator *(Propor propor1, Propor propor2)
             => (Propor)(propor1.value * propor2.value);
 
@@ -112,5 +115,8 @@ namespace Game1.PrimitiveTypeWrappers
 
         public override int GetHashCode()
             => value.GetHashCode();
+
+        static Propor IMin<Propor>.Min(Propor left, Propor right)
+            => left < right ? left : right;
     }
 }

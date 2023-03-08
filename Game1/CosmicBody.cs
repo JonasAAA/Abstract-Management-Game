@@ -322,7 +322,7 @@ namespace Game1
         }
 
         public void UpdateHUDPos()
-            => textBox.Shape.Center = CurWorldManager.WorldPosToScreenPos(worldPos: Position);
+            => textBox.Shape.Center = CurWorldManager.WorldPosToHUDPos(worldPos: Position);
 
         public ulong TotalQueuedRes(ResInd resInd)
             => state.StoredResPile.Amount[resInd] + resTravelHereAmounts[resInd];

@@ -425,8 +425,8 @@ namespace Game1
         public void RemoveResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
             => CurGraph.RemoveResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
-        public MyVector2 WorldPosToScreenPos(MyVector2 worldPos)
-            => worldCamera.ScreenPos(worldPos: worldPos);
+        public MyVector2 WorldPosToHUDPos(MyVector2 worldPos)
+            => ScreenPosToHUDPos(screenPos: worldCamera.ScreenPos(worldPos: worldPos));
 
         public void AddHUDElement(IHUDElement? HUDElement, HorizPos horizPos, VertPos vertPos)
             => activeUIManager.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);

@@ -60,6 +60,9 @@ namespace Game1.UI
             tooltip = null;
         }
 
+        public static MyVector2 ScreenPosToHUDPos(MyVector2 screenPos)
+            => HUDCamera.HUDPos(screenPos: screenPos);
+
         /// <summary>
         /// HUDElement is will not be drawn by this
         /// </summary>
@@ -151,7 +154,7 @@ namespace Game1.UI
                 MyVector2 getMousePos()
                 {
                     if (HUDElements.Contains(UIElement) || worldHUDElements.Contains(UIElement))
-                        return mouseScreenPos;
+                        return HUDCamera.HUDPos(screenPos: mouseScreenPos);
                     if (worldUIElements.Contains(UIElement))
                         return worldCamera!.WorldPos(screenPos: mouseScreenPos);
                     throw new();

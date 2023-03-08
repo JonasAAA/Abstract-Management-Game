@@ -4,6 +4,7 @@
     <Exec Command="dotnet tool restore" />
   </Target>
   <PropertyGroup>
+	<PublishAot>true</PublishAot>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
     <PublishReadyToRun>false</PublishReadyToRun>
@@ -48,9 +49,9 @@
   <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
   </ItemGroup>
-  <ItemGroup>
+  <!--<ItemGroup>
     <TrimmerRootAssembly Include="Microsoft.Xna.Framework.Content.ContentTypeReader" Visible="false" />
-  </ItemGroup>
+  </ItemGroup>-->
   <ItemGroup>
     <PackageReference Include="LibTessDotNet" Version="1.1.15" />
     <PackageReference Include="MonoGame.Framework.DesktopGL" Version="3.8.1.303" />
@@ -58,5 +59,8 @@
     <PackageReference Include="Nito.Collections.Deque" Version="1.1.1" />
     <PackageReference Include="OptimizedPriorityQueue" Version="5.1.0" />
     <PackageReference Include="ParagonClipper" Version="6.4.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <RdXmlFile Include="rd.xml" />
   </ItemGroup>
 </Project>

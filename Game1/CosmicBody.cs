@@ -679,9 +679,6 @@ namespace Game1
         AngleArc.Params ILightBlockingObject.BlockedAngleArcParams(MyVector2 lightPos)
             => CurLightCatchingObject.BlockedAngleArcParams(lightPos: lightPos);
 
-        double ILightBlockingObject.CloserInterPoint(MyVector2 lightPos, MyVector2 lightDir)
-            => CurLightCatchingObject.CloserInterPoint(lightPos: lightPos, lightDir: lightDir);
-
         void IRadiantEnergyConsumer.TakeRadiantEnergyFrom(EnergyPile<RadiantEnergy> source, RadiantEnergy amount)
             => state.RadiantEnergyPile.TransferFrom(source: source, amount: amount);
 

@@ -844,7 +844,7 @@ namespace Game1
                         null => maxDist,
                         // adding 1 looks better, even though it's not needed mathematically
                         // TODO: move the constant 1 to the constants file
-                        ILightCatchingObject lightCatchingObject => 1 + lightCatchingObject.CloserInterPoint(lightPos: state.Position, lightDir: rayDir)
+                        _ => 1 + curAngleArcs.Min.radius
                     };
                     vertices.Add(state.Position + minDist * rayDir);
 

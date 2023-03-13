@@ -101,6 +101,9 @@ namespace Game1.MyMath
         public static double Sin(double rotation)
             => Math.Sin(rotation);
 
+        public static double Asin(double value)
+            => Math.Asin(value);
+
         public static double Atan2(double y, double x)
             => Math.Atan2(y, x);
 

@@ -22,7 +22,7 @@ namespace Game1.Lighting
 
             double halfArcSin = parameters.Radius / dist,
                   halfArcCos = MyMathHelper.Sqrt((UDouble)(1 - halfArcSin * halfArcSin));
-            
+
             // keyPoint is the intersection between the light ray and the two touching points
             MyVector2 keyPoint = Center * halfArcCos * halfArcCos + lightPos * halfArcSin * halfArcSin,
                     relPos = Center - lightPos,
@@ -35,14 +35,16 @@ namespace Game1.Lighting
                 endAngle: MyMathHelper.Atan2(arcEndPoint.Y, arcEndPoint.X),
                 radius: arcStartPoint.Length()
             );
-        }
 
-        double ILightBlockingObject.CloserInterPoint(MyVector2 lightPos, MyVector2 lightDir)
-        {
-            // This actually returns a number such that exactly half of the disk is lit
-            MyVector2 myRelPos = Center - lightPos;
-            double lightDirComponentToMe = MyVector2.Dot(lightDir, myRelPos);
-            return myRelPos.LengthSquared() / lightDirComponentToMe;
+            // This simpler calculation doesn't work for some reason
+            //double halfArcSin = parameters.Radius / dist,
+            //    mainAngle = MyMathHelper.Atan2(y: (Center - lightPos).Y, x: (Center - lightPos).Y);
+            //return new AngleArc.Params
+            //(
+            //    startAngle: MyMathHelper.WrapAngle(mainAngle - MyMathHelper.Asin(halfArcSin)),
+            //    endAngle: MyMathHelper.WrapAngle(mainAngle + MyMathHelper.Asin(halfArcSin)),
+            //    radius: MyMathHelper.Sqrt((UDouble)(dist * dist - parameters.Radius * parameters.Radius))
+            //);
         }
     }
 }

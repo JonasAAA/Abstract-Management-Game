@@ -1,4 +1,5 @@
-﻿using Game1.Industries;
+﻿using Game1.ContentHelpers;
+using Game1.Industries;
 using Game1.Inhabitants;
 using static Game1.WorldManager;
 
@@ -37,8 +38,28 @@ namespace Game1
 
         public readonly ResPile consistsOfResPile;
 
-        public NodeState(MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
+        public NodeState(CosmicBodyInfo cosmicBodyInfo, ResPile resSource)
+            : this
+            (
+                name: cosmicBodyInfo.Name,
+                position: CurWorldManager.HUDPosToWorldPos
+                (
+                    HUDPos: new(vector2Info: cosmicBodyInfo.HUDPosition)
+                ),
+                consistsOfResInd: CurResConfig.BasicResIndFromName(resName: cosmicBodyInfo.ConsistsOf),
+                mainResAmount: ResAmountFromApproxRadius
+                (
+                    basicResInd: CurResConfig.BasicResIndFromName(resName: cosmicBodyInfo.ConsistsOf),
+                    approxRadius: CurWorldManager.HUDLengthToWorldLength(HUDLength: (UDouble)cosmicBodyInfo.HUDRadius)
+                ),
+                resSource: resSource,
+                maxBatchDemResStored: 2
+            )
+        { }
+
+        public NodeState(string name, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
+#warning display the name, and make sure the name is unique
             LocationCounters = LocationCounters.CreateEmpty();
             ThermalBody = ThermalBody.CreateEmpty(locationCounters: LocationCounters);
             NodeID = NodeID.Create();

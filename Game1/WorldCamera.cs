@@ -21,17 +21,20 @@ namespace Game1
             Update(elapsed: TimeSpan.Zero, canScroll: false);
         }
 
-        public MyVector2 WorldPos(MyVector2 screenPos)
+        public MyVector2 ScreenPosToWorldPos(MyVector2 screenPos)
             => MyVector2.Transform(position: screenPos, matrix: screenToWorld);
 
-        public MyVector2 ScreenPos(MyVector2 worldPos)
+        public MyVector2 WorldPosToScreenPos(MyVector2 worldPos)
             => MyVector2.Transform(position: worldPos, matrix: worldToScreen);
+
+        public UDouble ScreenLengthToWorldLength(UDouble screenLength)
+            => screenLength / (scale * ScreenScale);
 
         public void Update(TimeSpan elapsed, bool canScroll)
         {
             if (canScroll)
             {
-                double scrollDist = CurWorldConfig.scrollSpeed * elapsed.TotalSeconds;
+                double scrollDist = CurWorldConfig.scrollSpeed * elapsed.TotalSeconds / scale;
                 if (isCoordNonnegAndSmall(value: ActiveUIManager.MouseHUDPos.X))
                     worldCenter = worldCenter with { X = worldCenter.X - scrollDist };
                 if (isCoordNonnegAndSmall(value: ActiveUIManager.screenWidth - ActiveUIManager.MouseHUDPos.X))

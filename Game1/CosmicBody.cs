@@ -6,6 +6,7 @@ using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
 using Game1.Inhabitants;
+using Game1.ContentHelpers;
 
 namespace Game1
 {
@@ -149,6 +150,28 @@ namespace Game1
         private readonly TextBox infoTextBox;
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
+
+        public CosmicBody(CosmicBodyInfo cosmicBodyInfo, ResPile resSource, Color activeColor, (House.Factory houseFactory, ulong personCount)? startingConditions = null)
+            : this
+            (
+                state: new
+                (
+                    cosmicBodyInfo: cosmicBodyInfo,
+                    resSource: resSource
+                ),
+                activeColor: activeColor,
+                startingConditions: startingConditions switch
+                {
+                    (House.Factory houseFactory, ulong personCount) =>
+                    (
+                        houseFactory: houseFactory,
+                        personCount: personCount,
+                        resSource: resSource
+                    ),
+                    null => null
+                }
+            )
+        { }
 
         public CosmicBody(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount, ResPile resSource)? startingConditions = null)
             : base
@@ -678,9 +701,6 @@ namespace Game1
 
         AngleArc.Params ILightBlockingObject.BlockedAngleArcParams(MyVector2 lightPos)
             => CurLightCatchingObject.BlockedAngleArcParams(lightPos: lightPos);
-
-        double ILightBlockingObject.CloserInterPoint(MyVector2 lightPos, MyVector2 lightDir)
-            => CurLightCatchingObject.CloserInterPoint(lightPos: lightPos, lightDir: lightDir);
 
         void IRadiantEnergyConsumer.TakeRadiantEnergyFrom(EnergyPile<RadiantEnergy> source, RadiantEnergy amount)
             => state.RadiantEnergyPile.TransferFrom(source: source, amount: amount);

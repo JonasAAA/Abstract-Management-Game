@@ -59,4 +59,7 @@
     <PackageReference Include="OptimizedPriorityQueue" Version="5.1.0" />
     <PackageReference Include="ParagonClipper" Version="6.4.2" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Content\Maps\" />
+  </ItemGroup>
 </Project>

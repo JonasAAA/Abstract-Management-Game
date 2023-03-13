@@ -1,4 +1,5 @@
-﻿using Game1.Delegates;
+﻿using Game1.ContentHelpers;
+using Game1.Delegates;
 using Game1.Industries;
 using Game1.Inhabitants;
 using Game1.Lighting;
@@ -62,7 +63,8 @@ namespace Game1
         public static ActiveUIManager CreateWorldManager()
         {
             curWorldManager = new();
-            CurWorldManager.graph = CreateGraph();
+            //CurWorldManager.graph = CreateGraph();
+            CurWorldManager.graph = CreateFromMap();
             AddUIElements();
             CurWorldManager.Initialize();
 
@@ -91,6 +93,12 @@ namespace Game1
                 );
             }
 
+            static Graph CreateFromMap()
+            {
+                var graphInfo = GraphInfo.LoadFrom(fileName: GetMapPath);
+                return Graph.CreateFromInfo(graphInfo: graphInfo);
+            }
+
             static Graph CreateGraph()
             {
                 const int width = 5, height = 5;
@@ -111,6 +119,7 @@ namespace Game1
                         (
                             state: new
                             (
+                                name: $"CosmicBody {i} {j}",
                                 position: position,
                                 consistsOfResInd: consistsOfResInd,
                                 mainResAmount: NodeState.ResAmountFromApproxRadius
@@ -157,9 +166,11 @@ namespace Game1
 
                 return new
                 (
-                    nodes: from CosmicBody cosmicBody in cosmicBodies
-                           where cosmicBody is not null
-                           select cosmicBody,
+                    nodes:
+                       (from CosmicBody cosmicBody in cosmicBodies
+                        where cosmicBody is not null
+                        select cosmicBody
+                        ).ToList(),
                     links: links
                 );
 
@@ -211,6 +222,10 @@ namespace Game1
         // TODO: make this work not only on my machine
         private static string GetSaveFilePath
             => @"C:\Users\Jonas\Desktop\Serious\Game Projects\Abstract Management Game\save.bin";
+
+        // TODO: make this work not only on my machine
+        private static string GetMapPath
+            => @"C:\Users\Jonas\Desktop\Serious\Game Projects\Abstract Management Game\Game1\Content\Maps\Demo.json";
 
         private static DataContractSerializer GetDataContractSerializer()
             => new
@@ -280,7 +295,7 @@ namespace Game1
         public TimeSpan Elapsed { get; private set; }
 
         public MyVector2 MouseWorldPos
-            => worldCamera.WorldPos(screenPos: (MyVector2)Mouse.GetState().Position);
+            => worldCamera.ScreenPosToWorldPos(screenPos: (MyVector2)Mouse.GetState().Position);
 
         public TimeSpan MaxLinkTravelTime
             => CurGraph.MaxLinkTravelTime;
@@ -426,7 +441,16 @@ namespace Game1
             => CurGraph.RemoveResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
         public MyVector2 WorldPosToHUDPos(MyVector2 worldPos)
-            => ScreenPosToHUDPos(screenPos: worldCamera.ScreenPos(worldPos: worldPos));
+            => ScreenPosToHUDPos(screenPos: worldCamera.WorldPosToScreenPos(worldPos: worldPos));
+
+        public MyVector2 HUDPosToWorldPos(MyVector2 HUDPos)
+            => worldCamera.ScreenPosToWorldPos(screenPos: HUDPosToScreenPos(HUDPos: HUDPos));
+
+        public UDouble HUDLengthToWorldLength(UDouble HUDLength)
+            => worldCamera.ScreenLengthToWorldLength
+            (
+                screenLength: HUDLengthToScreenLength(HUDLength: HUDLength)
+            );
 
         public void AddHUDElement(IHUDElement? HUDElement, HorizPos horizPos, VertPos vertPos)
             => activeUIManager.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);

@@ -1,0 +1,32 @@
+{
+  "CosmicBodies": [
+    {
+      "Name": "main star",
+      "ConsistsOf": "iron",
+      "HUDPosition": {
+        "X": 960,
+        "Y": 540
+      },
+      "HUDRadius": 200
+    },
+    {
+      "Name": "starting planet",
+      "ConsistsOf": "stone",
+      "HUDPosition": {
+        "X": 1200,
+        "Y": 700
+      },
+      "HUDRadius": 50
+    }
+  ],
+  "Links": [
+    {
+      "From": "main star",
+      "To": "starting planet"
+    }
+  ],
+  "StartingInfo": {
+    "CosmicBodyName": "starting planet",
+    "PeopleCount": 20
+  }
+}

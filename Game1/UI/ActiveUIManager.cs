@@ -10,7 +10,7 @@ namespace Game1.UI
         public static readonly ColorConfig colorConfig;
         public static readonly UDouble screenWidth, screenHeight;
         public static MyVector2 MouseHUDPos
-            => HUDCamera.HUDPos(screenPos: (MyVector2)Mouse.GetState().Position);
+            => HUDCamera.ScreenPosToHUDPos(screenPos: (MyVector2)Mouse.GetState().Position);
         public static UDouble RectOutlineWidth
             => curUIConfig.rectOutlineWidth;
 
@@ -61,7 +61,13 @@ namespace Game1.UI
         }
 
         public static MyVector2 ScreenPosToHUDPos(MyVector2 screenPos)
-            => HUDCamera.HUDPos(screenPos: screenPos);
+            => HUDCamera.ScreenPosToHUDPos(screenPos: screenPos);
+
+        public static MyVector2 HUDPosToScreenPos(MyVector2 HUDPos)
+            => HUDCamera.HUDPosToScreenPos(HUDPos: HUDPos);
+
+        public static UDouble HUDLengthToScreenLength(UDouble HUDLength)
+            => HUDCamera.HUDLengthToScreenLength(HUDLength: HUDLength);
 
         /// <summary>
         /// HUDElement is will not be drawn by this
@@ -138,7 +144,7 @@ namespace Game1.UI
             prevLeftDown = leftDown;
             leftDown = mouseState.LeftButton == ButtonState.Pressed;
             MyVector2 mouseScreenPos = (MyVector2)mouseState.Position,
-                mouseHUDPos = HUDCamera.HUDPos(screenPos: mouseScreenPos);
+                mouseHUDPos = HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos);
 
             contMouse = null;
             foreach (IUIElement UIElement in Enumerable.Reverse(activeUIElements))
@@ -154,9 +160,9 @@ namespace Game1.UI
                 MyVector2 getMousePos()
                 {
                     if (HUDElements.Contains(UIElement) || worldHUDElements.Contains(UIElement))
-                        return HUDCamera.HUDPos(screenPos: mouseScreenPos);
+                        return HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos);
                     if (worldUIElements.Contains(UIElement))
-                        return worldCamera!.WorldPos(screenPos: mouseScreenPos);
+                        return worldCamera!.ScreenPosToWorldPos(screenPos: mouseScreenPos);
                     throw new();
                 }
             }

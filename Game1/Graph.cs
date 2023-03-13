@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
+using Game1.ContentHelpers;
 
 namespace Game1
 {
@@ -129,11 +130,52 @@ namespace Game1
 
         public WorldUIElement? ActiveWorldElement { get; private set; }
 
-        public Graph(IEnumerable<CosmicBody> nodes, IEnumerable<Link> links)
+        public static Graph CreateFromInfo(GraphInfo graphInfo)
+        {
+            ResPile magicResPile = ResPile.CreateByMagic(amount: ResAmounts.magicUnlimitedResAmounts);
+            Dictionary<string, CosmicBody> cosmicBodiesByName = graphInfo.CosmicBodies.ToDictionary
+            (
+                keySelector: cosmicBodyInfo => cosmicBodyInfo.Name,
+                elementSelector: cosmicBodyInfo => new CosmicBody
+                (
+                    cosmicBodyInfo: cosmicBodyInfo,
+                    resSource: magicResPile,
+                    activeColor: Color.White,
+                    startingConditions: (cosmicBodyInfo.Name == graphInfo.StartingInfo.CosmicBodyName) switch
+                    {
+                        true => 
+                        (
+                            houseFactory: CurIndustryConfig.basicHouseFactory,
+                            personCount: (ulong)graphInfo.StartingInfo.PeopleCount
+                        ),
+                        false => null
+                    }
+                )
+            );
+            if (cosmicBodiesByName.Count != graphInfo.CosmicBodies.Length)
+                throw new ArgumentException("Cosmic body names must be unique");
+            if (!cosmicBodiesByName.ContainsKey(graphInfo.StartingInfo.CosmicBodyName))
+                throw new ArgumentException("Starting cosmic body name must be valid");
+            return new
+            (
+                nodes: cosmicBodiesByName.Values.ToList(),
+                links: graphInfo.Links.Select
+                (
+                    linkInfo => new Link
+                    (
+                        node1: cosmicBodiesByName[linkInfo.From],
+                        node2: cosmicBodiesByName[linkInfo.To],
+                        minSafeDist: CurWorldConfig.minSafeDist
+                    )
+                ).ToList()
+            );
+        }
+
+        public Graph(List<CosmicBody> nodes, List<Link> links)
             : base(shape: new InfinitePlane())
         {
-            this.nodes = nodes.ToMyHashSet().ToList();
-            this.links = links.ToMyHashSet().ToList();
+            this.nodes = nodes;
+            this.links = links;
             
             foreach (var link in this.links)
             {

@@ -2,6 +2,7 @@
 {
     public interface IResource
     {
+        public string Name { get; }
         public ResInd ResInd { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }

@@ -1,22 +1,25 @@
-﻿using Game1.Delegates;
-using Game1.UI;
-
-using static Game1.WorldManager;
+﻿using Game1.UI;
 
 namespace Game1
 {
     [Serializable]
     public sealed class WorldCamera : Camera
     {
+        public static UDouble GetWorldScaleFromCameraViewHeight(UDouble cameraViewHeight)
+            => ActiveUIManager.curUIConfig.standardScreenHeight / cameraViewHeight;
+
         private Matrix worldToScreen, screenToWorld;
         private UDouble scale;
         private MyVector2 worldCenter;
         private readonly MyVector2 screenCenter;
+        private readonly UDouble scrollSpeed, screenBoundWidthForMapMoving;
 
-        public WorldCamera(UDouble startingWorldScale)
+        public WorldCamera(MyVector2 worldCenter, UDouble startingWorldScale, UDouble scrollSpeed, UDouble screenBoundWidthForMapMoving)
         {
+            this.worldCenter = worldCenter;
             scale = startingWorldScale;
-            worldCenter = new(0, 0);
+            this.scrollSpeed = scrollSpeed;
+            this.screenBoundWidthForMapMoving = screenBoundWidthForMapMoving;
             screenCenter = new(ActiveUIManager.screenWidth * .5, ActiveUIManager.screenHeight * .5);
             Update(elapsed: TimeSpan.Zero, canScroll: false);
         }
@@ -27,6 +30,9 @@ namespace Game1
         public MyVector2 WorldPosToScreenPos(MyVector2 worldPos)
             => MyVector2.Transform(position: worldPos, matrix: worldToScreen);
 
+        public UDouble WorldLengthToScreenLength(UDouble worldLength)
+            => worldLength * scale * ScreenScale;
+
         public UDouble ScreenLengthToWorldLength(UDouble screenLength)
             => screenLength / (scale * ScreenScale);
 
@@ -34,7 +40,7 @@ namespace Game1
         {
             if (canScroll)
             {
-                double scrollDist = CurWorldConfig.scrollSpeed * elapsed.TotalSeconds / scale;
+                double scrollDist = scrollSpeed * elapsed.TotalSeconds / scale;
                 if (isCoordNonnegAndSmall(value: ActiveUIManager.MouseHUDPos.X))
                     worldCenter = worldCenter with { X = worldCenter.X - scrollDist };
                 if (isCoordNonnegAndSmall(value: ActiveUIManager.screenWidth - ActiveUIManager.MouseHUDPos.X))
@@ -62,8 +68,8 @@ namespace Game1
             return;
 
             // care about nonnegativity so that the scrolling works appropriately in multi-screen setup
-            static bool isCoordNonnegAndSmall(double value)
-                => 0 <= value && value <= CurWorldConfig.screenBoundWidthForMapMoving; 
+            bool isCoordNonnegAndSmall(double value)
+                => 0 <= value && value <= screenBoundWidthForMapMoving; 
         }
 
         public override Matrix GetToScreenTransform()

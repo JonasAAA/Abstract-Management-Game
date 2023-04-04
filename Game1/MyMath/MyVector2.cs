@@ -10,10 +10,6 @@ namespace Game1.MyMath
         public double X { get; init; }
         public double Y { get; init; }
 
-        public MyVector2(MyVector2Info vector2Info)
-            : this(x: vector2Info.X, y: vector2Info.Y)
-        { }
-
         public MyVector2(double xAndY)
             : this(x: xAndY, y: xAndY)
         { }

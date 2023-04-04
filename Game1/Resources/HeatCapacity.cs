@@ -26,7 +26,7 @@ namespace Game1.Resources
         public bool IsZero
             => this == zero;
 
-        // Value in joules per kelvin
+        // value in joules per kelvin
         public readonly ulong valueInJPerK;
 
         private HeatCapacity(ulong valueInJPerK)

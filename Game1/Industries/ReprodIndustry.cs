@@ -165,8 +165,8 @@ namespace Game1.Industries
         public override ResAmounts TargetStoredResAmounts()
             => parameters.MaxCouples * RealPerson.resAmountsPerPerson * parameters.state.MaxBatchDemResStored;
 
-        protected override BoolWithExplanationIfFalse IsBusy()
-            => base.IsBusy() & BoolWithExplanationIfFalse.Create
+        protected override BoolWithExplanationIfFalse CalculateIsBusy()
+            => base.CalculateIsBusy() & BoolWithExplanationIfFalse.Create
             (
                 value: birthQueue.Count > 0,
                 explanationIfFalse: "need 2 people to have a child"

@@ -237,9 +237,7 @@ namespace Game1.Inhabitants
                     (weight: CurWorldConfig.personEnjoymentWeight, score: activityCenter.PersonEnjoymentOfThis(person: asVirtual)),
                     (weight: CurWorldConfig.personTravelCostWeight, score: activityCenter.DistanceToHereAsPerson(person: asVirtual))
                 )
-            );
-            if (bestActivityCenter is null)
-                throw new ArgumentException("have no place to go");
+            ) ?? throw new ArgumentException("have no place to go");
             SetActivityCenter(newActivityCenter: bestActivityCenter);
             Debug.Assert(activityCenter is not null);
             return activityCenter;

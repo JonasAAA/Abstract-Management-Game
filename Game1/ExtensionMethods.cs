@@ -6,10 +6,30 @@ namespace Game1
 {
     public static class ExtensionMethods
     {
-
         public static ulong ValueInJ<T>(this T formOfEnergy)
             where T : IFormOfEnergy<T>
             => ((Energy)formOfEnergy).valueInJ;
+
+        public static GeneralEnum<IEnumerable<TOk>, IEnumerable<TError>> Collect<TOk, TError>(this IEnumerable<GeneralEnum<TOk, IEnumerable<TError>>> source)
+        {
+            List<TOk> results = new();
+            IEnumerable<TError> errors = Enumerable.Empty<TError>();
+            bool foundErrors = false;
+            foreach (var item in source)
+                item.SwitchStatement
+                (
+                    case1: results.Add,
+                    case2: newErrors =>
+                    {
+                        errors = errors.Concat(newErrors);
+                        foundErrors = true;
+                    }
+                );
+            if (!foundErrors)
+                return new(value1: results);
+            else
+                return new(value2: errors);
+        }
 
         // could be optimized a la https://stackoverflow.com/questions/11030109/aggregate-vs-sum-performance-in-linq
         public static TVector CombineLinearly<TSource, TVector, TScalar>(this IEnumerable<TSource> source, Func<TSource, TVector> vectorSelector, IEnumerable<TScalar> scalars)

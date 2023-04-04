@@ -215,7 +215,7 @@ namespace Game1
                     parameters: new ShapeParams(Node1: node1, Node2: node2)
                 ),
                 activeColor: Color.White,
-                inactiveColor: Color.Green,
+                inactiveColor: ActiveUIManager.colorConfig.linkColor,
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top
             )
@@ -276,7 +276,7 @@ namespace Game1
             link1To2.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
             link2To1.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
 
-            inactiveColor = C.ColorFromRGB(rgb: 0x003654);
+            //inactiveColor = ActiveUIManager.colorConfig.linkColor;
             // TODO(color): turn activeColor and inactiveColor into abstract properties
             //inactiveColor = Color.Lerp
             //(

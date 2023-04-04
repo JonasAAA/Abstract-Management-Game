@@ -7,6 +7,7 @@ namespace Game1.Industries
     {
         public readonly ReadOnlyCollection<IBuildableFactory> constrBuildingParams;
         public readonly House.Factory basicHouseFactory;
+        public readonly PowerPlant.Factory basicPowerPlantFactory;
 
         public IndustryConfig()
         {
@@ -14,6 +15,17 @@ namespace Game1.Industries
             (
                 name: "house",
                 floorSpacePerUnitSurface: 1,
+                buildingCostPerUnitSurface: new()
+                {
+                    [(ResInd)0] = 1
+                }
+            );
+
+            basicPowerPlantFactory = new PowerPlant.Factory
+            (
+                name: "power_plant_lvl1",
+                reqSkillPerUnitSurface: (UDouble).2,
+                surfaceAbsorbtionPropor: (Propor).2,
                 buildingCostPerUnitSurface: new()
                 {
                     [(ResInd)0] = 1
@@ -122,16 +134,7 @@ namespace Game1.Industries
                     energyPriority: CurWorldConfig.industryConstructionEnergyPrior,
                     reqSkillPerUnitSurface: (UDouble).3,
                     reqWattsPerUnitSurface: (UDouble).05,
-                    industryFactory: new PowerPlant.Factory
-                    (
-                        name: "power_plant_lvl1",
-                        reqSkillPerUnitSurface: (UDouble).2,
-                        surfaceAbsorbtionPropor: (Propor).2,
-                        buildingCostPerUnitSurface: new()
-                        {
-                            [(ResInd)0] = 1
-                        }
-                    ),
+                    industryFactory: basicPowerPlantFactory,
                     duration: TimeSpan.FromSeconds(5)
                 ),
                 new Construction.Factory

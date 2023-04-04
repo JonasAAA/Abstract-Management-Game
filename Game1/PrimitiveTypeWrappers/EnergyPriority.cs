@@ -11,11 +11,11 @@ namespace Game1.PrimitiveTypeWrappers
     public readonly record struct EnergyPriority : IEquatable<EnergyPriority>, IComparable<EnergyPriority>, IPrimitiveTypeWrapper, IComparisonOperators<EnergyPriority, EnergyPriority, bool>, IMinMaxValue<EnergyPriority>, IMax<EnergyPriority>
     {
         /// <summary>
-        /// I.e. ulong.MaxValue
+        /// 0
         /// </summary>
         public static readonly EnergyPriority leastImportant;
         /// <summary>
-        /// I.e. 0
+        /// 100
         /// </summary>
         public static readonly EnergyPriority mostImportant;
 

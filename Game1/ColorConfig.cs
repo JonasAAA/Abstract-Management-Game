@@ -8,9 +8,11 @@
             Res0Color,
             Res1Color,
             cosmosBackgroundColor,
-            starColor,
+            //starColor,
+            linkColor,
             houseIndustryColor,
             linkTravellerColor,
+            selectedWorldUIElementColor,
             
             // UI colors
             mouseOnColor,
@@ -30,9 +32,11 @@
             Res0Color = C.ColorFromRGB(rgb: 0x00754D);
             Res1Color = C.ColorFromRGB(rgb: 0x00632D);
             cosmosBackgroundColor = C.ColorFromRGB(rgb: 0x000E24);
-            starColor = C.ColorFromRGB(rgb: 0xB0FF00);
+            //starColor = C.ColorFromRGB(rgb: 0xB0FF00);
+            linkColor = C.ColorFromRGB(rgb: 0x003654);
             houseIndustryColor = Color.Yellow;
             linkTravellerColor = Color.Black;
+            selectedWorldUIElementColor = Color.White;
 
             // UI colors
             mouseOnColor = Color.Yellow;

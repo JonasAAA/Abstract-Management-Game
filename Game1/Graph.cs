@@ -130,36 +130,39 @@ namespace Game1
 
         public WorldUIElement? ActiveWorldElement { get; private set; }
 
-        public static Graph CreateFromInfo(GraphInfo graphInfo)
+        public static Graph CreateFromInfo(FullValidMapInfo mapInfo, WorldCamera mapInfoCamera)
         {
             ResPile magicResPile = ResPile.CreateByMagic(amount: ResAmounts.magicUnlimitedResAmounts);
-            Dictionary<string, CosmicBody> cosmicBodiesByName = graphInfo.CosmicBodies.ToDictionary
+            Dictionary<string, CosmicBody> cosmicBodiesByName = mapInfo.CosmicBodies.ToDictionary
             (
                 keySelector: cosmicBodyInfo => cosmicBodyInfo.Name,
                 elementSelector: cosmicBodyInfo => new CosmicBody
                 (
-                    cosmicBodyInfo: cosmicBodyInfo,
-                    resSource: magicResPile,
-                    activeColor: Color.White,
-                    startingConditions: (cosmicBodyInfo.Name == graphInfo.StartingInfo.CosmicBodyName) switch
-                    {
-                        true => 
-                        (
-                            houseFactory: CurIndustryConfig.basicHouseFactory,
-                            personCount: (ulong)graphInfo.StartingInfo.PeopleCount
-                        ),
-                        false => null
-                    }
+                    state: new
+                    (
+                        mapInfoCamera: mapInfoCamera,
+                        cosmicBodyInfo: cosmicBodyInfo,
+                        consistsOfResInd: BasicResInd.Random(),
+                        resSource: magicResPile
+                    ),
+                    activeColor: colorConfig.selectedWorldUIElementColor,
+                    startingConditions: cosmicBodyInfo.Name == mapInfo.StartingInfo.HouseCosmicBody ?
+                    (
+                        industryFactory: CurIndustryConfig.basicHouseFactory,
+                        personCount: CurWorldConfig.startingPersonNumInHouseCosmicBody,
+                        resSource: magicResPile
+                    ) : cosmicBodyInfo.Name == mapInfo.StartingInfo.PowerPlantCosmicBody ?
+                    (
+                        industryFactory: CurIndustryConfig.basicPowerPlantFactory,
+                        personCount: CurWorldConfig.startingPersonNumInPowerPlantCosmicBody,
+                        resSource: magicResPile
+                    ) : null
                 )
             );
-            if (cosmicBodiesByName.Count != graphInfo.CosmicBodies.Length)
-                throw new ArgumentException("Cosmic body names must be unique");
-            if (!cosmicBodiesByName.ContainsKey(graphInfo.StartingInfo.CosmicBodyName))
-                throw new ArgumentException("Starting cosmic body name must be valid");
             return new
             (
                 nodes: cosmicBodiesByName.Values.ToList(),
-                links: graphInfo.Links.Select
+                links: mapInfo.Links.Select
                 (
                     linkInfo => new Link
                     (

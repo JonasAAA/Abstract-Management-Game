@@ -38,19 +38,22 @@ namespace Game1
 
         public readonly ResPile consistsOfResPile;
 
-        public NodeState(CosmicBodyInfo cosmicBodyInfo, ResPile resSource)
+        public NodeState(WorldCamera mapInfoCamera, FullValidCosmicBodyInfo cosmicBodyInfo, BasicResInd consistsOfResInd, ResPile resSource)
             : this
             (
                 name: cosmicBodyInfo.Name,
-                position: CurWorldManager.HUDPosToWorldPos
+                position: CurWorldManager.ScreenPosToWorldPos
                 (
-                    HUDPos: new(vector2Info: cosmicBodyInfo.HUDPosition)
+                    screenPos: mapInfoCamera.WorldPosToScreenPos(worldPos: cosmicBodyInfo.Position)
                 ),
-                consistsOfResInd: CurResConfig.BasicResIndFromName(resName: cosmicBodyInfo.ConsistsOf),
+                consistsOfResInd: consistsOfResInd,
                 mainResAmount: ResAmountFromApproxRadius
                 (
-                    basicResInd: CurResConfig.BasicResIndFromName(resName: cosmicBodyInfo.ConsistsOf),
-                    approxRadius: CurWorldManager.HUDLengthToWorldLength(HUDLength: (UDouble)cosmicBodyInfo.HUDRadius)
+                    basicResInd: consistsOfResInd,
+                    approxRadius: CurWorldManager.ScreenLengthToWorldLength
+                    (
+                        screenLength: mapInfoCamera.WorldLengthToScreenLength(worldLength: cosmicBodyInfo.Radius)
+                    )
                 ),
                 resSource: resSource,
                 maxBatchDemResStored: 2
@@ -59,7 +62,7 @@ namespace Game1
 
         public NodeState(string name, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
-#warning display the name, and make sure the name is unique
+#warning display the name
             LocationCounters = LocationCounters.CreateEmpty();
             ThermalBody = ThermalBody.CreateEmpty(locationCounters: LocationCounters);
             NodeID = NodeID.Create();
@@ -116,9 +119,7 @@ namespace Game1
             (
                 source: source,
                 amount: new(resInd: ConsistsOfResInd, amount: resAmount)
-            );
-            if (reservedResPile is null)
-                throw new ArgumentException();
+            ) ?? throw new ArgumentException();
             consistsOfResPile.TransferAllFrom(source: reservedResPile);
             RecalculateValues();
         }

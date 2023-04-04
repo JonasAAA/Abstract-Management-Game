@@ -17,7 +17,7 @@ namespace Game1.Lighting
                 // light source in inside the disk
                 // just return empty interval for the time being
                 return new();
-                //return new(startAngle: -MyMathHelper.pi + MyMathHelper.minPosDouble, endAngle: MyMathHelper.pi - MyMathHelper.minPosDouble, HUDRadius: parameters.HUDRadius);
+                //return new(startAngle: -MyMathHelper.pi + MyMathHelper.minPosDouble, endAngle: MyMathHelper.pi - MyMathHelper.minPosDouble, Radius: parameters.Radius);
             }
 
             double halfArcSin = parameters.Radius / dist,
@@ -37,13 +37,13 @@ namespace Game1.Lighting
             );
 
             // This simpler calculation doesn't work for some reason
-            //double halfArcSin = parameters.HUDRadius / dist,
+            //double halfArcSin = parameters.Radius / dist,
             //    mainAngle = MyMathHelper.Atan2(y: (Center - lightPos).Y, x: (Center - lightPos).Y);
             //return new AngleArc.Params
             //(
             //    startAngle: MyMathHelper.WrapAngle(mainAngle - MyMathHelper.Asin(halfArcSin)),
             //    endAngle: MyMathHelper.WrapAngle(mainAngle + MyMathHelper.Asin(halfArcSin)),
-            //    radius: MyMathHelper.Sqrt((UDouble)(dist * dist - parameters.HUDRadius * parameters.HUDRadius))
+            //    radius: MyMathHelper.Sqrt((UDouble)(dist * dist - parameters.Radius * parameters.Radius))
             //);
         }
     }

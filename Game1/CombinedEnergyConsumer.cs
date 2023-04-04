@@ -41,10 +41,7 @@ namespace Game1
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 
-        ElectricalEnergy IEnergyConsumer.ReqEnergy()
-            => TotalReqEnergy();
-
-        private ElectricalEnergy TotalReqEnergy()
+        public ElectricalEnergy ReqEnergy()
             => energyConsumers.Sum(energyConsumer => energyConsumer.ReqEnergy());
 
         [Serializable]

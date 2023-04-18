@@ -1,4 +1,5 @@
-﻿using Game1.Delegates;
+﻿using Game1.ContentHelpers;
+using Game1.Delegates;
 using Game1.Industries;
 using Game1.Inhabitants;
 using Game1.Lighting;
@@ -34,8 +35,6 @@ namespace Game1
                 => this.onOffButton = onOffButton;
         }
 
-        public static event Action? OnCreate;
-
         public static WorldManager CurWorldManager
             => Initialized ? curWorldManager : throw new InvalidOperationException($"must initialize {nameof(WorldManager)} first by calling {nameof(CreateWorldManager)} or {nameof(LoadWorldManager)}");
 
@@ -59,10 +58,17 @@ namespace Game1
         private static WorldManager? curWorldManager;
         private static readonly Type[] knownTypes;
 
-        public static ActiveUIManager CreateWorldManager()
+        public static ActiveUIManager CreateWorldManager(FullValidMapInfo mapInfo)
         {
+            WorldCamera mapInfoCamera = new
+            (
+                worldCenter: mapInfo.StartingInfo.WorldCenter,
+                startingWorldScale: WorldCamera.GetWorldScaleFromCameraViewHeight(cameraViewHeight: mapInfo.StartingInfo.CameraViewHeight),
+                scrollSpeed: 1,
+                screenBoundWidthForMapMoving: 1
+            );
             curWorldManager = new();
-            CurWorldManager.graph = CreateGraph();
+            CurWorldManager.graph = Graph.CreateFromInfo(mapInfo: mapInfo, mapInfoCamera: mapInfoCamera);
             AddUIElements();
             CurWorldManager.Initialize();
 
@@ -89,93 +95,6 @@ namespace Game1
                     horizPos: HorizPos.Right,
                     vertPos: VertPos.Bottom
                 );
-            }
-
-            static Graph CreateGraph()
-            {
-                const int width = 5, height = 5;
-                double dist = 200 * (double)CurWorldConfig.metersPerStartingPixel;
-                const double minPlanetRadiusExponet = 1, maxPlanetRadiusExponent = 2.6, startingPlanetExponent = 4.5;
-                double maxRandomPositionOffset = dist * .3;
-                int startPlanetI = C.Random(min: width / 2 - 1, max: width / 2),
-                    startPlanetJ = C.Random(min: height / 2 - 1, max: height / 2);
-                CosmicBody?[,] cosmicBodies = new CosmicBody[width, height];
-                ResPile magicResPile = ResPile.CreateByMagic(amount: ResAmounts.magicUnlimitedResAmounts);
-                for (int i = 0; i < width; i++)
-                    for (int j = 0; j < height; j++)
-                    {
-                        bool startPlanet = i == startPlanetI && j == startPlanetJ;
-                        BasicResInd consistsOfResInd = BasicResInd.Random();
-                        MyVector2 position = new MyVector2(i - (width - 1) * .5, j - (height - 1) * .5) * dist + new MyVector2(C.Random(min: -1, max: 1), C.Random(min: -1, max: 1)) * maxRandomPositionOffset;
-                        cosmicBodies[i, j] = new
-                        (
-                            state: new
-                            (
-                                position: position,
-                                consistsOfResInd: consistsOfResInd,
-                                mainResAmount: NodeState.ResAmountFromApproxRadius
-                                (
-                                    basicResInd: consistsOfResInd,
-                                    approxRadius: CurWorldConfig.metersPerStartingPixel * MyMathHelper.Pow
-                                    (
-                                        (UDouble)2,
-                                        startPlanet ? startingPlanetExponent : MyMathHelper.Pow
-                                        (
-                                            @base: C.Random(min: minPlanetRadiusExponet, max: maxPlanetRadiusExponent),
-                                            exponent: 2
-                                        )
-                                    )
-                                ),
-                                resSource: magicResPile,
-                                maxBatchDemResStored: 2
-                            ),
-                            activeColor: Color.White,
-                            startingConditions: startPlanet switch
-                            {
-                                true =>
-                                (
-                                    houseFactory: CurIndustryConfig.basicHouseFactory,
-                                    personCount: 20,
-                                    resSource: magicResPile
-                                ),
-                                false => null
-                            }
-                        );
-                    }
-
-                UDouble distScale = (UDouble).1;
-                Propor linkExistsProb = (Propor).7;
-
-                List<Link> links = new();
-                for (int i = 0; i < width; i++)
-                    for (int j = 0; j < height - 1; j++)
-                        AddLinkIfAppropriate(planet1: cosmicBodies[i, j], planet2: cosmicBodies[i, j + 1]);
-
-                for (int i = 0; i < width - 1; i++)
-                    for (int j = 0; j < height; j++)
-                        AddLinkIfAppropriate(planet1: cosmicBodies[i, j], planet2: cosmicBodies[i + 1, j]);
-
-                return new
-                (
-                    nodes: from CosmicBody cosmicBody in cosmicBodies
-                           where cosmicBody is not null
-                           select cosmicBody,
-                    links: links
-                );
-
-                void AddLinkIfAppropriate(CosmicBody? planet1, CosmicBody? planet2)
-                {
-                    if (planet1 is not null && planet2 is not null && C.RandomBool(probOfTrue: linkExistsProb))
-                        links.Add
-                        (
-                            item: new
-                            (
-                                node1: planet1,
-                                node2: planet2,
-                                minSafeDist: CurWorldConfig.minSafeDist
-                            )
-                        );
-                }
             }
         }
 
@@ -211,6 +130,10 @@ namespace Game1
         // TODO: make this work not only on my machine
         private static string GetSaveFilePath
             => @"C:\Users\Jonas\Desktop\Serious\Game Projects\Abstract Management Game\save.bin";
+
+        // TODO: make this work not only on my machine
+        private static string GetMapPath
+            => @"C:\Users\Jonas\Desktop\Serious\Game Projects\Abstract Management Game\Game1\Content\Maps\Demo.json";
 
         private static DataContractSerializer GetDataContractSerializer()
             => new
@@ -280,7 +203,7 @@ namespace Game1
         public TimeSpan Elapsed { get; private set; }
 
         public MyVector2 MouseWorldPos
-            => worldCamera.WorldPos(screenPos: (MyVector2)Mouse.GetState().Position);
+            => worldCamera.ScreenPosToWorldPos(screenPos: (MyVector2)Mouse.GetState().Position);
 
         public TimeSpan MaxLinkTravelTime
             => CurGraph.MaxLinkTravelTime;
@@ -353,7 +276,13 @@ namespace Game1
             vacuumHeatEnergyPile = EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: LocationCounters.CreateEmpty());
             lightManager = new(vacuumHeatEnergyPile: vacuumHeatEnergyPile);
 
-            worldCamera = new(startingWorldScale: 1 / worldConfig.metersPerStartingPixel);
+            worldCamera = new
+            (
+                worldCenter: MyVector2.zero,
+                startingWorldScale: 1 / worldConfig.metersPerStartingPixel,
+                scrollSpeed: worldConfig.scrollSpeed,
+                screenBoundWidthForMapMoving: worldConfig.screenBoundWidthForMapMoving
+            );
 
             activeUIManager = new(worldCamera: worldCamera);
             activeUIManager.clickedNowhere.Add(listener: this);
@@ -407,7 +336,6 @@ namespace Game1
         {
             graph!.Initialize();
             lightManager.Initialize();
-            OnCreate?.Invoke();
         }
 
         public UDouble PersonDist(NodeID nodeID1, NodeID nodeID2)
@@ -425,8 +353,23 @@ namespace Game1
         public void RemoveResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
             => CurGraph.RemoveResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
 
+        public MyVector2 ScreenPosToWorldPos(MyVector2 screenPos)
+            => worldCamera.ScreenPosToWorldPos(screenPos: screenPos);
+
+        public UDouble ScreenLengthToWorldLength(UDouble screenLength)
+            => worldCamera.ScreenLengthToWorldLength(screenLength: screenLength);
+
         public MyVector2 WorldPosToHUDPos(MyVector2 worldPos)
-            => ScreenPosToHUDPos(screenPos: worldCamera.ScreenPos(worldPos: worldPos));
+            => ScreenPosToHUDPos(screenPos: worldCamera.WorldPosToScreenPos(worldPos: worldPos));
+
+        //public MyVector2 HUDPosToWorldPos(MyVector2 HUDPos)
+        //    => worldCamera.ScreenPosToWorldPos(screenPos: HUDPosToScreenPos(HUDPos: HUDPos));
+
+        //public UDouble HUDLengthToWorldLength(UDouble HUDLength)
+        //    => worldCamera.ScreenLengthToWorldLength
+        //    (
+        //        screenLength: HUDLengthToScreenLength(HUDLength: HUDLength)
+        //    );
 
         public void AddHUDElement(IHUDElement? HUDElement, HorizPos horizPos, VertPos vertPos)
             => activeUIManager.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);

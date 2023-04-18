@@ -1,0 +1,47 @@
+{
+  "CosmicBodies": [
+    {
+      "Name": "main star",
+      "Position": {
+        "X": 960,
+        "Y": 540
+      },
+      "Radius": 200
+    },
+    {
+      "Name": "starting planet",
+      "Position": {
+        "X": 1200,
+        "Y": 700
+      },
+      "Radius": 50
+    },
+    {
+      "Name": "Cosmic body 0",
+      "Position": {
+        "X": 1229,
+        "Y": 497
+      },
+      "Radius": 8.246211251235321
+    }
+  ],
+  "Links": [
+    {
+      "From": "main star",
+      "To": "starting planet"
+    },
+    {
+      "From": "Cosmic body 0",
+      "To": "starting planet"
+    }
+  ],
+  "StartingInfo": {
+    "HouseCosmicBody": "starting planet",
+    "PowerPlantCosmicBody": "Cosmic body 0",
+    "WorldCenter": {
+      "X": 960,
+      "Y": 540
+    },
+    "CameraViewHeight": 1080
+  }
+}

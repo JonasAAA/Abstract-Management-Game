@@ -98,8 +98,8 @@ namespace Game1.Industries
             futureShapeOutline = new(parameters: new FutureShapeOutlineParams(Parameters: parameters));
         }
 
-        protected override BoolWithExplanationIfFalse IsBusy()
-            => base.IsBusy() & BoolWithExplanationIfFalse.Create
+        protected override BoolWithExplanationIfFalse CalculateIsBusy()
+            => base.CalculateIsBusy() & BoolWithExplanationIfFalse.Create
             (
                 value: parameters.state.MaxAvailableResAmount > 0,
                 explanationIfFalse: "the planet is fully mined out\n"

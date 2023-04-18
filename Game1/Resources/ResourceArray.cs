@@ -17,6 +17,7 @@ namespace Game1.Resources
                     {
                         0 => new BasicRes
                         (
+                            name: "iron",
                             resInd: (BasicResInd)resInd,
                             mass: Mass.CreateFromKg(valueInKg: 2),
                             heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 3),
@@ -27,6 +28,7 @@ namespace Game1.Resources
                         ),
                         1 => new BasicRes
                         (
+                            name: "stone",
                             resInd: (BasicResInd)resInd,
                             mass: Mass.CreateFromKg(valueInKg: 1),
                             heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 4),
@@ -41,6 +43,7 @@ namespace Game1.Resources
                     {
                         2 => new NonBasicRes
                         (
+                            name: "bla1",
                             resInd: (NonBasicResInd)resInd,
                             ingredients: new ResAmounts()
                             {
@@ -50,6 +53,7 @@ namespace Game1.Resources
                         ),
                         3 => new NonBasicRes
                         (
+                            name: "bla2",
                             resInd: (NonBasicResInd)resInd,
                             ingredients: new ResAmounts()
                             {
@@ -60,6 +64,7 @@ namespace Game1.Resources
                         ),
                         4 => new NonBasicRes
                         (
+                            name: "bla3",
                             resInd: (NonBasicResInd)resInd,
                             ingredients: new ResAmounts()
                             {
@@ -80,6 +85,8 @@ namespace Game1.Resources
                     nonBasicRes.Initialize();
 
             // validate that resource invariants hold
+            // All resource names must be unique
+            Debug.Assert(resources.Select(res => res.Name).Distinct().Count() == (int)ResInd.count);
             foreach (var resInd in ResInd.All)
                 Debug.Assert(resources[resInd].ResInd == resInd);
 

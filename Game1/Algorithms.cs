@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.IO;
+using System.Numerics;
 
 namespace Game1
 {
@@ -242,6 +243,35 @@ namespace Game1
                 heatEnergy: HeatEnergy.CreateFromJoules(valueInJ: heatEnergyInJ),
                 radiantEnergy: RadiantEnergy.CreateFromJoules(valueInJ: energyInJToDissipate - heatEnergyInJ)
             );
+        }
+
+        /// <summary>
+        /// Checks if streamReader starts with tokens, with potentially whitespace at the start and between tokens
+        /// </summary>
+        /// <param name="streamReader"></param>
+        /// <param name="tokens"></param>
+        /// <returns></returns>
+        public static bool StreamStartsWith(StreamReader streamReader, string[] tokens)
+        {
+            foreach (string token in tokens)
+            {
+                // Read all whitespace
+                while (true)
+                {
+                    int nextChar = streamReader.Peek();
+                    if (nextChar == -1)
+                        return false;
+                    if (char.IsWhiteSpace((char)nextChar))
+                        streamReader.Read();
+                    else
+                        break;
+                }
+                foreach (char symbol in token)
+                    if (symbol != streamReader.Read())
+                        return false;
+            }
+
+            return true;
         }
     }
 }

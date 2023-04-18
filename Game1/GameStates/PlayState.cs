@@ -1,4 +1,5 @@
-﻿using Game1.Delegates;
+﻿using Game1.ContentHelpers;
+using Game1.Delegates;
 using static Game1.UI.ActiveUIManager;
 
 namespace Game1.GameStates
@@ -9,12 +10,6 @@ namespace Game1.GameStates
     public sealed class PlayState : GameState
     {
         public static readonly PlayState curPlayState = new();
-
-        public event Action OnCreate
-        {
-            add => WorldManager.OnCreate += value;
-            remove => WorldManager.OnCreate -= value;
-        }
 
         private KeyButton? switchToPauseMenuButton;
 
@@ -28,8 +23,8 @@ namespace Game1.GameStates
                 action: switchToPauseMenu
             );
 
-        public void StartNewGame()
-            => WorldManager.CreateWorldManager();
+        public void StartNewGame(FullValidMapInfo mapInfo)
+            => WorldManager.CreateWorldManager(mapInfo: mapInfo);
 
         public bool CanContinueGame()
             => WorldManager.Initialized || WorldManager.SaveFileExists;

@@ -143,7 +143,8 @@ namespace Game1
                     enhancedConsumersByPriority[priority].Add(enhancedConsumer);
                 }
 
-                foreach (var (priority, samePriorEnhancedConsumers) in enhancedConsumersByPriority)
+                // Reverse to give energy to the highest priority consumers first
+                foreach (var (priority, samePriorEnhancedConsumers) in enhancedConsumersByPriority.Reverse())
                 {
                     var energies =
                        (from enhancedConsumer in samePriorEnhancedConsumers

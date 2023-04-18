@@ -1,4 +1,6 @@
-﻿namespace Game1.Resources
+﻿using static Game1.WorldManager;
+
+namespace Game1.Resources
 {
     [Serializable]
     public readonly record struct ResInd : IOverlay
@@ -55,7 +57,7 @@
             => resInd1.value >= resInd2.value;
 
         public override string ToString()
-            => "Res" + value.ToString();
+            => CurResConfig.resources[this].Name;
 
         private static bool IsInRange(ulong value)
             => value < count;

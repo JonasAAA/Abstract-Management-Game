@@ -6,6 +6,7 @@ using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
 using Game1.Inhabitants;
+using Game1.ContentHelpers;
 
 namespace Game1
 {
@@ -150,7 +151,7 @@ namespace Game1
         private readonly string overlayTabLabel;
         private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDistribArrows;
 
-        public CosmicBody(NodeState state, Color activeColor, (House.Factory houseFactory, ulong personCount, ResPile resSource)? startingConditions = null)
+        public CosmicBody(NodeState state, Color activeColor, (IFactoryForIndustryWithBuilding industryFactory, ulong personCount, ResPile resSource)? startingConditions = null)
             : base
             (
                 shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
@@ -280,11 +281,11 @@ namespace Game1
 
             Mass startingNonPlanetMass = Mass.zero;
             // this is here beause it uses infoPanel, so that needs to be initialized first
-            if (startingConditions is var (houseFactory, personCount, resSource))
+            if (startingConditions is var (industryFactory, personCount, resSource))
             {
                 // This is done so that buildings and people take stuff from this planet (i.e. MassCounter is of this planet)
                 state.StoredResPile.TransferAllFrom(source: resSource);
-                ResAmounts houseBuildingCost = houseFactory.BuildingCost(state: state);
+                ResAmounts houseBuildingCost = industryFactory.BuildingCost(state: state);
 
                 {
                     var reservedBuildingRes = ResPile.CreateIfHaveEnough
@@ -295,7 +296,7 @@ namespace Game1
                     Debug.Assert(reservedBuildingRes is not null);
                     startingNonPlanetMass += reservedBuildingRes.Amount.Mass();
                     Building building = new(resSource: reservedBuildingRes);
-                    Industry = (houseFactory as IFactoryForIndustryWithBuilding).CreateIndustry
+                    Industry = industryFactory.CreateIndustry
                     (
                         state: state,
                         building: building
@@ -377,6 +378,8 @@ namespace Game1
 
         public void Update(IReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks, EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
+            Industry = Industry?.Update();
+
             // take people whose destination is this planet
             state.WaitingPeople.ForEach
             (
@@ -386,8 +389,6 @@ namespace Game1
                         realPerson.Arrived(realPersonSource: state.WaitingPeople);
                 }
             );
-
-            Industry = Industry?.Update();
 
             state.RadiantEnergyPile.TransformProporTo
             (

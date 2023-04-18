@@ -229,6 +229,7 @@ namespace Game1.Industries
         /// How much of REQUESTED energy is given. So if request 0, get 0, the proportion is full
         /// </summary>
         private Propor allocEnergyPropor;
+        private readonly CachedValue<BoolWithExplanationIfFalse> isBusyCached;
 
         protected ProductiveIndustry(Params parameters, Building? building)
             : base(parameters: parameters, building: building)
@@ -238,6 +239,7 @@ namespace Game1.Industries
             employer = new(parameters: parameters, energyDistributor: combinedEnergyConsumer);
             allocEnergyPropor = Propor.empty;
             electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: parameters.state.LocationCounters);
+            isBusyCached = new();
 
             combinedEnergyConsumer.AddEnergyConsumer(energyConsumer: this);
         }
@@ -245,8 +247,13 @@ namespace Game1.Industries
         protected override void UpdatePeopleInternal()
             => employer.UpdatePeople();
 
-        // TODO: Compute this value only once per frame
-        protected virtual BoolWithExplanationIfFalse IsBusy()
+        protected BoolWithExplanationIfFalse IsBusy()
+            => isBusyCached.Get(computeValue: CalculateIsBusy, curTime: CurWorldManager.CurTime);
+
+        /// <summary>
+        /// ONLY use this directly to compute CalculateIsBusy() of base/derived classes. Use IsBusy for all other circumstances.
+        /// </summary>
+        protected virtual BoolWithExplanationIfFalse CalculateIsBusy()
             => CanBeBusy;
 
         private BoolWithExplanationIfFalse CanBeBusy
@@ -280,7 +287,7 @@ namespace Game1.Industries
                 singleResCase: resInd => "",
                 allResCase: () => "",
                 powerCase: () => $"have {allocEnergyPropor * 100.0:0.}% of required energy\n",
-                peopleCase: () => employer.GetInfo()
+                peopleCase: employer.GetInfo
             ) + $"{parameters.name}\n" + IsBusy().SwitchExpression
             (
                 trueCase: GetBusyInfo,

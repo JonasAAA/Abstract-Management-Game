@@ -3,6 +3,7 @@
     [Serializable]
     public sealed class NonBasicRes : IResource
     {
+        public string Name { get; }
         public Mass Mass { get; private set; }
         public HeatCapacity HeatCapacity { get; private set; }
         public ulong Area { get; private set; }
@@ -14,8 +15,9 @@
         public readonly NonBasicResInd resInd;
         public readonly ResAmounts ingredients;
 
-        public NonBasicRes(NonBasicResInd resInd, ResAmounts ingredients)
+        public NonBasicRes(string name, NonBasicResInd resInd, ResAmounts ingredients)
         {
+            Name = name;
             this.resInd = resInd;
             this.ingredients = ingredients;
             Mass = Mass.zero;

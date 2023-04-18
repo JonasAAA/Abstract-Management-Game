@@ -1,4 +1,6 @@
-﻿namespace Game1.MyMath
+﻿using Game1.ContentHelpers;
+
+namespace Game1.MyMath
 {
     [Serializable]
     public readonly record struct MyVector2 : IEquatable<MyVector2>
@@ -9,10 +11,8 @@
         public double Y { get; init; }
 
         public MyVector2(double xAndY)
-        {
-            X = xAndY;
-            Y = xAndY;
-        }
+            : this(x: xAndY, y: xAndY)
+        { }
 
         public MyVector2(double x, double y)
         {

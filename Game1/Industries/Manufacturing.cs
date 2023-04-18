@@ -147,8 +147,8 @@ namespace Game1.Industries
             production = null;
         }
 
-        protected override BoolWithExplanationIfFalse IsBusy()
-            => base.IsBusy() & BoolWithExplanationIfFalse.Create
+        protected override BoolWithExplanationIfFalse CalculateIsBusy()
+            => base.CalculateIsBusy() & BoolWithExplanationIfFalse.Create
             (
                 value: production is not null,
                 explanationIfFalse: """

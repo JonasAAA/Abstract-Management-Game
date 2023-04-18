@@ -15,8 +15,7 @@
         public readonly Score
             minAcceptablePersonScore = Score.CreateOrThrow(value: .1);
         public readonly UDouble
-            standardStarRadius = 100,
-            scrollSpeed = 60;
+            standardStarRadius = 100;
         public readonly ulong
             personMinReqWatts = 1,
             personMaxReqWatts = 10;
@@ -52,6 +51,7 @@
             dimStarTextureBrightness = (UDouble).6,
             metersPerStartingPixel = 100,
             screenBoundWidthForMapMoving = 10,
+            scrollSpeed = 60,
             minSafeDist = 10;
         public readonly ulong
             resDistribArrowsUILayer = 1;
@@ -66,7 +66,9 @@
             minResAmountInPlanet = 100;
         public readonly UDouble
             defaultIndustryHeight = 500;
-
+        public readonly ulong
+            startingPersonNumInHouseCosmicBody = 15,
+            startingPersonNumInPowerPlantCosmicBody = 5;
         public readonly UDouble
             linkTravelSpeed = (UDouble)100,
             linkJoulesPerNewtonOfGravity = (UDouble).001,

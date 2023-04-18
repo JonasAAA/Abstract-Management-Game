@@ -124,8 +124,8 @@ namespace Game1.Industries
                 falseCase: () => parameters.Cost
             );
 
-        protected override BoolWithExplanationIfFalse IsBusy()
-            => base.IsBusy() & BoolWithExplanationIfFalse.Create
+        protected override BoolWithExplanationIfFalse CalculateIsBusy()
+            => base.CalculateIsBusy() & BoolWithExplanationIfFalse.Create
             (
                 value: StartedConstruction,
                 explanationIfFalse: """

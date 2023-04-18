@@ -1,38 +1,29 @@
 ﻿using Game1.Delegates;
+using Game1.UI;
 
 namespace Game1
 {
     [Serializable]
     public sealed class KeyButton
     {
-        public bool Click { get; private set; }
-        public bool Hold { get; private set; }
+        public bool HalfClicked
+            => abstractButton.HalfClicked;
         private readonly Keys key;
         private readonly IAction? action;
-        private bool prev;
+        private readonly AbstractButton abstractButton;
 
         public KeyButton(Keys key, IAction? action = null)
         {
             this.key = key;
             this.action = action;
-            prev = false;
-            Click = false;
-            Hold = false;
+            abstractButton = new();
         }
 
         public void Update()
         {
-            bool cur = Keyboard.GetState().IsKeyDown(key: key);
-            if (C.Click(prev: prev, cur: cur))
-            {
+            abstractButton.Update(down: Keyboard.GetState().IsKeyDown(key: key));
+            if (abstractButton.Clicked)
                 action?.Invoke();
-                Click = true;
-            }
-            else
-                Click = false;
-
-            Hold = cur && prev;
-            prev = cur;
         }
     }
 
@@ -54,7 +45,7 @@ namespace Game1
     //    {
     //        bool cur = Keyboard.GetState().IsKeyDown(key: key);
     //        T1 answer = default;
-    //        if (C.Click(prev: prev, cur: cur))
+    //        if (C.HalfClicked(prev: prev, cur: cur))
     //            answer = func();
     //        prev = cur;
     //        return answer;

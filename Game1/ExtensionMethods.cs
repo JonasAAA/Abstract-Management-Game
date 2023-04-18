@@ -6,7 +6,6 @@ namespace Game1
 {
     public static class ExtensionMethods
     {
-
         public static ulong ValueInJ<T>(this T formOfEnergy)
             where T : IFormOfEnergy<T>
             => ((Energy)formOfEnergy).valueInJ;

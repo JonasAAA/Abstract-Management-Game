@@ -71,9 +71,6 @@ namespace Game1
             return min + random.NextDouble() * (max - min);
         }
 
-        public static bool Click(bool prev, bool cur)
-            => prev && !cur;
-
         public static Propor DonePropor(TimeSpan timeLeft, TimeSpan duration)
         {
             if (duration <= TimeSpan.Zero)

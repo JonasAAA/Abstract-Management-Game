@@ -67,6 +67,7 @@ namespace Game1.Industries
         private readonly Params parameters;
         private ElectricalEnergy prodEnergy;
         private readonly HistoricRounder producedEnergyRounder;
+        private readonly CachedValue<Propor> radiantToElectricalEnergyProporCached;
 
         private PowerPlant(Params parameters, Building building)
             : base(parameters: parameters, building: building)
@@ -74,15 +75,31 @@ namespace Game1.Industries
             this.parameters = parameters;
             prodEnergy = ElectricalEnergy.zero;
             producedEnergyRounder = new();
+            radiantToElectricalEnergyProporCached = new();
+
             CurWorldManager.AddEnergyProducer(energyProducer: this);
         }
+
+        protected override BoolWithExplanationIfFalse CalculateIsBusy()
+            => base.CalculateIsBusy() & BoolWithExplanationIfFalse.Create
+            (
+                value: parameters.state.RadiantEnergyPile.Amount.ValueInJ * RadiantToElectricalEnergyPropor >= combinedEnergyConsumer.ReqEnergy().ValueInJ + 1,
+                explanationIfFalse: "Don't get enough starlight to function"
+            );
+
+        private Propor RadiantToElectricalEnergyPropor
+            => radiantToElectricalEnergyProporCached.Get
+            (
+                computeValue: () => parameters.surfaceAbsorbtionPropor * CurSkillPropor,
+                curTime: CurWorldManager.CurTime
+            );
 
         public override ResAmounts TargetStoredResAmounts()
             => ResAmounts.Empty;
 
         protected override PowerPlant InternalUpdate(Propor workingPropor)
         {
-            if (!MyMathHelper.AreClose(workingPropor, CurSkillPropor))
+            if ((bool)IsBusy() && !MyMathHelper.AreClose(workingPropor, CurSkillPropor))
                 throw new Exception();
             return this;
         }
@@ -94,11 +111,17 @@ namespace Game1.Industries
             => 0;
 
         void IEnergyProducer.ProduceEnergy(EnergyPile<ElectricalEnergy> destin)
-            => prodEnergy = parameters.state.RadiantEnergyPile.TransformProporTo
-            (
-                destin: destin,
-                propor: parameters.surfaceAbsorbtionPropor * CurSkillPropor,
-                amountToTransformRoundFunc: amount => producedEnergyRounder.Round(value: amount, curTime: CurWorldManager.CurTime)
-            );
+        {
+            prodEnergy = (bool)IsBusy() switch
+            {
+                true => parameters.state.RadiantEnergyPile.TransformProporTo
+                (
+                    destin: destin,
+                    propor: RadiantToElectricalEnergyPropor,
+                    amountToTransformRoundFunc: amount => producedEnergyRounder.Round(value: amount, curTime: CurWorldManager.CurTime)
+                ),
+                false => ElectricalEnergy.zero
+            };
+        }
     }
 }

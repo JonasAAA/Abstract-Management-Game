@@ -3,6 +3,7 @@
     [Serializable]
     public sealed class BasicRes : IResource
     {
+        public string Name { get; set; }
         public BasicResInd resInd;
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
@@ -13,8 +14,9 @@
         public readonly Color color;
         private readonly ResAmounts basicIngredients;
 
-        public BasicRes(BasicResInd resInd, Mass mass, HeatCapacity heatCapacity, ulong area, Propor reflectance, Propor emissivity, Color color)
+        public BasicRes(string name, BasicResInd resInd, Mass mass, HeatCapacity heatCapacity, ulong area, Propor reflectance, Propor emissivity, Color color)
         {
+            Name = name;
             this.resInd = resInd;
             if (mass.IsZero)
                 throw new ArgumentOutOfRangeException();

@@ -1,4 +1,5 @@
-﻿using Game1.Industries;
+﻿using Game1.ContentHelpers;
+using Game1.Industries;
 using Game1.Inhabitants;
 using static Game1.WorldManager;
 
@@ -37,8 +38,31 @@ namespace Game1
 
         public readonly ResPile consistsOfResPile;
 
-        public NodeState(MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
+        public NodeState(WorldCamera mapInfoCamera, FullValidCosmicBodyInfo cosmicBodyInfo, BasicResInd consistsOfResInd, ResPile resSource)
+            : this
+            (
+                name: cosmicBodyInfo.Name,
+                position: CurWorldManager.ScreenPosToWorldPos
+                (
+                    screenPos: mapInfoCamera.WorldPosToScreenPos(worldPos: cosmicBodyInfo.Position)
+                ),
+                consistsOfResInd: consistsOfResInd,
+                mainResAmount: ResAmountFromApproxRadius
+                (
+                    basicResInd: consistsOfResInd,
+                    approxRadius: CurWorldManager.ScreenLengthToWorldLength
+                    (
+                        screenLength: mapInfoCamera.WorldLengthToScreenLength(worldLength: cosmicBodyInfo.Radius)
+                    )
+                ),
+                resSource: resSource,
+                maxBatchDemResStored: 2
+            )
+        { }
+
+        public NodeState(string name, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
+#warning display the name
             LocationCounters = LocationCounters.CreateEmpty();
             ThermalBody = ThermalBody.CreateEmpty(locationCounters: LocationCounters);
             NodeID = NodeID.Create();
@@ -95,9 +119,7 @@ namespace Game1
             (
                 source: source,
                 amount: new(resInd: ConsistsOfResInd, amount: resAmount)
-            );
-            if (reservedResPile is null)
-                throw new ArgumentException();
+            ) ?? throw new ArgumentException();
             consistsOfResPile.TransferAllFrom(source: reservedResPile);
             RecalculateValues();
         }

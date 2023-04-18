@@ -58,5 +58,6 @@
     <PackageReference Include="Nito.Collections.Deque" Version="1.1.1" />
     <PackageReference Include="OptimizedPriorityQueue" Version="5.1.0" />
     <PackageReference Include="ParagonClipper" Version="6.4.2" />
+    <PackageReference Include="System.Collections.Immutable" Version="7.0.0" />
   </ItemGroup>
 </Project>

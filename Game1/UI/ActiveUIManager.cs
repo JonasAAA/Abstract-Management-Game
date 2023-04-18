@@ -10,7 +10,7 @@ namespace Game1.UI
         public static readonly ColorConfig colorConfig;
         public static readonly UDouble screenWidth, screenHeight;
         public static MyVector2 MouseHUDPos
-            => HUDCamera.HUDPos(screenPos: (MyVector2)Mouse.GetState().Position);
+            => HUDCamera.ScreenPosToHUDPos(screenPos: (MyVector2)Mouse.GetState().Position);
         public static UDouble RectOutlineWidth
             => curUIConfig.rectOutlineWidth;
 
@@ -26,12 +26,21 @@ namespace Game1.UI
             HUDCamera = new();
         }
 
+        public static MyVector2 ScreenPosToHUDPos(MyVector2 screenPos)
+            => HUDCamera.ScreenPosToHUDPos(screenPos: screenPos);
+
+        public static MyVector2 HUDPosToScreenPos(MyVector2 HUDPos)
+            => HUDCamera.HUDPosToScreenPos(HUDPos: HUDPos);
+
+        public static UDouble HUDLengthToScreenLength(UDouble HUDLength)
+            => HUDCamera.HUDLengthToScreenLength(HUDLength: HUDLength);
+
         public Event<IClickedNowhereListener> clickedNowhere;
 
         private readonly List<IUIElement> activeUIElements;
         private readonly HashSet<IHUDElement> HUDElements, worldHUDElements;
         private readonly HashSet<IUIElement> worldUIElements;
-        private bool leftDown, prevLeftDown;
+        private AbstractButton mouseLeftButton;
         private IUIElement? halfClicked, contMouse;
         private readonly TimeSpan minDurationToGetTooltip;
         private TimeSpan hoverDuration;
@@ -46,8 +55,7 @@ namespace Game1.UI
 
             activeUIElements = new();
             HUDElements = new();
-            leftDown = new();
-            prevLeftDown = new();
+            mouseLeftButton = new();
             halfClicked = null;
             contMouse = null;
             minDurationToGetTooltip = TimeSpan.FromSeconds(.5);
@@ -60,8 +68,7 @@ namespace Game1.UI
             tooltip = null;
         }
 
-        public static MyVector2 ScreenPosToHUDPos(MyVector2 screenPos)
-            => HUDCamera.HUDPos(screenPos: screenPos);
+        
 
         /// <summary>
         /// HUDElement is will not be drawn by this
@@ -135,10 +142,9 @@ namespace Game1.UI
             IUIElement? prevContMouse = contMouse;
 
             MouseState mouseState = Mouse.GetState();
-            prevLeftDown = leftDown;
-            leftDown = mouseState.LeftButton == ButtonState.Pressed;
+            mouseLeftButton.Update(down: mouseState.LeftButton == ButtonState.Pressed);
             MyVector2 mouseScreenPos = (MyVector2)mouseState.Position,
-                mouseHUDPos = HUDCamera.HUDPos(screenPos: mouseScreenPos);
+                mouseHUDPos = HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos);
 
             contMouse = null;
             foreach (IUIElement UIElement in Enumerable.Reverse(activeUIElements))
@@ -154,9 +160,9 @@ namespace Game1.UI
                 MyVector2 getMousePos()
                 {
                     if (HUDElements.Contains(UIElement) || worldHUDElements.Contains(UIElement))
-                        return HUDCamera.HUDPos(screenPos: mouseScreenPos);
+                        return HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos);
                     if (worldUIElements.Contains(UIElement))
-                        return worldCamera!.WorldPos(screenPos: mouseScreenPos);
+                        return worldCamera!.ScreenPosToWorldPos(screenPos: mouseScreenPos);
                     throw new();
                 }
             }
@@ -182,10 +188,10 @@ namespace Game1.UI
                     contMouse.MouseOn = true;
             }
 
-            if (leftDown && !prevLeftDown)
+            if (mouseLeftButton.HalfClicked)
                 halfClicked = contMouse;
 
-            if (!leftDown && prevLeftDown)
+            if (mouseLeftButton.Clicked)
             {
                 IUIElement? otherHalfClicked = contMouse;
                 if (halfClicked == otherHalfClicked && otherHalfClicked?.Enabled is true && otherHalfClicked.CanBeClicked)

@@ -29,6 +29,9 @@ namespace Game1.MyMath
         public static ulong Min(ulong left, ulong right)
             => left < right ? left : right;
 
+        public static int Min(int left, int right)
+            => left < right ? left : right;
+
         public static decimal Min(decimal left, decimal right)
             => left < right ? left : right;
 
@@ -38,6 +41,9 @@ namespace Game1.MyMath
 
         //public static T Max<T>(T left, T right) where T : IComparisonOperators<T, T, bool>
         //    => left > right ? left : right;
+
+        public static int Max(int left, int right)
+            => left > right ? left : right;
 
         public static double Max(double left, double right)
             => left > right ? left : right;

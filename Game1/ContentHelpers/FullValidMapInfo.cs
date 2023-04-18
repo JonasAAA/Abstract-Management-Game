@@ -6,23 +6,15 @@
     [Serializable]
     public readonly struct FullValidMapInfo
     {
-        public static GeneralEnum<FullValidMapInfo, IEnumerable<string>> Create(ValidMapInfo mapInfo)
-            => GeneralEnum.CallFunc
+        public static Result<FullValidMapInfo, IEnumerable<string>> Create(ValidMapInfo mapInfo)
+            => Result.CallFunc
             (
                 func: (arg1, arg2, arg3) => new FullValidMapInfo(arg1, arg2, arg3),
-                arg1: GeneralEnum.CallFunc
-                (
-                    func: Enumerable.ToArray,
-                    arg: mapInfo.CosmicBodies.Select(FullValidCosmicBodyInfo.Create).Collect()
-                ),
-                arg2: GeneralEnum.CallFunc
-                (
-                    func: Enumerable.ToArray,
-                    arg: mapInfo.Links.Select(FullValidLinkInfo.Create).Collect()
-                ),
+                arg1: mapInfo.CosmicBodies.FlatMap(FullValidCosmicBodyInfo.Create).Map(func: Enumerable.ToArray),
+                arg2: mapInfo.Links.FlatMap(FullValidLinkInfo.Create).Map(func: Enumerable.ToArray),
                 arg3: FullValidStartingInfo.Create(startingInfo: mapInfo.StartingInfo)
             );
-        
+
 
         public FullValidCosmicBodyInfo[] CosmicBodies { get; }
         public FullValidLinkInfo[] Links { get; }

@@ -84,13 +84,13 @@ namespace Game1
         // TODO: could use https://docs.microsoft.com/en-us/dotnet/api/system.text.json.serialization.jsonextensiondataattribute?view=net-7.0
         // to check for fields provided in json but deserialised
         // STARTING with .NET 8, could use https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/missing-members
-        private static GeneralEnum<ValidMapInfo, IEnumerable<string>> LoadMap(string fullMapPath)
+        private static Result<ValidMapInfo, IEnumerable<string>> LoadMap(string fullMapPath)
         {
             try
             {
                 return new
                 (
-                    value1: ValidMapInfo.CreateOrThrow
+                    ok: ValidMapInfo.CreateOrThrow
                     (
                         mapInfo: JsonSerializer.Deserialize<MapInfo>
                         (
@@ -102,16 +102,12 @@ namespace Game1
             }
             catch (Exception exception)
             {
-                return new(value2: new string[] { exception.Message });
+                return new(errors: new string[] { exception.Message });
             }
         }
 
-        private static GeneralEnum<FullValidMapInfo, IEnumerable<string>> LoadFullMap(string fullMapPath)
-            => LoadMap(fullMapPath: fullMapPath).SwitchExpression
-            (
-                case1: FullValidMapInfo.Create,
-                case2: errors => new(value2: errors)
-            );
+        private static Result<FullValidMapInfo, IEnumerable<string>> LoadFullMap(string fullMapPath)
+            => LoadMap(fullMapPath: fullMapPath).FlatMap(func: FullValidMapInfo.Create);
 
         private static void SaveMap(string fullMapPath, ValidMapInfo mapInfo, bool readyToUse)
             => File.WriteAllText
@@ -209,7 +205,7 @@ namespace Game1
                                     text: mapName,
                                     action: () => LoadMap(fullMapPath: mapFullPath).SwitchStatement
                                     (
-                                        case1: mapInfo =>
+                                        ok: mapInfo =>
                                         {
                                             mapCreationState = MapCreationState.FromMap
                                             (
@@ -219,7 +215,7 @@ namespace Game1
                                             );
                                             SetGameState(newGameState: mapCreationState);
                                         },
-                                        case2: errors => throw new NotImplementedException($"show exception message in a text box to explain why button can't be clicked.\nInner errors:\n{string.Join(";\n", errors)}")
+                                        error: errors => throw new NotImplementedException($"show exception message in a text box to explain why button can't be clicked.\nInner errors:\n{string.Join(";\n", errors)}")
                                     ),
                                     tooltipText: $"""Edit map named "{mapName}" """
                                 );
@@ -247,13 +243,13 @@ namespace Game1
                         text: Path.GetFileNameWithoutExtension(path: mapFullPath),
                         action: () => LoadFullMap(fullMapPath: mapFullPath).SwitchStatement
                         (
-                            case1: mapInfo =>
+                            ok: mapInfo =>
                             {
                                 playState.StartNewGame(mapInfo: mapInfo);
                                 SetGameState(newGameState: playState);
                             },
 #warning Implement what to do when map reading/validation failed
-                            case2: errors => throw new NotImplementedException($"show exception message in a text box to explain why button can't be clicked\nInner errors:\n{string.Join(";\n", errors)}")
+                            error: errors => throw new NotImplementedException($"show exception message in a text box to explain why button can't be clicked\nInner errors:\n{string.Join(";\n", errors)}")
                         ),
                         tooltipText: $"""Start game in map named "{Path.GetFileNameWithoutExtension(path: mapFullPath)}" """,
                         enabled: MapInfo.IsFileReady(mapFullPath: mapFullPath)

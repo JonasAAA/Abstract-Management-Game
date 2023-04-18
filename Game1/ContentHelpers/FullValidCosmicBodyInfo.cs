@@ -3,10 +3,10 @@
     [Serializable]
     public readonly struct FullValidCosmicBodyInfo
     {
-        public static GeneralEnum<FullValidCosmicBodyInfo, IEnumerable<string>> Create(ValidCosmicBodyInfo cosmicBodyInfo)
+        public static Result<FullValidCosmicBodyInfo, IEnumerable<string>> Create(ValidCosmicBodyInfo cosmicBodyInfo)
             => new
             (
-                value1: new
+                ok: new
                 (
                     name: cosmicBodyInfo.Name,
                     Position: cosmicBodyInfo.Position,

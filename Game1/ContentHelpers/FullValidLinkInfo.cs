@@ -3,8 +3,8 @@
     [Serializable]
     public readonly struct FullValidLinkInfo
     {
-        public static GeneralEnum<FullValidLinkInfo, IEnumerable<string>> Create(ValidLinkInfo linkInfo)
-            => new(value1: new(from: linkInfo.From, to: linkInfo.To));
+        public static Result<FullValidLinkInfo, IEnumerable<string>> Create(ValidLinkInfo linkInfo)
+            => new(ok: new(from: linkInfo.From, to: linkInfo.To));
 
         public string From { get; }
         public string To { get; }

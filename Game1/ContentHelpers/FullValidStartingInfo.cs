@@ -3,7 +3,7 @@
     [Serializable]
     public readonly struct FullValidStartingInfo
     {
-        public static GeneralEnum<FullValidStartingInfo, IEnumerable<string>> Create(ValidStartingInfo startingInfo)
+        public static Result<FullValidStartingInfo, IEnumerable<string>> Create(ValidStartingInfo startingInfo)
         {
             List<string> errorMessages = new();
             if (startingInfo.HouseCosmicBody is null)
@@ -13,7 +13,7 @@
             if (errorMessages.Count is 0)
                 return new
                 (
-                    value1: new
+                    ok: new
                     (
                         houseCosmicBody: startingInfo.HouseCosmicBody!,
                         powerPlantCosmicBody: startingInfo.PowerPlantCosmicBody!,
@@ -21,7 +21,7 @@
                         cameraViewHeight: startingInfo.CameraViewHeight
                     )
                 );
-            return new(value2: errorMessages); 
+            return new(errors: errorMessages); 
         }
 
         public string HouseCosmicBody { get; }

@@ -2,6 +2,7 @@
 using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
+using System.Collections.Immutable;
 
 namespace Game1.GameStates
 {
@@ -93,13 +94,13 @@ namespace Game1.GameStates
         private readonly record struct StartingInfoInternal(CosmicBodyId? HouseCosmicBodyId, CosmicBodyId? PowerPlantCosmicBodyId, MyVector2 WorldCenter, UDouble CameraViewHeight);
 
         [Serializable]
-        private record struct MapInfoInternal(Dictionary<CosmicBodyId, CosmicBodyInfoInternal> CosmicBodies, Dictionary<LinkId, LinkInfoInternal> Links, StartingInfoInternal StartingInfo)
+        private record struct MapInfoInternal(ImmutableDictionary<CosmicBodyId, CosmicBodyInfoInternal> CosmicBodies, ImmutableDictionary<LinkId, LinkInfoInternal> Links, StartingInfoInternal StartingInfo)
         {
             public static MapInfoInternal CreateEmpty()
                 => new
                 (
-                    CosmicBodies: new(),
-                    Links: new(),
+                    CosmicBodies: ImmutableDictionary<CosmicBodyId, CosmicBodyInfoInternal>.Empty,
+                    Links: ImmutableDictionary<LinkId, LinkInfoInternal>.Empty,
                     StartingInfo: new
                     (
                         HouseCosmicBodyId: null,
@@ -121,14 +122,14 @@ namespace Game1.GameStates
                         Radius: cosmicBodyInfo.Radius
                     )
                 ).ToList();
-                Dictionary<string, CosmicBodyId> cosmicBodyNameToId = cosmicBodies.ToDictionary
+                ImmutableDictionary<string, CosmicBodyId> cosmicBodyNameToId = cosmicBodies.ToImmutableDictionary
                 (
                     keySelector: cosmicBody => cosmicBody.Name,
                     elementSelector: cosmicBody => cosmicBody.Id
                 );
                 return new
                 (
-                    CosmicBodies: cosmicBodies.ToDictionary(keySelector: cosmicBody => cosmicBody.Id),
+                    CosmicBodies: cosmicBodies.ToImmutableDictionary(keySelector: cosmicBody => cosmicBody.Id),
                     Links: mapInfo.Links.Select
                     (
                         HUDLink => new LinkInfoInternal
@@ -137,7 +138,7 @@ namespace Game1.GameStates
                             From: cosmicBodyNameToId[HUDLink.From],
                             To: cosmicBodyNameToId[HUDLink.To]
                         )
-                    ).ToDictionary(keySelector: link => link.Id),
+                    ).ToImmutableDictionary(keySelector: link => link.Id),
                     StartingInfo: new
                     (
                         HouseCosmicBodyId: mapInfo.StartingInfo.HouseCosmicBody is null ? null : cosmicBodyNameToId[mapInfo.StartingInfo.HouseCosmicBody],
@@ -217,8 +218,8 @@ namespace Game1.GameStates
                     null => "N/A (fix validation errors first)",
                     not null => FullValidMapInfo.Create(mapInfo: validNewMapInfo.Value).SwitchExpression
                     (
-                        case1: fullValidMapInfo => "Nothing",
-                        case2: errors => contentMissingInfoMessage = string.Join(";\n", errors)
+                        ok: fullValidMapInfo => "Nothing",
+                        error: errors => contentMissingInfoMessage = string.Join(";\n", errors)
                     )
                 };
                 changeHistory.RemoveRange(index: historyCurInd + 1, count: changeHistory.Count - historyCurInd - 1);
@@ -256,6 +257,7 @@ namespace Game1.GameStates
         private IWorldUIElementId? selectedUIElement;
         private readonly KeyButton switchToPauseMenuButton;
         private readonly TextBox globalTextBox, houseTextBox, powerPlantTextBox;
+        private readonly string controlDescription;
 
         private MapCreationState(IAction switchToPauseMenu, MapInfoInternal mapInfo, string mapName)
         {
@@ -285,9 +287,25 @@ namespace Game1.GameStates
             activeUIManager.AddWorldHUDElement(worldHUDElement: houseTextBox);
             powerPlantTextBox = new();
             activeUIManager.AddWorldHUDElement(worldHUDElement: powerPlantTextBox);
-        }
 
-        
+            controlDescription = """
+                Esc - go to pause menu
+                left click on body/link - select cosmic body/link
+                N + left click - [N]ew cosmic body
+                select body + D - [D]elete cosmic body
+                select body + H - Select starting [h]ouse location
+                select body + P - Select starting [p]ower plant location
+                select body + R + left click - Change cosmic body [r]adius
+                select body + M + left click - [M]ove cosmic body
+                select body + L + left click other body - Add [l]ink bewteen the two cosmic bodies
+                select link + D - [D]elete link
+                ctrl + Z - Undo
+                ctrl + shift + Z - Redo
+                I - zoom [i]n
+                O - zoom [o]ut
+                bump mouse to the screen edge - move camera
+                """;
+        }
 
         // Can't use $"Cosmic body {Id}" straight up, as when loading initial map from the file, that mapName may be already taken
         private string GetNewCosmicBodyName()
@@ -309,7 +327,7 @@ namespace Game1.GameStates
             if (newMapInfo is not null)
                 changeHistory.LogNewChange(newMapInfo: newMapInfo.Value);
             
-            globalTextBox.Text = changeHistory.CurInfoForUser;
+            globalTextBox.Text = controlDescription + "\n\n" + changeHistory.CurInfoForUser;
             if (CurMapInfo.StartingInfo.HouseCosmicBodyId is CosmicBodyId houseCosmicBodyId)
             {
                 houseTextBox.Text = "House";
@@ -368,21 +386,17 @@ namespace Game1.GameStates
                 selectedUIElement = newCosmicBodyId;
                 return CurMapInfo with
                 {
-                    CosmicBodies = ModifyDictCopy
+                    CosmicBodies = CurMapInfo.CosmicBodies.Add
+                    (
+                        key: newCosmicBodyId,
+                        value: new CosmicBodyInfoInternal
                         (
-                            dict: CurMapInfo.CosmicBodies,
-                            modify: cosmicBodies => cosmicBodies.Add
-                            (
-                                key: newCosmicBodyId,
-                                value: new CosmicBodyInfoInternal
-                                (
-                                    Id: newCosmicBodyId,
-                                    Name: GetNewCosmicBodyName(),
-                                    Position: mouseWorldPos,
-                                    Radius: 100
-                                )
-                            )
+                            Id: newCosmicBodyId,
+                            Name: GetNewCosmicBodyName(),
+                            Position: mouseWorldPos,
+                            Radius: 100
                         )
+                    )
                 };
             }
             if (selectedUIElement is CosmicBodyId selectedCosmicBodyId)
@@ -393,15 +407,11 @@ namespace Game1.GameStates
                     selectedUIElement = null;
                     return new()
                     {
-                        CosmicBodies = FilterDictByValue
+                        CosmicBodies = CurMapInfo.CosmicBodies.Remove(key: selectedCosmicBodyId),
+                        Links = CurMapInfo.Links.Where(link => link.Value.From != selectedCosmicBodyId && link.Value.To != selectedCosmicBodyId).ToImmutableDictionary
                         (
-                            dict: CurMapInfo.CosmicBodies,
-                            predicate: cosmicBody => cosmicBody.Id != selectedCosmicBodyId
-                        ),
-                        Links = FilterDictByValue
-                        (
-                            dict: CurMapInfo.Links,
-                            predicate: link => link.From != selectedCosmicBodyId && link.To != selectedCosmicBodyId
+                            keySelector: keyValue => keyValue.Key,
+                            elementSelector: keyValue => keyValue.Value
                         ),
                         StartingInfo = CurMapInfo.StartingInfo with
                         {
@@ -434,31 +444,31 @@ namespace Game1.GameStates
                 if (leftClicked && keyboardState.IsKeyDown(Keys.R))
                     return CurMapInfo with
                     {
-                        CosmicBodies = ModifyDictCopy
-                            (
-                                dict: CurMapInfo.CosmicBodies,
-                                modify: cosmicBodies => cosmicBodies[selectedCosmicBodyId] = cosmicBodies[selectedCosmicBodyId] with
-                                {
-                                    Radius = MyVector2.Distance
-                                    (
-                                        value1: mouseWorldPos,
-                                        value2: cosmicBodies[selectedCosmicBodyId].Position
-                                    )
-                                }
-                            )
+                        CosmicBodies = CurMapInfo.CosmicBodies.SetItem
+                        (
+                            key: selectedCosmicBodyId,
+                            value: CurMapInfo.CosmicBodies[selectedCosmicBodyId] with
+                            {
+                                Radius = MyVector2.Distance
+                                (
+                                    value1: mouseWorldPos,
+                                    value2: CurMapInfo.CosmicBodies[selectedCosmicBodyId].Position
+                                )
+                            }
+                        )
                     };
                 // Move
                 if (leftClicked && keyboardState.IsKeyDown(Keys.M))
                     return CurMapInfo with
                     {
-                        CosmicBodies = ModifyDictCopy
-                            (
-                                dict: CurMapInfo.CosmicBodies,
-                                modify: cosmicBodies => cosmicBodies[selectedCosmicBodyId] = cosmicBodies[selectedCosmicBodyId] with
-                                {
-                                    Position = mouseWorldPos
-                                }
-                            )
+                        CosmicBodies = CurMapInfo.CosmicBodies.SetItem
+                        (
+                            key: selectedCosmicBodyId,
+                            value: CurMapInfo.CosmicBodies[selectedCosmicBodyId] with
+                            {
+                                Position = mouseWorldPos
+                            }
+                        )
                     };
                 // Link add
                 if (leftClicked && keyboardState.IsKeyDown(Keys.L) && hoverUIElement is CosmicBodyId hoverCosmicBodyId && selectedCosmicBodyId != hoverCosmicBodyId)
@@ -473,11 +483,7 @@ namespace Game1.GameStates
                     if (CurMapInfo.Links.Values.All(link => (newLink.From, newLink.To) != (link.From, link.To) && (newLink.To, newLink.From) != (link.From, link.To)))
                         return CurMapInfo with
                         {
-                            Links = ModifyDictCopy
-                                (
-                                    dict: CurMapInfo.Links,
-                                    modify: links => links.Add(key: newLink.Id, value: newLink)
-                                )
+                            Links = CurMapInfo.Links.Add(key: newLink.Id, value: newLink)
                         };
                 }
             }
@@ -487,11 +493,7 @@ namespace Game1.GameStates
                 selectedUIElement = null;
                 return CurMapInfo with
                 {
-                    Links = FilterDictByValue
-                        (
-                            dict: CurMapInfo.Links,
-                            predicate: link => link.Id != linkId
-                        )
+                    Links = CurMapInfo.Links.Remove(key: linkId)
                 };
             }
             // Select/deselect planet/link
@@ -517,21 +519,13 @@ namespace Game1.GameStates
             }
             return null;
 
-            Dictionary<TKey, TValue> FilterDictByValue<TKey, TValue>(Dictionary<TKey, TValue> dict, Func<TValue, bool> predicate)
-                where TKey : notnull
-                => dict.Where(keyValue => predicate(keyValue.Value)).ToDictionary
-                (
-                    keySelector: keyValue => keyValue.Key,
-                    elementSelector: keyValue => keyValue.Value
-                );
-
-            Dictionary<TKey, TValue> ModifyDictCopy<TKey, TValue>(Dictionary<TKey, TValue> dict, Action<Dictionary<TKey, TValue>> modify)
-                where TKey : notnull
-            {
-                Dictionary<TKey, TValue> dictCopy = new(dict);
-                modify(dictCopy);
-                return dictCopy;
-            }
+            //ImmutableDictionary<TKey, TValue> FilterDictByValue<TKey, TValue>(ImmutableDictionary<TKey, TValue> dict, Func<TValue, bool> predicate)
+            //    where TKey : notnull
+            //    => dict.Where(keyValue => predicate(keyValue.Value)).ToImmutableDictionary
+            //    (
+            //        keySelector: keyValue => keyValue.Key,
+            //        elementSelector: keyValue => keyValue.Value
+            //    );
         }
 
         private IEnumerable<(IWorldUIElementId id, Shape shape, Color color)> GetCurWorldUIElements()

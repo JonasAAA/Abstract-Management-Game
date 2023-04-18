@@ -35,8 +35,6 @@ namespace Game1
                 => this.onOffButton = onOffButton;
         }
 
-        public static event Action? OnCreate;
-
         public static WorldManager CurWorldManager
             => Initialized ? curWorldManager : throw new InvalidOperationException($"must initialize {nameof(WorldManager)} first by calling {nameof(CreateWorldManager)} or {nameof(LoadWorldManager)}");
 
@@ -338,7 +336,6 @@ namespace Game1
         {
             graph!.Initialize();
             lightManager.Initialize();
-            OnCreate?.Invoke();
         }
 
         public UDouble PersonDist(NodeID nodeID1, NodeID nodeID2)

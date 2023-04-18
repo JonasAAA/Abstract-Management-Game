@@ -4,6 +4,7 @@ using Game1.GameStates;
 using Game1.Shapes;
 using Game1.UI;
 using System.IO;
+using System.Reflection;
 using System.Runtime;
 using System.Text.Json;
 
@@ -147,88 +148,72 @@ namespace Game1
 
             // TODO: consider moving this to a constants class or similar
             UDouble buttonWidth = 200, buttonHeight = 30;
-            ActionButton continueButton = CreateActionButton
-            (
-                text: "Continue",
-                action: () =>
-                {
-                    playState.ContinueGame();
-                    SetGameState(newGameState: playState);
-                },
-                tooltipText: "Continue from last save",
-                enabled: playState.CanContinueGame()
-            );
-
-            playState.OnCreate += () =>
-            {
-                continueButton.PersonallyEnabled = playState.CanContinueGame();
-                Debug.Assert(continueButton.PersonallyEnabled);
-            };
-
 
             MenuState mapCreationStatePauseMenu = new();
+            MenuState mapCreationStateDoubleCheckIfExitWithoutSaving = new();
             MenuState mapEditorMenu = new();
             MenuState chooseMapMenu = new();
             MenuState mainMenu = new();
             MenuState playStatePauseMenu = new();
 
-
             mapEditorMenu.Initialize
             (
-                getActionButtons: () => new List<ActionButton>
+                getHUDElements: () => new ActionButton[]
+                {
+                    CreateActionButton
+                    (
+                        text: "Create new map",
+                        action: () =>
+                        {
+                            mapCreationState = MapCreationState.CreateNewMap
+                            (
+                                switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: mapCreationStatePauseMenu),
+                                mapName: GenerateMapName()
+                            );
+                            SetGameState(newGameState: mapCreationState);
+                        },
+                        tooltipText: "Create and edit new map"
+                    )
+                }.Concat
                 (
-                    new[]
-                    {
-                        CreateActionButton
-                        (
-                            text: "Create new map",
-                            action: () =>
-                            {
-                                mapCreationState = MapCreationState.CreateNewMap
-                                (
-                                    switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: mapCreationStatePauseMenu),
-                                    mapName: GenerateMapName()
-                                );
-                                SetGameState(newGameState: mapCreationState);
-                            },
-                            tooltipText: "Create and edit new map"
-                        )
-                    }.Concat
+                    GetMapFullPaths().Select
                     (
-                        GetMapFullPaths().Select
-                        (
-                            mapFullPath =>
-                            {
-                                string mapName = Path.GetFileNameWithoutExtension(path: mapFullPath);
-                                return CreateActionButton
+                        mapFullPath =>
+                        {
+                            string mapName = Path.GetFileNameWithoutExtension(path: mapFullPath);
+                            return CreateActionButton
+                            (
+                                text: mapName,
+                                action: () => LoadMap(fullMapPath: mapFullPath).SwitchStatement
                                 (
-                                    text: mapName,
-                                    action: () => LoadMap(fullMapPath: mapFullPath).SwitchStatement
+                                    ok: mapInfo =>
+                                    {
+                                        mapCreationState = MapCreationState.FromMap
+                                        (
+                                            switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: mapCreationStatePauseMenu),
+                                            mapInfo: mapInfo,
+                                            mapName: mapName
+                                        );
+                                        SetGameState(newGameState: mapCreationState);
+                                    },
+                                    error: errors => SwitchToInvalidMapState
                                     (
-                                        ok: mapInfo =>
-                                        {
-                                            mapCreationState = MapCreationState.FromMap
-                                            (
-                                                switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: mapCreationStatePauseMenu),
-                                                mapInfo: mapInfo,
-                                                mapName: mapName
-                                            );
-                                            SetGameState(newGameState: mapCreationState);
-                                        },
-                                        error: errors => throw new NotImplementedException($"show exception message in a text box to explain why button can't be clicked.\nInner errors:\n{string.Join(";\n", errors)}")
-                                    ),
-                                    tooltipText: $"""Edit map named "{mapName}" """
-                                );
-                            }
-                        )
-                    ).Append
+                                        mapFullPath: mapFullPath,
+                                        errors: errors,
+                                        goBackMenuState: mapEditorMenu
+                                    )
+                                ),
+                                tooltipText: $"""Edit map named "{mapName}" """
+                            );
+                        }
+                    )
+                ).Append
+                (
+                    CreateActionButton
                     (
-                        CreateActionButton
-                        (
-                            text: "Back",
-                            action: () => SetGameState(newGameState: mainMenu),
-                            tooltipText: "Back to main menu"
-                        )
+                        text: "Back",
+                        action: () => SetGameState(newGameState: mainMenu),
+                        tooltipText: "Back to main menu"
                     )
                 )
             );
@@ -236,7 +221,7 @@ namespace Game1
             
             chooseMapMenu.Initialize
             (
-                getActionButtons: () => GetMapFullPaths().Select
+                getHUDElements: () => GetMapFullPaths().Select
                 (
                     mapFullPath => CreateActionButton
                     (
@@ -248,8 +233,12 @@ namespace Game1
                                 playState.StartNewGame(mapInfo: mapInfo);
                                 SetGameState(newGameState: playState);
                             },
-#warning Implement what to do when map reading/validation failed
-                            error: errors => throw new NotImplementedException($"show exception message in a text box to explain why button can't be clicked\nInner errors:\n{string.Join(";\n", errors)}")
+                            error: errors => SwitchToInvalidMapState
+                            (
+                                mapFullPath: mapFullPath,
+                                errors: errors,
+                                goBackMenuState: chooseMapMenu
+                            )
                         ),
                         tooltipText: $"""Start game in map named "{Path.GetFileNameWithoutExtension(path: mapFullPath)}" """,
                         enabled: MapInfo.IsFileReady(mapFullPath: mapFullPath)
@@ -262,15 +251,25 @@ namespace Game1
                         action: () => SetGameState(newGameState: mainMenu),
                         tooltipText: "Back to main menu"
                     )
-                ).ToList()
+                )
             );
 
             
             mainMenu.Initialize
             (
-                getActionButtons: () => new List<ActionButton>()
+                getHUDElements: () => new List<ActionButton>()
                 {
-                    continueButton,
+                    CreateActionButton
+                    (
+                        text: "Continue",
+                        action: () =>
+                        {
+                            playState.ContinueGame();
+                            SetGameState(newGameState: playState);
+                        },
+                        tooltipText: "Continue from last save",
+                        enabled: playState.CanContinueGame()
+                    ),
                     CreateActionButton
                     (
                         text: "New game",
@@ -294,7 +293,7 @@ namespace Game1
             
             playStatePauseMenu.Initialize
             (
-                getActionButtons: () => new List<ActionButton>()
+                getHUDElements: () => new List<ActionButton>()
                 {
                     CreateActionButton
                     (
@@ -327,21 +326,14 @@ namespace Game1
 
             mapCreationStatePauseMenu.Initialize
             (
-                getActionButtons: () => new List<ActionButton>()
+                getHUDElements: () => new List<ActionButton>()
                 {
                     CreateActionButton
                     (
                         text: "Continue",
-                        action: () =>
-                        {
-                            if (mapCreationState is null)
-                                // Could show that there is nothing to continue on hover
-                                // Could lead to a page where it's explained that there is nothing to continue
-#warning Implement what to do when there is nothing to continue
-                                throw new NotImplementedException();
-                            SetGameState(newGameState: mapCreationState);
-                        },
-                        tooltipText: "Continue editing the map"
+                        action: () => SetGameState(newGameState: mapCreationState!),
+                        tooltipText: "Continue editing the map",
+                        enabled: mapCreationState is not null
                     ),
                     CreateActionButton
                     (
@@ -351,13 +343,46 @@ namespace Game1
                     ),
                     CreateActionButton
                     (
+                        text: "Save and exit",
+                        tooltipText: "Save the map and exit to main menu",
                         action: () =>
                         {
                             SaveCurrentMap();
                             SetGameState(newGameState: mainMenu);
-                        },
-                        text: "Save and exit",
-                        tooltipText: "Save the map and exit to main menu"
+                        }
+                    ),
+                    CreateActionButton
+                    (
+                        text: "Exit without saving",
+                        tooltipText: "Exit without saving.\nALL CHANGES WILL BE LOST",
+                        action: () => SetGameState(newGameState: mapCreationStateDoubleCheckIfExitWithoutSaving)
+                    )
+                }
+            );
+
+            mapCreationStateDoubleCheckIfExitWithoutSaving.Initialize
+            (
+                getHUDElements: () => new List<IHUDElement>
+                {
+                    new TextBox()
+                    {
+                        Text = "Are you sure?"
+                    },
+                    CreateActionButton
+                    (
+                        text: "Exit without saving",
+                        tooltipText: "ALL CHANGES WILL BE LOST",
+                        action: () =>
+                        {
+                            mapCreationState = null;
+                            SetGameState(newGameState: mainMenu);
+                        }
+                    ),
+                    CreateActionButton
+                    (
+                        text: "Cancel",
+                        tooltipText: "Return to map pause menu",
+                        action: () => SetGameState(newGameState: mapCreationStatePauseMenu)
                     )
                 }
             );
@@ -365,6 +390,28 @@ namespace Game1
             SetGameState(newGameState: mainMenu);
 
             return;
+
+            void SwitchToInvalidMapState(string mapFullPath, IEnumerable<string> errors, MenuState goBackMenuState)
+            {
+                MenuState invalidMapMenu = new();
+                invalidMapMenu.Initialize
+                (
+                    getHUDElements: () => new List<IHUDElement>()
+                    {
+                        new TextBox()
+                        {
+                            Text = $"The map is invalid for the following reasons:\n{string.Join("\n", errors)}\n\nChoose another map or open file \"{mapFullPath}\" and fix these problems."
+                        },
+                        CreateActionButton
+                        (
+                            text: "Back to menu",
+                            tooltipText: "Back to menu",
+                            action: () => SetGameState(newGameState: goBackMenuState)
+                        )
+                    }
+                );
+                SetGameState(newGameState: invalidMapMenu);
+            }
 
             ActionButton CreateActionButton(string text, Action action, string tooltipText, bool enabled = true)
                 => new

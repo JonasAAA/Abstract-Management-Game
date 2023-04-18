@@ -7,33 +7,33 @@ namespace Game1.GameStates
     public sealed class MenuState : GameState
     {
         private readonly ActiveUIManager activeUIManager;
-        private UIRectVertPanel<ActionButton>? UIPanel;
-        private Func<List<ActionButton>>? getActionButtons;
+        private UIRectVertPanel<IHUDElement>? UIPanel;
+        private Func<IEnumerable<IHUDElement>>? getHUDElements;
 
         public MenuState()
         {
             activeUIManager = new(worldCamera: null);
             UIPanel = null;
-            getActionButtons = null;
+            getHUDElements = null;
         }
 
-        public void Initialize(Func<List<ActionButton>> getActionButtons)
+        public void Initialize(Func<IEnumerable<IHUDElement>> getHUDElements)
         {
-            if (this.getActionButtons is not null)
+            if (this.getHUDElements is not null)
                 throw new InvalidOperationException();
-            this.getActionButtons = getActionButtons;
+            this.getHUDElements = getHUDElements;
         }
 
         public override void OnEnter()
         {
-            if (getActionButtons is null)
+            if (getHUDElements is null)
                 throw new ArgumentException();
 
             base.OnEnter();
 
             activeUIManager.RemoveHUDElement(HUDElement: UIPanel);
             UIPanel = new(childHorizPos: HorizPos.Middle);
-            foreach (var actionButton in getActionButtons())
+            foreach (var actionButton in getHUDElements())
                 UIPanel.AddChild(child: actionButton);
             activeUIManager.AddHUDElement(HUDElement: UIPanel, horizPos: HorizPos.Middle, vertPos: VertPos.Middle);
         }
@@ -43,7 +43,7 @@ namespace Game1.GameStates
 
         public override void Draw()
         {
-            if (getActionButtons is null)
+            if (getHUDElements is null)
                 throw new InvalidOperationException();
             C.GraphicsDevice.Clear(color: Color.Black);
             activeUIManager.DrawHUD();

@@ -106,7 +106,7 @@ namespace Game1.GameStates
                         HouseCosmicBodyId: null,
                         PowerPlantCosmicBodyId: null,
                         WorldCenter: MyVector2.zero,
-                        CameraViewHeight: 1080
+                        CameraViewHeight: ActiveUIManager.curUIConfig.standardScreenHeight
                     )
                 );
 
@@ -253,11 +253,13 @@ namespace Game1.GameStates
         private readonly ChangeHistory changeHistory;
         private readonly WorldCamera worldCamera;
         private readonly ActiveUIManager activeUIManager;
-        private bool prevLeftDown, prevZDown;
+        private readonly AbstractButton mouseLeftButton;
+        private readonly KeyButton zKey, toggleInfoKey, setCameraKey;
+        private bool expandControlDescr;
         private IWorldUIElementId? selectedUIElement;
         private readonly KeyButton switchToPauseMenuButton;
         private readonly TextBox globalTextBox, houseTextBox, powerPlantTextBox;
-        private readonly string controlDescription;
+        private readonly string controlDescrContr, controlDescrExp;
 
         private MapCreationState(IAction switchToPauseMenu, MapInfoInternal mapInfo, string mapName)
         {
@@ -273,8 +275,11 @@ namespace Game1.GameStates
             );
             activeUIManager = new(worldCamera: worldCamera);
 
-            prevLeftDown = false;
-            prevZDown = false;
+            mouseLeftButton = new();
+            zKey = new(key: Keys.Z);
+            toggleInfoKey = new(key: Keys.T);
+            setCameraKey = new(key: Keys.C);
+            expandControlDescr = false;
             selectedUIElement = null;
             switchToPauseMenuButton = new
             (
@@ -288,9 +293,14 @@ namespace Game1.GameStates
             powerPlantTextBox = new();
             activeUIManager.AddWorldHUDElement(worldHUDElement: powerPlantTextBox);
 
-            controlDescription = """
-                Esc - go to pause menu
-                left click on body/link - select cosmic body/link
+            controlDescrContr = """
+                Esc - Go to pause menu
+                T - [T]oggle control info
+                """;
+            controlDescrExp = """
+                Esc - Go to pause menu
+                T - [T]oggle control info
+                left click on body/link - Select cosmic body/link
                 N + left click - [N]ew cosmic body
                 select body + D - [D]elete cosmic body
                 select body + H - Select starting [h]ouse location
@@ -299,11 +309,12 @@ namespace Game1.GameStates
                 select body + M + left click - [M]ove cosmic body
                 select body + L + left click other body - Add [l]ink bewteen the two cosmic bodies
                 select link + D - [D]elete link
+                C - Set starting [c]amera to be current camera
                 ctrl + Z - Undo
                 ctrl + shift + Z - Redo
-                I - zoom [i]n
-                O - zoom [o]ut
-                bump mouse to the screen edge - move camera
+                I - Zoom [i]n
+                O - Zoom [o]ut
+                bump mouse to the screen edge - Move camera
                 """;
         }
 
@@ -327,7 +338,7 @@ namespace Game1.GameStates
             if (newMapInfo is not null)
                 changeHistory.LogNewChange(newMapInfo: newMapInfo.Value);
             
-            globalTextBox.Text = controlDescription + "\n\n" + changeHistory.CurInfoForUser;
+            globalTextBox.Text = expandControlDescr ? controlDescrExp : controlDescrContr + "\n\n" + changeHistory.CurInfoForUser;
             if (CurMapInfo.StartingInfo.HouseCosmicBodyId is CosmicBodyId houseCosmicBodyId)
             {
                 houseTextBox.Text = "House";
@@ -359,7 +370,7 @@ namespace Game1.GameStates
             switchToPauseMenuButton.Update();
             var mouseState = Mouse.GetState();
             var keyboardState = Keyboard.GetState();
-            bool leftDown = mouseState.LeftButton == ButtonState.Pressed;
+            mouseLeftButton.Update(down: mouseState.LeftButton == ButtonState.Pressed);
             MyVector2 mouseWorldPos = worldCamera.ScreenPosToWorldPos
             (
                 screenPos: new
@@ -368,8 +379,6 @@ namespace Game1.GameStates
                     y: mouseState.Position.Y
                 )
             );
-            bool leftClicked = leftDown && !prevLeftDown;
-            prevLeftDown = leftDown;
 
             IWorldUIElementId? hoverUIElement = null;
             foreach (var (id, shape, _) in GetCurWorldUIElements())
@@ -378,9 +387,11 @@ namespace Game1.GameStates
                     hoverUIElement = id;
                     break;
                 }
-
+            toggleInfoKey.Update();
+            if (toggleInfoKey.HalfClicked)
+                expandControlDescr = !expandControlDescr;
             // New cosmic body
-            if (leftClicked && keyboardState.IsKeyDown(Keys.N))
+            if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.N))
             {
                 CosmicBodyId newCosmicBodyId = new();
                 selectedUIElement = newCosmicBodyId;
@@ -441,7 +452,7 @@ namespace Game1.GameStates
                         }
                     };
                 // Radius change
-                if (leftClicked && keyboardState.IsKeyDown(Keys.R))
+                if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.R))
                     return CurMapInfo with
                     {
                         CosmicBodies = CurMapInfo.CosmicBodies.SetItem
@@ -458,7 +469,7 @@ namespace Game1.GameStates
                         )
                     };
                 // Move
-                if (leftClicked && keyboardState.IsKeyDown(Keys.M))
+                if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.M))
                     return CurMapInfo with
                     {
                         CosmicBodies = CurMapInfo.CosmicBodies.SetItem
@@ -471,7 +482,7 @@ namespace Game1.GameStates
                         )
                     };
                 // Link add
-                if (leftClicked && keyboardState.IsKeyDown(Keys.L) && hoverUIElement is CosmicBodyId hoverCosmicBodyId && selectedCosmicBodyId != hoverCosmicBodyId)
+                if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.L) && hoverUIElement is CosmicBodyId hoverCosmicBodyId && selectedCosmicBodyId != hoverCosmicBodyId)
                 {
                     LinkInfoInternal newLink = new
                     (
@@ -497,35 +508,54 @@ namespace Game1.GameStates
                 };
             }
             // Select/deselect planet/link
-            if (leftClicked)
+            if (mouseLeftButton.Clicked)
             {
                 selectedUIElement = hoverUIElement;
                 return null;
             }
-            bool zDown = keyboardState.IsKeyDown(Keys.Z),
-                zClicked = zDown && !prevZDown,
-                controlDown = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl),
+            setCameraKey.Update();
+            // Set the starting camera to be current camera
+            if (setCameraKey.HalfClicked)
+                return CurMapInfo with
+                {
+                    StartingInfo = CurMapInfo.StartingInfo with
+                    {
+                        WorldCenter = worldCamera.WorldCenter,
+                        CameraViewHeight = worldCamera.CameraViewHeight
+                    }
+                };
+            zKey.Update();
+            bool controlDown = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl),
                 shiftDown = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
-            prevZDown = zDown;
-            if (controlDown && shiftDown && zClicked)
+            // Redo
+            if (controlDown && shiftDown && zKey.HalfClicked)
             {
-                changeHistory.Redo();
+                CenterCameraAfterActionIfNeeded(action: changeHistory.Redo);
                 return null;
             }
-            if (controlDown && zClicked)
+            // Undo
+            if (controlDown && zKey.HalfClicked)
             {
-                changeHistory.Undo();
+                CenterCameraAfterActionIfNeeded(action: changeHistory.Undo);
                 return null;
             }
             return null;
 
-            //ImmutableDictionary<TKey, TValue> FilterDictByValue<TKey, TValue>(ImmutableDictionary<TKey, TValue> dict, Func<TValue, bool> predicate)
-            //    where TKey : notnull
-            //    => dict.Where(keyValue => predicate(keyValue.Value)).ToImmutableDictionary
-            //    (
-            //        keySelector: keyValue => keyValue.Key,
-            //        elementSelector: keyValue => keyValue.Value
-            //    );
+            void CenterCameraAfterActionIfNeeded(Action action)
+            {
+                MyVector2 prevWorldCenter = CurMapInfo.StartingInfo.WorldCenter;
+                UDouble prevCameraViewHeight = CurMapInfo.StartingInfo.CameraViewHeight;
+                action();
+                if (prevWorldCenter != CurMapInfo.StartingInfo.WorldCenter || prevCameraViewHeight != CurMapInfo.StartingInfo.CameraViewHeight)
+                    worldCamera.MoveTo
+                    (
+                        worldCenter: CurMapInfo.StartingInfo.WorldCenter,
+                        worldScale: WorldCamera.GetWorldScaleFromCameraViewHeight
+                        (
+                            cameraViewHeight: CurMapInfo.StartingInfo.CameraViewHeight
+                        )
+                    );
+            }
         }
 
         private IEnumerable<(IWorldUIElementId id, Shape shape, Color color)> GetCurWorldUIElements()
@@ -552,9 +582,20 @@ namespace Game1.GameStates
 
         public override void Draw()
         {
-            C.GraphicsDevice.Clear(ActiveUIManager.colorConfig.cosmosBackgroundColor);
-            
+            C.GraphicsDevice.Clear(C.ColorFromRGB(rgb: 0x00035b));
+
             worldCamera.BeginDraw();
+
+            // Draw starting camera shape
+            new MyRectangle
+            (
+                width: WorldCamera.CameraViewWidthFromHeight(cameraViewHeight: CurMapInfo.StartingInfo.CameraViewHeight),
+                height: CurMapInfo.StartingInfo.CameraViewHeight
+            )
+            {
+                Center = CurMapInfo.StartingInfo.WorldCenter,
+            }.Draw(color: ActiveUIManager.colorConfig.cosmosBackgroundColor);
+            
             foreach (var (_, shape, color) in GetCurWorldUIElements().Reverse())
                 shape.Draw(color: color);
             worldCamera.EndDraw();

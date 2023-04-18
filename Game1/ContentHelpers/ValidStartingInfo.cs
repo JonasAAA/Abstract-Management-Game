@@ -17,7 +17,7 @@
             if (cameraViewHeight <= 0)
                 throw new ContentException("Starting camera view height must be positive");
             if (houseCosmicBodyName is not null && houseCosmicBodyName == powerPlantCosmicBodyName)
-                throw new ContentException("Starting house cosmic body name must differ from starting power plant cosmic body name. Currently they are both \"{houseCosmicBodyName}\"");
+                throw new ContentException($"Starting house cosmic body name must differ from starting power plant cosmic body name. Currently they are both \"{houseCosmicBodyName}\"");
             return new
             (
                 houseCosmicBodyName: houseCosmicBodyName,

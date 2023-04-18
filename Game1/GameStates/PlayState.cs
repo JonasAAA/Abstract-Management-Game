@@ -11,12 +11,6 @@ namespace Game1.GameStates
     {
         public static readonly PlayState curPlayState = new();
 
-        public event Action OnCreate
-        {
-            add => WorldManager.OnCreate += value;
-            remove => WorldManager.OnCreate -= value;
-        }
-
         private KeyButton? switchToPauseMenuButton;
 
         private PlayState()

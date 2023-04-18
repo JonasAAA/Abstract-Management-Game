@@ -5,30 +5,6 @@ namespace Game1.Shapes
     [Serializable]
     public sealed class MyRectangle : NearRectangle
     {
-        private static class OutlineDrawer
-        {
-            /// <param name="toLeft">is start top, end is bottom</param>
-            public static void Draw(MyVector2 Start, MyVector2 End, Color Color, bool toLeft = false)
-            {
-                MyVector2 direction = MyVector2.Normalized(End - Start);
-                MyVector2 origin = toLeft switch
-                {
-                    true => new MyVector2(.5, 1),
-                    false => new MyVector2(.5, 0)
-                };
-                C.Draw
-                (
-                    texture: C.PixelTexture,
-                    position: (Start + End) / 2,
-                    color: Color,
-                    rotation: MyMathHelper.Rotation(vector: direction),
-                    origin: origin,
-                    scaleX: MyVector2.Distance(Start, End),
-                    scaleY: ActiveUIManager.RectOutlineWidth
-                );
-            }
-        }
-
         public MyRectangle()
             : this(width: 2 * ActiveUIManager.RectOutlineWidth, height: 2 * ActiveUIManager.RectOutlineWidth)
         { }
@@ -64,32 +40,53 @@ namespace Game1.Shapes
 
             Color outlineColor = Color.Black;
 
-            OutlineDrawer.Draw
+            DrawOutline
             (
                 Start: TopLeftCorner,
                 End: TopRightCorner,
                 Color: outlineColor
             );
 
-            OutlineDrawer.Draw
+            DrawOutline
             (
                 Start: TopRightCorner,
                 End: BottomRightCorner,
                 Color: outlineColor
             );
 
-            OutlineDrawer.Draw
+            DrawOutline
             (
                 Start: BottomRightCorner,
                 End: BottomLeftCorner,
                 Color: outlineColor
             );
 
-            OutlineDrawer.Draw
+            DrawOutline
             (
                 Start: BottomLeftCorner,
                 End: TopLeftCorner,
                 Color: outlineColor
+            );
+        }
+
+        /// <param name="toLeft">is start top, end is bottom</param>
+        private static void DrawOutline(MyVector2 Start, MyVector2 End, Color Color, bool toLeft = false)
+        {
+            MyVector2 direction = MyVector2.Normalized(End - Start);
+            MyVector2 origin = toLeft switch
+            {
+                true => new MyVector2(.5, 1),
+                false => new MyVector2(.5, 0)
+            };
+            C.Draw
+            (
+                texture: C.PixelTexture,
+                position: (Start + End) / 2,
+                color: Color,
+                rotation: MyMathHelper.Rotation(vector: direction),
+                origin: origin,
+                scaleX: MyVector2.Distance(Start, End),
+                scaleY: ActiveUIManager.RectOutlineWidth
             );
         }
     }

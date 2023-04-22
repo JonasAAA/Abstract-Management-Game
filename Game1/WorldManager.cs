@@ -52,13 +52,10 @@ namespace Game1
         public static IndustryConfig CurIndustryConfig
             => CurWorldManager.industryConfig;
 
-        public static bool SaveFileExists
-            => File.Exists(GetSaveFilePath);
-
         private static WorldManager? curWorldManager;
         private static readonly Type[] knownTypes;
 
-        public static ActiveUIManager CreateWorldManager(FullValidMapInfo mapInfo)
+        public static void CreateWorldManager(FullValidMapInfo mapInfo)
         {
             WorldCamera mapInfoCamera = new
             (
@@ -72,7 +69,7 @@ namespace Game1
             AddUIElements();
             CurWorldManager.Initialize();
 
-            return CurWorldManager.activeUIManager;
+            return;
 
             static void AddUIElements()
             {
@@ -98,9 +95,9 @@ namespace Game1
             }
         }
 
-        public static ActiveUIManager LoadWorldManager()
+        public static ActiveUIManager LoadWorldManager(string saveFilePath)
         {
-            if (curWorldManager is not null || !SaveFileExists)
+            if (curWorldManager is not null)
                 throw new InvalidOperationException();
 
             curWorldManager = Deserialize();
@@ -110,9 +107,9 @@ namespace Game1
 
             return CurWorldManager.activeUIManager;
 
-            static WorldManager Deserialize()
+            WorldManager Deserialize()
             {
-                using FileStream fileStream = new(path: GetSaveFilePath, FileMode.Open, FileAccess.Read);
+                using FileStream fileStream = new(path: saveFilePath, FileMode.Open, FileAccess.Read);
                 DataContractSerializer serializer = GetDataContractSerializer();
 
                 using XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader
@@ -126,15 +123,7 @@ namespace Game1
                 return (WorldManager)(serializer.ReadObject(reader, verifyObjectName: true) ?? throw new ArgumentNullException());
             }
         }
-
-        // TODO: make this work not only on my machine
-        private static string GetSaveFilePath
-            => @"C:\Users\Jonas\Desktop\Serious\Game Projects\Abstract Management Game\save.bin";
-
-        // TODO: make this work not only on my machine
-        private static string GetMapPath
-            => @"C:\Users\Jonas\Desktop\Serious\Game Projects\Abstract Management Game\Game1\Content\Maps\Demo.json";
-
+        
         private static DataContractSerializer GetDataContractSerializer()
             => new
             (
@@ -452,9 +441,9 @@ namespace Game1
             activeUIManager.DrawHUD();
         }
 
-        public void Save()
+        public void Save(string saveFilePath)
         {
-            using FileStream fileStream = new(path: GetSaveFilePath, FileMode.Create);
+            using FileStream fileStream = new(path: saveFilePath, FileMode.Create);
             DataContractSerializer serializer = GetDataContractSerializer();
 
             using XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);

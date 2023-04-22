@@ -4,7 +4,6 @@ using Game1.GameStates;
 using Game1.Shapes;
 using Game1.UI;
 using System.IO;
-using System.Reflection;
 using System.Runtime;
 using System.Text.Json;
 
@@ -13,7 +12,7 @@ namespace Game1
     public sealed class Game1 : Game
     {
         private readonly GraphicsDeviceManager graphics;
-        private readonly PlayState playState;
+        private PlayState? playState;
         private MapCreationState? mapCreationState;
         private GameState gameState;
 
@@ -33,7 +32,7 @@ namespace Game1
                 e.GraphicsDeviceInformation.PresentationParameters.MultiSampleCount = 8;
             };
 
-            playState = PlayState.curPlayState;
+            playState = null;
             mapCreationState = null;
             // I know that gameState will be initialized in LoadContent and will not be used before then
             gameState = null!;
@@ -69,6 +68,10 @@ namespace Game1
         // TODO: make this work not only on my machine
         private static string GetMapsFolderPath()
             => @"C:\Users\Jonas\Desktop\Serious\Game Projects\Abstract Management Game\Game1\Content\Maps";
+
+        // TODO: make this work not only on my machine
+        private static string GetGameSaveFilePath
+            => @"C:\Users\Jonas\Desktop\Serious\Game Projects\Abstract Management Game\save.bin";
 
         private static JsonSerializerOptions JsonSerializerOptions
             => new()
@@ -230,7 +233,11 @@ namespace Game1
                         (
                             ok: mapInfo =>
                             {
-                                playState.StartNewGame(mapInfo: mapInfo);
+                                playState = PlayState.StartGame
+                                (
+                                    switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: playStatePauseMenu),
+                                    mapInfo: mapInfo
+                                );
                                 SetGameState(newGameState: playState);
                             },
                             error: errors => SwitchToInvalidMapState
@@ -262,13 +269,44 @@ namespace Game1
                     CreateActionButton
                     (
                         text: "Continue",
-                        action: () =>
-                        {
-                            playState.ContinueGame();
-                            SetGameState(newGameState: playState);
-                        },
+                        action: () => SetGameState
+                        (
+                            newGameState: playState ?? PlayState.ContinueFromSave
+                            (
+                                switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: playStatePauseMenu),
+                                saveFilePath: GetGameSaveFilePath
+                            ).SwitchExpression
+                            (
+                                ok: newPlayState =>
+                                {
+                                    playState = newPlayState;
+                                    return playState as GameState;
+                                },
+                                error: errors =>
+                                {
+                                    MenuState invalidSaveStateMenu = new();
+                                    invalidSaveStateMenu.Initialize
+                                    (
+                                        getHUDElements: () => new List<IHUDElement>()
+                                        {
+                                            new TextBox()
+                                            {
+                                                Text = $"The save loading failed giving the following error:\n{errors}\nIf this save file is from an older game version, it can only be opened in that older game version.\nOtherwise contact the developer about this bug."
+                                            },
+                                            CreateActionButton
+                                            (
+                                                text: "Back to menu",
+                                                tooltipText: "Back to menu",
+                                                action: () => SetGameState(newGameState: mainMenu)
+                                            )
+                                        }
+                                    );
+                                    return invalidSaveStateMenu as GameState;
+                                }
+                            )
+                        ),
                         tooltipText: "Continue from last save",
-                        enabled: playState.CanContinueGame()
+                        enabled: playState is not null || File.Exists(GetGameSaveFilePath)
                     ),
                     CreateActionButton
                     (
@@ -297,13 +335,13 @@ namespace Game1
                 {
                     CreateActionButton
                     (
-                        action: () => SetGameState(newGameState: playState),
+                        action: () => SetGameState(newGameState: playState!),
                         text: "Continue",
                         tooltipText: "Continue from last save"
                     ),
                     CreateActionButton
                     (
-                        action: playState.SaveGame,
+                        action: () => playState!.SaveGame(saveFilePath: GetGameSaveFilePath),
                         text: "Save",
                         tooltipText: "Save the game. Will override the last save"
                     ),
@@ -311,17 +349,13 @@ namespace Game1
                     (
                         action: () =>
                         {
-                            playState.SaveGame();
+                            playState!.SaveGame(saveFilePath: GetGameSaveFilePath);
                             SetGameState(newGameState: mainMenu);
                         },
                         text: "Save and exit",
                         tooltipText: "Save the game and exit. Will override the last save"
                     ),
                 }
-            );
-            playState.Initialize
-            (
-                switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: playStatePauseMenu)
             );
 
             mapCreationStatePauseMenu.Initialize

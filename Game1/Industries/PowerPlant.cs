@@ -8,10 +8,10 @@ namespace Game1.Industries
         [Serializable]
         public new sealed class Factory : ProductiveIndustry.Factory, IFactoryForIndustryWithBuilding
         {
-            public readonly Propor surfaceAbsorbtionPropor;
+            public readonly Propor conversionPropor;
             private readonly ResAmounts buildingCostPerUnitSurface;
 
-            public Factory(string name, UDouble reqSkillPerUnitSurface, Propor surfaceAbsorbtionPropor, ResAmounts buildingCostPerUnitSurface)
+            public Factory(string name, UDouble reqSkillPerUnitSurface, Propor conversionPropor, ResAmounts buildingCostPerUnitSurface)
                 : base
                 (
                     industryType: IndustryType.PowerPlant,
@@ -21,9 +21,9 @@ namespace Game1.Industries
                     reqSkillPerUnitSurface: reqSkillPerUnitSurface
                 )
             {
-                if (surfaceAbsorbtionPropor.IsCloseTo(other: Propor.empty))
+                if (conversionPropor.IsCloseTo(other: Propor.empty))
                     throw new ArgumentOutOfRangeException();
-                this.surfaceAbsorbtionPropor = surfaceAbsorbtionPropor;
+                this.conversionPropor = conversionPropor;
                 if (buildingCostPerUnitSurface.IsEmpty())
                     throw new ArgumentException();
                 this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
@@ -42,19 +42,19 @@ namespace Game1.Industries
         [Serializable]
         public new sealed class Params : ProductiveIndustry.Params
         {
-            public readonly Propor surfaceAbsorbtionPropor;
+            public readonly Propor conversionPropor;
 
             // TODO: may improve the tooltip text by showing the actual produced amount
             public override string TooltipText
                 => $"""
                 {base.TooltipText}
-                {nameof(surfaceAbsorbtionPropor)}: {surfaceAbsorbtionPropor}
+                {nameof(conversionPropor)}: {conversionPropor}
                 """;
 
             public Params(IIndustryFacingNodeState state, Factory factory)
                 : base(state: state, factory: factory)
             {
-                surfaceAbsorbtionPropor = factory.surfaceAbsorbtionPropor;
+                conversionPropor = factory.conversionPropor;
             }
         }
 
@@ -90,7 +90,7 @@ namespace Game1.Industries
         private Propor RadiantToElectricalEnergyPropor
             => radiantToElectricalEnergyProporCached.Get
             (
-                computeValue: () => parameters.surfaceAbsorbtionPropor * CurSkillPropor,
+                computeValue: () => parameters.conversionPropor * CurSkillPropor,
                 curTime: CurWorldManager.CurTime
             );
 

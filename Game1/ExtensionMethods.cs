@@ -149,15 +149,30 @@ namespace Game1
             return stringBuilder.ToString();
         }
 
-        /// <param name="curTime">Used for historical rounding of transformed energy</param>
+        /// <returns>The amount of energy transfered to destin</returns>
+        public static TAmount TransferProporTo<TAmount>(this EnergyPile<TAmount> source, EnergyPile<TAmount> destin, Propor propor, Func<decimal, ulong> amountToTransferRoundFunc)
+            where TAmount : struct, IUnconstrainedEnergy<TAmount>
+        {
+            TAmount amountToTransfer = Algorithms.EnergyPropor
+            (
+                wholeAmount: source.Amount,
+                propor: propor,
+                roundFunc: amountToTransferRoundFunc
+            );
+            source.TransferTo(destin: destin, amount: amountToTransfer);
+            return amountToTransfer;
+        }
+
         /// <returns>The amount of energy transfered to destin</returns>
         public static TDestinAmount TransformProporTo<TSourceAmount, TDestinAmount>(this EnergyPile<TSourceAmount> source, EnergyPile<TDestinAmount> destin, Propor propor, Func<decimal, ulong> amountToTransformRoundFunc)
             where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
             where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
         {
-            TSourceAmount amountToTransform = IUnconstrainedEnergy<TSourceAmount>.CreateFromJoules
+            TSourceAmount amountToTransform = Algorithms.EnergyPropor
             (
-                valueInJ: amountToTransformRoundFunc(source.Amount.ValueInJ() * (decimal)propor)
+                wholeAmount: source.Amount,
+                propor: propor,
+                roundFunc: amountToTransformRoundFunc
             );
             source.TransformTo(destin: destin, amount: amountToTransform);
             return TDestinAmount.CreateFromEnergy(energy: (Energy)amountToTransform);

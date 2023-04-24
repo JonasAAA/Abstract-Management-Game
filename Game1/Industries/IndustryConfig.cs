@@ -25,7 +25,7 @@ namespace Game1.Industries
             (
                 name: "power_plant_lvl1",
                 reqSkillPerUnitSurface: (UDouble).2,
-                surfaceAbsorbtionPropor: (Propor).2,
+                conversionPropor: (Propor).5,
                 buildingCostPerUnitSurface: new()
                 {
                     [(ResInd)0] = 1

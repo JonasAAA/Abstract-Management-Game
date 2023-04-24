@@ -273,5 +273,12 @@ namespace Game1
 
             return true;
         }
+        
+        public static TAmount EnergyPropor<TAmount>(TAmount wholeAmount, Propor propor, Func<decimal, ulong> roundFunc)
+            where TAmount : struct, IUnconstrainedEnergy<TAmount>
+            => IUnconstrainedEnergy<TAmount>.CreateFromJoules
+            (
+                valueInJ: roundFunc(wholeAmount.ValueInJ() * (decimal)propor)
+            );
     }
 }

@@ -16,6 +16,9 @@ namespace Game1.Lighting
 
             void IRadiantEnergyConsumer.TakeRadiantEnergyFrom(EnergyPile<RadiantEnergy> source, RadiantEnergy amount)
                 => source.TransformTo(destin: vacuumHeatEnergyPile, amount: amount);
+
+            void IRadiantEnergyConsumer.EnergyTakingComplete(IRadiantEnergyConsumer reflectedEnergyDestin)
+            { }
         }
 
         private static readonly int actualScreenWidth, actualScreenHeight;
@@ -90,13 +93,15 @@ namespace Game1.Lighting
 
         public void Update()
         {
-            // could return from this method if nothing changed since last call (including all positions)
+            var lightCatchingObjectList = lightCatchingObjects.ToList();
             foreach (var lightSource in lightSources)
                 lightSource.ProduceAndDistributeRadiantEnergy
                 (
-                    lightCatchingObjects: lightCatchingObjects.ToList(),
+                    lightCatchingObjects: lightCatchingObjectList,
                     vacuumAsRadiantEnergyConsumer
                 );
+            foreach (var lightCatchingObject in lightCatchingObjectList)
+                lightCatchingObject.EnergyTakingComplete(reflectedEnergyDestin: vacuumAsRadiantEnergyConsumer);
         }
 
         public void Draw(Matrix worldToScreenTransform)

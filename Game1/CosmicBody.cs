@@ -6,7 +6,6 @@ using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
 using Game1.Inhabitants;
-using Game1.ContentHelpers;
 
 namespace Game1
 {
@@ -390,13 +389,6 @@ namespace Game1
                 }
             );
 
-            state.RadiantEnergyPile.TransformProporTo
-            (
-                destin: vacuumHeatEnergyPile,
-                propor: Industry?.SurfaceReflectance ?? state.ConsistsOfRes.Reflectance,
-                amountToTransformRoundFunc: amount => reflectedRadiantEnergyRounder.Round(value: amount, curTime: CurWorldManager.CurTime)
-            );
-
             state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: state.RadiantEnergyPile);
 
             matterCountConvertedToEnergy = Algorithms.MatterToConvertToEnergy
@@ -468,6 +460,8 @@ namespace Game1
             );
 
             UpdateHUDPos();
+
+            Debug.Assert(state.RadiantEnergyPile.Amount.IsZero);
         }
 
         public void UpdatePeople()
@@ -682,6 +676,22 @@ namespace Game1
 
         void IRadiantEnergyConsumer.TakeRadiantEnergyFrom(EnergyPile<RadiantEnergy> source, RadiantEnergy amount)
             => state.RadiantEnergyPile.TransferFrom(source: source, amount: amount);
+
+        void IRadiantEnergyConsumer.EnergyTakingComplete(IRadiantEnergyConsumer vacuumAsRadiantEnergyConsumer)
+            => vacuumAsRadiantEnergyConsumer.TakeRadiantEnergyFrom
+            (
+                source: state.RadiantEnergyPile,
+                amount: Algorithms.EnergyPropor
+                (
+                    wholeAmount: state.RadiantEnergyPile.Amount,
+                    propor: Industry?.SurfaceReflectance ?? state.ConsistsOfRes.Reflectance,
+                    roundFunc: amount => reflectedRadiantEnergyRounder.Round
+                    (
+                        value: amount,
+                        curTime: CurWorldManager.CurTime
+                    )
+                )
+            );
 
         void INodeAsResDestin.AddResTravelHere(ResAmount resAmount)
             => resTravelHereAmounts = resTravelHereAmounts.WithAdd(resAmount: resAmount);

@@ -1,4 +1,6 @@
-﻿namespace Game1
+﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+
+namespace Game1
 {
     [Serializable]
     public readonly struct Result<TOk, TErrors>
@@ -144,5 +146,58 @@
                     }
                 );
         }
+
+        public static Result<TResult, IEnumerable<TError>> CallFunc<T1, T2, T3, T4, TResult, TError>(this Func<T1, T2, T3, T4, TResult> func, Result<T1, IEnumerable<TError>> arg1,
+            Result<T2, IEnumerable<TError>> arg2, Result<T3, IEnumerable<TError>> arg3, Result<T4, IEnumerable<TError>> arg4)
+        {
+            IEnumerable<TError> errors = Enumerable.Empty<TError>();
+            bool foundErrors = false;
+
+            T1? arg1NoErr = Unpack(arg1);
+            T2? arg2NoErr = Unpack(arg2);
+            T3? arg3NoErr = Unpack(arg3);
+            T4? arg4NoErr = Unpack(arg4);
+
+            if (!foundErrors)
+                return new(ok: func(arg1NoErr!, arg2NoErr!, arg3NoErr!, arg4NoErr!));
+            else
+                return new(errors: errors);
+
+            //T? UnpackLocal<T>(Result<T, IEnumerable<TError>> arg)
+            //{
+            //    var unpacked = Unpack<T, TError>(arg: arg);
+            //    foundErrors &= unpacked.foundErrors;
+            //    errors = errors.Concat(unpacked.errors);
+            //    return unpacked.argVal;
+            //}
+            T? Unpack<T>(Result<T, IEnumerable<TError>> arg)
+                => arg.SwitchExpression
+                (
+                    ok: argTemp => argTemp,
+                    error: newErrors =>
+                    {
+                        errors = errors.Concat(newErrors);
+                        foundErrors = true;
+                        return default(T);
+                    }
+                );
+        }
+
+        //private static (T? argVal, IEnumerable<TError> errors, bool foundErrors) Unpack<T, TError>(Result<T, IEnumerable<TError>> arg)
+        //    => arg.SwitchExpression
+        //    (
+        //        ok: argTemp => 
+        //        (
+        //            argVal: argTemp,
+        //            errors: Enumerable.empty<TError>(),
+        //            foundErrors: false
+        //        ),
+        //        error: newErrors =>
+        //        (
+        //            argVal: default(T),
+        //            errors: newErrors,
+        //            foundErrors: true
+        //        )
+        //    );
     }
 }

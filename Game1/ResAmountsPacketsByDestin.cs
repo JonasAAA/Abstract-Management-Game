@@ -17,7 +17,7 @@
         }
 
         // ResAmounts is not Counter, otherwise it would be impossible to implement void TransferAllFrom(ResAmountsPacket sourcePacket)
-        public ResAmounts ResAmounts { get; private set; }
+        public AllResAmounts ResAmounts { get; private set; }
         public Mass Mass { get; private set; }
         public bool Empty
             => Mass.IsZero;
@@ -30,7 +30,7 @@
             this.thermalBody = thermalBody;
             resAmountsPacketsByDestin = new();
 
-            ResAmounts = ResAmounts.Empty;
+            ResAmounts = AllResAmounts.empty;
             Mass = Mass.zero;
         }
 
@@ -72,18 +72,18 @@
             return resAmountsPacket.resPile;
         }
 
-        public ResAmounts ResToDestinAmounts(NodeID destination)
+        public AllResAmounts ResToDestinAmounts(NodeID destination)
             => resAmountsPacketsByDestin.ContainsKey(destination) switch
             {
                 true => resAmountsPacketsByDestin[destination].resPile.Amount,
-                false => ResAmounts.Empty
+                false => AllResAmounts.empty
             };
 
         public IEnumerable<ResAmountsPacket> DeconstructAndClear()
         {
             var result = resAmountsPacketsByDestin.Values;
             resAmountsPacketsByDestin = new();
-            ResAmounts = ResAmounts.Empty;
+            ResAmounts = AllResAmounts.empty;
             Mass = Mass.zero;
             return result;
         }

@@ -90,13 +90,16 @@ namespace Game1.Inhabitants
 
         // TODO: move to some config file
         // Long-term, make each person require different amount of resources
-        public static readonly ResAmounts resAmountsPerPerson;
+        public static readonly SomeResAmounts<IResource> resAmountsPerPerson;
 
         static RealPerson()
-            => resAmountsPerPerson = new()
-            {
-                [(ResInd)0] = 10
-            };
+            => resAmountsPerPerson = new
+            (
+                resAmounts: new List<ResAmount<IResource>>()
+                {
+                    new(res: RawMaterial.Get(ind: 0), amount: 10)
+                }
+            );
 
         public readonly VirtualPerson asVirtual;
         
@@ -119,7 +122,7 @@ namespace Game1.Inhabitants
         private readonly ResPile consistsOfResPile;
         private LocationCounters locationCounters;
         
-        private RealPerson(RealPeopleStats realPeopleStats, NodeID closestNodeID, TimeSpan seekChangeTime, ResPile resSource, ResAmounts consistsOfResAmounts)
+        private RealPerson(RealPeopleStats realPeopleStats, NodeID closestNodeID, TimeSpan seekChangeTime, ResPile resSource, SomeResAmounts<IResource> consistsOfResAmounts)
         {
             Stats = realPeopleStats;
             ClosestNodeID = closestNodeID;
@@ -131,7 +134,7 @@ namespace Game1.Inhabitants
             this.seekChangeTime = seekChangeTime;
             timeSinceActivitySearch = seekChangeTime;
             LastActivityTimes = new(selector: activityType => TimeSpan.MinValue / 3);
-            if (resSource.Amount != consistsOfResAmounts)
+            if (resSource.Amount != AllResAmounts.CreateFromNoMix(resAmounts: consistsOfResAmounts))
                 throw new ArgumentException();
             consistsOfResPile = resSource;
             // The counters here don't matter as this person will be immediately transfered to RealPeople where this person's Mass and NumPeople will be transferred to the appropriate counters

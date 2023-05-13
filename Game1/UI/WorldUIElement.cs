@@ -9,7 +9,8 @@ namespace Game1.UI
     // TChild is WorldUIElement to disallow text and similar UI elements which would should not scale when player zooms in/out
     // The correct approach here would be to have TChild IWorldUIElement (that being new interface) but I'm not sure if that'll work
     // with the save system (as UIElement<IUIElement> and UIElement<IWorldUIElement> would be indistinguishable types for the save system
-    public abstract class WorldUIElement : UIElement<WorldUIElement>, IChoiceChangedListener<IOverlay>
+    public abstract class WorldUIElement : UIElement<WorldUIElement>
+        //, IChoiceChangedListener<IOverlay>
     {
         public readonly Event<IActiveChangedListener> activeChanged;
 
@@ -28,18 +29,30 @@ namespace Game1.UI
                 if (active)
                     CurWorldManager.AddHUDElement
                     (
-                        HUDElement: popups[CurWorldManager.Overlay],
+                        HUDElement: Popup,
                         horizPos: popupHorizPos,
                         vertPos: popupVertPos
                     );
                 else
                     CurWorldManager.RemoveHUDElement
                     (
-                        HUDElement: popups[CurWorldManager.Overlay]
+                        HUDElement: Popup
                     );
+                //if (active)
+                //    CurWorldManager.AddHUDElement
+                //    (
+                //        HUDElement: popups[CurWorldManager.Overlay],
+                //        horizPos: popupHorizPos,
+                //        vertPos: popupVertPos
+                //    );
+                //else
+                //    CurWorldManager.RemoveHUDElement
+                //    (
+                //        HUDElement: popups[CurWorldManager.Overlay]
+                //    );
                 activeChanged.Raise(action: listener => listener.ActiveChangedResponse(worldUIElement: this));
 
-                CurWorldManager.ArrowDrawingModeOn = false;
+                CurWorldManager.ArrowDrawingModeRes = null;
             }
         }
 
@@ -56,7 +69,8 @@ namespace Game1.UI
         
         private bool active;
 
-        private readonly Dictionary<IOverlay, IHUDElement?> popups;
+        protected IHUDElement? Popup { get; init; }
+        //private readonly MyDict<IOverlay, IHUDElement?> popups;
 
         public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
             : base(shape: shape)
@@ -67,22 +81,21 @@ namespace Game1.UI
             this.popupHorizPos = popupHorizPos;
             this.popupVertPos = popupVertPos;
             active = false;
-
-            popups = IOverlay.all.ToDictionary
-            (
-                elementSelector: overlay => (IHUDElement?)null
-            );
-            CurOverlayChanged.Add(listener: this);
+            //popups = IOverlay.all.ToDictionary
+            //(
+            //    elementSelector: overlay => (IHUDElement?)null
+            //);
+            //CurOverlayChanged.Add(listener: this);
         }
 
-        protected void SetPopup(IHUDElement HUDElement, IOverlay overlay)
-            => popups[overlay] = HUDElement;
+        //protected void SetPopup(IHUDElement HUDElement, IOverlay overlay)
+        //    => popups[overlay] = HUDElement;
 
-        protected void SetPopup(IHUDElement HUDElement, IEnumerable<IOverlay> overlays)
-        {
-            foreach (var overlay in overlays)
-                SetPopup(HUDElement: HUDElement, overlay: overlay);
-        }
+        //protected void SetPopup(IHUDElement HUDElement, IEnumerable<IOverlay> overlays)
+        //{
+        //    foreach (var overlay in overlays)
+        //        SetPopup(HUDElement: HUDElement, overlay: overlay);
+        //}
 
         public override void OnClick()
         {
@@ -93,23 +106,24 @@ namespace Game1.UI
             Active = true;
         }
 
-        public virtual void ChoiceChangedResponse(IOverlay prevOverlay)
-        {
-            if (!Active)
-                return;
-            if (popups[prevOverlay] == popups[CurWorldManager.Overlay])
-                return;
+        //public virtual void ChoiceChangedResponse(IOverlay prevOverlay)
+        //{
+        //    if (!Active)
+        //        return;
+        //    if (popups[prevOverlay] == popups[CurWorldManager.Overlay])
+        //        return;
 
-            CurWorldManager.RemoveHUDElement(HUDElement: popups[prevOverlay]);
-            CurWorldManager.AddHUDElement
-            (
-                HUDElement: popups[CurWorldManager.Overlay],
-                horizPos: popupHorizPos,
-                vertPos: popupVertPos
-            );
-        }
+        //    CurWorldManager.RemoveHUDElement(HUDElement: popups[prevOverlay]);
+        //    CurWorldManager.AddHUDElement
+        //    (
+        //        HUDElement: popups[CurWorldManager.Overlay],
+        //        horizPos: popupHorizPos,
+        //        vertPos: popupVertPos
+        //    );
+        //}
 
         protected virtual void Delete()
-            => CurOverlayChanged.Remove(listener: this);
+        { }
+            //=> CurOverlayChanged.Remove(listener: this);
     }
 }

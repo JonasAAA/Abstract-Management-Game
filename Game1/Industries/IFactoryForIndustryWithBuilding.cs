@@ -1,16 +1,16 @@
-﻿using System.Diagnostics.CodeAnalysis;
+﻿//using System.Diagnostics.CodeAnalysis;
 
-namespace Game1.Industries
-{
-    public interface IFactoryForIndustryWithBuilding
-    {
-        public string Name { get; }
-        public Color Color { get; }
+//namespace Game1.Industries
+//{
+//    public interface IFactoryForIndustryWithBuilding
+//    {
+//        public string Name { get; }
+//        public Color Color { get; }
 
-        public Industry CreateIndustry(IIndustryFacingNodeState state, Building building);
+//        public Industry CreateIndustry(IIndustryFacingNodeState state, Building building);
 
-        public Industry.Params CreateParams(IIndustryFacingNodeState state);
+//        public Industry.Params CreateParams(IIndustryFacingNodeState state);
 
-        public ResAmounts BuildingCost(IIndustryFacingNodeState state);
-    }
-}
+//        public SomeResAmounts<IResource> BuildingCost(IIndustryFacingNodeState state);
+//    }
+//}

@@ -38,8 +38,8 @@ namespace Game1
         public static WorldManager CurWorldManager
             => Initialized ? curWorldManager : throw new InvalidOperationException($"must initialize {nameof(WorldManager)} first by calling {nameof(CreateWorldManager)} or {nameof(LoadWorldManager)}");
 
-        public static IEvent<IChoiceChangedListener<IOverlay>> CurOverlayChanged
-            => CurWorldManager.overlayChoicePanel.choiceChanged;
+        //public static IEvent<IChoiceChangedListener<IOverlay>> CurOverlayChanged
+        //    => CurWorldManager.overlayChoicePanel.choiceChanged;
 
         [MemberNotNullWhen(returnValue: true, member: nameof(curWorldManager))]
         public static bool Initialized
@@ -80,12 +80,12 @@ namespace Game1
                     horizPos: HorizPos.Left,
                     vertPos: VertPos.Top
                 );
-                CurWorldManager.AddHUDElement
-                (
-                    HUDElement: CurWorldManager.overlayChoicePanel,
-                    horizPos: HorizPos.Middle,
-                    vertPos: VertPos.Top
-                );
+                //CurWorldManager.AddHUDElement
+                //(
+                //    HUDElement: CurWorldManager.overlayChoicePanel,
+                //    horizPos: HorizPos.Middle,
+                //    vertPos: VertPos.Top
+                //);
                 CurWorldManager.AddHUDElement
                 (
                     HUDElement: CurWorldManager.pauseButton,
@@ -102,7 +102,7 @@ namespace Game1
 
             curWorldManager = Deserialize();
             CurWorldConfig = curWorldManager.worldConfig;
-            CurResConfig = curWorldManager.resConfig;
+            //CurResConfig = curWorldManager.resConfig;
             CurWorldManager!.Initialize();
 
             return CurWorldManager.activeUIManager;
@@ -142,14 +142,14 @@ namespace Game1
             HashSet<Type> knownTypesSet = new()
             {
                 typeof(Dictionary<IndustryType, Score>),
-                typeof(Dictionary<IOverlay, IHUDElement>),
+                //typeof(MyDict<IOverlay, IHUDElement>),
                 typeof(ReadOnlyDictionary<NodeID, CosmicBody>),
                 typeof(UIHorizTabPanel<IHUDElement>),
                 typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
                 typeof(MultipleChoicePanel<string>),
                 typeof(MultipleChoicePanel<string>.ChoiceEventListener),
-                typeof(MultipleChoicePanel<IOverlay>),
-                typeof(MultipleChoicePanel<IOverlay>.ChoiceEventListener),
+                //typeof(MultipleChoicePanel<IOverlay>),
+                //typeof(MultipleChoicePanel<IOverlay>.ChoiceEventListener),
                 typeof(UIRectHorizPanel<IHUDElement>),
                 typeof(UIRectHorizPanel<SelectButton>),
                 typeof(UIRectVertPanel<IHUDElement>),
@@ -182,8 +182,8 @@ namespace Game1
             CurResConfig = null!;
         }
 
-        public IOverlay Overlay
-            => overlayChoicePanel.SelectedChoiceLabel;
+        //public IOverlay Overlay
+        //    => overlayChoicePanel.SelectedChoiceLabel;
 
         public TimeSpan StartTime { get; }
 
@@ -200,24 +200,25 @@ namespace Game1
         public UDouble MaxLinkJoulesPerKg
             => CurGraph.MaxLinkJoulesPerKg;
 
-        public bool ArrowDrawingModeOn
+        /// <summary>
+        /// If null, then arrow drawing mode is not on
+        /// </summary>
+        public IResource? ArrowDrawingModeRes
         {
-            get => arrowDrawingModeOn;
+            get => arrowDrawingModeRes;
             set
             {
-                if (arrowDrawingModeOn == value)
+                if (arrowDrawingModeRes == value)
                     return;
 
-                arrowDrawingModeOn = value;
-                if (arrowDrawingModeOn)
+                arrowDrawingModeRes = value;
+                if (arrowDrawingModeRes is not null)
                 {
-                    if (CurWorldManager.Overlay is not ResInd)
-                        throw new Exception();
                     activeUIManager.DisableAllUIElements();
                     if (CurGraph.ActiveWorldElement is CosmicBody activeNode)
                     {
                         foreach (var node in CurGraph.Nodes)
-                            if (activeNode.CanHaveDestin(destinationId: node.NodeID))
+                            if (activeNode.CanHaveDestin(destinationId: node.NodeID, res: arrowDrawingModeRes))
                                 node.HasDisabledAncestor = false;
                     }
                     else
@@ -227,6 +228,34 @@ namespace Game1
                     activeUIManager.EnableAllUIElements();
             }
         }
+
+        //public bool ArrowDrawingModeOn
+        //{
+        //    get => arrowDrawingModeOn;
+        //    set
+        //    {
+        //        if (arrowDrawingModeOn == value)
+        //            return;
+
+        //        arrowDrawingModeOn = value;
+        //        if (arrowDrawingModeOn)
+        //        {
+        //            if (CurWorldManager.Overlay is not IResource)
+        //                throw new Exception();
+        //            activeUIManager.DisableAllUIElements();
+        //            if (CurGraph.ActiveWorldElement is CosmicBody activeNode)
+        //            {
+        //                foreach (var node in CurGraph.Nodes)
+        //                    if (activeNode.CanHaveDestin(destinationId: node.NodeID))
+        //                        node.HasDisabledAncestor = false;
+        //            }
+        //            else
+        //                throw new Exception();
+        //        }
+        //        else
+        //            activeUIManager.EnableAllUIElements();
+        //    }
+        //}
 
         private readonly WorldConfig worldConfig;
         private readonly ResConfig resConfig;
@@ -240,13 +269,14 @@ namespace Game1
         private readonly ActiveUIManager activeUIManager;
         private readonly TextBox globalTextBox;
         private readonly ToggleButton pauseButton;
-        private readonly MultipleChoicePanel<IOverlay> overlayChoicePanel;
+        //private readonly MultipleChoicePanel<IOverlay> overlayChoicePanel;
         private readonly WorldCamera worldCamera;
 
         private Graph CurGraph
             => graph ?? throw new InvalidOperationException($"must initialize {nameof(graph)} first");
         private Graph? graph;
-        private bool arrowDrawingModeOn;
+        private IResource? arrowDrawingModeRes;
+        //private bool arrowDrawingModeOn;
 
         private WorldManager()
         {
@@ -254,9 +284,7 @@ namespace Game1
             CurTime = TimeSpan.Zero;
             worldConfig = new();
             CurWorldConfig = worldConfig;
-            resConfig = new();
-            CurResConfig = resConfig;
-            resConfig.Initialize();
+            CurResConfig = resConfig = new();
             industryConfig = new();
             people = new();
 
@@ -280,29 +308,29 @@ namespace Game1
             // TODO: move these constants to a contants file
             globalTextBox.Shape.MinWidth = 300;
 
-            // TODO: move these constants to a contants file
-            overlayChoicePanel = new
-            (
-                horizontal: true,
-                choiceWidth: 100,
-                choiceHeight: 30,
-                choiceLabelsAndTooltips:
-                    from overlay in IOverlay.all
-                    select
-                    (
-                        label: overlay,
-                        tooltip: new ImmutableTextTooltip
-                        (
-                            text: overlay.SwitchExpression
-                            (
-                                singleResCase: resInd => $"Display information about resource {resInd}",
-                                allResCase: () => "Display information about all resources",
-                                powerCase: () => "Display information about power (production and consumption)",
-                                peopleCase: () => "Display information about people"
-                            )
-                        ) as ITooltip
-                    )
-            );
+            //// TODO: move these constants to a contants file
+            //overlayChoicePanel = new
+            //(
+            //    horizontal: true,
+            //    choiceWidth: 100,
+            //    choiceHeight: 30,
+            //    choiceLabelsAndTooltips:
+            //        from overlay in IOverlay.all
+            //        select
+            //        (
+            //            label: overlay,
+            //            tooltip: new ImmutableTextTooltip
+            //            (
+            //                text: overlay.SwitchExpression
+            //                (
+            //                    singleResCase: res => $"Display information about resource {res}",
+            //                    allResCase: () => "Display information about all resources",
+            //                    powerCase: () => "Display information about power (production and consumption)",
+            //                    peopleCase: () => "Display information about people"
+            //                )
+            //            ) as ITooltip
+            //        )
+            //);
 
             PauseButtonTooltip pauseButtonTooltip = new();
             pauseButton = new
@@ -318,7 +346,7 @@ namespace Game1
             );
             pauseButtonTooltip.Initialize(onOffButton: pauseButton);
 
-            arrowDrawingModeOn = false;
+            arrowDrawingModeRes = null;
         }
 
         private void Initialize()
@@ -336,11 +364,11 @@ namespace Game1
         public MyVector2 NodePosition(NodeID nodeID)
             => CurGraph.NodePosition(nodeID: nodeID);
 
-        public void AddResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
-            => CurGraph.AddResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
+        public void AddResDestinArrow(ResDestinArrow resDestinArrow)
+            => CurGraph.AddResDestinArrow(resDestinArrow: resDestinArrow);
 
-        public void RemoveResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
-            => CurGraph.RemoveResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
+        public void RemoveResDestinArrow(ResDestinArrow resDestinArrow)
+            => CurGraph.RemoveResDestinArrow(resDestinArrow: resDestinArrow);
 
         public MyVector2 ScreenPosToWorldPos(MyVector2 screenPos)
             => worldCamera.ScreenPosToWorldPos(screenPos: screenPos);
@@ -451,6 +479,6 @@ namespace Game1
         }
 
         void IClickedNowhereListener.ClickedNowhereResponse()
-            => ArrowDrawingModeOn = false;
+            => arrowDrawingModeRes = null;
     }
 }

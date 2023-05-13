@@ -81,15 +81,16 @@ namespace Game1
 
             public ulong GetTravellingAmount()
             {
-                Debug.Assert(locationCounters.GetCount<ResAmounts>().Mass() == waitingResAmountsPackets.Mass + waitingPeople.Stats.totalMass + timedPacketQueue.Mass);
+                Debug.Assert(locationCounters.GetCount<AllResAmounts>().Mass() == waitingResAmountsPackets.Mass + waitingPeople.Stats.totalMass + timedPacketQueue.Mass);
                 Debug.Assert(locationCounters.GetCount<NumPeople>() == waitingPeople.NumPeople + timedPacketQueue.NumPeople);
-                return CurWorldManager.Overlay.SwitchExpression
-                (
-                    singleResCase: resInd => timedPacketQueue.TotalResAmounts[resInd],
-                    allResCase: () => timedPacketQueue.Mass.valueInKg,
-                    peopleCase: () => locationCounters.GetCount<NumPeople>().value,
-                    powerCase: () => throw new InvalidOperationException()
-                );
+                return timedPacketQueue.Mass.valueInKg;
+                //return CurWorldManager.Overlay.SwitchExpression
+                //(
+                //    singleResCase: res => timedPacketQueue.TotalResAmounts[res],
+                //    allResCase: () => timedPacketQueue.Mass.valueInKg,
+                //    peopleCase: () => locationCounters.GetCount<NumPeople>().value,
+                //    powerCase: () => throw new InvalidOperationException()
+                //);
             }
 
             public void Update(TimeSpan travelTime, UDouble reqJoulesPerKg, UDouble linkLength)
@@ -124,26 +125,28 @@ namespace Game1
 
             public void DrawTravelingRes()
             {
-                // temporary
-                CurWorldManager.Overlay.SwitchStatement
-                (
-                    singleResCase: resInd =>
-                    {
-                        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmounts[resInd]);
-                    },
-                    allResCase: () =>
-                    {
-                        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmounts.Mass().valueInKg);
-                    },
-                    powerCase: () => { },
-                    peopleCase: () =>
-                    {
-                        foreach (var (complProp, _, numPeople) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: numPeople.value);
-                    }
-                );
+                foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
+                    DrawDisk(complProp: complProp, size: resAmounts.Mass().valueInKg);
+                //// temporary
+                //CurWorldManager.Overlay.SwitchStatement
+                //(
+                //    singleResCase: res =>
+                //    {
+                //        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
+                //            DrawDisk(complProp: complProp, size: resAmounts[res]);
+                //    },
+                //    allResCase: () =>
+                //    {
+                //        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
+                //            DrawDisk(complProp: complProp, size: resAmounts.Mass().valueInKg);
+                //    },
+                //    powerCase: () => { },
+                //    peopleCase: () =>
+                //    {
+                //        foreach (var (complProp, _, numPeople) in timedPacketQueue.GetData())
+                //            DrawDisk(complProp: complProp, size: numPeople.value);
+                //    }
+                //);
 
                 void DrawDisk(Propor complProp, UDouble size)
                     => C.Draw
@@ -230,7 +233,8 @@ namespace Game1
             link2To1 = new(startNode: node2, endNode: node1, minSafeDist: minSafeDist);
 
             infoTextBox = new(backgroundColor: Color.White);
-            SetPopup(HUDElement: infoTextBox, overlays: IOverlay.all);
+            Popup = infoTextBox;
+            //SetPopup(HUDElement: infoTextBox, overlays: IOverlay.all);
         }
 
         public ILinkFacingCosmicBody OtherNode(ILinkFacingCosmicBody node)
@@ -296,20 +300,21 @@ namespace Game1
             link2To1.UpdatePeople();
             Stats = link1To2.Stats.CombineWith(other: link2To1.Stats);
 
-            if (CurWorldManager.Overlay is IPowerOverlay)
-                return;
+            //if (CurWorldManager.Overlay is IPowerOverlay)
+            //    return;
 
             // TODO: It may be more appropriate for link1To2.GetTravellingAmount() to return a dictionary from Overlay cases to amounts
             // in order to not have two switch statements mirroring each other
             ulong travellingAmount = link1To2.GetTravellingAmount() + link2To1.GetTravellingAmount();
 
-            infoTextBox.Text = $"Travel cost is {JoulesPerKg:0.000} J/Kg\n" + CurWorldManager.Overlay.SwitchExpression
-            (
-                singleResCase: resInd => $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",
-                allResCase: () => $"{travellingAmount} kg of resources are travelling",
-                peopleCase: () => $"travelling people stats:\n{Stats}",
-                powerCase: () => ""
-            );
+            infoTextBox.Text = $"Travel cost is {JoulesPerKg:0.000} J/Kg\n";
+            //+ CurWorldManager.Overlay.SwitchExpression
+            //(
+            //    singleResCase: res => $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",
+            //    allResCase: () => $"{travellingAmount} kg of resources are travelling",
+            //    peopleCase: () => $"travelling people stats:\n{Stats}",
+            //    powerCase: () => ""
+            //);
         }
 
         protected override void DrawChildren()

@@ -1,136 +1,136 @@
-﻿using Game1.Inhabitants;
-using static Game1.WorldManager;
-using static Game1.UI.ActiveUIManager;
+﻿//using Game1.Inhabitants;
+//using static Game1.WorldManager;
+//using static Game1.UI.ActiveUIManager;
 
-namespace Game1.Industries
-{
-    [Serializable]
-    public sealed class House : Industry
-    {
-        [Serializable]
-        public new sealed class Factory : Industry.Factory, IFactoryForIndustryWithBuilding
-        {
-            public readonly UDouble floorSpacePerUnitSurface;
-            private readonly ResAmounts buildingCostPerUnitSurface;
+//namespace Game1.Industries
+//{
+//    [Serializable]
+//    public sealed class House : Industry
+//    {
+//        [Serializable]
+//        public new sealed class Factory : Industry.Factory, IFactoryForIndustryWithBuilding
+//        {
+//            public readonly UDouble floorSpacePerUnitSurface;
+//            private readonly SomeResAmounts<IResource> buildingCostPerUnitSurface;
 
-            public Factory(string name, UDouble floorSpacePerUnitSurface, ResAmounts buildingCostPerUnitSurface)
-                : base(name: name, color: colorConfig.houseIndustryColor)
-            {
-                this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
-                if (buildingCostPerUnitSurface.IsEmpty())
-                    throw new ArgumentException();
-                this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
-            }
+//            public Factory(string name, UDouble floorSpacePerUnitSurface, SomeResAmounts<IResource> buildingCostPerUnitSurface)
+//                : base(name: name, color: colorConfig.houseIndustryColor)
+//            {
+//                this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
+//                if (buildingCostPerUnitSurface.IsEmpty())
+//                    throw new ArgumentException();
+//                this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
+//            }
 
-            public override Params CreateParams(IIndustryFacingNodeState state)
-                => new(state: state, factory: this);
+//            public override Params CreateParams(IIndustryFacingNodeState state)
+//                => new(state: state, factory: this);
 
-            public ResAmounts BuildingCost(IIndustryFacingNodeState state)
-                => state.ApproxSurfaceLength * buildingCostPerUnitSurface;
+//            public SomeResAmounts<IResource> BuildingCost(IIndustryFacingNodeState state)
+//                => state.ApproxSurfaceLength * buildingCostPerUnitSurface;
 
-            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
-            {
-                if (building.Cost != BuildingCost(state: state))
-                    throw new ArgumentException();
-                return new House(parameters: CreateParams(state: state), building: building);
-            }
-        }
+//            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
+//            {
+//                if (building.Cost != BuildingCost(state: state))
+//                    throw new ArgumentException();
+//                return new House(parameters: CreateParams(state: state), building: building);
+//            }
+//        }
 
-        [Serializable]
-        public new sealed class Params : Industry.Params
-        {
-            public UDouble FloorSpace
-                => state.ApproxSurfaceLength * factory.floorSpacePerUnitSurface;
-            public override string TooltipText
-                => $"""
-                {base.TooltipText}
-                {nameof(factory.BuildingCost)}: {factory.BuildingCost(state: state)}
-                {nameof(FloorSpace)}: {FloorSpace}
-                """;
+//        [Serializable]
+//        public new sealed class Params : Industry.Params
+//        {
+//            public UDouble FloorSpace
+//                => state.ApproxSurfaceLength * factory.floorSpacePerUnitSurface;
+//            public override string TooltipText
+//                => $"""
+//                {base.TooltipText}
+//                {nameof(factory.BuildingCost)}: {factory.BuildingCost(state: state)}
+//                {nameof(FloorSpace)}: {FloorSpace}
+//                """;
 
-            private readonly Factory factory;
+//            private readonly Factory factory;
 
-            public Params(IIndustryFacingNodeState state, Factory factory)
-                : base(state: state, factory: factory)
-                => this.factory = factory;
-        }
+//            public Params(IIndustryFacingNodeState state, Factory factory)
+//                : base(state: state, factory: factory)
+//                => this.factory = factory;
+//        }
 
-        [Serializable]
-        private sealed class Housing : ActivityCenter
-        {
-            private readonly Params parameters;
+//        [Serializable]
+//        private sealed class Housing : ActivityCenter
+//        {
+//            private readonly Params parameters;
 
-            public Housing(Params parameters, IEnergyDistributor energyDistributor)
-                : base(energyDistributor: energyDistributor, activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.leastImportant, state: parameters.state)
-                => this.parameters = parameters;
+//            public Housing(Params parameters, IEnergyDistributor energyDistributor)
+//                : base(energyDistributor: energyDistributor, activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.leastImportant, state: parameters.state)
+//                => this.parameters = parameters;
 
-            public override bool IsFull()
-                => false;
+//            public override bool IsFull()
+//                => false;
 
-            public Score PersonalSpace()
-                => PersonalSpace(numPeople: PeopleHereStats.totalNumPeople.value);
+//            public Score PersonalSpace()
+//                => PersonalSpace(numPeople: PeopleHereStats.totalNumPeople.value);
 
-            private Score PersonalSpace(ulong numPeople)
-                // TODO: get rid of hard-coded constant
-                => Score.FromUnboundedUDouble(value: parameters.FloorSpace / numPeople, valueGettingAverageScore: 10);
+//            private Score PersonalSpace(ulong numPeople)
+//                // TODO: get rid of hard-coded constant
+//                => Score.FromUnboundedUDouble(value: parameters.FloorSpace / numPeople, valueGettingAverageScore: 10);
 
-            public override Score PersonEnjoymentOfThis(VirtualPerson person)
-                // TODO: get rid of hard-coded constants
-                => Score.WeightedAverage
-                (
-                    (weight: 5, score: Score.lowest),
-                    (weight: 3, score: PersonalSpace(numPeople: allPeople.Count.value + 1))
-                );
+//            public override Score PersonEnjoymentOfThis(VirtualPerson person)
+//                // TODO: get rid of hard-coded constants
+//                => Score.WeightedAverage
+//                (
+//                    (weight: 5, score: Score.lowest),
+//                    (weight: 3, score: PersonalSpace(numPeople: allPeople.Count.value + 1))
+//                );
 
-            public override bool IsPersonSuitable(VirtualPerson person)
-                // may disallow far travel
-                => true;
+//            public override bool IsPersonSuitable(VirtualPerson person)
+//                // may disallow far travel
+//                => true;
 
-            protected override UpdatePersonSkillsParams? UpdatePersonSkillsParams
-                => null;
+//            protected override UpdatePersonSkillsParams? UpdatePersonSkillsParams
+//                => null;
 
-            public override bool CanPersonLeave(VirtualPerson person)
-                => true;
+//            public override bool CanPersonLeave(VirtualPerson person)
+//                => true;
 
-            public string GetInfo()
-                => $"""
-                {PeopleHereStats}
-                people travelling to here {allPeople.Count - PeopleHereStats.totalNumPeople}
+//            public string GetInfo()
+//                => $"""
+//                {PeopleHereStats}
+//                people travelling to here {allPeople.Count - PeopleHereStats.totalNumPeople}
 
-                """;
-        }
+//                """;
+//        }
 
-        public override bool PeopleWorkOnTop
-            => true;
+//        public override bool PeopleWorkOnTop
+//            => true;
 
-        public override RealPeopleStats Stats
-            => housing.PeopleHereStats;
+//        public override RealPeopleStats Stats
+//            => housing.PeopleHereStats;
 
-        protected override UDouble Height
-            => CurWorldConfig.defaultIndustryHeight;
+//        protected override UDouble Height
+//            => CurWorldConfig.defaultIndustryHeight;
 
-        private readonly Housing housing;
-        
-        private House(Params parameters, Building building)
-            : base(parameters: parameters, building: building)
-            => housing = new(parameters: parameters, energyDistributor: combinedEnergyConsumer);
+//        private readonly Housing housing;
 
-        protected override void UpdatePeopleInternal()
-            => housing.UpdatePeople();
+//        private House(Params parameters, Building building)
+//            : base(parameters: parameters, building: building)
+//            => housing = new(parameters: parameters, energyDistributor: combinedEnergyConsumer);
 
-        public override ResAmounts TargetStoredResAmounts()
-            => ResAmounts.Empty;
+//        protected override void UpdatePeopleInternal()
+//            => housing.UpdatePeople();
 
-        protected override House InternalUpdate()
-            => this;
+//        public override ResAmounts TargetStoredResAmounts()
+//            => ResAmounts.empty;
 
-        protected override void Delete()
-        {
-            base.Delete();
-            housing.Delete();
-        }
+//        protected override House InternalUpdate()
+//            => this;
 
-        public override string GetInfo()
-            => housing.GetInfo() + $"each person gets {housing.PersonalSpace():#.##} floor space\n";
-    }
-}
+//        protected override void Delete()
+//        {
+//            base.Delete();
+//            housing.Delete();
+//        }
+
+//        public override string GetInfo()
+//            => housing.GetInfo() + $"each person gets {housing.PersonalSpace():#.##} floor space\n";
+//    }
+//}

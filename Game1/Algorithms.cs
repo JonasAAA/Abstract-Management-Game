@@ -206,11 +206,11 @@ namespace Game1
             }
         }
 
-        public static ulong MatterToConvertToEnergy(BasicRes basicRes, ulong resAmount, UDouble temperatureInK, UDouble surfaceGravity, TimeSpan duration,
+        public static ulong MatterToConvertToEnergy(RawMaterial rawMat, ulong resAmount, UDouble temperatureInK, UDouble surfaceGravity, TimeSpan duration,
             Func<decimal, ulong> massInKgRoundFunc, UDouble reactionStrengthCoeff, Propor nonConvertedMassForUnitReactionStrengthUnitTime)
         {
 #warning test this
-            double density = (double)basicRes.Area / basicRes.Mass.valueInKg,
+            double density = (double)rawMat.Area / rawMat.Mass.valueInKg,
                 reactionStrength = reactionStrengthCoeff * density * surfaceGravity * temperatureInK;
             var nonConvertedMassPropor = (decimal)MyMathHelper.Pow(@base: (UDouble)nonConvertedMassForUnitReactionStrengthUnitTime, exponent: reactionStrength * duration.TotalSeconds);
             ulong matterToConvert = resAmount - massInKgRoundFunc(nonConvertedMassPropor * resAmount);

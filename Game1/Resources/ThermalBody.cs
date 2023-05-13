@@ -7,10 +7,10 @@
             => new
             (
                 heatEnergyPile: EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
-                magicResAmounts: ResAmounts.Empty
+                magicResAmounts: AllResAmounts.empty
             );
 
-        public static ThermalBody CreateByMagic(LocationCounters locationCounters, ResAmounts amount)
+        public static ThermalBody CreateByMagic(LocationCounters locationCounters, AllResAmounts amount)
             => new
             (
                 heatEnergyPile: EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
@@ -27,16 +27,16 @@
         // This may need to not be any counter, as when resources are transformed into radiant energy,
         // there is no counter to transfer that stuff to. After all, this counter is just to keep track
         // of resources in this thermal body, not to enforce conservation of energy
-        private ResAmounts resAmounts;
+        private AllResAmounts resAmounts;
 
-        private ThermalBody(EnergyPile<HeatEnergy> heatEnergyPile, ResAmounts magicResAmounts)
+        private ThermalBody(EnergyPile<HeatEnergy> heatEnergyPile, AllResAmounts magicResAmounts)
         {
             locationCounters = heatEnergyPile.LocationCounters;
             this.heatEnergyPile = heatEnergyPile;
             resAmounts = magicResAmounts;
         }
 
-        public void TransferResFrom(ThermalBody source, ResAmounts amount)
+        public void TransferResFrom(ThermalBody source, AllResAmounts amount)
         {
             var sourceHeatCapacityInJPerK = source.resAmounts.HeatCapacity().valueInJPerK;
             if (sourceHeatCapacityInJPerK > 0)
@@ -61,8 +61,8 @@
 
         public void TransformResFrom(ThermalBody source, ResRecipe recipe)
         {
-            source.resAmounts -= recipe.ingredients;
-            resAmounts += recipe.results;
+            source.resAmounts -= AllResAmounts.CreateFromNoMix(resAmounts: recipe.ingredients);
+            resAmounts += AllResAmounts.CreateFromNoMix(resAmounts: recipe.results);
         }
 
         public void TransformResTo(ThermalBody destin, ResRecipe recipe)
@@ -82,7 +82,7 @@
         /// <summary>
         /// Source must be from this thermal body
         /// </summary>
-        public void TransformResToHeatEnergy(EnergyPile<ResAmounts> source, ResAmounts amount)
+        public void TransformResToHeatEnergy(EnergyPile<AllResAmounts> source, AllResAmounts amount)
         {
             source.TransformTo(destin: heatEnergyPile, amount: amount);
             resAmounts -= amount;

@@ -8,8 +8,8 @@ namespace Game1
     [Serializable]
     public sealed class NodeState : IIndustryFacingNodeState
     {
-        public static ulong ResAmountFromApproxRadius(BasicResInd basicResInd, UDouble approxRadius)
-            => Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / CurResConfig.resources[basicResInd].Area);
+        public static ulong ResAmountFromApproxRadius(RawMaterial rawMat, UDouble approxRadius)
+            => Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / rawMat.Area);
 
         public NodeID NodeID { get; }
         public Mass PlanetMass
@@ -18,7 +18,7 @@ namespace Game1
         public UDouble Radius { get; private set; }
         public ulong ApproxSurfaceLength { get; private set; }
         public ulong MainResAmount
-            => consistsOfResPile.Amount[ConsistsOfResInd];
+            => consistsOfResPile.Amount.rawMatsMix[ConsistsOf];
         public ulong MaxAvailableResAmount
             => MainResAmount - CurWorldConfig.minResAmountInPlanet;
         public MyVector2 Position { get; }
@@ -27,18 +27,17 @@ namespace Game1
         public EnergyPile<RadiantEnergy> RadiantEnergyPile { get; }
         public readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
         public RealPeople WaitingPeople { get; }
-        public BasicResInd ConsistsOfResInd { get; }
-        public BasicRes ConsistsOfRes { get; }
+        public RawMaterial ConsistsOf { get; }
         public bool TooManyResStored { get; set; }
         // TODO: could include linkEndPoints Mass in the Counter<Mass> in this NodeState
         public LocationCounters LocationCounters { get; }
         public ThermalBody ThermalBody { get; }
         public UDouble SurfaceGravity
-            => WorldFunctions.SurfaceGravity(mass: LocationCounters.GetCount<ResAmounts>().Mass(), radius: Radius);
+            => WorldFunctions.SurfaceGravity(mass: LocationCounters.GetCount<AllResAmounts>().Mass(), radius: Radius);
 
         public readonly ResPile consistsOfResPile;
 
-        public NodeState(WorldCamera mapInfoCamera, FullValidCosmicBodyInfo cosmicBodyInfo, BasicResInd consistsOfResInd, ResPile resSource)
+        public NodeState(WorldCamera mapInfoCamera, FullValidCosmicBodyInfo cosmicBodyInfo, RawMaterial consistsOf, ResPile resSource)
             : this
             (
                 name: cosmicBodyInfo.Name,
@@ -46,10 +45,10 @@ namespace Game1
                 (
                     screenPos: mapInfoCamera.WorldPosToScreenPos(worldPos: cosmicBodyInfo.Position)
                 ),
-                consistsOfResInd: consistsOfResInd,
+                consistsOf: consistsOf,
                 mainResAmount: ResAmountFromApproxRadius
                 (
-                    basicResInd: consistsOfResInd,
+                    rawMat: consistsOf,
                     approxRadius: CurWorldManager.ScreenLengthToWorldLength
                     (
                         screenLength: mapInfoCamera.WorldLengthToScreenLength(worldLength: cosmicBodyInfo.Radius)
@@ -60,15 +59,14 @@ namespace Game1
             )
         { }
 
-        public NodeState(string name, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
+        public NodeState(string name, MyVector2 position, RawMaterial consistsOf, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
         {
 #warning display the name
             LocationCounters = LocationCounters.CreateEmpty();
             ThermalBody = ThermalBody.CreateEmpty(locationCounters: LocationCounters);
             NodeID = NodeID.Create();
             Position = position;
-            ConsistsOfResInd = consistsOfResInd;
-            ConsistsOfRes = CurResConfig.resources[consistsOfResInd];
+            ConsistsOf = consistsOf;
             consistsOfResPile = ResPile.CreateEmpty(thermalBody: ThermalBody);
             EnlargeFrom(source: resSource, resAmount: mainResAmount);
             
@@ -94,7 +92,7 @@ namespace Game1
 
         public void RecalculateValues()
         {
-            Area = MainResAmount * ConsistsOfRes.Area;
+            Area = MainResAmount * ConsistsOf.Area;
             Radius = MyMathHelper.Sqrt(value: Area / MyMathHelper.pi);
             ApproxSurfaceLength = (ulong)(2 * MyMathHelper.pi * Radius);
         }
@@ -106,7 +104,10 @@ namespace Game1
             var reservedResPile = ResPile.CreateIfHaveEnough
             (
                 source: consistsOfResPile,
-                amount: new(resInd: ConsistsOfResInd, amount: resAmount)
+                amount: AllResAmounts.CreateFromOnlyMix
+                (
+                    rawMatsMix: new(res: ConsistsOf, amount: resAmount)
+                )
             );
             Debug.Assert(reservedResPile is not null);
             destin.TransferAllFrom(source: reservedResPile);
@@ -118,7 +119,10 @@ namespace Game1
             var reservedResPile = ResPile.CreateIfHaveEnough
             (
                 source: source,
-                amount: new(resInd: ConsistsOfResInd, amount: resAmount)
+                amount: AllResAmounts.CreateFromOnlyMix
+                (
+                    rawMatsMix: new(res: ConsistsOf, amount: resAmount)
+                )
             ) ?? throw new ArgumentException();
             consistsOfResPile.TransferAllFrom(source: reservedResPile);
             RecalculateValues();

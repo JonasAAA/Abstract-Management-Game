@@ -135,11 +135,12 @@ namespace Game1.Lighting
                 lightSource.Draw
                 (
                     worldToScreenTransform: worldToScreenTransform,
-                    basicEffect: CurWorldManager.Overlay switch
-                    {
-                        IPowerOverlay => BrightEffect,
-                        _ => DimEffect
-                    },
+                    basicEffect: DimEffect,
+                    //basicEffect: CurWorldManager.Overlay switch
+                    //{
+                    //    IPowerOverlay => BrightEffect,
+                    //    _ => DimEffect
+                    //},
                     actualScreenWidth: actualScreenWidth,
                     actualScreenHeight: actualScreenHeight
                 );

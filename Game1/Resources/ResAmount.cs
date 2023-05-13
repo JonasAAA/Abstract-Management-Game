@@ -1,14 +1,15 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public readonly struct ResAmount
+    public readonly struct ResAmount<TRes>
+        where TRes : class
     {
-        public readonly ResInd resInd;
+        public readonly TRes res;
         public readonly ulong amount;
 
-        public ResAmount(ResInd resInd, ulong amount)
+        public ResAmount(TRes res, ulong amount)
         {
-            this.resInd = resInd;
+            this.res = res;
             this.amount = amount;
         }
     }

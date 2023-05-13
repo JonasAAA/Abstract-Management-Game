@@ -3,20 +3,28 @@
     [Serializable]
     public sealed class ResConfig
     {
-        public readonly ResourceArray resources;
+        private readonly List<IResource> resources;
+        private readonly Dictionary<IResource, ulong> resToOrder;
+        private ulong nextOrder;
 
         public ResConfig()
-            => resources = new();
-
-        public void Initialize()
-            => resources.Initialize();
-
-        public BasicResInd BasicResIndFromName(string resName)
         {
-            foreach (var basicResInd in BasicResInd.All)
-                if (resources[basicResInd].Name == resName)
-                    return basicResInd;
-            throw new ArgumentException();
+            resources = new();
+            resToOrder = new();
+            nextOrder = 0;
         }
+
+        public IEnumerable<IResource> GetAllCurRes()
+            => resources;
+
+        public void AddRes(IResource resource)
+        {
+            resources.Add(resource);
+            resToOrder.Add(key: resource, value: nextOrder);
+            nextOrder++;
+        }
+
+        public int CompareRes(IResource left, IResource right)
+            => resToOrder[left].CompareTo(resToOrder[right]);
     }
 }

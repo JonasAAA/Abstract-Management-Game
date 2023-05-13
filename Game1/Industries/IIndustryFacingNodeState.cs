@@ -13,8 +13,7 @@ namespace Game1.Industries
         public ResPile StoredResPile { get; }
         public EnergyPile<RadiantEnergy> RadiantEnergyPile { get; }
         public RealPeople WaitingPeople { get; }
-        public BasicResInd ConsistsOfResInd { get; }
-        public BasicRes ConsistsOfRes { get; }
+        public RawMaterial ConsistsOf { get; }
         public bool TooManyResStored { get; }
         public LocationCounters LocationCounters { get; }
         public ThermalBody ThermalBody { get; }

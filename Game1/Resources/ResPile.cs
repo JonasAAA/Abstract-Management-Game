@@ -4,12 +4,12 @@
     public class ResPile
     {
         [Serializable]
-        private sealed class ResPileInternal : EnergyPile<ResAmounts>
+        private sealed class ResPileInternal : EnergyPile<AllResAmounts>
         {
             public new static ResPileInternal CreateEmpty(LocationCounters locationCounters)
                 => new(locationCounters: locationCounters, counter: ResCounter.CreateEmpty());
 
-            public static ResPileInternal? CreateIfHaveEnough(ResPileInternal source, ResAmounts amount)
+            public static ResPileInternal? CreateIfHaveEnough(ResPileInternal source, AllResAmounts amount)
             {
                 if (source.Amount >= amount)
                 {
@@ -20,7 +20,7 @@
                 return null;
             }
 
-            public new static ResPileInternal CreateByMagic(ResAmounts amount)
+            public new static ResPileInternal CreateByMagic(AllResAmounts amount)
                 => new
                 (
                     locationCounters: LocationCounters.CreateCounterByMagic(amount: amount),
@@ -36,10 +36,16 @@
             }
 
             public void TransformFrom(ResPileInternal source, ResRecipe recipe)
-                => Counter.TransformFrom(source: source.Counter, recipe: recipe);
+            {
+                Counter.TransformFrom(source: source.Counter, recipe: recipe);
+                LocationCounters.TransformFrom(source: source.LocationCounters, recipe: recipe);
+            }
 
             public void TransformTo(ResPileInternal destin, ResRecipe recipe)
-                => Counter.TransformTo(destin: destin.Counter, recipe: recipe);
+            {
+                Counter.TransformTo(destin: destin.Counter, recipe: recipe);
+                LocationCounters.TransformTo(destin: destin.LocationCounters, recipe: recipe);
+            }
         }
 
         public static ResPile CreateEmpty(ThermalBody thermalBody)
@@ -49,7 +55,7 @@
                 thermalBody: thermalBody
             );
 
-        public static ResPile? CreateIfHaveEnough(ResPile source, ResAmounts amount)
+        public static ResPile? CreateIfHaveEnough(ResPile source, AllResAmounts amount)
         {
             var newPile = ResPileInternal.CreateIfHaveEnough(source: source.resPileInternal, amount: amount);
             if (newPile is null)
@@ -57,7 +63,7 @@
             return new(resPileInternal: newPile, thermalBody: source.thermalBody);
         }
 
-        public static ResPile CreateByMagic(ResAmounts amount)
+        public static ResPile CreateByMagic(AllResAmounts amount)
         {
             // TODO: Look at this, want to insure that the (total amount of energy) * (max heat capacity) fit comfortably into ulong
             // If run into problems with overflow, could use int128 or uint128 instead of ulong from
@@ -70,11 +76,11 @@
             );
         }
 
-        public ResAmounts Amount
+        public AllResAmounts Amount
             => resPileInternal.Amount;
 
         public bool IsEmpty
-            => Amount == ResAmounts.Empty;
+            => Amount.IsEmpty;
 
         private readonly ResPileInternal resPileInternal;
         private ThermalBody thermalBody;
@@ -92,27 +98,26 @@
             thermalBody = newThermalBody;
         }
 
-        public void TransferFrom(ResPile source, ResAmounts amount)
+        public void TransferFrom(ResPile source, AllResAmounts amount)
         {
             // This must be done first to get accurate source heat capacity in the calculations
             thermalBody.TransferResFrom(source: source.thermalBody, amount: amount);
             resPileInternal.TransferFrom(source: source.resPileInternal, amount: amount);
         }
 
-        public void TransferAtMostFrom(ResPile source, ResAmounts maxAmount)
+        public void TransferAtMostFrom(ResPile source, AllResAmounts maxAmount)
             => TransferFrom(source: source, amount: MyMathHelper.Min(maxAmount, Amount));
 
         public void TransferAllFrom(ResPile source)
             => TransferFrom(source: source, amount: source.Amount);
 
-        public void TransferAllSingleResFrom(ResPile source, ResInd resInd)
+        public void TransferAllSingleResFrom(ResPile source, IResource res)
             => TransferFrom
             (
                 source: source,
-                amount: new
+                amount: AllResAmounts.CreateFromNoMix
                 (
-                    resInd: resInd,
-                    amount: source.Amount[resInd]
+                    resAmounts: new(res: res, amount: source.Amount.resAmounts[res])
                 )
             );
 
@@ -122,7 +127,7 @@
             resPileInternal.TransformFrom(source: source.resPileInternal, recipe: recipe);
         }
 
-        public void TransformResToHeatEnergy(ResAmounts amount)
+        public void TransformResToHeatEnergy(AllResAmounts amount)
             => thermalBody.TransformResToHeatEnergy(source: resPileInternal, amount: amount);
     }
 }

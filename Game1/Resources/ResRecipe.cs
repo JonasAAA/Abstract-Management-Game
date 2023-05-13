@@ -3,7 +3,7 @@
     [Serializable]
     public readonly struct ResRecipe
     {
-        public static ResRecipe? Create(ResAmounts ingredients, ResAmounts results)
+        public static ResRecipe? Create(SomeResAmounts<IResource> ingredients, SomeResAmounts<IResource> results)
         {
             if (AreValid(ingredients: ingredients, results: results))
                 return new(ingredients: ingredients, results: results);
@@ -11,19 +11,19 @@
         }
 
         public bool IsEmpty
-            => ingredients.IsEmpty();
+            => ingredients.IsEmpty;
 
-        public readonly ResAmounts ingredients, results;
+        public readonly SomeResAmounts<IResource> ingredients, results;
 
-        private ResRecipe(ResAmounts ingredients, ResAmounts results)
+        private ResRecipe(SomeResAmounts<IResource> ingredients, SomeResAmounts<IResource> results)
         {
             Debug.Assert(AreValid(ingredients: ingredients, results: results));
             this.ingredients = ingredients;
             this.results = results;
         }
 
-        private static bool AreValid(ResAmounts ingredients, ResAmounts results)
-            => ingredients.ConvertToBasic() == results.ConvertToBasic();
+        private static bool AreValid(SomeResAmounts<IResource> ingredients, SomeResAmounts<IResource> results)
+            => ingredients.RawMatComposition() == results.RawMatComposition();
 
         public static ResRecipe operator *(ulong scalar, ResRecipe resRecipe)
             => new(ingredients: scalar * resRecipe.ingredients, results: scalar * resRecipe.results);

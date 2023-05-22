@@ -1,4 +1,5 @@
-﻿using Game1.Delegates;
+﻿using Game1.Collections;
+using Game1.Delegates;
 using static Game1.WorldManager;
 
 namespace Game1.Lighting
@@ -29,8 +30,8 @@ namespace Game1.Lighting
             actualScreenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
         }
 
-        private readonly MySet<ILightCatchingObject> lightCatchingObjects;
-        private readonly MySet<ILightSource> lightSources;
+        private readonly ThrowingSet<ILightCatchingObject> lightCatchingObjects;
+        private readonly ThrowingSet<ILightSource> lightSources;
 
         private RenderTarget2D RenderTarget
             => renderTarget ?? throw new InvalidOperationException(mustInitializeMessage);

@@ -2,6 +2,7 @@
 
 namespace Game1.Collections
 {
+    [Serializable]
     public readonly struct EfficientReadOnlyHashSet<T> : IReadOnlySet<T>
     {
         public int Count
@@ -10,8 +11,7 @@ namespace Game1.Collections
         private readonly HashSet<T> set;
 
         public EfficientReadOnlyHashSet()
-            : this(set: new())
-        { }
+            => set = new();
 
         public EfficientReadOnlyHashSet(T value)
             : this(set: new() { value })

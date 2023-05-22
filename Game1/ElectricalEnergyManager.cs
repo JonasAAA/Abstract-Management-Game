@@ -1,5 +1,5 @@
-﻿using Game1.Delegates;
-using System.Numerics;
+﻿using Game1.Collections;
+using Game1.Delegates;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -7,8 +7,8 @@ namespace Game1
     [Serializable]
     public sealed class ElectricalEnergyManager : IDeletedListener, IEnergyDistributor
     {
-        private readonly MySet<IEnergyProducer> energyProducers;
-        private readonly MySet<IEnergyConsumer> energyConsumers;
+        private readonly ThrowingSet<IEnergyProducer> energyProducers;
+        private readonly ThrowingSet<IEnergyConsumer> energyConsumers;
         
         private ElectricalEnergy totReqEnergy, totProdEnergy, totUsedLocalEnergy, totUsedPowerPlantEnergy;
         private readonly EnergyPile<ElectricalEnergy> energyPile;
@@ -93,7 +93,7 @@ namespace Game1
             totUsedLocalEnergy = ElectricalEnergy.zero;
             totUsedPowerPlantEnergy = ElectricalEnergy.zero;
 
-            Dictionary<NodeID, MySet<EnhancedEnergyConsumer>> enhancedConsumersByNode = new();
+            Dictionary<NodeID, ThrowingSet<EnhancedEnergyConsumer>> enhancedConsumersByNode = new();
             foreach (var nodeID in nodeIDs)
                 enhancedConsumersByNode[nodeID] = new();
             foreach (var enhancedConsumer in enhancedConsumers)

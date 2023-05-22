@@ -2,7 +2,7 @@
 using System.Numerics;
 using static Game1.WorldManager;
 
-namespace Game1.Resources
+namespace Game1.Collections
 {
     /// <summary>
     /// Dictionary with efficient internal storage and O(log N) lookup
@@ -112,9 +112,9 @@ namespace Game1.Resources
             return heatCapacity;
         }
 
-        public ulong Area()
+        public Area Area()
         {
-            ulong area = 0;
+            Area area = Resources.Area.zero;
             for (int ind = 0; ind < Count; ind++)
                 area += resList[ind].Area * amounts[ind];
             return area;
@@ -367,10 +367,10 @@ namespace Game1.Resources
             => Energy.CreateFromJoules(valueInJ: formOfEnergy.Mass().valueInKg * CurWorldConfig.energyInJPerKgOfMass);
 
         static bool IComparisonOperators<SomeResAmounts<TRes>, SomeResAmounts<TRes>, bool>.operator >(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
-            => left >= right && (left != right);
+            => left >= right && left != right;
 
         static bool IComparisonOperators<SomeResAmounts<TRes>, SomeResAmounts<TRes>, bool>.operator <(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
-            => left <= right && (left != right);
+            => left <= right && left != right;
 
         public IEnumerator<ResAmount<TRes>> GetEnumerator()
         {

@@ -1,9 +1,11 @@
-﻿namespace Game1.Industries
+﻿using Game1.Collections;
+
+namespace Game1.Industries
 {
     [Serializable]
     public sealed class IndustryConfig
     {
-        public readonly ReadOnlyCollection<IBuildableFactory> constrBuildingParams;
+        public readonly EfficientReadOnlyCollection<IBuildableFactory> constrBuildingParams;
         //public readonly House.Factory basicHouseFactory;
         //public readonly PowerPlant.Factory basicPowerPlantFactory;
 

@@ -1,4 +1,5 @@
-﻿using Game1.ContentHelpers;
+﻿using Game1.Collections;
+using Game1.ContentHelpers;
 using Game1.Delegates;
 using Game1.GameStates;
 using Game1.Shapes;
@@ -88,7 +89,7 @@ namespace Game1
         // TODO: could use https://docs.microsoft.com/en-us/dotnet/api/system.text.json.serialization.jsonextensiondataattribute?view=net-7.0
         // to check for fields provided in json but deserialised
         // STARTING with .NET 8, could use https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/missing-members
-        private static Result<ValidMapInfo, IEnumerable<string>> LoadMap(string fullMapPath)
+        private static Result<ValidMapInfo, EfficientReadOnlyHashSet<string>> LoadMap(string fullMapPath)
         {
             try
             {
@@ -106,12 +107,12 @@ namespace Game1
             }
             catch (Exception exception)
             {
-                return new(errors: new string[] { exception.Message });
+                return new(errors: new(value: exception.Message));
             }
         }
 
-        private static Result<FullValidMapInfo, IEnumerable<string>> LoadFullMap(string fullMapPath)
-            => LoadMap(fullMapPath: fullMapPath).FlatMap(func: FullValidMapInfo.Create);
+        private static Result<FullValidMapInfo, EfficientReadOnlyHashSet<string>> LoadFullMap(string fullMapPath)
+            => LoadMap(fullMapPath: fullMapPath).SelectMany(func: FullValidMapInfo.Create);
 
         private static void SaveMap(string fullMapPath, ValidMapInfo mapInfo, bool readyToUse)
             => File.WriteAllText

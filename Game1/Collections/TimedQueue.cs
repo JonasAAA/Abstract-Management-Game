@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using static Game1.WorldManager;
 
-namespace Game1
+namespace Game1.Collections
 {
     [Serializable]
     public class TimedQueue<T> : IEnumerable<T>
@@ -56,7 +56,7 @@ namespace Game1
                 yield return
                 (
                     complPropor: C.DonePropor(timeLeft: normalizedEndTime - curNormalizedLocalTime, duration: normalizedDuration),
-                    element: element
+                    element
                 );
         }
 

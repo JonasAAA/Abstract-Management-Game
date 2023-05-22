@@ -6,6 +6,7 @@ using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
 using Game1.Inhabitants;
+using Game1.Collections;
 
 namespace Game1
 {
@@ -126,7 +127,7 @@ namespace Game1
         /// NEVER use this directly, use Planet.Industry instead
         /// </summary>
         private IIndustry? industry;
-        private readonly MyDict<IResource, HistoricProporSplitter<NodeID>> resSplittersToDestins;
+        private readonly AutoCreateValDict<IResource, HistoricProporSplitter<NodeID>> resSplittersToDestins;
         private SomeResAmounts<IResource> targetStoredResAmounts;
         private readonly ResPile undecidedResPile;
         private AllResAmounts resTravelHereAmounts;
@@ -375,7 +376,7 @@ namespace Game1
             resDesinArrowEventListener.SyncSplittersWithArrows();
         }
 
-        public void Update(IReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks, EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
+        public void Update(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks, EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
             Industry = Industry?.Update();
 
@@ -559,7 +560,7 @@ namespace Game1
         /// <summary>
         /// MUST call SplitRes first
         /// </summary>
-        public void EndSplitRes(IReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks)
+        public void EndSplitRes(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks)
         {
             foreach (var resAmountsPacket in state.waitingResAmountsPackets.DeconstructAndClear())
             {

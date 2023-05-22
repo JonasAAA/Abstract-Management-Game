@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
 using Game1.ContentHelpers;
+using Game1.Collections;
 
 namespace Game1
 {
@@ -80,7 +81,7 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct ShortestPaths(ReadOnlyDictionary<(NodeID, NodeID), UDouble> Dists, ReadOnlyDictionary<(NodeID, NodeID), Link?> FirstLinks);
+        private readonly record struct ShortestPaths(EfficientReadOnlyDictionary<(NodeID, NodeID), UDouble> Dists, EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> FirstLinks);
 
         [Serializable]
         private readonly record struct PersonAndResShortestPaths(ShortestPaths PersonShortestPaths, ShortestPaths ResShortestPaths);
@@ -88,7 +89,7 @@ namespace Game1
         public IEnumerable<CosmicBody> Nodes
             => nodes;
 
-        public readonly ReadOnlyDictionary<NodeID, CosmicBody> nodeIDToNode;
+        public readonly EfficientReadOnlyDictionary<NodeID, CosmicBody> nodeIDToNode;
         public TimeSpan MaxLinkTravelTime { get; private set; }
         public UDouble MaxLinkJoulesPerKg { get; private set; }
 
@@ -100,13 +101,13 @@ namespace Game1
         protected override Color Color
             => colorConfig.cosmosBackgroundColor;
 
-        private ReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
-        private ReadOnlyDictionary<(NodeID, NodeID), UDouble> resDists;
+        private EfficientReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
+        private EfficientReadOnlyDictionary<(NodeID, NodeID), UDouble> resDists;
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        private ReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks;
-        private ReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks;
+        private EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks;
+        private EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks;
 
         private IEnumerable<WorldUIElement> WorldUIElements
         {
@@ -194,12 +195,9 @@ namespace Game1
             SetPersonAndResShortestPaths(personAndResShortestPaths: FindPersonAndResShortestPaths(nodes: this.nodes, links: this.links));
             SetShortestPathsTask();
 
-            nodeIDToNode = new
+            nodeIDToNode = nodes.ToEfficientReadOnlyDict
             (
-                dictionary: nodes.ToDictionary
-                (
-                    keySelector: node => node.NodeID
-                )
+                keySelector: node => node.NodeID
             );
 
             foreach (var node in nodes)

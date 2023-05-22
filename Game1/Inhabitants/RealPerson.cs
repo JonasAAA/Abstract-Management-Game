@@ -1,4 +1,5 @@
-﻿using Game1.Industries;
+﻿using Game1.Collections;
+using Game1.Industries;
 using System.Diagnostics.CodeAnalysis;
 using static Game1.WorldManager;
 

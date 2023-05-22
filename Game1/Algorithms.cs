@@ -1,3 +1,4 @@
+﻿using Game1.Collections;
 ﻿using System.IO;
 using System.Numerics;
 
@@ -60,7 +61,7 @@ namespace Game1
                 );
 
             Debug.Assert(!totalReqEnergy.IsZero);
-            ReadOnlyCollection<ConsumerWithEnergy<T>> consumersWithEnergy = new
+            EfficientReadOnlyCollection<ConsumerWithEnergy<T>> consumersWithEnergy = new
             (
                 reqEnergies.Select
                 (
@@ -163,7 +164,7 @@ namespace Game1
             // Otherwise returns
             GeneralEnum<List<T>, Size> TryAllocPropor(decimal allocPropor)
             {
-                ReadOnlyCollection<ConsumerWithExtraEnergy<T>> consumersWithExtraEnergy = new
+                EfficientReadOnlyCollection<ConsumerWithExtraEnergy<T>> consumersWithExtraEnergy = new
                 (
                     energies.Select
                     (

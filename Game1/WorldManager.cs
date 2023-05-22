@@ -1,4 +1,5 @@
-﻿using Game1.ContentHelpers;
+﻿using Game1.Collections;
+using Game1.ContentHelpers;
 using Game1.Delegates;
 using Game1.Industries;
 using Game1.Inhabitants;
@@ -143,7 +144,7 @@ namespace Game1
             {
                 typeof(Dictionary<IndustryType, Score>),
                 //typeof(MyDict<IOverlay, IHUDElement>),
-                typeof(ReadOnlyDictionary<NodeID, CosmicBody>),
+                typeof(EfficientReadOnlyDictionary<NodeID, CosmicBody>),
                 typeof(UIHorizTabPanel<IHUDElement>),
                 typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
                 typeof(MultipleChoicePanel<string>),

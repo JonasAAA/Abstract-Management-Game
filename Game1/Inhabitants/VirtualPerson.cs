@@ -1,4 +1,5 @@
-﻿using Game1.Industries;
+﻿using Game1.Collections;
+using Game1.Industries;
 
 namespace Game1.Inhabitants
 {

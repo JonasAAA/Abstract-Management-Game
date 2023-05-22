@@ -1,3 +1,5 @@
+﻿using Game1.Collections;
+
 ﻿namespace Game1.Resources
 {
     public interface IResource

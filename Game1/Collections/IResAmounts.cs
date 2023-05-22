@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Game1.Resources
+namespace Game1.Collections
 {
     public interface IResAmounts<T> : IFormOfEnergy<T>, IEquatable<T>, IAdditionOperators<T, T, T>,
         IAdditiveIdentity<T, T>, IMultiplyOperators<T, ulong, T>, IMultiplicativeIdentity<T, ulong>, IMin<T>
@@ -12,6 +12,6 @@ namespace Game1.Resources
 
         public HeatCapacity HeatCapacity();
 
-        public ulong Area();
+        public Area Area();
     }
 }

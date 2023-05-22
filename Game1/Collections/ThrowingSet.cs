@@ -1,23 +1,23 @@
 ﻿using System.Collections;
 
-namespace Game1
+namespace Game1.Collections
 {
     /// <summary>
     /// throws exception when duplicates are added or try to remove non-existent element
     /// </summary>
     //[CollectionDataContract]
     [Serializable]
-    public sealed class MySet<T> : IEnumerable<T>
+    public sealed class ThrowingSet<T> : IEnumerable<T>
     {
         public ulong Count
             => (ulong)set.Count;
 
         private readonly HashSet<T> set;
 
-        public MySet()
+        public ThrowingSet()
             => set = new();
 
-        public MySet(IEnumerable<T> collection)
+        public ThrowingSet(IEnumerable<T> collection)
             : this()
         {
             UnionWith(collection: collection);

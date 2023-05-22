@@ -1,3 +1,4 @@
+﻿using Game1.Collections;
 ﻿using Game1.ContentHelpers;
 using Game1.Industries;
 using Game1.Inhabitants;

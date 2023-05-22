@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace Game1
+namespace Game1.Collections
 {
 
     /// <summary>

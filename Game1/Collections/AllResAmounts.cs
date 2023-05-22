@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace Game1.Resources
+namespace Game1.Collections
 {
     [Serializable]
     public readonly struct AllResAmounts : IResAmounts<AllResAmounts>
@@ -45,7 +45,7 @@ namespace Game1.Resources
         public HeatCapacity HeatCapacity()
             => resAmounts.HeatCapacity() + rawMatsMix.HeatCapacity();
 
-        public ulong Area()
+        public Area Area()
             => resAmounts.Area() + rawMatsMix.Area();
 
         public static AllResAmounts operator +(AllResAmounts left, AllResAmounts right)

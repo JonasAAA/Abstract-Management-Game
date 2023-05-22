@@ -1,4 +1,5 @@
-﻿using Game1.Industries;
+﻿using Game1.Collections;
+using Game1.Industries;
 using System.Numerics;
 
 namespace Game1.PrimitiveTypeWrappers

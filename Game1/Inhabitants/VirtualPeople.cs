@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using Game1.Collections;
 
 namespace Game1.Inhabitants
 {
@@ -8,7 +9,7 @@ namespace Game1.Inhabitants
         public NumPeople Count
             => new(people.Count);
 
-        private readonly MySet<VirtualPerson> people;
+        private readonly ThrowingSet<VirtualPerson> people;
 
         public VirtualPeople()
             => people = new();

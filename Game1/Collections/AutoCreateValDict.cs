@@ -1,10 +1,10 @@
-﻿namespace Game1.Resources
+﻿namespace Game1.Collections
 {
     /// <summary>
     /// The major difference to Dictionary is that when key doesn't exist on lookup, instead of throwing an error, it creates the key with new() value.
     /// </summary>
     [Serializable]
-    public sealed class MyDict<TKey, TValue>
+    public sealed class AutoCreateValDict<TKey, TValue>
         where TKey : notnull
         where TValue : class, new()
     {
@@ -13,7 +13,7 @@
 
         private readonly Dictionary<TKey, TValue> dict;
 
-        public MyDict()
+        public AutoCreateValDict()
             => dict = new();
 
         public TValue GetOrCreate(TKey key)

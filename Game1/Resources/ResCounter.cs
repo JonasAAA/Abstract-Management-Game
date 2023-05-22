@@ -1,4 +1,6 @@
-﻿namespace Game1.Resources
+﻿using Game1.Collections;
+
+namespace Game1.Resources
 {
     [Serializable]
     public sealed class ResCounter : EnergyCounter<AllResAmounts>

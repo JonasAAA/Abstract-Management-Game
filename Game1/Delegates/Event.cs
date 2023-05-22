@@ -1,10 +1,12 @@
-﻿namespace Game1.Delegates
+﻿using Game1.Collections;
+
+namespace Game1.Delegates
 {
     [Serializable]
     public sealed class Event<T> : IEvent<T>
         where T : IListener
     {
-        private readonly MySet<T> listeners;
+        private readonly ThrowingSet<T> listeners;
 
         public Event()
             => listeners = new();

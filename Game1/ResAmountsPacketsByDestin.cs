@@ -1,4 +1,6 @@
-﻿namespace Game1
+﻿using Game1.Collections;
+
+namespace Game1
 {
     [Serializable]
     public sealed class ResAmountsPacketsByDestin

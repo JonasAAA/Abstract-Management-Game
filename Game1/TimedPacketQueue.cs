@@ -1,4 +1,5 @@
-﻿using Game1.Inhabitants;
+﻿using Game1.Collections;
+using Game1.Inhabitants;
 using static Game1.WorldManager;
 
 namespace Game1

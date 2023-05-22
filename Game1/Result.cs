@@ -1,4 +1,4 @@
-﻿using static System.Runtime.InteropServices.JavaScript.JSType;
+﻿using Game1.Collections;
 
 namespace Game1
 {
@@ -40,13 +40,30 @@ namespace Game1
             return isOk? ok(okValue) : error(errorValues);
         }
 
-        public Result<T, TErrors> Map<T>(Func<TOk, T> func)
+        public Result<T, TErrors> Select<T>(Func<TOk, T> func)
         {
             Debug.Assert(isInitialized);
             return isOk ? new(ok: func(okValue)) : new(errors: errorValues);
         }
 
-        public Result<T, TErrors> FlatMap<T>(Func<TOk, Result<T, TErrors>> func)
+        // This method makes it possible to write things like
+        // from a in aOrErr
+        // from b in bOrErr
+        // select (a, b)
+        // The problem is that it doesn't accumulate errors from such syntax, because the way it's translated into c#, it's assumed that b depends on a.
+        //public Result<TOutOk, TErrors> SelectMany<TInOk, TOutOk>(Func<TOk, Result<TInOk, TErrors>> resultSelector, Func<TOk, TInOk, TOutOk> transform)
+        //{
+        //    Debug.Assert(isInitialized);
+        //    // this copy is needed so the compiler doesn't complain
+        //    TOk okValueCopy = okValue;
+        //    return isOk switch
+        //    {
+        //        true => resultSelector(okValue).Select(innerOk => transform(okValueCopy, innerOk)),
+        //        false => new(errors: errorValues)
+        //    };
+        //}
+
+        public Result<T, TErrors> SelectMany<T>(Func<TOk, Result<T, TErrors>> func)
         {
             Debug.Assert(isInitialized);
             return isOk ? func(okValue) : new(errors: errorValues);
@@ -55,113 +72,123 @@ namespace Game1
 
     public static class Result
     {
-        public static Result<IEnumerable<TOk>, TErrors> FlatMap<TItem, TOk, TErrors>(this IEnumerable<TItem> items, Func<TItem, Result<TOk, TErrors>> func)
+        //public static Result<IEnumerable<TOk>, TErrors> FlatMap<TItem, TOk, TErrors>(this IEnumerable<TItem> items, Func<TItem, Result<TOk, TErrors>> func)
+        //{
+        //    List<TOk> results = new();
+        //    foreach (var item in items)
+        //    {
+        //        (TErrors? errors, bool foundError) = func(item).SwitchExpression
+        //        (
+        //            ok: result => { results.Add(result); return (errors: default(TErrors), foundError: false); },
+        //            error: errors => (errors: errors, foundError: true)
+        //        );
+        //        if (foundError)
+        //            return new(errors: errors!);
+        //    }
+        //    return new(ok: results);
+        //}
+
+        /// <summary>
+        /// FlatMap in Scala
+        /// </summary>
+        public static Result<IEnumerable<TResultItem>, EfficientReadOnlyHashSet<TError>> SelectMany<TItem, TOk, TError, TResultItem>(this IEnumerable<TItem> items, Func<TItem, Result<TOk, EfficientReadOnlyHashSet<TError>>> collectionSelector, Func<TItem, TOk, TResultItem> resultSelector)
         {
-            List<TOk> results = new();
+            List<TResultItem> results = new();
+            HashSet<TError> errors = new();
             foreach (var item in items)
-            {
-                (TErrors? errors, bool foundError) = func(item).SwitchExpression
+                collectionSelector(item).SwitchStatement
                 (
-                    ok: result => { results.Add(result); return (errors: default(TErrors), foundError: false); },
-                    error: errors => (errors: errors, foundError: true)
+                    ok: ok => results.Add(resultSelector(item, ok)),
+                    error: newErrors => errors.UnionWith(newErrors)
                 );
-                if (foundError)
-                    return new(errors: errors!);
-            }
-            return new(ok: results);
+            if (errors.Count is 0)
+                return new(ok: results);
+            else
+                return new(errors: new(errors));
         }
 
-        public static Result<IEnumerable<TOk>, IEnumerable<TError>> FlatMap<TItem, TOk, TError>(this IEnumerable<TItem> items, Func<TItem, Result<TOk, IEnumerable<TError>>> func)
+        public static Result<IEnumerable<TOk>, EfficientReadOnlyHashSet<TError>> SelectMany<TItem, TOk, TError>(this IEnumerable<TItem> items, Func<TItem, Result<TOk, EfficientReadOnlyHashSet<TError>>> func)
         {
             List<TOk> results = new();
-            IEnumerable<TError> errors = Enumerable.Empty<TError>();
-            bool foundErrors = false;
+            HashSet<TError> errors = new();
             foreach (var item in items)
                 func(item).SwitchStatement
                 (
                     ok: results.Add,
-                    error: newErrors =>
-                    {
-                        errors = errors.Concat(newErrors);
-                        foundErrors = true;
-                    }
+                    error: newErrors => errors.UnionWith(newErrors)
                 );
-            if (!foundErrors)
+            if (errors.Count is 0)
                 return new(ok: results);
             else
-                return new(errors: errors);
+                return new(errors: new(errors));
         }
 
-        public static Result<TResult, IEnumerable<TError>> CallFunc<T1, T2, TResult, TError>(this Func<T1, T2, TResult> func, Result<T1, IEnumerable<TError>> arg1,
-            Result<T2, IEnumerable<TError>> arg2)
+        // naming inspired by Haskell's lift https://stackoverflow.com/questions/2395697/what-is-lifting-in-haskell
+        public static Result<TResult, EfficientReadOnlyHashSet<TError>> Lift<T1, T2, TResult, TError>(this Func<T1, T2, TResult> func, Result<T1, EfficientReadOnlyHashSet<TError>> arg1,
+            Result<T2, EfficientReadOnlyHashSet<TError>> arg2)
         {
-            IEnumerable<TError> errors = Enumerable.Empty<TError>();
-            bool foundErrors = false;
+            HashSet<TError> errors = new();
 
             T1? arg1NoErr = Unpack(arg1);
             T2? arg2NoErr = Unpack(arg2);
 
-            if (!foundErrors)
+            if (errors.Count is 0)
                 return new(ok: func(arg1NoErr!, arg2NoErr!));
             else
-                return new(errors: errors);
+                return new(errors: new(errors));
 
-            T? Unpack<T>(Result<T, IEnumerable<TError>> arg)
+            T? Unpack<T>(Result<T, EfficientReadOnlyHashSet<TError>> arg)
                 => arg.SwitchExpression
                 (
                     ok: argTemp => argTemp,
                     error: newErrors =>
                     {
-                        errors = errors.Concat(newErrors);
-                        foundErrors = true;
+                        errors.UnionWith(newErrors);
                         return default(T);
                     }
                 );
         }
 
-        public static Result<TResult, IEnumerable<TError>> CallFunc<T1, T2, T3, TResult, TError>(this Func<T1, T2, T3, TResult> func, Result<T1, IEnumerable<TError>> arg1,
-            Result<T2, IEnumerable<TError>> arg2, Result<T3, IEnumerable<TError>> arg3)
+        public static Result<TResult, EfficientReadOnlyHashSet<TError>> Lift<T1, T2, T3, TResult, TError>(this Func<T1, T2, T3, TResult> func, Result<T1, EfficientReadOnlyHashSet<TError>> arg1,
+            Result<T2, EfficientReadOnlyHashSet<TError>> arg2, Result<T3, EfficientReadOnlyHashSet<TError>> arg3)
         {
-            IEnumerable<TError> errors = Enumerable.Empty<TError>();
-            bool foundErrors = false;
+            HashSet<TError> errors = new();
 
             T1? arg1NoErr = Unpack(arg1);
             T2? arg2NoErr = Unpack(arg2);
             T3? arg3NoErr = Unpack(arg3);
 
-            if (!foundErrors)
+            if (errors.Count is 0)
                 return new(ok: func(arg1NoErr!, arg2NoErr!, arg3NoErr!));
             else
-                return new(errors: errors);
+                return new(errors: new(errors));
 
-            T? Unpack<T>(Result<T, IEnumerable<TError>> arg)
+            T? Unpack<T>(Result<T, EfficientReadOnlyHashSet<TError>> arg)
                 => arg.SwitchExpression
                 (
                     ok: argTemp => argTemp,
                     error: newErrors =>
                     {
-                        errors = errors.Concat(newErrors);
-                        foundErrors = true;
+                        errors.UnionWith(newErrors);
                         return default(T);
                     }
                 );
         }
 
-        public static Result<TResult, IEnumerable<TError>> CallFunc<T1, T2, T3, T4, TResult, TError>(this Func<T1, T2, T3, T4, TResult> func, Result<T1, IEnumerable<TError>> arg1,
-            Result<T2, IEnumerable<TError>> arg2, Result<T3, IEnumerable<TError>> arg3, Result<T4, IEnumerable<TError>> arg4)
+        public static Result<TResult, EfficientReadOnlyHashSet<TError>> Lift<T1, T2, T3, T4, TResult, TError>(this Func<T1, T2, T3, T4, TResult> func, Result<T1, EfficientReadOnlyHashSet<TError>> arg1,
+            Result<T2, EfficientReadOnlyHashSet<TError>> arg2, Result<T3, EfficientReadOnlyHashSet<TError>> arg3, Result<T4, EfficientReadOnlyHashSet<TError>> arg4)
         {
-            IEnumerable<TError> errors = Enumerable.Empty<TError>();
-            bool foundErrors = false;
+            HashSet<TError> errors = new();
 
             T1? arg1NoErr = Unpack(arg1);
             T2? arg2NoErr = Unpack(arg2);
             T3? arg3NoErr = Unpack(arg3);
             T4? arg4NoErr = Unpack(arg4);
 
-            if (!foundErrors)
+            if (errors.Count is 0)
                 return new(ok: func(arg1NoErr!, arg2NoErr!, arg3NoErr!, arg4NoErr!));
             else
-                return new(errors: errors);
+                return new(errors: new(errors));
 
             //T? UnpackLocal<T>(Result<T, IEnumerable<TError>> arg)
             //{
@@ -170,34 +197,16 @@ namespace Game1
             //    errors = errors.Concat(unpacked.errors);
             //    return unpacked.argVal;
             //}
-            T? Unpack<T>(Result<T, IEnumerable<TError>> arg)
+            T? Unpack<T>(Result<T, EfficientReadOnlyHashSet<TError>> arg)
                 => arg.SwitchExpression
                 (
                     ok: argTemp => argTemp,
                     error: newErrors =>
                     {
-                        errors = errors.Concat(newErrors);
-                        foundErrors = true;
+                        errors.UnionWith(newErrors);
                         return default(T);
                     }
                 );
         }
-
-        //private static (T? argVal, IEnumerable<TError> errors, bool foundErrors) Unpack<T, TError>(Result<T, IEnumerable<TError>> arg)
-        //    => arg.SwitchExpression
-        //    (
-        //        ok: argTemp => 
-        //        (
-        //            argVal: argTemp,
-        //            errors: Enumerable.empty<TError>(),
-        //            foundErrors: false
-        //        ),
-        //        error: newErrors =>
-        //        (
-        //            argVal: default(T),
-        //            errors: newErrors,
-        //            foundErrors: true
-        //        )
-        //    );
     }
 }

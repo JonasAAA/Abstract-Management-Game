@@ -1,9 +1,11 @@
-﻿namespace Game1.ContentHelpers
+﻿using Game1.Collections;
+
+namespace Game1.ContentHelpers
 {
     [Serializable]
     public readonly struct FullValidCosmicBodyInfo
     {
-        public static Result<FullValidCosmicBodyInfo, IEnumerable<string>> Create(ValidCosmicBodyInfo cosmicBodyInfo)
+        public static Result<FullValidCosmicBodyInfo, EfficientReadOnlyHashSet<string>> Create(ValidCosmicBodyInfo cosmicBodyInfo)
             => new
             (
                 ok: new

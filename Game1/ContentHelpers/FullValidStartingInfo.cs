@@ -1,27 +1,33 @@
-﻿namespace Game1.ContentHelpers
+﻿using Game1.Collections;
+using System.Collections.Immutable;
+
+namespace Game1.ContentHelpers
 {
     [Serializable]
     public readonly struct FullValidStartingInfo
     {
-        public static Result<FullValidStartingInfo, IEnumerable<string>> Create(ValidStartingInfo startingInfo)
+        public static Result<FullValidStartingInfo, EfficientReadOnlyHashSet<string>> Create(ValidStartingInfo startingInfo)
         {
-            List<string> errorMessages = new();
-            if (startingInfo.HouseCosmicBody is null)
-                errorMessages.Add($"Starting {nameof(StartingInfo.HouseCosmicBody)} must be set");
-            if (startingInfo.PowerPlantCosmicBody is null)
-                errorMessages.Add($"Starting {nameof(StartingInfo.PowerPlantCosmicBody)} must be set");
-            if (errorMessages.Count is 0)
-                return new
+            return Result.Lift<string, string, FullValidStartingInfo, string>
+            (
+                func: (arg1, arg2) => new FullValidStartingInfo
                 (
-                    ok: new
-                    (
-                        houseCosmicBody: startingInfo.HouseCosmicBody!,
-                        powerPlantCosmicBody: startingInfo.PowerPlantCosmicBody!,
-                        worldCenter: startingInfo.WorldCenter,
-                        cameraViewHeight: startingInfo.CameraViewHeight
-                    )
-                );
-            return new(errors: errorMessages); 
+                    houseCosmicBody: arg1,
+                    powerPlantCosmicBody: arg2,
+                    worldCenter: startingInfo.WorldCenter,
+                    cameraViewHeight: startingInfo.CameraViewHeight
+                ),
+                arg1: startingInfo.HouseCosmicBody switch
+                {
+                    string houseCosmicBody => new(ok: houseCosmicBody),
+                    null => new(errors: new(value: $"Starting {nameof(StartingInfo.HouseCosmicBody)} must be set"))
+                },
+                arg2: startingInfo.PowerPlantCosmicBody switch
+                {
+                    string powerPlantCosmicBody => new(ok: powerPlantCosmicBody),
+                    null => new(errors: new(value: $"Starting {nameof(StartingInfo.PowerPlantCosmicBody)} must be set"))
+                }
+            );
         }
 
         public string HouseCosmicBody { get; }

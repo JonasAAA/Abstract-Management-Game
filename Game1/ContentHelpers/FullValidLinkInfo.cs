@@ -1,9 +1,11 @@
-﻿namespace Game1.ContentHelpers
+﻿using Game1.Collections;
+
+namespace Game1.ContentHelpers
 {
     [Serializable]
     public readonly struct FullValidLinkInfo
     {
-        public static Result<FullValidLinkInfo, IEnumerable<string>> Create(ValidLinkInfo linkInfo)
+        public static Result<FullValidLinkInfo, EfficientReadOnlyHashSet<string>> Create(ValidLinkInfo linkInfo)
             => new(ok: new(from: linkInfo.From, to: linkInfo.To));
 
         public string From { get; }

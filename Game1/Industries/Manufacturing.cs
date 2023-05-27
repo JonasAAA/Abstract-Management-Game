@@ -1,182 +1,362 @@
-﻿//using System.Diagnostics.CodeAnalysis;
-//using static Game1.WorldManager;
+﻿using Game1.Collections;
+using Game1.Delegates;
+using Game1.Lighting;
+using Game1.UI;
+using static Game1.WorldManager;
 
-//namespace Game1.Industries
-//{
-//    [Serializable]
-//    public sealed class Manufacturing : ProductiveIndustry
-//    {
-//        [Serializable]
-//        public new sealed class Factory : ProductiveIndustry.Factory, IFactoryForIndustryWithBuilding
-//        {
-//            public readonly UDouble reqWattsPerUnitSurface;
-//            public readonly TimeSpan prodDuration;
-//            public readonly ResRecipe baseResRecipe;
-//            public readonly ulong prodResPerUnitSurface;
-//            private readonly ResAmounts buildingCostPerUnitSurface;
+namespace Game1.Industries
+{
+    [Serializable]
+    public sealed class Manufacturing : IIndustry
+    {
+        [Serializable]
+        public sealed class GeneralParams : IConstructedIndustryGeneralParams
+        {
+            public string Name { get; }
+            public GeneralProdAndMatAmounts BuildingCostPropors { get; }
+            
+            public readonly EnergyPriority energyPriority;
+            public readonly Product.Params productParams;
 
-//            public Factory(string name, ResRecipe baseResRecipe, ulong prodResPerUnitSurface, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, TimeSpan prodDuration, ResAmounts buildingCostPerUnitSurface)
-//                : base
-//                (
-//                    industryType: IndustryType.Manufacturing,
-//                    name: name,
-//                    color: Color.Brown,
-//                    energyPriority: energyPriority,
-//                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
-//                )
-//            {
-//                if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
-//                    throw new ArgumentOutOfRangeException();
-//                this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
-//                if (prodDuration < TimeSpan.Zero)
-//                    throw new ArgumentException();
-//                this.prodDuration = prodDuration;
-//                if (baseResRecipe.IsEmpty)
-//                    throw new ArgumentException();
-//                this.baseResRecipe = baseResRecipe;
-//                if (prodResPerUnitSurface == 0)
-//                    throw new ArgumentException();
-//                this.prodResPerUnitSurface = prodResPerUnitSurface;
-//                if (buildingCostPerUnitSurface.IsEmpty())
-//                    throw new ArgumentException();
-//                this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
-//            }
+            public GeneralParams(string name, GeneralProdAndMatAmounts buildingCostPropors, EnergyPriority energyPriority, Product.Params productParams)
+            {
+                Name = name;
+                if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface] == Propor.empty)
+                    throw new ArgumentException();
+                BuildingCostPropors = buildingCostPropors;
+                if (energyPriority == EnergyPriority.mostImportant)
+                    throw new ArgumentException("Only power plants can have highest energy priority");
+                this.energyPriority = energyPriority;
+                this.productParams = productParams;
+            }
 
-//            public override Params CreateParams(IIndustryFacingNodeState state)
-//                => new(state: state, factory: this);
+            //public Result<ConcreteBuildingParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices)
+            //{
+            //    throw new NotImplementedException();
+            //}
 
-//            ResAmounts IFactoryForIndustryWithBuilding.BuildingCost(IIndustryFacingNodeState state)
-//                => state.ApproxSurfaceLength * buildingCostPerUnitSurface;
+            public IIndustry CreateIndustry(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices, ResPile buildingResPile)
+                => new ConcreteBuildingParams
+                (
+                    nodeState: nodeState,
+                    surfaceMaterial: buildingMatChoices[IMaterialPurpose.roofSurface],
+                    buildingResPile: buildingResPile,
+                    generalParams: this,
+                    buildingMatChoices: buildingMatChoices
+                ).CreateIndustry
+                (
+                    productionParams: new(productParams)
+                );
+        }
 
-//            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
-//                => new Manufacturing(parameters: CreateParams(state: state), building: building);
-//        }
+        [Serializable]
+        public readonly struct ConcreteBuildingParams
+        {
+            public readonly IIndustryFacingNodeState nodeState;
+            public readonly Material surfaceMaterial;
+            public readonly EnergyPriority energyPriority;
+            public readonly Product.Params productParams;
+            public readonly ulong productAmount;
+            public readonly ResPile buildingResPile;
 
-//        [Serializable]
-//        public new sealed class Params : ProductiveIndustry.Params
-//        {
-//            public UDouble ReqWatts
-//                => state.ApproxSurfaceLength * factory.reqWattsPerUnitSurface;
-//            public readonly TimeSpan prodDuration;
-//            public ResRecipe ResRecipe
-//                => state.ApproxSurfaceLength * factory.prodResPerUnitSurface * factory.baseResRecipe;
+            private readonly GeneralParams generalParams;
+            private readonly MaterialChoices buildingMatChoices;
 
-//            public override string TooltipText
-//                => $"""
-//                {base.TooltipText}
-//                {nameof(ReqWatts)}: {ReqWatts}
-//                {nameof(prodDuration)}: {prodDuration}
-//                Supply: {ResRecipe.results}
-//                Demand: {ResRecipe.ingredients}
-//                """;
+            public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, Material surfaceMaterial, ResPile buildingResPile, GeneralParams generalParams, MaterialChoices buildingMatChoices)
+            {
+                this.nodeState = nodeState;
+                this.surfaceMaterial = surfaceMaterial;
+                this.buildingResPile = buildingResPile;
+                this.generalParams = generalParams;
+                this.buildingMatChoices = buildingMatChoices;
+                energyPriority = generalParams.energyPriority;
+                productParams = generalParams.productParams;
+                productAmount = ResAndIndustryAlgos.AmountInProduction
+                (
+                    surfaceLength: nodeState.ApproxSurfaceLength,
+                    itemTargetArea: productParams.TargetArea
+                );
+            }
 
-//            private readonly Factory factory;
+            /// <param Name="productionMass">Mass of stuff in production</param>
+            public CurProdStats CurProdStats(Mass productionMass)
+            {
+                UDouble relevantMassPUS = ResAndIndustryAlgos.RelevantMassPUS
+                (
+                    buildingMatPropors: generalParams.BuildingCostPropors.materialPropors,
+                    buildingMatChoices: buildingMatChoices,
+                    productionMassPUS: productionMass.valueInKg / nodeState.ApproxSurfaceLength
+                );
 
-//            public Params(IIndustryFacingNodeState state, Factory factory)
-//                : base(state: state, factory: factory)
-//            {
-//                this.factory = factory;
+                UDouble maxMechThroughputPUS = ResAndIndustryAlgos.MaxMechThroughputPUS
+                (
+                    buildingMatPropors: generalParams.BuildingCostPropors.materialPropors,
+                    buildingMatChoices: buildingMatChoices,
+                    gravity: nodeState.SurfaceGravity,
+                    temperature: nodeState.Temperature,
+                    relevantMassPUS: relevantMassPUS
+                );
 
-//                prodDuration = factory.prodDuration;
-//            }
-//        }
+                UDouble maxElectricalPowerPUS = ResAndIndustryAlgos.MaxElectricalPowerPUS
+                (
+                    buildingMatPropors: generalParams.BuildingCostPropors.materialPropors,
+                    buildingMatChoices: buildingMatChoices,
+                    temperature: nodeState.Temperature
+                );
 
-//        [Serializable]
-//        private class Production
-//        {
-//            private static Production? Create(ResPile source, ResRecipe recipe, TimeSpan duration)
-//            {
-//                if (duration <= TimeSpan.Zero)
-//                    throw new ArgumentException();
-//                var resInUse = ResPile.CreateIfHaveEnough(source: source, amount: recipe.ingredients);
-//                if (resInUse is null)
-//                    return null;
-//                return new(resInUse: resInUse, recipe: recipe, duration: duration);
-//            }
+                UDouble electricalEnergyPerUnitArea = ResAndIndustryAlgos.ElectricalEnergyPerUnitAreaPhys
+                (
+                    buildingMatPropors: generalParams.BuildingCostPropors.materialPropors,
+                    buildingMatChoices: buildingMatChoices,
+                    gravity: nodeState.SurfaceGravity,
+                    temperature: nodeState.Temperature,
+                    relevantMassPUS: relevantMassPUS
+                );
 
-//            public static void Update(ref Production? product, Params parameters, Propor workingPropor)
-//            {
-//                if (product is null)
-//                {
-//                    product = Create
-//                    (
-//                        source: parameters.state.StoredResPile,
-//                        recipe: parameters.ResRecipe,
-//                        duration: parameters.prodDuration
-//                    );
-//                    return;
-//                }
-//                product.prodTimeLeft -= workingPropor * CurWorldManager.Elapsed;
-//                if (product.prodTimeLeft <= TimeSpan.Zero)
-//                {
-//                    parameters.state.StoredResPile.TransformFrom(source: product.resInUse, recipe: product.recipe);
-//                    product = null;
-//                }
-//            }
+                UDouble
+                    reqWattsPUS = MyMathHelper.Min(maxElectricalPowerPUS, maxMechThroughputPUS * electricalEnergyPerUnitArea),
+                    reqWatts = reqWattsPUS * nodeState.ApproxSurfaceLength,
+                    producedAreaPerSec = reqWatts / electricalEnergyPerUnitArea;
 
-//            private readonly ResPile resInUse;
-//            private readonly ResRecipe recipe;
-//            private TimeSpan prodTimeLeft;
-//            private readonly TimeSpan duration;
+                return new
+                (
+                    ReqWatts: reqWatts,
+                    ProducedAreaPerSec: producedAreaPerSec
+                );
+            }
 
-//            private Production(ResPile resInUse, ResRecipe recipe, TimeSpan duration)
-//            {
-//                this.resInUse = resInUse;
-//                this.recipe = recipe;
-//                this.duration = duration;
-//                prodTimeLeft = duration;
-//            }
+            public Manufacturing CreateIndustry(ConcreteProductionParams productionParams)
+                => new(buildingParams: this, productionParams: productionParams);
+        }
 
-//            public Propor DonePropor()
-//                => C.DonePropor(timeLeft: prodTimeLeft, duration: duration);
-//        }
+        [Serializable]
+        public sealed class ConcreteProductionParams
+        {
+            /// <summary>
+            /// In case of error, returns the needed but not yet set material purposes
+            /// </summary>
+            public Result<Product, TextErrors> CurProduct { get; private set; }
 
-//        public override bool PeopleWorkOnTop
-//            => false;
+            private readonly Product.Params productParams;
 
-//        protected sealed override UDouble Height
-//            => CurWorldConfig.defaultIndustryHeight;
+            public ConcreteProductionParams(Product.Params productParams)
+                : this(productParams: productParams, productMaterialChoices: MaterialChoices.empty)
+            { }
 
-//        private readonly Params parameters;
-//        private Production? production;
+            public ConcreteProductionParams(Product.Params productParams, MaterialChoices productMaterialChoices)
+            {
+                this.productParams = productParams;
+                Update(productMaterialChoices: productMaterialChoices);
+            }
 
-//        private Manufacturing(Params parameters, Building building)
-//            : base(parameters: parameters, building: building)
-//        {
-//            this.parameters = parameters;
-//            production = null;
-//        }
+            private void Update(MaterialChoices productMaterialChoices)
+                => CurProduct = productParams.CreateProduct(materialChoices: productMaterialChoices).ConvertMissingMatPurpsIntoError();
+        }
 
-//        protected override BoolWithExplanationIfFalse CalculateIsBusy()
-//            => base.CalculateIsBusy() & BoolWithExplanationIfFalse.Create
-//            (
-//                value: production is not null,
-//                explanationIfFalse: """
-//                    not enough resources
-//                    to start manufacturing
+        [Serializable]
+        public readonly record struct CurProdStats(UDouble ReqWatts, UDouble ProducedAreaPerSec);
 
-//                    """
-//            );
+        [Serializable]
+        private sealed class Production
+        {
+            public static Result<Production, TextErrors> Create(ResPile source, ResRecipe recipe)
+            {
+                var resInUse = ResPile.CreateIfHaveEnough(source: source, amount: recipe.ingredients);
+                if (resInUse is null)
+                    return new(errors: new("not enough resources to start production"));
+                return new(ok: new(resInUse: resInUse, recipe: recipe));
+            }
 
-//        protected override Manufacturing InternalUpdate(Propor workingPropor)
-//        {
-//            Production.Update(product: ref production, parameters: parameters, workingPropor: workingPropor);
-//            return this;
-//        }
+            public Propor DonePropor
+                => (Propor)donePropor;
 
-//        public override ResAmounts TargetStoredResAmounts()
-//            => parameters.ResRecipe.ingredients * parameters.state.MaxBatchDemResStored;
+            public bool IsDone
+                => donePropor >= 1;
 
-//        protected override string GetBusyInfo()
-//            => $"producing {production!.DonePropor() * 100.0: 0.}%\n";
+            public readonly Mass mass;
 
-//        protected override UDouble ReqWatts()
-//            // this is correct as if more important people get full energy, this works
-//            // and if they don't, then the industry will get 0 energy anyway
-//            => IsBusy().SwitchExpression
-//            (
-//                trueCase: () => parameters.ReqWatts * CurSkillPropor,
-//                falseCase: () => UDouble.zero
-//            );
-//    }
-//}
+            private readonly ResPile resInUse;
+            private readonly ResRecipe recipe;
+            private UDouble donePropor;
+
+            private Production(ResPile resInUse, ResRecipe recipe)
+            {
+                this.resInUse = resInUse;
+                this.recipe = recipe;
+                mass = recipe.ingredients.Mass();
+                donePropor = 0;
+            }
+
+            public void Update(in ConcreteBuildingParams buildingParams, in CurProdStats curProdStats, Propor workingPropor)
+            {
+                UDouble areaProduced = workingPropor * (UDouble)CurWorldManager.Elapsed.TotalSeconds * curProdStats.ProducedAreaPerSec,
+                    areaInProduction = buildingParams.productParams.TargetArea.valueInMetSq * buildingParams.productAmount;
+                donePropor += areaProduced / areaInProduction;
+                if (donePropor >= 1)
+                {
+                    buildingParams.nodeState.StoredResPile.TransformFrom(source: resInUse, recipe: recipe);
+                    donePropor = 1;
+                }
+            }
+
+            public void Delete(ResPile resDestin)
+                => resDestin.TransferAllFrom(resInUse);
+        }
+
+        private readonly record struct State(Production Production, CurProdStats CurProdStats, ElectricalEnergy ReqEnergy);
+
+        public ILightBlockingObject? LightBlockingObject
+            => throw new NotImplementedException();
+
+        public Material? SurfaceMaterial
+            => buildingParams.surfaceMaterial;
+
+        public IHUDElement UIElement
+            => throw new NotImplementedException();
+        
+        public IEvent<IDeletedListener> Deleted
+            => deleted;
+
+        private readonly ConcreteBuildingParams buildingParams;
+        private readonly ConcreteProductionParams productionParams;
+        private readonly HistoricRounder reqEnergyHistoricRounder;
+        private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
+        private readonly Event<IDeletedListener> deleted;
+        private Result<State, TextErrors> stateOrReasonForNotStartingProduction;
+        private Propor workingPropor;
+
+        private Manufacturing(ConcreteBuildingParams buildingParams, ConcreteProductionParams productionParams)
+        {
+            this.buildingParams = buildingParams;
+            this.productionParams = productionParams;
+            reqEnergyHistoricRounder = new();
+            electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.nodeState.LocationCounters);
+            stateOrReasonForNotStartingProduction = new(errors: new("Not yet initialized"));
+            deleted = new();
+
+            CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
+        }
+
+        public void DrawAfterPlanet()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)
+        {
+            throw new NotImplementedException();
+        }
+
+        public SomeResAmounts<IResource> TargetStoredResAmounts()
+            => productionParams.CurProduct.SwitchExpression
+            (
+                ok: product => product.Recipe.ingredients * buildingParams.productAmount * buildingParams.nodeState.MaxBatchDemResStored,
+                error: _ => SomeResAmounts<IResource>.empty
+            );
+
+        public void FrameStartNoProduction(string error)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void FrameStart()
+        {
+            Result<Production, TextErrors> productionOrErr = stateOrReasonForNotStartingProduction.SwitchExpression
+            (
+                ok: state => state.Production.IsDone ? CreateProduction() : new(ok: state.Production),
+                error: _ => CreateProduction()
+            );
+            stateOrReasonForNotStartingProduction = productionOrErr.Select
+            (
+                production =>
+                {
+                    var curProdStats = buildingParams.CurProdStats
+                    (
+                        productionMass: production.mass
+                    );
+                    return new State
+                    (
+                        Production: production,
+                        CurProdStats: curProdStats,
+#warning if production will be done this frame, could request just enough energy to complete it rather than the usual amount
+                        ReqEnergy: ElectricalEnergy.CreateFromJoules
+                        (
+                            valueInJ: reqEnergyHistoricRounder.Round
+                            (
+                                value: (decimal)curProdStats.ReqWatts * (decimal)CurWorldManager.Elapsed.TotalSeconds,
+                                curTime: CurWorldManager.CurTime
+                            )
+                        )
+                    );
+                }
+            );
+
+            return;
+
+            Result<Production, TextErrors> CreateProduction()
+                => productionParams.CurProduct.SelectMany
+                (
+                    product => Production.Create
+                    (
+                        source: buildingParams.nodeState.StoredResPile,
+                        recipe: product.Recipe * buildingParams.productAmount
+                    )
+                );
+        }
+
+        public IIndustry? Update()
+        {
+            stateOrReasonForNotStartingProduction.PerformAction
+            (
+                action: state =>
+                {
+                    state.Production.Update(buildingParams: in buildingParams, curProdStats: state.CurProdStats, workingPropor: workingPropor);
+                    buildingParams.nodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
+                }
+            );
+            return this;
+        }
+
+        private void Delete()
+        {
+            stateOrReasonForNotStartingProduction.PerformAction
+            (
+                action: state =>
+                {
+                    buildingParams.nodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
+                    buildingParams.nodeState.StoredResPile.TransferAllFrom(source: buildingParams.buildingResPile);
+                    state.Production.Delete(resDestin: buildingParams.nodeState.StoredResPile);
+                }
+            );
+            deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+        }
+
+        public string GetInfo()
+        {
+            throw new NotImplementedException();
+        }
+
+        EnergyPriority IEnergyConsumer.EnergyPriority
+            => buildingParams.energyPriority;
+
+        NodeID IEnergyConsumer.NodeID
+            => buildingParams.nodeState.NodeID;
+
+        ElectricalEnergy IEnergyConsumer.ReqEnergy()
+            => stateOrReasonForNotStartingProduction.SwitchExpression
+            (
+                ok: state => state.ReqEnergy,
+                error: _ => ElectricalEnergy.zero
+            );
+
+        void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
+        {
+            electricalEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
+            workingPropor = stateOrReasonForNotStartingProduction.SwitchExpression
+            (
+                ok: state => Propor.Create(part: electricalEnergy.ValueInJ, whole: state.ReqEnergy.ValueInJ)!.Value,
+                error: _ => Propor.empty
+            );
+        }
+    }
+}

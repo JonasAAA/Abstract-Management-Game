@@ -13,7 +13,7 @@
 //        {
 //            basicHouseFactory = new House.Factory
 //            (
-//                name: "house",
+//                Name: "house",
 //                floorSpacePerUnitSurface: 1,
 //                buildingCostPerUnitSurface: new()
 //                {
@@ -23,7 +23,7 @@
 
 //            basicPowerPlantFactory = new PowerPlant.Factory
 //            (
-//                name: "power_plant_lvl1",
+//                Name: "power_plant_lvl1",
 //                reqSkillPerUnitSurface: (UDouble).2,
 //                conversionPropor: (Propor).5,
 //                buildingCostPerUnitSurface: new()
@@ -36,7 +36,7 @@
 //            {
 //                new Construction.Factory
 //                (
-//                    name: "house construction",
+//                    Name: "house construction",
 //                    energyPriority: CurWorldConfig.industryOperationEnergyPrior,
 //                    reqSkillPerUnitSurface: (UDouble).1,
 //                    reqWattsPerUnitSurface: 10,
@@ -45,7 +45,7 @@
 //                ),
 //                new Mining.Factory
 //                (
-//                    name: "mine_lvl1",
+//                    Name: "mine_lvl1",
 //                    energyPriority: CurWorldConfig.industryOperationEnergyPrior,
 //                    reqSkillPerUnitSurface: (UDouble).1,
 //                    reqWattsPerUnitSurface: 1,
@@ -53,7 +53,7 @@
 //                ),
 //                new PlanetEnlargement.Factory
 //                (
-//                    name: "planet_enlargement_lvl1",
+//                    Name: "planet_enlargement_lvl1",
 //                    energyPriority: CurWorldConfig.industryOperationEnergyPrior,
 //                    reqSkillPerUnitSurface: (UDouble).2,
 //                    reqWattsPerUnitSurface: 5,
@@ -61,13 +61,13 @@
 //                ),
 //                new Construction.Factory
 //                (
-//                    name: "factory costruction",
+//                    Name: "factory costruction",
 //                    energyPriority: CurWorldConfig.industryConstructionEnergyPrior,
 //                    reqSkillPerUnitSurface: (UDouble).1,
 //                    reqWattsPerUnitSurface: 100,
 //                    industryFactory: new Manufacturing.Factory
 //                    (
-//                        name: "factory2_lvl1",
+//                        Name: "factory2_lvl1",
 //                        baseResRecipe: CurResConfig.resources[(NonBasicResInd)2].Recipe,
 //                        prodResPerUnitSurface: 1,
 //                        energyPriority: CurWorldConfig.industryOperationEnergyPrior,
@@ -84,13 +84,13 @@
 //                ),
 //                new Construction.Factory
 //                (
-//                    name: "factory costruction",
+//                    Name: "factory costruction",
 //                    energyPriority: CurWorldConfig.industryConstructionEnergyPrior,
 //                    reqSkillPerUnitSurface: (UDouble).1,
 //                    reqWattsPerUnitSurface: 100,
 //                    industryFactory: new Manufacturing.Factory
 //                    (
-//                        name: "factory3_lvl1",
+//                        Name: "factory3_lvl1",
 //                        baseResRecipe: CurResConfig.resources[(NonBasicResInd)3].Recipe,
 //                        prodResPerUnitSurface: 1,
 //                        energyPriority: CurWorldConfig.industryOperationEnergyPrior,
@@ -107,13 +107,13 @@
 //                ),
 //                new Construction.Factory
 //                (
-//                    name: "factory costruction",
+//                    Name: "factory costruction",
 //                    energyPriority: CurWorldConfig.industryConstructionEnergyPrior,
 //                    reqSkillPerUnitSurface: (UDouble).1,
 //                    reqWattsPerUnitSurface: 100,
 //                    industryFactory: new Manufacturing.Factory
 //                    (
-//                        name: "factory4_lvl1",
+//                        Name: "factory4_lvl1",
 //                        baseResRecipe: CurResConfig.resources[(NonBasicResInd)4].Recipe,
 //                        prodResPerUnitSurface: 1,
 //                        energyPriority: CurWorldConfig.industryOperationEnergyPrior,
@@ -130,7 +130,7 @@
 //                ),
 //                new Construction.Factory
 //                (
-//                    name: "power plant costruction",
+//                    Name: "power plant costruction",
 //                    energyPriority: CurWorldConfig.industryConstructionEnergyPrior,
 //                    reqSkillPerUnitSurface: (UDouble).3,
 //                    reqWattsPerUnitSurface: (UDouble).05,
@@ -139,13 +139,13 @@
 //                ),
 //                new Construction.Factory
 //                (
-//                    name: "reprod. ind. constr.",
+//                    Name: "reprod. ind. constr.",
 //                    energyPriority: CurWorldConfig.industryConstructionEnergyPrior,
 //                    reqSkillPerUnitSurface: (UDouble).05,
 //                    reqWattsPerUnitSurface: 10,
 //                    industryFactory: new ReprodIndustry.Factory
 //                    (
-//                        name: "reprod. ind.",
+//                        Name: "reprod. ind.",
 //                        energyPriority: CurWorldConfig.reprodIndustryOperationEnergyPrior,
 //                        reqSkillPerUnitSurface: (UDouble).1,
 //                        reqWattsPerChild: 100,

@@ -11,12 +11,12 @@
 //            public readonly Propor conversionPropor;
 //            private readonly ResAmounts buildingCostPerUnitSurface;
 
-//            public Factory(string name, UDouble reqSkillPerUnitSurface, Propor conversionPropor, ResAmounts buildingCostPerUnitSurface)
+//            public Factory(string Name, UDouble reqSkillPerUnitSurface, Propor conversionPropor, ResAmounts buildingCostPerUnitSurface)
 //                : base
 //                (
 //                    industryType: IndustryType.PowerPlant,
 //                    energyPriority: EnergyPriority.mostImportant,
-//                    name: name,
+//                    Name: Name,
 //                    color: Color.Blue,
 //                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
 //                )
@@ -29,18 +29,18 @@
 //                this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
 //            }
 
-//            public override Params CreateParams(IIndustryFacingNodeState state)
+//            public override GeneralParams CreateParams(IIndustryFacingNodeState state)
 //                => new(state: state, factory: this);
 
 //            ResAmounts IFactoryForIndustryWithBuilding.BuildingCost(IIndustryFacingNodeState state)
-//                => state.ApproxSurfaceLength * buildingCostPerUnitSurface;
+//                => state.SurfaceLength * buildingCostPerUnitSurface;
 
 //            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
 //                => new PowerPlant(parameters: CreateParams(state: state), building: building);
 //        }
 
 //        [Serializable]
-//        public new sealed class Params : ProductiveIndustry.Params
+//        public new sealed class GeneralParams : ProductiveIndustry.GeneralParams
 //        {
 //            public readonly Propor conversionPropor;
 
@@ -51,7 +51,7 @@
 //                {nameof(conversionPropor)}: {conversionPropor}
 //                """;
 
-//            public Params(IIndustryFacingNodeState state, Factory factory)
+//            public GeneralParams(IIndustryFacingNodeState state, Factory factory)
 //                : base(state: state, factory: factory)
 //            {
 //                conversionPropor = factory.conversionPropor;
@@ -64,12 +64,12 @@
 //        protected override UDouble Height
 //            => CurWorldConfig.defaultIndustryHeight;
 
-//        private readonly Params parameters;
+//        private readonly GeneralParams parameters;
 //        private ElectricalEnergy prodEnergy;
 //        private readonly HistoricRounder producedEnergyRounder;
 //        private readonly CachedValue<Propor> radiantToElectricalEnergyProporCached;
 
-//        private PowerPlant(Params parameters, Building building)
+//        private PowerPlant(GeneralParams parameters, Building building)
 //            : base(parameters: parameters, building: building)
 //        {
 //            this.parameters = parameters;

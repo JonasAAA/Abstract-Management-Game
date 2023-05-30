@@ -131,19 +131,13 @@ namespace Game1
         private SomeResAmounts<IResource> targetStoredResAmounts;
         private readonly ResPile undecidedResPile;
         private AllResAmounts resTravelHereAmounts;
-        private readonly new LightCatchingDisk shape;
+        private readonly new LightBlockingDisk shape;
         private ElectricalEnergy locallyProducedEnergy, usedLocalEnergy;
         private readonly SimpleHistoricProporSplitter<IRadiantEnergyConsumer> radiantEnergySplitter;
         private readonly HistoricRounder energyToDissipateRounder, heatEnergyToDissipateRounder, massFusionRounder, reflectedRadiantEnergyRounder, capturedForUseRadiantEnergyRounder;
         private readonly EnergyPile<RadiantEnergy> radiantEnergyToDissipatePile;
         private RadiantEnergy radiantEnergyToDissipate;
-
-        /// <summary>
-        /// This is current temperature to be used until the new value is calculated.
-        /// Don't calculate temperature on the fly each time, as that would lead to temperature variations during the frame.
-        /// </summary>
-        private UDouble temperatureInK;
-        private ulong matterCountConvertedToEnergy;
+        private RawMaterialsMix matterConvertedToEnergy;
 
         private readonly TextBox textBox;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
@@ -157,16 +151,16 @@ namespace Game1
             //, (IFactoryForIndustryWithBuilding industryFactory, ulong personCount, ResPile resSource)? startingConditions = null)
             : base
             (
-                shape: new LightCatchingDisk(parameters: new ShapeParams(State: state)),
+                shape: new LightBlockingDisk(parameters: new ShapeParams(State: state)),
                 activeColor: activeColor,
-                inactiveColor: state.ConsistsOf.color,
+                inactiveColor: state.Composition.color,
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top
             )
         {
             this.state = state;
-            lightPolygon = new(color: state.ConsistsOf.color);
-            shape = (LightCatchingDisk)base.shape;
+            lightPolygon = new(color: state.Composition.color);
+            shape = (LightBlockingDisk)base.shape;
 
             links = new();
 
@@ -185,8 +179,8 @@ namespace Game1
             radiantEnergyToDissipatePile = EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: state.LocationCounters);
             radiantEnergyToDissipate = RadiantEnergy.zero;
 #warning have a config parameter for that
-            temperatureInK = 100;
-            matterCountConvertedToEnergy = 0;
+            state.Temperature = Temperature.CreateFromK(valueInK: 100);
+            matterConvertedToEnergy = RawMaterialsMix.empty;
 
             textBox = new(textColor: colorConfig.almostWhiteColor);
             textBox.Shape.MinWidth = 100;
@@ -376,9 +370,18 @@ namespace Game1
             resDesinArrowEventListener.SyncSplittersWithArrows();
         }
 
+        public void PreEnergyDistribUpdate()
+        {
+            if (state.TooManyResStored)
+                Industry?.FrameStartNoProduction(error: "planet contains unwanted resources");
+            else
+                Industry?.FrameStart();
+        }
+
         public void Update(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks, EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
-            Industry = Industry?.Update();
+            if (state.TooManyResStored)
+                Industry = Industry?.Update();
 
             // take people whose destination is this planet
             state.WaitingPeople.ForEach
@@ -392,11 +395,10 @@ namespace Game1
 
             state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: state.RadiantEnergyPile);
 
-            matterCountConvertedToEnergy = Algorithms.MatterToConvertToEnergy
+            matterConvertedToEnergy = Algorithms.MatterToConvertToEnergy
             (
-                rawMat: state.ConsistsOf,
-                resAmount: state.MainResAmount,
-                temperatureInK: temperatureInK,
+                composition: state.Composition,
+                temperature: state.Temperature,
                 surfaceGravity: state.SurfaceGravity,
                 duration: CurWorldManager.Elapsed,
                 massInKgRoundFunc: mass => massFusionRounder.Round(value: mass, curTime: CurWorldManager.CurTime),
@@ -406,14 +408,7 @@ namespace Game1
 
             state.consistsOfResPile.TransformResToHeatEnergy
             (
-                amount: AllResAmounts.CreateFromOnlyMix
-                (
-                    rawMatsMix: new
-                    (
-                        res: state.ConsistsOf,
-                        amount: matterCountConvertedToEnergy
-                    )
-                )
+                rawMatsMix: matterConvertedToEnergy
             );
 
             state.RecalculateValues();
@@ -421,9 +416,9 @@ namespace Game1
             (HeatEnergy heatEnergyToDissipate, radiantEnergyToDissipate) = Algorithms.EnergiesToDissipate
             (
                 heatEnergy: state.ThermalBody.HeatEnergy,
-                surfaceLength: state.ApproxSurfaceLength,
-                emissivity: Industry?.SurfaceEmissivity ?? state.ConsistsOf.Emissivity,
-                temperatureInK: temperatureInK,
+                surfaceLength: state.SurfaceLength,
+                emissivity: Industry?.SurfaceMaterial?.Emissivity(temperature: state.Temperature) ?? state.Composition.Emissivity(temperature: state.Temperature),
+                temperature: state.Temperature,
                 energyInJToDissipateRoundFunc: energyInJ => energyToDissipateRounder.Round(value: energyInJ, curTime: CurWorldManager.CurTime),
                 stefanBoltzmannConstant: CurWorldConfig.stefanBoltzmannConstant,
                 temperatureExponent: CurWorldConfig.temperatureExponentInStefanBoltzmannLaw,
@@ -445,7 +440,7 @@ namespace Game1
                 amount: radiantEnergyToDissipate
             );
 
-            temperatureInK = (UDouble)state.ThermalBody.HeatEnergy.ValueInJ() / state.ThermalBody.HeatCapacity.valueInJPerK;
+            state.Temperature = Temperature.CreateFromK(valueInK: (UDouble)state.ThermalBody.HeatEnergy.ValueInJ() / state.ThermalBody.HeatCapacity.valueInJPerK);
 
             // MAKE sure that all resources (and people) leaving the planet do so AFTER the the temperatureInK is established for that frame,
             // i.e. after appropriate amount of energy is radiated to space.
@@ -521,13 +516,10 @@ namespace Game1
                     var unsplitResPile = ResPile.CreateIfHaveEnough
                     (
                         source: undecidedResPile,
-                        amount: AllResAmounts.CreateFromNoMix
+                        amount: new SomeResAmounts<IResource>
                         (
-                            resAmounts: new
-                            (
-                                res: res,
-                                amount: unsplitResAmount
-                            )
+                            res: res,
+                            amount: unsplitResAmount
                         )
                     );
                     Debug.Assert(unsplitResPile is not null);
@@ -540,10 +532,7 @@ namespace Game1
                     var resPileForDestin = ResPile.CreateIfHaveEnough
                     (
                         source: undecidedResPile,
-                        amount: AllResAmounts.CreateFromNoMix
-                        (
-                            resAmounts: new(resAmount: resAmount)
-                        )
+                        amount: new SomeResAmounts<IResource>(resAmount: resAmount)
                     );
                     Debug.Assert(resPileForDestin is not null);
                     state.waitingResAmountsPackets.TransferAllFrom
@@ -575,7 +564,7 @@ namespace Game1
 
             // TODO: look at this
             infoTextBox.Text = $"""
-                consists of {state.MainResAmount} {state.ConsistsOf}
+                consists of {state.Composition}
                 stores {state.StoredResPile}
                 target {targetStoredResAmounts}
                 Mass of everything {state.LocationCounters.GetCount<AllResAmounts>().Mass()}
@@ -607,14 +596,14 @@ namespace Game1
             //        return totalStoredMass.IsZero switch
             //        {
             //            true => "",
-            //            false => $"stored total res mass {totalStoredMass}"
+            //            false => $"stored total res miningMass {totalStoredMass}"
             //        };
             //    },
             //    powerCase: () => "",
             //    peopleCase: () => ""
             //);
 
-            textBox.Text += $"T = {temperatureInK:0.} K\nM to E = {matterCountConvertedToEnergy}\n";
+            textBox.Text += $"T = {state.Temperature:0.} K\nM to E = {matterConvertedToEnergy}\n";
             textBox.Text = textBox.Text.Trim();
 
             infoTextBox.Text += textBox.Text;
@@ -625,15 +614,12 @@ namespace Game1
         {
             base.DrawPreBackground(otherColor, otherColorPropor);
 
-            Industry?.DrawBeforePlanet(otherColor: otherColor, otherColorPropor: otherColorPropor);
+            Industry?.Draw(otherColor: otherColor, otherColorPropor: otherColorPropor);
         }
 
         protected override void DrawChildren()
         {
             base.DrawChildren();
-
-            // temporary
-            Industry?.DrawAfterPlanet();
 
             if (Active && CurWorldManager.ArrowDrawingModeRes is not null)
                 // TODO: could create the arrow once with endPos calculated from mouse position
@@ -721,7 +707,7 @@ namespace Game1
                 amount: Algorithms.EnergyPropor
                 (
                     wholeAmount: state.RadiantEnergyPile.Amount,
-                    propor: Industry?.SurfaceReflectance ?? state.ConsistsOf.Reflectance,
+                    propor: Industry?.SurfaceMaterial?.Reflectance(temperature: state.Temperature) ?? state.Composition.Reflectance(temperature: state.Temperature),
                     roundFunc: amount => reflectedRadiantEnergyRounder.Round
                     (
                         value: amount,

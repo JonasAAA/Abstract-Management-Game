@@ -5,18 +5,18 @@
 //namespace Game1.Industries
 //{
 //    [Serializable]
-//    public sealed class PlanetEnlargement : ProductiveIndustry
+//    public sealed class Mining : ProductiveIndustry
 //    {
 //        [Serializable]
 //        public new sealed class Factory : ProductiveIndustry.Factory, IBuildableFactory
 //        {
 //            public readonly UDouble reqWattsPerUnitSurface;
-//            public readonly UDouble addedResPerUnitSurfacePerSec;
+//            public readonly UDouble minedResPerUnitSurfacePerSec;
 
-//            public Factory(string Name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, UDouble addedResPerUnitSurfacePerSec)
+//            public Factory(string Name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, UDouble minedResPerUnitSurfacePerSec)
 //                : base
 //                (
-//                    industryType: IndustryType.PlanetEnlargement,
+//                    industryType: IndustryType.Mining,
 //                    Name: Name,
 //                    color: Color.Pink,
 //                    energyPriority: energyPriority,
@@ -24,7 +24,7 @@
 //                )
 //            {
 //                this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
-//                this.addedResPerUnitSurfacePerSec = addedResPerUnitSurfacePerSec;
+//                this.minedResPerUnitSurfacePerSec = minedResPerUnitSurfacePerSec;
 //            }
 
 //            public override GeneralParams CreateParams(IIndustryFacingNodeState state)
@@ -37,7 +37,7 @@
 //                => Tooltip(state: state);
 
 //            Industry IBuildableFactory.CreateIndustry(IIndustryFacingNodeState state)
-//                => new PlanetEnlargement(parameters: CreateParams(state: state));
+//                => new Mining(parameters: CreateParams(state: state));
 //        }
 
 //        [Serializable]
@@ -45,14 +45,14 @@
 //        {
 //            public UDouble ReqWatts
 //                => state.SurfaceLength * factory.reqWattsPerUnitSurface;
-//            public UDouble AddedResPerSec
-//                => state.SurfaceLength * factory.addedResPerUnitSurfacePerSec;
+//            public UDouble MinedResPerSec
+//                => state.SurfaceLength * factory.minedResPerUnitSurfacePerSec;
 
 //            public override string TooltipText
 //                => $"""
 //                {base.TooltipText}
 //                {nameof(ReqWatts)}: {ReqWatts}
-//                {nameof(AddedResPerSec)}: {AddedResPerSec}
+//                {nameof(MinedResPerSec)}: {MinedResPerSec}
 //                """;
 
 //            private readonly Factory factory;
@@ -65,13 +65,13 @@
 //        }
 
 //        [Serializable]
-//        private readonly record struct FutureShapeOutlineParams(GeneralParams Parameters) : Ring.IParamsWithInnerRadius
+//        private readonly record struct FutureShapeOutlineParams(GeneralParams Parameters) : Ring.IParamsWithOuterRadius
 //        {
 //            public MyVector2 Center
 //                => Parameters.state.Position;
 
-//            public UDouble InnerRadius
-//                => Parameters.state.Radius;
+//            public UDouble OuterRadius
+//                => Parameters.state.Radius + 1;
 //        }
 
 //        public override bool PeopleWorkOnTop
@@ -82,53 +82,57 @@
 
 //        private readonly GeneralParams parameters;
 //        /// <summary>
-//        /// Since each frame a non-integer amount will be added, and resources can only be moved in integer amounts,
-//        /// this represents the amount that is added, but not counted yet. Must be between 0 and 1.
+//        /// Since each frame a non-integer amount will be mined, and resources can only be moved in integer amounts,
+//        /// this represents the amount that is mined, but not counted yet. Must be between 0 and 1.
 //        /// </summary>
-//        private UDouble silentlyAddedBits;
-//        private UDouble curAddedResPerSec;
-//        private readonly InnerRing futureShapeOutline;
+//        private UDouble silentlyMinedBits;
+//        private UDouble minedResPerSec;
+//        private readonly OuterRing futureShapeOutline;
 
-//        private PlanetEnlargement(GeneralParams parameters)
+//        private Mining(GeneralParams parameters)
 //            : base(parameters: parameters, building: null)
 //        {
 //            this.parameters = parameters;
-//            silentlyAddedBits = 0;
-//            curAddedResPerSec = 0;
+//            silentlyMinedBits = 0;
+//            minedResPerSec = 0;
 //            futureShapeOutline = new(parameters: new FutureShapeOutlineParams(Parameters: parameters));
 //        }
 
-//        public override ResAmounts TargetStoredResAmounts()
-//            => new
+//        protected override BoolWithExplanationIfFalse CalculateIsBusy()
+//            => base.CalculateIsBusy() & BoolWithExplanationIfFalse.Create
 //            (
-//                resInd: parameters.state.ConsistsOf,
-//                amount: (ulong)(parameters.AddedResPerSec * 60)
+//                value: parameters.state.MaxAvailableResAmount > 0,
+//                explanationIfFalse: "the planet is fully mined out\n"
 //            );
 
-//        protected override PlanetEnlargement InternalUpdate(Propor workingPropor)
-//        {
-//            UDouble targetAddedRes = workingPropor * parameters.AddedResPerSec * (UDouble)CurWorldManager.Elapsed.TotalSeconds,
-//                resToAdd = targetAddedRes + silentlyAddedBits;
-//            ulong addedRes = (ulong)resToAdd;
-//            silentlyAddedBits = (UDouble)(resToAdd - addedRes);
-//            Debug.Assert(0 <= silentlyAddedBits && silentlyAddedBits <= 1);
+//        public override ResAmounts TargetStoredResAmounts()
+//            => ResAmounts.empty;
 
-//            ulong maxAddedRes = parameters.state.StoredResPile.Amount[parameters.state.ConsistsOf];
-//            if (addedRes > maxAddedRes)
+//        protected override Mining InternalUpdate(Propor workingPropor)
+//        {
+//            UDouble targetMinedRes = workingPropor * parameters.MinedResPerSec * (UDouble)CurWorldManager.Elapsed.TotalSeconds,
+//                resToMine = targetMinedRes + silentlyMinedBits;
+//            ulong minedRes = (ulong)resToMine;
+//            silentlyMinedBits = (UDouble)(resToMine - minedRes);
+//            Debug.Assert(0 <= silentlyMinedBits && silentlyMinedBits <= 1);
+
+//            ulong maxMinedRes = parameters.state.MaxAvailableResAmount;
+//            if (minedRes > maxMinedRes)
 //            {
-//                addedRes = maxAddedRes;
-//                silentlyAddedBits = 0;
+//                minedRes = maxMinedRes;
+//                silentlyMinedBits = 0;
 //            }
 
-//            curAddedResPerSec = MyMathHelper.Min(targetAddedRes, maxAddedRes) / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
-//            parameters.state.EnlargeFrom(source: parameters.state.StoredResPile, resAmount: addedRes);
+//            minedResPerSec = MyMathHelper.Min(targetMinedRes, maxMinedRes) / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
+//            parameters.state.MineTo(destin: parameters.state.StoredResPile, resAmount: minedRes);
 
 //            return this;
 //        }
 
 //        protected override string GetBusyInfo()
-//            => $"Adding {curAddedResPerSec:0.##} {parameters.state.ConsistsOf} per second\n";
+//            => $"Mining {minedResPerSec:0.##} {parameters.state.ConsistsOf} per second\n";
 
+//        // TODO: get rid of the duplication of this method code
 //        protected override UDouble ReqWatts()
 //            // this is correct as if more important people get full energy, this works
 //            // and if they don't, then the industry will get 0 energy anyway
@@ -138,11 +142,11 @@
 //                falseCase: () => UDouble.zero
 //            );
 
-//        public override void Draw(Color otherColor, Propor otherColorPropor)
+//        public override void DrawAfterPlanet()
 //        {
-//            base.Draw(otherColor, otherColorPropor);
+//            base.DrawAfterPlanet();
 
-//            futureShapeOutline.Draw(baseColor: parameters.state.ConsistsOf.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
+//            futureShapeOutline.Draw(color: Color.Black);
 //        }
 //    }
 //}

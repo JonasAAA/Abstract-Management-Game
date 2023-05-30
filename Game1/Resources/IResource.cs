@@ -1,12 +1,12 @@
 ﻿using Game1.Collections;
 
-﻿namespace Game1.Resources
+namespace Game1.Resources
 {
     public interface IResource
     {
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
-        public ulong Area { get; }
-        public SomeResAmounts<RawMaterial> RawMatComposition { get; }
+        //public Area Area { get; }
+        public RawMaterialsMix RawMatComposition { get; }
     }
 }

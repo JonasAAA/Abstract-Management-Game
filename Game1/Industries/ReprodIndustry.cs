@@ -14,11 +14,11 @@
 //            public readonly TimeSpan birthDuration;
 //            private readonly SomeResAmounts<IResource> buildingCostPerUnitSurface;
 
-//            public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerChild, UDouble maxCouplesPerUnitSurface, TimeSpan birthDuration, SomeResAmounts<IResource> buildingCostPerUnitSurface)
+//            public Factory(string Name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerChild, UDouble maxCouplesPerUnitSurface, TimeSpan birthDuration, SomeResAmounts<IResource> buildingCostPerUnitSurface)
 //                : base
 //                (
 //                    industryType: IndustryType.Reproduction,
-//                    name: name,
+//                    Name: Name,
 //                    color: Color.Green,
 //                    energyPriority: energyPriority,
 //                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
@@ -35,24 +35,24 @@
 //                this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
 //            }
 
-//            public override Params CreateParams(IIndustryFacingNodeState state)
+//            public override GeneralParams CreateParams(IIndustryFacingNodeState state)
 //                => new(state: state, factory: this);
 
 //            public SomeResAmounts<IResource> BuildingCost(IIndustryFacingNodeState state)
-//                => state.ApproxSurfaceLength * buildingCostPerUnitSurface;
+//                => state.SurfaceLength * buildingCostPerUnitSurface;
 
 //            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
 //                => new ReprodIndustry(parameters: CreateParams(state: state), building: building);
 //        }
 
 //        [Serializable]
-//        public new sealed class Params : ProductiveIndustry.Params
+//        public new sealed class GeneralParams : ProductiveIndustry.GeneralParams
 //        {
 //            public SomeResAmounts<IResource> BuildingCost
 //                => factory.BuildingCost(state: state);
 //            public readonly UDouble reqWattsPerChild;
 //            public ulong MaxCouples
-//                => (ulong)(state.ApproxSurfaceLength * factory.maxCouplesPerUnitSurface);
+//                => (ulong)(state.SurfaceLength * factory.maxCouplesPerUnitSurface);
 //            public readonly TimeSpan birthDuration;
 //            public override string TooltipText
 //                => $"""
@@ -66,7 +66,7 @@
 
 //            private readonly Factory factory;
 
-//            public Params(IIndustryFacingNodeState state, Factory factory)
+//            public GeneralParams(IIndustryFacingNodeState state, Factory factory)
 //                : base(state: state, factory: factory)
 //            {
 //                this.factory = factory;
@@ -83,9 +83,9 @@
 //                => realPeopleHere;
 //            public readonly UniqueQueue<VirtualPerson> unpairedPeople;
 
-//            private readonly Params parameters;
+//            private readonly GeneralParams parameters;
 
-//            public ReprodCenter(Params parameters, IEnergyDistributor energyDistributor)
+//            public ReprodCenter(GeneralParams parameters, IEnergyDistributor energyDistributor)
 //                : base(energyDistributor: energyDistributor, activityType: ActivityType.Reproduction, energyPriority: parameters.energyPriority, state: parameters.state)
 //            {
 //                this.parameters = parameters;
@@ -142,11 +142,11 @@
 //        protected override UDouble Height
 //            => CurWorldConfig.defaultIndustryHeight;
 
-//        private readonly Params parameters;
+//        private readonly GeneralParams parameters;
 //        private readonly ReprodCenter reprodCenter;
 //        private readonly TimedQueue<(VirtualPerson, VirtualPerson, ResPile childResPile)> birthQueue;
 
-//        private ReprodIndustry(Params parameters, Building building)
+//        private ReprodIndustry(GeneralParams parameters, Building building)
 //            : base(parameters: parameters, building: building)
 //        {
 //            this.parameters = parameters;

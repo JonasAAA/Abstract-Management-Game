@@ -62,8 +62,8 @@
             gravitConst = 1;
         public readonly Propor
             desperationMemoryPropor = (Propor).9;
-        public readonly ulong
-            minResAmountInPlanet = 100;
+        public readonly Area
+            minPlanetArea = Area.CreateFromMetSq(valueInMetSq: 100);
         public readonly UDouble
             defaultIndustryHeight = 500;
         public readonly ulong
@@ -94,9 +94,10 @@
 
         public readonly UDouble stefanBoltzmannConstant = (UDouble).0000001;
         public readonly ulong temperatureExponentInStefanBoltzmannLaw = 4;
+        public readonly Temperature
+            allHeatMaxTemper = Temperature.CreateFromK(valueInK: 500),
+            halfHeatTemper = Temperature.CreateFromK(valueInK: 2000);
         public readonly UDouble
-            allHeatMaxTemper = 500,
-            halfHeatTemper = 2000,
             heatEnergyDropoffExponent = 2,
             reactionStrengthCoeff = (UDouble)0.000000000001;
         public readonly Propor

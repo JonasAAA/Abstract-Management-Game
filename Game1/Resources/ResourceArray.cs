@@ -17,9 +17,9 @@
 //                    {
 //                        0 => new BasicRes
 //                        (
-//                            name: "iron",
+//                            Name: "iron",
 //                            resInd: (BasicResInd)resInd,
-//                            mass: Mass.CreateFromKg(valueInKg: 2),
+//                            miningMass: Mass.CreateFromKg(valueInKg: 2),
 //                            heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 3),
 //                            area: 1,
 //                            reflectance: (Propor).2,
@@ -28,9 +28,9 @@
 //                        ),
 //                        1 => new BasicRes
 //                        (
-//                            name: "stone",
+//                            Name: "stone",
 //                            resInd: (BasicResInd)resInd,
-//                            mass: Mass.CreateFromKg(valueInKg: 1),
+//                            miningMass: Mass.CreateFromKg(valueInKg: 1),
 //                            heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 4),
 //                            area: 2,
 //                            reflectance: (Propor).8,
@@ -43,7 +43,7 @@
 //                    {
 //                        2 => new NonBasicRes
 //                        (
-//                            name: "bla1",
+//                            Name: "bla1",
 //                            resInd: (NonBasicResInd)resInd,
 //                            ingredients: new ResAmounts()
 //                            {
@@ -53,7 +53,7 @@
 //                        ),
 //                        3 => new NonBasicRes
 //                        (
-//                            name: "bla2",
+//                            Name: "bla2",
 //                            resInd: (NonBasicResInd)resInd,
 //                            ingredients: new ResAmounts()
 //                            {
@@ -64,7 +64,7 @@
 //                        ),
 //                        4 => new NonBasicRes
 //                        (
-//                            name: "bla3",
+//                            Name: "bla3",
 //                            resInd: (NonBasicResInd)resInd,
 //                            ingredients: new ResAmounts()
 //                            {

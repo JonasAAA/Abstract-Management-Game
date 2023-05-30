@@ -9,7 +9,7 @@
 
 //        public Industry CreateIndustry(IIndustryFacingNodeState state, Building building);
 
-//        public Industry.Params CreateParams(IIndustryFacingNodeState state);
+//        public Industry.GeneralParams CreateParams(IIndustryFacingNodeState state);
 
 //        public SomeResAmounts<IResource> BuildingCost(IIndustryFacingNodeState state);
 //    }

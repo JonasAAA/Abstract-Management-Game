@@ -13,8 +13,8 @@
 //            public readonly UDouble floorSpacePerUnitSurface;
 //            private readonly SomeResAmounts<IResource> buildingCostPerUnitSurface;
 
-//            public Factory(string name, UDouble floorSpacePerUnitSurface, SomeResAmounts<IResource> buildingCostPerUnitSurface)
-//                : base(name: name, color: colorConfig.houseIndustryColor)
+//            public Factory(string Name, UDouble floorSpacePerUnitSurface, SomeResAmounts<IResource> buildingCostPerUnitSurface)
+//                : base(Name: Name, color: colorConfig.houseIndustryColor)
 //            {
 //                this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
 //                if (buildingCostPerUnitSurface.IsEmpty())
@@ -22,11 +22,11 @@
 //                this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
 //            }
 
-//            public override Params CreateParams(IIndustryFacingNodeState state)
+//            public override GeneralParams CreateParams(IIndustryFacingNodeState state)
 //                => new(state: state, factory: this);
 
 //            public SomeResAmounts<IResource> BuildingCost(IIndustryFacingNodeState state)
-//                => state.ApproxSurfaceLength * buildingCostPerUnitSurface;
+//                => state.SurfaceLength * buildingCostPerUnitSurface;
 
 //            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
 //            {
@@ -37,10 +37,10 @@
 //        }
 
 //        [Serializable]
-//        public new sealed class Params : Industry.Params
+//        public new sealed class GeneralParams : Industry.GeneralParams
 //        {
 //            public UDouble FloorSpace
-//                => state.ApproxSurfaceLength * factory.floorSpacePerUnitSurface;
+//                => state.SurfaceLength * factory.floorSpacePerUnitSurface;
 //            public override string TooltipText
 //                => $"""
 //                {base.TooltipText}
@@ -50,7 +50,7 @@
 
 //            private readonly Factory factory;
 
-//            public Params(IIndustryFacingNodeState state, Factory factory)
+//            public GeneralParams(IIndustryFacingNodeState state, Factory factory)
 //                : base(state: state, factory: factory)
 //                => this.factory = factory;
 //        }
@@ -58,9 +58,9 @@
 //        [Serializable]
 //        private sealed class Housing : ActivityCenter
 //        {
-//            private readonly Params parameters;
+//            private readonly GeneralParams parameters;
 
-//            public Housing(Params parameters, IEnergyDistributor energyDistributor)
+//            public Housing(GeneralParams parameters, IEnergyDistributor energyDistributor)
 //                : base(energyDistributor: energyDistributor, activityType: ActivityType.Unemployed, energyPriority: EnergyPriority.leastImportant, state: parameters.state)
 //                => this.parameters = parameters;
 
@@ -111,7 +111,7 @@
 
 //        private readonly Housing housing;
 
-//        private House(Params parameters, Building building)
+//        private House(GeneralParams parameters, Building building)
 //            : base(parameters: parameters, building: building)
 //            => housing = new(parameters: parameters, energyDistributor: combinedEnergyConsumer);
 

@@ -69,7 +69,7 @@ namespace Game1.Shapes
             );
         }
 
-        /// <param name="toLeft">is start top, end is bottom</param>
+        /// <param Name="toLeft">is start top, end is bottom</param>
         private static void DrawOutline(MyVector2 Start, MyVector2 End, Color Color, bool toLeft = false)
         {
             MyVector2 direction = MyVector2.Normalized(End - Start);

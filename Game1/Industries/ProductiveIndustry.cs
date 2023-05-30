@@ -15,8 +15,8 @@
 //            public readonly EnergyPriority energyPriority;
 //            public readonly UDouble reqSkillPerUnitSurface;
 
-//            protected Factory(IndustryType industryType, Color color, string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface)
-//                : base(name: name, color: color)
+//            protected Factory(IndustryType industryType, Color color, string Name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface)
+//                : base(Name: Name, color: color)
 //            {
 //                this.industryType = industryType;
 //                if ((industryType is IndustryType.PowerPlant && energyPriority != EnergyPriority.mostImportant)
@@ -30,12 +30,12 @@
 //        }
 
 //        [Serializable]
-//        public new abstract class Params : Industry.Params
+//        public new abstract class GeneralParams : Industry.GeneralParams
 //        {
 //            public readonly IndustryType industryType;
 //            public readonly EnergyPriority energyPriority;
 //            public UDouble ReqSkill
-//                => state.ApproxSurfaceLength * factory.reqSkillPerUnitSurface;
+//                => state.SurfaceLength * factory.reqSkillPerUnitSurface;
 
 //            public override string TooltipText
 //                => $"""
@@ -47,7 +47,7 @@
 
 //            private readonly Factory factory;
 
-//            public Params(IIndustryFacingNodeState state, Factory factory)
+//            public GeneralParams(IIndustryFacingNodeState state, Factory factory)
 //                : base(state: state, factory: factory)
 //            {
 //                this.factory = factory;
@@ -65,14 +65,14 @@
 
 //            private UDouble CurUnboundedSkillPropor
 //                => realPeopleHere.Stats.totalProductivities[parameters.industryType] / parameters.ReqSkill;
-//            private readonly Params parameters;
+//            private readonly GeneralParams parameters;
 //            private Score desperationScore;
 //            /// <summary>
 //            /// What propor is each person working
 //            /// </summary>
 //            private Propor personalWorkingPropor;
 
-//            public Employer(Params parameters, IEnergyDistributor energyDistributor)
+//            public Employer(GeneralParams parameters, IEnergyDistributor energyDistributor)
 //                : base(energyDistributor: energyDistributor, activityType: ActivityType.Working, energyPriority: parameters.energyPriority, state: parameters.state)
 //            {
 //                this.parameters = parameters;
@@ -222,7 +222,7 @@
 
 //        protected readonly HistoricRounder reqEnergyHistoricRounder;
 
-//        private readonly Params parameters;
+//        private readonly GeneralParams parameters;
 //        private readonly Employer employer;
 //        private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
 //        /// <summary>
@@ -231,7 +231,7 @@
 //        private Propor allocEnergyPropor;
 //        private readonly CachedValue<BoolWithExplanationIfFalse> isBusyCached;
 
-//        protected ProductiveIndustry(Params parameters, Building? building)
+//        protected ProductiveIndustry(GeneralParams parameters, Building? building)
 //            : base(parameters: parameters, building: building)
 //        {
 //            this.parameters = parameters;
@@ -290,7 +290,7 @@
 //            //    powerCase: () => $"have {allocEnergyPropor * 100.0:0.}% of required energy\n",
 //            //    peopleCase: employer.GetInfo
 //            //) + 
-//            $"{parameters.name}\n" + IsBusy().SwitchExpression
+//            $"{parameters.Name}\n" + IsBusy().SwitchExpression
 //            (
 //                trueCase: GetBusyInfo,
 //                falseCase: explanation => "Idle because\n" + explanation

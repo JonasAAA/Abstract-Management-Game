@@ -8,7 +8,7 @@ namespace Game1.ContentHelpers
     [Serializable]
     public readonly struct FullValidMapInfo
     {
-        public static Result<FullValidMapInfo, EfficientReadOnlyHashSet<string>> Create(ValidMapInfo mapInfo)
+        public static Result<FullValidMapInfo, TextErrors> Create(ValidMapInfo mapInfo)
             // The commented syntax will never work for what I want as it can't accumulate errors.
             // It calls SelectMany functions assuming that subsequent from clauses depend on the results of the previous one.
             // If indeed subsequent calls depend on previous ones, then can't accumulate errors as is some from statement fails, all

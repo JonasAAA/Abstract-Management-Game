@@ -3,9 +3,9 @@
 namespace Game1.Lighting
 {
     [Serializable]
-    public sealed class LightCatchingDisk : Disk, ILightBlockingObject
+    public sealed class LightBlockingDisk : Disk, ILightBlockingObject
     {
-        public LightCatchingDisk(IParams parameters)
+        public LightBlockingDisk(IParams parameters)
             : base(parameters: parameters)
         { }
 
@@ -39,7 +39,7 @@ namespace Game1.Lighting
             // This simpler calculation doesn't work for some reason
             //double halfArcSin = parameters.Radius / dist,
             //    mainAngle = MyMathHelper.Atan2(y: (Center - lightPos).Y, x: (Center - lightPos).Y);
-            //return new AngleArc.Params
+            //return new AngleArc.GeneralParams
             //(
             //    startAngle: MyMathHelper.WrapAngle(mainAngle - MyMathHelper.Asin(halfArcSin)),
             //    endAngle: MyMathHelper.WrapAngle(mainAngle + MyMathHelper.Asin(halfArcSin)),

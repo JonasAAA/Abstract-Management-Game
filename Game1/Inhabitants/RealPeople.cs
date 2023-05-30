@@ -77,7 +77,7 @@ namespace Game1.Inhabitants
                 personalAction(person);
         }
 
-        /// <param name="updatePersonSkillsParams">if null, will use default update</param>
+        /// <param Name="updatePersonSkillsParams">if null, will use default update</param>
         public void Update(UpdatePersonSkillsParams? updatePersonSkillsParams)
         {
             thermalBody.TransformAllEnergyToHeatAndTransferFrom(source: allocElectricalEnergy);

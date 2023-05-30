@@ -22,7 +22,7 @@ namespace Game1.Lighting
             this.color = color;
         }
 
-        /// <param name="strength">a positive double which determins the HUDRadius of the lit Area</param>
+        /// <param Name="strength">a positive double which determins the HUDRadius of the lit Area</param>
         public void Update(UDouble strength, MyVector2 center, List<MyVector2> vertices)
         {
             if (strength.IsCloseTo(other: 0))

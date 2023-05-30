@@ -430,6 +430,8 @@ namespace Game1
             {
                 lightManager.Update();
 
+                CurGraph.PreEnergyDistribUpdate();
+
                 energyManager.DistributeEnergy
                 (
                     nodeIDs: from node in CurGraph.Nodes

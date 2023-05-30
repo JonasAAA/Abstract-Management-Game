@@ -93,6 +93,18 @@ namespace Game1
                 return sum / count;
         }
 
+        public static UDouble WeightedAverage<TSource>(this IEnumerable<TSource> source, Func<TSource, (UDouble weight, UDouble value)> selector)
+        {
+            UDouble weightSum = 0, valueSum = 0;
+            foreach (var item in source)
+            {
+                var (weight, value) = selector(item);
+                weightSum += weight;
+                valueSum += value;
+            }
+            return valueSum / weightSum;
+        }
+
         public static IEnumerable<T> Clone<T>(this IEnumerable<T> source)
             => source.ToArray();
 

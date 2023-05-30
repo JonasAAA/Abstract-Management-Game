@@ -32,7 +32,7 @@ namespace Game1
         public void Update(TimeSpan duration, Propor workingPropor)
             => timedQueue.Update(duration: duration, workingPropor: workingPropor);
 
-        /// <param name="personalUpdate"> if null, will use default update</param>
+        /// <param Name="personalUpdate"> if null, will use default update</param>
         public void UpdatePeople(UpdatePersonSkillsParams? personalUpdate)
         {
             Stats = RealPeopleStats.empty;

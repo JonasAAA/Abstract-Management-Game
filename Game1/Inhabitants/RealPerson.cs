@@ -162,7 +162,7 @@ namespace Game1.Inhabitants
         public void UpdateAllocEnergyPropor(Propor newAllocEnergyPropor)
             => Stats = Stats with { AllocEnergyPropor = newAllocEnergyPropor };
 
-        /// <param name="updateSkillsParams">if null, will use default update</param>
+        /// <param Name="updateSkillsParams">if null, will use default update</param>
         public void Update(UpdatePersonSkillsParams? updateSkillsParams, Propor allocEnergyPropor)
         {
             var timeCoeff = Stats.totalReqWatts == 0 ? Propor.empty : allocEnergyPropor;

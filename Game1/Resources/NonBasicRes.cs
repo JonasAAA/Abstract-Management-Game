@@ -15,9 +15,9 @@
 //        public readonly NonBasicResInd resInd;
 //        public readonly ResAmounts ingredients;
 
-//        public NonBasicRes(string name, NonBasicResInd resInd, ResAmounts ingredients)
+//        public NonBasicRes(string Name, NonBasicResInd resInd, ResAmounts ingredients)
 //        {
-//            Name = name;
+//            Name = Name;
 //            this.resInd = resInd;
 //            this.ingredients = ingredients;
 //            Mass = Mass.zero;

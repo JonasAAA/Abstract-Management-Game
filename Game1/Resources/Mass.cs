@@ -3,7 +3,7 @@
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly record struct Mass : IAdditionOperators<Mass, Mass, Mass>, IAdditiveIdentity<Mass, Mass>, IMultiplyOperators<Mass, ulong, Mass>, IMultiplicativeIdentity<Mass, ulong>
+    public readonly record struct Mass : IOrderedVector<Mass, ulong>
     {
         public static readonly Mass zero;
 
@@ -42,5 +42,17 @@ namespace Game1.Resources
 
         public static Mass operator *(ulong left, Mass right)
             => right * left;
+
+        public static bool operator <=(Mass left, Mass right)
+            => left.valueInKg <= right.valueInKg;
+
+        public static bool operator >=(Mass left, Mass right)
+            => left.valueInKg >= right.valueInKg;
+
+        public static bool operator <(Mass left, Mass right)
+            => left.valueInKg < right.valueInKg;
+
+        public static bool operator >(Mass left, Mass right)
+            => left.valueInKg > right.valueInKg;
     }
 }

@@ -6,7 +6,7 @@ namespace Game1.ContentHelpers
     [Serializable]
     public readonly struct FullValidStartingInfo
     {
-        public static Result<FullValidStartingInfo, EfficientReadOnlyHashSet<string>> Create(ValidStartingInfo startingInfo)
+        public static Result<FullValidStartingInfo, TextErrors> Create(ValidStartingInfo startingInfo)
         {
             return Result.Lift<string, string, FullValidStartingInfo, string>
             (

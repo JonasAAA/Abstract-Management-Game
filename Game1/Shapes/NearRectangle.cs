@@ -6,7 +6,7 @@ namespace Game1.Shapes
     public abstract class NearRectangle : Shape
     {
         // can do:
-        //public abstract class Params
+        //public abstract class GeneralParams
         //{
         //    public abstract void Make(double width, double height);
         //}

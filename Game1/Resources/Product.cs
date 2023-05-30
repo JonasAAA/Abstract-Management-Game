@@ -1,6 +1,5 @@
-﻿using System.Collections.Immutable;
-using Game1.Collections;
-﻿using static Game1.WorldManager;
+﻿using Game1.Collections;
+using static Game1.WorldManager;
 
 namespace Game1.Resources
 {
@@ -10,49 +9,84 @@ namespace Game1.Resources
         [Serializable]
         public sealed class Params
         {
-            private readonly List<(Params prodParams, ulong amount)> ingredProdToAmounts;
-            private readonly List<(MaterialPurpose purpose, ulong area)> ingredMatPurposeToAreas;
+            public EfficientReadOnlyDictionary<IMaterialPurpose, Area> MaterialTargetAreas
+                => ingredients.materialTargetAreas;
 
-            public Params(List<(Params prodParams, ulong amount)> ingredProdToAmounts, List<(MaterialPurpose purpose, ulong area)> ingredMatPurposeToAreas)
+            public readonly GeneralProdAndMatAmounts ingredients;
+            public readonly Area targetArea;
+            public readonly MechComplexity complexity;
+            //private readonly HashSet<IMaterialPurpose> neededPurposes;
+            //private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> materialPropors;
+            //private readonly Area targetArea;
+
+            public Params(GeneralProdAndMatAmounts ingredients)
             {
-                this.ingredProdToAmounts = ingredProdToAmounts;
-                this.ingredMatPurposeToAreas = ingredMatPurposeToAreas;
+                this.ingredients = ingredients;
+                targetArea = ingredients.targetArea;
+                complexity = ingredients.complexity;
+                //materialTargetAreas = generalRecipe.materialTargetAreas;
+                //materialPropors = generalRecipe.materialPropors;
+
+                var neededPurposes =
+                    (from matPurpAndTargetArea in ingredients.materialTargetAreas
+                     where !matPurpAndTargetArea.Value.IsZero
+                     select matPurpAndTargetArea.Key).ToHashSet();
+
+                Debug.Assert
+                (
+                    CreateProduct(materialChoices: MaterialChoices.empty).SwitchExpression
+                    (
+                        ok: _ => EfficientReadOnlyHashSet<IMaterialPurpose>.empty,
+                        error: errors => errors
+                    ).SetEquals(neededPurposes)
+                );
+                if (neededPurposes.Count is 0)
+                    throw new ArgumentException("Product should require at least one material to be created");
             }
 
-            public Result<Product, IEnumerable<MaterialPurpose>> CreateProduct(Dictionary<MaterialPurpose, Material> materialChoices)
-                => Result.CallFunc
+            public Result<Product, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateProduct(MaterialChoices materialChoices)
+            {
+                MaterialChoices neededMaterialChoices = materialChoices.FilterOutUnneededMaterials(ingredients: ingredients);
+                return Result.Lift
                 (
-                    func: (productIngredients, materialIngredients) => new Product(parameters: this, materialChoices: materialChoices, productIngredients, materialIngredients),
-                    arg1: ingredProdToAmounts.FlatMap
+                    func: (arg1, arg2) => new Product(parameters: this, materialChoices: neededMaterialChoices, productIngredients: new(arg1), materialIngredients: new(arg2)),
+                    arg1: ingredients.ingredProdToAmounts.SelectMany
                     (
-                        func: ingredProdToAmount => ingredProdToAmount.prodParams.CreateProduct(materialChoices: materialChoices).Map
+                        func: ingredProdToAmount => ingredProdToAmount.prodParams.CreateProduct(materialChoices: neededMaterialChoices).Select
                         (
                             func: ingredProd => new ResAmount<Product>(ingredProd, ingredProdToAmount.amount)
                         )
-                    ).Map(prodAndAmounts => new SomeResAmounts<Product>(prodAndAmounts)),
-                    arg2: ingredMatPurposeToAreas.FlatMap<(MaterialPurpose purpose, ulong area), ResAmount<Material>, MaterialPurpose>
+                    ),
+                    arg2: ingredients.ingredMatPurposeToTargetAreas.SelectMany<KeyValuePair<IMaterialPurpose, Area>, ResAmount<Material>, IMaterialPurpose>
                     (
-                        func: ingredMatPurposeToArea => materialChoices.GetValueOrDefault(ingredMatPurposeToArea.purpose) switch
+                        func: ingredMatPurposeToArea => neededMaterialChoices.GetValueOrDefault(ingredMatPurposeToArea.Key) switch
                         {
-                            null => new(errors: new[] { ingredMatPurposeToArea.purpose }),
-                            Material material => new(ok: new ResAmount<Material>(material, amount: material.GetAmountFromArea(area: ingredMatPurposeToArea.area)))
+                            null => new(errors: new(value: ingredMatPurposeToArea.Key)),
+                            Material material => new(ok: new ResAmount<Material>(material, amount: ResAndIndustryAlgos.GatMaterialAmountFromArea(material: material, area: ingredMatPurposeToArea.Value)))
                         }
-                    ).Map(matAndAmounts => new SomeResAmounts<Material>(matAndAmounts))
+                    )
                 );
+            }
         }
 
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
-        public ulong Area { get; }
-        public SomeResAmounts<RawMaterial> RawMatComposition { get; }
+        //public Area Area { get; }
+        public Area TargetArea { get; }
+        public RawMaterialsMix RawMatComposition { get; }
+        /// <summary>
+        /// If tempearature is any higher, the product is destroyed, i.e. turned into garbage.
+        /// </summary>
+        public Temperature DestructionPoint { get; }
+        public ResRecipe Recipe { get; }
 
         private readonly Params parameters;
-        private readonly Dictionary<MaterialPurpose, Material> materialChoices;
+        private readonly MaterialChoices materialChoices;
 
         private readonly SomeResAmounts<Product> productIngredients;
         private readonly SomeResAmounts<Material> materialIngredients;
 
-        private Product(Params parameters, Dictionary<MaterialPurpose, Material> materialChoices, SomeResAmounts<Product> productIngredients, SomeResAmounts<Material> materialIngredients)
+        private Product(Params parameters, MaterialChoices materialChoices, SomeResAmounts<Product> productIngredients, SomeResAmounts<Material> materialIngredients)
         {
             this.parameters = parameters;
             this.materialChoices = materialChoices;
@@ -60,10 +94,24 @@ namespace Game1.Resources
             this.materialIngredients = materialIngredients;
             Mass = productIngredients.Mass() + materialIngredients.Mass();
             HeatCapacity = productIngredients.HeatCapacity() + materialIngredients.HeatCapacity();
-            Area = productIngredients.Area() + materialIngredients.Area();
+            //Area = arg1.Area() + arg2.Area();
             RawMatComposition = productIngredients.RawMatComposition() + materialIngredients.RawMatComposition();
+            DestructionPoint = ResAndIndustryAlgos.DestructionPoint
+            (
+                ingredients: parameters.ingredients,
+                materialChoices: materialChoices
+            );
 
+            TargetArea = parameters.targetArea;
+
+            // Need this before creating the recipe since to create SomeResAmounts you need all used resources to be registered first
             CurResConfig.AddRes(resource: this);
+
+            Recipe = ResRecipe.Create
+            (
+                ingredients: productIngredients.Generalize() + materialIngredients.Generalize(),
+                results: new(res: this, amount: 1)
+            )!.Value;
         }
     }
 }

@@ -40,6 +40,12 @@ namespace Game1
             return isOk? ok(okValue) : error(errorValues);
         }
 
+        public void PerformAction(Action<TOk> action)
+        {
+            if (isOk)
+                action(okValue);
+        }
+
         public Result<T, TErrors> Select<T>(Func<TOk, T> func)
         {
             Debug.Assert(isInitialized);
@@ -72,12 +78,12 @@ namespace Game1
 
     public static class Result
     {
-        //public static Result<IEnumerable<TOk>, TErrors> FlatMap<TItem, TOk, TErrors>(this IEnumerable<TItem> items, Func<TItem, Result<TOk, TErrors>> func)
+        //public static Result<IEnumerable<TOk>, TErrors> FlatMap<TItem, TOk, TErrors>(this IEnumerable<TItem> items, Func<TItem, Result<TOk, TErrors>> action)
         //{
         //    List<TOk> results = new();
         //    foreach (var item in items)
         //    {
-        //        (TErrors? errors, bool foundError) = func(item).SwitchExpression
+        //        (TErrors? errors, bool foundError) = action(item).SwitchExpression
         //        (
         //            ok: result => { results.Add(result); return (errors: default(TErrors), foundError: false); },
         //            error: errors => (errors: errors, foundError: true)

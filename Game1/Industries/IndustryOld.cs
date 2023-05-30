@@ -19,20 +19,20 @@
 //            public string Name { get; }
 //            public Color Color { get; }
 
-//            protected Factory(string name, Color color)
+//            protected Factory(string Name, Color color)
 //            {
-//                Name = name;
+//                Name = Name;
 //                Color = color;
 //            }
 
-//            public abstract Params CreateParams(IIndustryFacingNodeState state);
+//            public abstract GeneralParams CreateParams(IIndustryFacingNodeState state);
 
 //            protected ITooltip Tooltip(IIndustryFacingNodeState state)
 //                => (CreateParams(state: state) as IWithTooltip).Tooltip;
 //        }
 
 //        [Serializable]
-//        public abstract class Params : IWithTooltip
+//        public abstract class GeneralParams : IWithTooltip
 //        {
 //            [Serializable]
 //            private sealed class TextTooltip : TextTooltipBase
@@ -40,26 +40,26 @@
 //                protected override string Text
 //                    => parameters.TooltipText;
 
-//                private readonly Params parameters;
+//                private readonly GeneralParams parameters;
 
-//                public TextTooltip(Params parameters)
+//                public TextTooltip(GeneralParams parameters)
 //                    => this.parameters = parameters;
 //            }
 
 //            public readonly IIndustryFacingNodeState state;
-//            public readonly string name;
+//            public readonly string Name;
 //            public readonly Color color;
 
 //            private readonly ITooltip tooltip;
 
 //            public virtual string TooltipText
-//                => $"{nameof(name)}: {name}";
+//                => $"{nameof(Name)}: {Name}";
 
-//            public Params(IIndustryFacingNodeState state, Factory factory)
+//            public GeneralParams(IIndustryFacingNodeState state, Factory factory)
 //            {
 //                this.state = state;
 
-//                name = factory.Name;
+//                Name = factory.Name;
 //                color = factory.Color;
 //                tooltip = new TextTooltip(parameters: this);
 //            }
@@ -89,10 +89,10 @@
 //            => deleted;
 
 //        public ILightBlockingObject? LightBlockingObject
-//            => lightCatchingDisk.Radius.IsCloseTo(other: parameters.state.Radius) switch
+//            => lightBlockingDisk.Radius.IsCloseTo(other: parameters.state.Radius) switch
 //            {
 //                true => null,
-//                false => lightCatchingDisk
+//                false => lightBlockingDisk
 //            };
 
 //        public abstract bool PeopleWorkOnTop { get; }
@@ -122,11 +122,11 @@
 //        private readonly Building? building;
 //        private bool isDeleted;
 //        private readonly Event<IDeletedListener> deleted;
-//        private readonly LightCatchingDisk lightCatchingDisk;
+//        private readonly LightCatchingDisk lightBlockingDisk;
 //        private readonly TextBox textBox;
-//        private readonly Params parameters;
+//        private readonly GeneralParams parameters;
 
-//        protected Industry(Params parameters, Building? building)
+//        protected Industry(GeneralParams parameters, Building? building)
 //        {
 //            this.parameters = parameters;
 //            this.building = building;
@@ -139,7 +139,7 @@
 //            isDeleted = false;
 //            deleted = new();
 
-//            lightCatchingDisk = new(parameters: new LightCatchingDiskParams(Industry: this));
+//            lightBlockingDisk = new(parameters: new LightCatchingDiskParams(Industry: this));
 
 //            textBox = new();
 //            UIPanel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
@@ -196,10 +196,10 @@
 
 //        public abstract string GetInfo();
 
-//        public virtual void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)
+//        public virtual void Draw(Color otherColor, Propor otherColorPropor)
 //        {
 //            if (LightBlockingObject is not null)
-//                lightCatchingDisk.Draw(baseColor: parameters.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
+//                lightBlockingDisk.Draw(baseColor: parameters.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
 //        }
 
 //        public virtual void DrawAfterPlanet()

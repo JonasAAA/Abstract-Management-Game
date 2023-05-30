@@ -57,7 +57,21 @@ namespace Game1.Resources
                 thermalBody: thermalBody
             );
 
-        public static ResPile? CreateIfHaveEnough(ResPile source, AllResAmounts amount)
+        public static ResPile? CreateIfHaveEnough(ResPile source, SomeResAmounts<IResource> amount)
+            => CreateIfHaveEnough(source: source, amount: AllResAmounts.CreateFromNoMix(resAmounts: amount));
+
+        public static ResPile? CreateIfHaveEnough(ResPile source, RawMaterialsMix amount)
+            => CreateIfHaveEnough(source: source, amount: AllResAmounts.CreateFromOnlyMix(rawMatsMix: amount));
+
+        //public static ResPile? CreateIfHaveEnough(ResPile source, AllResAmounts amount)
+        //{
+        //    var newPile = ResPileInternal.CreateIfHaveEnough(source: source.resPileInternal, amount: amount);
+        //    if (newPile is null)
+        //        return null;
+        //    return new(resPileInternal: newPile, thermalBody: source.thermalBody);
+        //}
+
+        private static ResPile? CreateIfHaveEnough(ResPile source, AllResAmounts amount)
         {
             var newPile = ResPileInternal.CreateIfHaveEnough(source: source.resPileInternal, amount: amount);
             if (newPile is null)
@@ -129,7 +143,7 @@ namespace Game1.Resources
             resPileInternal.TransformFrom(source: source.resPileInternal, recipe: recipe);
         }
 
-        public void TransformResToHeatEnergy(AllResAmounts amount)
-            => thermalBody.TransformResToHeatEnergy(source: resPileInternal, amount: amount);
+        public void TransformResToHeatEnergy(RawMaterialsMix rawMatsMix)
+            => thermalBody.TransformResToHeatEnergy(source: resPileInternal, rawMatsMix: rawMatsMix);
     }
 }

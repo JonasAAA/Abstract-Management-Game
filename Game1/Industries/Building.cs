@@ -7,7 +7,7 @@
 //        public SomeResAmounts<IResource> Cost
 //            => resPile.Amount;
 
-//        public readonly Mass mass;
+//        public readonly Mass miningMass;
 
 //        private readonly ResPile resPile;
 
@@ -16,7 +16,7 @@
 //            if (resSource.Amount.IsEmpty())
 //                throw new ArgumentException();
 //            resPile = resSource;
-//            mass = Cost.Mass();
+//            miningMass = Cost.Mass();
 //        }
 
 //        public void Delete(ResPile resDestin)

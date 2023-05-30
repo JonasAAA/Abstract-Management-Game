@@ -14,13 +14,13 @@
 //        public readonly Color color;
 //        private readonly ResAmounts basicIngredients;
 
-//        public BasicRes(string name, BasicResInd resInd, Mass mass, HeatCapacity heatCapacity, ulong area, Propor reflectance, Propor emissivity, Color color)
+//        public BasicRes(string Name, BasicResInd resInd, Mass miningMass, HeatCapacity heatCapacity, ulong area, Propor reflectance, Propor emissivity, Color color)
 //        {
-//            Name = name;
+//            Name = Name;
 //            this.resInd = resInd;
-//            if (mass.IsZero)
+//            if (miningMass.IsZero)
 //                throw new ArgumentOutOfRangeException();
-//            Mass = mass;
+//            Mass = miningMass;
 //            if (heatCapacity.IsZero)
 //                throw new ArgumentOutOfRangeException();
 //            HeatCapacity = heatCapacity;

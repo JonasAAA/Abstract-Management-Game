@@ -1,5 +1,5 @@
 ﻿using Game1.Collections;
-﻿using System.IO;
+using System.IO;
 using System.Numerics;
 
 namespace Game1
@@ -207,35 +207,37 @@ namespace Game1
             }
         }
 
-        public static ulong MatterToConvertToEnergy(RawMaterial rawMat, ulong resAmount, UDouble temperatureInK, UDouble surfaceGravity, TimeSpan duration,
+        public static RawMaterialsMix MatterToConvertToEnergy(RawMaterialsMix composition, Temperature temperature, UDouble surfaceGravity, TimeSpan duration,
             Func<decimal, ulong> massInKgRoundFunc, UDouble reactionStrengthCoeff, Propor nonConvertedMassForUnitReactionStrengthUnitTime)
         {
-#warning test this
-            double density = (double)rawMat.Area / rawMat.Mass.valueInKg,
-                reactionStrength = reactionStrengthCoeff * density * surfaceGravity * temperatureInK;
-            var nonConvertedMassPropor = (decimal)MyMathHelper.Pow(@base: (UDouble)nonConvertedMassForUnitReactionStrengthUnitTime, exponent: reactionStrength * duration.TotalSeconds);
-            ulong matterToConvert = resAmount - massInKgRoundFunc(nonConvertedMassPropor * resAmount);
-            return matterToConvert;
+            throw new NotImplementedException();
+//            "THIS method could convert raw materials to other raw materials and emit energy in the process
+//#warning test this
+//            double density = (double)rawMat.Area.valueInMetSq / rawMat.Mass.valueInKg,
+//                reactionStrength = reactionStrengthCoeff * density * surfaceGravity * temperature.valueInK;
+//            var nonConvertedMassPropor = (decimal)MyMathHelper.Pow(@base: (UDouble)nonConvertedMassForUnitReactionStrengthUnitTime, exponent: reactionStrength * duration.TotalSeconds);
+//            ulong matterToConvert = resAmount - massInKgRoundFunc(nonConvertedMassPropor * resAmount);
+//            return matterToConvert;
         }
 
         /// <summary>
         /// Implements Stefan-Boltzmann law https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law to calculate how much energy in total to dissipate
         /// The splitting into heat energy and radiant energy algorithm is my creation
         /// </summary>
-        public static (HeatEnergy heatEnergy, RadiantEnergy radiantEnergy) EnergiesToDissipate(HeatEnergy heatEnergy, UDouble surfaceLength, Propor emissivity, UDouble temperatureInK,
+        public static (HeatEnergy heatEnergy, RadiantEnergy radiantEnergy) EnergiesToDissipate(HeatEnergy heatEnergy, UDouble surfaceLength, Propor emissivity, Temperature temperature,
             Func<decimal, ulong> energyInJToDissipateRoundFunc, UDouble stefanBoltzmannConstant, ulong temperatureExponent, Func<decimal, ulong> heatEnergyInJRoundFunc,
-            UDouble allHeatMaxTemper, UDouble halfHeatTemper, UDouble heatEnergyDropoffExponent)
+            Temperature allHeatMaxTemper, Temperature halfHeatTemper, UDouble heatEnergyDropoffExponent)
         {
 #warning test this
             ulong energyInJToDissipate = MyMathHelper.Min
             (
                 heatEnergy.ValueInJ,
-                energyInJToDissipateRoundFunc((decimal)(surfaceLength * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: temperatureInK, exponent: temperatureExponent)))
+                energyInJToDissipateRoundFunc((decimal)(surfaceLength * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent)))
             );
-            double heatEnergyPropor = (temperatureInK <= allHeatMaxTemper) switch
+            double heatEnergyPropor = (temperature <= allHeatMaxTemper) switch
             {
                 true => 1,
-                false => 1 / (1 + MyMathHelper.Pow(@base: (temperatureInK - allHeatMaxTemper) / (halfHeatTemper - allHeatMaxTemper), exponent: heatEnergyDropoffExponent))
+                false => 1 / (1 + MyMathHelper.Pow(@base: (temperature.valueInK - allHeatMaxTemper.valueInK) / (halfHeatTemper.valueInK - allHeatMaxTemper.valueInK), exponent: heatEnergyDropoffExponent))
             };
 
             ulong heatEnergyInJ = heatEnergyInJRoundFunc(energyInJToDissipate * (decimal)heatEnergyPropor);
@@ -249,8 +251,8 @@ namespace Game1
         /// <summary>
         /// Checks if streamReader starts with tokens, with potentially whitespace at the start and between tokens
         /// </summary>
-        /// <param name="streamReader"></param>
-        /// <param name="tokens"></param>
+        /// <param Name="streamReader"></param>
+        /// <param Name="tokens"></param>
         /// <returns></returns>
         public static bool StreamStartsWith(StreamReader streamReader, string[] tokens)
         {

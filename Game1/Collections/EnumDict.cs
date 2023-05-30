@@ -6,7 +6,7 @@ namespace Game1.Collections
     /// <summary>
     /// Immutable dictionary where keys are (TRes)0, (TRes)1, ...
     /// </summary>
-    /// <typeparam name="TKey">must be integer-backed enum</typeparam>
+    /// <typeparam Name="TKey">must be integer-backed enum</typeparam>
     [Serializable]
     public readonly struct EnumDict<TKey, TValue>
         where TKey : unmanaged, Enum

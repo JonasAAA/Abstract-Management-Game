@@ -89,7 +89,7 @@ namespace Game1
         // TODO: could use https://docs.microsoft.com/en-us/dotnet/api/system.text.json.serialization.jsonextensiondataattribute?view=net-7.0
         // to check for fields provided in json but deserialised
         // STARTING with .NET 8, could use https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/missing-members
-        private static Result<ValidMapInfo, EfficientReadOnlyHashSet<string>> LoadMap(string fullMapPath)
+        private static Result<ValidMapInfo, TextErrors> LoadMap(string fullMapPath)
         {
             try
             {
@@ -111,7 +111,7 @@ namespace Game1
             }
         }
 
-        private static Result<FullValidMapInfo, EfficientReadOnlyHashSet<string>> LoadFullMap(string fullMapPath)
+        private static Result<FullValidMapInfo, TextErrors> LoadFullMap(string fullMapPath)
             => LoadMap(fullMapPath: fullMapPath).SelectMany(func: FullValidMapInfo.Create);
 
         private static void SaveMap(string fullMapPath, ValidMapInfo mapInfo, bool readyToUse)

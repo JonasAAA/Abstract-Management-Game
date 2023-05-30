@@ -1,4 +1,5 @@
-﻿using static Game1.WorldManager;
+﻿using Game1.Collections;
+using static Game1.WorldManager;
 
 namespace Game1.Resources
 {
@@ -23,24 +24,25 @@ namespace Game1.Resources
         public string Name { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
-        public ulong Area { get; }
-        public SomeResAmounts<RawMaterial> RawMatComposition { get; }
-        public Propor Reflectance { get; }
-        public Propor Emissivity { get; }
+        public Area Area { get; }
+        public RawMaterialsMix RawMatComposition { get; }
+        public Temperature MeltingPoint { get; }
         public readonly Color color;
 
-        private RawMaterial(string name, Mass mass, HeatCapacity heatCapacity, ulong area, Propor reflectance, Propor emissivity, Color color)
+        private RawMaterial(string name, Mass mass, HeatCapacity heatCapacity, Area area, Temperature meltingPoint, Color color)
         {
             Name = name;
             Mass = mass;
             HeatCapacity = heatCapacity;
             Area = area;
-            Reflectance = reflectance;
-            Emissivity = emissivity;
-            RawMatComposition = new(res: this, amount: 1);
+            MeltingPoint = meltingPoint;
+            RawMatComposition = new(new(res: this, amount: 1));
             this.color = color;
 
             CurResConfig.AddRes(resource: this);
         }
+
+        public UDouble Strength(Temperature temperature)
+            => throw new NotImplementedException();
     }
 }

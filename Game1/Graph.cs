@@ -366,6 +366,12 @@ namespace Game1
             resDestinArrows.RemoveChild(child: resDestinArrow);
         }
 
+        public void PreEnergyDistribUpdate()
+        {
+            foreach (var node in nodes)
+                node.PreEnergyDistribUpdate();
+        }
+
         public void Update(EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
             // TODO: improve performance of this

@@ -84,8 +84,9 @@ namespace Game1.Resources
         /// <summary>
         /// Source must be from this thermal body
         /// </summary>
-        public void TransformResToHeatEnergy(EnergyPile<AllResAmounts> source, AllResAmounts amount)
+        public void TransformResToHeatEnergy(EnergyPile<AllResAmounts> source, RawMaterialsMix rawMatsMix)
         {
+            var amount = AllResAmounts.CreateFromOnlyMix(rawMatsMix);
             source.TransformTo(destin: heatEnergyPile, amount: amount);
             resAmounts -= amount;
         }

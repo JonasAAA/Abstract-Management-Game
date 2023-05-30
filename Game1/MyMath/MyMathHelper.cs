@@ -167,6 +167,9 @@ namespace Game1.MyMath
         public static long Ceiling(double value)
             => (long)Math.Ceiling(value);
 
+        public static ulong Ceiling(UDouble value)
+            => (ulong)Math.Ceiling(value);
+
         public static long Ceiling(decimal value)
             => (long)Math.Ceiling(value);
 

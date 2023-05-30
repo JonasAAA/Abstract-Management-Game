@@ -8,7 +8,8 @@
         public EnergyPriority EnergyPriority { get; }
 
         /// <summary>
-        /// node from which consume energy
+        /// Node from which consume energy
+        /// This is here so that energy consumer could travel between nodes (eg person)
         /// </summary>
         public NodeID NodeID { get; }
 

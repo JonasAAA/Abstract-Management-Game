@@ -1,4 +1,5 @@
 ﻿using System.Collections;
+using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
 using static Game1.WorldManager;
 
@@ -25,12 +26,24 @@ namespace Game1.Collections
         private int Count
             => resList.Count;
 
+        static SomeResAmounts<TRes> IAdditiveIdentity<SomeResAmounts<TRes>, SomeResAmounts<TRes>>.AdditiveIdentity
+            => empty;
+
+        static ulong IMultiplicativeIdentity<SomeResAmounts<TRes>, ulong>.MultiplicativeIdentity
+            => 1;
+
+        bool IFormOfEnergy<SomeResAmounts<TRes>>.IsZero
+            => IsEmpty;
+
         /// <summary>
         /// Is reused between multiple instances of Dict to generate very slightly less garbage, e.g. in operator *
         /// </summary>
         private readonly List<TRes> resList;
         private readonly List<ulong> amounts;
 
+        /// <summary>
+        /// USE SomeResAmounts.empty instead as it avoids unnecessary allocations
+        /// </summary>
         public SomeResAmounts()
             : this(resList: new(), amounts: new())
         { }
@@ -78,10 +91,12 @@ namespace Game1.Collections
 
         private void Validate()
         {
+#if DEBUG
             Debug.Assert(resList.Count == amounts.Count);
             for (int i = 0; i < resList.Count - 1; i++)
                 Debug.Assert(CurResConfig.CompareRes(left: resList[i - 1], right: resList[i]) < 0);
             Debug.Assert(amounts.All(amount => amount is not 0));
+#endif
         }
 
         public ulong this[TRes res]
@@ -112,30 +127,33 @@ namespace Game1.Collections
             return heatCapacity;
         }
 
-        public Area Area()
-        {
-            Area area = Resources.Area.zero;
-            for (int ind = 0; ind < Count; ind++)
-                area += resList[ind].Area * amounts[ind];
-            return area;
-        }
+        //public Area Area()
+        //{
+        //    Area area = Resources.Area.zero;
+        //    for (int ind = 0; ind < Count; ind++)
+        //        area += resList[ind].Area * amounts[ind];
+        //    return area;
+        //}
 
-        public SomeResAmounts<RawMaterial> RawMatComposition()
+        public RawMaterialsMix RawMatComposition()
         {
-            var rawMatComp = SomeResAmounts<RawMaterial>.empty;
+            var rawMatComp = RawMaterialsMix.empty;
             for (int ind = 0; ind < Count; ind++)
                 rawMatComp += resList[ind].RawMatComposition * amounts[ind];
             return rawMatComp;
         }
 
-        static SomeResAmounts<TRes> IAdditiveIdentity<SomeResAmounts<TRes>, SomeResAmounts<TRes>>.AdditiveIdentity
-            => empty;
+        public SomeResAmounts<IResource> Generalize()
+        {
+            List<IResource> newResList = new(Count);
+            for (int ind = 0; ind < Count; ind++)
+                newResList.Add(resList[ind]);
+            return new(resList: newResList, amounts: amounts);
+        }
 
-        static ulong IMultiplicativeIdentity<SomeResAmounts<TRes>, ulong>.MultiplicativeIdentity
-            => 1;
-
-        bool IFormOfEnergy<SomeResAmounts<TRes>>.IsZero
-            => IsEmpty;
+        // May need to change this if later on materials and/or products are able to store energy
+        public static explicit operator Energy(SomeResAmounts<TRes> formOfEnergy)
+            => Energy.CreateFromJoules(valueInJ: formOfEnergy.Mass().valueInKg * CurWorldConfig.energyInJPerKgOfMass);
 
         static SomeResAmounts<TRes> IMin<SomeResAmounts<TRes>>.Min(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
         {
@@ -320,7 +338,7 @@ namespace Game1.Collections
         public static bool operator !=(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
             => !(left == right);
 
-        public override bool Equals(object? obj)
+        public override bool Equals([NotNullWhen(true)] object? obj)
             => obj is SomeResAmounts<TRes> someResAmounts && this == someResAmounts;
 
         public override int GetHashCode()
@@ -361,10 +379,6 @@ namespace Game1.Collections
 
         public static bool operator <=(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
             => right >= left;
-
-        // May need to change this if later on materials and/or products are able to store energy
-        public static explicit operator Energy(SomeResAmounts<TRes> formOfEnergy)
-            => Energy.CreateFromJoules(valueInJ: formOfEnergy.Mass().valueInKg * CurWorldConfig.energyInJPerKgOfMass);
 
         static bool IComparisonOperators<SomeResAmounts<TRes>, SomeResAmounts<TRes>, bool>.operator >(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
             => left >= right && left != right;

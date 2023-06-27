@@ -6,6 +6,9 @@ using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
+    /// <summary>
+    /// Responds properly to planet shrinking, but NOT to planet widening
+    /// </summary>
     [Serializable]
     public sealed class Mining : IIndustry
     {
@@ -26,12 +29,12 @@ namespace Game1.Industries
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.miningBuildingColor);
                 Name = name;
                 buildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToTargetAreas: new());
+                if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
+                    throw new ArgumentException();
                 BuildingComponentMaterialPropors = buildingCostPropors.materialPropors;
                 
                 this.energyPriority = energyPriority;
                 this.buildingComponentPropors = buildingComponentPropors;
-                if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
-                    throw new ArgumentException();
             }
 
             public Result<IBuildingConcreteParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
@@ -51,28 +54,11 @@ namespace Game1.Industries
                         surfaceMaterial: neededBuildingMatChoices[IMaterialPurpose.roofSurface]
                     )
                 );
-
-            //public IIndustry CreateIndustry(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices, ResPile buildingResPile)
-            //    => new ConcreteParams
-            //    (
-            //        nodeState: nodeState,
-            //        buildingResPile: buildingResPile,
-            //        generalParams: this,
-            //        buildingComponentsToAmountPUBA: ResAndIndustryAlgos.BuildingComponentsToAmountPUS
-            //        (
-            //            buildingComponentPropors: buildingComponentPropors,
-            //            buildingMatChoices: buildingMatChoices
-            //        ),
-            //        buildingMatChoices: buildingMatChoices,
-            //        surfaceMaterial: buildingMatChoices[IMaterialPurpose.roofSurface]
-            //    ).CreateIndustry();
         }
 
         [Serializable]
         public readonly struct ConcreteParams : IBuildingConcreteParams
         {
-            public SomeResAmounts<IResource> BuildingCost { get; }
-
             public readonly string name;
             public readonly IIndustryFacingNodeState nodeState;
             public readonly DiskBuildingImage buildingImage;
@@ -88,8 +74,10 @@ namespace Game1.Industries
             private readonly GeneralParams generalParams;
             private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialChoices buildingMatChoices;
+            private readonly SomeResAmounts<IResource> startingBuildingCost;
 
-            public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage, EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
+            public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage,
+                EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
                 MaterialChoices buildingMatChoices, Material surfaceMaterial)
             {
                 name = generalParams.Name;
@@ -101,12 +89,11 @@ namespace Game1.Industries
                 this.generalParams = generalParams;
                 this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatChoices = buildingMatChoices;
-                
-                BuildingCost = CurNeededBuildingComponents();
+
+                startingBuildingCost = CurNeededBuildingComponents();
             }
 
-            IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
-                => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
+            
 
             public IIndustry CreateIndustry(ResPile buildingResPile)
                 => new Mining(parameters: this, buildingResPile: buildingResPile);
@@ -126,54 +113,7 @@ namespace Game1.Industries
                     productionMass: miningMass
                 );
 
-            ///// <param Name="splittingMass">Mass of materials curretly being mined</param>
-            //public CurMiningStats CurMiningStats(Mass splittingMass)
-            //{
-            //    UDouble relevantMassPUS = ResAndIndustryAlgos.RelevantMassPUS
-            //    (
-            //        buildingMatPropors: generalParams.buildingCostPropors.buildingMaterialPropors,
-            //        buildingMatChoices: buildingMatChoices,
-            //        productionMassPUS: splittingMass.valueInKg / nodeState.SurfaceLength
-            //    );
-
-            //    UDouble maxMechThroughputPUS = ResAndIndustryAlgos.MaxMechThroughputPUS
-            //    (
-            //        buildingMatPropors: generalParams.buildingCostPropors.buildingMaterialPropors,
-            //        buildingMatChoices: buildingMatChoices,
-            //        gravity: nodeState.SurfaceGravity,
-            //        temperature: nodeState.Temperature,
-            //        relevantMassPUS: relevantMassPUS
-            //    );
-
-            //    UDouble maxElectricalPowerPUS = ResAndIndustryAlgos.MaxElectricalPowerPUS
-            //    (
-            //        buildingMatPropors: generalParams.buildingCostPropors.buildingMaterialPropors,
-            //        buildingMatChoices: buildingMatChoices,
-            //        temperature: nodeState.Temperature
-            //    );
-
-            //    UDouble electricalEnergyPerUnitArea = ResAndIndustryAlgos.ElectricalEnergyPerUnitAreaPhys
-            //    (
-            //        buildingMatPropors: generalParams.buildingCostPropors.buildingMaterialPropors,
-            //        buildingMatChoices: buildingMatChoices,
-            //        gravity: nodeState.SurfaceGravity,
-            //        temperature: nodeState.Temperature,
-            //        relevantMassPUS: relevantMassPUS
-            //    );
-
-            //    UDouble
-            //        reqWattsPUS = MyMathHelper.Min(maxElectricalPowerPUS, maxMechThroughputPUS * electricalEnergyPerUnitArea),
-            //        reqWatts = reqWattsPUS * nodeState.SurfaceLength,
-            //        minedAreaPerSec = reqWatts / electricalEnergyPerUnitArea;
-
-            //    return new
-            //    (
-            //        ReqWatts: reqWatts,
-            //        MinedAreaPerSec: minedAreaPerSec
-            //    );
-            //}
-
-            // This is separate from CurMiningStats as it's supposed to be called after the mining for that frame was done
+            // This is separate from CurMiningStats as it's supposed to be called after the mining cycle is done
             public SomeResAmounts<IResource> CurNeededBuildingComponents()
             {
                 // This is needed here so that the compiler doesn't complain
@@ -191,6 +131,12 @@ namespace Game1.Industries
                     )
                 );
             }
+
+            SomeResAmounts<IResource> IBuildingConcreteParams.BuildingCost
+                => startingBuildingCost;
+
+            IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
+                => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
         }
 
         [Serializable]
@@ -219,11 +165,6 @@ namespace Game1.Industries
                         minedAreaHistoricCorrector: new()
                     )
                 );
-
-                //parameters.nodeState.Mine(maxArea: parameters.AreaToMine()).Select
-                //(
-                //    miningRes => new State(parameters: parameters, buildingResPile: buildingResPile, miningRes: miningRes)
-                //);
             }
 
             public ElectricalEnergy ReqEnergy { get; private set; }
@@ -278,6 +219,10 @@ namespace Game1.Industries
                 workingPropor = Propor.Create(part: electricalEnergy.ValueInJ, whole: ReqEnergy.ValueInJ)!.Value;
             }
 
+            /// <summary>
+            /// This will not remove no longer needed building components until mining cycle is done since fix current mining volume
+            /// and some other mining stats at the start of the mining cycle. 
+            /// </summary>
             public void Update()
             {
                 parameters.nodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
@@ -287,13 +232,15 @@ namespace Game1.Industries
                 // On the other hand that would be a very niche circumstance anyway - basically only when mining last resources of the planet
                 donePropor = Propor.CreateByClamp(value: (UDouble)donePropor + areaMined.valueInMetSq / miningArea.valueInMetSq);
                 if (donePropor.IsFull)
+                {
                     parameters.nodeState.StoredResPile.TransferAllFrom(source: miningRes);
-                // Remove not needed building components
-                parameters.nodeState.StoredResPile.TransferFrom
-                (
-                    source: buildingResPile,
-                    amount: buildingResPile.Amount - parameters.CurNeededBuildingComponents().ToAll()
-                );
+                    // Remove not needed building components
+                    parameters.nodeState.StoredResPile.TransferFrom
+                    (
+                        source: buildingResPile,
+                        amount: buildingResPile.Amount - parameters.CurNeededBuildingComponents().ToAll()
+                    );
+                }
             }
 
             public void Delete()

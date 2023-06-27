@@ -9,6 +9,9 @@ namespace Game1.Industries
         ///// </summary>
         //public GeneralProdAndMatAmounts buildingCostPropors { get; }
 
+        /// <summary>
+        /// Must be constant
+        /// </summary>
         public SomeResAmounts<IResource> BuildingCost { get; }
 
         public IIndustry CreateIndustry(ResPile buildingResPile);

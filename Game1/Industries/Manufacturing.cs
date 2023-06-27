@@ -6,6 +6,9 @@ using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
+    /// <summary>
+    /// Responds properly to planet shrinking, but NOT to planet widening
+    /// </summary>
     [Serializable]
     public sealed class Manufacturing : IIndustry
     {
@@ -20,94 +23,90 @@ namespace Game1.Industries
             public readonly EnergyPriority energyPriority;
             public readonly Product.Params productParams;
 
-            public GeneralParams(string name, GeneralProdAndMatAmounts buildingCostPropors, EnergyPriority energyPriority, Product.Params productParams)
+            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
+
+            public GeneralParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority, Product.Params productParams)
             {
                 Name = name;
                 BuildingComponentMaterialPropors = buildingCostPropors.materialPropors;
-
-                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.manufacturingBuildingColor);
+                buildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToTargetAreas: new());
                 if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
                     throw new ArgumentException();
-                this.buildingCostPropors = buildingCostPropors;
+                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.manufacturingBuildingColor);
+                
                 if (energyPriority == EnergyPriority.mostImportant)
                     throw new ArgumentException("Only power plants can have highest energy priority");
                 this.energyPriority = energyPriority;
                 this.productParams = productParams;
+                this.buildingComponentPropors = buildingComponentPropors;
             }
 
             public Result<IBuildingConcreteParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
             {
                 var buildingImage = buildingImageParams.CreateImage(nodeState);
-                return ResAndIndustryAlgos.BuildingCost
+                return ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
                 (
-                    buildingCostPropors: buildingCostPropors,
-                    buildingMatChoices: neededBuildingMatChoices,
-                    buildingArea: buildingImage.Area
+                    buildingComponentPropors: buildingComponentPropors,
+                    buildingMatChoices: neededBuildingMatChoices
                 ).Select<IBuildingConcreteParams>
                 (
-                    buildingCost => new ConcreteBuildingParams
+                    buildingComponentsToAmountPUBA => new ConcreteBuildingParams
                     (
                         nodeState: nodeState,
                         generalParams: this,
                         buildingImage: buildingImage,
-                        buildingCost: buildingCost,
+                        buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
                         buildingMatChoices: neededBuildingMatChoices,
                         surfaceMaterial: neededBuildingMatChoices[IMaterialPurpose.roofSurface]
                     )
                 );
             }
-
-            //public IIndustry CreateIndustry(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices, ResPile buildingResPile)
-            //    => new ConcreteParams
-            //    (
-            //        nodeState: nodeState,
-            //        surfaceMaterial: buildingMatChoices[IMaterialPurpose.roofSurface],
-            //        buildingResPile: buildingResPile,
-            //        generalParams: this,
-            //        buildingMatChoices: buildingMatChoices
-            //    ).CreateIndustry
-            //    (
-            //        productionParams: new(productParams)
-            //    );
         }
 
         [Serializable]
         public readonly struct ConcreteBuildingParams : IBuildingConcreteParams
         {
-            public SomeResAmounts<IResource> BuildingCost { get; }
-
             public readonly string name;
             public readonly IIndustryFacingNodeState nodeState;
             public readonly DiskBuildingImage buildingImage;
             public readonly Material surfaceMaterial;
             public readonly EnergyPriority energyPriority;
             public readonly Product.Params productParams;
-            public readonly ulong maxProductAmount;
 
-            private readonly AreaDouble buildingArea;
+            /// <summary>
+            /// Things depend on this rather than on building components target area as can say that if planet underneath building shrinks,
+            /// building gets not enough space to operate at maximum efficiency
+            /// </summary>
+            private AreaDouble CurBuildingArea
+                => buildingImage.Area;
             private readonly GeneralParams generalParams;
+            private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialChoices buildingMatChoices;
+            private readonly SomeResAmounts<IResource> startingBuildingCost;
 
-            public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage, SomeResAmounts<IResource> buildingCost, MaterialChoices buildingMatChoices, Material surfaceMaterial)
+            public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage,
+                EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
+                MaterialChoices buildingMatChoices, Material surfaceMaterial)
             {
-                BuildingCost = buildingCost;
-
                 name = generalParams.Name;
                 this.nodeState = nodeState;
                 this.buildingImage = buildingImage;
                 this.surfaceMaterial = surfaceMaterial;
                 energyPriority = generalParams.energyPriority;
-                productParams = generalParams.productParams;
-                buildingArea = buildingImage.Area;
-                maxProductAmount = ResAndIndustryAlgos.MaxAmountInProduction
-                (
-                    areaInProduction: ResAndIndustryAlgos.AreaInProduction(buildingArea: buildingArea),
-                    itemTargetArea: productParams.targetArea
-                );
+                productParams = generalParams.productParams; 
 
                 this.generalParams = generalParams;
+                this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatChoices = buildingMatChoices;
+                startingBuildingCost = CurNeededBuildingComponents();
             }
+
+            public ulong MaxProductAmount()
+                => ResAndIndustryAlgos.MaxAmountInProduction
+                (
+                    areaInProduction: ResAndIndustryAlgos.AreaInProduction(buildingArea: CurBuildingArea),
+                    itemTargetArea: productParams.targetArea
+                );
 
             /// <param Name="productionMassIfFull">Mass of stuff in production if industry was fully operational</param>
             public CurProdStats CurProdStats(Mass productionMassIfFull)
@@ -117,62 +116,37 @@ namespace Game1.Industries
                     buildingMatChoices: buildingMatChoices,
                     gravity: nodeState.SurfaceGravity,
                     temperature: nodeState.Temperature,
-                    buildingArea: buildingArea,
+                    buildingArea: CurBuildingArea,
                     productionMass: productionMassIfFull
                 );
 
-            IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
-                => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
-
-            ///// <param Name="productionMassIfFull">Mass of stuff in production</param>
-            //public CurMechProdStats CurMechProdStats(Mass productionMassIfFull)
-            //{
-            //    UDouble relevantMassPUS = ResAndIndustryAlgos.RelevantMassPUS
-            //    (
-            //        buildingMatPropors: generalParams.buildingCostPropors.buildingMaterialPropors,
-            //        buildingMatChoices: buildingMatChoices,
-            //        productionMassPUS: productionMassIfFull.valueInKg / nodeState.SurfaceLength
-            //    );
-
-            //    UDouble maxMechThroughputPUS = ResAndIndustryAlgos.MaxMechThroughputPUS
-            //    (
-            //        buildingMatPropors: generalParams.buildingCostPropors.buildingMaterialPropors,
-            //        buildingMatChoices: buildingMatChoices,
-            //        gravity: nodeState.SurfaceGravity,
-            //        temperature: nodeState.Temperature,
-            //        relevantMassPUS: relevantMassPUS
-            //    );
-
-            //    UDouble maxElectricalPowerPUS = ResAndIndustryAlgos.MaxElectricalPowerPUS
-            //    (
-            //        buildingMatPropors: generalParams.buildingCostPropors.buildingMaterialPropors,
-            //        buildingMatChoices: buildingMatChoices,
-            //        temperature: nodeState.Temperature
-            //    );
-
-            //    UDouble electricalEnergyPerUnitArea = ResAndIndustryAlgos.ElectricalEnergyPerUnitAreaPhys
-            //    (
-            //        buildingMatPropors: generalParams.buildingCostPropors.buildingMaterialPropors,
-            //        buildingMatChoices: buildingMatChoices,
-            //        gravity: nodeState.SurfaceGravity,
-            //        temperature: nodeState.Temperature,
-            //        relevantMassPUS: relevantMassPUS
-            //    );
-
-            //    UDouble
-            //        reqWattsPUS = MyMathHelper.Min(maxElectricalPowerPUS, maxMechThroughputPUS * electricalEnergyPerUnitArea),
-            //        reqWatts = reqWattsPUS * nodeState.SurfaceLength,
-            //        producedAreaPerSec = reqWatts / electricalEnergyPerUnitArea;
-
-            //    return new
-            //    (
-            //        ReqWatts: reqWatts,
-            //        ProducedAreaPerSec: producedAreaPerSec
-            //    );
-            //}
+            // This is separate from CurProdStats as it's supposed to be called after the production cycle is done
+            public SomeResAmounts<IResource> CurNeededBuildingComponents()
+            {
+                // This is needed here so that the compiler doesn't complain
+                // "Lambda expressions inside structs cannot access members of 'this'" 
+                AreaDouble curBuildingArea = CurBuildingArea;
+                return new
+                (
+                    buildingComponentsToAmountPUBA.Select
+                    (
+                        prodAndAmountPUBA => new ResAmount<IResource>
+                        (
+                            prodAndAmountPUBA.prod,
+                            MyMathHelper.Ceiling(prodAndAmountPUBA.amountPUBA * curBuildingArea.valueInMetSq)
+                        )
+                    )
+                );
+            }
 
             public IIndustry CreateIndustry(ResPile buildingResPile)
                 => new Manufacturing(buildingParams: this, buildingResPile: buildingResPile, productionParams: new(productParams: productParams));
+
+            SomeResAmounts<IResource> IBuildingConcreteParams.BuildingCost
+                => startingBuildingCost;
+
+            IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
+                => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
         }
 
         [Serializable]
@@ -207,11 +181,12 @@ namespace Game1.Industries
                 (
                     product =>
                     {
+                        ulong maxProductionAmount = buildingParams.MaxProductAmount();
                         var resInUseAndCount = ResPile.CreateMultipleIfHaveEnough
                         (
                             source: buildingParams.nodeState.StoredResPile,
                             amount: product.Recipe.ingredients,
-                            maxCount: buildingParams.maxProductAmount
+                            maxCount: maxProductionAmount
                         );
                         return resInUseAndCount switch
                         {
@@ -223,38 +198,14 @@ namespace Game1.Industries
                                     buildingResPile: buildingResPile,
                                     resInUse: resInUse,
                                     productRecipe: product.Recipe,
-                                    productionAmount: count
+                                    productionAmount: count,
+                                    maxProductionAmount: maxProductionAmount
                                 )
                             ),
                             null => new(errors: new(UIAlgorithms.NotEnoughResourcesToStartProduction))
                         };
                     }
                 );
-            // This is if want to only allow to start production if the building would be fully untilized
-            //=> productionParams.CurProduct.SelectMany
-            //(
-            //    product =>
-            //    {
-            //        ResRecipe recipe = product.Recipe * buildingParams.maxProductAmount;
-            //        var resInUse = ResPile.CreateIfHaveEnough
-            //        (
-            //            source: buildingParams.nodeState.StoredResPile,
-            //            amount: recipe.ingredients
-            //        );
-            //        if (resInUse is null)
-            //            return new(errors: new(UIAlgorithms.NotEnoughResourcesToStartProduction));
-            //        return new Result<State, TextErrors>
-            //        (
-            //            ok: new
-            //            (
-            //                buildingParams: buildingParams,
-            //                buildingResPile: buildingResPile,
-            //                resInUse: resInUse,
-            //                recipe: recipe
-            //            )
-            //        );
-            //    }
-            //);
 
             public ElectricalEnergy ReqEnergy { get; private set; }
 
@@ -274,17 +225,17 @@ namespace Game1.Industries
             private CurProdStats curProdStats;
             private Propor donePropor, workingPropor;
 
-            private State(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ResPile resInUse, ResRecipe productRecipe, ulong productionAmount)
+            private State(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ResPile resInUse, ResRecipe productRecipe, ulong productionAmount, ulong maxProductionAmount)
             {
                 this.buildingParams = buildingParams;
                 this.buildingResPile = buildingResPile;
                 this.resInUse = resInUse;
                 recipe = productRecipe * productionAmount;
-                prodMassIfFull = productRecipe.ingredients.Mass() * buildingParams.maxProductAmount;
+                prodMassIfFull = productRecipe.ingredients.Mass() * maxProductionAmount;
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.nodeState.LocationCounters);
                 reqEnergyHistoricRounder = new();
                 this.productionAmount = productionAmount;
-                proporUtilized = Propor.Create(part: productionAmount, whole: buildingParams.maxProductAmount)!.Value;
+                proporUtilized = Propor.Create(part: productionAmount, whole: maxProductionAmount)!.Value;
                 donePropor = Propor.empty;
             }
 
@@ -308,6 +259,10 @@ namespace Game1.Industries
                 workingPropor = proporUtilized * Propor.Create(part: electricalEnergy.ValueInJ, whole: ReqEnergy.ValueInJ)!.Value;
             }
 
+            /// <summary>
+            /// This will not remove no longer needed building components until production cycle is done since fix current max production amount
+            /// and some other production stats at the start of production cycle
+            /// </summary>
             public void Update()
             {
                 buildingParams.nodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
@@ -316,7 +271,14 @@ namespace Game1.Industries
                     areaInProduction = buildingParams.productParams.targetArea.ToDouble() * productionAmount;
                 donePropor = Propor.CreateByClamp((UDouble)donePropor + areaProduced.valueInMetSq / areaInProduction.valueInMetSq);
                 if (donePropor.IsFull)
+                {
                     buildingParams.nodeState.StoredResPile.TransformFrom(source: resInUse, recipe: recipe);
+                    buildingParams.nodeState.StoredResPile.TransferFrom
+                    (
+                        source: buildingResPile,
+                        amount: buildingResPile.Amount - buildingParams.CurNeededBuildingComponents().ToAll()
+                    );
+                }
             }
 
             public void Delete()
@@ -360,7 +322,7 @@ namespace Game1.Industries
         public SomeResAmounts<IResource> TargetStoredResAmounts()
             => productionParams.CurProduct.SwitchExpression
             (
-                ok: product => product.Recipe.ingredients * buildingParams.maxProductAmount * buildingParams.nodeState.MaxBatchDemResStored,
+                ok: product => product.Recipe.ingredients * buildingParams.MaxProductAmount() * buildingParams.nodeState.MaxBatchDemResStored,
                 error: _ => SomeResAmounts<IResource>.empty
             );
 

@@ -1,12 +1,14 @@
 ﻿using Game1.Collections;
-using Game1.Lighting;
 using Game1.UI;
 
 namespace Game1.Industries
 {
     public interface IIndustry : IEnergyConsumer, IDeletable
     {
-        public ILightBlockingObject? LightBlockingObject { get; }
+        public string Name { get; }
+        public IBuildingImage BuildingImage { get; }
+
+        //public ILightBlockingObject? BuildingShape { get; }
 
         /// <summary>
         /// Null if no building
@@ -25,6 +27,6 @@ namespace Game1.Industries
 
         public string GetInfo();
 
-        public void Draw(Color otherColor, Propor otherColorPropor);
+        //public void Draw(Color otherColor, Propor otherColorPropor);
     }
 }

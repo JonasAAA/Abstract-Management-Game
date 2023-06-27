@@ -7,6 +7,7 @@ namespace Game1.PrimitiveTypeWrappers
     public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>,
         IComparisonOperators<UDouble, UDouble, bool>, IMin<UDouble>, IMax<UDouble>, IComparable<UDouble>, IMinMaxValue<UDouble>,
         IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>,
+        ISubtractionOperators<UDouble, UDouble, UDouble>,
         IMultiplyOperators<UDouble, UDouble, UDouble>, IMultiplicativeIdentity<UDouble, UDouble>,
         IMultiplyOperators<UDouble, ulong, UDouble>, IMultiplicativeIdentity<UDouble, ulong>,
         IPrimitiveTypeWrapper
@@ -99,6 +100,9 @@ namespace Game1.PrimitiveTypeWrappers
 
         public static UDouble operator +(UDouble value1, UDouble value2)
             => new(value1.value + value2.value);
+
+        public static UDouble operator -(UDouble value1, UDouble value2)
+            => new(value1.value - value2.value);
 
         public static UDouble operator *(UDouble value1, UDouble value2)
             => new(value1.value * value2.value);

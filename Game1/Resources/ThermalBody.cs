@@ -63,8 +63,8 @@ namespace Game1.Resources
 
         public void TransformResFrom(ThermalBody source, ResRecipe recipe)
         {
-            source.resAmounts -= AllResAmounts.CreateFromNoMix(resAmounts: recipe.ingredients);
-            resAmounts += AllResAmounts.CreateFromNoMix(resAmounts: recipe.results);
+            source.resAmounts -= recipe.ingredients.ToAll();
+            resAmounts += recipe.results.ToAll();
         }
 
         public void TransformResTo(ThermalBody destin, ResRecipe recipe)
@@ -86,7 +86,7 @@ namespace Game1.Resources
         /// </summary>
         public void TransformResToHeatEnergy(EnergyPile<AllResAmounts> source, RawMaterialsMix rawMatsMix)
         {
-            var amount = AllResAmounts.CreateFromOnlyMix(rawMatsMix);
+            var amount = rawMatsMix.ToAll();
             source.TransformTo(destin: heatEnergyPile, amount: amount);
             resAmounts -= amount;
         }

@@ -11,16 +11,16 @@
 //        public Propor Reflectance { get; }
 //        public Propor Emissivity { get; }
         
-//        public readonly Color color;
+//        public readonly Color Color;
 //        private readonly ResAmounts basicIngredients;
 
-//        public BasicRes(string Name, BasicResInd resInd, Mass miningMass, HeatCapacity heatCapacity, ulong area, Propor reflectance, Propor emissivity, Color color)
+//        public BasicRes(string Name, BasicResInd resInd, Mass splittingMass, HeatCapacity heatCapacity, ulong area, Propor reflectance, Propor emissivity, Color Color)
 //        {
 //            Name = Name;
 //            this.resInd = resInd;
-//            if (miningMass.IsZero)
+//            if (splittingMass.IsZero)
 //                throw new ArgumentOutOfRangeException();
-//            Mass = miningMass;
+//            Mass = splittingMass;
 //            if (heatCapacity.IsZero)
 //                throw new ArgumentOutOfRangeException();
 //            HeatCapacity = heatCapacity;
@@ -29,9 +29,9 @@
 //            if (area is 0)
 //                throw new ArgumentOutOfRangeException();
 //            Area = area;
-//            if (color.A != byte.MaxValue)
+//            if (Color.A != byte.MaxValue)
 //                throw new ArgumentException();
-//            this.color = color;
+//            this.Color = Color;
 
 //            basicIngredients = new()
 //            {

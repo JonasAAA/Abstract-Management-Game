@@ -1,6 +1,5 @@
 ﻿using Game1.Collections;
 using Game1.Delegates;
-using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
@@ -8,107 +7,138 @@ using static Game1.WorldManager;
 namespace Game1.Industries
 {
     [Serializable]
-    public sealed class Mining : IIndustry, Disk.IParams
+    public sealed class Mining : IIndustry
     {
         [Serializable]
-        public readonly struct GeneralParams : IConstructedIndustryGeneralParams
+        public sealed class GeneralParams : IBuildingGeneralParams
         {
             public string Name { get; }
-            public Color Color { get; }
-            public GeneralProdAndMatAmounts BuildingCostPropors { get; }
+            public EfficientReadOnlyDictionary<IMaterialPurpose, Propor> BuildingComponentMaterialPropors { get; }
 
+            public readonly DiskBuildingImage.Params buildingImageParams;
+            public readonly GeneralProdAndMatAmounts buildingCostPropors;
             public readonly EnergyPriority energyPriority;
 
             private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
 
-            public GeneralParams(string name, Color color, EnergyPriority energyPriority, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
+            public GeneralParams(string name, EnergyPriority energyPriority, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
             {
+                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.miningBuildingColor);
                 Name = name;
-                Color = color;
-                BuildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToTargetAreas: new());
+                buildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToTargetAreas: new());
+                BuildingComponentMaterialPropors = buildingCostPropors.materialPropors;
+                
                 this.energyPriority = energyPriority;
                 this.buildingComponentPropors = buildingComponentPropors;
-                if (BuildingCostPropors.materialPropors[IMaterialPurpose.roofSurface] == Propor.empty)
+                if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
                     throw new ArgumentException();
             }
 
-            //public Result<ConcreteParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices)
-            //{
-            //    // ALSO filter the material choices so that ConcreteParams knows only about the useful ones
-            //    throw new NotImplementedException();
-            //}
-
-            public IIndustry CreateIndustry(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices, ResPile buildingResPile)
-                => new ConcreteParams
+            public Result<IBuildingConcreteParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
+                => ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
                 (
-                    nodeState: nodeState,
-                    buildingResPile: buildingResPile,
-                    generalParams: this,
-                    buildingComponentsToAmountPUS: ResAndIndustryAlgos.BuildingComponentsToAmountPUSOrThrow
+                    buildingComponentPropors: buildingComponentPropors,
+                    buildingMatChoices: neededBuildingMatChoices
+                ).Select<IBuildingConcreteParams>
+                (
+                    buildingComponentsToAmountPUBA => new ConcreteParams
                     (
-                        buildingComponentPropors: buildingComponentPropors,
-                        buildingMatChoices: buildingMatChoices
-                    ),
-                    buildingMatChoices: buildingMatChoices,
-                    surfaceMaterial: buildingMatChoices[IMaterialPurpose.roofSurface]
-                ).CreateIndustry();
+                        nodeState: nodeState,
+                        generalParams: this,
+                        buildingImage: buildingImageParams.CreateImage(nodeShapeParams: nodeState),
+                        buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
+                        buildingMatChoices: neededBuildingMatChoices,
+                        surfaceMaterial: neededBuildingMatChoices[IMaterialPurpose.roofSurface]
+                    )
+                );
+
+            //public IIndustry CreateIndustry(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices, ResPile buildingResPile)
+            //    => new ConcreteParams
+            //    (
+            //        nodeState: nodeState,
+            //        buildingResPile: buildingResPile,
+            //        generalParams: this,
+            //        buildingComponentsToAmountPUBA: ResAndIndustryAlgos.BuildingComponentsToAmountPUS
+            //        (
+            //            buildingComponentPropors: buildingComponentPropors,
+            //            buildingMatChoices: buildingMatChoices
+            //        ),
+            //        buildingMatChoices: buildingMatChoices,
+            //        surfaceMaterial: buildingMatChoices[IMaterialPurpose.roofSurface]
+            //    ).CreateIndustry();
         }
 
         [Serializable]
-        public readonly struct ConcreteParams
+        public readonly struct ConcreteParams : IBuildingConcreteParams
         {
-            public readonly Color color;
+            public SomeResAmounts<IResource> BuildingCost { get; }
+
+            public readonly string name;
             public readonly IIndustryFacingNodeState nodeState;
+            public readonly DiskBuildingImage buildingImage;
             public readonly Material surfaceMaterial;
             public readonly EnergyPriority energyPriority;
-            public readonly ResPile buildingResPile;
 
+            /// <summary>
+            /// Things depend on this rather than on building components target area as can say that if planet underneath building shrinks,
+            /// building gets not enough space to operate at maximum efficiency
+            /// </summary>
+            private AreaDouble CurBuildingArea
+                => buildingImage.Area;
             private readonly GeneralParams generalParams;
-            private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUS)> buildingComponentsToAmountPUS;
+            private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialChoices buildingMatChoices;
 
-            public ConcreteParams(IIndustryFacingNodeState nodeState, ResPile buildingResPile, GeneralParams generalParams, EfficientReadOnlyCollection<(Product prod, UDouble amountPUS)> buildingComponentsToAmountPUS,
+            public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage, EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
                 MaterialChoices buildingMatChoices, Material surfaceMaterial)
             {
-                color = generalParams.Color;
+                name = generalParams.Name;
                 this.nodeState = nodeState;
+                this.buildingImage = buildingImage;
                 this.surfaceMaterial = surfaceMaterial;
                 energyPriority = generalParams.energyPriority;
-                this.buildingResPile = buildingResPile;
 
                 this.generalParams = generalParams;
-                this.buildingComponentsToAmountPUS = buildingComponentsToAmountPUS;
+                this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatChoices = buildingMatChoices;
+                
+                BuildingCost = CurNeededBuildingComponents();
             }
 
-            public UDouble AreaToMine()
-                => ResAndIndustryAlgos.AreaInProduction(surfaceLength: nodeState.SurfaceLength);
+            IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
+                => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
-            /// <param Name="miningMass">Mass of materials curretly being mined</param>
+            public IIndustry CreateIndustry(ResPile buildingResPile)
+                => new Mining(parameters: this, buildingResPile: buildingResPile);
+
+            public AreaDouble AreaToMine()
+                => ResAndIndustryAlgos.AreaInProduction(buildingArea: CurBuildingArea);
+
+            /// <param Name="splittingMass">Mass of materials curretly being mined</param>
             public CurProdStats CurMiningStats(Mass miningMass)
                 => ResAndIndustryAlgos.CurMechProdStats
                 (
-                    buildingCostPropors: generalParams.BuildingCostPropors,
+                    buildingCostPropors: generalParams.buildingCostPropors,
                     buildingMatChoices: buildingMatChoices,
                     gravity: nodeState.SurfaceGravity,
                     temperature: nodeState.Temperature,
-                    surfaceLength: nodeState.SurfaceLength,
+                    buildingArea: CurBuildingArea,
                     productionMass: miningMass
                 );
 
-            ///// <param Name="miningMass">Mass of materials curretly being mined</param>
-            //public CurMiningStats CurMiningStats(Mass miningMass)
+            ///// <param Name="splittingMass">Mass of materials curretly being mined</param>
+            //public CurMiningStats CurMiningStats(Mass splittingMass)
             //{
             //    UDouble relevantMassPUS = ResAndIndustryAlgos.RelevantMassPUS
             //    (
-            //        buildingMatPropors: generalParams.BuildingCostPropors.materialPropors,
+            //        buildingMatPropors: generalParams.buildingCostPropors.buildingMaterialPropors,
             //        buildingMatChoices: buildingMatChoices,
-            //        productionMassPUS: miningMass.valueInKg / nodeState.SurfaceLength
+            //        productionMassPUS: splittingMass.valueInKg / nodeState.SurfaceLength
             //    );
 
             //    UDouble maxMechThroughputPUS = ResAndIndustryAlgos.MaxMechThroughputPUS
             //    (
-            //        buildingMatPropors: generalParams.BuildingCostPropors.materialPropors,
+            //        buildingMatPropors: generalParams.buildingCostPropors.buildingMaterialPropors,
             //        buildingMatChoices: buildingMatChoices,
             //        gravity: nodeState.SurfaceGravity,
             //        temperature: nodeState.Temperature,
@@ -117,14 +147,14 @@ namespace Game1.Industries
 
             //    UDouble maxElectricalPowerPUS = ResAndIndustryAlgos.MaxElectricalPowerPUS
             //    (
-            //        buildingMatPropors: generalParams.BuildingCostPropors.materialPropors,
+            //        buildingMatPropors: generalParams.buildingCostPropors.buildingMaterialPropors,
             //        buildingMatChoices: buildingMatChoices,
             //        temperature: nodeState.Temperature
             //    );
 
             //    UDouble electricalEnergyPerUnitArea = ResAndIndustryAlgos.ElectricalEnergyPerUnitAreaPhys
             //    (
-            //        buildingMatPropors: generalParams.BuildingCostPropors.materialPropors,
+            //        buildingMatPropors: generalParams.buildingCostPropors.buildingMaterialPropors,
             //        buildingMatChoices: buildingMatChoices,
             //        gravity: nodeState.SurfaceGravity,
             //        temperature: nodeState.Temperature,
@@ -144,50 +174,65 @@ namespace Game1.Industries
             //}
 
             // This is separate from CurMiningStats as it's supposed to be called after the mining for that frame was done
-            public AllResAmounts CurNeededBuildingComponents()
+            public SomeResAmounts<IResource> CurNeededBuildingComponents()
             {
                 // This is needed here so that the compiler doesn't complain
                 // "Lambda expressions inside structs cannot access members of 'this'" 
-                var nodeStateCopy = nodeState;
-                return AllResAmounts.CreateFromNoMix
+                AreaDouble curBuildingArea = CurBuildingArea;
+                return new
                 (
-                    resAmounts: new
+                    buildingComponentsToAmountPUBA.Select
                     (
-                        buildingComponentsToAmountPUS.Select
+                        prodAndAmountPUBA => new ResAmount<IResource>
                         (
-                            prodAndAmountPUS => new ResAmount<IResource>
-                            (
-                                prodAndAmountPUS.prod,
-                                MyMathHelper.Ceiling(prodAndAmountPUS.amountPUS * nodeStateCopy.SurfaceLength)
-                            )
+                            prodAndAmountPUBA.prod,
+                            MyMathHelper.Ceiling(prodAndAmountPUBA.amountPUBA * curBuildingArea.valueInMetSq)
                         )
                     )
                 );
             }
-
-            public Mining CreateIndustry()
-                => new(parameters: this);
         }
-
-        //[Serializable]
-        //public readonly record struct CurMiningStats(UDouble ReqWatts, UDouble MinedAreaPerSec);
 
         [Serializable]
         private sealed class State
         {
-            public static Result<State, TextErrors> Create(ConcreteParams parameters)
-                => parameters.nodeState.Mine(targetArea: parameters.AreaToMine()).Select
+            public static (Result<State, TextErrors> state, HistoricCorrector<double> minedAreaHistoricCorrector) Create(ConcreteParams parameters, ResPile buildingResPile, HistoricCorrector<double> minedAreaHistoricCorrector, RawMatsMixAllocator minedResAllocator)
+            {
+                var minedAreaCorrectorWithTarget = minedAreaHistoricCorrector.WithTarget(target: parameters.AreaToMine().valueInMetSq);
+
+                // Since will never mine more than requested, suggestion will never be smaller than parameters.AreaToMine(), thus will always be >= 0.
+                var maxAreaToMine = (UDouble)minedAreaCorrectorWithTarget.suggestion;
+                return parameters.nodeState.Mine
                 (
-                    miningRes => new State(parameters: parameters, miningRes: miningRes)
+                    maxArea: AreaDouble.CreateFromMetSq(valueInMetSq: maxAreaToMine),
+                    rawMatsMixAllocator: minedResAllocator
+                ).SwitchExpression<(Result<State, TextErrors> state, HistoricCorrector<double> minedAreaHistoricCorrector)>
+                (
+                    ok: miningRes =>
+                    (
+                        state: new(ok: new State(parameters: parameters, buildingResPile: buildingResPile, miningRes: miningRes)),
+                        minedAreaHistoricCorrector: minedAreaCorrectorWithTarget.WithValue(value: miningRes.Amount.rawMatsMix.Area().valueInMetSq)
+                    ),
+                    error: errors =>
+                    (
+                        state: new(errors: errors),
+                        minedAreaHistoricCorrector: new()
+                    )
                 );
+
+                //parameters.nodeState.Mine(maxArea: parameters.AreaToMine()).Select
+                //(
+                //    miningRes => new State(parameters: parameters, buildingResPile: buildingResPile, miningRes: miningRes)
+                //);
+            }
 
             public ElectricalEnergy ReqEnergy { get; private set; }
 
             public bool IsDone
-                => donePropor >= 1;
+                => donePropor.IsFull;
 
             private readonly ConcreteParams parameters;
-            private readonly ResPile miningRes;
+            private readonly ResPile buildingResPile, miningRes;
             /// <summary>
             /// Mass in process of mining
             /// </summary>
@@ -195,23 +240,23 @@ namespace Game1.Industries
             /// <summary>
             /// Area in process of mining
             /// </summary>
-            private readonly Area miningArea;
+            private readonly AreaInt miningArea;
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
             private readonly HistoricRounder reqEnergyHistoricRounder;
 
             private CurProdStats curMiningStats;
-            private UDouble donePropor;
-            private Propor workingPropor;
+            private Propor donePropor, workingPropor;
 
-            private State(ConcreteParams parameters, ResPile miningRes)
+            private State(ConcreteParams parameters, ResPile buildingResPile, ResPile miningRes)
             {
                 this.parameters = parameters;
+                this.buildingResPile = buildingResPile;
                 this.miningRes = miningRes;
                 miningMass = miningRes.Amount.Mass();
                 miningArea = miningRes.Amount.RawMatComposition().Area();
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: parameters.nodeState.LocationCounters);
                 reqEnergyHistoricRounder = new();
-                donePropor = 0;
+                donePropor = Propor.empty;
             }
 
             public void FrameStart()
@@ -237,31 +282,30 @@ namespace Game1.Industries
             {
                 parameters.nodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
 
-                UDouble areaMined = workingPropor * (UDouble)CurWorldManager.Elapsed.TotalSeconds * curMiningStats.ProducedAreaPerSec;
-                donePropor += areaMined / miningArea.valueInMetSq;
-                if (donePropor >= 1)
-                {
+                AreaDouble areaMined = AreaDouble.CreateFromMetSq(valueInMetSq: workingPropor * (UDouble)CurWorldManager.Elapsed.TotalSeconds * curMiningStats.ProducedAreaPerSec);
+                // If mine less than could, probably shouldn't increase mining speed because of that
+                // On the other hand that would be a very niche circumstance anyway - basically only when mining last resources of the planet
+                donePropor = Propor.CreateByClamp(value: (UDouble)donePropor + areaMined.valueInMetSq / miningArea.valueInMetSq);
+                if (donePropor.IsFull)
                     parameters.nodeState.StoredResPile.TransferAllFrom(source: miningRes);
-                    donePropor = 1;
-                }
                 // Remove not needed building components
                 parameters.nodeState.StoredResPile.TransferFrom
                 (
-                    source: parameters.buildingResPile,
-                    amount: parameters.buildingResPile.Amount - parameters.CurNeededBuildingComponents()
+                    source: buildingResPile,
+                    amount: buildingResPile.Amount - parameters.CurNeededBuildingComponents().ToAll()
                 );
             }
 
             public void Delete()
             {
                 parameters.nodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
-                parameters.nodeState.StoredResPile.TransferAllFrom(source: parameters.buildingResPile);
+                parameters.nodeState.StoredResPile.TransferAllFrom(source: buildingResPile);
                 parameters.nodeState.EnlargeFrom(source: miningRes, amount: miningRes.Amount.RawMatComposition());
             }
         }
 
-        public ILightBlockingObject? LightBlockingObject
-            => lightBlockingDisk;
+        public string Name
+            => parameters.name;
 
         public Material SurfaceMaterial
             => parameters.surfaceMaterial;
@@ -272,17 +316,24 @@ namespace Game1.Industries
         public IEvent<IDeletedListener> Deleted
             => deleted;
 
-        private readonly ConcreteParams parameters;
-        private Result<State, TextErrors> stateOrReasonForNotStartingMining;
-        private readonly Event<IDeletedListener> deleted;
-        private readonly LightBlockingDisk lightBlockingDisk;
+        public IBuildingImage BuildingImage
+            => parameters.buildingImage;
 
-        private Mining(ConcreteParams parameters)
+        private readonly ConcreteParams parameters;
+        private readonly ResPile buildingResPile;
+        private readonly Event<IDeletedListener> deleted;
+        private Result<State, TextErrors> stateOrReasonForNotStartingMining;
+        private HistoricCorrector<double> minedAreaHistoricCorrector;
+        private readonly RawMatsMixAllocator minedResAllocator;
+
+        private Mining(ConcreteParams parameters, ResPile buildingResPile)
         {
             this.parameters = parameters;
-            stateOrReasonForNotStartingMining = new(errors: new("Not yet initialized"));
+            this.buildingResPile = buildingResPile;
             deleted = new();
-            lightBlockingDisk = new(parameters: this);
+            stateOrReasonForNotStartingMining = new(errors: new("Not yet initialized"));
+            minedAreaHistoricCorrector = new();
+            minedResAllocator = new RawMatsMixAllocator();
         }
 
         public string GetInfo()
@@ -300,15 +351,26 @@ namespace Game1.Industries
 
         public void FrameStart()
         {
-            stateOrReasonForNotStartingMining = stateOrReasonForNotStartingMining.SwitchExpression
+            (stateOrReasonForNotStartingMining, minedAreaHistoricCorrector) = stateOrReasonForNotStartingMining.SwitchExpression
             (
-                ok: state => state.IsDone ? State.Create(parameters: parameters) : new(ok: state),
-                error: _ => State.Create(parameters: parameters)
+                ok: state => state.IsDone ? CreateState() : (new(ok: state), minedAreaHistoricCorrector),
+                error: _ => CreateState()
             );
             stateOrReasonForNotStartingMining.PerformAction
             (
                 action: state => state.FrameStart()
             );
+
+            return;
+
+            (Result<State, TextErrors> state, HistoricCorrector<double> minedAreaHistoricCorrector) CreateState()
+                => State.Create
+                (
+                    parameters: parameters,
+                    buildingResPile: buildingResPile,
+                    minedAreaHistoricCorrector: minedAreaHistoricCorrector,
+                    minedResAllocator: minedResAllocator
+                );
         }
 
         public IIndustry? Update()
@@ -322,9 +384,6 @@ namespace Game1.Industries
             stateOrReasonForNotStartingMining.PerformAction(action: state => state.Delete());
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
-
-        public void Draw(Color otherColor, Propor otherColorPropor)
-            => lightBlockingDisk.Draw(baseColor: parameters.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
 
         EnergyPriority IEnergyConsumer.EnergyPriority
             => parameters.energyPriority;
@@ -345,11 +404,5 @@ namespace Game1.Industries
                 ok: state => state.ConsumeElectricalEnergy(source: source, electricalEnergy: electricalEnergy),
                 error: _ => Debug.Assert(electricalEnergy.IsZero)
             );
-
-        MyVector2 Disk.IParams.Center
-            => parameters.nodeState.Position;
-
-        UDouble Disk.IParams.Radius
-            => parameters.nodeState.Radius + ResAndIndustryAlgos.BuildingHeight;
     }
 }

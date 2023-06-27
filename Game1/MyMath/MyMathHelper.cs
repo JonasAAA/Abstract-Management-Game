@@ -35,6 +35,9 @@ namespace Game1.MyMath
         public static decimal Min(decimal left, decimal right)
             => left < right ? left : right;
 
+        public static double Min(double left, double right)
+            => left < right ? left : right;
+
         // T is not IComparisonOperators<T, T, bool> for the same reason as Min function
         public static T Max<T>(T left, T right) where T : IMax<T>
             => T.Max(left, right);

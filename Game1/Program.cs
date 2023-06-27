@@ -11,6 +11,8 @@ global using System.Linq;
 global using UpdatePersonSkillsParams = System.Collections.Generic.List<(Game1.Industries.IndustryType industryType, Game1.PrimitiveTypeWrappers.Score.ParamsOfChange paramsOfSkillChange)>;
 global using MaterialChoices = Game1.Collections.EfficientReadOnlyDictionary<Game1.Resources.IMaterialPurpose, Game1.Resources.Material>;
 global using TextErrors = Game1.Collections.EfficientReadOnlyHashSet<string>;
+global using AreaInt = Game1.Resources.Area<ulong>;
+global using AreaDouble = Game1.Resources.Area<Game1.PrimitiveTypeWrappers.UDouble>;
 
 namespace Game1
 {

@@ -1,7 +1,5 @@
 ﻿using Game1.Collections;
 using Game1.Delegates;
-using Game1.Lighting;
-using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
 
@@ -13,83 +11,118 @@ namespace Game1.Industries
         [Serializable]
         public sealed class GeneralParams
         {
-            public readonly IConstructedIndustryGeneralParams childIndustryGenParams;
+            public readonly string name;
+            public readonly IBuildingGeneralParams buildingGeneralParams;
             public readonly EnergyPriority energyPriority;
 
-            public GeneralParams(IConstructedIndustryGeneralParams childIndustryGenParams, EnergyPriority energyPriority)
+            public GeneralParams(IBuildingGeneralParams buildingGeneralParams, EnergyPriority energyPriority)
             {
-                this.childIndustryGenParams = childIndustryGenParams;
+                name = UIAlgorithms.ConstructionName(childIndustryName: buildingGeneralParams.Name);
+                this.buildingGeneralParams = buildingGeneralParams;
                 this.energyPriority = energyPriority;
             }
 
-            public Result<ConcreteParams, TextErrors> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices)
-            {
-                MaterialChoices neededMaterialChoices = buildingMatChoices.FilterOutUnneededMaterials(ingredients: childIndustryGenParams.BuildingCostPropors);
-                return ResAndIndustryAlgos.BuildingCost
+            public Result<ConcreteParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices)
+                => buildingGeneralParams.CreateConcrete
                 (
-                    buildingCostPropors: childIndustryGenParams.BuildingCostPropors,
-                    buildingMatChoices: neededMaterialChoices,
-                    surfaceLength: nodeState.SurfaceLength
+                    nodeState: nodeState,
+                    neededBuildingMatChoices: buildingMatChoices.FilterOutUnneededMaterials(materialPropors: buildingGeneralParams.BuildingComponentMaterialPropors)
                 ).Select
                 (
-                    buildingCost => new ConcreteParams
+                    buildingConcreteParams => new ConcreteParams
                     (
                         nodeState: nodeState,
                         generalParams: this,
-                        buildingMatChoices: neededMaterialChoices,
-                        buildingCost: buildingCost
+                        buildingConcreteParams: buildingConcreteParams
                     )
                 );
-            }
+
+                //MaterialChoices neededMaterialChoices = buildingMatChoices.FilterOutUnneededMaterials(ingredients: buildingGeneralParams.buildingCostPropors);
+                //return ResAndIndustryAlgos.BuildingCost
+                //(
+                //    buildingCostPropors: buildingGeneralParams.buildingCostPropors,
+                //    neededBuildingMatChoices: neededMaterialChoices,
+                //    surfaceLength: nodeState.SurfaceLength
+                //).Select
+                //(
+                //    buildingCost => new ConcreteParams
+                //    (
+                //        nodeState: nodeState,
+                //        generalParams: this,
+                //        buildingConcreteParams: ,
+                //        neededBuildingMatChoices: neededMaterialChoices,
+                //        buildingCost: buildingCost
+                //    )
+                //);
         }
 
         [Serializable]
         public readonly struct ConcreteParams
         {
+            public readonly string name;
             public readonly IIndustryFacingNodeState nodeState;
             public readonly EnergyPriority energyPriority;
             public readonly SomeResAmounts<IResource> buildingCost;
-            public readonly UDouble buildingArea;
-            public readonly Color childIndustryColor;
+            public readonly AreaDouble buildingComponentsTargetArea;
 
-            private readonly GeneralParams generalParams;
-            private readonly MaterialChoices buildingMatChoices;
-            private readonly IConstructedIndustryGeneralParams childIndustryGenParams;
-            
-            public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, MaterialChoices buildingMatChoices, SomeResAmounts<IResource> buildingCost)
+            private readonly IBuildingConcreteParams buildingConcreteParams;
+            /// <summary>
+            /// Keys contain ALL material purposes, not just used ones
+            /// </summary>
+            private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
+
+            public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, IBuildingConcreteParams buildingConcreteParams)
             {
+                name = generalParams.name;
                 this.nodeState = nodeState;
                 energyPriority = generalParams.energyPriority;
-                this.buildingCost = buildingCost;
-                buildingArea = ResAndIndustryAlgos.BuildingArea(surfaceLength: nodeState.SurfaceLength);
-                childIndustryColor = generalParams.childIndustryGenParams.Color;
+                buildingCost = buildingConcreteParams.BuildingCost;
+                buildingComponentsTargetArea = ResAndIndustryAlgos.BuildingComponentTargetArea
+                (
+                    buildingArea: buildingConcreteParams.IncompleteBuildingImage(donePropor: Propor.full).Area
+                );
 
-                this.generalParams = generalParams;
-                this.buildingMatChoices = buildingMatChoices;
-                childIndustryGenParams = generalParams.childIndustryGenParams;
+                this.buildingConcreteParams = buildingConcreteParams;
+                buildingMaterialPropors = generalParams.buildingGeneralParams.BuildingComponentMaterialPropors;
             }
+
+            public IBuildingImage IncompleteBuildingImage(Propor donePropor)
+                => buildingConcreteParams.IncompleteBuildingImage(donePropor: donePropor);
 
             public Construction CreateIndustry()
                 => new(parameters: this);
 
             public IIndustry CreateChildIndustry(ResPile buildingResPile)
-                => childIndustryGenParams.CreateIndustry(nodeState: nodeState, buildingMatChoices: buildingMatChoices, buildingResPile: buildingResPile);
+                => buildingConcreteParams.CreateIndustry(buildingResPile: buildingResPile);
 
             public CurProdStats CurConstrStats()
                 => ResAndIndustryAlgos.CurConstrStats
                 (
-                    buildingCostPropors: generalParams.childIndustryGenParams.BuildingCostPropors,
+                    buildingMaterialPropors: buildingMaterialPropors,
                     gravity: nodeState.SurfaceGravity,
                     temperature: nodeState.Temperature
                 );
         }
 
-        //[Serializable]
-        //public readonly record struct CurConstrStats(UDouble ReqWatts, UDouble ConstructedAreaPerSec);
-
         [Serializable]
-        private sealed class State : Disk.IParams
+        private sealed class State
         {
+            //private sealed class CurBuildingImage : IBuildingImage
+            //{
+            //    private readonly State state;
+
+            //    public CurBuildingImage(State state)
+            //    {
+            //        this.state = state;
+            //    }
+
+            //    AngleArc.Params ILightBlockingObject.BlockedAngleArcParams(MyVector2 lightPos)
+            //        => state.parameters.incompleteBuildingImage
+
+            //    void IBuildingImage.Draw(Color otherColor, Propor otherColorPropor)
+            //        => state.parameters.incompleteBuildingImage.DrawIncomplete(donePropor: state.donePropor, otherColor: otherColor, otherColorPropor: otherColorPropor);
+            //}
+
             public static Result<State, TextErrors> Create(ConcreteParams parameters)
             {
                 var buildingResPile = ResPile.CreateIfHaveEnough
@@ -103,23 +136,21 @@ namespace Game1.Industries
             }
 
             public ElectricalEnergy ReqEnergy { get; private set; }
-            public readonly LightBlockingDisk lightBlockingDisk;
+            public IBuildingImage IncompleteBuildingImage
+                => parameters.IncompleteBuildingImage(donePropor: donePropor);
 
             private readonly ConcreteParams parameters;
             private readonly ResPile buildingResPile;
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
             private readonly HistoricRounder reqEnergyHistoricRounder;
             private CurProdStats curConstrStats;
-            private UDouble donePropor;
-            private Propor workingPropor;
+            private Propor donePropor, workingPropor;
 
             private State(ResPile buildingResPile, ConcreteParams parameters)
             {
-                lightBlockingDisk = new(parameters: this);
-
                 this.buildingResPile = buildingResPile;
                 this.parameters = parameters;
-                donePropor = 0;
+                donePropor = Propor.empty;
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: parameters.nodeState.LocationCounters);
                 reqEnergyHistoricRounder = new();
             }
@@ -149,12 +180,11 @@ namespace Game1.Industries
             public IIndustry? Update()
             {
                 parameters.nodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
-                UDouble areaConstructed = workingPropor * (UDouble)CurWorldManager.Elapsed.TotalSeconds * curConstrStats.ProducedAreaPerSec;
-                donePropor += areaConstructed / parameters.buildingArea;
+                AreaDouble areaConstructed = AreaDouble.CreateFromMetSq(valueInMetSq: workingPropor * (UDouble)CurWorldManager.Elapsed.TotalSeconds * curConstrStats.ProducedAreaPerSec);
+                donePropor = Propor.CreateByClamp(value: (UDouble)donePropor + areaConstructed.valueInMetSq / parameters.buildingComponentsTargetArea.valueInMetSq);
 
-                if (donePropor >= 1)
+                if (donePropor.IsFull)
                 {
-                    donePropor = 1;
                     var childIndustry = parameters.CreateChildIndustry(buildingResPile: buildingResPile);
                     if (childIndustry is IEnergyConsumer energyConsumer)
                         CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: energyConsumer);
@@ -169,36 +199,24 @@ namespace Game1.Industries
                 parameters.nodeState.StoredResPile.TransferAllFrom(source: buildingResPile);
             }
 
-            public void Draw(Color otherColor, Propor otherColorPropor)
-                => lightBlockingDisk.Draw
-                (
-                    baseColor: parameters.childIndustryColor,
-                    otherColor: otherColor,
-                    otherColorPropor: otherColorPropor
-                );
+            //public void Draw(Color otherColor, Propor otherColorPropor)
+            //    => parameters.DrawBuilding(donePropor: donePropor, otherColor: otherColor, otherColorPropor: otherColorPropor);
 
-            MyVector2 Disk.IParams.Center
-                => parameters.nodeState.Position;
+            //MyVector2 Disk.IParams.Center
+            //    => parameters.nodeState.Position;
 
-            UDouble Disk.IParams.Radius
-                => MyMathHelper.Sqrt(parameters.nodeState.Area.valueInMetSq + donePropor * parameters.buildingArea / MyMathHelper.pi);
+            //UDouble Disk.IParams.radius
+            //    => MyMathHelper.Sqrt(parameters.nodeState.Area.valueInMetSq + donePropor * parameters.buildingComponentsTargetArea / MyMathHelper.pi);
         }
 
-        [Serializable]
-        public readonly record struct IndustryOutlineParams(ConcreteParams Parameters) : Disk.IParams
-        {
-            public MyVector2 Center
-                => Parameters.nodeState.Position;
+        public string Name
+            => parameters.name;
 
-            public UDouble Radius
-                => Parameters.nodeState.Radius + ResAndIndustryAlgos.BuildingHeight;
-        }
-
-        public ILightBlockingObject? LightBlockingObject
-            => stateOrReasonForNotStartingConstr.SwitchExpression<ILightBlockingObject?>
+        public IBuildingImage BuildingImage
+            => stateOrReasonForNotStartingConstr.SwitchExpression
             (
-                ok: state => state.lightBlockingDisk,
-                error: _ => null
+                ok: state => state.IncompleteBuildingImage,
+                error: _ => parameters.IncompleteBuildingImage(donePropor: Propor.empty)
             );
 
         public Material? SurfaceMaterial
@@ -223,14 +241,12 @@ namespace Game1.Industries
         private readonly ConcreteParams parameters;
         private readonly Event<IDeletedListener> deleted;
         private Result<State, TextErrors> stateOrReasonForNotStartingConstr;
-        private readonly Disk industryOutline;
 
         private Construction(ConcreteParams parameters)
         {
             this.parameters = parameters;
             stateOrReasonForNotStartingConstr = new(errors: new("Not yet initialized"));
             deleted = new();
-            industryOutline = new(parameters: new IndustryOutlineParams(Parameters: parameters));
 
             CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
         }
@@ -270,6 +286,14 @@ namespace Game1.Industries
             {
                 stateOrReasonForNotStartingConstr = new(errors: new("construction is done"));
                 Delete();
+                CurWorldManager.PublishMessage
+                (
+                    message: new BasicMessage
+                    (
+                        nodeID: parameters.nodeState.NodeID,
+                        message: UIAlgorithms.ConstructionComplete(buildingName: childIndustry.Name)
+                    )
+                );
                 return childIndustry;
             }
             return this;
@@ -284,13 +308,6 @@ namespace Game1.Industries
         public string GetInfo()
         {
             throw new NotImplementedException();
-        }
-
-        public void Draw(Color otherColor, Propor otherColorPropor)
-        {
-            Propor transparency = (Propor).25;
-            industryOutline.Draw(baseColor: parameters.childIndustryColor * (float)transparency, otherColor: otherColor * (float)transparency, otherColorPropor: otherColorPropor * transparency);
-            stateOrReasonForNotStartingConstr.PerformAction(action: state => state.Draw(otherColor: otherColor, otherColorPropor: otherColorPropor));
         }
 
         EnergyPriority IEnergyConsumer.EnergyPriority

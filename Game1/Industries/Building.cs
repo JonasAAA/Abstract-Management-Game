@@ -2,21 +2,21 @@
 //{
 //    // TODO: make people unhappy if have unwanted resources
 //    [Serializable]
-//    public class Building
+//    public class BuildingShape
 //    {
 //        public SomeResAmounts<IResource> Cost
 //            => resPile.Amount;
 
-//        public readonly Mass miningMass;
+//        public readonly Mass splittingMass;
 
 //        private readonly ResPile resPile;
 
-//        public Building(ResPile resSource)
+//        public BuildingShape(ResPile resSource)
 //        {
 //            if (resSource.Amount.IsEmpty())
 //                throw new ArgumentException();
 //            resPile = resSource;
-//            miningMass = Cost.Mass();
+//            splittingMass = Cost.Mass();
 //        }
 
 //        public void Delete(ResPile resDestin)

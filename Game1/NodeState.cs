@@ -2,6 +2,7 @@
 using Game1.ContentHelpers;
 using Game1.Industries;
 using Game1.Inhabitants;
+using Game1.UI;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -15,7 +16,7 @@ namespace Game1
         public NodeID NodeID { get; }
         public Mass PlanetMass
             => consistsOfResPile.Amount.Mass();
-        public Area Area { get; private set; }
+        public AreaInt Area { get; private set; }
         public UDouble Radius { get; private set; }
         public UDouble SurfaceLength { get; private set; }
         //public ulong MainResAmount
@@ -57,7 +58,7 @@ namespace Game1
                 //    rawMat: composition,
                 //    approxRadius: CurWorldManager.ScreenLengthToWorldLength
                 //    (
-                //        screenLength: mapInfoCamera.WorldLengthToScreenLength(worldLength: cosmicBodyInfo.Radius)
+                //        screenLength: mapInfoCamera.WorldLengthToScreenLength(worldLength: cosmicBodyInfo.radius)
                 //    )
                 //),
                 resSource: resSource,
@@ -100,25 +101,30 @@ namespace Game1
             SurfaceLength = 2 * MyMathHelper.pi * Radius;
         }
 
-        //public bool CanRemove(Area area)
-        //    => Area >= area + CurWorldConfig.minPlanetArea;
-
-        public Result<ResPile, TextErrors> Mine(UDouble targetArea)
+        public Result<ResPile, TextErrors> Mine(AreaDouble targetArea, RawMatsMixAllocator rawMatsMixAllocator)
         {
-            throw new NotImplementedException();
-            //if (!CanRemove(area: area))
-            //    throw new ArgumentException();
-            //var reservedResPile = ResPile.CreateIfHaveEnough
-            //(
-            //    source: consistsOfResPile,
-            //    amount: AllResAmounts.CreateFromOnlyMix
-            //    (
-            //        rawMatsMix: new(res: Composition, amount: area)
-            //    )
-            //);
-            //Debug.Assert(reservedResPile is not null);
-            //destin.TransferAllFrom(source: reservedResPile);
-            //RecalculateValues();
+            AreaInt targetAreaInt = targetArea.RoundDown();
+            (AreaInt finalMaxArea, bool minedOut) = (consistsOfResPile.Amount.rawMatsMix.Area() <= CurWorldConfig.minPlanetArea + targetAreaInt) switch
+            {
+                true => (finalMaxArea: consistsOfResPile.Amount.rawMatsMix.Area() - CurWorldConfig.minPlanetArea, minedOut: true),
+                false => (finalMaxArea: targetAreaInt, minedOut: false),
+            };
+            var rawMatsMixToMine = rawMatsMixAllocator.TakeAtMostFrom
+            (
+                source: consistsOfResPile.Amount.rawMatsMix,
+                maxArea: finalMaxArea
+            );
+            if (rawMatsMixToMine.IsEmpty && minedOut)
+                return new(errors: new(UIAlgorithms.CosmicBodyIsMinedOut));
+
+            ResPile result = ResPile.CreateEmpty(thermalBody: ThermalBody);
+            result.TransferFrom
+            (
+                source: consistsOfResPile,
+                amount: rawMatsMixToMine
+            );
+            RecalculateValues();
+            return new(ok: result);
         }
 
         public void EnlargeFrom(ResPile source, RawMaterialsMix amount)

@@ -19,7 +19,7 @@
 //                (
 //                    industryType: IndustryType.Reproduction,
 //                    Name: Name,
-//                    color: Color.Green,
+//                    Color: Color.Green,
 //                    energyPriority: energyPriority,
 //                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
 //                )
@@ -41,7 +41,7 @@
 //            public SomeResAmounts<IResource> BuildingCost(IIndustryFacingNodeState state)
 //                => state.SurfaceLength * buildingCostPerUnitSurface;
 
-//            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
+//            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, BuildingShape building)
 //                => new ReprodIndustry(parameters: CreateParams(state: state), building: building);
 //        }
 
@@ -146,7 +146,7 @@
 //        private readonly ReprodCenter reprodCenter;
 //        private readonly TimedQueue<(VirtualPerson, VirtualPerson, ResPile childResPile)> birthQueue;
 
-//        private ReprodIndustry(GeneralParams parameters, Building building)
+//        private ReprodIndustry(GeneralParams parameters, BuildingShape building)
 //            : base(parameters: parameters, building: building)
 //        {
 //            this.parameters = parameters;

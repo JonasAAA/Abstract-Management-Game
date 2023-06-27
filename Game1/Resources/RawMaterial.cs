@@ -24,12 +24,12 @@ namespace Game1.Resources
         public string Name { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
-        public Area Area { get; }
+        public AreaInt Area { get; }
         public RawMaterialsMix RawMatComposition { get; }
         public Temperature MeltingPoint { get; }
         public readonly Color color;
 
-        private RawMaterial(string name, Mass mass, HeatCapacity heatCapacity, Area area, Temperature meltingPoint, Color color)
+        private RawMaterial(string name, Mass mass, HeatCapacity heatCapacity, AreaInt area, Temperature meltingPoint, Color color)
         {
             Name = name;
             Mass = mass;

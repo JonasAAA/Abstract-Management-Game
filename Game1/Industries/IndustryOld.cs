@@ -19,10 +19,10 @@
 //            public string Name { get; }
 //            public Color Color { get; }
 
-//            protected Factory(string Name, Color color)
+//            protected Factory(string Name, Color Color)
 //            {
 //                Name = Name;
-//                Color = color;
+//                Color = Color;
 //            }
 
 //            public abstract GeneralParams CreateParams(IIndustryFacingNodeState state);
@@ -48,7 +48,7 @@
 
 //            public readonly IIndustryFacingNodeState state;
 //            public readonly string Name;
-//            public readonly Color color;
+//            public readonly Color Color;
 
 //            private readonly ITooltip tooltip;
 
@@ -60,7 +60,7 @@
 //                this.state = state;
 
 //                Name = factory.Name;
-//                color = factory.Color;
+//                Color = factory.Color;
 //                tooltip = new TextTooltip(parameters: this);
 //            }
 
@@ -81,15 +81,15 @@
 //            public MyVector2 Center
 //                => Industry.parameters.state.Position;
 
-//            public UDouble Radius
-//                => Industry.parameters.state.Radius + Industry.Height;
+//            public UDouble radius
+//                => Industry.parameters.state.radius + Industry.Height;
 //        }
 
 //        public IEvent<IDeletedListener> Deleted
 //            => deleted;
 
-//        public ILightBlockingObject? LightBlockingObject
-//            => lightBlockingDisk.Radius.IsCloseTo(other: parameters.state.Radius) switch
+//        public ILightBlockingObject? BuildingShape
+//            => lightBlockingDisk.radius.IsCloseTo(other: parameters.state.radius) switch
 //            {
 //                true => null,
 //                false => lightBlockingDisk
@@ -119,14 +119,14 @@
 //        protected readonly CombinedEnergyConsumer combinedEnergyConsumer;
 //        protected readonly UIRectPanel<IHUDElement> UIPanel;
 
-//        private readonly Building? building;
+//        private readonly BuildingShape? building;
 //        private bool isDeleted;
 //        private readonly Event<IDeletedListener> deleted;
 //        private readonly LightCatchingDisk lightBlockingDisk;
 //        private readonly TextBox textBox;
 //        private readonly GeneralParams parameters;
 
-//        protected Industry(GeneralParams parameters, Building? building)
+//        protected Industry(GeneralParams parameters, BuildingShape? building)
 //        {
 //            this.parameters = parameters;
 //            this.building = building;
@@ -153,7 +153,7 @@
 //                ),
 //                tooltip: new ImmutableTextTooltip(text: "Delete this industry"),
 //                text: "delete",
-//                color: colorConfig.deleteButtonColor
+//                Color: colorConfig.deleteButtonColor
 //            );
 //            deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(Industry: this));
 //            UIPanel.AddChild(child: deleteButton);
@@ -198,8 +198,8 @@
 
 //        public virtual void Draw(Color otherColor, Propor otherColorPropor)
 //        {
-//            if (LightBlockingObject is not null)
-//                lightBlockingDisk.Draw(baseColor: parameters.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
+//            if (BuildingShape is not null)
+//                lightBlockingDisk.Draw(baseColor: parameters.Color, otherColor: otherColor, otherColorPropor: otherColorPropor);
 //        }
 
 //        public virtual void DrawAfterPlanet()

@@ -11,15 +11,32 @@ namespace Game1.Resources
             public new static ResPileInternal CreateEmpty(LocationCounters locationCounters)
                 => new(locationCounters: locationCounters, counter: ResCounter.CreateEmpty());
 
+            public static (ResPileInternal resPile, ulong count)? CreateMultipleIfHaveEnough(ResPileInternal source, SomeResAmounts<IResource> amount, ulong maxCount)
+            {
+                if (maxCount is 0)
+                    throw new ArgumentException();
+                ulong count = MyMathHelper.Min(source.Amount.resAmounts.NumberOfTimesLargerThan(other: amount), maxCount);
+                if (count is 0)
+                    return null;
+                var newResPile = Create(source: source, amount: (amount * count).ToAll());
+                return (resPile: newResPile, count: count);
+            }
+
             public static ResPileInternal? CreateIfHaveEnough(ResPileInternal source, AllResAmounts amount)
             {
                 if (source.Amount >= amount)
-                {
-                    ResPileInternal newPile = new(locationCounters: source.LocationCounters, counter: ResCounter.CreateEmpty());
-                    newPile.TransferFrom(source: source, amount: amount);
-                    return newPile;
-                }
+                    return Create(source: source, amount: amount);
                 return null;
+            }
+
+            /// <summary>
+            /// ONLY call this when are sure that have enough
+            /// </summary>
+            private static ResPileInternal Create(ResPileInternal source, AllResAmounts amount)
+            {
+                ResPileInternal newPile = new(locationCounters: source.LocationCounters, counter: ResCounter.CreateEmpty());
+                newPile.TransferFrom(source: source, amount: amount);
+                return newPile;
             }
 
             public new static ResPileInternal CreateByMagic(AllResAmounts amount)
@@ -57,11 +74,26 @@ namespace Game1.Resources
                 thermalBody: thermalBody
             );
 
+        public static (ResPile resPile, ulong count)? CreateMultipleIfHaveEnough(ResPile source, SomeResAmounts<IResource> amount, ulong maxCount)
+            => ResPileInternal.CreateMultipleIfHaveEnough(source: source.resPileInternal, amount: amount, maxCount: maxCount) switch
+            {
+                (ResPileInternal newInternalPile, ulong count) =>
+                (
+                    resPile: new
+                    (
+                        resPileInternal: newInternalPile,
+                        thermalBody: source.thermalBody
+                    ),
+                    count: count
+                ),
+                null => null
+            };
+
         public static ResPile? CreateIfHaveEnough(ResPile source, SomeResAmounts<IResource> amount)
-            => CreateIfHaveEnough(source: source, amount: AllResAmounts.CreateFromNoMix(resAmounts: amount));
+            => CreateIfHaveEnough(source: source, amount: amount.ToAll());
 
         public static ResPile? CreateIfHaveEnough(ResPile source, RawMaterialsMix amount)
-            => CreateIfHaveEnough(source: source, amount: AllResAmounts.CreateFromOnlyMix(rawMatsMix: amount));
+            => CreateIfHaveEnough(source: source, amount: amount.ToAll());
 
         //public static ResPile? CreateIfHaveEnough(ResPile source, AllResAmounts amount)
         //{
@@ -114,6 +146,12 @@ namespace Game1.Resources
             thermalBody = newThermalBody;
         }
 
+        public void TransferFrom(ResPile source, SomeResAmounts<IResource> amount)
+            => TransferFrom(source: source, amount: amount.ToAll());
+
+        public void TransferFrom(ResPile source, RawMaterialsMix amount)
+            => TransferFrom(source: source, amount: amount.ToAll());
+
         public void TransferFrom(ResPile source, AllResAmounts amount)
         {
             // This must be done first to get accurate source heat capacity in the calculations
@@ -131,10 +169,7 @@ namespace Game1.Resources
             => TransferFrom
             (
                 source: source,
-                amount: AllResAmounts.CreateFromNoMix
-                (
-                    resAmounts: new(res: res, amount: source.Amount.resAmounts[res])
-                )
+                amount: new SomeResAmounts<IResource>(res: res, amount: source.Amount.resAmounts[res]).ToAll()
             );
 
         public void TransformFrom(ResPile source, ResRecipe recipe)

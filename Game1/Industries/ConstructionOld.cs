@@ -19,7 +19,7 @@
 //                (
 //                    industryType: IndustryType.Construction,
 //                    Name: Name,
-//                    color: industryFactory.Color,
+//                    Color: industryFactory.Color,
 //                    energyPriority: energyPriority,
 //                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
 //                )
@@ -64,7 +64,7 @@
 //                {nameof(duration)}: {duration}
 //                {nameof(Cost)}: {Cost}
 
-//                Building parameters:
+//                BuildingShape parameters:
 //                {industryFactory.CreateParams(state: state).TooltipText}
 //                """;
 
@@ -86,8 +86,8 @@
 //            public MyVector2 Center
 //                => Parameters.state.Position;
 
-//            public UDouble Radius
-//                => Parameters.state.Radius + CurWorldConfig.defaultIndustryHeight;
+//            public UDouble radius
+//                => Parameters.state.radius + CurWorldConfig.defaultIndustryHeight;
 //        }
 
 //        public override bool PeopleWorkOnTop
@@ -106,7 +106,7 @@
 //        private readonly Disk industryOutline;
 //        private TimeSpan constrProporLeft;
 //        private Propor donePropor;
-//        private Building? buildingBeingConstructed;
+//        private BuildingShape? buildingBeingConstructed;
 
 //        private Construction(GeneralParams parameters)
 //            : base(parameters: parameters, building: null)

@@ -12,5 +12,11 @@
             this.res = res;
             this.amount = amount;
         }
+
+        public void Deconstruct(out TRes res, out ulong amount)
+        {
+            res = this.res;
+            amount = this.amount;
+        }
     }
 }

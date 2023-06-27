@@ -6,19 +6,19 @@ namespace Game1.Resources
     public readonly struct GeneralProdAndMatAmounts
     {
         public readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts;
-        public readonly EfficientReadOnlyDictionary<IMaterialPurpose, Area> ingredMatPurposeToTargetAreas;
-        public readonly Area targetArea;
+        public readonly EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToTargetAreas;
+        public readonly AreaInt targetArea;
         public readonly MechComplexity complexity;
         /// <summary>
         /// Keys contain ALL material purposes, not just used ones
         /// </summary>
-        public readonly EfficientReadOnlyDictionary<IMaterialPurpose, Area> materialTargetAreas;
+        public readonly EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> materialTargetAreas;
         /// <summary>
         /// Keys contain ALL material purposes, not just used ones
         /// </summary>
         public readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> materialPropors;
 
-        public GeneralProdAndMatAmounts(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, Area> ingredMatPurposeToTargetAreas)
+        public GeneralProdAndMatAmounts(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToTargetAreas)
         {
             this.ingredProdToAmounts = ingredProdToAmounts;
             this.ingredMatPurposeToTargetAreas = ingredMatPurposeToTargetAreas;
@@ -32,7 +32,7 @@ namespace Game1.Resources
             targetArea = materialTargetAreas.Values.Sum();
             complexity = ResAndIndustryAlgos.Complexity(ingredProdToAmounts: ingredProdToAmounts, ingredMatPurposeToTargetAreas: ingredMatPurposeToTargetAreas);
             // Needed to satisfy compiler
-            Area targetAreaCopy = targetArea;
+            AreaInt targetAreaCopy = targetArea;
             materialPropors = materialTargetAreas.Select
             (
                 matPurpAndArea =>

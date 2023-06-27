@@ -74,7 +74,7 @@ namespace Game1.Lighting
                 };
 
                 UDouble Brightness(UDouble distFromCenter)
-                    => (UDouble)MyMathHelper.Pow(brightness * CurWorldConfig.standardStarRadius / (MyMathHelper.Max(1, distFromCenter - CurWorldConfig.standardStarRadius) + brightness * CurWorldConfig.standardStarRadius), 2);
+                    => (UDouble)MyMathHelper.Pow(brightness * CurWorldConfig.standardStarRadius / (MyMathHelper.Max(1, (double)distFromCenter - CurWorldConfig.standardStarRadius) + brightness * CurWorldConfig.standardStarRadius), 2);
             }
         }
 
@@ -107,7 +107,7 @@ namespace Game1.Lighting
 
         public void Draw(Matrix worldToScreenTransform)
         {
-            // RenderTarger stores things in reverse color and alpha values for ease of computation
+            // RenderTarger stores things in reverse Color and alpha values for ease of computation
             // i.e. to get the real image, need to apply x -> 1 - x tranform to all channels
             // TODO: give blending to custom shader, which should blend alphas like so:
             // a = 1 - (1 - a1) * (1 - a2),
@@ -146,7 +146,7 @@ namespace Game1.Lighting
                     actualScreenHeight: actualScreenHeight
                 );
 
-            // invert the image, i.e.each color channel transforms x -> 1 - x, same with alpha channel
+            // invert the image, i.e.each Color channel transforms x -> 1 - x, same with alpha channel
             C.SpriteBatch.Begin
             (
                 blendState: new()

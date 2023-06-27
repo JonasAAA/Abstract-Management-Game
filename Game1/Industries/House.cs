@@ -14,7 +14,7 @@
 //            private readonly SomeResAmounts<IResource> buildingCostPerUnitSurface;
 
 //            public Factory(string Name, UDouble floorSpacePerUnitSurface, SomeResAmounts<IResource> buildingCostPerUnitSurface)
-//                : base(Name: Name, color: colorConfig.houseIndustryColor)
+//                : base(Name: Name, Color: colorConfig.houseIndustryColor)
 //            {
 //                this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
 //                if (buildingCostPerUnitSurface.IsEmpty())
@@ -28,7 +28,7 @@
 //            public SomeResAmounts<IResource> BuildingCost(IIndustryFacingNodeState state)
 //                => state.SurfaceLength * buildingCostPerUnitSurface;
 
-//            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
+//            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, BuildingShape building)
 //            {
 //                if (building.Cost != BuildingCost(state: state))
 //                    throw new ArgumentException();
@@ -111,7 +111,7 @@
 
 //        private readonly Housing housing;
 
-//        private House(GeneralParams parameters, Building building)
+//        private House(GeneralParams parameters, BuildingShape building)
 //            : base(parameters: parameters, building: building)
 //            => housing = new(parameters: parameters, energyDistributor: combinedEnergyConsumer);
 

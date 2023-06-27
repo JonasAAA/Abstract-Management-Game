@@ -13,6 +13,9 @@
             houseIndustryColor,
             linkTravellerColor,
             selectedWorldUIElementColor,
+            // industry colors
+            miningBuildingColor,
+            manufacturingBuildingColor,
             
             // UI colors
             mouseOnColor,
@@ -37,6 +40,9 @@
             houseIndustryColor = Color.Yellow;
             linkTravellerColor = Color.Black;
             selectedWorldUIElementColor = Color.White;
+            // industry colors
+            miningBuildingColor = Color.Brown;
+            manufacturingBuildingColor = Color.DarkGray;
 
             // UI colors
             mouseOnColor = Color.Yellow;

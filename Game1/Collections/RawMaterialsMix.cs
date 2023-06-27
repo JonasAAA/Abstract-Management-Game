@@ -19,7 +19,7 @@ namespace Game1.Collections
         public bool IsEmpty
             => rawMatsMix.IsEmpty;
 
-        public Color color
+        public Color Color
             => throw new NotImplementedException();
 
         bool IFormOfEnergy<RawMaterialsMix>.IsZero
@@ -43,7 +43,7 @@ namespace Game1.Collections
         public HeatCapacity HeatCapacity()
             => rawMatsMix.HeatCapacity();
 
-        public Area Area()
+        public AreaInt Area()
             => rawMatsMix.Sum(resAmount => resAmount.res.Area * resAmount.amount);
         //=> rawMatsMix.Area();
 

@@ -153,13 +153,13 @@ namespace Game1
             (
                 shape: new LightBlockingDisk(parameters: new ShapeParams(State: state)),
                 activeColor: activeColor,
-                inactiveColor: state.Composition.color,
+                inactiveColor: state.Composition.Color,
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top
             )
         {
             this.state = state;
-            lightPolygon = new(color: state.Composition.color);
+            lightPolygon = new(color: state.Composition.Color);
             shape = (LightBlockingDisk)base.shape;
 
             links = new();
@@ -290,7 +290,7 @@ namespace Game1
             //        );
             //        Debug.Assert(reservedBuildingRes is not null);
             //        startingNonPlanetMass += reservedBuildingRes.Amount.Mass();
-            //        Building building = new(resSource: reservedBuildingRes);
+            //        BuildingShape building = new(resSource: reservedBuildingRes);
             //        Industry = industryFactory.CreateIndustry
             //        (
             //            state: state,
@@ -373,7 +373,10 @@ namespace Game1
         public void PreEnergyDistribUpdate()
         {
             if (state.TooManyResStored)
-                Industry?.FrameStartNoProduction(error: "planet contains unwanted resources");
+            {
+                CurWorldManager.PublishMessage(message: new BasicMessage(nodeID: NodeID, message: UIAlgorithms.CosmicBodyContainsUnwantedResources));
+                Industry?.FrameStartNoProduction(error: UIAlgorithms.CosmicBodyContainsUnwantedResources);
+            }
             else
                 Industry?.FrameStart();
         }
@@ -490,10 +493,7 @@ namespace Game1
             state.StoredResPile.TransferAtMostFrom
             (
                 source: undecidedResPile,
-                maxAmount: AllResAmounts.CreateFromNoMix
-                (
-                    resAmounts: targetStoredResAmounts
-                )
+                maxAmount: targetStoredResAmounts.ToAll()
             );
         }
 
@@ -596,7 +596,7 @@ namespace Game1
             //        return totalStoredMass.IsZero switch
             //        {
             //            true => "",
-            //            false => $"stored total res miningMass {totalStoredMass}"
+            //            false => $"stored total res splittingMass {totalStoredMass}"
             //        };
             //    },
             //    powerCase: () => "",
@@ -614,7 +614,8 @@ namespace Game1
         {
             base.DrawPreBackground(otherColor, otherColorPropor);
 
-            Industry?.Draw(otherColor: otherColor, otherColorPropor: otherColorPropor);
+            Industry?.BuildingImage.Draw(otherColor: otherColor, otherColorPropor: otherColorPropor);
+            //Industry?.Draw(otherColor: otherColor, otherColorPropor: otherColorPropor);
         }
 
         protected override void DrawChildren()
@@ -692,7 +693,7 @@ namespace Game1
         }
 
         private ILightBlockingObject CurLightCatchingObject
-            => Industry?.LightBlockingObject ?? shape;
+            => (ILightBlockingObject?)(Industry?.BuildingImage) ?? shape;
 
         AngleArc.Params ILightBlockingObject.BlockedAngleArcParams(MyVector2 lightPos)
             => CurLightCatchingObject.BlockedAngleArcParams(lightPos: lightPos);
@@ -717,10 +718,7 @@ namespace Game1
             );
 
         void INodeAsResDestin.AddResTravelHere(ResAmount<IResource> resAmount)
-            => resTravelHereAmounts += AllResAmounts.CreateFromNoMix
-            (
-                resAmounts: new(resAmount: resAmount)
-            );
+            => resTravelHereAmounts += new SomeResAmounts<IResource>(resAmount: resAmount).ToAll();
 
         void INodeAsLocalEnergyProducerAndConsumer.ConsumeUnusedLocalEnergyFrom(EnergyPile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {

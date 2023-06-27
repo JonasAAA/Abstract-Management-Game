@@ -24,16 +24,10 @@ namespace Game1.Collections
         bool IFormOfEnergy<AllResAmounts>.IsZero
             => IsEmpty;
 
-        public static AllResAmounts CreateFromNoMix(SomeResAmounts<IResource> resAmounts)
-            => new(resAmounts: resAmounts, rawMatsMix: RawMaterialsMix.empty);
-
-        public static AllResAmounts CreateFromOnlyMix(RawMaterialsMix rawMatsMix)
-            => new(resAmounts: SomeResAmounts<IResource>.empty, rawMatsMix: rawMatsMix);
-
         public readonly SomeResAmounts<IResource> resAmounts;
         public readonly RawMaterialsMix rawMatsMix;
 
-        private AllResAmounts(SomeResAmounts<IResource> resAmounts, RawMaterialsMix rawMatsMix)
+        public AllResAmounts(SomeResAmounts<IResource> resAmounts, RawMaterialsMix rawMatsMix)
         {
             this.resAmounts = resAmounts;
             this.rawMatsMix = rawMatsMix;

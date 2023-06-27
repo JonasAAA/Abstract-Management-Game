@@ -135,7 +135,7 @@ namespace Game1.Inhabitants
             this.seekChangeTime = seekChangeTime;
             timeSinceActivitySearch = seekChangeTime;
             LastActivityTimes = new(selector: activityType => TimeSpan.MinValue / 3);
-            if (resSource.Amount != AllResAmounts.CreateFromNoMix(resAmounts: consistsOfResAmounts))
+            if (resSource.Amount != consistsOfResAmounts.ToAll())
                 throw new ArgumentException();
             consistsOfResPile = resSource;
             // The counters here don't matter as this person will be immediately transfered to RealPeople where this person's Mass and NumPeople will be transferred to the appropriate counters

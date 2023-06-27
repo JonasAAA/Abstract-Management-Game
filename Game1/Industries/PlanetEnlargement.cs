@@ -18,7 +18,7 @@
 //                (
 //                    industryType: IndustryType.PlanetEnlargement,
 //                    Name: Name,
-//                    color: Color.Pink,
+//                    Color: Color.Pink,
 //                    energyPriority: energyPriority,
 //                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
 //                )
@@ -71,7 +71,7 @@
 //                => Parameters.state.Position;
 
 //            public UDouble InnerRadius
-//                => Parameters.state.Radius;
+//                => Parameters.state.radius;
 //        }
 
 //        public override bool PeopleWorkOnTop
@@ -142,7 +142,7 @@
 //        {
 //            base.Draw(otherColor, otherColorPropor);
 
-//            futureShapeOutline.Draw(baseColor: parameters.state.ConsistsOf.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
+//            futureShapeOutline.Draw(baseColor: parameters.state.ConsistsOf.Color, otherColor: otherColor, otherColorPropor: otherColorPropor);
 //        }
 //    }
 //}

@@ -32,6 +32,15 @@ namespace Game1.PrimitiveTypeWrappers
             return null;
         }
 
+        public static Propor CreateByClamp(UDouble value)
+            => new(value: MyMathHelper.Min((double)value, 1));
+
+        public bool IsFull
+            => this == full;
+
+        public bool IsEmpty
+            => this == empty;
+
         private readonly UDouble value;
 
         private Propor(double value)
@@ -88,6 +97,18 @@ namespace Game1.PrimitiveTypeWrappers
 
         public static TimeSpan operator *(TimeSpan timeSpan, Propor propor)
             => propor * timeSpan;
+
+        public static Color operator *(Propor propor, Color value)
+            => (float)propor * value;
+
+        public static Color operator *(Color value, Propor propor)
+            => propor * value;
+
+        public static AreaDouble operator *(Propor propor, AreaDouble value)
+            => AreaDouble.CreateFromMetSq(valueInMetSq: propor * value.valueInMetSq);
+
+        public static AreaDouble operator *(AreaDouble value, Propor propor)
+            => propor * value;
 
         public static bool operator >(Propor left, Propor right)
             => left.value > right.value;

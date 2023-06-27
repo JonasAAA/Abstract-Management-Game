@@ -17,8 +17,8 @@
                 height: ringTextureWidthAndHeight,
                 colorFromRelToCenterPos: relToCenterPos => Propor.Create
                 (
-                    part: outerRadius - relToCenterPos.Length(),
-                    whole: outerRadius - innerRadius
+                    part: (double)outerRadius - relToCenterPos.Length(),
+                    whole: (double)outerRadius - innerRadius
                 ) switch
                 {
                     Propor propor => Color.White * .75f * (float)propor,

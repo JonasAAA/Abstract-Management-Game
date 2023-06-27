@@ -20,7 +20,7 @@
 //                (
 //                    industryType: IndustryType.Manufacturing,
 //                    Name: Name,
-//                    color: Color.Brown,
+//                    Color: Color.Brown,
 //                    energyPriority: energyPriority,
 //                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
 //                )
@@ -48,7 +48,7 @@
 //            ResAmounts IFactoryForIndustryWithBuilding.BuildingCost(IIndustryFacingNodeState state)
 //                => state.SurfaceLength * buildingCostPerUnitSurface;
 
-//            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
+//            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, BuildingShape building)
 //                => new Manufacturing(parameters: CreateParams(state: state), building: building);
 //        }
 
@@ -140,7 +140,7 @@
 //        private readonly GeneralParams parameters;
 //        private Production? production;
 
-//        private Manufacturing(GeneralParams parameters, Building building)
+//        private Manufacturing(GeneralParams parameters, BuildingShape building)
 //            : base(parameters: parameters, building: building)
 //        {
 //            this.parameters = parameters;

@@ -451,7 +451,7 @@ namespace Game1.GameStates
                             PowerPlantCosmicBodyId = selectedCosmicBodyId
                         }
                     };
-                // Radius change
+                // radius change
                 if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.R))
                     return CurMapInfo with
                     {

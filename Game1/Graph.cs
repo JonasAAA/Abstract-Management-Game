@@ -20,6 +20,9 @@ namespace Game1
         {
             private static IResource res;
 
+            static NodeInfo()
+                => res = null!;
+
             public static void Init(IResource res)
                 => NodeInfo.res = res;
 
@@ -30,6 +33,7 @@ namespace Game1
 
             public NodeInfo(CosmicBody node)
             {
+                Debug.Assert(res is not null);
                 this.node = node;
                 nodesIn = new();
                 nodesOut = new();

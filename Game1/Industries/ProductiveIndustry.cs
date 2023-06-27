@@ -15,8 +15,8 @@
 //            public readonly EnergyPriority energyPriority;
 //            public readonly UDouble reqSkillPerUnitSurface;
 
-//            protected Factory(IndustryType industryType, Color color, string Name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface)
-//                : base(Name: Name, color: color)
+//            protected Factory(IndustryType industryType, Color Color, string Name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface)
+//                : base(Name: Name, Color: Color)
 //            {
 //                this.industryType = industryType;
 //                if ((industryType is IndustryType.PowerPlant && energyPriority != EnergyPriority.mostImportant)
@@ -231,7 +231,7 @@
 //        private Propor allocEnergyPropor;
 //        private readonly CachedValue<BoolWithExplanationIfFalse> isBusyCached;
 
-//        protected ProductiveIndustry(GeneralParams parameters, Building? building)
+//        protected ProductiveIndustry(GeneralParams parameters, BuildingShape? building)
 //            : base(parameters: parameters, building: building)
 //        {
 //            this.parameters = parameters;

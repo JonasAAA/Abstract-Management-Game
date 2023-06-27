@@ -17,7 +17,7 @@
 //                    industryType: IndustryType.PowerPlant,
 //                    energyPriority: EnergyPriority.mostImportant,
 //                    Name: Name,
-//                    color: Color.Blue,
+//                    Color: Color.Blue,
 //                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
 //                )
 //            {
@@ -35,7 +35,7 @@
 //            ResAmounts IFactoryForIndustryWithBuilding.BuildingCost(IIndustryFacingNodeState state)
 //                => state.SurfaceLength * buildingCostPerUnitSurface;
 
-//            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, Building building)
+//            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, BuildingShape building)
 //                => new PowerPlant(parameters: CreateParams(state: state), building: building);
 //        }
 
@@ -69,7 +69,7 @@
 //        private readonly HistoricRounder producedEnergyRounder;
 //        private readonly CachedValue<Propor> radiantToElectricalEnergyProporCached;
 
-//        private PowerPlant(GeneralParams parameters, Building building)
+//        private PowerPlant(GeneralParams parameters, BuildingShape building)
 //            : base(parameters: parameters, building: building)
 //        {
 //            this.parameters = parameters;

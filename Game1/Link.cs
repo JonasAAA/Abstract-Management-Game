@@ -282,7 +282,7 @@ namespace Game1
             link2To1.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
 
             //inactiveColor = ActiveUIManager.colorConfig.linkColor;
-            // TODO(color): turn activeColor and inactiveColor into abstract properties
+            // TODO(Color): turn activeColor and inactiveColor into abstract properties
             //inactiveColor = Color.Lerp
             //(
             //    value1: Color.White,

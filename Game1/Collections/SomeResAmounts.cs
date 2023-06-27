@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using static Game1.WorldManager;
 
 namespace Game1.Collections
@@ -69,6 +70,10 @@ namespace Game1.Collections
             this.amounts = amounts;
             Validate();
         }
+
+        public SomeResAmounts(Dictionary<TRes, ulong> resAmounts)
+            : this(resAmounts: resAmounts.Select(resAmount => new ResAmount<TRes>(res: resAmount.Key, amount: resAmount.Value)))
+        { }
 
         public SomeResAmounts(IEnumerable<ResAmount<TRes>> resAmounts)
             : this(resAmounts: resAmounts.ToList())
@@ -149,6 +154,43 @@ namespace Game1.Collections
             for (int ind = 0; ind < Count; ind++)
                 newResList.Add(resList[ind]);
             return new(resList: newResList, amounts: amounts);
+        }
+
+        public ulong NumberOfTimesLargerThan(SomeResAmounts<TRes> other)
+        {
+            ulong numberOfTimesLarger = ulong.MaxValue;
+            int thisInd = 0, rightInd = 0;
+            while (true)
+            {
+                (TRes? thisRes, ulong thisAmount) = GetResAndAmount(someResAmounts: this, ind: thisInd);
+                (TRes? otherRes, ulong otherAmount) = GetResAndAmount(someResAmounts: other, ind: rightInd);
+                int compare = CompareRes(thisRes, otherRes);
+                if (compare < 0)
+                {
+                    // this means this has some, while other has none of this resource
+                    thisInd++;
+                    continue;
+                }
+                if (compare > 0)
+                {
+                    // this means this has node, while other has some of this resource
+                    // so this doesn't have more resources than other
+                    Debug.Assert(!(this >= other));
+                    return 0;
+                }
+                if (thisRes is null)
+                {
+                    Debug.Assert(otherRes is null);
+                    break;
+                }
+                if (otherAmount is not 0)
+                    numberOfTimesLarger = MyMathHelper.Min(numberOfTimesLarger, thisAmount / otherAmount);
+                thisInd++;
+                rightInd++;
+            }
+            Debug.Assert(this >= numberOfTimesLarger * other);
+            Debug.Assert(!(this - numberOfTimesLarger * other >= other));
+            return numberOfTimesLarger;
         }
 
         // May need to change this if later on materials and/or products are able to store energy
@@ -244,24 +286,24 @@ namespace Game1.Collections
             //// This indirection is necessary as can't put managed pointers on stack
             //Span<(bool isLeft, int ind)> sumResSpan = stackalloc (bool isLeft, int ind)[left.Count + right.Count];
             //Span<ulong> sumAmountsSpan = stackalloc ulong[left.Count + right.Count];
-            //int sumInd = 0, leftInd = 0, rightInd = 0;
+            //int sumInd = 0, thisInd = 0, rightInd = 0;
             //while (true)
             //{
-            //    (TRes? leftRes, ulong leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
-            //    (TRes? rightRes, ulong rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
-            //    int compare = CompareRes(leftRes, rightRes);
-            //    if (leftRes is null && rightRes is null)
+            //    (TRes? thisRes, ulong thisAmount) = GetResAndAmount(someResAmounts: left, ind: thisInd);
+            //    (TRes? otherRes, ulong otherAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
+            //    int compare = CompareRes(thisRes, otherRes);
+            //    if (thisRes is null && otherRes is null)
             //        break;
             //    if (compare <= 0)
             //    {
-            //        sumResSpan[sumInd] = (true, leftInd);
-            //        sumAmountsSpan[sumInd] += leftAmount;
-            //        leftInd++;
+            //        sumResSpan[sumInd] = (true, thisInd);
+            //        sumAmountsSpan[sumInd] += thisAmount;
+            //        thisInd++;
             //    }
             //    if (compare >= 0)
             //    {
             //        sumResSpan[sumInd] = (false, rightInd);
-            //        sumAmountsSpan[sumInd] += rightAmount;
+            //        sumAmountsSpan[sumInd] += otherAmount;
             //        rightInd++;
             //    }
             //    sumInd++;

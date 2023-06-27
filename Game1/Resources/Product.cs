@@ -9,14 +9,14 @@ namespace Game1.Resources
         [Serializable]
         public sealed class Params
         {
-            public EfficientReadOnlyDictionary<IMaterialPurpose, Area> MaterialTargetAreas
+            public EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> MaterialTargetAreas
                 => ingredients.materialTargetAreas;
 
             public readonly GeneralProdAndMatAmounts ingredients;
-            public readonly Area targetArea;
+            public readonly AreaInt targetArea;
             public readonly MechComplexity complexity;
             //private readonly HashSet<IMaterialPurpose> neededPurposes;
-            //private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> materialPropors;
+            //private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
             //private readonly Area targetArea;
 
             public Params(GeneralProdAndMatAmounts ingredients)
@@ -24,8 +24,8 @@ namespace Game1.Resources
                 this.ingredients = ingredients;
                 targetArea = ingredients.targetArea;
                 complexity = ingredients.complexity;
-                //materialTargetAreas = generalRecipe.materialTargetAreas;
-                //materialPropors = generalRecipe.materialPropors;
+                //BuildingComponentMaterialPropors = generalRecipe.BuildingComponentMaterialPropors;
+                //buildingMaterialPropors = generalRecipe.buildingMaterialPropors;
 
                 var neededPurposes =
                     (from matPurpAndTargetArea in ingredients.materialTargetAreas
@@ -46,7 +46,7 @@ namespace Game1.Resources
 
             public Result<Product, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateProduct(MaterialChoices materialChoices)
             {
-                MaterialChoices neededMaterialChoices = materialChoices.FilterOutUnneededMaterials(ingredients: ingredients);
+                MaterialChoices neededMaterialChoices = materialChoices.FilterOutUnneededMaterials(materialPropors: ingredients.materialPropors);
                 return Result.Lift
                 (
                     func: (arg1, arg2) => new Product(parameters: this, materialChoices: neededMaterialChoices, productIngredients: new(arg1), materialIngredients: new(arg2)),
@@ -57,7 +57,7 @@ namespace Game1.Resources
                             func: ingredProd => new ResAmount<Product>(ingredProd, ingredProdToAmount.amount)
                         )
                     ),
-                    arg2: ingredients.ingredMatPurposeToTargetAreas.SelectMany<KeyValuePair<IMaterialPurpose, Area>, ResAmount<Material>, IMaterialPurpose>
+                    arg2: ingredients.ingredMatPurposeToTargetAreas.SelectMany<KeyValuePair<IMaterialPurpose, AreaInt>, ResAmount<Material>, IMaterialPurpose>
                     (
                         func: ingredMatPurposeToArea => neededMaterialChoices.GetValueOrDefault(ingredMatPurposeToArea.Key) switch
                         {
@@ -72,7 +72,7 @@ namespace Game1.Resources
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         //public Area Area { get; }
-        public Area TargetArea { get; }
+        public AreaInt TargetArea { get; }
         public RawMaterialsMix RawMatComposition { get; }
         /// <summary>
         /// If tempearature is any higher, the product is destroyed, i.e. turned into garbage.

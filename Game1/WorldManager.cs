@@ -356,6 +356,12 @@ namespace Game1
             lightManager.Initialize();
         }
 
+        public void PublishMessage(IMessage message)
+        {
+            // If exact same message already exists, don't add it a second time
+            throw new NotImplementedException();
+        }
+
         public UDouble PersonDist(NodeID nodeID1, NodeID nodeID2)
             => CurGraph.PersonDist(nodeID1: nodeID1, nodeID2: nodeID2);
 

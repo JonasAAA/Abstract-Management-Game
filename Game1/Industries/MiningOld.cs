@@ -18,7 +18,7 @@
 //                (
 //                    industryType: IndustryType.Mining,
 //                    Name: Name,
-//                    color: Color.Pink,
+//                    Color: Color.Pink,
 //                    energyPriority: energyPriority,
 //                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
 //                )
@@ -71,7 +71,7 @@
 //                => Parameters.state.Position;
 
 //            public UDouble OuterRadius
-//                => Parameters.state.Radius + 1;
+//                => Parameters.state.radius + 1;
 //        }
 
 //        public override bool PeopleWorkOnTop
@@ -146,7 +146,7 @@
 //        {
 //            base.DrawAfterPlanet();
 
-//            futureShapeOutline.Draw(color: Color.Black);
+//            futureShapeOutline.Draw(Color: Color.Black);
 //        }
 //    }
 //}

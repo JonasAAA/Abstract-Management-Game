@@ -19,23 +19,23 @@
 //                        (
 //                            Name: "iron",
 //                            resInd: (BasicResInd)resInd,
-//                            miningMass: Mass.CreateFromKg(valueInKg: 2),
+//                            splittingMass: Mass.CreateFromKg(valueInKg: 2),
 //                            heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 3),
 //                            area: 1,
 //                            reflectance: (Propor).2,
 //                            emissivity: (Propor).3,
-//                            color: colorConfig.Res0Color
+//                            Color: colorConfig.Res0Color
 //                        ),
 //                        1 => new BasicRes
 //                        (
 //                            Name: "stone",
 //                            resInd: (BasicResInd)resInd,
-//                            miningMass: Mass.CreateFromKg(valueInKg: 1),
+//                            splittingMass: Mass.CreateFromKg(valueInKg: 1),
 //                            heatCapacity: HeatCapacity.CreateFromJPerK(valueInJPerK: 4),
 //                            area: 2,
 //                            reflectance: (Propor).8,
 //                            emissivity: (Propor).7,
-//                            color: colorConfig.Res1Color
+//                            Color: colorConfig.Res1Color
 //                        ),
 //                        _ => throw new ArgumentOutOfRangeException()
 //                    },

@@ -62,8 +62,8 @@
             gravitConst = 1;
         public readonly Propor
             desperationMemoryPropor = (Propor).9;
-        public readonly Area
-            minPlanetArea = Area.CreateFromMetSq(valueInMetSq: 100);
+        public readonly AreaInt
+            minPlanetArea = AreaInt.CreateFromMetSq(valueInMetSq: 100);
         public readonly UDouble
             defaultIndustryHeight = 500;
         public readonly ulong

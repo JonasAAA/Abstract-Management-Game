@@ -18,13 +18,14 @@ namespace Game1
         [Serializable]
         private sealed class NodeInfo
         {
-            private static IResource res;
+            private static bool initialized = false;
+            private static ResOrRawMatsMix resOrRawMatsMix;
 
-            static NodeInfo()
-                => res = null!;
-
-            public static void Init(IResource res)
-                => NodeInfo.res = res;
+            public static void Init(ResOrRawMatsMix resOrRawMatsMix)
+            {
+                NodeInfo.resOrRawMatsMix = resOrRawMatsMix;
+                initialized = true;
+            }
 
             public readonly CosmicBody node;
             public readonly List<NodeInfo> nodesIn, nodesOut;
@@ -33,7 +34,7 @@ namespace Game1
 
             public NodeInfo(CosmicBody node)
             {
-                Debug.Assert(res is not null);
+                Debug.Assert(initialized);
                 this.node = node;
                 nodesIn = new();
                 nodesOut = new();
@@ -63,20 +64,20 @@ namespace Game1
                     userTargetStoredResFromNodesOut += curSubgraphUserTargetStoredRes;
                 }
 
-                ulong subgraphUserTargetStoredRes = node.TargetStoredResAmount(res: res) + userTargetStoredResFromNodesOut,
-                    targetStoredRes = node.TargetStoredResAmount(res: res);
+                ulong subgraphUserTargetStoredRes = node.TargetStoredResAmount(resOrRawMatsMix: resOrRawMatsMix) + userTargetStoredResFromNodesOut,
+                    targetStoredRes = node.TargetStoredResAmount(resOrRawMatsMix: resOrRawMatsMix);
                 // Use logic similar to below if want a not to store some extra resources for the "downstream" nodes.
-                //    targetStoredRes = node.IfStore(res: res) switch
+                //    targetStoredRes = node.IfStore(resOrRawMatsMix: resOrRawMatsMix) switch
                 //    {
                 //        true => subgraphUserTargetStoredRes,
-                //        false => node.TargetStoredResAmount(res: res)
+                //        false => node.TargetStoredResAmount(resOrRawMatsMix: resOrRawMatsMix)
                 //    };
 
                 return
                 (
-                    maxExtraRes: (maxExtraResFromNodesOut + targetStoredRes >= node.TotalQueuedRes(res: res)) switch
+                    maxExtraRes: (maxExtraResFromNodesOut + targetStoredRes >= node.TotalQueuedRes(resOrRawMatsMix: resOrRawMatsMix)) switch
                     {
-                        true => maxExtraResFromNodesOut + targetStoredRes - node.TotalQueuedRes(res: res),
+                        true => maxExtraResFromNodesOut + targetStoredRes - node.TotalQueuedRes(resOrRawMatsMix: resOrRawMatsMix),
                         false => 0
                     },
                     subgraphUserTargetStoredRes: subgraphUserTargetStoredRes
@@ -395,8 +396,8 @@ namespace Game1
             Stats = nodes.CombineRealPeopleStats().CombineWith(other: links.CombineRealPeopleStats());
             
             nodes.ForEach(node => node.StartSplitRes());
-            foreach (var res in CurResConfig.GetAllCurRes())
-                SplitRes(res: res);
+            foreach (var resOrRawMatsMix in CurResConfig.GetAllCurResOrRawMatsMix())
+                SplitRes(resOrRawMatsMix: resOrRawMatsMix);
             foreach (var node in nodes)
                 node.EndSplitRes(resFirstLinks: resFirstLinks);
         }
@@ -408,9 +409,9 @@ namespace Game1
         /// TODO:
         /// choose random leafs
         /// </summary>
-        public void SplitRes(IResource res)
+        public void SplitRes(ResOrRawMatsMix resOrRawMatsMix)
         {
-            NodeInfo.Init(res: res);
+            NodeInfo.Init(resOrRawMatsMix: resOrRawMatsMix);
             Dictionary<NodeID, NodeInfo> nodeInfos = nodes.ToDictionary
             (
                 keySelector: node => node.NodeID,
@@ -418,7 +419,7 @@ namespace Game1
             );
 
             foreach (var nodeInfo in nodeInfos.Values)
-                foreach (var resDestin in nodeInfo.node.ResDestins(res: res))
+                foreach (var resDestin in nodeInfo.node.ResDestins(resOrRawMatsMix: resOrRawMatsMix))
                 {
                     var nodeInfoDestin = nodeInfos[resDestin];
 
@@ -446,7 +447,7 @@ namespace Game1
                 sink.node.SplitRes
                 (
                     nodeIDToNode: nodeID => nodeIDToNode[nodeID],
-                    res: res,
+                    resOrRawMatsMix: resOrRawMatsMix,
                     maxExtraResFunc: MaxExtraRes
                 );
 
@@ -465,7 +466,7 @@ namespace Game1
                     nodeInfo.node.SplitRes
                     (
                         nodeIDToNode: nodeID => nodeIDToNode[nodeID],
-                        res: res,
+                        resOrRawMatsMix: resOrRawMatsMix,
                         maxExtraResFunc: MaxExtraRes
                     );
                     nodeInfo.isSplitAleady = true;
@@ -492,24 +493,24 @@ namespace Game1
         //    if (prevOverlay is IResource prevRes)
         //        RemoveChild(child: resDestinArrows.GetOrCreate(key: prevRes));
 
-        //    if (CurWorldManager.Overlay is IResource res)
+        //    if (CurWorldManager.Overlay is IResource resOrRawMatsMix)
         //        AddChild
         //        (
-        //            child: resDestinArrows.GetOrCreate(key: res),
+        //            child: resDestinArrows.GetOrCreate(key: resOrRawMatsMix),
         //            layer: CurWorldConfig.resDistribArrowsUILayer
         //        );
         //}
 
         void IActiveChangedListener.ActiveChangedResponse(WorldUIElement worldUIElement)
         {
-            if (CurWorldManager.ArrowDrawingModeRes is not null)
+            if (CurWorldManager.ArrowDrawingModeResOrRawMatsMix is not null)
             {
                 if (worldUIElement.Active)
                 {
                     var sourceNode = ActiveWorldElement as CosmicBody;
                     var destinationNode = worldUIElement as CosmicBody;
                     Debug.Assert(sourceNode is not null && destinationNode is not null);
-                    sourceNode.AddResDestin(destinationId: destinationNode.NodeID, res: CurWorldManager.ArrowDrawingModeRes);
+                    sourceNode.AddResDestin(destinationId: destinationNode.NodeID, resOrRawMatsMix: CurWorldManager.ArrowDrawingModeResOrRawMatsMix.Value);
                     worldUIElement.Active = false;
                 }
                 return;

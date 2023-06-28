@@ -204,22 +204,22 @@ namespace Game1
         /// <summary>
         /// If null, then arrow drawing mode is not on
         /// </summary>
-        public IResource? ArrowDrawingModeRes
+        public ResOrRawMatsMix? ArrowDrawingModeResOrRawMatsMix
         {
-            get => arrowDrawingModeRes;
+            get => arrowDrawingModeResOrRawMatsMix;
             set
             {
-                if (arrowDrawingModeRes == value)
+                if (arrowDrawingModeResOrRawMatsMix == value)
                     return;
 
-                arrowDrawingModeRes = value;
-                if (arrowDrawingModeRes is not null)
+                arrowDrawingModeResOrRawMatsMix = value;
+                if (arrowDrawingModeResOrRawMatsMix is not null)
                 {
                     activeUIManager.DisableAllUIElements();
                     if (CurGraph.ActiveWorldElement is CosmicBody activeNode)
                     {
                         foreach (var node in CurGraph.Nodes)
-                            if (activeNode.CanHaveDestin(destinationId: node.NodeID, res: arrowDrawingModeRes))
+                            if (activeNode.CanHaveDestin(destinationId: node.NodeID, resOrRawMatsMix: arrowDrawingModeResOrRawMatsMix.Value))
                                 node.HasDisabledAncestor = false;
                     }
                     else
@@ -276,7 +276,7 @@ namespace Game1
         private Graph CurGraph
             => graph ?? throw new InvalidOperationException($"must initialize {nameof(graph)} first");
         private Graph? graph;
-        private IResource? arrowDrawingModeRes;
+        private ResOrRawMatsMix? arrowDrawingModeResOrRawMatsMix;
         //private bool arrowDrawingModeOn;
 
         private WorldManager()
@@ -347,7 +347,7 @@ namespace Game1
             );
             pauseButtonTooltip.Initialize(onOffButton: pauseButton);
 
-            arrowDrawingModeRes = null;
+            arrowDrawingModeResOrRawMatsMix = null;
         }
 
         private void Initialize()
@@ -488,6 +488,6 @@ namespace Game1
         }
 
         void IClickedNowhereListener.ClickedNowhereResponse()
-            => arrowDrawingModeRes = null;
+            => arrowDrawingModeResOrRawMatsMix = null;
     }
 }

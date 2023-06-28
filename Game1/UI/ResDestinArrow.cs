@@ -40,7 +40,7 @@ namespace Game1.UI
         public Event<INumberChangedListener> ImportanceNumberChanged
             => importanceIncDecrPanel.numberChanged;
 
-        public readonly IResource res;
+        public readonly ResOrRawMatsMix resOrRawMatsMix;
         
         private readonly Event<IDeletedListener> deleted;
         private int totalImportance;
@@ -49,7 +49,7 @@ namespace Game1.UI
         private readonly NumIncDecrPanel importanceIncDecrPanel;
         private readonly TextBox line2;
 
-        public ResDestinArrow(VectorShape.IParams shapeParams, NodeID destinId, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int startImportance, IResource res)
+        public ResDestinArrow(VectorShape.IParams shapeParams, NodeID destinId, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int startImportance, ResOrRawMatsMix resOrRawMatsMix)
             : base
             (
                 shape: new Arrow(parameters: shapeParams),
@@ -62,12 +62,12 @@ namespace Game1.UI
             this.destinId = destinId;
             this.defaultActiveColor = defaultActiveColor;
             this.defaultInactiveColor = defaultInactiveColor;
-            this.res = res;
+            this.resOrRawMatsMix = resOrRawMatsMix;
 
             deleted = new();
             UIRectPanel<IHUDElement> popup = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
             Popup = popup;
-            //SetPopup(HUDElement: popup, overlay: res);
+            //SetPopup(HUDElement: popup, overlay: resOrRawMatsMix);
 
             UIRectHorizPanel<IHUDElement> line1 = new(childVertPos: VertPos.Middle);
             popup.AddChild(child: line1);
@@ -75,7 +75,7 @@ namespace Game1.UI
             (
                 child: new TextBox()
                 {
-                    Text = $"{res} importance "
+                    Text = $"{resOrRawMatsMix} importance "
                 }
             );
             importanceIncDecrPanel = new
@@ -100,7 +100,7 @@ namespace Game1.UI
                     height: 30
                 ),
                 text: "delete",
-                tooltip: new ImmutableTextTooltip(text: $"Remove resource {res} destination"),
+                tooltip: new ImmutableTextTooltip(text: $"Remove resource {resOrRawMatsMix} destination"),
                 color: Color.Red
             );
             deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(ResDestinArrow: this));

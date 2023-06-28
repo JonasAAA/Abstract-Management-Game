@@ -14,14 +14,14 @@ namespace Game1
     public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, INodeAsResDestin, ILightCatchingObject, IWithRealPeopleStats
     {
         [Serializable]
-        private readonly record struct ResDesinArrowEventListener(CosmicBody Node, IResource Res) : IDeletedListener, INumberChangedListener
+        private readonly record struct ResDesinArrowEventListener(CosmicBody Node, ResOrRawMatsMix ResOrRawMatsMix) : IDeletedListener, INumberChangedListener
         {
             public void SyncSplittersWithArrows()
             {
-                var resCopy = Res;
-                List<ResDestinArrow> relevantResDistribArrows = Node.resDistribArrows.Where(resDistribArrow => resDistribArrow.res == resCopy).ToList();
+                var resCopy = ResOrRawMatsMix;
+                List<ResDestinArrow> relevantResDistribArrows = Node.resDistribArrows.Where(resDistribArrow => resDistribArrow.resOrRawMatsMix == resCopy).ToList();
                 foreach (var resDestinArrow in relevantResDistribArrows)
-                    Node.resSplittersToDestins.GetOrCreate(key: Res).SetImportance
+                    Node.resSplittersToDestins.GetOrCreate(key: ResOrRawMatsMix).SetImportance
                     (
                         key: resDestinArrow.DestinationId,
                         importance: (ulong)resDestinArrow.Importance
@@ -37,7 +37,7 @@ namespace Game1
                 {
                     Node.resDistribArrows.RemoveChild(child: resDestinArrow);
                     CurWorldManager.RemoveResDestinArrow(resDestinArrow: resDestinArrow);
-                    Node.resSplittersToDestins.GetOrCreate(key: Res).RemoveKey(key: resDestinArrow.DestinationId);
+                    Node.resSplittersToDestins.GetOrCreate(key: ResOrRawMatsMix).RemoveKey(key: resDestinArrow.DestinationId);
                     SyncSplittersWithArrows();
                 }
                 else
@@ -127,7 +127,7 @@ namespace Game1
         /// NEVER use this directly, use Planet.Industry instead
         /// </summary>
         private IIndustry? industry;
-        private readonly AutoCreateValDict<IResource, HistoricProporSplitter<NodeID>> resSplittersToDestins;
+        private readonly AutoCreateValDict<ResOrRawMatsMix, HistoricProporSplitter<NodeID>> resSplittersToDestins;
         private SomeResAmounts<IResource> targetStoredResAmounts;
         private readonly ResPile undecidedResPile;
         private AllResAmounts resTravelHereAmounts;
@@ -165,7 +165,7 @@ namespace Game1
             links = new();
 
             resSplittersToDestins = new();
-            //selector: res => new HistoricProporSplitter<NodeID>()
+            //selector: resOrRawMatsMix => new HistoricProporSplitter<NodeID>()
             targetStoredResAmounts = SomeResAmounts<IResource>.empty;
             undecidedResPile = ResPile.CreateEmpty(thermalBody: state.ThermalBody);
             resTravelHereAmounts = AllResAmounts.empty;
@@ -235,17 +235,17 @@ namespace Game1
 
             //foreach (var overlay in IOverlay.all)
             //    overlayTabPanels[overlay] = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
-            //foreach (var res in Res.All)
+            //foreach (var resOrRawMatsMix in ResOrRawMatsMix.All)
             //{
             //    Button addResourceDestinationButton = new
             //    (
             //        shape: new MyRectangle(width: 150, height: 50),
-            //        tooltip: new ImmutableTextTooltip(text: $"Adds new place to where {res} should be transported"),
-            //        text: $"add resource {res}\ndestination"
+            //        tooltip: new ImmutableTextTooltip(text: $"Adds new place to where {resOrRawMatsMix} should be transported"),
+            //        text: $"add resource {resOrRawMatsMix}\ndestination"
             //    );
             //    addResourceDestinationButton.clicked.Add(listener: new AddResourceDestinationButtonClickedListener());
 
-            //    overlayTabPanels[res].AddChild
+            //    overlayTabPanels[resOrRawMatsMix].AddChild
             //    (
             //        child: addResourceDestinationButton
             //    );
@@ -320,29 +320,29 @@ namespace Game1
         public void UpdateHUDPos()
             => textBox.Shape.Center = CurWorldManager.WorldPosToHUDPos(worldPos: Position);
 
-        public ulong TotalQueuedRes(IResource res)
-            => state.StoredResPile.Amount.resAmounts[res] + resTravelHereAmounts.resAmounts[res];
+        public ulong TotalQueuedRes(ResOrRawMatsMix resOrRawMatsMix)
+            => state.StoredResPile.Amount.GetAmount(resOrRawMatsMix: resOrRawMatsMix) + resTravelHereAmounts.GetAmount(resOrRawMatsMix: resOrRawMatsMix);
 
-        public IEnumerable<NodeID> ResDestins(IResource res)
-            => resSplittersToDestins.GetOrCreate(key: res).Keys;
+        public IEnumerable<NodeID> ResDestins(ResOrRawMatsMix resOrRawMatsMix)
+            => resSplittersToDestins.GetOrCreate(key: resOrRawMatsMix).Keys;
 
-        public ulong TargetStoredResAmount(IResource res)
-            => targetStoredResAmounts[res];
+        public ulong TargetStoredResAmount(ResOrRawMatsMix resOrRawMatsMix)
+            => targetStoredResAmounts[resOrRawMatsMix];
         
-        public bool CanHaveDestin(NodeID destinationId, IResource res)
+        public bool CanHaveDestin(NodeID destinationId, ResOrRawMatsMix resOrRawMatsMix)
         {
-            if (!Active || CurWorldManager.ArrowDrawingModeRes is null)
+            if (!Active || CurWorldManager.ArrowDrawingModeResOrRawMatsMix is null)
                 throw new InvalidOperationException();
 
-            return destinationId != NodeID && !resSplittersToDestins.GetOrCreate(key: res).ContainsKey(destinationId);
+            return destinationId != NodeID && !resSplittersToDestins.GetOrCreate(key: resOrRawMatsMix).ContainsKey(destinationId);
         }
 
-        public void AddResDestin(NodeID destinationId, IResource res)
+        public void AddResDestin(NodeID destinationId, ResOrRawMatsMix resOrRawMatsMix)
         {
-            if (!CanHaveDestin(destinationId: destinationId, res: res))
+            if (!CanHaveDestin(destinationId: destinationId, resOrRawMatsMix: resOrRawMatsMix))
                 throw new ArgumentException();
 
-            if (resSplittersToDestins.GetOrCreate(key: res).ContainsKey(key: destinationId))
+            if (resSplittersToDestins.GetOrCreate(key: resOrRawMatsMix).ContainsKey(key: destinationId))
                 throw new ArgumentException();
 
             ResDestinArrow resDestinArrow = new
@@ -359,9 +359,9 @@ namespace Game1
                 popupVertPos: VertPos.Top,
                 minImportance: 1,
                 startImportance: 1,
-                res: res
+                resOrRawMatsMix: resOrRawMatsMix
             );
-            ResDesinArrowEventListener resDesinArrowEventListener = new(Node: this, Res: res);
+            ResDesinArrowEventListener resDesinArrowEventListener = new(Node: this, ResOrRawMatsMix: resOrRawMatsMix);
             resDestinArrow.ImportanceNumberChanged.Add(listener: resDesinArrowEventListener);
             resDestinArrow.Deleted.Add(listener: resDesinArrowEventListener);
 
@@ -500,17 +500,17 @@ namespace Game1
         /// <summary>
         /// MUST call StartSplitRes first
         /// </summary>
-        public void SplitRes(Func<NodeID, INodeAsResDestin> nodeIDToNode, IResource res, Func<NodeID, ulong> maxExtraResFunc)
+        public void SplitRes(Func<NodeID, INodeAsResDestin> nodeIDToNode, ResOrRawMatsMix resOrRawMatsMix, Func<NodeID, ulong> maxExtraResFunc)
         {
-            if (undecidedResPile.Amount.resAmounts[res] is 0)
+            if (undecidedResPile.Amount.GetAmount(resOrRawMatsMix: resOrRawMatsMix) is 0)
                 return;
 
-            var resSplitter = resSplittersToDestins.GetOrCreate(key: res);
+            var resSplitter = resSplittersToDestins.GetOrCreate(key: resOrRawMatsMix);
             if (resSplitter.Empty)
-                state.StoredResPile.TransferAllSingleResFrom(source: undecidedResPile, res: res);
+                state.StoredResPile.TransferAllSingleResOrRawMatsMixFrom(source: undecidedResPile, resOrRawMatsMix: resOrRawMatsMix);
             else
             {
-                var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount.resAmounts[res], maxAmountsFunc: maxExtraResFunc);
+                var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount.resAmounts[resOrRawMatsMix], maxAmountsFunc: maxExtraResFunc);
 
                 {
                     var unsplitResPile = ResPile.CreateIfHaveEnough
@@ -518,7 +518,7 @@ namespace Game1
                         source: undecidedResPile,
                         amount: new SomeResAmounts<IResource>
                         (
-                            res: res,
+                            res: resOrRawMatsMix,
                             amount: unsplitResAmount
                         )
                     );
@@ -528,7 +528,7 @@ namespace Game1
 
                 foreach (var (destination, resAmountNum) in splitResAmounts)
                 {
-                    ResAmount<IResource> resAmount = new(res: res, amount: resAmountNum);
+                    ResAmount<IResource> resAmount = new(res: resOrRawMatsMix, amount: resAmountNum);
                     var resPileForDestin = ResPile.CreateIfHaveEnough
                     (
                         source: undecidedResPile,
@@ -543,7 +543,7 @@ namespace Game1
                     nodeIDToNode(destination).AddResTravelHere(resAmount: resAmount);
                 }
             }
-            Debug.Assert(undecidedResPile.Amount.resAmounts[res] is 0);
+            Debug.Assert(undecidedResPile.Amount.GetAmount(resOrRawMatsMix: resOrRawMatsMix) is 0);
         }
 
         /// <summary>
@@ -579,13 +579,13 @@ namespace Game1
             // update text
             //textBox.Text = CurWorldManager.Overlay.SwitchExpression
             //(
-            //    singleResCase: res =>
+            //    singleResCase: resOrRawMatsMix =>
             //    {
-            //        if (state.StoredResPile.Amount[res] is not 0 || targetStoredResAmounts[res] is not 0)
-            //            return (state.StoredResPile.Amount[res] >= targetStoredResAmounts[res]) switch
+            //        if (state.StoredResPile.Amount[resOrRawMatsMix] is not 0 || targetStoredResAmounts[resOrRawMatsMix] is not 0)
+            //            return (state.StoredResPile.Amount[resOrRawMatsMix] >= targetStoredResAmounts[resOrRawMatsMix]) switch
             //            {
-            //                true => $"have {state.StoredResPile.Amount[res] - targetStoredResAmounts[res]} extra resources",
-            //                false => $"have {(double)state.StoredResPile.Amount[res] / targetStoredResAmounts[res] * 100:0.}% of target stored resources\n",
+            //                true => $"have {state.StoredResPile.Amount[resOrRawMatsMix] - targetStoredResAmounts[resOrRawMatsMix]} extra resources",
+            //                false => $"have {(double)state.StoredResPile.Amount[resOrRawMatsMix] / targetStoredResAmounts[resOrRawMatsMix] * 100:0.}% of target stored resources\n",
             //            };
             //        else
             //            return "";
@@ -596,7 +596,7 @@ namespace Game1
             //        return totalStoredMass.IsZero switch
             //        {
             //            true => "",
-            //            false => $"stored total res splittingMass {totalStoredMass}"
+            //            false => $"stored total resOrRawMatsMix splittingMass {totalStoredMass}"
             //        };
             //    },
             //    powerCase: () => "",
@@ -622,7 +622,7 @@ namespace Game1
         {
             base.DrawChildren();
 
-            if (Active && CurWorldManager.ArrowDrawingModeRes is not null)
+            if (Active && CurWorldManager.ArrowDrawingModeResOrRawMatsMix is not null)
                 // TODO: could create the arrow once with endPos calculated from mouse position
                 new Arrow
                 (

@@ -165,11 +165,15 @@ namespace Game1.Resources
         public void TransferAllFrom(ResPile source)
             => TransferFrom(source: source, amount: source.Amount);
 
-        public void TransferAllSingleResFrom(ResPile source, IResource res)
+        public void TransferAllSingleResOrRawMatsMixFrom(ResPile source, ResOrRawMatsMix resOrRawMatsMix)
             => TransferFrom
             (
                 source: source,
-                amount: new SomeResAmounts<IResource>(res: res, amount: source.Amount.resAmounts[res]).ToAll()
+                amount: resOrRawMatsMix.SwitchExpression
+                (
+                    res: res => new SomeResAmounts<IResource>(res: res, amount: source.Amount.resAmounts[res]).ToAll(),
+                    rawMatsMix: () => source.Amount.rawMatsMix.ToAll()
+                )
             );
 
         public void TransformFrom(ResPile source, ResRecipe recipe)

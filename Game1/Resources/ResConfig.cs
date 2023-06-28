@@ -14,8 +14,12 @@
             nextOrder = 0;
         }
 
-        public IEnumerable<IResource> GetAllCurRes()
-            => resources;
+        public IEnumerable<ResOrRawMatsMix> GetAllCurResOrRawMatsMix()
+        {
+            yield return ResOrRawMatsMix.FromRawMatsMix();
+            foreach (var res in resources)
+                yield return ResOrRawMatsMix.FromRes(res: res);
+        }
 
         public void AddRes(IResource resource)
         {

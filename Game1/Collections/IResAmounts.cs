@@ -12,8 +12,6 @@ namespace Game1.Collections
 
         public HeatCapacity HeatCapacity();
 
-        //public Area Area();
-
         public RawMaterialsMix RawMatComposition();
     }
 }

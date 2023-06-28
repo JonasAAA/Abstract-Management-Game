@@ -33,14 +33,26 @@ namespace Game1.Collections
             this.rawMatsMix = rawMatsMix;
         }
 
+        /// <summary>
+        /// If resource, returns the amount
+        /// If raw mats mix, returns area in meters squared
+        /// </summary>
+        public ulong GetAmount(ResOrRawMatsMix resOrRawMatsMix)
+        {
+            // Needed to silence the compiler
+            var thisCopy = this;
+            return resOrRawMatsMix.SwitchExpression
+            (
+                res: res => thisCopy.resAmounts[res],
+                rawMatsMix: () => thisCopy.rawMatsMix.Area().valueInMetSq
+            );
+        }
+
         public Mass Mass()
             => resAmounts.Mass() + rawMatsMix.Mass();
 
         public HeatCapacity HeatCapacity()
             => resAmounts.HeatCapacity() + rawMatsMix.HeatCapacity();
-
-        //public Area Area()
-        //    => resAmounts.Area() + rawMatsMix.Area();
 
         public RawMaterialsMix RawMatComposition()
             => resAmounts.RawMatComposition() + rawMatsMix.RawMatComposition();

@@ -47,7 +47,7 @@ namespace Game1
         public static void RemoveUnneededBuildingComponents(IIndustryFacingNodeState nodeState, ResPile buildingResPile, EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
         {
             var buildingComponentsToRemove = buildingResPile.Amount.resAmounts - CurNeededBuildingComponents(buildingComponentsToAmountPUBA, curBuildingArea);
-            if (buildingComponentsToRemove.UsefulArea() >= CurWorldConfig.)
+            if (buildingComponentsToRemove.UsefulArea() >= CurWorldConfig.minUsefulBuildingComponentAreaToRemove)
             {
                 nodeState.StoredResPile.TransferFrom
                 (

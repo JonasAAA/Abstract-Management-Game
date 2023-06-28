@@ -16,6 +16,7 @@
             // industry colors
             miningBuildingColor,
             manufacturingBuildingColor,
+            materialSplittingBuildingColor,
             
             // UI colors
             mouseOnColor,
@@ -43,6 +44,7 @@
             // industry colors
             miningBuildingColor = Color.Brown;
             manufacturingBuildingColor = Color.DarkGray;
+            materialSplittingBuildingColor = Color.LightGray;
 
             // UI colors
             mouseOnColor = Color.Yellow;

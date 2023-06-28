@@ -22,7 +22,7 @@ namespace Game1.Industries
         //public UDouble SurfaceGravity { get; }
         //public Temperature Temperature { get; }
 
-        public Result<ResPile, TextErrors> Mine(AreaDouble maxArea, RawMatsMixAllocator rawMatsMixAllocator);
+        public Result<ResPile, TextErrors> Mine(AreaDouble targetArea, RawMatsMixAllocator rawMatsMixAllocator);
 
         public void EnlargeFrom(ResPile source, RawMaterialsMix amount);
     }

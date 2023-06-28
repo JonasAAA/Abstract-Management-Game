@@ -9,28 +9,28 @@ namespace Game1.Resources
         [Serializable]
         public sealed class Params
         {
-            public EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> MaterialTargetAreas
-                => ingredients.materialTargetAreas;
+            public EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> MaterialUsefulAreas
+                => ingredients.materialUsefulAreas;
 
             public readonly GeneralProdAndMatAmounts ingredients;
-            public readonly AreaInt targetArea;
+            public readonly AreaInt usefulArea;
             public readonly MechComplexity complexity;
             //private readonly HashSet<IMaterialPurpose> neededPurposes;
             //private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
-            //private readonly Area targetArea;
+            //private readonly Area usefulArea;
 
             public Params(GeneralProdAndMatAmounts ingredients)
             {
                 this.ingredients = ingredients;
-                targetArea = ingredients.targetArea;
+                usefulArea = ingredients.usefulArea;
                 complexity = ingredients.complexity;
                 //BuildingComponentMaterialPropors = generalRecipe.BuildingComponentMaterialPropors;
                 //buildingMaterialPropors = generalRecipe.buildingMaterialPropors;
 
                 var neededPurposes =
-                    (from matPurpAndTargetArea in ingredients.materialTargetAreas
-                     where !matPurpAndTargetArea.Value.IsZero
-                     select matPurpAndTargetArea.Key).ToHashSet();
+                    (from matPurpAndUsefulArea in ingredients.materialUsefulAreas
+                     where !matPurpAndUsefulArea.Value.IsZero
+                     select matPurpAndUsefulArea.Key).ToHashSet();
 
                 Debug.Assert
                 (
@@ -57,7 +57,7 @@ namespace Game1.Resources
                             func: ingredProd => new ResAmount<Product>(ingredProd, ingredProdToAmount.amount)
                         )
                     ),
-                    arg2: ingredients.ingredMatPurposeToTargetAreas.SelectMany<KeyValuePair<IMaterialPurpose, AreaInt>, ResAmount<Material>, IMaterialPurpose>
+                    arg2: ingredients.ingredMatPurposeToUsefulAreas.SelectMany<KeyValuePair<IMaterialPurpose, AreaInt>, ResAmount<Material>, IMaterialPurpose>
                     (
                         func: ingredMatPurposeToArea => neededMaterialChoices.GetValueOrDefault(ingredMatPurposeToArea.Key) switch
                         {
@@ -71,8 +71,7 @@ namespace Game1.Resources
 
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
-        //public Area Area { get; }
-        public AreaInt TargetArea { get; }
+        public AreaInt UsefulArea { get; }
         public RawMaterialsMix RawMatComposition { get; }
         /// <summary>
         /// If tempearature is any higher, the product is destroyed, i.e. turned into garbage.
@@ -102,16 +101,16 @@ namespace Game1.Resources
                 materialChoices: materialChoices
             );
 
-            TargetArea = parameters.targetArea;
+            UsefulArea = parameters.usefulArea;
 
             // Need this before creating the recipe since to create SomeResAmounts you need all used resources to be registered first
             CurResConfig.AddRes(resource: this);
 
-            Recipe = ResRecipe.Create
+            Recipe = ResRecipe.CreateOrThrow
             (
-                ingredients: productIngredients.Generalize() + materialIngredients.Generalize(),
-                results: new(res: this, amount: 1)
-            )!.Value;
+                ingredients: productIngredients.ToAll() + materialIngredients.ToAll(),
+                results: new SomeResAmounts<IResource>(res: this, amount: 1).ToAll()
+            );
         }
     }
 }

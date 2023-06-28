@@ -5,64 +5,10 @@ namespace Game1
 {
     public static class ResAndIndustryAlgos
     {
-        public static AllResAmounts ToAll(this SomeResAmounts<IResource> resAmounts)
-            => new(resAmounts: resAmounts, rawMatsMix: RawMaterialsMix.empty);
-
-        public static AllResAmounts ToAll(this RawMaterialsMix rawMatsMix)
-            => new(resAmounts: SomeResAmounts<IResource>.empty, rawMatsMix: rawMatsMix);
-
-        public static AreaDouble ToDouble(this AreaInt area)
-            => AreaDouble.CreateFromMetSq(valueInMetSq: area.valueInMetSq);
-
-        public static AreaInt RoundDown(this AreaDouble area)
-            => AreaInt.CreateFromMetSq(valueInMetSq: (ulong)area.valueInMetSq);
-
-        ///// <summary>
-        ///// The returned dictionaries contain ALL material purposes, not just used ones
-        ///// </summary>
-        ///// <param Name="ingredProdToAmounts"></param>
-        ///// <param Name="ingredMatToTargetAreas"></param>
-        ///// <returns></returns>
-        //public static (EfficientReadOnlyDictionary<IMaterialPurpose, Area> BuildingComponentMaterialPropors, EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMatPropors) MaterialTargetAreasAndPropors(
-        //    EfficientReadOnlyCollection<(Product.GeneralParams productParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, Area> ingredMatToTargetAreas)
-        //{
-        //    var materialPurposeToTotalTargetAreas = IMaterialPurpose.all.ToEfficientReadOnlyDict
-        //    (
-        //        elementSelector: materialPurpose => ingredProdToAmounts.Sum
-        //        (
-        //            prodParamsAndAmount => prodParamsAndAmount.productParams.materialPurposeToTotalTargetAreas.GetValueOrDefault(key: materialPurpose) * prodParamsAndAmount.amount
-        //        ) + ingredMatToTargetAreas.GetValueOrDefault(key: materialPurpose)
-        //    );
-        //    Area targetArea = materialPurposeToTotalTargetAreas.Values.Sum();
-        //    return
-        //    (
-        //        BuildingComponentMaterialPropors: materialPurposeToTotalTargetAreas,
-        //        buildingMatPropors: materialPurposeToTotalTargetAreas.Select
-        //        (
-        //            matPurpAndArea =>
-        //            (
-        //                materialPurpose: matPurpAndArea.Key,
-        //                propor: Propor.Create(part: matPurpAndArea.Value.valueInMetSq, targetArea.valueInMetSq)!.Value
-        //            )
-        //        ).ToEfficientReadOnlyDict
-        //        (
-        //            keySelector: matPurpAndArea => matPurpAndArea.materialPurpose,
-        //            elementSelector: matPurposeAndArea => matPurposeAndArea.propor
-        //        )
-        //    );
-        //}
-
-        public static MaterialChoices FilterOutUnneededMaterials(this MaterialChoices materialChoices, EfficientReadOnlyDictionary<IMaterialPurpose, Propor> materialPropors)
-            => materialChoices.Where(matChoice => materialPropors[matChoice.Key] != Propor.empty).ToEfficientReadOnlyDict
-            (
-                keySelector: matChoice => matChoice.Key,
-                elementSelector: matChoice => matChoice.Value
-            );
-
         public static Temperature DestructionPoint(GeneralProdAndMatAmounts ingredients, MaterialChoices materialChoices)
             => materialChoices.Min(materialChoice => materialChoice.Key.DestructionPoint(material: materialChoice.Value));
 
-        public static MechComplexity Complexity(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToTargetAreas)
+        public static MechComplexity Complexity(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToUsefulAreas)
             => throw new NotImplementedException();
 
         // The material melting point generally has no such formula, it depends heavily on what bonds are formed, as discussed in https://qr.ae/pytnoU
@@ -87,7 +33,7 @@ namespace Game1
             => throw new NotImplementedException();
 
         public static Propor Reflectance(this Material material, Temperature temperature)
-            //Reflectance = Propor.Create
+            //Reflectance = Propor.CreateOrThrow
             //(
             //    part: composition.Sum(resAmount => resAmount.res.Area.valueInMetSq * resAmount.amount * resAmount.res.Reflectance),
             //    whole: composition.Sum(resAmount => resAmount.res.Area.valueInMetSq * resAmount.amount)
@@ -95,7 +41,7 @@ namespace Game1
             => throw new NotImplementedException();
 
         public static Propor Emissivity(this RawMaterialsMix material, Temperature temperature)
-            //Emissivity = Propor.Create
+            //Emissivity = Propor.CreateOrThrow
             //(
             //    part: composition.Sum(resAmount => resAmount.res.Area.valueInMetSq* resAmount.amount * resAmount.res.Emissivity),
             //    whole: composition.Sum(resAmount => resAmount.res.Area.valueInMetSq* resAmount.amount)
@@ -113,13 +59,13 @@ namespace Game1
         public static UDouble DiskBuildingHeight
             => throw new NotImplementedException();
 
-        public static AreaDouble BuildingComponentTargetArea(AreaDouble buildingArea)
+        public static AreaDouble BuildingComponentUsefulArea(AreaDouble buildingArea)
             => throw new NotImplementedException();
 
         public static Result<SomeResAmounts<IResource>, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingCost(GeneralProdAndMatAmounts buildingCostPropors, MaterialChoices buildingMatChoices, AreaDouble buildingArea)
             => throw new NotImplementedException();
 
-        /// <exception cref="ArgumentException">if buildingMatChoices doesn't contain all required materials</exception>
+        /// <exception cref="ArgumentException">if buildingMatChoices doesn't contain all required matAmounts</exception>
         public static Result<EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)>, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingComponentsToAmountPUBA(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, MaterialChoices buildingMatChoices)
             => throw new NotImplementedException();
 
@@ -184,7 +130,7 @@ namespace Game1
         /// <summary>
         /// Throughput is the input/output area of building per unit time
         /// </summary>
-        /// <param Name="relevantMassPUBA">Mass which needs to be moved/rotated. Until structural material purpose is in use, this is all the splittingMass of materials and products</param>
+        /// <param Name="relevantMassPUBA">Mass which needs to be moved/rotated. Until structural material purpose is in use, this is all the splittingMass of matAmounts and products</param>
         /// <param Name="mechStrength">Mechanical component strength</param>
         private static UDouble MaxMechThroughputPUBA(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMatPropors, MaterialChoices buildingMatChoices, MechComplexity buildingComplexity, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
         {
@@ -206,7 +152,7 @@ namespace Game1
         public static AreaDouble AreaInProduction(AreaDouble buildingArea)
             => throw new NotImplementedException();
 
-        public static ulong MaxAmountInProduction(AreaDouble areaInProduction, AreaInt itemTargetArea)
+        public static ulong MaxAmountInProduction(AreaDouble areaInProduction, AreaInt itemUsefulArea)
             => throw new NotImplementedException();
     }
 }

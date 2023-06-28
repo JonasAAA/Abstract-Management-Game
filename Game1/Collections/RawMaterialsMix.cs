@@ -37,6 +37,9 @@ namespace Game1.Collections
         public ulong this[RawMaterial rawMat]
             => rawMatsMix[rawMat];
 
+        public ResRecipe SplittingRecipe()
+            => ResRecipe.CreateOrThrow(ingredients: this.ToAll(), results: rawMatsMix.Generalize().ToAll());
+
         public Mass Mass()
             => rawMatsMix.Mass();
 
@@ -45,7 +48,6 @@ namespace Game1.Collections
 
         public AreaInt Area()
             => rawMatsMix.Sum(resAmount => resAmount.res.Area * resAmount.amount);
-        //=> rawMatsMix.Area();
 
         public RawMaterialsMix RawMatComposition()
         => this;

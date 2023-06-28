@@ -25,6 +25,7 @@ namespace Game1.Resources
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
+        public AreaInt UsefulArea { get; }
         public RawMaterialsMix RawMatComposition { get; }
         public Temperature MeltingPoint { get; }
         public readonly Color color;
@@ -35,6 +36,7 @@ namespace Game1.Resources
             Mass = mass;
             HeatCapacity = heatCapacity;
             Area = area;
+            UsefulArea = area;
             MeltingPoint = meltingPoint;
             RawMatComposition = new(new(res: this, amount: 1));
             this.color = color;

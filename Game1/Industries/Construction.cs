@@ -63,7 +63,7 @@ namespace Game1.Industries
             public readonly IIndustryFacingNodeState nodeState;
             public readonly EnergyPriority energyPriority;
             public readonly SomeResAmounts<IResource> buildingCost;
-            public readonly AreaDouble buildingComponentsTargetArea;
+            public readonly AreaDouble buildingComponentsUsefulArea;
 
             private readonly IBuildingConcreteParams buildingConcreteParams;
             /// <summary>
@@ -77,7 +77,7 @@ namespace Game1.Industries
                 this.nodeState = nodeState;
                 energyPriority = generalParams.energyPriority;
                 buildingCost = buildingConcreteParams.BuildingCost;
-                buildingComponentsTargetArea = ResAndIndustryAlgos.BuildingComponentTargetArea
+                buildingComponentsUsefulArea = ResAndIndustryAlgos.BuildingComponentUsefulArea
                 (
                     buildingArea: buildingConcreteParams.IncompleteBuildingImage(donePropor: Propor.full).Area
                 );
@@ -181,7 +181,7 @@ namespace Game1.Industries
             {
                 parameters.nodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
                 AreaDouble areaConstructed = AreaDouble.CreateFromMetSq(valueInMetSq: workingPropor * (UDouble)CurWorldManager.Elapsed.TotalSeconds * curConstrStats.ProducedAreaPerSec);
-                donePropor = Propor.CreateByClamp(value: (UDouble)donePropor + areaConstructed.valueInMetSq / parameters.buildingComponentsTargetArea.valueInMetSq);
+                donePropor = Propor.CreateByClamp(value: (UDouble)donePropor + areaConstructed.valueInMetSq / parameters.buildingComponentsUsefulArea.valueInMetSq);
 
                 if (donePropor.IsFull)
                 {
@@ -206,7 +206,7 @@ namespace Game1.Industries
             //    => parameters.nodeState.Position;
 
             //UDouble Disk.IParams.radius
-            //    => MyMathHelper.Sqrt(parameters.nodeState.Area.valueInMetSq + donePropor * parameters.buildingComponentsTargetArea / MyMathHelper.pi);
+            //    => MyMathHelper.Sqrt(parameters.nodeState.Area.valueInMetSq + donePropor * parameters.buildingComponentsUsefulArea / MyMathHelper.pi);
         }
 
         public string Name

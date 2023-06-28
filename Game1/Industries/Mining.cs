@@ -28,11 +28,13 @@ namespace Game1.Industries
             {
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.miningBuildingColor);
                 Name = name;
-                buildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToTargetAreas: new());
+                buildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
                 if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
                     throw new ArgumentException();
                 BuildingComponentMaterialPropors = buildingCostPropors.materialPropors;
-                
+
+                if (energyPriority == EnergyPriority.mostImportant)
+                    throw new ArgumentException("Only power plants can have highest energy priority");
                 this.energyPriority = energyPriority;
                 this.buildingComponentPropors = buildingComponentPropors;
             }
@@ -90,13 +92,8 @@ namespace Game1.Industries
                 this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatChoices = buildingMatChoices;
 
-                startingBuildingCost = CurNeededBuildingComponents();
+                startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
             }
-
-            
-
-            public IIndustry CreateIndustry(ResPile buildingResPile)
-                => new Mining(parameters: this, buildingResPile: buildingResPile);
 
             public AreaDouble AreaToMine()
                 => ResAndIndustryAlgos.AreaInProduction(buildingArea: CurBuildingArea);
@@ -113,30 +110,17 @@ namespace Game1.Industries
                     productionMass: miningMass
                 );
 
-            // This is separate from CurMiningStats as it's supposed to be called after the mining cycle is done
-            public SomeResAmounts<IResource> CurNeededBuildingComponents()
-            {
-                // This is needed here so that the compiler doesn't complain
-                // "Lambda expressions inside structs cannot access members of 'this'" 
-                AreaDouble curBuildingArea = CurBuildingArea;
-                return new
-                (
-                    buildingComponentsToAmountPUBA.Select
-                    (
-                        prodAndAmountPUBA => new ResAmount<IResource>
-                        (
-                            prodAndAmountPUBA.prod,
-                            MyMathHelper.Ceiling(prodAndAmountPUBA.amountPUBA * curBuildingArea.valueInMetSq)
-                        )
-                    )
-                );
-            }
+            public void RemoveUnneededBuildingComponents(ResPile buildingResPile)
+                => ResAndIndustryHelpers.RemoveUnneededBuildingComponents(nodeState: nodeState, buildingResPile: buildingResPile, buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
 
             SomeResAmounts<IResource> IBuildingConcreteParams.BuildingCost
                 => startingBuildingCost;
 
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
+
+            IIndustry IBuildingConcreteParams.CreateIndustry(ResPile buildingResPile)
+                => new Mining(parameters: this, buildingResPile: buildingResPile);
         }
 
         [Serializable]
@@ -146,11 +130,11 @@ namespace Game1.Industries
             {
                 var minedAreaCorrectorWithTarget = minedAreaHistoricCorrector.WithTarget(target: parameters.AreaToMine().valueInMetSq);
 
-                // Since will never mine more than requested, suggestion will never be smaller than parameters.AreaToMine(), thus will always be >= 0.
+                // Since will never mine more than requested, suggestion will never be smaller than parameters.AreaToSplit(), thus will always be >= 0.
                 var maxAreaToMine = (UDouble)minedAreaCorrectorWithTarget.suggestion;
                 return parameters.nodeState.Mine
                 (
-                    maxArea: AreaDouble.CreateFromMetSq(valueInMetSq: maxAreaToMine),
+                    targetArea: AreaDouble.CreateFromMetSq(valueInMetSq: maxAreaToMine),
                     rawMatsMixAllocator: minedResAllocator
                 ).SwitchExpression<(Result<State, TextErrors> state, HistoricCorrector<double> minedAreaHistoricCorrector)>
                 (
@@ -234,12 +218,7 @@ namespace Game1.Industries
                 if (donePropor.IsFull)
                 {
                     parameters.nodeState.StoredResPile.TransferAllFrom(source: miningRes);
-                    // Remove not needed building components
-                    parameters.nodeState.StoredResPile.TransferFrom
-                    (
-                        source: buildingResPile,
-                        amount: buildingResPile.Amount - parameters.CurNeededBuildingComponents().ToAll()
-                    );
+                    parameters.RemoveUnneededBuildingComponents(buildingResPile: buildingResPile);
                 }
             }
 

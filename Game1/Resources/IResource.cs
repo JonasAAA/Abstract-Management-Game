@@ -6,7 +6,11 @@ namespace Game1.Resources
     {
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
-        //public Area Area { get; }
+        /// <summary>
+        /// Be careful - useful area is not additive, e.g. if product consists of some components,
+        /// to get its useful area can't just add useful areas of the components
+        /// </summary>
+        public AreaInt UsefulArea { get; }
         public RawMaterialsMix RawMatComposition { get; }
     }
 }

@@ -29,7 +29,7 @@ namespace Game1.Industries
             {
                 Name = name;
                 BuildingComponentMaterialPropors = buildingCostPropors.materialPropors;
-                buildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToTargetAreas: new());
+                buildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
                 if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
                     throw new ArgumentException();
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.manufacturingBuildingColor);
@@ -42,9 +42,7 @@ namespace Game1.Industries
             }
 
             public Result<IBuildingConcreteParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
-            {
-                var buildingImage = buildingImageParams.CreateImage(nodeState);
-                return ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
+                => ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
                 (
                     buildingComponentPropors: buildingComponentPropors,
                     buildingMatChoices: neededBuildingMatChoices
@@ -54,13 +52,12 @@ namespace Game1.Industries
                     (
                         nodeState: nodeState,
                         generalParams: this,
-                        buildingImage: buildingImage,
+                        buildingImage: buildingImageParams.CreateImage(nodeState),
                         buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
                         buildingMatChoices: neededBuildingMatChoices,
                         surfaceMaterial: neededBuildingMatChoices[IMaterialPurpose.roofSurface]
                     )
                 );
-            }
         }
 
         [Serializable]
@@ -98,14 +95,14 @@ namespace Game1.Industries
                 this.generalParams = generalParams;
                 this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatChoices = buildingMatChoices;
-                startingBuildingCost = CurNeededBuildingComponents();
+                startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
             }
 
             public ulong MaxProductAmount()
                 => ResAndIndustryAlgos.MaxAmountInProduction
                 (
                     areaInProduction: ResAndIndustryAlgos.AreaInProduction(buildingArea: CurBuildingArea),
-                    itemTargetArea: productParams.targetArea
+                    itemUsefulArea: productParams.usefulArea
                 );
 
             /// <param Name="productionMassIfFull">Mass of stuff in production if industry was fully operational</param>
@@ -120,33 +117,17 @@ namespace Game1.Industries
                     productionMass: productionMassIfFull
                 );
 
-            // This is separate from CurProdStats as it's supposed to be called after the production cycle is done
-            public SomeResAmounts<IResource> CurNeededBuildingComponents()
-            {
-                // This is needed here so that the compiler doesn't complain
-                // "Lambda expressions inside structs cannot access members of 'this'" 
-                AreaDouble curBuildingArea = CurBuildingArea;
-                return new
-                (
-                    buildingComponentsToAmountPUBA.Select
-                    (
-                        prodAndAmountPUBA => new ResAmount<IResource>
-                        (
-                            prodAndAmountPUBA.prod,
-                            MyMathHelper.Ceiling(prodAndAmountPUBA.amountPUBA * curBuildingArea.valueInMetSq)
-                        )
-                    )
-                );
-            }
-
-            public IIndustry CreateIndustry(ResPile buildingResPile)
-                => new Manufacturing(buildingParams: this, buildingResPile: buildingResPile, productionParams: new(productParams: productParams));
+            public void RemoveUnneededBuildingComponents(ResPile buildingResPile)
+                => ResAndIndustryHelpers.RemoveUnneededBuildingComponents(nodeState: nodeState, buildingResPile: buildingResPile, buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
 
             SomeResAmounts<IResource> IBuildingConcreteParams.BuildingCost
                 => startingBuildingCost;
 
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
+
+            IIndustry IBuildingConcreteParams.CreateIndustry(ResPile buildingResPile)
+                => new Manufacturing(buildingParams: this, buildingResPile: buildingResPile, productionParams: new(productParams: productParams));
         }
 
         [Serializable]
@@ -185,7 +166,7 @@ namespace Game1.Industries
                         var resInUseAndCount = ResPile.CreateMultipleIfHaveEnough
                         (
                             source: buildingParams.nodeState.StoredResPile,
-                            amount: product.Recipe.ingredients,
+                            amount: product.Recipe.ingredients.resAmounts,
                             maxCount: maxProductionAmount
                         );
                         return resInUseAndCount switch
@@ -213,8 +194,7 @@ namespace Game1.Industries
                 => donePropor.IsFull;
 
             private readonly ConcreteBuildingParams buildingParams;
-            private readonly ResPile buildingResPile;
-            private readonly ResPile resInUse;
+            private readonly ResPile buildingResPile, resInUse;
             private readonly ResRecipe recipe;
             private readonly Mass prodMassIfFull;
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
@@ -268,16 +248,12 @@ namespace Game1.Industries
                 buildingParams.nodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
 
                 AreaDouble areaProduced = AreaDouble.CreateFromMetSq(valueInMetSq: workingPropor * (UDouble)CurWorldManager.Elapsed.TotalSeconds * curProdStats.ProducedAreaPerSec),
-                    areaInProduction = buildingParams.productParams.targetArea.ToDouble() * productionAmount;
+                    areaInProduction = buildingParams.productParams.usefulArea.ToDouble() * productionAmount;
                 donePropor = Propor.CreateByClamp((UDouble)donePropor + areaProduced.valueInMetSq / areaInProduction.valueInMetSq);
                 if (donePropor.IsFull)
                 {
                     buildingParams.nodeState.StoredResPile.TransformFrom(source: resInUse, recipe: recipe);
-                    buildingParams.nodeState.StoredResPile.TransferFrom
-                    (
-                        source: buildingResPile,
-                        amount: buildingResPile.Amount - buildingParams.CurNeededBuildingComponents().ToAll()
-                    );
+                    buildingParams.RemoveUnneededBuildingComponents(buildingResPile: buildingResPile);
                 }
             }
 
@@ -322,7 +298,7 @@ namespace Game1.Industries
         public SomeResAmounts<IResource> TargetStoredResAmounts()
             => productionParams.CurProduct.SwitchExpression
             (
-                ok: product => product.Recipe.ingredients * buildingParams.MaxProductAmount() * buildingParams.nodeState.MaxBatchDemResStored,
+                ok: product => product.Recipe.ingredients.resAmounts * buildingParams.MaxProductAmount() * buildingParams.nodeState.MaxBatchDemResStored,
                 error: _ => SomeResAmounts<IResource>.empty
             );
 

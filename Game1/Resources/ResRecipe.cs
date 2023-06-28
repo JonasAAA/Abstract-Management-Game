@@ -5,26 +5,26 @@ namespace Game1.Resources
     [Serializable]
     public readonly struct ResRecipe
     {
-        public static ResRecipe? Create(SomeResAmounts<IResource> ingredients, SomeResAmounts<IResource> results)
+        public static ResRecipe CreateOrThrow(AllResAmounts ingredients, AllResAmounts results)
         {
             if (AreValid(ingredients: ingredients, results: results))
                 return new(ingredients: ingredients, results: results);
-            return null;
+            throw new ArgumentException();
         }
 
         public bool IsEmpty
             => ingredients.IsEmpty;
 
-        public readonly SomeResAmounts<IResource> ingredients, results;
+        public readonly AllResAmounts ingredients, results;
 
-        private ResRecipe(SomeResAmounts<IResource> ingredients, SomeResAmounts<IResource> results)
+        private ResRecipe(AllResAmounts ingredients, AllResAmounts results)
         {
             Debug.Assert(AreValid(ingredients: ingredients, results: results));
             this.ingredients = ingredients;
             this.results = results;
         }
 
-        private static bool AreValid(SomeResAmounts<IResource> ingredients, SomeResAmounts<IResource> results)
+        private static bool AreValid(AllResAmounts ingredients, AllResAmounts results)
             => ingredients.RawMatComposition() == results.RawMatComposition();
 
         public static ResRecipe operator *(ulong scalar, ResRecipe resRecipe)
@@ -42,7 +42,7 @@ namespace Game1.Resources
 //        where TAmount : struct, IFormOfEnergy<TAmount>
 //        where TAmount : struct, IFormOfEnergy<TAmount>
 //    {
-//        public static EnergyRecipe<TAmount, TAmount>? Create(TAmount ingredients, TAmount results)
+//        public static EnergyRecipe<TAmount, TAmount>? CreateOrThrow(TAmount ingredients, TAmount results)
 //        {
 //            if (AreValid(ingredients: ingredients, results: results))
 //                return new(ingredients: ingredients, results: results);

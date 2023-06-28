@@ -63,8 +63,8 @@ namespace Game1.Resources
 
         public void TransformResFrom(ThermalBody source, ResRecipe recipe)
         {
-            source.resAmounts -= recipe.ingredients.ToAll();
-            resAmounts += recipe.results.ToAll();
+            source.resAmounts -= recipe.ingredients;
+            resAmounts += recipe.results;
         }
 
         public void TransformResTo(ThermalBody destin, ResRecipe recipe)

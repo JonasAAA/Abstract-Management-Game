@@ -1,7 +1,6 @@
 ﻿using System.Collections;
 using System.Diagnostics.CodeAnalysis;
 using System.Numerics;
-using System.Runtime.CompilerServices;
 using static Game1.WorldManager;
 
 namespace Game1.Collections
@@ -132,13 +131,13 @@ namespace Game1.Collections
             return heatCapacity;
         }
 
-        //public Area Area()
-        //{
-        //    Area area = Resources.Area.zero;
-        //    for (int ind = 0; ind < Count; ind++)
-        //        area += resList[ind].Area * amounts[ind];
-        //    return area;
-        //}
+        public AreaInt UsefulArea()
+        {
+            AreaInt usefulArea = AreaInt.zero;
+            for (int ind = 0; ind < Count; ind++)
+                usefulArea += resList[ind].UsefulArea * amounts[ind];
+            return usefulArea;
+        }
 
         public RawMaterialsMix RawMatComposition()
         {

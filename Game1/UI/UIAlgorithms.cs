@@ -7,6 +7,9 @@ namespace Game1.UI
         public static string NotEnoughResourcesToStartProduction
             => "not enough resources to start production";
 
+        public static string NoRawMaterialMixToSplit
+            => "no raw material mix to split";
+
         public static string CosmicBodyContainsUnwantedResources
             => "cosmic body contains unwanted resources";
 

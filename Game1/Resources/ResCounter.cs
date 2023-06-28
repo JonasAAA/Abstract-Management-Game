@@ -20,14 +20,14 @@ namespace Game1.Resources
 
         public void TransformFrom(ResCounter source, ResRecipe recipe)
         {
-            source.Count -= recipe.ingredients.ToAll();
-            Count += recipe.results.ToAll();
+            source.Count -= recipe.ingredients;
+            Count += recipe.results;
         }
 
         public void TransformTo(ResCounter destin, ResRecipe recipe)
         {
-            Count -= recipe.ingredients.ToAll();
-            destin.Count += recipe.results.ToAll();
+            Count -= recipe.ingredients;
+            destin.Count += recipe.results;
         }
     }
 }

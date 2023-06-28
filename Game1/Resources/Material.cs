@@ -9,6 +9,7 @@ namespace Game1.Resources
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
+        public AreaInt UsefulArea { get; }
         public RawMaterialsMix RawMatComposition { get; }
         public Temperature MeltingPoint { get; }
 
@@ -17,6 +18,7 @@ namespace Game1.Resources
             Mass = composition.Mass();
             HeatCapacity = composition.HeatCapacity();
             Area = composition.Area();
+            UsefulArea = Area;
             RawMatComposition = composition;
 
             MeltingPoint = ResAndIndustryAlgos.MaterialMeltingPoint(materialComposition: composition);

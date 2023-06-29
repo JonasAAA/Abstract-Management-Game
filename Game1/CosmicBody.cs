@@ -18,8 +18,9 @@ namespace Game1
         {
             public void SyncSplittersWithArrows()
             {
-                var resCopy = ResOrRawMatsMix;
-                List<ResDestinArrow> relevantResDistribArrows = Node.resDistribArrows.Where(resDistribArrow => resDistribArrow.resOrRawMatsMix == resCopy).ToList();
+                var resOrRawMatsMixCopy = ResOrRawMatsMix;
+                List<ResDestinArrow> relevantResDistribArrows = Node.resDistribArrows.Where(resDistribArrow => resDistribArrow.resOrRawMatsMix == resOrRawMatsMixCopy).ToList();
+                
                 foreach (var resDestinArrow in relevantResDistribArrows)
                     Node.resSplittersToDestins.GetOrCreate(key: ResOrRawMatsMix).SetImportance
                     (
@@ -127,7 +128,8 @@ namespace Game1
         /// NEVER use this directly, use Planet.Industry instead
         /// </summary>
         private IIndustry? industry;
-        private readonly AutoCreateValDict<ResOrRawMatsMix, HistoricProporSplitter<NodeID>> resSplittersToDestins;
+        private readonly AutoCreateValDict<IResource, HistoricProporSplitter<NodeID>> resSplittersToDestins;
+        private readonly HistoricRawMatsMixSplitter rawMatsMixSplitter;
         private SomeResAmounts<IResource> targetStoredResAmounts;
         private readonly ResPile undecidedResPile;
         private AllResAmounts resTravelHereAmounts;
@@ -165,7 +167,8 @@ namespace Game1
             links = new();
 
             resSplittersToDestins = new();
-            //selector: resOrRawMatsMix => new HistoricProporSplitter<NodeID>()
+            rawMatsMixSplitter = new();
+            //selector: res => new HistoricProporSplitter<NodeID>()
             targetStoredResAmounts = SomeResAmounts<IResource>.empty;
             undecidedResPile = ResPile.CreateEmpty(thermalBody: state.ThermalBody);
             resTravelHereAmounts = AllResAmounts.empty;
@@ -235,17 +238,17 @@ namespace Game1
 
             //foreach (var overlay in IOverlay.all)
             //    overlayTabPanels[overlay] = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
-            //foreach (var resOrRawMatsMix in ResOrRawMatsMix.All)
+            //foreach (var res in ResOrRawMatsMix.All)
             //{
             //    Button addResourceDestinationButton = new
             //    (
             //        shape: new MyRectangle(width: 150, height: 50),
-            //        tooltip: new ImmutableTextTooltip(text: $"Adds new place to where {resOrRawMatsMix} should be transported"),
-            //        text: $"add resource {resOrRawMatsMix}\ndestination"
+            //        tooltip: new ImmutableTextTooltip(text: $"Adds new place to where {res} should be transported"),
+            //        text: $"add resource {res}\ndestination"
             //    );
             //    addResourceDestinationButton.clicked.Add(listener: new AddResourceDestinationButtonClickedListener());
 
-            //    overlayTabPanels[resOrRawMatsMix].AddChild
+            //    overlayTabPanels[res].AddChild
             //    (
             //        child: addResourceDestinationButton
             //    );
@@ -474,7 +477,7 @@ namespace Game1
         //    Stats = state.WaitingPeople.Stats.CombineWith(Industry?.Stats ?? RealPeopleStats.empty);
         //}
 
-        public void StartSplitRes()
+        public void StartSplitResAndRawMatsMix()
         {
             Debug.Assert(undecidedResPile.IsEmpty);
 
@@ -498,19 +501,68 @@ namespace Game1
         }
 
         /// <summary>
-        /// MUST call StartSplitRes first
+        /// MUST call StartSplitResAndRawMatsMix first
         /// </summary>
-        public void SplitRes(Func<NodeID, INodeAsResDestin> nodeIDToNode, ResOrRawMatsMix resOrRawMatsMix, Func<NodeID, ulong> maxExtraResFunc)
+        public void SplitResOrRawMatsMix(Func<NodeID, INodeAsResDestin> nodeIDToNode, ResOrRawMatsMix resOrRawMatsMix, Func<NodeID, ulong> maxExtraAmountFunc)
         {
             if (undecidedResPile.Amount.GetAmount(resOrRawMatsMix: resOrRawMatsMix) is 0)
                 return;
 
-            var resSplitter = resSplittersToDestins.GetOrCreate(key: resOrRawMatsMix);
+            resOrRawMatsMix.SwitchStatement
+            (
+                res: res => SplitRes(nodeIDToNode: nodeIDToNode, res: res, maxExtraAmountFunc: maxExtraAmountFunc),
+                rawMatsMix: () => SplitRawMatsMix(nodeIDToNode: nodeIDToNode, maxExtraAmountFunc: maxExtraAmountFunc)
+            );
+            //var resSplitter = resSplittersToDestins.GetOrCreate(key: resOrRawMatsMix);
+            //if (resSplitter.Empty)
+            //    state.StoredResPile.TransferAllSingleResOrRawMatsMixFrom(source: undecidedResPile, resOrRawMatsMix: resOrRawMatsMix);
+            //else
+            //{
+            //    var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount.resAmounts[resOrRawMatsMix], maxAmountsFunc: maxExtraAmountFunc);
+
+            //    {
+            //        var unsplitResPile = ResPile.CreateIfHaveEnough
+            //        (
+            //            source: undecidedResPile,
+            //            amount: new SomeResAmounts<IResource>
+            //            (
+            //                res: resOrRawMatsMix,
+            //                amount: unsplitResAmount
+            //            )
+            //        );
+            //        Debug.Assert(unsplitResPile is not null);
+            //        state.StoredResPile.TransferAllFrom(source: unsplitResPile);
+            //    }
+
+            //    foreach (var (destination, resAmountNum) in splitResAmounts)
+            //    {
+            //        ResAmount<IResource> resAmount = new(res: resOrRawMatsMix, amount: resAmountNum);
+            //        var resPileForDestin = ResPile.CreateIfHaveEnough
+            //        (
+            //            source: undecidedResPile,
+            //            amount: new SomeResAmounts<IResource>(resAmount: resAmount)
+            //        );
+            //        Debug.Assert(resPileForDestin is not null);
+            //        state.waitingResAmountsPackets.TransferAllFrom
+            //        (
+            //            source: resPileForDestin,
+            //            destination: destination
+            //        );
+            //        nodeIDToNode(destination).AddResTravelHere(resAmount: resAmount);
+            //    }
+            //}
+            Debug.Assert(undecidedResPile.Amount.GetAmount(resOrRawMatsMix: resOrRawMatsMix) is 0);
+        }
+
+        private void SplitRes(Func<NodeID, INodeAsResDestin> nodeIDToNode, IResource res, Func<NodeID, ulong> maxExtraAmountFunc)
+        {
+            var resAsResOrRawMatsMix = ResOrRawMatsMix.FromRes(res: res);
+            var resSplitter = resSplittersToDestins.GetOrCreate(key: resAsResOrRawMatsMix);
             if (resSplitter.Empty)
-                state.StoredResPile.TransferAllSingleResOrRawMatsMixFrom(source: undecidedResPile, resOrRawMatsMix: resOrRawMatsMix);
+                state.StoredResPile.TransferAllSingleResOrRawMatsMixFrom(source: undecidedResPile, resOrRawMatsMix: res);
             else
             {
-                var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount.resAmounts[resOrRawMatsMix], maxAmountsFunc: maxExtraResFunc);
+                var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount.resAmounts[res], maxAmountsFunc: maxExtraAmountFunc);
 
                 {
                     var unsplitResPile = ResPile.CreateIfHaveEnough
@@ -518,7 +570,7 @@ namespace Game1
                         source: undecidedResPile,
                         amount: new SomeResAmounts<IResource>
                         (
-                            res: resOrRawMatsMix,
+                            res: res,
                             amount: unsplitResAmount
                         )
                     );
@@ -528,7 +580,7 @@ namespace Game1
 
                 foreach (var (destination, resAmountNum) in splitResAmounts)
                 {
-                    ResAmount<IResource> resAmount = new(res: resOrRawMatsMix, amount: resAmountNum);
+                    ResAmount<IResource> resAmount = new(res: res, amount: resAmountNum);
                     var resPileForDestin = ResPile.CreateIfHaveEnough
                     (
                         source: undecidedResPile,
@@ -543,13 +595,55 @@ namespace Game1
                     nodeIDToNode(destination).AddResTravelHere(resAmount: resAmount);
                 }
             }
-            Debug.Assert(undecidedResPile.Amount.GetAmount(resOrRawMatsMix: resOrRawMatsMix) is 0);
+        }
+
+        private void SplitRawMatsMix(Func<NodeID, INodeAsResDestin> nodeIDToNode, Func<NodeID, ulong> maxExtraAmountFunc)
+        {
+            //var resSplitter = resSplittersToDestins.GetOrCreate(key: resAsResOrRawMatsMix);
+            //if (resSplitter.Empty)
+            //    state.StoredResPile.TransferAllSingleResOrRawMatsMixFrom(source: undecidedResPile, resOrRawMatsMix: res);
+            //else
+            //{
+            //    var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount.resAmounts[res], maxAmountsFunc: maxExtraAmountFunc);
+
+            //    {
+            //        var unsplitResPile = ResPile.CreateIfHaveEnough
+            //        (
+            //            source: undecidedResPile,
+            //            amount: new SomeResAmounts<IResource>
+            //            (
+            //                res: res,
+            //                amount: unsplitResAmount
+            //            )
+            //        );
+            //        Debug.Assert(unsplitResPile is not null);
+            //        state.StoredResPile.TransferAllFrom(source: unsplitResPile);
+            //    }
+
+            //    foreach (var (destination, resAmountNum) in splitResAmounts)
+            //    {
+            //        ResAmount<IResource> resAmount = new(res: res, amount: resAmountNum);
+            //        var resPileForDestin = ResPile.CreateIfHaveEnough
+            //        (
+            //            source: undecidedResPile,
+            //            amount: new SomeResAmounts<IResource>(resAmount: resAmount)
+            //        );
+            //        Debug.Assert(resPileForDestin is not null);
+            //        state.waitingResAmountsPackets.TransferAllFrom
+            //        (
+            //            source: resPileForDestin,
+            //            destination: destination
+            //        );
+            //        nodeIDToNode(destination).AddResTravelHere(resAmount: resAmount);
+            //    }
+            //}
+            throw new NotImplementedException();
         }
 
         /// <summary>
         /// MUST call SplitRes first
         /// </summary>
-        public void EndSplitRes(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks)
+        public void EndSplitResAndRawMatsMix(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks)
         {
             foreach (var resAmountsPacket in state.waitingResAmountsPackets.DeconstructAndClear())
             {
@@ -579,13 +673,13 @@ namespace Game1
             // update text
             //textBox.Text = CurWorldManager.Overlay.SwitchExpression
             //(
-            //    singleResCase: resOrRawMatsMix =>
+            //    singleResCase: res =>
             //    {
-            //        if (state.StoredResPile.Amount[resOrRawMatsMix] is not 0 || targetStoredResAmounts[resOrRawMatsMix] is not 0)
-            //            return (state.StoredResPile.Amount[resOrRawMatsMix] >= targetStoredResAmounts[resOrRawMatsMix]) switch
+            //        if (state.StoredResPile.Amount[res] is not 0 || targetStoredResAmounts[res] is not 0)
+            //            return (state.StoredResPile.Amount[res] >= targetStoredResAmounts[res]) switch
             //            {
-            //                true => $"have {state.StoredResPile.Amount[resOrRawMatsMix] - targetStoredResAmounts[resOrRawMatsMix]} extra resources",
-            //                false => $"have {(double)state.StoredResPile.Amount[resOrRawMatsMix] / targetStoredResAmounts[resOrRawMatsMix] * 100:0.}% of target stored resources\n",
+            //                true => $"have {state.StoredResPile.Amount[res] - targetStoredResAmounts[res]} extra resources",
+            //                false => $"have {(double)state.StoredResPile.Amount[res] / targetStoredResAmounts[res] * 100:0.}% of target stored resources\n",
             //            };
             //        else
             //            return "";
@@ -596,7 +690,7 @@ namespace Game1
             //        return totalStoredMass.IsZero switch
             //        {
             //            true => "",
-            //            false => $"stored total resOrRawMatsMix splittingMass {totalStoredMass}"
+            //            false => $"stored total res splittingMass {totalStoredMass}"
             //        };
             //    },
             //    powerCase: () => "",

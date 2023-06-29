@@ -3,11 +3,13 @@
     [Serializable]
     public readonly record struct ResOrRawMatsMix
     {
+        public static readonly ResOrRawMatsMix RawMatsMix;
+
+        static ResOrRawMatsMix()
+            => RawMatsMix = new(resOrRawMatsMix: null);
+
         public static ResOrRawMatsMix FromRes(IResource res)
             => new(resOrRawMatsMix: res);
-
-        public static ResOrRawMatsMix FromRawMatsMix()
-            => new(resOrRawMatsMix: null);
 
         /// <summary>
         /// If null, then it's raw mats mix

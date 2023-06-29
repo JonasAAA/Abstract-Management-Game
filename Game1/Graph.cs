@@ -395,11 +395,11 @@ namespace Game1
             //nodes.ForEach(node => node.UpdatePeople());
             Stats = nodes.CombineRealPeopleStats().CombineWith(other: links.CombineRealPeopleStats());
             
-            nodes.ForEach(node => node.StartSplitRes());
+            nodes.ForEach(node => node.StartSplitResAndRawMatsMix());
             foreach (var resOrRawMatsMix in CurResConfig.GetAllCurResOrRawMatsMix())
                 SplitRes(resOrRawMatsMix: resOrRawMatsMix);
             foreach (var node in nodes)
-                node.EndSplitRes(resFirstLinks: resFirstLinks);
+                node.EndSplitResAndRawMatsMix(resFirstLinks: resFirstLinks);
         }
 
         public void UpdateHUDPos()
@@ -444,11 +444,11 @@ namespace Game1
             {
                 // want to choose random sink instead of this
                 NodeInfo sink = sinks.Dequeue();
-                sink.node.SplitRes
+                sink.node.SplitResOrRawMatsMix
                 (
                     nodeIDToNode: nodeID => nodeIDToNode[nodeID],
                     resOrRawMatsMix: resOrRawMatsMix,
-                    maxExtraResFunc: MaxExtraRes
+                    maxExtraAmountFunc: MaxExtraRes
                 );
 
                 foreach (var nodeInfo in sink.nodesIn)
@@ -463,11 +463,11 @@ namespace Game1
             foreach (var nodeInfo in nodeInfos.Values)
                 if (!nodeInfo.isSplitAleady)
                 {
-                    nodeInfo.node.SplitRes
+                    nodeInfo.node.SplitResOrRawMatsMix
                     (
                         nodeIDToNode: nodeID => nodeIDToNode[nodeID],
                         resOrRawMatsMix: resOrRawMatsMix,
-                        maxExtraResFunc: MaxExtraRes
+                        maxExtraAmountFunc: MaxExtraRes
                     );
                     nodeInfo.isSplitAleady = true;
                 }

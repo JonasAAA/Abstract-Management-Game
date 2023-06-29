@@ -23,7 +23,7 @@ namespace Game1.Resources
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
         public AreaInt UsefulArea { get; }
-        public SomeResAmounts<RawMaterial> RawMatComposition { get; }
+        public RawMatAmounts RawMatComposition { get; }
         public Temperature MeltingPoint { get; }
         public readonly Color color;
 

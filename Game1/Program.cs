@@ -13,7 +13,8 @@ global using MaterialChoices = Game1.Collections.EfficientReadOnlyDictionary<Gam
 global using TextErrors = Game1.Collections.EfficientReadOnlyHashSet<string>;
 global using AreaInt = Game1.Resources.Area<ulong>;
 global using AreaDouble = Game1.Resources.Area<Game1.PrimitiveTypeWrappers.UDouble>;
-global using AllResAmounts = Game1.Collections.SomeResAmounts<Game1.Resources.IResource>;
+global using RawMatAmounts = Game1.Collections.ResAmounts<Game1.Resources.RawMaterial>;
+global using AllResAmounts = Game1.Collections.ResAmounts<Game1.Resources.IResource>;
 
 namespace Game1
 {

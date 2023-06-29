@@ -11,6 +11,6 @@ namespace Game1.Resources
         /// to get its useful area can't just add useful areas of the components
         /// </summary>
         public AreaInt UsefulArea { get; }
-        public SomeResAmounts<RawMaterial> RawMatComposition { get; }
+        public RawMatAmounts RawMatComposition { get; }
     }
 }

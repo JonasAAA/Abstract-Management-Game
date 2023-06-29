@@ -137,7 +137,7 @@ namespace Game1
         private readonly HistoricRounder energyToDissipateRounder, heatEnergyToDissipateRounder, massFusionRounder, reflectedRadiantEnergyRounder, capturedForUseRadiantEnergyRounder;
         private readonly EnergyPile<RadiantEnergy> radiantEnergyToDissipatePile;
         private RadiantEnergy radiantEnergyToDissipate;
-        private SomeResAmounts<RawMaterial> matterConvertedToEnergy;
+        private RawMatAmounts matterConvertedToEnergy;
 
         private readonly TextBox textBox;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
@@ -180,7 +180,7 @@ namespace Game1
             radiantEnergyToDissipate = RadiantEnergy.zero;
 #warning have a config parameter for that
             state.Temperature = Temperature.CreateFromK(valueInK: 100);
-            matterConvertedToEnergy = SomeResAmounts<RawMaterial>.empty;
+            matterConvertedToEnergy = RawMatAmounts.empty;
 
             textBox = new(textColor: colorConfig.almostWhiteColor);
             textBox.Shape.MinWidth = 100;
@@ -411,7 +411,7 @@ namespace Game1
 
             state.consistsOfResPile.TransformResToHeatEnergy
             (
-                rawMatsMix: matterConvertedToEnergy
+                rawMatAmounts: matterConvertedToEnergy
             );
 
             state.RecalculateValues();

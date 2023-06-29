@@ -126,7 +126,7 @@ namespace Game1.Industries
         [Serializable]
         private sealed class State
         {
-            public static (Result<State, TextErrors> state, HistoricCorrector<double> minedAreaHistoricCorrector) Create(ConcreteParams parameters, ResPile buildingResPile, HistoricCorrector<double> minedAreaHistoricCorrector, ResAllocator minedResAllocator)
+            public static (Result<State, TextErrors> state, HistoricCorrector<double> minedAreaHistoricCorrector) Create(ConcreteParams parameters, ResPile buildingResPile, HistoricCorrector<double> minedAreaHistoricCorrector, RawMatAllocator minedResAllocator)
             {
                 var minedAreaCorrectorWithTarget = minedAreaHistoricCorrector.WithTarget(target: parameters.AreaToMine().valueInMetSq);
 
@@ -135,7 +135,7 @@ namespace Game1.Industries
                 return parameters.nodeState.Mine
                 (
                     targetArea: AreaDouble.CreateFromMetSq(valueInMetSq: maxAreaToMine),
-                    rawMatsMixAllocator: minedResAllocator
+                    rawMatAllocator: minedResAllocator
                 ).SwitchExpression<(Result<State, TextErrors> state, HistoricCorrector<double> minedAreaHistoricCorrector)>
                 (
                     ok: miningRes =>
@@ -255,7 +255,7 @@ namespace Game1.Industries
         private readonly Event<IDeletedListener> deleted;
         private Result<State, TextErrors> stateOrReasonForNotStartingMining;
         private HistoricCorrector<double> minedAreaHistoricCorrector;
-        private readonly ResAllocator minedResAllocator;
+        private readonly RawMatAllocator minedResAllocator;
 
         private Mining(ConcreteParams parameters, ResPile buildingResPile)
         {

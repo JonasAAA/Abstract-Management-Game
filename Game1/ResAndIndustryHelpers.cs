@@ -6,10 +6,10 @@ namespace Game1
 {
     public static class ResAndIndustryHelpers
     {
-        public static AreaInt Area(this SomeResAmounts<RawMaterial> rawMatsMix)
-            => rawMatsMix.Sum(resAmount => resAmount.res.Area * resAmount.amount);
+        public static AreaInt Area(this RawMatAmounts rawMatAmounts)
+            => rawMatAmounts.Sum(resAmount => resAmount.res.Area * resAmount.amount);
 
-        public static Color Color(this SomeResAmounts<RawMaterial> rawMatsMix)
+        public static Color Color(this RawMatAmounts rawMatAmounts)
             => throw new NotImplementedException();
 
         public static AreaDouble ToDouble(this AreaInt area)

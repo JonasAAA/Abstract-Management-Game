@@ -72,7 +72,7 @@ namespace Game1.Resources
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt UsefulArea { get; }
-        public SomeResAmounts<RawMaterial> RawMatComposition { get; }
+        public RawMatAmounts RawMatComposition { get; }
         /// <summary>
         /// If tempearature is any higher, the product is destroyed, i.e. turned into garbage.
         /// </summary>
@@ -82,10 +82,10 @@ namespace Game1.Resources
         private readonly Params parameters;
         private readonly MaterialChoices materialChoices;
 
-        private readonly SomeResAmounts<Product> productIngredients;
-        private readonly SomeResAmounts<Material> materialIngredients;
+        private readonly ResAmounts<Product> productIngredients;
+        private readonly ResAmounts<Material> materialIngredients;
 
-        private Product(Params parameters, MaterialChoices materialChoices, SomeResAmounts<Product> productIngredients, SomeResAmounts<Material> materialIngredients)
+        private Product(Params parameters, MaterialChoices materialChoices, ResAmounts<Product> productIngredients, ResAmounts<Material> materialIngredients)
         {
             this.parameters = parameters;
             this.materialChoices = materialChoices;

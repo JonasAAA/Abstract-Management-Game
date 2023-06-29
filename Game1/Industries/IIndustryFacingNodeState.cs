@@ -1,5 +1,4 @@
-﻿using Game1.Collections;
-using Game1.Inhabitants;
+﻿using Game1.Inhabitants;
 
 namespace Game1.Industries
 {
@@ -15,15 +14,15 @@ namespace Game1.Industries
         public ResPile StoredResPile { get; }
         public EnergyPile<RadiantEnergy> RadiantEnergyPile { get; }
         public RealPeople WaitingPeople { get; }
-        public SomeResAmounts<RawMaterial> Composition { get; }
+        public RawMatAmounts Composition { get; }
         //public bool TooManyResStored { get; }
         public LocationCounters LocationCounters { get; }
         public ThermalBody ThermalBody { get; }
         //public UDouble SurfaceGravity { get; }
         //public Temperature Temperature { get; }
 
-        public Result<ResPile, TextErrors> Mine(AreaDouble targetArea, ResAllocator rawMatsMixAllocator);
+        public Result<ResPile, TextErrors> Mine(AreaDouble targetArea, RawMatAllocator rawMatAllocator);
 
-        public void EnlargeFrom(ResPile source, SomeResAmounts<RawMaterial> amount);
+        public void EnlargeFrom(ResPile source, RawMatAmounts amount);
     }
 }

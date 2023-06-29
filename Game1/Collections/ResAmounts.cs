@@ -9,12 +9,12 @@ namespace Game1.Collections
     /// Dictionary with efficient internal storage and O(log N) lookup
     /// </summary>
     [Serializable]
-    public readonly struct SomeResAmounts<TRes> : IResAmounts<SomeResAmounts<TRes>>, IEnumerable<ResAmount<TRes>>
+    public readonly struct ResAmounts<TRes> : IResAmounts<ResAmounts<TRes>>, IEnumerable<ResAmount<TRes>>
         where TRes : class, IResource
     {
-        public static readonly SomeResAmounts<TRes> empty;
+        public static readonly ResAmounts<TRes> empty;
 
-        static SomeResAmounts()
+        static ResAmounts()
         {
             empty = new(resList: new(), amounts: new());
         }
@@ -26,13 +26,13 @@ namespace Game1.Collections
         private int Count
             => resList.Count;
 
-        static SomeResAmounts<TRes> IAdditiveIdentity<SomeResAmounts<TRes>, SomeResAmounts<TRes>>.AdditiveIdentity
+        static ResAmounts<TRes> IAdditiveIdentity<ResAmounts<TRes>, ResAmounts<TRes>>.AdditiveIdentity
             => empty;
 
-        static ulong IMultiplicativeIdentity<SomeResAmounts<TRes>, ulong>.MultiplicativeIdentity
+        static ulong IMultiplicativeIdentity<ResAmounts<TRes>, ulong>.MultiplicativeIdentity
             => 1;
 
-        bool IFormOfEnergy<SomeResAmounts<TRes>>.IsZero
+        bool IFormOfEnergy<ResAmounts<TRes>>.IsZero
             => IsEmpty;
 
         /// <summary>
@@ -44,15 +44,15 @@ namespace Game1.Collections
         /// <summary>
         /// USE SomeResAmounts.empty instead as it avoids unnecessary allocations
         /// </summary>
-        public SomeResAmounts()
+        public ResAmounts()
             : this(resList: new(), amounts: new())
         { }
 
-        public SomeResAmounts(ResAmount<TRes> resAmount)
+        public ResAmounts(ResAmount<TRes> resAmount)
             : this(res: resAmount.res, amount: resAmount.amount)
         { }
 
-        public SomeResAmounts(TRes res, ulong amount)
+        public ResAmounts(TRes res, ulong amount)
             : this(resList: new() { res }, amounts: new() { amount })
         { }
 
@@ -63,22 +63,22 @@ namespace Game1.Collections
         /// * resList must not contain duplicate elements
         /// * amounts should not have a 0 value (as that means memory and processing power of dealing with that element are wasted)
         /// </summary>
-        private SomeResAmounts(List<TRes> resList, List<ulong> amounts)
+        private ResAmounts(List<TRes> resList, List<ulong> amounts)
         {
             this.resList = resList;
             this.amounts = amounts;
             Validate();
         }
 
-        public SomeResAmounts(Dictionary<TRes, ulong> resAmounts)
+        public ResAmounts(Dictionary<TRes, ulong> resAmounts)
             : this(resAmounts: resAmounts.Select(resAmount => new ResAmount<TRes>(res: resAmount.Key, amount: resAmount.Value)))
         { }
 
-        public SomeResAmounts(IEnumerable<ResAmount<TRes>> resAmounts)
+        public ResAmounts(IEnumerable<ResAmount<TRes>> resAmounts)
             : this(resAmounts: resAmounts.ToList())
         { }
 
-        public SomeResAmounts(List<ResAmount<TRes>> resAmounts)
+        public ResAmounts(List<ResAmount<TRes>> resAmounts)
         {
             resAmounts.Sort(static (left, right) => CurResConfig.CompareRes(left: left.res, right: right.res));
             resList = new(resAmounts.Count);
@@ -139,15 +139,15 @@ namespace Game1.Collections
             return usefulArea;
         }
 
-        public SomeResAmounts<RawMaterial> RawMatComposition()
+        public RawMatAmounts RawMatComposition()
         {
-            var rawMatComp = SomeResAmounts<RawMaterial>.empty;
+            var rawMatComp = RawMatAmounts.empty;
             for (int ind = 0; ind < Count; ind++)
                 rawMatComp += resList[ind].RawMatComposition * amounts[ind];
             return rawMatComp;
         }
 
-        public SomeResAmounts<TFilterRes> Filter<TFilterRes>()
+        public ResAmounts<TFilterRes> Filter<TFilterRes>()
             where TFilterRes : class, IResource
         {
             List<TFilterRes> newResList = new(Count);
@@ -169,7 +169,7 @@ namespace Game1.Collections
             return new(resList: newResList, amounts: amounts);
         }
 
-        public ulong NumberOfTimesLargerThan(SomeResAmounts<TRes> other)
+        public ulong NumberOfTimesLargerThan(ResAmounts<TRes> other)
         {
             ulong numberOfTimesLarger = ulong.MaxValue;
             int thisInd = 0, rightInd = 0;
@@ -207,10 +207,10 @@ namespace Game1.Collections
         }
 
         // May need to change this if later on materials and/or products are able to store energy
-        public static explicit operator Energy(SomeResAmounts<TRes> formOfEnergy)
+        public static explicit operator Energy(ResAmounts<TRes> formOfEnergy)
             => Energy.CreateFromJoules(valueInJ: formOfEnergy.Mass().valueInKg * CurWorldConfig.energyInJPerKgOfMass);
 
-        static SomeResAmounts<TRes> IMin<SomeResAmounts<TRes>>.Min(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
+        static ResAmounts<TRes> IMin<ResAmounts<TRes>>.Min(ResAmounts<TRes> left, ResAmounts<TRes> right)
         {
             int resultCapacity = MyMathHelper.Min(left.Count, right.Count);
             List<TRes> minResList = new(capacity: resultCapacity);
@@ -247,7 +247,7 @@ namespace Game1.Collections
             return new(minResList, minAmounts);
         }
 
-        private static (TRes? res, ulong amount) GetResAndAmount(SomeResAmounts<TRes> someResAmounts, int ind)
+        private static (TRes? res, ulong amount) GetResAndAmount(ResAmounts<TRes> someResAmounts, int ind)
             => (ind < someResAmounts.Count) switch
             {
                 true => (res: someResAmounts.resList[ind], amount: someResAmounts.amounts[ind]),
@@ -263,7 +263,7 @@ namespace Game1.Collections
                 (null, null) => 0
             };
 
-        public static SomeResAmounts<TRes> operator +(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
+        public static ResAmounts<TRes> operator +(ResAmounts<TRes> left, ResAmounts<TRes> right)
         {
             List<TRes> sumResList = new(capacity: left.Count + right.Count);
             List<ulong> sumAmountsList = new(capacity: left.Count + right.Count);
@@ -331,7 +331,7 @@ namespace Game1.Collections
             //return new(sumResList, sumAmounts);
         }
 
-        public static SomeResAmounts<TRes> operator -(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
+        public static ResAmounts<TRes> operator -(ResAmounts<TRes> left, ResAmounts<TRes> right)
         {
             List<TRes> diffResList = new(capacity: left.Count + right.Count);
             List<ulong> diffAmounts = new(capacity: left.Count + right.Count);
@@ -367,20 +367,20 @@ namespace Game1.Collections
             return new(diffResList, diffAmounts);
         }
 
-        public static SomeResAmounts<TRes> operator *(SomeResAmounts<TRes> left, ulong right)
+        public static ResAmounts<TRes> operator *(ResAmounts<TRes> left, ulong right)
         {
             if (right is 0)
                 return empty;
             return new(left.resList, left.amounts.Select(amount => amount * right).ToList());
         }
 
-        public static SomeResAmounts<TRes> operator *(ulong left, SomeResAmounts<TRes> right)
+        public static ResAmounts<TRes> operator *(ulong left, ResAmounts<TRes> right)
             => right * left;
 
-        bool IEquatable<SomeResAmounts<TRes>>.Equals(SomeResAmounts<TRes> other)
+        bool IEquatable<ResAmounts<TRes>>.Equals(ResAmounts<TRes> other)
             => this == other;
 
-        public static bool operator ==(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
+        public static bool operator ==(ResAmounts<TRes> left, ResAmounts<TRes> right)
         {
             if (left.Count != right.Count)
                 return false;
@@ -390,11 +390,11 @@ namespace Game1.Collections
             return true;
         }
 
-        public static bool operator !=(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
+        public static bool operator !=(ResAmounts<TRes> left, ResAmounts<TRes> right)
             => !(left == right);
 
         public override bool Equals([NotNullWhen(true)] object? obj)
-            => obj is SomeResAmounts<TRes> someResAmounts && this == someResAmounts;
+            => obj is ResAmounts<TRes> someResAmounts && this == someResAmounts;
 
         public override int GetHashCode()
         {
@@ -407,7 +407,7 @@ namespace Game1.Collections
             return hashCode.ToHashCode();
         }
 
-        public static bool operator >=(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
+        public static bool operator >=(ResAmounts<TRes> left, ResAmounts<TRes> right)
         {
             if (left.Count < right.Count)
                 // since 0 amounts are disallowed, left containing fewer elements means that
@@ -432,13 +432,13 @@ namespace Game1.Collections
             return true;
         }
 
-        public static bool operator <=(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
+        public static bool operator <=(ResAmounts<TRes> left, ResAmounts<TRes> right)
             => right >= left;
 
-        static bool IComparisonOperators<SomeResAmounts<TRes>, SomeResAmounts<TRes>, bool>.operator >(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
+        static bool IComparisonOperators<ResAmounts<TRes>, ResAmounts<TRes>, bool>.operator >(ResAmounts<TRes> left, ResAmounts<TRes> right)
             => left >= right && left != right;
 
-        static bool IComparisonOperators<SomeResAmounts<TRes>, SomeResAmounts<TRes>, bool>.operator <(SomeResAmounts<TRes> left, SomeResAmounts<TRes> right)
+        static bool IComparisonOperators<ResAmounts<TRes>, ResAmounts<TRes>, bool>.operator <(ResAmounts<TRes> left, ResAmounts<TRes> right)
             => left <= right && left != right;
 
         public IEnumerator<ResAmount<TRes>> GetEnumerator()

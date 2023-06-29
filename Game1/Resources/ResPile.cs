@@ -158,7 +158,7 @@ namespace Game1.Resources
             resPileInternal.TransformFrom(source: source.resPileInternal, recipe: recipe);
         }
 
-        public void TransformResToHeatEnergy(SomeResAmounts<RawMaterial> rawMatsMix)
-            => thermalBody.TransformResToHeatEnergy(source: resPileInternal, rawMatsMix: rawMatsMix);
+        public void TransformResToHeatEnergy(RawMatAmounts rawMatAmounts)
+            => thermalBody.TransformResToHeatEnergy(source: resPileInternal, rawMatAmounts: rawMatAmounts);
     }
 }

@@ -16,6 +16,9 @@ namespace Game1.UI
         public static string CosmicBodyIsMinedOut
             => "cosmic body is mined out";
 
+        public static string NoMaterialIsChosen
+            => "no material is chosen";
+
         public static string ConstructionName(string childIndustryName)
             => $"Construction of {childIndustryName}";
 

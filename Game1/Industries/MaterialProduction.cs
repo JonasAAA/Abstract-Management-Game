@@ -10,7 +10,7 @@ namespace Game1.Industries
     /// Responds properly to planet shrinking, but NOT to planet widening
     /// </summary>
     [Serializable]
-    public sealed class Manufacturing : IIndustry
+    public sealed class MaterialProduction : IIndustry
     {
         [Serializable]
         public sealed class GeneralParams : IBuildingGeneralParams
@@ -21,11 +21,10 @@ namespace Game1.Industries
             public readonly DiskBuildingImage.Params buildingImageParams;
             public readonly GeneralProdAndMatAmounts buildingCostPropors;
             public readonly EnergyPriority energyPriority;
-            public readonly Product.Params productParams;
 
             private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
 
-            public GeneralParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority, Product.Params productParams)
+            public GeneralParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority)
             {
                 Name = name;
                 BuildingComponentMaterialPropors = buildingCostPropors.materialPropors;
@@ -33,11 +32,10 @@ namespace Game1.Industries
                 if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
                     throw new ArgumentException();
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.manufacturingBuildingColor);
-                
+
                 if (energyPriority == EnergyPriority.mostImportant)
                     throw new ArgumentException("Only power plants can have highest energy priority");
                 this.energyPriority = energyPriority;
-                this.productParams = productParams;
                 this.buildingComponentPropors = buildingComponentPropors;
             }
 
@@ -68,7 +66,6 @@ namespace Game1.Industries
             public readonly DiskBuildingImage buildingImage;
             public readonly Material surfaceMaterial;
             public readonly EnergyPriority energyPriority;
-            public readonly Product.Params productParams;
 
             /// <summary>
             /// Things depend on this rather than on building components target area as can say that if planet underneath building shrinks,
@@ -90,7 +87,6 @@ namespace Game1.Industries
                 this.buildingImage = buildingImage;
                 this.surfaceMaterial = surfaceMaterial;
                 energyPriority = generalParams.energyPriority;
-                productParams = generalParams.productParams; 
 
                 this.generalParams = generalParams;
                 this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
@@ -98,11 +94,11 @@ namespace Game1.Industries
                 startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
             }
 
-            public ulong MaxProductAmount()
+            public ulong MaxProductionAmount(AreaInt materialArea)
                 => ResAndIndustryAlgos.MaxAmountInProduction
                 (
                     areaInProduction: ResAndIndustryAlgos.AreaInProduction(buildingArea: CurBuildingArea),
-                    itemUsefulArea: productParams.usefulArea
+                    itemUsefulArea: materialArea
                 );
 
             /// <param Name="productionMassIfFull">Mass of stuff in production if industry was fully operational</param>
@@ -127,46 +123,37 @@ namespace Game1.Industries
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
             IIndustry IBuildingConcreteParams.CreateIndustry(ResPile buildingResPile)
-                => new Manufacturing(buildingParams: this, buildingResPile: buildingResPile, productionParams: new(productParams: productParams));
+                => new MaterialProduction(buildingParams: this, buildingResPile: buildingResPile, productionParams: new());
         }
 
         [Serializable]
         public sealed class ConcreteProductionParams
         {
             /// <summary>
-            /// In case of error, returns the needed but not yet set material purposes
+            /// Eiher material, or error saying no material was chosen
             /// </summary>
-            public Result<Product, TextErrors> CurProduct { get; private set; }
+            public Result<Material, TextErrors> CurMaterial { get; private set; }
 
-            private readonly Product.Params productParams;
+            public ConcreteProductionParams()
+                => CurMaterial = new(errors: new(UIAlgorithms.NoMaterialIsChosen));
 
-            public ConcreteProductionParams(Product.Params productParams)
-                : this(productParams: productParams, productMaterialChoices: MaterialChoices.empty)
-            { }
-
-            public ConcreteProductionParams(Product.Params productParams, MaterialChoices productMaterialChoices)
-            {
-                this.productParams = productParams;
-                Update(productMaterialChoices: productMaterialChoices);
-            }
-
-            private void Update(MaterialChoices productMaterialChoices)
-                => CurProduct = productParams.CreateProduct(materialChoices: productMaterialChoices).ConvertMissingMatPurpsIntoError();
+            public ConcreteProductionParams(Material material)
+                => CurMaterial = new(ok: material);
         }
 
         [Serializable]
         private sealed class State
         {
             public static Result<State, TextErrors> Create(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ConcreteProductionParams productionParams)
-                => productionParams.CurProduct.SelectMany
+                => productionParams.CurMaterial.SelectMany
                 (
-                    product =>
+                    material =>
                     {
-                        ulong maxProductionAmount = buildingParams.MaxProductAmount();
+                        ulong maxProductionAmount = buildingParams.MaxProductionAmount(materialArea: material.Area);
                         var resInUseAndCount = ResPile.CreateMultipleIfHaveEnough
                         (
                             source: buildingParams.nodeState.StoredResPile,
-                            amount: product.Recipe.ingredients,
+                            amount: material.Recipe.ingredients,
                             maxCount: maxProductionAmount
                         );
                         return resInUseAndCount switch
@@ -178,7 +165,7 @@ namespace Game1.Industries
                                     buildingParams: buildingParams,
                                     buildingResPile: buildingResPile,
                                     resInUse: resInUse,
-                                    productRecipe: product.Recipe,
+                                    material: material,
                                     productionAmount: count,
                                     maxProductionAmount: maxProductionAmount
                                 )
@@ -205,17 +192,17 @@ namespace Game1.Industries
             private CurProdStats curProdStats;
             private Propor donePropor, workingPropor;
 
-            private State(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ResPile resInUse, ResRecipe productRecipe, ulong productionAmount, ulong maxProductionAmount)
+            private State(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ResPile resInUse, Material material, ulong productionAmount, ulong maxProductionAmount)
             {
                 this.buildingParams = buildingParams;
                 this.buildingResPile = buildingResPile;
                 this.resInUse = resInUse;
-                recipe = productRecipe * productionAmount;
-                prodMassIfFull = productRecipe.ingredients.Mass() * maxProductionAmount;
+                recipe = material.Recipe * productionAmount;
+                prodMassIfFull = material.Recipe.ingredients.Mass() * maxProductionAmount;
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.nodeState.LocationCounters);
                 reqEnergyHistoricRounder = new();
                 proporUtilized = Propor.Create(part: productionAmount, whole: maxProductionAmount)!.Value;
-                areaInProduction = buildingParams.productParams.usefulArea.ToDouble() * productionAmount;
+                areaInProduction = material.Area.ToDouble() * productionAmount;
                 donePropor = Propor.empty;
             }
 
@@ -272,7 +259,7 @@ namespace Game1.Industries
 
         public IHUDElement UIElement
             => throw new NotImplementedException();
-        
+
         public IEvent<IDeletedListener> Deleted
             => deleted;
 
@@ -285,7 +272,7 @@ namespace Game1.Industries
         private readonly Event<IDeletedListener> deleted;
         private Result<State, TextErrors> stateOrReasonForNotStartingProduction;
 
-        private Manufacturing(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ConcreteProductionParams productionParams)
+        private MaterialProduction(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ConcreteProductionParams productionParams)
         {
             this.buildingParams = buildingParams;
             this.buildingResPile = buildingResPile;
@@ -295,9 +282,9 @@ namespace Game1.Industries
         }
 
         public AllResAmounts TargetStoredResAmounts()
-            => productionParams.CurProduct.SwitchExpression
+            => productionParams.CurMaterial.SwitchExpression
             (
-                ok: product => product.Recipe.ingredients * buildingParams.MaxProductAmount() * buildingParams.nodeState.MaxBatchDemResStored,
+                ok: material => material.Recipe.ingredients * buildingParams.MaxProductionAmount(materialArea: material.Area) * buildingParams.nodeState.MaxBatchDemResStored,
                 error: _ => AllResAmounts.empty
             );
 

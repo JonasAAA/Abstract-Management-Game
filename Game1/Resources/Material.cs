@@ -12,6 +12,7 @@ namespace Game1.Resources
         public AreaInt UsefulArea { get; }
         public RawMatAmounts RawMatComposition { get; }
         public Temperature MeltingPoint { get; }
+        public ResRecipe Recipe { get; }
 
         public Material(RawMatAmounts composition)
         {
@@ -23,7 +24,14 @@ namespace Game1.Resources
 
             MeltingPoint = ResAndIndustryAlgos.MaterialMeltingPoint(materialComposition: composition);
 
+            // Need this before creating the recipe since to create SomeResAmounts you need all used resources to be registered first
             CurResConfig.AddRes(resource: this);
+
+            Recipe = ResRecipe.CreateOrThrow
+            (
+                ingredients: composition.ToAll(),
+                results: new AllResAmounts(res: this, amount: 1)
+            );
         }
     }
 }

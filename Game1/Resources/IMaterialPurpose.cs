@@ -2,30 +2,36 @@
 {
     public interface IMaterialPurpose
     {
+        [Serializable]
         private sealed class Mechanical : IMaterialPurpose
         {
             bool IMaterialPurpose.LiquidUse(Material material)
                 => false;
         }
 
+        //[Serializable]
         //private sealed class Structural : IMaterialPurpose
         //{ }
 
+        [Serializable]
         private sealed class HydraulicFluid : IMaterialPurpose
         {
             bool IMaterialPurpose.LiquidUse(Material material)
                 => true;
         }
 
+        [Serializable]
         private sealed class RoofSurface : IMaterialPurpose
         {
             bool IMaterialPurpose.LiquidUse(Material material)
                 => false;
         }
 
+        //[Serializable]
         //private sealed class ElectricalConductor : IMaterialPurpose
         //{ }
 
+        //[Serializable]
         //private sealed class ElectricalInsulator : IMaterialPurpose
         //{ }
 

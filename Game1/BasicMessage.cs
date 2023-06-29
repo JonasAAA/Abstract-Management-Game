@@ -1,5 +1,6 @@
 ﻿namespace Game1
 {
+    [Serializable]
     public record BasicMessage : IMessage
     {
         private readonly NodeID nodeID;

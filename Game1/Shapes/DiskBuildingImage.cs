@@ -5,8 +5,10 @@ using Game1.UI;
 namespace Game1.Shapes
 {
     // This class is coded in a somewhat ugly way so that IncompleteBuildingImage doesn't allocate new object each time
+    [Serializable]
     public sealed class DiskBuildingImage : IBuildingImage, IIncompleteBuildingImage
     {
+        [Serializable]
         public readonly struct Params : IBuildingImageParams<DiskBuildingImage>
         {
             public readonly UDouble finishedBuildingHeight;

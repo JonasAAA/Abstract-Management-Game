@@ -2,6 +2,7 @@
 
 namespace Game1.Resources
 {
+    [Serializable]
     public class RawMatAllocator
     {
         private readonly Dictionary<RawMaterial, decimal> historicalInaccuracies;

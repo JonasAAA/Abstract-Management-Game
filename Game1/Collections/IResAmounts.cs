@@ -14,6 +14,6 @@ namespace Game1.Collections
 
         //public Area Area();
 
-        public RawMaterialsMix RawMatComposition();
+        public SomeResAmounts<RawMaterial> RawMatComposition();
     }
 }

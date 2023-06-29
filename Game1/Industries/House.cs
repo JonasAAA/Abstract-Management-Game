@@ -11,9 +11,9 @@
 //        public new sealed class Factory : Industry.Factory, IFactoryForIndustryWithBuilding
 //        {
 //            public readonly UDouble floorSpacePerUnitSurface;
-//            private readonly SomeResAmounts<IResource> buildingCostPerUnitSurface;
+//            private readonly AllResAmounts buildingCostPerUnitSurface;
 
-//            public Factory(string Name, UDouble floorSpacePerUnitSurface, SomeResAmounts<IResource> buildingCostPerUnitSurface)
+//            public Factory(string Name, UDouble floorSpacePerUnitSurface, AllResAmounts buildingCostPerUnitSurface)
 //                : base(Name: Name, Color: colorConfig.houseIndustryColor)
 //            {
 //                this.floorSpacePerUnitSurface = floorSpacePerUnitSurface;
@@ -25,7 +25,7 @@
 //            public override GeneralParams CreateParams(IIndustryFacingNodeState state)
 //                => new(state: state, factory: this);
 
-//            public SomeResAmounts<IResource> BuildingCost(IIndustryFacingNodeState state)
+//            public AllResAmounts BuildingCost(IIndustryFacingNodeState state)
 //                => state.SurfaceLength * buildingCostPerUnitSurface;
 
 //            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, BuildingShape building)

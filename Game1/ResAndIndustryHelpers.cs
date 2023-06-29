@@ -6,17 +6,11 @@ namespace Game1
 {
     public static class ResAndIndustryHelpers
     {
-        public static AllResAmounts ToAll(this SomeResAmounts<IResource> resAmounts)
-            => new(resAmounts: resAmounts, rawMatsMix: RawMaterialsMix.empty);
+        public static AreaInt Area(this SomeResAmounts<RawMaterial> rawMatsMix)
+            => rawMatsMix.Sum(resAmount => resAmount.res.Area * resAmount.amount);
 
-        public static AllResAmounts ToAll(this SomeResAmounts<Material> matAmounts)
-            => new(resAmounts: matAmounts.Generalize(), rawMatsMix: RawMaterialsMix.empty);
-
-        public static AllResAmounts ToAll(this SomeResAmounts<Product> prodAmounts)
-            => new(resAmounts: prodAmounts.Generalize(), rawMatsMix: RawMaterialsMix.empty);
-
-        public static AllResAmounts ToAll(this RawMaterialsMix rawMatsMix)
-            => new(resAmounts: SomeResAmounts<IResource>.empty, rawMatsMix: rawMatsMix);
+        public static Color Color(this SomeResAmounts<RawMaterial> rawMatsMix)
+            => throw new NotImplementedException();
 
         public static AreaDouble ToDouble(this AreaInt area)
             => AreaDouble.CreateFromMetSq(valueInMetSq: area.valueInMetSq);
@@ -31,7 +25,7 @@ namespace Game1
                 elementSelector: matChoice => matChoice.Value
             );
 
-        public static SomeResAmounts<IResource> CurNeededBuildingComponents(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
+        public static AllResAmounts CurNeededBuildingComponents(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
             => new
             (
                 buildingComponentsToAmountPUBA.Select
@@ -46,7 +40,7 @@ namespace Game1
 
         public static void RemoveUnneededBuildingComponents(IIndustryFacingNodeState nodeState, ResPile buildingResPile, EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
         {
-            var buildingComponentsToRemove = buildingResPile.Amount.resAmounts - CurNeededBuildingComponents(buildingComponentsToAmountPUBA, curBuildingArea);
+            var buildingComponentsToRemove = buildingResPile.Amount - CurNeededBuildingComponents(buildingComponentsToAmountPUBA, curBuildingArea);
             if (buildingComponentsToRemove.UsefulArea() >= CurWorldConfig.minUsefulBuildingComponentAreaToRemove)
             {
                 nodeState.StoredResPile.TransferFrom

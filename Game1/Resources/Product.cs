@@ -72,7 +72,7 @@ namespace Game1.Resources
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt UsefulArea { get; }
-        public RawMaterialsMix RawMatComposition { get; }
+        public SomeResAmounts<RawMaterial> RawMatComposition { get; }
         /// <summary>
         /// If tempearature is any higher, the product is destroyed, i.e. turned into garbage.
         /// </summary>
@@ -109,7 +109,7 @@ namespace Game1.Resources
             Recipe = ResRecipe.CreateOrThrow
             (
                 ingredients: productIngredients.ToAll() + materialIngredients.ToAll(),
-                results: new SomeResAmounts<IResource>(res: this, amount: 1).ToAll()
+                results: new AllResAmounts(res: this, amount: 1)
             );
         }
     }

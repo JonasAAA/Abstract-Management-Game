@@ -15,15 +15,15 @@ namespace Game1.Industries
         public ResPile StoredResPile { get; }
         public EnergyPile<RadiantEnergy> RadiantEnergyPile { get; }
         public RealPeople WaitingPeople { get; }
-        public RawMaterialsMix Composition { get; }
+        public SomeResAmounts<RawMaterial> Composition { get; }
         //public bool TooManyResStored { get; }
         public LocationCounters LocationCounters { get; }
         public ThermalBody ThermalBody { get; }
         //public UDouble SurfaceGravity { get; }
         //public Temperature Temperature { get; }
 
-        public Result<ResPile, TextErrors> Mine(AreaDouble targetArea, RawMatsMixAllocator rawMatsMixAllocator);
+        public Result<ResPile, TextErrors> Mine(AreaDouble targetArea, ResAllocator rawMatsMixAllocator);
 
-        public void EnlargeFrom(ResPile source, RawMaterialsMix amount);
+        public void EnlargeFrom(ResPile source, SomeResAmounts<RawMaterial> amount);
     }
 }

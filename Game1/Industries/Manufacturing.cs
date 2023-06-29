@@ -79,7 +79,7 @@ namespace Game1.Industries
             private readonly GeneralParams generalParams;
             private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialChoices buildingMatChoices;
-            private readonly SomeResAmounts<IResource> startingBuildingCost;
+            private readonly AllResAmounts startingBuildingCost;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
@@ -120,7 +120,7 @@ namespace Game1.Industries
             public void RemoveUnneededBuildingComponents(ResPile buildingResPile)
                 => ResAndIndustryHelpers.RemoveUnneededBuildingComponents(nodeState: nodeState, buildingResPile: buildingResPile, buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
 
-            SomeResAmounts<IResource> IBuildingConcreteParams.BuildingCost
+            AllResAmounts IBuildingConcreteParams.BuildingCost
                 => startingBuildingCost;
 
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
@@ -166,7 +166,7 @@ namespace Game1.Industries
                         var resInUseAndCount = ResPile.CreateMultipleIfHaveEnough
                         (
                             source: buildingParams.nodeState.StoredResPile,
-                            amount: product.Recipe.ingredients.resAmounts,
+                            amount: product.Recipe.ingredients,
                             maxCount: maxProductionAmount
                         );
                         return resInUseAndCount switch
@@ -295,11 +295,11 @@ namespace Game1.Industries
             stateOrReasonForNotStartingProduction = new(errors: new("Not yet initialized"));
         }
 
-        public SomeResAmounts<IResource> TargetStoredResAmounts()
+        public AllResAmounts TargetStoredResAmounts()
             => productionParams.CurProduct.SwitchExpression
             (
-                ok: product => product.Recipe.ingredients.resAmounts * buildingParams.MaxProductAmount() * buildingParams.nodeState.MaxBatchDemResStored,
-                error: _ => SomeResAmounts<IResource>.empty
+                ok: product => product.Recipe.ingredients * buildingParams.MaxProductAmount() * buildingParams.nodeState.MaxBatchDemResStored,
+                error: _ => AllResAmounts.empty
             );
 
         public void FrameStartNoProduction(string error)

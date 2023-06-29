@@ -11,6 +11,6 @@
 
 //        public Industry.GeneralParams CreateParams(IIndustryFacingNodeState state);
 
-//        public SomeResAmounts<IResource> BuildingCost(IIndustryFacingNodeState state);
+//        public AllResAmounts BuildingCost(IIndustryFacingNodeState state);
 //    }
 //}

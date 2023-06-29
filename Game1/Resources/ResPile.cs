@@ -11,14 +11,14 @@ namespace Game1.Resources
             public new static ResPileInternal CreateEmpty(LocationCounters locationCounters)
                 => new(locationCounters: locationCounters, counter: ResCounter.CreateEmpty());
 
-            public static (ResPileInternal resPile, ulong count)? CreateMultipleIfHaveEnough(ResPileInternal source, SomeResAmounts<IResource> amount, ulong maxCount)
+            public static (ResPileInternal resPile, ulong count)? CreateMultipleIfHaveEnough(ResPileInternal source, AllResAmounts amount, ulong maxCount)
             {
                 if (maxCount is 0)
                     throw new ArgumentException();
-                ulong count = MyMathHelper.Min(source.Amount.resAmounts.NumberOfTimesLargerThan(other: amount), maxCount);
+                ulong count = MyMathHelper.Min(source.Amount.NumberOfTimesLargerThan(other: amount), maxCount);
                 if (count is 0)
                     return null;
-                var newResPile = Create(source: source, amount: (amount * count).ToAll());
+                var newResPile = Create(source: source, amount: amount * count);
                 return (resPile: newResPile, count: count);
             }
 
@@ -74,7 +74,7 @@ namespace Game1.Resources
                 thermalBody: thermalBody
             );
 
-        public static (ResPile resPile, ulong count)? CreateMultipleIfHaveEnough(ResPile source, SomeResAmounts<IResource> amount, ulong maxCount)
+        public static (ResPile resPile, ulong count)? CreateMultipleIfHaveEnough(ResPile source, AllResAmounts amount, ulong maxCount)
             => ResPileInternal.CreateMultipleIfHaveEnough(source: source.resPileInternal, amount: amount, maxCount: maxCount) switch
             {
                 (ResPileInternal newInternalPile, ulong count) =>
@@ -89,21 +89,7 @@ namespace Game1.Resources
                 null => null
             };
 
-        public static ResPile? CreateIfHaveEnough(ResPile source, SomeResAmounts<IResource> amount)
-            => CreateIfHaveEnough(source: source, amount: amount.ToAll());
-
-        public static ResPile? CreateIfHaveEnough(ResPile source, RawMaterialsMix amount)
-            => CreateIfHaveEnough(source: source, amount: amount.ToAll());
-
-        //public static ResPile? CreateIfHaveEnough(ResPile source, AllResAmounts amount)
-        //{
-        //    var newPile = ResPileInternal.CreateIfHaveEnough(source: source.resPileInternal, amount: amount);
-        //    if (newPile is null)
-        //        return null;
-        //    return new(resPileInternal: newPile, thermalBody: source.thermalBody);
-        //}
-
-        private static ResPile? CreateIfHaveEnough(ResPile source, AllResAmounts amount)
+        public static ResPile? CreateIfHaveEnough(ResPile source, AllResAmounts amount)
         {
             var newPile = ResPileInternal.CreateIfHaveEnough(source: source.resPileInternal, amount: amount);
             if (newPile is null)
@@ -146,12 +132,6 @@ namespace Game1.Resources
             thermalBody = newThermalBody;
         }
 
-        public void TransferFrom(ResPile source, SomeResAmounts<IResource> amount)
-            => TransferFrom(source: source, amount: amount.ToAll());
-
-        public void TransferFrom(ResPile source, RawMaterialsMix amount)
-            => TransferFrom(source: source, amount: amount.ToAll());
-
         public void TransferFrom(ResPile source, AllResAmounts amount)
         {
             // This must be done first to get accurate source heat capacity in the calculations
@@ -169,7 +149,7 @@ namespace Game1.Resources
             => TransferFrom
             (
                 source: source,
-                amount: new SomeResAmounts<IResource>(res: res, amount: source.Amount.resAmounts[res]).ToAll()
+                amount: new AllResAmounts(res: res, amount: source.Amount[res])
             );
 
         public void TransformFrom(ResPile source, ResRecipe recipe)
@@ -178,7 +158,7 @@ namespace Game1.Resources
             resPileInternal.TransformFrom(source: source.resPileInternal, recipe: recipe);
         }
 
-        public void TransformResToHeatEnergy(RawMaterialsMix rawMatsMix)
+        public void TransformResToHeatEnergy(SomeResAmounts<RawMaterial> rawMatsMix)
             => thermalBody.TransformResToHeatEnergy(source: resPileInternal, rawMatsMix: rawMatsMix);
     }
 }

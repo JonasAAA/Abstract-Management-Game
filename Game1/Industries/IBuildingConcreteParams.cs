@@ -12,7 +12,7 @@ namespace Game1.Industries
         /// <summary>
         /// Must be constant
         /// </summary>
-        public SomeResAmounts<IResource> BuildingCost { get; }
+        public AllResAmounts BuildingCost { get; }
 
         public IIndustry CreateIndustry(ResPile buildingResPile);
     }

@@ -29,7 +29,7 @@ namespace Game1
         public EnergyPile<RadiantEnergy> RadiantEnergyPile { get; }
         public readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
         public RealPeople WaitingPeople { get; }
-        public RawMaterialsMix Composition { get; }
+        public SomeResAmounts<RawMaterial> Composition { get; private set; }
         public bool TooManyResStored { get; set; }
         // TODO: could include linkEndPoints Mass in the Counter<Mass> in this NodeState
         public LocationCounters LocationCounters { get; }
@@ -44,7 +44,7 @@ namespace Game1
 
         public readonly ResPile consistsOfResPile;
 
-        public NodeState(WorldCamera mapInfoCamera, FullValidCosmicBodyInfo cosmicBodyInfo, RawMaterialsMix composition, ResPile resSource)
+        public NodeState(WorldCamera mapInfoCamera, FullValidCosmicBodyInfo cosmicBodyInfo, SomeResAmounts<RawMaterial> composition, ResPile resSource)
             : this
             (
                 name: cosmicBodyInfo.Name,
@@ -66,7 +66,7 @@ namespace Game1
             )
         { }
 
-        public NodeState(string name, MyVector2 position, RawMaterialsMix composition, ResPile resSource, ulong maxBatchDemResStored)
+        public NodeState(string name, MyVector2 position, SomeResAmounts<RawMaterial> composition, ResPile resSource, ulong maxBatchDemResStored)
         {
 #warning display the name
             LocationCounters = LocationCounters.CreateEmpty();
@@ -96,22 +96,24 @@ namespace Game1
 
         public void RecalculateValues()
         {
+            Composition = consistsOfResPile.Amount.Filter<RawMaterial>();
             Area = Composition.Area();
             Radius = MyMathHelper.Sqrt(value: Area.valueInMetSq / MyMathHelper.pi);
             SurfaceLength = 2 * MyMathHelper.pi * Radius;
         }
 
-        public Result<ResPile, TextErrors> Mine(AreaDouble targetArea, RawMatsMixAllocator rawMatsMixAllocator)
+        public Result<ResPile, TextErrors> Mine(AreaDouble targetArea, ResAllocator rawMatsMixAllocator)
         {
+            Debug.Assert(Composition == consistsOfResPile.Amount.Filter<RawMaterial>());
             AreaInt targetAreaInt = targetArea.RoundDown();
-            (AreaInt finalMaxArea, bool minedOut) = (consistsOfResPile.Amount.rawMatsMix.Area() <= CurWorldConfig.minPlanetArea + targetAreaInt) switch
+            (AreaInt finalMaxArea, bool minedOut) = (Area <= CurWorldConfig.minPlanetArea + targetAreaInt) switch
             {
-                true => (finalMaxArea: consistsOfResPile.Amount.rawMatsMix.Area() - CurWorldConfig.minPlanetArea, minedOut: true),
+                true => (finalMaxArea: Area - CurWorldConfig.minPlanetArea, minedOut: true),
                 false => (finalMaxArea: targetAreaInt, minedOut: false),
             };
             var rawMatsMixToMine = rawMatsMixAllocator.TakeAtMostFrom
             (
-                source: consistsOfResPile.Amount.rawMatsMix,
+                source: Composition,
                 maxArea: finalMaxArea
             );
             if (rawMatsMixToMine.IsEmpty && minedOut)
@@ -121,20 +123,15 @@ namespace Game1
             result.TransferFrom
             (
                 source: consistsOfResPile,
-                amount: rawMatsMixToMine
+                amount: rawMatsMixToMine.ToAll()
             );
             RecalculateValues();
             return new(ok: result);
         }
 
-        public void EnlargeFrom(ResPile source, RawMaterialsMix amount)
+        public void EnlargeFrom(ResPile source, SomeResAmounts<RawMaterial> amount)
         {
-            var reservedResPile = ResPile.CreateIfHaveEnough
-            (
-                source: source,
-                amount: amount
-            ) ?? throw new ArgumentException();
-            consistsOfResPile.TransferAllFrom(source: reservedResPile);
+            consistsOfResPile.TransferFrom(source: source, amount: amount.ToAll());
             RecalculateValues();
         }
     }

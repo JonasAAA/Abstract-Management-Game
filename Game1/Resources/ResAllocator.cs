@@ -2,14 +2,14 @@
 
 namespace Game1.Resources
 {
-    public class RawMatsMixAllocator
+    public class ResAllocator
     {
         private readonly Dictionary<RawMaterial, decimal> historicalInaccuracies;
 
-        public RawMatsMixAllocator()
+        public ResAllocator()
             => historicalInaccuracies = new();
 
-        public RawMaterialsMix TakeAtMostFrom(RawMaterialsMix source, AreaInt maxArea)
+        public SomeResAmounts<RawMaterial> TakeAtMostFrom(SomeResAmounts<RawMaterial> source, AreaInt maxArea)
         {
 #warning test this
             var takeProporOrNull = Propor.Create(part: maxArea.valueInMetSq, whole: source.Area().valueInMetSq);
@@ -54,7 +54,7 @@ namespace Game1.Resources
                     destinArea += rawMat.Area;
                 }
 
-                RawMaterialsMix finalResult = new(new(resAmounts: destinDict));
+                SomeResAmounts<RawMaterial> finalResult = new(resAmounts: destinDict);
                 Debug.Assert(finalResult <= source);
                 Debug.Assert(finalResult.Area() <= maxArea);
                 return finalResult;

@@ -207,7 +207,7 @@ namespace Game1
             }
         }
 
-        public static RawMaterialsMix MatterToConvertToEnergy(RawMaterialsMix composition, Temperature temperature, UDouble surfaceGravity, TimeSpan duration,
+        public static SomeResAmounts<RawMaterial> MatterToConvertToEnergy(SomeResAmounts<RawMaterial> composition, Temperature temperature, UDouble surfaceGravity, TimeSpan duration,
             Func<decimal, ulong> massInKgRoundFunc, UDouble reactionStrengthCoeff, Propor nonConvertedMassForUnitReactionStrengthUnitTime)
         {
             throw new NotImplementedException();

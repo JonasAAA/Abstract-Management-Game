@@ -12,9 +12,9 @@
 //            public readonly UDouble reqWattsPerChild;
 //            public readonly UDouble maxCouplesPerUnitSurface;
 //            public readonly TimeSpan birthDuration;
-//            private readonly SomeResAmounts<IResource> buildingCostPerUnitSurface;
+//            private readonly AllResAmounts buildingCostPerUnitSurface;
 
-//            public Factory(string Name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerChild, UDouble maxCouplesPerUnitSurface, TimeSpan birthDuration, SomeResAmounts<IResource> buildingCostPerUnitSurface)
+//            public Factory(string Name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerChild, UDouble maxCouplesPerUnitSurface, TimeSpan birthDuration, AllResAmounts buildingCostPerUnitSurface)
 //                : base
 //                (
 //                    industryType: IndustryType.Reproduction,
@@ -38,7 +38,7 @@
 //            public override GeneralParams CreateParams(IIndustryFacingNodeState state)
 //                => new(state: state, factory: this);
 
-//            public SomeResAmounts<IResource> BuildingCost(IIndustryFacingNodeState state)
+//            public AllResAmounts BuildingCost(IIndustryFacingNodeState state)
 //                => state.SurfaceLength * buildingCostPerUnitSurface;
 
 //            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, BuildingShape building)
@@ -48,7 +48,7 @@
 //        [Serializable]
 //        public new sealed class GeneralParams : ProductiveIndustry.GeneralParams
 //        {
-//            public SomeResAmounts<IResource> BuildingCost
+//            public AllResAmounts BuildingCost
 //                => factory.BuildingCost(state: state);
 //            public readonly UDouble reqWattsPerChild;
 //            public ulong MaxCouples

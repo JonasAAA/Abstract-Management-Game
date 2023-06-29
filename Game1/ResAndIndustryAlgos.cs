@@ -14,7 +14,7 @@ namespace Game1
         // The material melting point generally has no such formula, it depends heavily on what bonds are formed, as discussed in https://qr.ae/pytnoU
         // Also some composites aren't mixed very well, so don't have a single melting point.
         // So the formula below is entirely my creation
-        public static Temperature MaterialMeltingPoint(RawMaterialsMix materialComposition)
+        public static Temperature MaterialMeltingPoint(SomeResAmounts<RawMaterial> materialComposition)
             => Temperature.CreateFromK
             (
                 valueInK: materialComposition.WeightedAverage
@@ -29,7 +29,7 @@ namespace Game1
         public static UDouble Strength(this Material material, Temperature temperature)
             => throw new NotImplementedException();
 
-        public static Propor Reflectance(this RawMaterialsMix rawMaterial, Temperature temperature)
+        public static Propor Reflectance(this SomeResAmounts<RawMaterial> rawMaterial, Temperature temperature)
             => throw new NotImplementedException();
 
         public static Propor Reflectance(this Material material, Temperature temperature)
@@ -40,7 +40,7 @@ namespace Game1
             //)!.Value;
             => throw new NotImplementedException();
 
-        public static Propor Emissivity(this RawMaterialsMix material, Temperature temperature)
+        public static Propor Emissivity(this SomeResAmounts<RawMaterial> material, Temperature temperature)
             //Emissivity = Propor.CreateOrThrow
             //(
             //    part: composition.Sum(resAmount => resAmount.res.Area.valueInMetSq* resAmount.amount * resAmount.res.Emissivity),
@@ -62,7 +62,7 @@ namespace Game1
         public static AreaDouble BuildingComponentUsefulArea(AreaDouble buildingArea)
             => throw new NotImplementedException();
 
-        public static Result<SomeResAmounts<IResource>, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingCost(GeneralProdAndMatAmounts buildingCostPropors, MaterialChoices buildingMatChoices, AreaDouble buildingArea)
+        public static Result<AllResAmounts, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingCost(GeneralProdAndMatAmounts buildingCostPropors, MaterialChoices buildingMatChoices, AreaDouble buildingArea)
             => throw new NotImplementedException();
 
         /// <exception cref="ArgumentException">if buildingMatChoices doesn't contain all required matAmounts</exception>

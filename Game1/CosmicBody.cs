@@ -128,7 +128,7 @@ namespace Game1
         /// </summary>
         private IIndustry? industry;
         private readonly AutoCreateValDict<IResource, HistoricProporSplitter<NodeID>> resSplittersToDestins;
-        private SomeResAmounts<IResource> targetStoredResAmounts;
+        private AllResAmounts targetStoredResAmounts;
         private readonly ResPile undecidedResPile;
         private AllResAmounts resTravelHereAmounts;
         private readonly new LightBlockingDisk shape;
@@ -137,7 +137,7 @@ namespace Game1
         private readonly HistoricRounder energyToDissipateRounder, heatEnergyToDissipateRounder, massFusionRounder, reflectedRadiantEnergyRounder, capturedForUseRadiantEnergyRounder;
         private readonly EnergyPile<RadiantEnergy> radiantEnergyToDissipatePile;
         private RadiantEnergy radiantEnergyToDissipate;
-        private RawMaterialsMix matterConvertedToEnergy;
+        private SomeResAmounts<RawMaterial> matterConvertedToEnergy;
 
         private readonly TextBox textBox;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
@@ -153,20 +153,20 @@ namespace Game1
             (
                 shape: new LightBlockingDisk(parameters: new ShapeParams(State: state)),
                 activeColor: activeColor,
-                inactiveColor: state.Composition.Color,
+                inactiveColor: state.Composition.Color(),
                 popupHorizPos: HorizPos.Right,
                 popupVertPos: VertPos.Top
             )
         {
             this.state = state;
-            lightPolygon = new(color: state.Composition.Color);
+            lightPolygon = new(color: state.Composition.Color());
             shape = (LightBlockingDisk)base.shape;
 
             links = new();
 
             resSplittersToDestins = new();
             //selector: res => new HistoricProporSplitter<NodeID>()
-            targetStoredResAmounts = SomeResAmounts<IResource>.empty;
+            targetStoredResAmounts = AllResAmounts.empty;
             undecidedResPile = ResPile.CreateEmpty(thermalBody: state.ThermalBody);
             resTravelHereAmounts = AllResAmounts.empty;
             usedLocalEnergy = ElectricalEnergy.zero;
@@ -180,7 +180,7 @@ namespace Game1
             radiantEnergyToDissipate = RadiantEnergy.zero;
 #warning have a config parameter for that
             state.Temperature = Temperature.CreateFromK(valueInK: 100);
-            matterConvertedToEnergy = RawMaterialsMix.empty;
+            matterConvertedToEnergy = SomeResAmounts<RawMaterial>.empty;
 
             textBox = new(textColor: colorConfig.almostWhiteColor);
             textBox.Shape.MinWidth = 100;
@@ -321,7 +321,7 @@ namespace Game1
             => textBox.Shape.Center = CurWorldManager.WorldPosToHUDPos(worldPos: Position);
 
         public ulong TotalQueuedRes(IResource res)
-            => state.StoredResPile.Amount.resAmounts[res] + resTravelHereAmounts.resAmounts[res];
+            => state.StoredResPile.Amount[res] + resTravelHereAmounts[res];
 
         public IEnumerable<NodeID> ResDestins(IResource res)
             => resSplittersToDestins.GetOrCreate(key: res).Keys;
@@ -478,7 +478,7 @@ namespace Game1
         {
             Debug.Assert(undecidedResPile.IsEmpty);
 
-            targetStoredResAmounts = Industry?.TargetStoredResAmounts() ?? SomeResAmounts<IResource>.empty;
+            targetStoredResAmounts = Industry?.TargetStoredResAmounts() ?? AllResAmounts.empty;
 
             // deal with resources
             undecidedResPile.TransferAllFrom(source: state.StoredResPile);
@@ -493,7 +493,7 @@ namespace Game1
             state.StoredResPile.TransferAtMostFrom
             (
                 source: undecidedResPile,
-                maxAmount: targetStoredResAmounts.ToAll()
+                maxAmount: targetStoredResAmounts
             );
         }
 
@@ -502,7 +502,7 @@ namespace Game1
         /// </summary>
         public void SplitRes(Func<NodeID, INodeAsResDestin> nodeIDToNode, IResource res, Func<NodeID, ulong> maxExtraResFunc)
         {
-            if (undecidedResPile.Amount.resAmounts[res] is 0)
+            if (undecidedResPile.Amount[res] is 0)
                 return;
 
             var resSplitter = resSplittersToDestins.GetOrCreate(key: res);
@@ -510,13 +510,13 @@ namespace Game1
                 state.StoredResPile.TransferAllSingleResFrom(source: undecidedResPile, res: res);
             else
             {
-                var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount.resAmounts[res], maxAmountsFunc: maxExtraResFunc);
+                var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount[res], maxAmountsFunc: maxExtraResFunc);
 
                 {
                     var unsplitResPile = ResPile.CreateIfHaveEnough
                     (
                         source: undecidedResPile,
-                        amount: new SomeResAmounts<IResource>
+                        amount: new AllResAmounts
                         (
                             res: res,
                             amount: unsplitResAmount
@@ -532,7 +532,7 @@ namespace Game1
                     var resPileForDestin = ResPile.CreateIfHaveEnough
                     (
                         source: undecidedResPile,
-                        amount: new SomeResAmounts<IResource>(resAmount: resAmount)
+                        amount: new AllResAmounts(resAmount: resAmount)
                     );
                     Debug.Assert(resPileForDestin is not null);
                     state.waitingResAmountsPackets.TransferAllFrom
@@ -543,7 +543,7 @@ namespace Game1
                     nodeIDToNode(destination).AddResTravelHere(resAmount: resAmount);
                 }
             }
-            Debug.Assert(undecidedResPile.Amount.resAmounts[res] is 0);
+            Debug.Assert(undecidedResPile.Amount[res] is 0);
         }
 
         /// <summary>
@@ -718,7 +718,7 @@ namespace Game1
             );
 
         void INodeAsResDestin.AddResTravelHere(ResAmount<IResource> resAmount)
-            => resTravelHereAmounts += new SomeResAmounts<IResource>(resAmount: resAmount).ToAll();
+            => resTravelHereAmounts += new AllResAmounts(resAmount: resAmount);
 
         void INodeAsLocalEnergyProducerAndConsumer.ConsumeUnusedLocalEnergyFrom(EnergyPile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {

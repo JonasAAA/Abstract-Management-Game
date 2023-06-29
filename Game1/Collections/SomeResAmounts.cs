@@ -139,15 +139,29 @@ namespace Game1.Collections
             return usefulArea;
         }
 
-        public RawMaterialsMix RawMatComposition()
+        public SomeResAmounts<RawMaterial> RawMatComposition()
         {
-            var rawMatComp = RawMaterialsMix.empty;
+            var rawMatComp = SomeResAmounts<RawMaterial>.empty;
             for (int ind = 0; ind < Count; ind++)
                 rawMatComp += resList[ind].RawMatComposition * amounts[ind];
             return rawMatComp;
         }
 
-        public SomeResAmounts<IResource> Generalize()
+        public SomeResAmounts<TFilterRes> Filter<TFilterRes>()
+            where TFilterRes : class, IResource
+        {
+            List<TFilterRes> newResList = new(Count);
+            List<ulong> newAmounts = new(Count);
+            for (int ind = 0; ind < Count; ind++)
+                if (resList[ind] is TFilterRes filterRes)
+                {
+                    newResList.Add(filterRes);
+                    newAmounts.Add(amounts[ind]);
+                }
+            return new(resList: newResList, amounts: amounts);
+        }
+
+        public AllResAmounts ToAll()
         {
             List<IResource> newResList = new(Count);
             for (int ind = 0; ind < Count; ind++)

@@ -10,10 +10,10 @@ namespace Game1.Resources
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
         public AreaInt UsefulArea { get; }
-        public RawMaterialsMix RawMatComposition { get; }
+        public SomeResAmounts<RawMaterial> RawMatComposition { get; }
         public Temperature MeltingPoint { get; }
 
-        public Material(RawMaterialsMix composition)
+        public Material(SomeResAmounts<RawMaterial> composition)
         {
             Mass = composition.Mass();
             HeatCapacity = composition.HeatCapacity();

@@ -62,7 +62,7 @@ namespace Game1.Industries
             public readonly string name;
             public readonly IIndustryFacingNodeState nodeState;
             public readonly EnergyPriority energyPriority;
-            public readonly SomeResAmounts<IResource> buildingCost;
+            public readonly AllResAmounts buildingCost;
             public readonly AreaDouble buildingComponentsUsefulArea;
 
             private readonly IBuildingConcreteParams buildingConcreteParams;
@@ -251,11 +251,11 @@ namespace Game1.Industries
             CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
         }
 
-        public SomeResAmounts<IResource> TargetStoredResAmounts()
+        public AllResAmounts TargetStoredResAmounts()
             => stateOrReasonForNotStartingConstr.SwitchExpression
             (
                 ok: state => parameters.buildingCost,
-                error: _ => SomeResAmounts<IResource>.empty
+                error: _ => AllResAmounts.empty
             );
 
         public void FrameStartNoProduction(string error)

@@ -4,7 +4,7 @@
 //    [Serializable]
 //    public class BuildingShape
 //    {
-//        public SomeResAmounts<IResource> Cost
+//        public AllResAmounts Cost
 //            => resPile.Amount;
 
 //        public readonly Mass splittingMass;

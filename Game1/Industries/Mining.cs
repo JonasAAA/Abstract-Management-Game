@@ -76,7 +76,7 @@ namespace Game1.Industries
             private readonly GeneralParams generalParams;
             private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialChoices buildingMatChoices;
-            private readonly SomeResAmounts<IResource> startingBuildingCost;
+            private readonly AllResAmounts startingBuildingCost;
 
             public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
@@ -113,7 +113,7 @@ namespace Game1.Industries
             public void RemoveUnneededBuildingComponents(ResPile buildingResPile)
                 => ResAndIndustryHelpers.RemoveUnneededBuildingComponents(nodeState: nodeState, buildingResPile: buildingResPile, buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
 
-            SomeResAmounts<IResource> IBuildingConcreteParams.BuildingCost
+            AllResAmounts IBuildingConcreteParams.BuildingCost
                 => startingBuildingCost;
 
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
@@ -126,7 +126,7 @@ namespace Game1.Industries
         [Serializable]
         private sealed class State
         {
-            public static (Result<State, TextErrors> state, HistoricCorrector<double> minedAreaHistoricCorrector) Create(ConcreteParams parameters, ResPile buildingResPile, HistoricCorrector<double> minedAreaHistoricCorrector, RawMatsMixAllocator minedResAllocator)
+            public static (Result<State, TextErrors> state, HistoricCorrector<double> minedAreaHistoricCorrector) Create(ConcreteParams parameters, ResPile buildingResPile, HistoricCorrector<double> minedAreaHistoricCorrector, ResAllocator minedResAllocator)
             {
                 var minedAreaCorrectorWithTarget = minedAreaHistoricCorrector.WithTarget(target: parameters.AreaToMine().valueInMetSq);
 
@@ -139,10 +139,14 @@ namespace Game1.Industries
                 ).SwitchExpression<(Result<State, TextErrors> state, HistoricCorrector<double> minedAreaHistoricCorrector)>
                 (
                     ok: miningRes =>
-                    (
-                        state: new(ok: new State(parameters: parameters, buildingResPile: buildingResPile, miningRes: miningRes)),
-                        minedAreaHistoricCorrector: minedAreaCorrectorWithTarget.WithValue(value: miningRes.Amount.rawMatsMix.Area().valueInMetSq)
-                    ),
+                    {
+                        AreaInt miningArea = miningRes.Amount.Filter<RawMaterial>().Area();
+                        return
+                        (
+                            state: new(ok: new State(parameters: parameters, buildingResPile: buildingResPile, miningRes: miningRes, miningArea: miningArea)),
+                            minedAreaHistoricCorrector: minedAreaCorrectorWithTarget.WithValue(value: miningArea.valueInMetSq)
+                        );
+                    },
                     error: errors =>
                     (
                         state: new(errors: errors),
@@ -172,13 +176,13 @@ namespace Game1.Industries
             private CurProdStats curMiningStats;
             private Propor donePropor, workingPropor;
 
-            private State(ConcreteParams parameters, ResPile buildingResPile, ResPile miningRes)
+            private State(ConcreteParams parameters, ResPile buildingResPile, ResPile miningRes, AreaInt miningArea)
             {
                 this.parameters = parameters;
                 this.buildingResPile = buildingResPile;
                 this.miningRes = miningRes;
                 miningMass = miningRes.Amount.Mass();
-                miningArea = miningRes.Amount.RawMatComposition().Area();
+                this.miningArea = miningArea;
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: parameters.nodeState.LocationCounters);
                 reqEnergyHistoricRounder = new();
                 donePropor = Propor.empty;
@@ -226,7 +230,8 @@ namespace Game1.Industries
             {
                 parameters.nodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
                 parameters.nodeState.StoredResPile.TransferAllFrom(source: buildingResPile);
-                parameters.nodeState.EnlargeFrom(source: miningRes, amount: miningRes.Amount.RawMatComposition());
+                parameters.nodeState.EnlargeFrom(source: miningRes, amount: miningRes.Amount.Filter<RawMaterial>());
+                Debug.Assert(miningRes.IsEmpty);
             }
         }
 
@@ -250,7 +255,7 @@ namespace Game1.Industries
         private readonly Event<IDeletedListener> deleted;
         private Result<State, TextErrors> stateOrReasonForNotStartingMining;
         private HistoricCorrector<double> minedAreaHistoricCorrector;
-        private readonly RawMatsMixAllocator minedResAllocator;
+        private readonly ResAllocator minedResAllocator;
 
         private Mining(ConcreteParams parameters, ResPile buildingResPile)
         {
@@ -259,7 +264,7 @@ namespace Game1.Industries
             deleted = new();
             stateOrReasonForNotStartingMining = new(errors: new("Not yet initialized"));
             minedAreaHistoricCorrector = new();
-            minedResAllocator = new RawMatsMixAllocator();
+            minedResAllocator = new();
         }
 
         public string GetInfo()
@@ -267,9 +272,9 @@ namespace Game1.Industries
             throw new NotImplementedException();
         }
 
-        public SomeResAmounts<IResource> TargetStoredResAmounts()
-            => SomeResAmounts<IResource>.empty;
-        
+        public AllResAmounts TargetStoredResAmounts()
+            => AllResAmounts.empty;
+
         public void FrameStartNoProduction(string error)
         {
             throw new NotImplementedException();

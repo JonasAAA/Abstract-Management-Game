@@ -2,7 +2,7 @@
 {
     [Serializable]
     public readonly struct ResAmount<TRes>
-        where TRes : class
+        where TRes : class, IResource
     {
         public readonly TRes res;
         public readonly ulong amount;

@@ -1,5 +1,4 @@
-﻿using Game1.Collections;
-using Game1.UI;
+﻿using Game1.UI;
 
 namespace Game1.Industries
 {
@@ -17,7 +16,7 @@ namespace Game1.Industries
 
         public IHUDElement UIElement { get; }
 
-        public SomeResAmounts<IResource> TargetStoredResAmounts();
+        public AllResAmounts TargetStoredResAmounts();
 
         public void FrameStartNoProduction(string error);
 

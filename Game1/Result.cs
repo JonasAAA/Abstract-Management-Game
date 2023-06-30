@@ -5,9 +5,10 @@ namespace Game1
     [Serializable]
     public readonly struct Result<TOk, TErrors>
     {
+        public readonly bool isOk;
         private readonly TOk okValue;
         private readonly TErrors errorValues;
-        private readonly bool isOk, isInitialized;
+        private readonly bool isInitialized;
 
         public Result(TOk ok)
         {

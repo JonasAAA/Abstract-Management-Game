@@ -10,7 +10,7 @@ namespace Game1.Collections
     public readonly struct EfficientReadOnlyDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>
         where TKey : notnull
     {
-        public static EfficientReadOnlyDictionary<TKey, TValue> empty;
+        public static readonly EfficientReadOnlyDictionary<TKey, TValue> empty;
 
         static EfficientReadOnlyDictionary()
             => empty = new(dict: new());

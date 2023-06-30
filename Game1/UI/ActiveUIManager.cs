@@ -40,7 +40,7 @@ namespace Game1.UI
         private readonly List<IUIElement> activeUIElements;
         private readonly HashSet<IHUDElement> HUDElements, worldHUDElements;
         private readonly HashSet<IUIElement> worldUIElements;
-        private AbstractButton mouseLeftButton;
+        private readonly AbstractButton mouseLeftButton;
         private IUIElement? halfClicked, contMouse;
         private readonly TimeSpan minDurationToGetTooltip;
         private TimeSpan hoverDuration;

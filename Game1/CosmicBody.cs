@@ -383,7 +383,7 @@ namespace Game1
 
         public void Update(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks, EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
-            if (state.TooManyResStored)
+            if (!state.TooManyResStored)
                 Industry = Industry?.Update();
 
             // take people whose destination is this planet

@@ -25,6 +25,26 @@ namespace Game1
                 elementSelector: matChoice => matChoice.Value
             );
 
+        public static TEnergy CurEnergy<TEnergy>(this HistoricRounder energyHistoricRounder, UDouble watts, Propor proporUtilized, TimeSpan elapsed)
+            where TEnergy : struct, IUnconstrainedEnergy<TEnergy>
+            => IUnconstrainedEnergy<TEnergy>.CreateFromJoules
+            (
+                valueInJ: energyHistoricRounder.Round
+                (
+                    value: (decimal)watts * (decimal)proporUtilized * (decimal)elapsed.TotalSeconds,
+                    curTime: CurWorldManager.CurTime
+                )
+            );
+
+        public static Propor WorkingPropor(Propor proporUtilized, ElectricalEnergy allocatedEnergy, ElectricalEnergy reqEnergy)
+            => proporUtilized * Propor.Create(part: allocatedEnergy.ValueInJ, whole: reqEnergy.ValueInJ)!.Value;
+
+        public static Propor UpdateDonePropor(this Propor donePropor, Propor workingPropor, UDouble producedAreaPerSec, TimeSpan elapsed, AreaDouble areaInProduction)
+        {
+            UDouble areaProduced = workingPropor * (UDouble)elapsed.TotalSeconds * producedAreaPerSec;
+            return Propor.CreateByClamp((UDouble)donePropor + areaProduced / areaInProduction.valueInMetSq);
+        }
+
         public static AllResAmounts CurNeededBuildingComponents(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
             => new
             (

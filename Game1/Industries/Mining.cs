@@ -8,7 +8,6 @@ namespace Game1.Industries
     /// <summary>
     /// Responds properly to planet shrinking, but NOT to planet widening
     /// </summary>
-    [Serializable]
     public static class Mining
     {
         [Serializable]
@@ -218,20 +217,13 @@ namespace Game1.Industries
             public void FrameStart()
             {
                 curMiningStats = buildingParams.CurMiningStats(miningMass: miningMass);
-                ReqEnergy = ElectricalEnergy.CreateFromJoules
-                (
-                    valueInJ: reqEnergyHistoricRounder.Round
-                    (
-                        value: (decimal)curMiningStats.ReqWatts * (decimal)CurWorldManager.Elapsed.TotalSeconds,
-                        curTime: CurWorldManager.CurTime
-                    )
-                );
+                ReqEnergy = reqEnergyHistoricRounder.CurEnergy<ElectricalEnergy>(watts: curMiningStats.ReqWatts, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed);
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
             {
                 electricalEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
-                workingPropor = Propor.Create(part: electricalEnergy.ValueInJ, whole: ReqEnergy.ValueInJ)!.Value;
+                workingPropor = ResAndIndustryHelpers.WorkingPropor(proporUtilized: Propor.full, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
             }
 
             /// <summary>
@@ -242,10 +234,16 @@ namespace Game1.Industries
             {
                 buildingParams.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
 
-                AreaDouble areaMined = AreaDouble.CreateFromMetSq(valueInMetSq: workingPropor * (UDouble)CurWorldManager.Elapsed.TotalSeconds * curMiningStats.ProducedAreaPerSec);
                 // If mine less than could, probably shouldn't increase mining speed because of that
                 // On the other hand that would be a very niche circumstance anyway - basically only when mining last resources of the planet
-                donePropor = Propor.CreateByClamp(value: (UDouble)donePropor + areaMined.valueInMetSq / miningArea.valueInMetSq);
+                donePropor = donePropor.UpdateDonePropor
+                (
+                    workingPropor: workingPropor,
+                    producedAreaPerSec: curMiningStats.ProducedAreaPerSec,
+                    elapsed: CurWorldManager.Elapsed,
+                    areaInProduction: miningArea.ToDouble()
+                );
+
                 if (donePropor.IsFull)
                 {
                     buildingParams.NodeState.StoredResPile.TransferAllFrom(source: miningRes);

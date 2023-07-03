@@ -243,20 +243,13 @@ namespace Game1.Industries
             {
                 curProdStats = buildingParams.CurProdStats(productionMassIfFull: prodMassIfFull);
 #warning if production will be done this frame, could request just enough energy to complete it rather than the usual amount
-                ReqEnergy = ElectricalEnergy.CreateFromJoules
-                (
-                    valueInJ: reqEnergyHistoricRounder.Round
-                    (
-                        value: (decimal)curProdStats.ReqWatts * (decimal)proporUtilized * (decimal)CurWorldManager.Elapsed.TotalSeconds,
-                        curTime: CurWorldManager.CurTime
-                    )
-                );
+                ReqEnergy = reqEnergyHistoricRounder.CurEnergy<ElectricalEnergy>(watts: curProdStats.ReqWatts, proporUtilized: proporUtilized, elapsed: CurWorldManager.Elapsed);
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
             {
                 electricalEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
-                workingPropor = proporUtilized * Propor.Create(part: electricalEnergy.ValueInJ, whole: ReqEnergy.ValueInJ)!.Value;
+                workingPropor = ResAndIndustryHelpers.WorkingPropor(proporUtilized: proporUtilized, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
             }
 
             /// <summary>
@@ -266,9 +259,14 @@ namespace Game1.Industries
             public IIndustry? Update()
             {
                 buildingParams.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
+                donePropor = donePropor.UpdateDonePropor
+                (
+                    workingPropor: workingPropor,
+                    producedAreaPerSec: curProdStats.ProducedAreaPerSec,
+                    elapsed: CurWorldManager.Elapsed,
+                    areaInProduction: areaInProduction
+                );
 
-                AreaDouble areaProduced = AreaDouble.CreateFromMetSq(valueInMetSq: workingPropor * (UDouble)CurWorldManager.Elapsed.TotalSeconds * curProdStats.ProducedAreaPerSec);
-                donePropor = Propor.CreateByClamp((UDouble)donePropor + areaProduced.valueInMetSq / areaInProduction.valueInMetSq);
                 if (donePropor.IsFull)
                 {
                     buildingParams.NodeState.StoredResPile.TransformFrom(source: resInUse, recipe: recipe);

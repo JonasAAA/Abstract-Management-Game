@@ -1,5 +1,4 @@
 ﻿using Game1.Collections;
-using Game1.Delegates;
 using Game1.UI;
 using static Game1.WorldManager;
 
@@ -149,20 +148,13 @@ namespace Game1.Industries
             public void FrameStart()
             {
                 curConstrStats = parameters.CurConstrStats();
-                ReqEnergy = ElectricalEnergy.CreateFromJoules
-                (
-                    valueInJ: reqEnergyHistoricRounder.Round
-                    (
-                        value: (decimal)curConstrStats.ReqWatts * (decimal)CurWorldManager.Elapsed.TotalSeconds,
-                        curTime: CurWorldManager.CurTime
-                    )
-                );
+                ReqEnergy = reqEnergyHistoricRounder.CurEnergy<ElectricalEnergy>(watts: curConstrStats.ReqWatts, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed);
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
             {
                 electricalEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
-                workingPropor = Propor.Create(part: electricalEnergy.ValueInJ, whole: ReqEnergy.ValueInJ)!.Value;
+                workingPropor = ResAndIndustryHelpers.WorkingPropor(proporUtilized: Propor.full, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
             }
 
             /// <summary>
@@ -171,8 +163,14 @@ namespace Game1.Industries
             public IIndustry? Update()
             {
                 parameters.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
-                AreaDouble areaConstructed = AreaDouble.CreateFromMetSq(valueInMetSq: workingPropor * (UDouble)CurWorldManager.Elapsed.TotalSeconds * curConstrStats.ProducedAreaPerSec);
-                donePropor = Propor.CreateByClamp(value: (UDouble)donePropor + areaConstructed.valueInMetSq / parameters.buildingComponentsUsefulArea.valueInMetSq);
+
+                donePropor = donePropor.UpdateDonePropor
+                (
+                    workingPropor: workingPropor,
+                    producedAreaPerSec: curConstrStats.ProducedAreaPerSec,
+                    elapsed: CurWorldManager.Elapsed,
+                    areaInProduction: parameters.buildingComponentsUsefulArea
+                );
 
                 if (donePropor.IsFull)
                 {

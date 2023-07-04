@@ -7,6 +7,8 @@
         /// </summary>
         public AllResAmounts BuildingCost { get; }
 
+        public Material SurfaceMaterial { get; }
+
         public IIndustry CreateIndustry(ResPile buildingResPile);
     }
 }

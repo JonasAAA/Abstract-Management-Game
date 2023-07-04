@@ -31,7 +31,7 @@ namespace Game1.Industries
                     (
                         nodeState: nodeState,
                         generalParams: this,
-                        buildingConcreteParams: buildingConcreteParams
+                        concreteBuildingParams: buildingConcreteParams
                     )
                 );
         }
@@ -39,41 +39,38 @@ namespace Game1.Industries
         [Serializable]
         public readonly struct ConcreteParams : Industry.IConcreteBuildingParams<UnitType>
         {
-            public readonly string Name { get; }
-            public readonly IIndustryFacingNodeState NodeState { get; }
-            public readonly EnergyPriority EnergyPriority { get; }
+            public string Name { get; }
+            public IIndustryFacingNodeState NodeState { get; }
+            public EnergyPriority EnergyPriority { get; }
             public readonly AllResAmounts buildingCost;
             public readonly AreaDouble buildingComponentsUsefulArea;
 
-            private readonly IConcreteBuildingConstructionParams buildingConcreteParams;
+            private readonly IConcreteBuildingConstructionParams concreteBuildingParams;
             /// <summary>
             /// Keys contain ALL material purposes, not just used ones
             /// </summary>
             private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
 
-            public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, IConcreteBuildingConstructionParams buildingConcreteParams)
+            public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, IConcreteBuildingConstructionParams concreteBuildingParams)
             {
                 Name = generalParams.name;
                 this.NodeState = nodeState;
                 EnergyPriority = generalParams.energyPriority;
-                buildingCost = buildingConcreteParams.BuildingCost;
+                buildingCost = concreteBuildingParams.BuildingCost;
                 buildingComponentsUsefulArea = ResAndIndustryAlgos.BuildingComponentUsefulArea
                 (
-                    buildingArea: buildingConcreteParams.IncompleteBuildingImage(donePropor: Propor.full).Area
+                    buildingArea: concreteBuildingParams.IncompleteBuildingImage(donePropor: Propor.full).Area
                 );
 
-                this.buildingConcreteParams = buildingConcreteParams;
+                this.concreteBuildingParams = concreteBuildingParams;
                 buildingMaterialPropors = generalParams.buildingGeneralParams.BuildingComponentMaterialPropors;
             }
 
             public IBuildingImage IncompleteBuildingImage(Propor donePropor)
-                => buildingConcreteParams.IncompleteBuildingImage(donePropor: donePropor);
-
-            //public Construction CreateIndustry()
-            //    => new(parameters: this);
+                => concreteBuildingParams.IncompleteBuildingImage(donePropor: donePropor);
 
             public IIndustry CreateChildIndustry(ResPile buildingResPile)
-                => buildingConcreteParams.CreateIndustry(buildingResPile: buildingResPile);
+                => concreteBuildingParams.CreateIndustry(buildingResPile: buildingResPile);
 
             public CurProdStats CurConstrStats()
                 => ResAndIndustryAlgos.CurConstrStats
@@ -89,14 +86,7 @@ namespace Game1.Industries
             Material? Industry.IConcreteBuildingParams<UnitType>.SurfaceMaterial(bool productionInProgress)
                 => productionInProgress switch
                 {
-                    // NEW: May want reflexivity and the other number be some combination of planet reflexivity, final building reflexivity, and building
-                    // raw material internals reflexivity. E.g. first third is mix of planet and building internals, middle third is just building internals,
-                    // and the last third is mix of building internals and final building
-                    //
-                    // would want to return the mix of materials that the building consists of.
-                    // COULD also always return null or the surface material of the finished building, but that doesn't make much sense
-                    // though is simple to understand and to implement
-                    true => throw new NotImplementedException(),
+                    true => concreteBuildingParams.SurfaceMaterial,
                     false => null
                 };
 

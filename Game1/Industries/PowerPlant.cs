@@ -58,8 +58,9 @@ namespace Game1.Industries
         public readonly struct ConcreteBuildingParams : Industry.IConcreteBuildingParams<UnitType>, IConcreteBuildingConstructionParams
         {
             public string Name { get; }
-            public readonly IIndustryFacingNodeState NodeState { get; }
-            public readonly EnergyPriority EnergyPriority { get; }
+            public IIndustryFacingNodeState NodeState { get; }
+            public EnergyPriority EnergyPriority { get; }
+            public Material SurfaceMaterial { get; }
             public readonly DiskBuildingImage buildingImage;
 
             /// <summary>
@@ -69,7 +70,6 @@ namespace Game1.Industries
             private AreaDouble CurBuildingArea
                 => buildingImage.Area;
 
-            private readonly Material surfaceMaterial;
             private readonly GeneralBuildingParams generalParams;
             private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialChoices buildingMatChoices;
@@ -82,7 +82,7 @@ namespace Game1.Industries
                 Name = generalParams.Name;
                 this.NodeState = nodeState;
                 this.buildingImage = buildingImage;
-                this.surfaceMaterial = surfaceMaterial;
+                this.SurfaceMaterial = surfaceMaterial;
                 EnergyPriority = generalParams.energyPriority;
 
                 this.generalParams = generalParams;
@@ -119,7 +119,7 @@ namespace Game1.Industries
                 => buildingImage;
 
             Material? Industry.IConcreteBuildingParams<UnitType>.SurfaceMaterial(bool productionInProgress)
-                => surfaceMaterial;
+                => SurfaceMaterial;
 
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.TargetStoredResAmounts(UnitType productionParams)
                 => AllResAmounts.empty;

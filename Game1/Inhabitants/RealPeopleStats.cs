@@ -57,7 +57,7 @@ namespace Game1.Inhabitants
         /// <summary>
         /// How much of REQUESTED energy is given. So if request 0, get 0, the proportion is full
         /// </summary>
-        public readonly Propor AllocEnergyPropor { get; init; }
+        public Propor AllocEnergyPropor { get; init; }
 
         public readonly Mass totalMass;
         public readonly NumPeople totalNumPeople;

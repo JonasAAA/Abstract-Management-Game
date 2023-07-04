@@ -23,7 +23,7 @@ namespace Game1.Collections
             // as amounts cannot contain value 0, the only way to be empty is to have no elements
             => Count is 0;
 
-        private int Count
+        public int Count
             => resList.Count;
 
         static ResAmounts<TRes> IAdditiveIdentity<ResAmounts<TRes>, ResAmounts<TRes>>.AdditiveIdentity

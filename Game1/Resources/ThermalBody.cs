@@ -83,12 +83,17 @@ namespace Game1.Resources
 
         /// <summary>
         /// Source must be from this thermal body
+        /// If this reaction loses energy, it is assumed that thermal body contains enough heat to cover the difference
         /// </summary>
-        public void TransformResToHeatEnergy(EnergyPile<AllResAmounts> source, RawMatAmounts rawMatAmounts)
+        public void PerformFusion(EnergyPile<AllResAmounts> source, RawMatAmounts results)
         {
-            var amount = rawMatAmounts.ToAll();
-            source.TransformTo(destin: heatEnergyPile, amount: amount);
-            resAmounts -= amount;
+            var initialResAmounts = source.Amount;
+            source.TransformAllTo(destin: heatEnergyPile);
+            resAmounts -= initialResAmounts;
+
+            var finalResAmounts = results.ToAll();
+            source.TransformFrom(source: heatEnergyPile, amount: finalResAmounts);
+            resAmounts += finalResAmounts;
         }
     }
 }

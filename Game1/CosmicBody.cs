@@ -134,10 +134,11 @@ namespace Game1
         private readonly new LightBlockingDisk shape;
         private ElectricalEnergy locallyProducedEnergy, usedLocalEnergy;
         private readonly SimpleHistoricProporSplitter<IRadiantEnergyConsumer> radiantEnergySplitter;
-        private readonly HistoricRounder energyToDissipateRounder, heatEnergyToDissipateRounder, massFusionRounder, reflectedRadiantEnergyRounder, capturedForUseRadiantEnergyRounder;
+        private readonly Dictionary<RawMaterial, HistoricRounder> reactionNumberRounders;
+        private readonly HistoricRounder energyToDissipateRounder, heatEnergyToDissipateRounder, reflectedRadiantEnergyRounder, capturedForUseRadiantEnergyRounder;
         private readonly EnergyPile<RadiantEnergy> radiantEnergyToDissipatePile;
         private RadiantEnergy radiantEnergyToDissipate;
-        private RawMatAmounts matterConvertedToEnergy;
+        private Mass massConvertedToEnergy;
 
         private readonly TextBox textBox;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
@@ -170,17 +171,17 @@ namespace Game1
             undecidedResPile = ResPile.CreateEmpty(thermalBody: state.ThermalBody);
             resTravelHereAmounts = AllResAmounts.empty;
             usedLocalEnergy = ElectricalEnergy.zero;
+            reactionNumberRounders = new();
             radiantEnergySplitter = new();
             energyToDissipateRounder = new();
             heatEnergyToDissipateRounder = new();
-            massFusionRounder = new();
             reflectedRadiantEnergyRounder = new();
             capturedForUseRadiantEnergyRounder = new();
             radiantEnergyToDissipatePile = EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: state.LocationCounters);
             radiantEnergyToDissipate = RadiantEnergy.zero;
 #warning have a config parameter for that
             state.Temperature = Temperature.CreateFromK(valueInK: 100);
-            matterConvertedToEnergy = RawMatAmounts.empty;
+            massConvertedToEnergy = Mass.zero;
 
             textBox = new(textColor: colorConfig.almostWhiteColor);
             textBox.Shape.MinWidth = 100;
@@ -399,21 +400,24 @@ namespace Game1
 
             state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: state.RadiantEnergyPile);
 
-            matterConvertedToEnergy = Algorithms.MatterToConvertToEnergy
+            RawMatAmounts cosmicBodyNewComposition = Algorithms.CosmicBodyNewComposition
             (
                 composition: state.Composition,
                 temperature: state.Temperature,
-                surfaceGravity: state.SurfaceGravity,
+                gravity: state.SurfaceGravity,
                 duration: CurWorldManager.Elapsed,
-                massInKgRoundFunc: mass => massFusionRounder.Round(value: mass, curTime: CurWorldManager.CurTime),
-                reactionStrengthCoeff: CurWorldConfig.reactionStrengthCoeff,
-                nonConvertedMassForUnitReactionStrengthUnitTime: CurWorldConfig.nonConvertedMassForUnitReactionStrengthUnitTime
+                reactionNumberRounder: (RawMaterial rawMaterial, decimal reactionNum) =>
+                {
+                    if (!reactionNumberRounders.ContainsKey(rawMaterial))
+                        reactionNumberRounders[rawMaterial] = new();
+                    return reactionNumberRounders[rawMaterial].Round(value: reactionNum, curTime: CurWorldManager.CurTime);
+                },
+                nonReactingProporForUnitReactionStrengthUnitTime: CurWorldConfig.nonReactingProporForUnitReactionStrengthUnitTime
             );
 
-            state.consistsOfResPile.TransformResToHeatEnergy
-            (
-                rawMatAmounts: matterConvertedToEnergy
-            );
+            massConvertedToEnergy = state.consistsOfResPile.Amount.Mass() - cosmicBodyNewComposition.Mass();
+
+            state.consistsOfResPile.PerformFusion(finalResAmounts: cosmicBodyNewComposition);
 
             state.RecalculateValues();
 
@@ -604,7 +608,7 @@ namespace Game1
             //    peopleCase: () => ""
             //);
 
-            textBox.Text += $"T = {state.Temperature:0.} K\nM to E = {matterConvertedToEnergy}\n";
+            textBox.Text += $"T = {state.Temperature:0.} K\nM to E = {massConvertedToEnergy.valueInKg}\n";
             textBox.Text = textBox.Text.Trim();
 
             infoTextBox.Text += textBox.Text;

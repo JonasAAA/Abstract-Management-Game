@@ -158,7 +158,10 @@ namespace Game1.Resources
             resPileInternal.TransformFrom(source: source.resPileInternal, recipe: recipe);
         }
 
-        public void TransformResToHeatEnergy(RawMatAmounts rawMatAmounts)
-            => thermalBody.TransformResToHeatEnergy(source: resPileInternal, rawMatAmounts: rawMatAmounts);
+        public void PerformFusion(RawMatAmounts finalResAmounts)
+        {
+            thermalBody.PerformFusion(source: resPileInternal, results: finalResAmounts);
+            Debug.Assert(Amount == finalResAmounts.ToAll());
+        }
     }
 }

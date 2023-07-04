@@ -102,7 +102,7 @@ namespace Game1.Industries
         {
             paused = true;
             stateOrReasonForNotStartingProduction.PerformAction(action: state => state.FrameStartNoProduction());
-            throw new NotImplementedException();
+#warning Complete this
         }
 
         public void FrameStart()

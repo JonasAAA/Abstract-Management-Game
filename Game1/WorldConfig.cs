@@ -101,7 +101,7 @@
             heatEnergyDropoffExponent = 2,
             reactionStrengthCoeff = (UDouble)0.000000000001;
         public readonly Propor
-            nonConvertedMassForUnitReactionStrengthUnitTime = (Propor)0.99;
+            nonReactingProporForUnitReactionStrengthUnitTime = (Propor)0.99;
         public readonly AreaInt minUsefulBuildingComponentAreaToRemove = AreaInt.CreateFromMetSq(valueInMetSq: 30);
 
         public WorldConfig()

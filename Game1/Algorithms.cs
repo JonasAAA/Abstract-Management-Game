@@ -207,17 +207,50 @@ namespace Game1
             }
         }
 
-        public static RawMatAmounts MatterToConvertToEnergy(RawMatAmounts composition, Temperature temperature, UDouble surfaceGravity, TimeSpan duration,
-            Func<decimal, ulong> massInKgRoundFunc, UDouble reactionStrengthCoeff, Propor nonConvertedMassForUnitReactionStrengthUnitTime)
+        // Inspired by https://en.wikipedia.org/wiki/Lawson_criterion#Energy_balance
+        public static RawMatAmounts CosmicBodyNewComposition(RawMatAmounts composition, UDouble gravity, Temperature temperature, TimeSpan duration,
+            Func<RawMaterial, decimal, ulong> reactionNumberRounder, Propor nonReactingProporForUnitReactionStrengthUnitTime)
         {
-            throw new NotImplementedException();
-//            "THIS method could convert raw materials to other raw materials and emit energy in the process
-//#warning test this
-//            double density = (double)rawMat.Area.valueInMetSq / rawMat.Mass.valueInKg,
-//                reactionStrength = reactionStrengthCoeff * density * surfaceGravity * temperature.valueInK;
-//            var nonConvertedMassPropor = (decimal)MyMathHelper.Pow(@base: (UDouble)nonConvertedMassForUnitReactionStrengthUnitTime, exponent: reactionStrength * duration.TotalSeconds);
-//            ulong matterToConvert = resAmount - massInKgRoundFunc(nonConvertedMassPropor * resAmount);
-//            return matterToConvert;
+            AreaDouble compositionArea = composition.Area().ToDouble();
+            Dictionary<RawMaterial, ulong> cosmicBodyNextComposition = new(2 * composition.Count);
+            foreach (var (rawMaterial, amount) in composition)
+            {
+                (ulong nonReactingAmount, ulong fusionProductAmount) = NuclearFusion
+                (
+                    amount: amount,
+                    compositionArea: compositionArea,
+                    gravity: gravity,
+                    temperature: temperature,
+                    duration: duration,
+                    reactionNumberRounder: reactionNum => reactionNumberRounder(rawMaterial, reactionNum),
+                    nonReactingProporForUnitReactionStrengthUnitTime: nonReactingProporForUnitReactionStrengthUnitTime,
+                    fusionReactionStrengthCoeff: rawMaterial.FusionReactionStrengthCoeff
+                );
+                cosmicBodyNextComposition[rawMaterial] = cosmicBodyNextComposition.GetValueOrDefault(key: rawMaterial) + nonReactingAmount;
+                if (fusionProductAmount > 0)
+                {
+                    RawMaterial fusionResult = rawMaterial.GetFusionResult();
+                    cosmicBodyNextComposition[fusionResult] = cosmicBodyNextComposition.GetValueOrDefault(key: fusionResult) + fusionProductAmount;
+                }
+            }
+            return new(cosmicBodyNextComposition);
+        }
+
+        public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusion(ulong amount, AreaDouble compositionArea, UDouble gravity, Temperature temperature,
+            TimeSpan duration, Func<decimal, ulong> reactionNumberRounder, Propor nonReactingProporForUnitReactionStrengthUnitTime, UDouble fusionReactionStrengthCoeff)
+        {
+            // Number density is from https://en.wikipedia.org/wiki/Number_density
+            // Volume number density is the number of specified objects per unit volume
+            double numberDensity = amount / compositionArea.valueInMetSq,
+                reactionStrength = fusionReactionStrengthCoeff * numberDensity * numberDensity * gravity * temperature.valueInK;
+            decimal nonReactingPropor = (decimal)MyMathHelper.Pow(@base: (UDouble)nonReactingProporForUnitReactionStrengthUnitTime, exponent: reactionStrength * duration.TotalSeconds);
+            ulong maxReactions = amount / 2,
+                numberOfReactions = maxReactions - reactionNumberRounder(nonReactingPropor * maxReactions);
+            return
+            (
+                nonReactingAmount: amount - 2 * numberOfReactions,
+                fusionProductAmount: numberOfReactions
+            );
         }
 
         /// <summary>

@@ -8,7 +8,7 @@ namespace Game1.Industries
     public static class Manufacturing
     {
         [Serializable]
-        public sealed class GeneralParams : IBuildingGeneralParams
+        public sealed class GeneralParams : IGeneralBuildingConstructionParams
         {
             public string Name { get; }
             public EfficientReadOnlyDictionary<IMaterialPurpose, Propor> BuildingComponentMaterialPropors { get; }
@@ -36,12 +36,12 @@ namespace Game1.Industries
                 this.buildingComponentPropors = buildingComponentPropors;
             }
 
-            public Result<IBuildingConcreteParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
+            public Result<IConcreteBuildingConstructionParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
                 => ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
                 (
                     buildingComponentPropors: buildingComponentPropors,
                     buildingMatChoices: neededBuildingMatChoices
-                ).Select<IBuildingConcreteParams>
+                ).Select<IConcreteBuildingConstructionParams>
                 (
                     buildingComponentsToAmountPUBA => new ConcreteBuildingParams
                     (
@@ -56,7 +56,7 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        private readonly struct ConcreteBuildingParams : Industry.IConcreteBuildingParams<ConcreteProductionParams>, IBuildingConcreteParams
+        private readonly struct ConcreteBuildingParams : Industry.IConcreteBuildingParams<ConcreteProductionParams>, IConcreteBuildingConstructionParams
         {
             public string Name { get; }
             public IIndustryFacingNodeState NodeState { get; }
@@ -115,13 +115,13 @@ namespace Game1.Industries
             public void RemoveUnneededBuildingComponents(ResPile buildingResPile)
                 => ResAndIndustryHelpers.RemoveUnneededBuildingComponents(nodeState: NodeState, buildingResPile: buildingResPile, buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
 
-            AllResAmounts IBuildingConcreteParams.BuildingCost
+            AllResAmounts IConcreteBuildingConstructionParams.BuildingCost
                 => startingBuildingCost;
 
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
-            IIndustry IBuildingConcreteParams.CreateIndustry(ResPile buildingResPile)
+            IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
                 => new Industry<ConcreteProductionParams, ConcreteBuildingParams, ResPile, ManufacturingCycleState>(productionParams: new(productParams: productParams), buildingParams: this, persistentState: buildingResPile);
 
             IBuildingImage Industry.IConcreteBuildingParams<ConcreteProductionParams>.IdleBuildingImage
@@ -238,6 +238,9 @@ namespace Game1.Industries
 
             public IBuildingImage BusyBuildingImage()
                 => buildingParams.buildingImage;
+
+            public void FrameStartNoProduction()
+            { }
 
             public void FrameStart()
             {

@@ -32,6 +32,10 @@ namespace Game1.Industries
             public bool ShouldRestart { get; }
             public ElectricalEnergy ReqEnergy { get; }
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy);
+            /// <summary>
+            /// No need to adjust ReqEnergy here, as it's done in Industry implementation
+            /// </summary>
+            public void FrameStartNoProduction();
             public void FrameStart();
             /// <summary>
             /// Returns child industry if finished construction, null otherwise
@@ -73,6 +77,7 @@ namespace Game1.Industries
         private readonly TPersistentState persistentState;
         private Result<TProductionCycleState, TextErrors> stateOrReasonForNotStartingProduction;
         private readonly Event<IDeletedListener> deleted;
+        private bool paused;
 
         public Industry(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState)
         {
@@ -81,6 +86,7 @@ namespace Game1.Industries
             this.persistentState = persistentState;
             stateOrReasonForNotStartingProduction = new(errors: new("Not yet initialized"));
             deleted = new();
+            paused = false;
 
             CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
         }
@@ -94,11 +100,14 @@ namespace Game1.Industries
 
         public void FrameStartNoProduction(string error)
         {
+            paused = true;
+            stateOrReasonForNotStartingProduction.PerformAction(action: state => state.FrameStartNoProduction());
             throw new NotImplementedException();
         }
 
         public void FrameStart()
         {
+            paused = false;
             stateOrReasonForNotStartingProduction = stateOrReasonForNotStartingProduction.SwitchExpression
             (
                 ok: state => state.ShouldRestart ? TProductionCycleState.Create(productionParams: productionParams, buildingParams: buildingParams, persistentState: persistentState) : new(ok: state),
@@ -145,17 +154,25 @@ namespace Game1.Industries
             => buildingParams.NodeState.NodeID;
 
         ElectricalEnergy IEnergyConsumer.ReqEnergy()
-            => stateOrReasonForNotStartingProduction.SwitchExpression
-            (
-                ok: state => state.ReqEnergy,
-                error: _ => ElectricalEnergy.zero
-            );
+            => paused switch
+            {
+                true => ElectricalEnergy.zero,
+                false => stateOrReasonForNotStartingProduction.SwitchExpression
+                (
+                    ok: state => state.ReqEnergy,
+                    error: _ => ElectricalEnergy.zero
+                )
+            };
 
         void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
-            => stateOrReasonForNotStartingProduction.SwitchStatement
+        {
+            if (paused)
+                return;
+            stateOrReasonForNotStartingProduction.SwitchStatement
             (
                 ok: state => state.ConsumeElectricalEnergy(source: source, electricalEnergy: electricalEnergy),
                 error: _ => Debug.Assert(electricalEnergy.IsZero)
             );
+        }
     }
 }

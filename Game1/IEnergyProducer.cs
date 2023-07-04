@@ -3,7 +3,7 @@
     /// <summary>
     /// MUST call EnergyManager.AddEnergyProducer() for each instance
     /// </summary>
-    public interface IEnergyProducer : IDeletable
+    public interface IEnergyProducer
     {
         public void ProduceEnergy(EnergyPile<ElectricalEnergy> destin);
     }

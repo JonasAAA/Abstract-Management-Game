@@ -1,127 +1,203 @@
-﻿//using static Game1.WorldManager;
+﻿using Game1.Collections;
+using Game1.Shapes;
+using Game1.UI;
+using static Game1.WorldManager;
 
-//namespace Game1.Industries
-//{
-//    [Serializable]
-//    public sealed class PowerPlant : ProductiveIndustry, IEnergyProducer
-//    {
-//        [Serializable]
-//        public new sealed class Factory : ProductiveIndustry.Factory, IFactoryForIndustryWithBuilding
-//        {
-//            public readonly Propor conversionPropor;
-//            private readonly ResAmounts buildingCostPerUnitSurface;
+namespace Game1.Industries
+{
+    /// <summary>
+    /// Responds properly to planet shrinking, but NOT to planet widening
+    /// </summary>
+    public static class PowerPlant
+    {
+        [Serializable]
+        public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
+        {
+            public string Name { get; }
+            public EfficientReadOnlyDictionary<IMaterialPurpose, Propor> BuildingComponentMaterialPropors { get; }
 
-//            public Factory(string Name, UDouble reqSkillPerUnitSurface, Propor conversionPropor, ResAmounts buildingCostPerUnitSurface)
-//                : base
-//                (
-//                    industryType: IndustryType.PowerPlant,
-//                    energyPriority: EnergyPriority.mostImportant,
-//                    Name: Name,
-//                    Color: Color.Blue,
-//                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
-//                )
-//            {
-//                if (conversionPropor.IsCloseTo(other: Propor.empty))
-//                    throw new ArgumentOutOfRangeException();
-//                this.conversionPropor = conversionPropor;
-//                if (buildingCostPerUnitSurface.IsEmpty())
-//                    throw new ArgumentException();
-//                this.buildingCostPerUnitSurface = buildingCostPerUnitSurface;
-//            }
+            public readonly DiskBuildingImage.Params buildingImageParams;
+            public readonly GeneralProdAndMatAmounts buildingCostPropors;
+            public readonly EnergyPriority energyPriority;
 
-//            public override GeneralParams CreateParams(IIndustryFacingNodeState state)
-//                => new(state: state, factory: this);
+            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
 
-//            ResAmounts IFactoryForIndustryWithBuilding.BuildingCost(IIndustryFacingNodeState state)
-//                => state.SurfaceLength * buildingCostPerUnitSurface;
+            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
+            {
+                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.miningBuildingColor);
+                Name = name;
+                buildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
+                if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
+                    throw new ArgumentException();
+                BuildingComponentMaterialPropors = buildingCostPropors.materialPropors;
 
-//            Industry IFactoryForIndustryWithBuilding.CreateIndustry(IIndustryFacingNodeState state, BuildingShape building)
-//                => new PowerPlant(parameters: CreateParams(state: state), building: building);
-//        }
+                energyPriority = EnergyPriority.mostImportant;
+                this.buildingComponentPropors = buildingComponentPropors;
+            }
 
-//        [Serializable]
-//        public new sealed class GeneralParams : ProductiveIndustry.GeneralParams
-//        {
-//            public readonly Propor conversionPropor;
+            public Result<IConcreteBuildingConstructionParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
+                => ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
+                (
+                    buildingComponentPropors: buildingComponentPropors,
+                    buildingMatChoices: neededBuildingMatChoices
+                ).Select<IConcreteBuildingConstructionParams>
+                (
+                    buildingComponentsToAmountPUBA => new ConcreteBuildingParams
+                    (
+                        nodeState: nodeState,
+                        generalParams: this,
+                        buildingImage: buildingImageParams.CreateImage(nodeShapeParams: nodeState),
+                        buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
+                        buildingMatChoices: neededBuildingMatChoices,
+                        surfaceMaterial: neededBuildingMatChoices[IMaterialPurpose.roofSurface]
+                    )
+                );
+        }
 
-//            // TODO: may improve the tooltip text by showing the actual produced amount
-//            public override string TooltipText
-//                => $"""
-//                {base.TooltipText}
-//                {nameof(conversionPropor)}: {conversionPropor}
-//                """;
+        [Serializable]
+        public readonly struct ConcreteBuildingParams : Industry.IConcreteBuildingParams<UnitType>, IConcreteBuildingConstructionParams
+        {
+            public string Name { get; }
+            public readonly IIndustryFacingNodeState NodeState { get; }
+            public readonly EnergyPriority EnergyPriority { get; }
+            public readonly DiskBuildingImage buildingImage;
 
-//            public GeneralParams(IIndustryFacingNodeState state, Factory factory)
-//                : base(state: state, factory: factory)
-//            {
-//                conversionPropor = factory.conversionPropor;
-//            }
-//        }
+            /// <summary>
+            /// Things depend on this rather than on building components target area as can say that if planet underneath building shrinks,
+            /// building gets not enough space to operate at maximum efficiency
+            /// </summary>
+            private AreaDouble CurBuildingArea
+                => buildingImage.Area;
 
-//        public override bool PeopleWorkOnTop
-//            => false;
+            private readonly Material surfaceMaterial;
+            private readonly GeneralBuildingParams generalParams;
+            private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
+            private readonly MaterialChoices buildingMatChoices;
+            private readonly AllResAmounts startingBuildingCost;
 
-//        protected override UDouble Height
-//            => CurWorldConfig.defaultIndustryHeight;
+            public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
+                EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
+                MaterialChoices buildingMatChoices, Material surfaceMaterial)
+            {
+                Name = generalParams.Name;
+                this.NodeState = nodeState;
+                this.buildingImage = buildingImage;
+                this.surfaceMaterial = surfaceMaterial;
+                EnergyPriority = generalParams.energyPriority;
 
-//        private readonly GeneralParams parameters;
-//        private ElectricalEnergy prodEnergy;
-//        private readonly HistoricRounder producedEnergyRounder;
-//        private readonly CachedValue<Propor> radiantToElectricalEnergyProporCached;
+                this.generalParams = generalParams;
+                this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
+                this.buildingMatChoices = buildingMatChoices;
 
-//        private PowerPlant(GeneralParams parameters, BuildingShape building)
-//            : base(parameters: parameters, building: building)
-//        {
-//            this.parameters = parameters;
-//            prodEnergy = ElectricalEnergy.zero;
-//            producedEnergyRounder = new();
-//            radiantToElectricalEnergyProporCached = new();
+                startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
+            }
 
-//            CurWorldManager.AddEnergyProducer(energyProducer: this);
-//        }
+            public UDouble WattsToProduce(UDouble incidentWatts)
+                => ResAndIndustryAlgos.CurProducedWatts
+                (
+                    buildingCostPropors: generalParams.buildingCostPropors,
+                    buildingMatChoices: buildingMatChoices,
+                    gravity: NodeState.SurfaceGravity,
+                    temperature: NodeState.Temperature,
+                    buildingArea: CurBuildingArea,
+                    incidentWatts: incidentWatts
+                );
 
-//        protected override BoolWithExplanationIfFalse CalculateIsBusy()
-//            => base.CalculateIsBusy() & BoolWithExplanationIfFalse.Create
-//            (
-//                value: parameters.state.RadiantEnergyPile.Amount.ValueInJ * RadiantToElectricalEnergyPropor >= combinedEnergyConsumer.ReqEnergy().ValueInJ + 1,
-//                explanationIfFalse: "Don't get enough starlight to function"
-//            );
+            public void RemoveUnneededBuildingComponents(ResPile buildingResPile)
+                => ResAndIndustryHelpers.RemoveUnneededBuildingComponents(nodeState: NodeState, buildingResPile: buildingResPile, buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
 
-//        private Propor RadiantToElectricalEnergyPropor
-//            => radiantToElectricalEnergyProporCached.Get
-//            (
-//                computeValue: () => parameters.conversionPropor * CurSkillPropor,
-//                curTime: CurWorldManager.CurTime
-//            );
+            AllResAmounts IConcreteBuildingConstructionParams.BuildingCost
+                => startingBuildingCost;
 
-//        public override ResAmounts TargetStoredResAmounts()
-//            => ResAmounts.empty;
+            IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
+                => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
-//        protected override PowerPlant InternalUpdate(Propor workingPropor)
-//        {
-//            if ((bool)IsBusy() && !MyMathHelper.AreClose(workingPropor, CurSkillPropor))
-//                throw new Exception();
-//            return this;
-//        }
+            IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
+                => new Industry<UnitType, ConcreteBuildingParams, ResPile, PowerProductionState>(productionParams: new(), buildingParams: this, persistentState: buildingResPile);
 
-//        protected override string GetBusyInfo()
-//            => $"produce {prodEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W\n";
+            IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
+                => buildingImage;
 
-//        protected override UDouble ReqWatts()
-//            => 0;
+            Material? Industry.IConcreteBuildingParams<UnitType>.SurfaceMaterial(bool productionInProgress)
+                => surfaceMaterial;
 
-//        void IEnergyProducer.ProduceEnergy(EnergyPile<ElectricalEnergy> destin)
-//        {
-//            prodEnergy = (bool)IsBusy() switch
-//            {
-//                true => parameters.state.RadiantEnergyPile.TransformProporTo
-//                (
-//                    destin: destin,
-//                    propor: RadiantToElectricalEnergyPropor,
-//                    amountToTransformRoundFunc: amount => producedEnergyRounder.Round(value: amount, curTime: CurWorldManager.CurTime)
-//                ),
-//                false => ElectricalEnergy.zero
-//            };
-//        }
-//    }
-//}
+            AllResAmounts Industry.IConcreteBuildingParams<UnitType>.TargetStoredResAmounts(UnitType productionParams)
+                => AllResAmounts.empty;
+        }
+
+        [Serializable]
+        private sealed class PowerProductionState : Industry.IProductionCycleState<UnitType, ConcreteBuildingParams, ResPile, PowerProductionState>, IEnergyProducer
+        {
+            public static bool IsRepeatable
+                => false;
+
+            public static Result<PowerProductionState, TextErrors> Create(UnitType productionParams, ConcreteBuildingParams parameters, ResPile buildingResPile)
+                => new(ok: new(buildingParams: parameters, buildingResPile: buildingResPile));
+
+            public ElectricalEnergy ReqEnergy
+                => ElectricalEnergy.zero;
+
+            public bool ShouldRestart
+                => false;
+
+            private readonly ConcreteBuildingParams buildingParams;
+            private readonly ResPile buildingResPile;
+            private readonly HistoricRounder prodEnergyHistoricRounder;
+
+            private RadiantEnergy energyToTransform;
+
+            private PowerProductionState(ConcreteBuildingParams buildingParams, ResPile buildingResPile)
+            {
+                this.buildingParams = buildingParams;
+                this.buildingResPile = buildingResPile;
+                prodEnergyHistoricRounder = new();
+                energyToTransform = RadiantEnergy.zero;
+
+                CurWorldManager.AddEnergyProducer(energyProducer: this);
+            }
+
+            public IBuildingImage BusyBuildingImage()
+                => buildingParams.buildingImage;
+
+            public void FrameStartNoProduction()
+                => energyToTransform = RadiantEnergy.zero;
+
+            public void FrameStart()
+            {
+                UDouble wattsToProduce = buildingParams.WattsToProduce
+                (
+                    incidentWatts: buildingParams.NodeState.RadiantEnergyPile.Amount.ValueInJ / (UDouble)CurWorldManager.Elapsed.TotalSeconds
+                );
+                energyToTransform = MyMathHelper.Min(buildingParams.NodeState.RadiantEnergyPile.Amount, prodEnergyHistoricRounder.CurEnergy<RadiantEnergy>(watts: wattsToProduce, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed));
+            }
+
+            public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
+            {
+                Debug.Assert(electricalEnergy.IsZero);
+            }
+
+            /// <summary>
+            /// This will not remove no longer needed building components until mining cycle is done since fix current mining volume
+            /// and some other mining stats at the start of the mining cycle. 
+            /// </summary>
+            public IIndustry? Update()
+            {
+                buildingParams.RemoveUnneededBuildingComponents(buildingResPile: buildingResPile);
+                return null;
+            }
+
+            public void Delete()
+            {
+                buildingParams.NodeState.StoredResPile.TransferAllFrom(source: buildingResPile);
+                CurWorldManager.RemoveEnergyProducer(energyProducer: this);
+            }
+
+            void IEnergyProducer.ProduceEnergy(EnergyPile<ElectricalEnergy> destin)
+                => buildingParams.NodeState.RadiantEnergyPile.TransformTo
+                (
+                    destin: destin,
+                    amount: energyToTransform
+                );
+        }
+    }
+}

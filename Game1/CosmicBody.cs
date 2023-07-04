@@ -328,7 +328,7 @@ namespace Game1
 
         public ulong TargetStoredResAmount(IResource res)
             => targetStoredResAmounts[res];
-        
+
         public bool CanHaveDestin(NodeID destinationId, IResource res)
         {
             if (!Active || CurWorldManager.ArrowDrawingModeRes is null)
@@ -383,6 +383,7 @@ namespace Game1
 
         public void Update(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks, EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
+#warning if the game is paused, may need to not call Industry.FrameStart() and Industry.Update() as they may fail due to division by 0 since Elapsed is 0
             if (!state.TooManyResStored)
                 Industry = Industry?.Update();
 

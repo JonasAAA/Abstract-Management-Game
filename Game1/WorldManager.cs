@@ -407,6 +407,9 @@ namespace Game1
         public void AddEnergyProducer(IEnergyProducer energyProducer)
             => energyManager.AddEnergyProducer(energyProducer: energyProducer);
 
+        public void RemoveEnergyProducer(IEnergyProducer energyProducer)
+            => energyManager.RemoveEnergyProducer(energyProducer: energyProducer);
+
         public IEnergyDistributor EnergyDistributor
             => energyManager;
 

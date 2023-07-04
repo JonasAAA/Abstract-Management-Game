@@ -124,6 +124,13 @@ namespace Game1
             );
         }
 
+        /// <summary>
+        /// To be called by po
+        /// </summary>
+        public static UDouble CurProducedWatts(GeneralProdAndMatAmounts buildingCostPropors, MaterialChoices buildingMatChoices,
+            UDouble gravity, Temperature temperature, AreaDouble buildingArea, UDouble incidentWatts)
+            => throw new NotImplementedException();
+
         private static UDouble RelevantMassPUBA(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMatPropors, MaterialChoices buildingMatChoices, UDouble productionMassPUBA)
             => throw new NotImplementedException();
 

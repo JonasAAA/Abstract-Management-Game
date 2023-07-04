@@ -2,7 +2,7 @@
 
 namespace Game1.Industries
 {
-    public interface IBuildingGeneralParams
+    public interface IGeneralBuildingConstructionParams
     {
         public string Name { get; }
 
@@ -11,6 +11,6 @@ namespace Game1.Industries
         /// </summary>
         public EfficientReadOnlyDictionary<IMaterialPurpose, Propor> BuildingComponentMaterialPropors { get; }
 
-        public Result<IBuildingConcreteParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices);
+        public Result<IConcreteBuildingConstructionParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices);
     }
 }

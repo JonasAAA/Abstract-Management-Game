@@ -28,7 +28,14 @@ namespace Game1
         {
             energyProducers.Add(energyProducer);
 
-            energyProducer.Deleted.Add(listener: this);
+            (energyProducer as IDeletable)?.Deleted.Add(listener: this);
+        }
+
+        public void RemoveEnergyProducer(IEnergyProducer energyProducer)
+        {
+            if (energyProducer is IDeletable)
+                throw new ArgumentException("Will be removed anyway, no need to do so manually");
+            energyProducers.Remove(energyProducer);
         }
 
         public void AddEnergyConsumer(IEnergyConsumer energyConsumer)

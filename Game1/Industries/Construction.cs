@@ -10,10 +10,10 @@ namespace Game1.Industries
         public sealed class GeneralParams
         {
             public readonly string name;
-            public readonly IBuildingGeneralParams buildingGeneralParams;
+            public readonly IGeneralBuildingConstructionParams buildingGeneralParams;
             public readonly EnergyPriority energyPriority;
 
-            public GeneralParams(IBuildingGeneralParams buildingGeneralParams, EnergyPriority energyPriority)
+            public GeneralParams(IGeneralBuildingConstructionParams buildingGeneralParams, EnergyPriority energyPriority)
             {
                 name = UIAlgorithms.ConstructionName(childIndustryName: buildingGeneralParams.Name);
                 this.buildingGeneralParams = buildingGeneralParams;
@@ -45,13 +45,13 @@ namespace Game1.Industries
             public readonly AllResAmounts buildingCost;
             public readonly AreaDouble buildingComponentsUsefulArea;
 
-            private readonly IBuildingConcreteParams buildingConcreteParams;
+            private readonly IConcreteBuildingConstructionParams buildingConcreteParams;
             /// <summary>
             /// Keys contain ALL material purposes, not just used ones
             /// </summary>
             private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
 
-            public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, IBuildingConcreteParams buildingConcreteParams)
+            public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, IConcreteBuildingConstructionParams buildingConcreteParams)
             {
                 Name = generalParams.name;
                 this.NodeState = nodeState;
@@ -144,6 +144,9 @@ namespace Game1.Industries
 
             public IBuildingImage BusyBuildingImage()
                 => parameters.IncompleteBuildingImage(donePropor: donePropor);
+
+            public void FrameStartNoProduction()
+            { }
 
             public void FrameStart()
             {

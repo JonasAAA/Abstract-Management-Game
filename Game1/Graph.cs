@@ -136,7 +136,73 @@ namespace Game1
 
         public static Graph CreateFromInfo(FullValidMapInfo mapInfo, WorldCamera mapInfoCamera)
         {
-            throw new NotImplementedException();
+            // DIFFICULT to have magicUnlimitedResAmounts as can always create new materials and thus new products
+            // Maybe should just create infinite amount of raw materials and then convert them to more complicated things
+            // However, even the max amount of raw materials is not clear
+            RawMatAmounts startingRawMatTargetRatios = new
+            (
+                resAmounts: CurWorldConfig.startingRawMatTargetRatios.Select
+                (
+                    rawMatAmount => new ResAmount<RawMaterial>
+                    (
+                        res: RawMaterial.Get(ind: rawMatAmount.rawMatInd),
+                        amount: rawMatAmount.amount
+                    )
+                )
+            );
+            ResPile magicUnlimitedStartingRawMaterialPile = ResPile.CreateByMagic
+            (
+                amount: new
+                (
+                    resAmounts: startingRawMatTargetRatios.Select
+                    (
+                        rawMatAmount => new ResAmount<IResource>
+                        (
+                            res: rawMatAmount.res,
+                            amount: CurWorldConfig.magicUnlimitedStartingMaterialCount
+                        )
+                    )
+                )
+            );
+            Dictionary<string, CosmicBody> cosmicBodiesByName = mapInfo.CosmicBodies.ToDictionary
+            (
+                keySelector: cosmicBodyInfo => cosmicBodyInfo.Name,
+                elementSelector: cosmicBodyInfo => new CosmicBody
+                (
+                    state: new
+                    (
+                        mapInfoCamera: mapInfoCamera,
+                        cosmicBodyInfo: cosmicBodyInfo,
+                        rawMatRatios: ResAndIndustryAlgos.CosmicBodyRandomRawMatRatios(startingRawMatTargetRatios: startingRawMatTargetRatios),
+                        resSource: magicUnlimitedStartingRawMaterialPile
+                    ),
+                    activeColor: colorConfig.selectedWorldUIElementColor
+                //startingConditions: cosmicBodyInfo.Name == mapInfo.StartingInfo.HouseCosmicBody ?
+                //(
+                //    industryFactory: CurIndustryConfig.basicHouseFactory,
+                //    personCount: CurWorldConfig.startingPersonNumInHouseCosmicBody,
+                //    resSource: magicResPile
+                //) : cosmicBodyInfo.Name == mapInfo.StartingInfo.PowerPlantCosmicBody ?
+                //(
+                //    industryFactory: CurIndustryConfig.basicPowerPlantFactory,
+                //    personCount: CurWorldConfig.startingPersonNumInPowerPlantCosmicBody,
+                //    resSource: magicResPile
+                //) : null
+                )
+            );
+            return new
+            (
+                nodes: cosmicBodiesByName.Values.ToList(),
+                links: mapInfo.Links.Select
+                (
+                    linkInfo => new Link
+                    (
+                        node1: cosmicBodiesByName[linkInfo.From],
+                        node2: cosmicBodiesByName[linkInfo.To],
+                        minSafeDist: CurWorldConfig.minSafeDist
+                    )
+                ).ToList()
+            );
             //// DIFFICULT to have magicUnlimitedResAmounts as can always create new materials and thus new products
             //// Maybe should just create infinite amount of raw materials and then convert them to more complicated things
             //// However, even the max amount of raw materials is not clear

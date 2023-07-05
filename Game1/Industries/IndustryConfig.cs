@@ -11,7 +11,8 @@ namespace Game1.Industries
 
         public IndustryConfig()
         {
-            throw new NotImplementedException();
+            constrBuildingParams = new();
+#warning Complete this
         }
     }
 }

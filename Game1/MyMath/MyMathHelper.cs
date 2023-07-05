@@ -92,6 +92,15 @@ namespace Game1.MyMath
         public static double Pow(double @base, double exponent)
             => Math.Pow(@base, exponent);
 
+        public static ulong Pow(ulong @base, ulong exponent)
+        {
+            if (exponent is 0)
+                return 1;
+            if (exponent is 1)
+                return @base;
+            return Pow(@base: @base * @base, exponent: exponent / 2) * Pow(@base: @base, exponent: exponent % 2);
+        }
+
         /// <summary>
         /// Returns equivalent angle between -pi and pi
         /// </summary>

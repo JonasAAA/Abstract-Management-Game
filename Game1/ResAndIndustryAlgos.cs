@@ -5,6 +5,45 @@ namespace Game1
 {
     public static class ResAndIndustryAlgos
     {
+        public static string RawMaterialName(ulong ind)
+            => $"Raw material {ind}";
+
+        public static Mass RawMaterialMass(ulong ind)
+            => Mass.CreateFromKg(valueInKg: MyMathHelper.Pow(@base: 2, exponent: ind) + 1);
+
+        // As ind increases, the raw materials require less energy to change temperature by one degree
+        // As said in https://en.wikipedia.org/wiki/Specific_heat_capacity#Monatomic_gases
+        // heat capacity per mole is the same for all monatomic gases
+        // That's because the atoms have nowhere else to store energy, other than in kinetic energy (and hence temperature)
+        public static HeatCapacity RawMaterialHeatCapacity(ulong ind)
+            => HeatCapacity.CreateFromJPerK(valueInJPerK: 1);
+
+        // As ind moves in either direction of 2.5, the raw materials become more dense
+        // Formula is plucked out of thin air
+        public static AreaInt RawMaterialArea(ulong ind)
+            => AreaInt.CreateFromMetSq(valueInMetSq: (ind + 1) * (ind + 1));
+
+        // As ind increases, the raw material becomes harder to melt. Raw material 0 is always liquid
+        // Formula is plucked out of thin air
+        // Could take inspiration from https://en.wikipedia.org/wiki/Melting_point#Predicting_the_melting_point_of_substances_(Lindemann's_criterion)
+        public static Temperature RawMaterialMeltingPoint(ulong ind)
+            => Temperature.CreateFromK(valueInK: ind * 300);
+
+        // As ind increases, the color becomes more brown
+        // Formula is plucked out of thin air
+        public static Color RawMaterialColor(ulong ind)
+            => Color.Lerp(Color.Green, Color.Brown, amount: (float)MyMathHelper.Tanh(ind / 3.0));
+
+        // The bigger the number, the easier this raw material will react with itself
+        // Formula is plucked out of thin air
+        public static UDouble RawMaterialFusionReactionStrengthCoeff(ulong ind)
+            => (UDouble)0.000000001;
+
+        public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
+        {
+            return startingRawMatTargetRatios;
+        }
+
         public static Temperature DestructionPoint(GeneralProdAndMatAmounts ingredients, MaterialChoices materialChoices)
             => materialChoices.Min(materialChoice => materialChoice.Key.DestructionPoint(material: materialChoice.Value));
 
@@ -26,11 +65,12 @@ namespace Game1
         public static ulong GatMaterialAmountFromArea(Material material, AreaInt area)
             => throw new NotImplementedException();
 
-        public static UDouble Strength(this Material material, Temperature temperature)
-            => throw new NotImplementedException();
-
         public static Propor Reflectance(this RawMatAmounts rawMaterial, Temperature temperature)
-            => throw new NotImplementedException();
+        {
+#warning Complete this
+            return (Propor).5;
+            //=> throw new NotImplementedException();
+        }
 
         public static Propor Reflectance(this Material material, Temperature temperature)
             //Reflectance = Propor.CreateOrThrow
@@ -41,12 +81,15 @@ namespace Game1
             => throw new NotImplementedException();
 
         public static Propor Emissivity(this RawMatAmounts material, Temperature temperature)
+        {
+#warning Complete this
+            return (Propor).5;
             //Emissivity = Propor.CreateOrThrow
             //(
             //    part: composition.Sum(resAmount => resAmount.res.Area.valueInMetSq* resAmount.amount * resAmount.res.Emissivity),
             //    whole: composition.Sum(resAmount => resAmount.res.Area.valueInMetSq* resAmount.amount)
             //)!.Value;
-            => throw new NotImplementedException();
+        }
 
         public static Propor Emissivity(this Material material, Temperature temperature)
             => throw new NotImplementedException();

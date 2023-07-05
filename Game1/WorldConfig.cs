@@ -103,6 +103,16 @@
         public readonly Propor
             nonReactingProporForUnitReactionStrengthUnitTime = (Propor)0.99;
         public readonly AreaInt minUsefulBuildingComponentAreaToRemove = AreaInt.CreateFromMetSq(valueInMetSq: 30);
+        public readonly List<(ulong rawMatInd, ulong amount)> startingRawMatTargetRatios = new()
+        {
+            (rawMatInd: 0, amount: 8),
+            (rawMatInd: 1, amount: 4),
+            (rawMatInd: 2, amount: 2),
+            (rawMatInd: 3, amount: 1),
+            (rawMatInd: 4, amount: 1),
+        };
+
+        public readonly ulong magicUnlimitedStartingMaterialCount = uint.MaxValue;
 
         public WorldConfig()
         {

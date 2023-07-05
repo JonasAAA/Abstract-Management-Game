@@ -14,7 +14,17 @@ namespace Game1.Resources
         {
             if (indToRawMat.TryGetValue(ind, out var value))
                 return value;
-            throw new NotImplementedException();
+            return indToRawMat[ind] = new
+            (
+                ind: ind,
+                name: ResAndIndustryAlgos.RawMaterialName(ind: ind),
+                mass: ResAndIndustryAlgos.RawMaterialMass(ind: ind),
+                heatCapacity: ResAndIndustryAlgos.RawMaterialHeatCapacity(ind: ind),
+                area: ResAndIndustryAlgos.RawMaterialArea(ind: ind),
+                meltingPoint: ResAndIndustryAlgos.RawMaterialMeltingPoint(ind: ind),
+                color: ResAndIndustryAlgos.RawMaterialColor(ind: ind),
+                fusionReactionStrengthCoeff: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ind)
+            );
         }
 
         public string Name { get; }
@@ -48,7 +58,7 @@ namespace Game1.Resources
         public RawMaterial GetFusionResult()
             => Get(ind: ind + 1);
 
-        public UDouble Strength(Temperature temperature)
-            => throw new NotImplementedException();
+        public override string ToString()
+            => Name;
     }
 }

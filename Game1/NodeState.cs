@@ -1,5 +1,4 @@
-﻿using Game1.Collections;
-using Game1.ContentHelpers;
+﻿using Game1.ContentHelpers;
 using Game1.Industries;
 using Game1.Inhabitants;
 using Game1.UI;
@@ -10,8 +9,8 @@ namespace Game1
     [Serializable]
     public sealed class NodeState : IIndustryFacingNodeState
     {
-        public static ulong ResAmountFromApproxRadius(RawMaterial rawMat, UDouble approxRadius)
-            => Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / rawMat.Area.valueInMetSq);
+        public static RawMatAmounts CalculateComposition(RawMatAmounts rawMatRatios, UDouble approxRadius)
+            => rawMatRatios * Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / rawMatRatios.Area().valueInMetSq);
 
         public NodeID NodeID { get; }
         public Mass PlanetMass
@@ -40,7 +39,7 @@ namespace Game1
 
         public readonly ResPile consistsOfResPile;
 
-        public NodeState(WorldCamera mapInfoCamera, FullValidCosmicBodyInfo cosmicBodyInfo, RawMatAmounts composition, ResPile resSource)
+        public NodeState(WorldCamera mapInfoCamera, FullValidCosmicBodyInfo cosmicBodyInfo, RawMatAmounts rawMatRatios, ResPile resSource)
             : this
             (
                 name: cosmicBodyInfo.Name,
@@ -48,15 +47,14 @@ namespace Game1
                 (
                     screenPos: mapInfoCamera.WorldPosToScreenPos(worldPos: cosmicBodyInfo.Position)
                 ),
-                composition: composition,
-                //mainResAmount: ResAmountFromApproxRadius
-                //(
-                //    rawMat: composition,
-                //    approxRadius: CurWorldManager.ScreenLengthToWorldLength
-                //    (
-                //        screenLength: mapInfoCamera.WorldLengthToScreenLength(worldLength: cosmicBodyInfo.radius)
-                //    )
-                //),
+                composition: CalculateComposition
+                (
+                    rawMatRatios: rawMatRatios,
+                    approxRadius: CurWorldManager.ScreenLengthToWorldLength
+                    (
+                        screenLength: mapInfoCamera.WorldLengthToScreenLength(worldLength: cosmicBodyInfo.Radius)
+                    )
+                ),
                 resSource: resSource,
                 maxBatchDemResStored: 2
             )

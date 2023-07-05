@@ -97,7 +97,7 @@ namespace Game1.Collections
         {
 #if DEBUG
             Debug.Assert(resList.Count == amounts.Count);
-            for (int i = 0; i < resList.Count - 1; i++)
+            for (int i = 1; i < resList.Count; i++)
                 Debug.Assert(CurResConfig.CompareRes(left: resList[i - 1], right: resList[i]) < 0);
             Debug.Assert(amounts.All(amount => amount is not 0));
 #endif
@@ -204,6 +204,16 @@ namespace Game1.Collections
             Debug.Assert(this >= numberOfTimesLarger * other);
             Debug.Assert(!(this - numberOfTimesLarger * other >= other));
             return numberOfTimesLarger;
+        }
+
+        public override string ToString()
+        {
+            if (IsEmpty)
+                return "None";
+            string result = "\n";
+            foreach (var (res, amount) in this)
+                result += $"{res}: {amount}\n";
+            return result;
         }
 
         // May need to change this if later on materials and/or products are able to store energy

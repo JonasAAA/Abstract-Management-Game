@@ -10,7 +10,13 @@ namespace Game1
             => rawMatAmounts.Sum(resAmount => resAmount.res.Area * resAmount.amount);
 
         public static Color Color(this RawMatAmounts rawMatAmounts)
-            => throw new NotImplementedException();
+        {
+            Vector3 colorSum = Vector3.Zero;
+            foreach (var (rawMaterial, amount) in rawMatAmounts)
+                colorSum += rawMaterial.Area.valueInMetSq * amount * rawMaterial.Color.ToVector3();
+            float weightSum = rawMatAmounts.Area().valueInMetSq;
+            return new Color(colorSum / weightSum);
+        }
 
         public static AreaDouble ToDouble(this AreaInt area)
             => AreaDouble.CreateFromMetSq(valueInMetSq: area.valueInMetSq);

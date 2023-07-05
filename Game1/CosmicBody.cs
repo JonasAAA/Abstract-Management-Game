@@ -564,7 +564,7 @@ namespace Game1
                 resFirstLinks[(NodeID, destinationId)]!.TransferAllFrom(start: this, resAmountsPacket: resAmountsPacket);
             }
 
-            throw new NotImplementedException();
+#warning Complete this
             //state.TooManyResStored = !(state.StoredResPile.Amount <= targetStoredResAmounts);
 
             // TODO: look at this
@@ -607,6 +607,7 @@ namespace Game1
             //    powerCase: () => "",
             //    peopleCase: () => ""
             //);
+            textBox.Text = "";
 
             textBox.Text += $"T = {state.Temperature:0.} K\nM to E = {massConvertedToEnergy.valueInKg}\n";
             textBox.Text = textBox.Text.Trim();

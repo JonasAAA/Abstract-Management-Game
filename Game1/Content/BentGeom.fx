@@ -44,7 +44,7 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 
     output.Position = mul(input.Position, WorldViewProjection);
     output.WorldPos = input.Position.xy;
-    output.ShellNum = output.ShellNum;
+    output.ShellNum = input.ShellNum;
     output.AngleA = input.AngleA;
     output.AngleAB = input.AngleAB;
     output.AngleAC = input.AngleAC;

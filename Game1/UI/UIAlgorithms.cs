@@ -25,6 +25,15 @@ namespace Game1.UI
         public static string ConstructionComplete(string buildingName)
             => $"Building {buildingName} is complete!";
 
+        public static string StartMaterialChoiceForPurposeTooltip(IMaterialPurpose materialPurpose)
+            => $"Choose {materialPurpose.Name} material";
+
+        public static string FinalizeBuildingMaterialChoices
+            => "Build this with current material choices";
+
+        public static string CancelMaterialChoiceForBuilding
+            => "Cancel to return to building choice panel";
+
         public static Result<TOk, TextErrors> ConvertMissingMatPurpsIntoError<TOk>(this Result<TOk, EfficientReadOnlyHashSet<IMaterialPurpose>> result)
             => throw new NotImplementedException();
 

@@ -49,10 +49,21 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct BuildIndustryButtonClickedListener(CosmicBody Node, IBuildableFactory BuildableParams) : IClickedListener
+        private record BuildIndustryButtonClickedListener(CosmicBody Node, Construction.GeneralParams ConstructionGeneralParams) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
-                => Node.Industry = BuildableParams.CreateIndustry(state: Node.state);
+            {
+                //Node.Industry = ConstructionGeneralParams.CreateNextUIStep();
+                Node.buildPanel.TransitionToNewStep
+                (
+                    newStepPanel: ConstructionGeneralParams.CreateNextUIStepPanel
+                    (
+                        nodeState: Node.state,
+                        buildButtonListener: ,
+                        cancelButtonListener:
+                    )
+                );
+            }
         }
 
         //[Serializable]
@@ -142,6 +153,7 @@ namespace Game1
 
         private readonly TextBox textBox;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
+        private readonly UIStepsPanel buildPanel;
         private readonly UIRectPanel<IHUDElement> infoPanel, buildButtonPannel;
         //private readonly MyDict<IOverlay, UIRectPanel<IHUDElement>> overlayTabPanels;
         private readonly TextBox infoTextBox;
@@ -201,13 +213,15 @@ namespace Game1
             infoPanel.AddChild(child: infoTextBox);
 
             buildButtonPannel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
+            buildPanel = new(firstStepPanel: buildButtonPannel);
             UITabs.Add
             ((
                 tabLabelText: "build",
                 tabTooltip: new ImmutableTextTooltip(text: "Buildings/industries which could be built here"),
                 tab: buildButtonPannel
             ));
-            foreach (var buildableParams in CurIndustryConfig.constrBuildingParams)
+#warning Complete this
+            foreach (var constrGeneralParams in CurIndustryConfig.constrGeneralParamsList)
             {
                 Button buildIndustryButton = new
                 (
@@ -216,20 +230,29 @@ namespace Game1
                         width: 200,
                         height: 20
                     ),
-                    tooltip: buildableParams.CreateTooltip(state: state),
-                    text: buildableParams.ButtonName
+                    tooltip: constrGeneralParams.CreateTooltip(state: state),
+                    text: constrGeneralParams.name
                 );
                 buildIndustryButton.clicked.Add
                 (
                     listener: new BuildIndustryButtonClickedListener
                     (
                         Node: this,
-                        BuildableParams: buildableParams
+                        ConstructionGeneralParams: constrGeneralParams
                     )
                 );
 
                 buildButtonPannel.AddChild(child: buildIndustryButton);
             }
+
+
+
+
+
+
+
+
+
 
             //overlayTabLabel = "overlay tab";
             //overlayTabPanels = new();
@@ -609,7 +632,7 @@ namespace Game1
             //);
             textBox.Text = "";
 
-            textBox.Text += $"T = {state.Temperature:0.} K\nM to E = {massConvertedToEnergy.valueInKg}\n";
+            textBox.Text += $"T = {state.Temperature}\nM to E = {massConvertedToEnergy.valueInKg}\n";
             textBox.Text = textBox.Text.Trim();
 
             infoTextBox.Text += textBox.Text;

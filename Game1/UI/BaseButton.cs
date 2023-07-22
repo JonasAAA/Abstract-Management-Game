@@ -8,6 +8,12 @@ namespace Game1.UI
     {
         public ITooltip Tooltip { get; }
 
+        public string? Text
+        {
+            get => textBox.Text;
+            set => textBox.Text = value;
+        }
+
         public readonly Event<IClickedListener> clicked;
 
         public override bool CanBeClicked

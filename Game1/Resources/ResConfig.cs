@@ -14,6 +14,14 @@
             nextOrder = 0;
         }
 
+        public IEnumerable<TRes> GetCurRes<TRes>()
+            where TRes : class, IResource
+        {
+            foreach (var res in resources)
+                if (res is TRes wantedRes)
+                    yield return wantedRes;
+        }
+
         public IEnumerable<IResource> GetAllCurRes()
             => resources;
 

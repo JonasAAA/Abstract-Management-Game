@@ -1,4 +1,6 @@
 ﻿using Game1.Collections;
+using Game1.Delegates;
+using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
 
@@ -20,7 +22,192 @@ namespace Game1.Industries
                 this.energyPriority = energyPriority;
             }
 
-            public Result<ConcreteParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices)
+            [Serializable]
+            private readonly struct MaterialChoicePanelManager
+            {
+                public readonly UIRectVertPanel<IHUDElement> materialChoicePanel;
+
+                private readonly GeneralParams constrGeneralParams;
+                private readonly IIndustryFacingNodeState nodeState;
+                private readonly Dictionary<IMaterialPurpose, Material> materialChoices;
+                private readonly Button buildButton, cancelButton;
+
+                public MaterialChoicePanelManager(GeneralParams constrGeneralParams, IIndustryFacingNodeState nodeState, IAction<IIndustry> setIndustry, IClickedListener cancelButtonListener)
+                // IClickedListener buildButtonListener
+                {
+                    this.constrGeneralParams = constrGeneralParams;
+                    this.nodeState = nodeState;
+                    materialChoicePanel = new(childHorizPos: HorizPos.Left);
+                    materialChoicePanel.AddChild(child: new TextBox() { Text = "Material Choices" });
+                    EfficientReadOnlyHashSet<IMaterialPurpose> neededMatPurposes = constrGeneralParams.CreateConcrete(nodeState, buildingMatChoices: new()).SwitchExpression
+                    (
+                        ok: _ =>
+                        {
+                            Debug.Fail("All buildings need some materials to choose");
+                            return new();
+                        },
+                        error: missingMatPurposes => missingMatPurposes
+                    );
+                    materialChoices = new();
+                    foreach (var materialPurpose in neededMatPurposes)
+                    {
+                        UIRectHorizPanel<IHUDElement> materialChoiceLine = new(childVertPos: VertPos.Middle);
+                        materialChoiceLine.AddChild(child: new TextBox() { Text = materialPurpose.Name + " " });
+                        Button startMaterialChoice = new
+                        (
+                            shape: new MyRectangle(),
+                            tooltip: new ImmutableTextTooltip(text: UIAlgorithms.StartMaterialChoiceForPurposeTooltip(materialPurpose: materialPurpose)),
+                            text: "+"
+                        );
+                        startMaterialChoice.clicked.Add
+                        (
+                            listener: new StartMaterialChoiceListener
+                            (
+                                MaterialChoicePanelManager: this,
+                                StartMaterialChoice: startMaterialChoice,
+                                MaterialPurpose: materialPurpose
+                            )
+                        );
+                        materialChoiceLine.AddChild(child: startMaterialChoice);
+                        materialChoicePanel.AddChild(child: materialChoiceLine);
+                    }
+                    buildButton = new
+                    (
+                        shape: new MyRectangle(),
+                        tooltip: new ImmutableTextTooltip(text: UIAlgorithms.FinalizeBuildingMaterialChoices),
+                        text: "Build this"
+                    );
+                    buildButton.clicked.Add(listener: buildButtonListener);
+                    buildButton.PersonallyEnabled = false;
+                    materialChoicePanel.AddChild(child: buildButton);
+                    cancelButton = new
+                    (
+                        shape: new MyRectangle(),
+                        tooltip: new ImmutableTextTooltip(text: UIAlgorithms.CancelMaterialChoiceForBuilding),
+                        text: "Cancel",
+                        color: ActiveUIManager.colorConfig.deleteButtonColor
+                    );
+                    cancelButton.clicked.Add(listener: cancelButtonListener);
+                    materialChoicePanel.AddChild(child: cancelButton);
+                }
+
+                public void SetMatChoice(IMaterialPurpose materialPurpose, Material material)
+                {
+                    materialChoices[materialPurpose] = material;
+                    //constrGeneralParams.CreateConcrete(nodeState: nodeState, buildingMatChoices: materialChoices).SwitchStatement
+                    //(
+                    //    ok: _ => buildButton.PersonallyEnabled = true,
+                    //    error: _ => buildButton.PersonallyEnabled = false
+                    //);
+                    buildButton.PersonallyEnabled = constrGeneralParams.CreateConcrete(nodeState: nodeState, buildingMatChoices: materialChoices).isOk;
+                    // In case all material choices are made, show player the stats of the to-be-constructed building
+                    throw new NotImplementedException()
+                }
+            }
+
+            public IHUDElement CreateNextUIStepPanel(IIndustryFacingNodeState nodeState, IClickedListener buildButtonListener, IClickedListener cancelButtonListener)
+            {
+                MaterialChoicePanelManager materialChoicePanelManager = new(constrGeneralParams: this, nodeState: nodeState, buildButtonListener: buildButtonListener, cancelButtonListener: cancelButtonListener);
+                return materialChoicePanelManager.materialChoicePanel;
+                //UIRectVertPanel<IHUDElement> materialChoicePanel = new(childHorizPos: HorizPos.Left);
+                //materialChoicePanel.AddChild(child: new TextBox() { Text = "Material Choices" });
+                //EfficientReadOnlyHashSet<IMaterialPurpose> neededMatPurposes = CreateConcrete(nodeState, buildingMatChoices: new()).SwitchExpression
+                //(
+                //    ok: _ =>
+                //    {
+                //        Debug.Fail("All buildings need some materials to choose");
+                //        return new();
+                //    },
+                //    error: missingMatPurposes => missingMatPurposes
+                //);
+                //Dictionary<IMaterialPurpose, Material> materialChoices = new();
+                //foreach (var materialPurpose in neededMatPurposes)
+                //{
+                //    UIRectHorizPanel<IHUDElement> materialChoiceLine = new(childVertPos: VertPos.Middle);
+                //    materialChoiceLine.AddChild(child: new TextBox() { Text = materialPurpose.Name + " " });
+                //    Button startMaterialChoice = new
+                //    (
+                //        shape: new MyRectangle(),
+                //        tooltip: new ImmutableTextTooltip(text: UIAlgorithms.StartMaterialChoiceForPurposeTooltip(materialPurpose: materialPurpose)),
+                //        text: "+"
+                //    );
+                //    startMaterialChoice.clicked.Add
+                //    (
+                //        listener: new StartMaterialChoiceListener
+                //        (
+                //            StartMaterialChoice: startMaterialChoice,
+                //            MaterialChoices: materialChoices,
+                //            MaterialPurpose: materialPurpose
+                //        )
+                //    );
+                //    materialChoiceLine.AddChild(child: startMaterialChoice);
+                //    materialChoicePanel.AddChild(child: materialChoiceLine);
+                //}
+                //Button buildButton = new
+                //(
+                //    shape: new MyRectangle(),
+                //    tooltip: new ImmutableTextTooltip(text: UIAlgorithms.FinalizeBuildingMaterialChoices),
+                //    text: "Build this"
+                //);
+                //buildButton.clicked.Add(listener: buildButtonListener);
+                //buildButton.PersonallyEnabled = false;
+                //materialChoicePanel.AddChild(child: buildButton);
+                //Button cancelButton = new
+                //(
+                //    shape: new MyRectangle(),
+                //    tooltip: new ImmutableTextTooltip(text: UIAlgorithms.CancelMaterialChoiceForBuilding),
+                //    text: "Cancel",
+                //    color: ActiveUIManager.colorConfig.deleteButtonColor
+                //);
+                //cancelButton.clicked.Add(listener: cancelButtonListener);
+                //materialChoicePanel.AddChild(child: cancelButton);
+                //return materialChoicePanel;
+            }
+
+            [Serializable]
+            private sealed record StartMaterialChoiceListener(MaterialChoicePanelManager MaterialChoicePanelManager, Button StartMaterialChoice, IMaterialPurpose MaterialPurpose) : IClickedListener
+            {
+                void IClickedListener.ClickedResponse()
+                {
+                    UIRectVertPanel<IHUDElement> materialChoicePopup = new(childHorizPos: Shapes.HorizPos.Middle);
+                    foreach (var material in CurResConfig.GetCurRes<Material>())
+                    {
+                        Button chooseMatButton = new
+                        (
+                            shape: new MyRectangle(),
+                            tooltip: new ImmutableTextTooltip(MaterialPurpose.TooltipTextFor(material: material)),
+                            text: material.Name
+                        );
+                        chooseMatButton.clicked.Add
+                        (
+                            listener: new MaterialChoiceListener
+                            (
+                                MaterialChoicePanelManager: MaterialChoicePanelManager,
+                                MaterialChoicePopup: materialChoicePopup,
+                                StartMaterialChoice: StartMaterialChoice,
+                                MaterialPurpose: MaterialPurpose,
+                                Material: material
+                            )
+                        );
+                        materialChoicePopup.AddChild(child: chooseMatButton);
+                    }
+
+                    CurWorldManager.AddHUDPopup(HUDElement: materialChoicePopup);
+                }
+            }
+
+            [Serializable]
+            private sealed record MaterialChoiceListener(MaterialChoicePanelManager MaterialChoicePanelManager, IHUDElement MaterialChoicePopup, Button StartMaterialChoice, IMaterialPurpose MaterialPurpose, Material Material) : IClickedListener
+            {
+                void IClickedListener.ClickedResponse()
+                {
+                    StartMaterialChoice.Text = Material.Name;
+                    MaterialChoicePanelManager.SetMatChoice(materialPurpose: MaterialPurpose, material: Material);
+                    CurWorldManager.RemoveHUDPopup(HUDElement: MaterialChoicePopup);
+                }
+            }
+
+            public Result<ConcreteParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices) // IReadOnlyDictionary<IMaterialPurpose, Material> buildingMatChoices)
                 => buildingGeneralParams.CreateConcrete
                 (
                     nodeState: nodeState,
@@ -65,6 +252,9 @@ namespace Game1.Industries
                 this.concreteBuildingParams = concreteBuildingParams;
                 buildingMaterialPropors = generalParams.buildingGeneralParams.BuildingComponentMaterialPropors;
             }
+
+            public IIndustry CreateIndustry()
+                => new Industry<UnitType, ConcreteParams, UnitType, ConstructionState>(productionParams: new(), buildingParams: this, persistentState: new());
 
             public IBuildingImage IncompleteBuildingImage(Propor donePropor)
                 => concreteBuildingParams.IncompleteBuildingImage(donePropor: donePropor);

@@ -1,4 +1,5 @@
 ﻿using Game1.Collections;
+using Game1.UI;
 using static Game1.WorldManager;
 
 namespace Game1.Resources
@@ -6,6 +7,7 @@ namespace Game1.Resources
     [Serializable]
     public sealed class Material : IResource
     {
+        public string Name { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
@@ -14,8 +16,9 @@ namespace Game1.Resources
         public Temperature MeltingPoint { get; }
         public ResRecipe Recipe { get; }
 
-        public Material(RawMatAmounts composition)
+        public Material(string name, RawMatAmounts composition)
         {
+            Name = name;
             Mass = composition.Mass();
             HeatCapacity = composition.HeatCapacity();
             Area = composition.Area();

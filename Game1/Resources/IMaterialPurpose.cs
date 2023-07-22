@@ -5,6 +5,13 @@
         [Serializable]
         private sealed class Mechanical : IMaterialPurpose
         {
+            string IMaterialPurpose.Name
+                => "Mechanical";
+
+            string IMaterialPurpose.TooltipTextFor(Material material)
+                // Should be something like "Strength at current conditions is 10.3, the bigger the better"
+                => throw new NotImplementedException();
+
             bool IMaterialPurpose.LiquidUse(Material material)
                 => false;
         }
@@ -16,6 +23,13 @@
         [Serializable]
         private sealed class HydraulicFluid : IMaterialPurpose
         {
+            string IMaterialPurpose.Name
+                => "Hydraulic Fluid";
+
+            string IMaterialPurpose.TooltipTextFor(Material material)
+                // Should be something like "Strength at current conditions is 10.3, the bigger the better"
+                => throw new NotImplementedException();
+
             bool IMaterialPurpose.LiquidUse(Material material)
                 => true;
         }
@@ -23,6 +37,13 @@
         [Serializable]
         private sealed class RoofSurface : IMaterialPurpose
         {
+            string IMaterialPurpose.Name
+                => "Roof Surface";
+
+            string IMaterialPurpose.TooltipTextFor(Material material)
+                // Should be something like "Strength at current conditions is 10.3, the bigger the better"
+                => throw new NotImplementedException();
+
             bool IMaterialPurpose.LiquidUse(Material material)
                 => false;
         }
@@ -48,6 +69,10 @@
             all = new IMaterialPurpose[] { mechanical, hydraulicFluid, roofSurface };
 #warning Check that all contains all public fields and properties of type IMaterialPurpose. This should go into test project probably.
         }
+
+        public string Name { get; }
+
+        public string TooltipTextFor(Material material);
 
         /// <summary>
         /// If tempearature is any higher, than the returned value, and the product uses this material for this purpose

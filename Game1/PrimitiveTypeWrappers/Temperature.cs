@@ -21,7 +21,7 @@
             => this.valueInK = valueInK;
 
         public override string ToString()
-            => $"{valueInK} K";
+            => $"{valueInK:0.} K";
 
         public static bool operator <=(Temperature left, Temperature right)
             => left.valueInK <= right.valueInK;

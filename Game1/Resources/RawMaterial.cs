@@ -5,16 +5,11 @@ namespace Game1.Resources
     [Serializable]
     public class RawMaterial : IResource
     {
-        private static readonly Dictionary<ulong, RawMaterial> indToRawMat;
-
-        static RawMaterial()
-            => indToRawMat = new();
-
         public static RawMaterial Get(ulong ind)
         {
-            if (indToRawMat.TryGetValue(ind, out var value))
-                return value;
-            return indToRawMat[ind] = new
+            if (CurResConfig.GetRawMatFromInd(ind: ind) is RawMaterial rawMaterial)
+                return rawMaterial;
+            return new
             (
                 ind: ind,
                 name: ResAndIndustryAlgos.RawMaterialName(ind: ind),
@@ -36,8 +31,7 @@ namespace Game1.Resources
         public Temperature MeltingPoint { get; }
         public Color Color { get; }
         public UDouble FusionReactionStrengthCoeff { get; }
-
-        private readonly ulong ind;
+        public ulong Ind { get; }
 
         private RawMaterial(ulong ind, string name, Mass mass, HeatCapacity heatCapacity, AreaInt area, Temperature meltingPoint, Color color, UDouble fusionReactionStrengthCoeff)
         {
@@ -50,13 +44,13 @@ namespace Game1.Resources
             RawMatComposition = new(res: this, amount: 1);
             Color = color;
             FusionReactionStrengthCoeff = fusionReactionStrengthCoeff;
-            this.ind = ind;
+            Ind = ind;
 
             CurResConfig.AddRes(resource: this);
         }
 
         public RawMaterial GetFusionResult()
-            => Get(ind: ind + 1);
+            => Get(ind: Ind + 1);
 
         public override string ToString()
             => Name;

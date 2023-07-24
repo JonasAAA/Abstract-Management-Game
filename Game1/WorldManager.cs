@@ -103,7 +103,7 @@ namespace Game1
 
             curWorldManager = Deserialize();
             CurWorldConfig = curWorldManager.worldConfig;
-            //CurResConfig = curWorldManager.resConfig;
+            CurResConfig = curWorldManager.resConfig;
             CurWorldManager!.Initialize();
 
             return CurWorldManager.activeUIManager;

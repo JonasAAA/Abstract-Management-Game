@@ -12,6 +12,7 @@ namespace Game1.Resources
             public EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> MaterialUsefulAreas
                 => ingredients.materialUsefulAreas;
 
+            public readonly string name;
             public readonly GeneralProdAndMatAmounts ingredients;
             public readonly AreaInt usefulArea;
             public readonly MechComplexity complexity;
@@ -19,8 +20,9 @@ namespace Game1.Resources
             //private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
             //private readonly Area usefulArea;
 
-            public Params(GeneralProdAndMatAmounts ingredients)
+            public Params(string name, GeneralProdAndMatAmounts ingredients)
             {
+                this.name = name;
                 this.ingredients = ingredients;
                 usefulArea = ingredients.usefulArea;
                 complexity = ingredients.complexity;
@@ -69,14 +71,61 @@ namespace Game1.Resources
             }
         }
 
+#warning Complete this by moving to a separate file so that this can be configured
+        public static readonly EfficientReadOnlyDictionary<string, Params> productParamsDict;
+
+        static Product()
+        {
+            productParamsDict = new List<Params>()
+            {
+                new
+                (
+                    name: "Gear",
+                    ingredients: new
+                    (
+                        ingredProdToAmounts: new(),
+                        ingredMatPurposeToUsefulAreas: new EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt>
+                        {
+                            [IMaterialPurpose.mechanical] = AreaInt.CreateFromMetSq(10),
+                        }
+                    )
+                ),
+                new
+                (
+                    name: "Roof Tile",
+                    ingredients: new
+                    (
+                        ingredProdToAmounts: new(),
+                        ingredMatPurposeToUsefulAreas: new EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt>
+                        {
+                            [IMaterialPurpose.roofSurface] = AreaInt.CreateFromMetSq(10)
+                        }
+                    )
+                ),
+                new
+                (
+                    name: "Wire",
+                    ingredients: new
+                    (
+                        ingredProdToAmounts: new(),
+                        ingredMatPurposeToUsefulAreas: new EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt>
+                        {
+                            [IMaterialPurpose.electricalConductor] = AreaInt.CreateFromMetSq(10),
+                            [IMaterialPurpose.electricalInsulator] = AreaInt.CreateFromMetSq(5)
+                        }
+                    )
+                )
+            }.ToEfficientReadOnlyDict
+            (
+                keySelector: productParams => productParams.name
+            );
+        }
+
+        public string Name { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt UsefulArea { get; }
         public RawMatAmounts RawMatComposition { get; }
-        /// <summary>
-        /// If tempearature is any higher, the product is destroyed, i.e. turned into garbage.
-        /// </summary>
-        public Temperature DestructionPoint { get; }
         public ResRecipe Recipe { get; }
 
         private readonly Params parameters;
@@ -87,6 +136,7 @@ namespace Game1.Resources
 
         private Product(Params parameters, MaterialChoices materialChoices, ResAmounts<Product> productIngredients, ResAmounts<Material> materialIngredients)
         {
+            Name = parameters.name;
             this.parameters = parameters;
             this.materialChoices = materialChoices;
             this.productIngredients = productIngredients;
@@ -95,11 +145,6 @@ namespace Game1.Resources
             HeatCapacity = productIngredients.HeatCapacity() + materialIngredients.HeatCapacity();
             //Area = arg1.Area() + arg2.Area();
             RawMatComposition = productIngredients.RawMatComposition() + materialIngredients.RawMatComposition();
-            DestructionPoint = ResAndIndustryAlgos.DestructionPoint
-            (
-                ingredients: parameters.ingredients,
-                materialChoices: materialChoices
-            );
 
             UsefulArea = parameters.usefulArea;
 

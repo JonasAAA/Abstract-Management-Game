@@ -25,7 +25,7 @@ namespace Game1
             => AreaInt.CreateFromMetSq(valueInMetSq: (ulong)area.valueInMetSq);
 
         public static MaterialChoices FilterOutUnneededMaterials(this MaterialChoices materialChoices, EfficientReadOnlyDictionary<IMaterialPurpose, Propor> materialPropors)
-            => materialChoices.Where(matChoice => materialPropors[matChoice.Key] != Propor.empty).ToEfficientReadOnlyDict
+            => materialChoices.Where(matChoice => !materialPropors[matChoice.Key].IsEmpty).ToEfficientReadOnlyDict
             (
                 keySelector: matChoice => matChoice.Key,
                 elementSelector: matChoice => matChoice.Value

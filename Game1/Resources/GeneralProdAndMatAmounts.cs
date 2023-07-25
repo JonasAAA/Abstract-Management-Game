@@ -5,6 +5,7 @@ namespace Game1.Resources
     [Serializable]
     public readonly struct GeneralProdAndMatAmounts
     {
+        public readonly EfficientReadOnlyHashSet<IMaterialPurpose> neededMaterialPurposes;
         public readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts;
         public readonly EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToUsefulAreas;
         public readonly AreaInt usefulArea;
@@ -29,6 +30,10 @@ namespace Game1.Resources
                     prodParamsAndAmount => prodParamsAndAmount.prodParams.MaterialUsefulAreas.GetValueOrDefault(key: materialPurpose) * prodParamsAndAmount.amount
                 ) + ingredMatPurposeToUsefulAreas.GetValueOrDefault(key: materialPurpose)
             );
+            neededMaterialPurposes =
+                (from matPurpAndArea in materialUsefulAreas
+                 where !matPurpAndArea.Value.IsZero
+                 select matPurpAndArea.Key).ToEfficientReadOnlyHashSet();
             usefulArea = materialUsefulAreas.Values.Sum();
             complexity = ResAndIndustryAlgos.Complexity(ingredProdToAmounts: ingredProdToAmounts, ingredMatPurposeToUsefulAreas: ingredMatPurposeToUsefulAreas);
             // Needed to satisfy compiler

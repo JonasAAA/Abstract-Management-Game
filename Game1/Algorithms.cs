@@ -208,7 +208,7 @@ namespace Game1
         }
 
         // Inspired by https://en.wikipedia.org/wiki/Lawson_criterion#Energy_balance
-        public static RawMatAmounts CosmicBodyNewComposition(RawMatAmounts composition, UDouble gravity, Temperature temperature, TimeSpan duration,
+        public static RawMatAmounts CosmicBodyNewComposition(ResConfig curResConfig, RawMatAmounts composition, UDouble gravity, Temperature temperature, TimeSpan duration,
             Func<RawMaterial, decimal, ulong> reactionNumberRounder, Propor nonReactingProporForUnitReactionStrengthUnitTime)
         {
             AreaDouble compositionArea = composition.Area().ToDouble();
@@ -229,7 +229,7 @@ namespace Game1
                 cosmicBodyNextComposition[rawMaterial] = cosmicBodyNextComposition.GetValueOrDefault(key: rawMaterial) + nonReactingAmount;
                 if (fusionProductAmount > 0)
                 {
-                    RawMaterial fusionResult = rawMaterial.GetFusionResult();
+                    RawMaterial fusionResult = rawMaterial.GetFusionResult(curResConfig: curResConfig);
                     cosmicBodyNextComposition[fusionResult] = cosmicBodyNextComposition.GetValueOrDefault(key: fusionResult) + fusionProductAmount;
                 }
             }

@@ -9,6 +9,26 @@ namespace Game1.GameStates
     [Serializable]
     public sealed class MapCreationState : GameState
     {
+        [Serializable]
+        private record HouseTextBoxHUDPosUpdater(MapCreationState MapCreationState) : IAction
+        {
+            void IAction.Invoke()
+            {
+                if (MapCreationState.CurMapInfo.StartingInfo.HouseCosmicBodyId is CosmicBodyId houseCosmicBodyId)
+                    MapCreationState.houseTextBox.Shape.Center = MapCreationState.CurCosmicBodyHUDPos(cosmicBodyId: houseCosmicBodyId);
+            }
+        }
+
+        [Serializable]
+        private record PowerPlantTextBoxHUDPosUpdater(MapCreationState MapCreationState) : IAction
+        {
+            void IAction.Invoke()
+            {
+                if (MapCreationState.CurMapInfo.StartingInfo.PowerPlantCosmicBodyId is CosmicBodyId powerPlantCosmicBodyId)
+                    MapCreationState.powerPlantTextBox.Shape.Center = MapCreationState.CurCosmicBodyHUDPos(cosmicBodyId: powerPlantCosmicBodyId);
+            }
+        }
+
         private interface IWorldUIElementId
         { }
 
@@ -289,9 +309,17 @@ namespace Game1.GameStates
             globalTextBox = new(backgroundColor: ActiveUIManager.colorConfig.UIBackgroundColor);
             activeUIManager.AddHUDElement(HUDElement: globalTextBox, horizPos: HorizPos.Left, vertPos: VertPos.Top);
             houseTextBox = new();
-            activeUIManager.AddWorldHUDElement(worldHUDElement: houseTextBox);
+            activeUIManager.AddWorldHUDElement
+            (
+                worldHUDElement: houseTextBox,
+                updateHUDPos: new HouseTextBoxHUDPosUpdater(MapCreationState: this)
+            );
             powerPlantTextBox = new();
-            activeUIManager.AddWorldHUDElement(worldHUDElement: powerPlantTextBox);
+            activeUIManager.AddWorldHUDElement
+            (
+                worldHUDElement: powerPlantTextBox,
+                updateHUDPos: new PowerPlantTextBoxHUDPosUpdater(MapCreationState: this)
+            );
 
             controlDescrContr = """
                 Esc - Go to pause menu
@@ -333,37 +361,25 @@ namespace Game1.GameStates
         public override void Update(TimeSpan elapsed)
         {
             worldCamera.Update(elapsed: elapsed, canScroll: true);
-            
+            activeUIManager.Update(elapsed: elapsed);
+
             var newMapInfo = HandleUserInput();
             if (newMapInfo is not null)
                 changeHistory.LogNewChange(newMapInfo: newMapInfo.Value);
             
             globalTextBox.Text = expandControlDescr ? controlDescrExp : controlDescrContr + "\n\n" + changeHistory.CurInfoForUser;
-            if (CurMapInfo.StartingInfo.HouseCosmicBodyId is CosmicBodyId houseCosmicBodyId)
-            {
-                houseTextBox.Text = "House";
-                houseTextBox.Shape.Center = CurCosmicBodyHUDPos(cosmicBodyId: houseCosmicBodyId);
-            }
-            else
-                houseTextBox.Text = null;
-
-            if (CurMapInfo.StartingInfo.PowerPlantCosmicBodyId is CosmicBodyId powerPlantCosmicBodyId)
-            {
-                powerPlantTextBox.Text = "Power\nplant";
-                powerPlantTextBox.Shape.Center = CurCosmicBodyHUDPos(cosmicBodyId: powerPlantCosmicBodyId);
-            }
-            else
-                powerPlantTextBox.Text = null;
-
-            MyVector2 CurCosmicBodyHUDPos(CosmicBodyId cosmicBodyId)
-                => ActiveUIManager.ScreenPosToHUDPos
-                (
-                    screenPos: worldCamera.WorldPosToScreenPos
-                    (
-                        worldPos: CurMapInfo.CosmicBodies[cosmicBodyId].Position
-                    )
-                );
+            houseTextBox.Text = CurMapInfo.StartingInfo.HouseCosmicBodyId is null ? null : "House";
+            powerPlantTextBox.Text = CurMapInfo.StartingInfo.PowerPlantCosmicBodyId is null ? null : "Power\nplant";
         }
+
+        private MyVector2 CurCosmicBodyHUDPos(CosmicBodyId cosmicBodyId)
+            => ActiveUIManager.ScreenPosToHUDPos
+            (
+                screenPos: worldCamera.WorldPosToScreenPos
+                (
+                    worldPos: CurMapInfo.CosmicBodies[cosmicBodyId].Position
+                )
+            );
 
         private MapInfoInternal? HandleUserInput()
         {

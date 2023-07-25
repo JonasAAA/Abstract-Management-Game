@@ -5,6 +5,8 @@ namespace Game1.Industries
     public interface IGeneralBuildingConstructionParams
     {
         public string Name { get; }
+        public EfficientReadOnlyHashSet<IMaterialPurpose> NeededMaterialPurposes { get; }
+        //public string TooltipText { get; }
 
         /// <summary>
         /// Keys contain ALL material purposes, not just used ones

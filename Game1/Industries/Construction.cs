@@ -12,13 +12,20 @@ namespace Game1.Industries
             public readonly string name;
             public readonly IGeneralBuildingConstructionParams buildingGeneralParams;
             public readonly EnergyPriority energyPriority;
+            public readonly ITooltip toopltip;
+            public readonly EfficientReadOnlyHashSet<IMaterialPurpose> neededMaterialPurposes;
 
             public GeneralParams(IGeneralBuildingConstructionParams buildingGeneralParams, EnergyPriority energyPriority)
             {
                 name = UIAlgorithms.ConstructionName(childIndustryName: buildingGeneralParams.Name);
                 this.buildingGeneralParams = buildingGeneralParams;
                 this.energyPriority = energyPriority;
+                toopltip = new ImmutableTextTooltip(text: UIAlgorithms.ConstructionTooltip(constrGeneralParams: this));
+                neededMaterialPurposes = buildingGeneralParams.NeededMaterialPurposes;
             }
+
+            public bool SufficientbuildingMaterials(MaterialChoices curBuildingMaterialChoices)
+                => neededMaterialPurposes.IsSubsetOf(other: curBuildingMaterialChoices.Keys);
 
             public Result<ConcreteParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices)
                 => buildingGeneralParams.CreateConcrete
@@ -34,6 +41,9 @@ namespace Game1.Industries
                         concreteBuildingParams: buildingConcreteParams
                     )
                 );
+
+            //public ConcreteParams CreateConcreteOrThrow(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices)
+            //    => CreateConcrete(nodeState: nodeState, buildingMatChoices: buildingMatChoices).UnwrapOrThrow(exception: ;
         }
 
         [Serializable]
@@ -54,7 +64,7 @@ namespace Game1.Industries
             public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, IConcreteBuildingConstructionParams concreteBuildingParams)
             {
                 Name = generalParams.name;
-                this.NodeState = nodeState;
+                NodeState = nodeState;
                 EnergyPriority = generalParams.energyPriority;
                 buildingCost = concreteBuildingParams.BuildingCost;
                 buildingComponentsUsefulArea = ResAndIndustryAlgos.BuildingComponentUsefulArea
@@ -68,6 +78,14 @@ namespace Game1.Industries
 
             public IBuildingImage IncompleteBuildingImage(Propor donePropor)
                 => concreteBuildingParams.IncompleteBuildingImage(donePropor: donePropor);
+
+            public IIndustry CreateIndustry()
+                => new Industry<UnitType, ConcreteParams, UnitType, ConstructionState>
+                (
+                    productionParams: new(),
+                    buildingParams: this,
+                    persistentState: new()
+                );
 
             public IIndustry CreateChildIndustry(ResPile buildingResPile)
                 => concreteBuildingParams.CreateIndustry(buildingResPile: buildingResPile);
@@ -187,5 +205,11 @@ namespace Game1.Industries
                 parameters.NodeState.StoredResPile.TransferAllFrom(source: buildingResPile);
             }
         }
+
+        public static HashSet<Type> GetKnownTypes()
+            => new()
+            {
+                typeof(Industry<UnitType, ConcreteParams, UnitType, ConstructionState>)
+            };
     }
 }

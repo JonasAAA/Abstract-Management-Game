@@ -1,12 +1,7 @@
 ﻿using System.Numerics;
-using static Game1.WorldManager;
 
 namespace Game1.PrimitiveTypeWrappers
 {
-    /// <summary>
-    /// The higher, the more important
-    /// 0 - least important, 100 - most important
-    /// </summary>
     [Serializable]
     public readonly record struct EnergyPriority : IEquatable<EnergyPriority>, IComparable<EnergyPriority>, IPrimitiveTypeWrapper, IComparisonOperators<EnergyPriority, EnergyPriority, bool>, IMinMaxValue<EnergyPriority>, IMax<EnergyPriority>
     {
@@ -37,6 +32,10 @@ namespace Game1.PrimitiveTypeWrappers
 
         private readonly ulong value;
 
+        /// <summary>
+        /// The higher, the more important.
+        /// 0 - least important, 100 - most important
+        /// </summary>
         public EnergyPriority(ulong value)
         {
             if (value < leastImportantEnergyPrior || value > mostImportantEnergyPrior)

@@ -44,11 +44,9 @@ namespace Game1
             return startingRawMatTargetRatios;
         }
 
-        public static Temperature DestructionPoint(GeneralProdAndMatAmounts ingredients, MaterialChoices materialChoices)
-            => materialChoices.Min(materialChoice => materialChoice.Key.DestructionPoint(material: materialChoice.Value));
-
         public static MechComplexity Complexity(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToUsefulAreas)
-            => throw new NotImplementedException();
+#warning Complete this
+            => new(complexity: 10);
 
         // The material melting point generally has no such formula, it depends heavily on what bonds are formed, as discussed in https://qr.ae/pytnoU
         // Also some composites aren't mixed very well, so don't have a single melting point.
@@ -63,7 +61,7 @@ namespace Game1
             );
 
         public static ulong GatMaterialAmountFromArea(Material material, AreaInt area)
-            => throw new NotImplementedException();
+            => MyMathHelper.DivideThenTakeCeiling(dividend: area.valueInMetSq, divisor: material.Area.valueInMetSq);
 
         public static Propor Reflectance(this RawMatAmounts rawMaterial, Temperature temperature)
         {
@@ -100,17 +98,36 @@ namespace Game1
         //public readonly record struct CompProporAndProperty(Propor ComponentPropor, UDouble Property);
 
         public static UDouble DiskBuildingHeight
-            => throw new NotImplementedException();
+#warning Complete this by scaling it appropriately (depending on the map scale) and putting it into config file
+            => 1000;
+
+        private static Propor BuildingComponentsProporOfBuildingArea
+#warning add this constant to config file
+            => (Propor).1;
 
         public static AreaDouble BuildingComponentUsefulArea(AreaDouble buildingArea)
-            => throw new NotImplementedException();
+            => AreaDouble.CreateFromMetSq(valueInMetSq: BuildingComponentsProporOfBuildingArea * buildingArea.valueInMetSq);
 
         public static Result<AllResAmounts, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingCost(GeneralProdAndMatAmounts buildingCostPropors, MaterialChoices buildingMatChoices, AreaDouble buildingArea)
             => throw new NotImplementedException();
 
         /// <exception cref="ArgumentException">if buildingMatChoices doesn't contain all required matAmounts</exception>
-        public static Result<EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)>, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingComponentsToAmountPUBA(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, MaterialChoices buildingMatChoices)
-            => throw new NotImplementedException();
+        public static Result<EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)>, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingComponentsToAmountPUBA(
+            EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, MaterialChoices buildingMatChoices)
+        {
+            AreaInt buildingComponentProporsTotalArea = buildingComponentPropors.Sum(prodParamsAndAmount => prodParamsAndAmount.prodParams.usefulArea * prodParamsAndAmount.amount);
+            return buildingComponentPropors.SelectMany
+            (
+                prodParamsAndAmount => prodParamsAndAmount.prodParams.CreateProduct(materialChoices: buildingMatChoices).Select
+                (
+                    func: product =>
+                    (
+                        prod: product,
+                        amountPUBA: BuildingComponentsProporOfBuildingArea * prodParamsAndAmount.amount * prodParamsAndAmount.prodParams.usefulArea.valueInMetSq / buildingComponentProporsTotalArea.valueInMetSq
+                    )
+                )
+            ).Select(prodToAmountPUBA => prodToAmountPUBA.ToEfficientReadOnlyCollection());
+        }
 
         public static CurProdStats CurConstrStats(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors, UDouble gravity, Temperature temperature)
             => throw new NotImplementedException();

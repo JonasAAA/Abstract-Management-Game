@@ -170,6 +170,9 @@ namespace Game1.MyMath
             };
         }
 
+        public static ulong DivideThenTakeCeiling(ulong dividend, ulong divisor)
+            => (dividend + divisor - 1) / divisor;
+
         public static ulong Round(UDouble value)
             => (ulong)Math.Round(value);
 

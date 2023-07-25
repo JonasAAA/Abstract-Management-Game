@@ -48,13 +48,6 @@ namespace Game1
                 => SyncSplittersWithArrows();
         }
 
-        [Serializable]
-        private readonly record struct BuildIndustryButtonClickedListener(CosmicBody Node, IBuildableFactory BuildableParams) : IClickedListener
-        {
-            void IClickedListener.ClickedResponse()
-                => Node.Industry = BuildableParams.CreateIndustry(state: Node.state);
-        }
-
         //[Serializable]
         //private readonly record struct AddResourceDestinationButtonClickedListener : IClickedListener
         //{
@@ -95,10 +88,21 @@ namespace Game1
                 => 2 * State.Radius;
         }
 
+        [Serializable]
+        private record TextBoxHUDPosUpdater(CosmicBody CosmicBody) : IAction
+        {
+            void IAction.Invoke()
+                => CosmicBody.textBox.Shape.Center = CurWorldManager.WorldPosToHUDPos(worldPos: CosmicBody.Position);
+        }
+
         public NodeID NodeID
             => state.NodeID;
         public MyVector2 Position
             => state.Position;
+        public bool HasIndustry
+            => industry is not null;
+        public IIndustryFacingNodeState NodeState
+            => state;
         public RealPeopleStats Stats { get; private set; }
 
         private IIndustry? Industry
@@ -111,13 +115,8 @@ namespace Game1
 
                 infoPanel.RemoveChild(child: industry?.UIElement);
                 industry = value;
-                if (industry is null)
-                    buildButtonPannel.PersonallyEnabled = true;
-                else
-                {
-                    buildButtonPannel.PersonallyEnabled = false;
+                if (industry is not null)
                     infoPanel.AddChild(child: industry.UIElement);
-                }
             }
         }
         private readonly NodeState state;
@@ -142,7 +141,7 @@ namespace Game1
 
         private readonly TextBox textBox;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
-        private readonly UIRectPanel<IHUDElement> infoPanel, buildButtonPannel;
+        private readonly UIRectPanel<IHUDElement> infoPanel;
         //private readonly MyDict<IOverlay, UIRectPanel<IHUDElement>> overlayTabPanels;
         private readonly TextBox infoTextBox;
         //private readonly string overlayTabLabel;
@@ -185,8 +184,11 @@ namespace Game1
 
             textBox = new(textColor: colorConfig.almostWhiteColor);
             textBox.Shape.MinWidth = 100;
-            UpdateHUDPos();
-            CurWorldManager.AddWorldHUDElement(worldHUDElement: textBox);
+            CurWorldManager.AddWorldHUDElement
+            (
+                worldHUDElement: textBox,
+                updateHUDPos: new TextBoxHUDPosUpdater(CosmicBody: this)
+            );
 
             List<(string tabLabelText, ITooltip tabTooltip, IHUDElement tab)> UITabs = new();
 
@@ -199,37 +201,6 @@ namespace Game1
             ));
             infoTextBox = new();
             infoPanel.AddChild(child: infoTextBox);
-
-            buildButtonPannel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
-            UITabs.Add
-            ((
-                tabLabelText: "build",
-                tabTooltip: new ImmutableTextTooltip(text: "Buildings/industries which could be built here"),
-                tab: buildButtonPannel
-            ));
-            foreach (var buildableParams in CurIndustryConfig.constrBuildingParams)
-            {
-                Button buildIndustryButton = new
-                (
-                    shape: new Ellipse
-                    (
-                        width: 200,
-                        height: 20
-                    ),
-                    tooltip: buildableParams.CreateTooltip(state: state),
-                    text: buildableParams.ButtonName
-                );
-                buildIndustryButton.clicked.Add
-                (
-                    listener: new BuildIndustryButtonClickedListener
-                    (
-                        Node: this,
-                        BuildableParams: buildableParams
-                    )
-                );
-
-                buildButtonPannel.AddChild(child: buildIndustryButton);
-            }
 
             //overlayTabLabel = "overlay tab";
             //overlayTabPanels = new();
@@ -318,8 +289,16 @@ namespace Game1
             CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
         }
 
-        public void UpdateHUDPos()
-            => textBox.Shape.Center = CurWorldManager.WorldPosToHUDPos(worldPos: Position);
+        public void StartConstruction(Construction.ConcreteParams constrConcreteParams)
+            => Industry = constrConcreteParams.CreateIndustry();
+
+        ///// <summary>
+        ///// Returns the missing material purposes. If everything needed is set, then proceeds
+        ///// </summary>
+        //public EfficientReadOnlyHashSet<IMaterialPurpose> StartConstructionOrThrow(Construction.GeneralParams constrGeneralParams, MaterialChoices buildingMaterialChoices)
+        //{
+        //    Industry = constrGeneralParams.CreateConcreteOrThrow(nodeState: state, buildingMatChoices: buildingMaterialChoices).CreateIndustry();
+        //}
 
         public ulong TotalQueuedRes(IResource res)
             => state.StoredResPile.Amount[res] + resTravelHereAmounts[res];
@@ -402,6 +381,7 @@ namespace Game1
 
             RawMatAmounts cosmicBodyNewComposition = Algorithms.CosmicBodyNewComposition
             (
+                curResConfig: CurResConfig,
                 composition: state.Composition,
                 temperature: state.Temperature,
                 gravity: state.SurfaceGravity,
@@ -465,8 +445,6 @@ namespace Game1
                     personFirstLinks[(NodeID, activityCenterPosition)]!.TransferFrom(start: this, realPersonSource: state.WaitingPeople, realPerson: realPerson);
                 }
             );
-
-            UpdateHUDPos();
 
             Debug.Assert(state.RadiantEnergyPile.Amount.IsZero);
         }

@@ -19,10 +19,16 @@ namespace Game1.PrimitiveTypeWrappers
             => Create(value: part / whole);
 
         public static Propor? Create(UDouble part, UDouble whole)
-            => Create(value: part / whole);
+        {
+            if (whole == 0)
+                return null;
+            return Create(value: part / whole);
+        }
 
         public static Propor? Create(double value)
         {
+            if (double.IsNaN(value))
+                return null;
             if (value < 0 && MyMathHelper.AreClose(value, 0))
                 value = 0;
             if (value > 1 && MyMathHelper.AreClose(value, 1))
@@ -126,7 +132,7 @@ namespace Game1.PrimitiveTypeWrappers
             => left.value == right.value;
 
         public static bool operator !=(Propor left, Propor right)
-            => left.value == right.value;
+            => left.value != right.value;
 
         public override string ToString()
             => $"{value:0.00}";

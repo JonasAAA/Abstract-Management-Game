@@ -1,6 +1,7 @@
 ﻿using Game1.Collections;
 using Game1.Shapes;
 using Game1.UI;
+using static Game1.Industries.Industry;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
@@ -10,10 +11,12 @@ namespace Game1.Industries
     /// </summary>
     public static class Mining
     {
+
         [Serializable]
         public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
             public string Name { get; }
+            public EfficientReadOnlyHashSet<IMaterialPurpose> NeededMaterialPurposes { get; }
             public EfficientReadOnlyDictionary<IMaterialPurpose, Propor> BuildingComponentMaterialPropors { get; }
 
             public readonly DiskBuildingImage.Params buildingImageParams;
@@ -29,6 +32,7 @@ namespace Game1.Industries
                 buildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
                 if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
                     throw new ArgumentException();
+                NeededMaterialPurposes = buildingCostPropors.neededMaterialPurposes;
                 BuildingComponentMaterialPropors = buildingCostPropors.materialPropors;
 
                 if (energyPriority == EnergyPriority.mostImportant)
@@ -263,5 +267,11 @@ namespace Game1.Industries
                 Debug.Assert(miningRes.IsEmpty);
             }
         }
+
+        public static HashSet<Type> GetKnownTypes()
+            => new()
+            {
+                typeof(Industry<UnitType, ConcreteBuildingParams, PersistentState, MiningCycleState>)
+            };
     }
 }

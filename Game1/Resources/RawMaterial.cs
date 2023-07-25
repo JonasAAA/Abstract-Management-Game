@@ -1,16 +1,15 @@
-﻿using static Game1.WorldManager;
-
-namespace Game1.Resources
+﻿namespace Game1.Resources
 {
     [Serializable]
     public class RawMaterial : IResource
     {
-        public static RawMaterial Get(ulong ind)
+        public static RawMaterial GetAndAddToCurResConfigIfNeeded(ResConfig curResConfig, ulong ind)
         {
-            if (CurResConfig.GetRawMatFromInd(ind: ind) is RawMaterial rawMaterial)
+            if (curResConfig.GetRawMatFromInd(ind: ind) is RawMaterial rawMaterial)
                 return rawMaterial;
             return new
             (
+                curResConfig: curResConfig,
                 ind: ind,
                 name: ResAndIndustryAlgos.RawMaterialName(ind: ind),
                 mass: ResAndIndustryAlgos.RawMaterialMass(ind: ind),
@@ -33,7 +32,7 @@ namespace Game1.Resources
         public UDouble FusionReactionStrengthCoeff { get; }
         public ulong Ind { get; }
 
-        private RawMaterial(ulong ind, string name, Mass mass, HeatCapacity heatCapacity, AreaInt area, Temperature meltingPoint, Color color, UDouble fusionReactionStrengthCoeff)
+        private RawMaterial(ResConfig curResConfig, ulong ind, string name, Mass mass, HeatCapacity heatCapacity, AreaInt area, Temperature meltingPoint, Color color, UDouble fusionReactionStrengthCoeff)
         {
             Name = name;
             Mass = mass;
@@ -46,11 +45,11 @@ namespace Game1.Resources
             FusionReactionStrengthCoeff = fusionReactionStrengthCoeff;
             Ind = ind;
 
-            CurResConfig.AddRes(resource: this);
+            curResConfig.AddRes(resource: this);
         }
 
-        public RawMaterial GetFusionResult()
-            => Get(ind: Ind + 1);
+        public RawMaterial GetFusionResult(ResConfig curResConfig)
+            => GetAndAddToCurResConfigIfNeeded(curResConfig: curResConfig, ind: Ind + 1);
 
         public override string ToString()
             => Name;

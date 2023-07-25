@@ -1,11 +1,17 @@
-﻿using Game1.Collections;
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1.Resources
 {
     [Serializable]
     public sealed class Material : IResource
     {
+        public static void CreateAndAddToCurResConfig(string name, RawMatAmounts composition)
+        {
+            // Material consrutor adds itself to CurResConfig
+            _ = new Material(name, composition);
+        }
+
+        public string Name { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
@@ -14,8 +20,9 @@ namespace Game1.Resources
         public Temperature MeltingPoint { get; }
         public ResRecipe Recipe { get; }
 
-        public Material(RawMatAmounts composition)
+        private Material(string name, RawMatAmounts composition)
         {
+            Name = name;
             Mass = composition.Mass();
             HeatCapacity = composition.HeatCapacity();
             Area = composition.Area();

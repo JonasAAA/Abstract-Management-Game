@@ -145,7 +145,7 @@ namespace Game1
                 (
                     rawMatAmount => new ResAmount<RawMaterial>
                     (
-                        res: RawMaterial.Get(ind: rawMatAmount.rawMatInd),
+                        res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: CurResConfig, ind: rawMatAmount.rawMatInd),
                         amount: rawMatAmount.amount
                     )
                 )
@@ -466,9 +466,6 @@ namespace Game1
             foreach (var node in nodes)
                 node.EndSplitRes(resFirstLinks: resFirstLinks);
         }
-
-        public void UpdateHUDPos()
-            => nodes.ForEach(node => node.UpdateHUDPos());
 
         /// <summary>
         /// TODO:

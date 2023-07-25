@@ -75,6 +75,13 @@ namespace Game1
             Debug.Assert(isInitialized);
             return isOk ? func(okValue) : new(errors: errorValues);
         }
+
+        public TOk UnwrapOrThrow(Func<TErrors, Exception> exception)
+        {
+            if (isOk)
+                return okValue;
+            throw exception(errorValues);
+        }
     }
 
     public static class Result

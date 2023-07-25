@@ -38,7 +38,8 @@ namespace Game1.UI
         public Event<IClickedNowhereListener> clickedNowhere;
 
         private readonly List<IUIElement> activeUIElements;
-        private readonly HashSet<IHUDElement> HUDElements, worldHUDElements;
+        private readonly HashSet<IHUDElement> HUDElements;
+        private readonly Dictionary<IHUDElement, IAction> worldHUDElementToUpdateHUDPosAction;
         private readonly HashSet<IUIElement> worldUIElements;
         private readonly AbstractButton mouseLeftButton;
         private IUIElement? halfClicked, contMouse;
@@ -47,6 +48,7 @@ namespace Game1.UI
         private ITooltip? tooltip;
         private readonly HUDPosSetter HUDPosSetter;
         private readonly WorldCamera? worldCamera;
+        private IHUDElement? HUDPopup;
 
         public ActiveUIManager(WorldCamera? worldCamera)
         {
@@ -63,9 +65,10 @@ namespace Game1.UI
 
             HUDPosSetter = new();
             worldUIElements = new();
-            worldHUDElements = new();
+            worldHUDElementToUpdateHUDPosAction = new();
 
             tooltip = null;
+            HUDPopup = null;
         }
 
         
@@ -101,18 +104,48 @@ namespace Game1.UI
         }
 
         /// <summary>
+        /// The popup will disappear when player presses anywhere.
+        /// </summary>
+        public void SetHUDPopup(IHUDElement HUDElement, MyVector2 HUDPos, HorizPos horizOrigin, VertPos vertOrigin)
+        {
+            HUDPopup = HUDElement;
+
+            HUDPosSetter.AddHUDElement(HUDElement: HUDElement, HUDPos: HUDPos, horizOrigin: horizOrigin, vertOrigin: vertOrigin);
+
+            activeUIElements.Add(HUDElement);
+        }
+
+        private void RemoveHUDPopup()
+        {
+            if (HUDPopup is null)
+                return;
+            HUDPosSetter.RemoveHUDElement(HUDElement: HUDPopup);
+            activeUIElements.Remove(HUDPopup);
+            HUDPopup = null;
+        }
+
+        ///// <summary>
+        ///// worldHUDElement will be drawn by this
+        ///// </summary>
+        //public void AddWorldHUDElement(IHUDElement worldHUDElement)
+        //{
+        //    activeUIElements.Add(worldHUDElement);
+        //    worldHUDElements.Add(worldHUDElement);
+        //}
+
+        /// <summary>
         /// worldHUDElement will be drawn by this
         /// </summary>
-        public void AddWorldHUDElement(IHUDElement worldHUDElement)
+        public void AddWorldHUDElement(IHUDElement worldHUDElement, IAction updateHUDPos)
         {
             activeUIElements.Add(worldHUDElement);
-            worldHUDElements.Add(worldHUDElement);
+            worldHUDElementToUpdateHUDPosAction.Add(key: worldHUDElement, value: updateHUDPos);
         }
 
         public void RemoveWorldHUDElement(IHUDElement worldHUDElement)
         {
             activeUIElements.Remove(worldHUDElement);
-            worldHUDElements.Remove(worldHUDElement);
+            worldHUDElementToUpdateHUDPosAction.Remove(key: worldHUDElement);
         }
 
         public void RemoveHUDElement(IHUDElement? HUDElement)
@@ -139,6 +172,8 @@ namespace Game1.UI
 
         public void Update(TimeSpan elapsed)
         {
+            foreach (var worldHUDElementUpdatePosAction in worldHUDElementToUpdateHUDPosAction.Values)
+                worldHUDElementUpdatePosAction.Invoke();
             IUIElement? prevContMouse = contMouse;
 
             MouseState mouseState = Mouse.GetState();
@@ -159,7 +194,7 @@ namespace Game1.UI
 
                 MyVector2 getMousePos()
                 {
-                    if (HUDElements.Contains(UIElement) || worldHUDElements.Contains(UIElement))
+                    if (HUDPopup == UIElement || (UIElement is HUDElement HUDElement && (HUDElements.Contains(HUDElement) || worldHUDElementToUpdateHUDPosAction.ContainsKey(HUDElement))))
                         return HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos);
                     if (worldUIElements.Contains(UIElement))
                         return worldCamera!.ScreenPosToWorldPos(screenPos: mouseScreenPos);
@@ -193,6 +228,8 @@ namespace Game1.UI
 
             if (mouseLeftButton.Clicked)
             {
+                RemoveHUDPopup();
+
                 IUIElement? otherHalfClicked = contMouse;
                 if (halfClicked == otherHalfClicked && otherHalfClicked?.Enabled is true && otherHalfClicked.CanBeClicked)
                     otherHalfClicked.OnClick();
@@ -215,10 +252,11 @@ namespace Game1.UI
         public void DrawHUD()
         {
             HUDCamera.BeginDraw();
-            foreach (var worldHUDElement in worldHUDElements)
+            foreach (var worldHUDElement in worldHUDElementToUpdateHUDPosAction.Keys)
                 worldHUDElement.Draw();
             foreach (var HUDElement in HUDElements)
                 HUDElement.Draw();
+            HUDPopup?.Draw();
             tooltip?.Draw();
             HUDCamera.EndDraw();
         }

@@ -6,6 +6,12 @@ namespace Game1.UI
     [Serializable]
     public abstract class BaseButton : HUDElement, IWithTooltip
     {
+        public string? Text
+        {
+            get => textBox.Text;
+            set => textBox.Text = value;
+        }
+
         public ITooltip Tooltip { get; }
 
         public readonly Event<IClickedListener> clicked;

@@ -58,7 +58,8 @@ namespace Game1.Industries
             => buildingParams.SurfaceMaterial(productionInProgress: Busy);
 
         public IHUDElement UIElement
-            => throw new NotImplementedException();
+#warning Complete this
+            => new TextBox() { Text = "Industry UI Panel" };
 
         public IEvent<IDeletedListener> Deleted
             => deleted;

@@ -11,6 +11,7 @@ namespace Game1.Industries
         public sealed class GeneralParams : IGeneralBuildingConstructionParams
         {
             public string Name { get; }
+            public EfficientReadOnlyHashSet<IMaterialPurpose> NeededMaterialPurposes { get; }
             public EfficientReadOnlyDictionary<IMaterialPurpose, Propor> BuildingComponentMaterialPropors { get; }
 
             public readonly DiskBuildingImage.Params buildingImageParams;
@@ -27,6 +28,7 @@ namespace Game1.Industries
                 buildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
                 if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
                     throw new ArgumentException();
+                NeededMaterialPurposes = buildingCostPropors.neededMaterialPurposes;
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.manufacturingBuildingColor);
                 
                 if (energyPriority == EnergyPriority.mostImportant)
@@ -285,5 +287,11 @@ namespace Game1.Industries
                 buildingParams.NodeState.StoredResPile.TransferAllFrom(source: resInUse);
             }
         }
+
+        public static HashSet<Type> GetKnownTypes()
+            => new()
+            {
+                typeof(Industry<ConcreteProductionParams, ConcreteBuildingParams, ResPile, ManufacturingCycleState>)
+            };
     }
 }

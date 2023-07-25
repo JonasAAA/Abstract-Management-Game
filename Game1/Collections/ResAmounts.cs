@@ -85,10 +85,17 @@ namespace Game1.Collections
             amounts = new(resAmounts.Count);
             for (int ind = 0; ind < resAmounts.Count; ind++)
             {
-                if (resAmounts[ind].amount is 0)
+                var res = resAmounts[ind].res;
+                var amount = resAmounts[ind].amount;
+                if (amount is 0)
                     continue;
-                resList.Add(resAmounts[ind].res);
-                amounts.Add(resAmounts[ind].amount);
+                if (resList.Count > 0 && resList[^1] == res)
+                    amounts[^1] += amount;
+                else
+                {
+                    resList.Add(res);
+                    amounts.Add(amount);
+                }
             }
             Validate();
         }

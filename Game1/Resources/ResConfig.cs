@@ -16,8 +16,50 @@
             nextOrder = 0;
         }
 
+        public void Initialize()
+        {
+            Material.CreateAndAddToCurResConfig
+            (
+                name: "Material 0",
+                composition: new
+                (
+                    res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: this, ind: 0),
+                    amount: 1
+                )
+            );
+            Material.CreateAndAddToCurResConfig
+            (
+                name: "Material 1",
+                composition: new
+                (
+                    res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: this, ind: 1),
+                    amount: 1
+                )
+            );
+            Material.CreateAndAddToCurResConfig
+            (
+                name: "Material 0 and 1 mix",
+                composition: new
+                (
+                    resAmounts: new List<ResAmount<RawMaterial>>()
+                    {
+                        new(res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: this, ind: 0), amount: 1),
+                        new(res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: this, ind: 1), amount: 1)
+                    }
+                )
+            );
+        }
+
         public RawMaterial? GetRawMatFromInd(ulong ind)
             => indToRawMat.GetValueOrDefault(key: ind);
+
+        public IEnumerable<TRes> GetCurRes<TRes>()
+            where TRes : class, IResource
+        {
+            foreach (var res in resources)
+                if (res is TRes wantedRes)
+                    yield return wantedRes;
+        }
 
         public IEnumerable<IResource> GetAllCurRes()
             => resources;

@@ -127,6 +127,15 @@ namespace Game1
             return result;
         }
 
+        public static EfficientReadOnlyCollection<TSource> ToEfficientReadOnlyCollection<TSource>(this IEnumerable<TSource> source)
+            => new(list: source.ToList());
+
+        public static EfficientReadOnlyCollection<TSource> ToEfficientReadOnlyCollection<TSource>(this List<TSource> source)
+            => new(list: source);
+
+        public static EfficientReadOnlyHashSet<TSource> ToEfficientReadOnlyHashSet<TSource>(this IEnumerable<TSource> source)
+            => new(set: source.ToHashSet());
+
         public static EfficientReadOnlyDictionary<TKey, TValue> ToEfficientReadOnlyDict<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector)
             where TKey : notnull
             => new(source.ToDictionary(keySelector: keySelector, elementSelector: elementSelector));

@@ -7,5 +7,8 @@
     public readonly struct MechComplexity
     {
         private readonly ulong complexity;
+
+        public MechComplexity(ulong complexity)
+            => this.complexity = complexity;
     }
 }

@@ -30,22 +30,19 @@ namespace Game1.UI
         private readonly struct HUDElementSizeOrPosChangedListener : ISizeOrPosChangedListener
         {
             private readonly MyVector2 HUDPos;
-            private readonly HorizPos horizOrigin;
-            private readonly VertPos vertOrigin;
+            private readonly PosEnums origin;
 
-            public HUDElementSizeOrPosChangedListener(HorizPos horizPos, VertPos vertPos)
+            public HUDElementSizeOrPosChangedListener(PosEnums position)
             {
                 MyVector2 HUDCenter = new(ActiveUIManager.screenWidth * .5, ActiveUIManager.screenHeight * .5);
-                HUDPos = HUDCenter + new MyVector2((int)horizPos * HUDCenter.X, (int)vertPos * HUDCenter.Y);
-                horizOrigin = horizPos;
-                vertOrigin = vertPos;
+                HUDPos = position.GetPosInRect(center: HUDCenter, width: ActiveUIManager.screenWidth, height: ActiveUIManager.screenHeight);
+                origin = position;
             }
 
-            public HUDElementSizeOrPosChangedListener(MyVector2 HUDPos, HorizPos horizOrigin, VertPos vertOrigin)
+            public HUDElementSizeOrPosChangedListener(MyVector2 HUDPos, PosEnums origin)
             {
                 this.HUDPos = HUDPos;
-                this.horizOrigin = horizOrigin;
-                this.vertOrigin = vertOrigin;
+                this.origin = origin;
             }
 
             public void SizeOrPosChangedResponse(Shape shape)
@@ -55,8 +52,7 @@ namespace Game1.UI
                     nearRectangle.SetPosition
                     (
                         position: HUDPos,
-                        horizOrigin: horizOrigin,
-                        vertOrigin: vertOrigin
+                        origin: origin
                     );
                 }
                 else
@@ -69,26 +65,21 @@ namespace Game1.UI
         public HUDPosSetter()
             => sizeOrPosChangedListeners = new();
 
-        public void AddHUDElement(IHUDElement HUDElement, HorizPos horizPos, VertPos vertPos)
+        public void AddHUDElement(IHUDElement HUDElement, PosEnums position)
             => AddHUDElement
             (
                 HUDElement: HUDElement,
-                HUDElementSizeOrPosChangedListener: new HUDElementSizeOrPosChangedListener
-                (
-                    horizPos: horizPos,
-                    vertPos: vertPos
-                )
+                HUDElementSizeOrPosChangedListener: new HUDElementSizeOrPosChangedListener(position: position)
             );
 
-        public void AddHUDElement(IHUDElement HUDElement, MyVector2 HUDPos, HorizPos horizOrigin, VertPos vertOrigin)
+        public void AddHUDElement(IHUDElement HUDElement, MyVector2 HUDPos, PosEnums origin)
             => AddHUDElement
             (
                 HUDElement: HUDElement,
                 HUDElementSizeOrPosChangedListener: new HUDElementSizeOrPosChangedListener
                 (
                     HUDPos: HUDPos,
-                    horizOrigin: horizOrigin,
-                    vertOrigin: vertOrigin
+                    origin: origin
                 )
             );
 

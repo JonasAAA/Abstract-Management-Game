@@ -27,6 +27,7 @@ namespace Game1.Collections
         private readonly Dictionary<TKey, TValue> dict;
 
         public EfficientReadOnlyDictionary()
+            // Can't use empty.dict here because it can be modified in init indexer
             => dict = new();
 
         public EfficientReadOnlyDictionary(Dictionary<TKey, TValue> dict)

@@ -16,6 +16,7 @@ namespace Game1.Resources
             public readonly GeneralProdAndMatAmounts ingredients;
             public readonly AreaInt usefulArea;
             public readonly MechComplexity complexity;
+
             //private readonly HashSet<IMaterialPurpose> neededPurposes;
             //private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
             //private readonly Area usefulArea;
@@ -46,12 +47,19 @@ namespace Game1.Resources
                     throw new ArgumentException("Product should require at least one material to be created");
             }
 
+            private string GenerateProductName()
+                => Algorithms.GanerateNewName
+                (
+                    prefix: name,
+                    usedNames: CurResConfig.GetCurRes<Product>().Select(product => product.Name).ToEfficientReadOnlyHashSet()
+                );
+
             public Result<Product, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateProduct(MaterialChoices materialChoices)
             {
                 MaterialChoices neededMaterialChoices = materialChoices.FilterOutUnneededMaterials(materialPropors: ingredients.materialPropors);
                 return Result.Lift
                 (
-                    func: (arg1, arg2) => new Product(parameters: this, materialChoices: neededMaterialChoices, productIngredients: new(arg1), materialIngredients: new(arg2)),
+                    func: (arg1, arg2) => new Product(name: GenerateProductName(), parameters: this, materialChoices: neededMaterialChoices, productIngredients: new(arg1), materialIngredients: new(arg2)),
                     arg1: ingredients.ingredProdToAmounts.SelectMany
                     (
                         func: ingredProdToAmount => ingredProdToAmount.prodParams.CreateProduct(materialChoices: neededMaterialChoices).Select
@@ -134,9 +142,9 @@ namespace Game1.Resources
         private readonly ResAmounts<Product> productIngredients;
         private readonly ResAmounts<Material> materialIngredients;
 
-        private Product(Params parameters, MaterialChoices materialChoices, ResAmounts<Product> productIngredients, ResAmounts<Material> materialIngredients)
+        private Product(string name, Params parameters, MaterialChoices materialChoices, ResAmounts<Product> productIngredients, ResAmounts<Material> materialIngredients)
         {
-            Name = parameters.name;
+            Name = name;
             this.parameters = parameters;
             this.materialChoices = materialChoices;
             this.productIngredients = productIngredients;
@@ -157,5 +165,8 @@ namespace Game1.Resources
                 results: new AllResAmounts(res: this, amount: 1)
             );
         }
+
+        public override string ToString()
+            => Name;
     }
 }

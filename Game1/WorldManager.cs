@@ -36,8 +36,10 @@ namespace Game1
                 => this.onOffButton = onOffButton;
         }
 
+
+        // Build helpers
         [Serializable]
-        private readonly record struct BuildIndustryButtonClickedListener(Construction.GeneralParams ConstrGeneralParams) : IClickedListener
+        private sealed record BuildIndustryButtonClickedListener(Construction.GeneralParams ConstrGeneralParams) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => BuildingConfigPanelManager.StartBuildingConfig(constrGeneralParams: ConstrGeneralParams);
@@ -48,24 +50,24 @@ namespace Game1
         {
             public static void StartBuildingConfig(Construction.GeneralParams constrGeneralParams)
             {
+                CurWorldManager.activeUIManager.DisableAllUIElements();
                 BuildingConfigPanelManager buildingConfigPanelManager = new(constrGeneralParams: constrGeneralParams);
                 CurWorldManager.AddHUDElement
                 (
                     HUDElement: buildingConfigPanelManager.buildingConfigPanel,
-                    horizPos: HorizPos.Right,
-                    vertPos: VertPos.Top
+                    position: new(HorizPosEnum.Right, VertPosEnum.Top)
                 );
-                foreach (var cosmicBodyPanelManager in buildingConfigPanelManager.cosmicBodyPanelManagers)
+                foreach (var cosmicBodyBuildPanelManager in buildingConfigPanelManager.cosmicBodyBuildPanelManagers)
                     CurWorldManager.AddWorldHUDElement
                     (
-                        worldHUDElement: cosmicBodyPanelManager.CosmicBodyPanel,
-                        updateHUDPos: cosmicBodyPanelManager.CosmicBodyPanelHUDPosUpdate
+                        worldHUDElement: cosmicBodyBuildPanelManager.CosmicBodyBuildPanel,
+                        updateHUDPos: cosmicBodyBuildPanelManager.CosmicBodyPanelHUDPosUpdate
                     );
             }
 
             private readonly Construction.GeneralParams constrGeneralParams;
             private readonly UIRectVertPanel<IHUDElement> buildingConfigPanel;
-            private readonly List<CosmicBodyPanelManager> cosmicBodyPanelManagers;
+            private readonly List<CosmicBodyBuildPanelManager> cosmicBodyBuildPanelManagers;
             private readonly Dictionary<IMaterialPurpose, Material> buildingMaterialChoices;
             private readonly Button cancelButton;
 
@@ -73,7 +75,7 @@ namespace Game1
             {
                 this.constrGeneralParams = constrGeneralParams;
                 buildingMaterialChoices = new();
-                buildingConfigPanel = new(childHorizPos: HorizPos.Left);
+                buildingConfigPanel = new(childHorizPos: HorizPosEnum.Left);
                 buildingConfigPanel.AddChild(child: new TextBox() { Text = "Material Choices" });
                 cancelButton = new
                 (
@@ -83,13 +85,13 @@ namespace Game1
                     color: colorConfig.deleteButtonColor
                 );
                 // Need to initialize all references so that when this gets copied, the fields are already initialized
-                cosmicBodyPanelManagers = new();
+                cosmicBodyBuildPanelManagers = new();
 
                 EfficientReadOnlyHashSet<IMaterialPurpose> neededMatPurposes = constrGeneralParams.neededMaterialPurposes;
                 Debug.Assert(neededMatPurposes.Count is not 0);
                 foreach (var materialPurpose in neededMatPurposes)
                 {
-                    UIRectHorizPanel<IHUDElement> materialChoiceLine = new(childVertPos: VertPos.Middle);
+                    UIRectHorizPanel<IHUDElement> materialChoiceLine = new(childVertPos: VertPosEnum.Middle);
                     buildingConfigPanel.AddChild(child: materialChoiceLine);
                     materialChoiceLine.AddChild(child: new TextBox() { Text = materialPurpose.Name + " " });
                     Button startMaterialChoice = new
@@ -114,7 +116,7 @@ namespace Game1
                 cancelButton.clicked.Add(listener: new CancelBuildingButtonListener(BuildingConfigPanelManager: this));
                 
                 var thisCopy = this;
-                cosmicBodyPanelManagers.AddRange
+                cosmicBodyBuildPanelManagers.AddRange
                 (
                     collection: CurWorldManager.CurGraph.Nodes.Where
                     (
@@ -123,15 +125,15 @@ namespace Game1
                     (
                         cosmicBody =>
                         {
-                            UIRectVertPanel<IHUDElement> cosmicBodyPanel = new(childHorizPos: HorizPos.Left);
-                            cosmicBodyPanel.AddChild(new TextBox() { Text = "Building Stats" });
+                            UIRectVertPanel<IHUDElement> cosmicBodyBuildPanel = new(childHorizPos: HorizPosEnum.Left);
+                            cosmicBodyBuildPanel.AddChild(new TextBox() { Text = "Building Stats" });
                             Button buildButton = new
                             (
                                 shape: new MyRectangle(width: 100, height: 30),
                                 tooltip: new ImmutableTextTooltip(text: UIAlgorithms.BuildHereTooltip),
                                 text: "Build here"
                             );
-                            cosmicBodyPanel.AddChild(child: buildButton);
+                            cosmicBodyBuildPanel.AddChild(child: buildButton);
                             buildButton.PersonallyEnabled = false;
                             buildButton.clicked.Add
                             (
@@ -143,11 +145,17 @@ namespace Game1
                                     BuildingMaterialChoices: new(dict: thisCopy.buildingMaterialChoices)
                                 )
                             );
-                            return new CosmicBodyPanelManager
+                            return new CosmicBodyBuildPanelManager
                             (
                                 CosmicBody: cosmicBody,
-                                CosmicBodyPanel: cosmicBodyPanel,
-                                CosmicBodyPanelHUDPosUpdate: new CosmicBodyPanelHUDPosUpdater(CosmicBody: cosmicBody, CosmicBodyPanel: cosmicBodyPanel),
+                                CosmicBodyBuildPanel: cosmicBodyBuildPanel,
+                                CosmicBodyPanelHUDPosUpdate: new CosmicBodyPanelHUDPosUpdater
+                                (
+                                    CosmicBody: cosmicBody,
+                                    CosmicBodyPanel: cosmicBodyBuildPanel,
+                                    AnchorInCosmicBody: new(HorizPosEnum.Right, VertPosEnum.Middle),
+                                    Origin: new(HorizPosEnum.Middle, VertPosEnum.Middle)
+                                ),
                                 BuildButton: buildButton
                             );
                         }
@@ -159,16 +167,17 @@ namespace Game1
             {
                 buildingMaterialChoices[materialPurpose] = material;
                 bool enableBuildButtons = constrGeneralParams.SufficientbuildingMaterials(curBuildingMaterialChoices: new(dict: buildingMaterialChoices));
-                foreach (var cosmicBodyPanelManager in cosmicBodyPanelManagers)
+                foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers)
                     cosmicBodyPanelManager.BuildButton.PersonallyEnabled = enableBuildButtons;
 #warning Complete this. In case all material choices are made, show player the stats of the to-be-constructed building
             }
 
-            public void RemoveFromActiveUIManager()
+            public void StopBuildingConfig()
             {
                 CurWorldManager.RemoveHUDElement(HUDElement: buildingConfigPanel);
-                foreach (var cosmicBodyPanelManager in cosmicBodyPanelManagers)
-                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyPanelManager.CosmicBodyPanel);
+                foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers)
+                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyPanelManager.CosmicBodyBuildPanel);
+                CurWorldManager.activeUIManager.EnableAllUIElements();
             }
         }
 
@@ -177,19 +186,13 @@ namespace Game1
         {
             void IClickedListener.ClickedResponse()
             {
-                UIRectVertPanel<IHUDElement> materialChoicePopup = new(childHorizPos: Shapes.HorizPos.Middle);
-                var popupHorizOrigin = HorizPos.Middle;
-                var popupVertOrigin = VertPos.Middle;
+                UIRectVertPanel<IHUDElement> materialChoicePopup = new(childHorizPos: HorizPosEnum.Middle);
+                PosEnums popupOrigin = new(HorizPosEnum.Middle, VertPosEnum.Middle);
                 CurWorldManager.SetHUDPopup
                 (
                     HUDElement: materialChoicePopup,
-                    HUDPos: StartMaterialChoice.Shape.GetPosition
-                    (
-                        horizOrigin: popupHorizOrigin,
-                        vertOrigin: popupVertOrigin
-                    ),
-                    horizOrigin: popupHorizOrigin,
-                    vertOrigin: popupVertOrigin
+                    HUDPos: StartMaterialChoice.Shape.GetPosition(origin: popupOrigin),
+                    origin: popupOrigin
                 );
                 foreach (var material in CurResConfig.GetCurRes<Material>())
                 {
@@ -229,21 +232,20 @@ namespace Game1
         private record CancelBuildingButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
-                => BuildingConfigPanelManager.RemoveFromActiveUIManager();
+                => BuildingConfigPanelManager.StopBuildingConfig();
         }
 
         [Serializable]
-        private readonly record struct CosmicBodyPanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyPanel, IAction CosmicBodyPanelHUDPosUpdate, Button BuildButton);
+        private readonly record struct CosmicBodyBuildPanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyBuildPanel, IAction CosmicBodyPanelHUDPosUpdate, Button BuildButton);
 
         [Serializable]
-        private record CosmicBodyPanelHUDPosUpdater(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyPanel) : IAction
+        private record CosmicBodyPanelHUDPosUpdater(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyPanel, PosEnums AnchorInCosmicBody, PosEnums Origin) : IAction
         {
             void IAction.Invoke()
                 => CosmicBodyPanel.Shape.SetPosition
                 (
-                    position: CurWorldManager.WorldPosToHUDPos(worldPos: CosmicBody.Position),
-                    horizOrigin: HorizPos.Left,
-                    vertOrigin: VertPos.Top
+                    position: CurWorldManager.WorldPosToHUDPos(worldPos: CosmicBody.GetPosition(origin: AnchorInCosmicBody)),
+                    origin: Origin
                 );
         }
 
@@ -257,13 +259,156 @@ namespace Game1
                         ok: constrConcreteParams =>
                         {
                             CosmicBody.StartConstruction(constrConcreteParams: constrConcreteParams);
-                            BuildingConfigPanelManager.RemoveFromActiveUIManager();
+                            BuildingConfigPanelManager.StopBuildingConfig();
                         },
                         error: errors => throw new Exception(string.Join("\n", errors))
                     );
         }
-        
-        
+
+
+        // Transport helpers
+        [Serializable]
+        private record AddRouteButtonClickedListener() : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+                => AddRouteManager.StartAddingRoute();
+        }
+
+        [Serializable]
+        private readonly struct AddRouteManager
+        {
+            public static void StartAddingRoute()
+            {
+                CurWorldManager.activeUIManager.DisableAllUIElements();
+                AddRouteManager addRouteManager = new();
+                foreach (var cosmicBodyAddDestinPanelManager in addRouteManager.cosmicBodyAddDestinPanelManagers)
+                    CurWorldManager.AddWorldHUDElement
+                    (
+                        worldHUDElement: cosmicBodyAddDestinPanelManager.CosmicBodyAddDestinPanel,
+                        updateHUDPos: cosmicBodyAddDestinPanelManager.CosmicBodyPanelHUDPosUpdate
+                    );
+
+                foreach (var cosmicBodyAddSourcePanelManager in addRouteManager.cosmicBodyAddSourcePanelManagers)
+                    CurWorldManager.AddWorldHUDElement
+                    (
+                        worldHUDElement: cosmicBodyAddSourcePanelManager.CosmicBodyAddSourcePanel,
+                        updateHUDPos: cosmicBodyAddSourcePanelManager.CosmicBodyPanelHUDPosUpdate
+                    );
+            }
+
+            private readonly List<CosmicBodyAddDestinPanelManager> cosmicBodyAddDestinPanelManagers;
+            private readonly List<CosmicBodyAddSourcePanelManager> cosmicBodyAddSourcePanelManagers;
+
+            public AddRouteManager()
+            {
+                // Need to initialize all references so that when this gets copied, the fields are already initialized
+                cosmicBodyAddDestinPanelManagers = new();
+                cosmicBodyAddSourcePanelManagers = new();
+
+                cosmicBodyAddDestinPanelManagers.AddRange
+                (
+                    collection: CurWorldManager.CurGraph.Nodes.Where
+                    (
+                        cosmicBody => cosmicBody.HasIndustry
+                    ).Select
+                    (
+                        cosmicBody =>
+                        {
+                            UIRectVertPanel<IHUDElement> cosmicBodyAddDestinPanel = new(childHorizPos: HorizPosEnum.Left);
+                            cosmicBodyAddDestinPanel.AddChild(new TextBox() { Text = "Add resource\ndestination" });
+                            var potentiallyNotNeededBuildingComponents = cosmicBody.GetPotentiallyNotNeededBuildingComponents();
+                            return new CosmicBodyAddDestinPanelManager
+                            (
+                                CosmicBody: cosmicBody,
+                                CosmicBodyAddDestinPanel: cosmicBodyAddDestinPanel,
+                                CosmicBodyPanelHUDPosUpdate: new CosmicBodyPanelHUDPosUpdater
+                                (
+                                    CosmicBody: cosmicBody,
+                                    CosmicBodyPanel: cosmicBodyAddDestinPanel,
+                                    AnchorInCosmicBody: new(HorizPosEnum.Right, VertPosEnum.Middle),
+                                    Origin: new(HorizPosEnum.Middle, VertPosEnum.Middle)
+                                )
+                            );
+                        }
+                    )
+                );
+
+                cosmicBodyAddSourcePanelManagers.AddRange
+                (
+                    collection: CurWorldManager.CurGraph.Nodes.Where
+                    (
+                        cosmicBody => cosmicBody.HasIndustry
+                    ).Select
+                    (
+                        cosmicBody =>
+                        {
+                            UIRectVertPanel<IHUDElement> cosmicBodyAddSourcePanel = new(childHorizPos: HorizPosEnum.Left);
+                            cosmicBodyAddSourcePanel.AddChild(new TextBox() { Text = "Add resource\nsource" });
+#warning
+                            // GAME should probably be paused while this UI element is in use.
+                            // Otherwise e.g. building may finish construction, thus changing the consumed and produced resources there.
+                            // In that case:
+                            // * Buttons may appear/disappear,
+                            // * ResDestinArrow in drawing may have a potential destination disappear right before connecting to it
+                            // * Some ResDestinArrows may be deleted (those no longer needed)
+                            var consumedResources = cosmicBody.GetConsumedResources();
+                            if (consumedResources.Count is 0)
+                            {
+                                cosmicBodyAddSourcePanel.AddChild(child: new TextBox() { Text = UIAlgorithms.NoSourcesNeeded });
+                            }
+                            else
+                            {
+                                foreach (var res in consumedResources)
+                                {
+                                    Button addResSource = new
+                                    (
+                                        shape: new MyRectangle(width: 100, height: 30),
+                                        tooltip: new ImmutableTextTooltip(UIAlgorithms.AddResSourceForBuildingTooltip(res: res)),
+                                        text: res.Name
+                                    );
+                                    cosmicBodyAddSourcePanel.AddChild(child: addResSource);
+                                    //addResSource.clicked.Add
+                                    //(
+                                    //    listener: 
+                                    //);
+                                }
+                            }
+                            return new CosmicBodyAddSourcePanelManager
+                            (
+                                CosmicBody: cosmicBody,
+                                CosmicBodyAddSourcePanel: cosmicBodyAddSourcePanel,
+                                CosmicBodyPanelHUDPosUpdate: new CosmicBodyPanelHUDPosUpdater
+                                (
+                                    CosmicBody: cosmicBody,
+                                    CosmicBodyPanel: cosmicBodyAddSourcePanel,
+                                    AnchorInCosmicBody: new(HorizPosEnum.Left, VertPosEnum.Middle),
+                                    Origin: new(HorizPosEnum.Middle, VertPosEnum.Middle)
+                                )
+                            );
+                        }
+                    )
+                );
+            }
+
+            public void StopAddingRoute()
+            {
+                CurWorldManager.activeUIManager.EnableAllUIElements();
+                foreach (var cosmicBodyAddDestinPanelManager in cosmicBodyAddDestinPanelManagers)
+                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyAddDestinPanelManager.CosmicBodyAddDestinPanel);
+
+                foreach (var cosmicBodyAddSourcePanelManager in cosmicBodyAddSourcePanelManagers)
+                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyAddSourcePanelManager.CosmicBodyAddSourcePanel);
+            }
+        }
+
+        [Serializable]
+        private readonly record struct CosmicBodyAddDestinPanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyAddDestinPanel, IAction CosmicBodyPanelHUDPosUpdate);
+
+
+        [Serializable]
+        private readonly record struct CosmicBodyAddSourcePanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyAddSourcePanel, IAction CosmicBodyPanelHUDPosUpdate);
+
+
         public static WorldManager CurWorldManager
             => Initialized ? curWorldManager : throw new InvalidOperationException($"must initialize {nameof(WorldManager)} first by calling {nameof(CreateWorldManager)} or {nameof(LoadWorldManager)}");
 
@@ -306,8 +451,7 @@ namespace Game1
                 CurWorldManager.AddHUDElement
                 (
                     HUDElement: CurWorldManager.globalTextBox,
-                    horizPos: HorizPos.Left,
-                    vertPos: VertPos.Top
+                    position: new(HorizPosEnum.Left, VertPosEnum.Top)
                 );
                 //CurWorldManager.AddHUDElement
                 //(
@@ -318,24 +462,36 @@ namespace Game1
                 CurWorldManager.AddHUDElement
                 (
                     HUDElement: CurWorldManager.pauseButton,
-                    horizPos: HorizPos.Right,
-                    vertPos: VertPos.Bottom
+                    position: new(HorizPosEnum.Right, VertPosEnum.Bottom)
                 );
 
-                UIRectHorizPanel<IHUDElement> buildPanel = new(childVertPos: VertPos.Middle);
+                UIRectHorizPanel<IHUDElement> buildPanel = new(childVertPos: VertPosEnum.Middle);
 
                 foreach (var constrGeneralParams in CurIndustryConfig.constrGeneralParamsList)
                 {
                     Button buildIndustryButton = new
                     (
-                        shape: new Ellipse(width: 200, height: 20),
+                        shape: new MyRectangle(width: 200, height: 20),
                         tooltip: constrGeneralParams.toopltip,
-                        text: constrGeneralParams.name
+                        text: constrGeneralParams.buildButtonName
                     );
                     buildIndustryButton.clicked.Add(listener: new BuildIndustryButtonClickedListener(ConstrGeneralParams: constrGeneralParams));
 #warning Complete this by adding how the button reacts to being pressed
                     buildPanel.AddChild(child: buildIndustryButton);
                 }
+
+                UIRectHorizPanel<IHUDElement> transportPanel = new(childVertPos: VertPosEnum.Middle);
+
+                Button addRouteButton = new
+                (
+                    shape: new MyRectangle(width: 200, height: 30),
+                    tooltip: new ImmutableTextTooltip(text: UIAlgorithms.GlobalAddRouteTooltip),
+                    text: "add route"
+                );
+
+                addRouteButton.clicked.Add(listener: new AddRouteButtonClickedListener());
+
+                transportPanel.AddChild(child: addRouteButton);
 
                 UIHorizTabPanel<IHUDElement> globalTabs = new
                 (
@@ -347,11 +503,16 @@ namespace Game1
                             tabLabelText: "build",
                             tabTooltip: new ImmutableTextTooltip(text: UIAlgorithms.GlobalBuildTabTooltip),
                             tab: buildPanel
+                        ),
+                        (
+                            tabLabelText: "transport",
+                            tabTooltip: new ImmutableTextTooltip(text: UIAlgorithms.GlobalTransportTabTooltip),
+                            tab: transportPanel
                         )
                     }
                 );
 
-                CurWorldManager.AddHUDElement(HUDElement: globalTabs, horizPos: HorizPos.Middle, vertPos: VertPos.Bottom);
+                CurWorldManager.AddHUDElement(HUDElement: globalTabs, position: new(HorizPosEnum.Middle, VertPosEnum.Bottom));
 
                 //buildButtonPannel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
                 //UITabs.Add
@@ -690,11 +851,11 @@ namespace Game1
         //        screenLength: HUDLengthToScreenLength(HUDLength: HUDLength)
         //    );
 
-        public void AddHUDElement(IHUDElement? HUDElement, HorizPos horizPos, VertPos vertPos)
-            => activeUIManager.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
+        public void AddHUDElement(IHUDElement? HUDElement, PosEnums position)
+            => activeUIManager.AddHUDElement(HUDElement: HUDElement, position: position);
 
-        public void SetHUDPopup(IHUDElement? HUDElement, MyVector2 HUDPos, HorizPos horizOrigin, VertPos vertOrigin)
-            => activeUIManager.SetHUDPopup(HUDElement: HUDElement, HUDPos: HUDPos, horizOrigin: horizOrigin, vertOrigin: vertOrigin);
+        public void SetHUDPopup(IHUDElement HUDElement, MyVector2 HUDPos, PosEnums origin)
+            => activeUIManager.SetHUDPopup(HUDElement: HUDElement, HUDPos: HUDPos, origin: origin);
 
         public void AddWorldHUDElement(IHUDElement worldHUDElement, IAction updateHUDPos)
             => activeUIManager.AddWorldHUDElement(worldHUDElement: worldHUDElement, updateHUDPos: updateHUDPos);

@@ -316,5 +316,15 @@ namespace Game1
             (
                 valueInJ: roundFunc(wholeAmount.ValueInJ() * (decimal)propor)
             );
+
+        public static string GanerateNewName(string prefix, EfficientReadOnlyHashSet<string> usedNames)
+        {
+            for (int i = 0; ; i++)
+            {
+                string newName = $"{prefix} {i}";
+                if (!usedNames.Contains(newName))
+                    return newName;
+            }
+        }
     }
 }

@@ -30,8 +30,7 @@ namespace Game1.UI
                     CurWorldManager.AddHUDElement
                     (
                         HUDElement: Popup,
-                        horizPos: popupHorizPos,
-                        vertPos: popupVertPos
+                        position: popupPos
                     );
                 else
                     CurWorldManager.RemoveHUDElement
@@ -64,22 +63,20 @@ namespace Game1.UI
             };
         protected Color activeColor, inactiveColor;
 
-        private readonly HorizPos popupHorizPos;
-        private readonly VertPos popupVertPos;
+        private readonly PosEnums popupPos;
         
         private bool active;
 
         protected IHUDElement? Popup { get; init; }
         //private readonly MyDict<IOverlay, IHUDElement?> popups;
 
-        public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, HorizPos popupHorizPos, VertPos popupVertPos)
+        public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, PosEnums popupPos)
             : base(shape: shape)
         {
             activeChanged = new();
             this.activeColor = activeColor;
             this.inactiveColor = inactiveColor;
-            this.popupHorizPos = popupHorizPos;
-            this.popupVertPos = popupVertPos;
+            this.popupPos = popupPos;
             active = false;
             //popups = IOverlay.all.ToDictionary
             //(

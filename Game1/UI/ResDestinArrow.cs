@@ -49,14 +49,13 @@ namespace Game1.UI
         private readonly NumIncDecrPanel importanceIncDecrPanel;
         private readonly TextBox line2;
 
-        public ResDestinArrow(VectorShape.IParams shapeParams, NodeID destinId, Color defaultActiveColor, Color defaultInactiveColor, HorizPos popupHorizPos, VertPos popupVertPos, int minImportance, int startImportance, IResource res)
+        public ResDestinArrow(VectorShape.IParams shapeParams, NodeID destinId, Color defaultActiveColor, Color defaultInactiveColor, PosEnums popupPos, int minImportance, int startImportance, IResource res)
             : base
             (
                 shape: new Arrow(parameters: shapeParams),
                 activeColor: defaultActiveColor,
                 inactiveColor: defaultInactiveColor,
-                popupHorizPos: popupHorizPos,
-                popupVertPos: popupVertPos
+                popupPos: popupPos
             )
         {
             this.destinId = destinId;
@@ -65,11 +64,11 @@ namespace Game1.UI
             this.res = res;
 
             deleted = new();
-            UIRectPanel<IHUDElement> popup = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
+            UIRectPanel<IHUDElement> popup = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPosEnum.Left);
             Popup = popup;
             //SetPopup(HUDElement: popup, overlay: res);
 
-            UIRectHorizPanel<IHUDElement> line1 = new(childVertPos: VertPos.Middle);
+            UIRectHorizPanel<IHUDElement> line1 = new(childVertPos: VertPosEnum.Middle);
             popup.AddChild(child: line1);
             line1.AddChild
             (

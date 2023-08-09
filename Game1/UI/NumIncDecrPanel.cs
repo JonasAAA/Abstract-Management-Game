@@ -58,7 +58,7 @@ namespace Game1.UI
                 throw new ArgumentException();
             this.minNum = minNum;
 
-            panel = new(childHorizPos: HorizPos.Middle);
+            panel = new(childHorizPos: HorizPosEnum.Middle);
             textBox = new();
             //textBox.Text = number.ToString();
             UDouble width = (UDouble)textBox.MeasureText(text: "00").X;

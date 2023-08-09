@@ -1,4 +1,5 @@
-﻿using Game1.UI;
+﻿using Game1.Collections;
+using Game1.UI;
 
 namespace Game1.Industries
 {
@@ -7,14 +8,18 @@ namespace Game1.Industries
         public string Name { get; }
         public IBuildingImage BuildingImage { get; }
 
-        //public ILightBlockingObject? BuildingShape { get; }
-
         /// <summary>
         /// Null if no building
         /// </summary>
         public Material? SurfaceMaterial { get; }
 
         public IHUDElement UIElement { get; }
+
+        public EfficientReadOnlyCollection<IResource> PotentiallyNotNeededBuildingComponents { get; }
+
+        public EfficientReadOnlyCollection<IResource> GetConsumedResources();
+
+        public EfficientReadOnlyCollection<IResource> GetProducedResources();
 
         public AllResAmounts TargetStoredResAmounts();
 
@@ -25,7 +30,5 @@ namespace Game1.Industries
         public IIndustry? Update();
 
         public string GetInfo();
-
-        //public void Draw(Color otherColor, Propor otherColorPropor);
     }
 }

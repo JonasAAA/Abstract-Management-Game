@@ -120,8 +120,14 @@ namespace Game1.Industries
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => buildingImage;
 
+            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.PotentiallyNotNeededBuildingComponents
+                => startingBuildingCost.resList;
+
             Material? Industry.IConcreteBuildingParams<UnitType>.SurfaceMaterial(bool productionInProgress)
                 => SurfaceMaterial;
+
+            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
+                => EfficientReadOnlyCollection<IResource>.empty;
 
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.TargetStoredResAmounts(UnitType productionParams)
                 => AllResAmounts.empty;

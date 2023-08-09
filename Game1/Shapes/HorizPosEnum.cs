@@ -1,6 +1,6 @@
 ﻿namespace Game1.Shapes
 {
-    public enum HorizPos
+    public enum HorizPosEnum
     {
         Left = -1,
         Middle = 0,

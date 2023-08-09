@@ -12,6 +12,7 @@ namespace Game1.Industries
             public readonly string name;
             public readonly IGeneralBuildingConstructionParams buildingGeneralParams;
             public readonly EnergyPriority energyPriority;
+            public readonly string buildButtonName;
             public readonly ITooltip toopltip;
             public readonly EfficientReadOnlyHashSet<IMaterialPurpose> neededMaterialPurposes;
 
@@ -20,6 +21,7 @@ namespace Game1.Industries
                 name = UIAlgorithms.ConstructionName(childIndustryName: buildingGeneralParams.Name);
                 this.buildingGeneralParams = buildingGeneralParams;
                 this.energyPriority = energyPriority;
+                buildButtonName = buildingGeneralParams.Name;
                 toopltip = new ImmutableTextTooltip(text: UIAlgorithms.ConstructionTooltip(constrGeneralParams: this));
                 neededMaterialPurposes = buildingGeneralParams.NeededMaterialPurposes;
             }
@@ -101,13 +103,19 @@ namespace Game1.Industries
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => IncompleteBuildingImage(donePropor: Propor.empty);
 
+            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.PotentiallyNotNeededBuildingComponents
+                => EfficientReadOnlyCollection<IResource>.empty;
+
             Material? Industry.IConcreteBuildingParams<UnitType>.SurfaceMaterial(bool productionInProgress)
                 => productionInProgress switch
                 {
                     true => concreteBuildingParams.SurfaceMaterial,
                     false => null
                 };
-
+            
+            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
+                => EfficientReadOnlyCollection<IResource>.empty;
+            
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.TargetStoredResAmounts(UnitType productionParams)
                 => buildingCost;
         }

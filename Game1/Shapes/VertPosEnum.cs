@@ -1,6 +1,6 @@
 ﻿namespace Game1.Shapes
 {
-    public enum VertPos
+    public enum VertPosEnum
     {
         Top = -1,
         Middle = 0,

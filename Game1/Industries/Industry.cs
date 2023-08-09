@@ -1,4 +1,5 @@
-﻿using Game1.Delegates;
+﻿using Game1.Collections;
+using Game1.Delegates;
 using Game1.UI;
 using static Game1.WorldManager;
 
@@ -12,8 +13,10 @@ namespace Game1.Industries
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
             public IBuildingImage IdleBuildingImage { get; }
+            public EfficientReadOnlyCollection<IResource> PotentiallyNotNeededBuildingComponents { get; }
 
             public Material? SurfaceMaterial(bool productionInProgress);
+            public EfficientReadOnlyCollection<IResource> GetProducedResources(TConcreteProductionParams productionParams);
             public AllResAmounts TargetStoredResAmounts(TConcreteProductionParams productionParams);
         }
 
@@ -71,6 +74,10 @@ namespace Game1.Industries
                 error: _ => buildingParams.IdleBuildingImage
             );
 
+        public EfficientReadOnlyCollection<IResource> PotentiallyNotNeededBuildingComponents
+            => buildingParams.PotentiallyNotNeededBuildingComponents;
+
+
         private bool Busy
             => stateOrReasonForNotStartingProduction.isOk;
         private readonly TConcreteProductionParams productionParams;
@@ -91,6 +98,13 @@ namespace Game1.Industries
 
             CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
         }
+
+        // NEED to decide how these will be treated exactly. See more in my notes on paper and in NEWEST.txt
+        public EfficientReadOnlyCollection<IResource> GetConsumedResources()
+            => buildingParams.TargetStoredResAmounts(productionParams: productionParams).resList;
+
+        public EfficientReadOnlyCollection<IResource> GetProducedResources()
+            => buildingParams.GetProducedResources(productionParams: productionParams);
 
         public AllResAmounts TargetStoredResAmounts()
             => (TProductionCycleState.IsRepeatable || !Busy) switch

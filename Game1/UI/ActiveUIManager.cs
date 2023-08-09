@@ -91,12 +91,12 @@ namespace Game1.UI
         /// <summary>
         /// HUDElement will be drawn by this
         /// </summary>
-        public void AddHUDElement(IHUDElement? HUDElement, HorizPos horizPos, VertPos vertPos)
+        public void AddHUDElement(IHUDElement? HUDElement, PosEnums position)
         {
             if (HUDElement is null)
                 return;
 
-            HUDPosSetter.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
+            HUDPosSetter.AddHUDElement(HUDElement: HUDElement, position: position);
 
             activeUIElements.Add(HUDElement);
             if (!HUDElements.Add(HUDElement))
@@ -106,11 +106,11 @@ namespace Game1.UI
         /// <summary>
         /// The popup will disappear when player presses anywhere.
         /// </summary>
-        public void SetHUDPopup(IHUDElement HUDElement, MyVector2 HUDPos, HorizPos horizOrigin, VertPos vertOrigin)
+        public void SetHUDPopup(IHUDElement HUDElement, MyVector2 HUDPos, PosEnums origin)
         {
             HUDPopup = HUDElement;
 
-            HUDPosSetter.AddHUDElement(HUDElement: HUDElement, HUDPos: HUDPos, horizOrigin: horizOrigin, vertOrigin: vertOrigin);
+            HUDPosSetter.AddHUDElement(HUDElement: HUDElement, HUDPos: HUDPos, origin: origin);
 
             activeUIElements.Add(HUDElement);
         }

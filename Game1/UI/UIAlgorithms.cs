@@ -23,6 +23,18 @@ namespace Game1.UI
         public static string GlobalBuildTabTooltip
             => "Builings to construct";
 
+        public static string GlobalTransportTabTooltip
+            => "Customize transport routes";
+
+        public static string GlobalAddRouteTooltip
+            => "Add new route";
+
+        public static string AddResSourceForBuildingTooltip(IResource res)
+            => $"Add new source of {res}";
+
+        public static string NoSourcesNeeded
+            => "Consumes no resources";
+        
         public static string BuildHereTooltip
             => "Build on this cosmic body";
 

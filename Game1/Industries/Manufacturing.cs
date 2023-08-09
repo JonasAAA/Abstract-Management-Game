@@ -129,8 +129,14 @@ namespace Game1.Industries
             IBuildingImage Industry.IConcreteBuildingParams<ConcreteProductionParams>.IdleBuildingImage
                 => buildingImage;
 
+            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.PotentiallyNotNeededBuildingComponents
+                => startingBuildingCost.resList;
+
             Material? Industry.IConcreteBuildingParams<ConcreteProductionParams>.SurfaceMaterial(bool productionInProgress)
                 => SurfaceMaterial;
+
+            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.GetProducedResources(ConcreteProductionParams productionParams)
+                => productionParams.ProducedResources;
 
             AllResAmounts Industry.IConcreteBuildingParams<ConcreteProductionParams>.TargetStoredResAmounts(ConcreteProductionParams productionParams)
             {
@@ -146,11 +152,29 @@ namespace Game1.Industries
         [Serializable]
         public sealed class ConcreteProductionParams
         {
+            public EfficientReadOnlyCollection<IResource> ProducedResources { get; private set; }
+            
             /// <summary>
             /// In case of error, returns the needed but not yet set material purposes
             /// </summary>
-            public Result<Product, TextErrors> CurProduct { get; private set; }
+            public Result<Product, TextErrors> CurProduct
+            {
+                get => curProduct;
+                private set
+                {
+                    curProduct = value;
+                    ProducedResources = value.SwitchExpression
+                    (
+                        ok: product => new List<IResource>() { product }.ToEfficientReadOnlyCollection(),
+                        error: errors => EfficientReadOnlyCollection<IResource>.empty
+                    );
+                }
+            }
 
+            /// <summary>
+            /// NEVER use this directly. Always use CurProduct instead
+            /// </summary>
+            private Result<Product, TextErrors> curProduct;
             private readonly Product.Params productParams;
 
             public ConcreteProductionParams(Product.Params productParams)

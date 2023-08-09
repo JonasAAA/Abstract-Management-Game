@@ -40,5 +40,8 @@ namespace Game1.Resources
                 results: new AllResAmounts(res: this, amount: 1)
             );
         }
+
+        public override string ToString()
+            => Name;
     }
 }

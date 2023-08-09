@@ -128,8 +128,14 @@ namespace Game1.Industries
             IBuildingImage Industry.IConcreteBuildingParams<ConcreteProductionParams>.IdleBuildingImage
                 => buildingImage;
 
+            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.PotentiallyNotNeededBuildingComponents
+                => startingBuildingCost.resList;
+
             Material? Industry.IConcreteBuildingParams<ConcreteProductionParams>.SurfaceMaterial(bool productionInProgress)
                 => SurfaceMaterial;
+
+            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.GetProducedResources(ConcreteProductionParams productionParams)
+                => productionParams.ProducedResources;
 
             AllResAmounts Industry.IConcreteBuildingParams<ConcreteProductionParams>.TargetStoredResAmounts(ConcreteProductionParams productionParams)
             {
@@ -145,10 +151,29 @@ namespace Game1.Industries
         [Serializable]
         public sealed class ConcreteProductionParams
         {
+            public EfficientReadOnlyCollection<IResource> ProducedResources { get; private set; }
+
             /// <summary>
             /// Eiher material, or error saying no material was chosen
             /// </summary>
-            public Result<Material, TextErrors> CurMaterial { get; private set; }
+            public Result<Material, TextErrors> CurMaterial
+            {
+                get => curMaterial;
+                private set
+                {
+                    curMaterial = value;
+                    ProducedResources = value.SwitchExpression
+                    (
+                        ok: material => new List<IResource>() { material }.ToEfficientReadOnlyCollection(),
+                        error: errors => EfficientReadOnlyCollection<IResource>.empty
+                    );
+                }
+            }
+
+            /// <summary>
+            /// NEVER use this directly. Always use CurMaterial instead
+            /// </summary>
+            private Result<Material, TextErrors> curMaterial;
 
             public ConcreteProductionParams()
                 => CurMaterial = new(errors: new(UIAlgorithms.NoMaterialIsChosen));

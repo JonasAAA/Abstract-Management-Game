@@ -154,8 +154,7 @@ namespace Game1
                 shape: new LightBlockingDisk(parameters: new ShapeParams(State: state)),
                 activeColor: activeColor,
                 inactiveColor: state.Composition.Color(),
-                popupHorizPos: HorizPos.Right,
-                popupVertPos: VertPos.Top
+                popupPos: new(HorizPosEnum.Right, VertPosEnum.Top)
             )
         {
             this.state = state;
@@ -192,7 +191,7 @@ namespace Game1
 
             List<(string tabLabelText, ITooltip tabTooltip, IHUDElement tab)> UITabs = new();
 
-            infoPanel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
+            infoPanel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPosEnum.Left);
             UITabs.Add
             ((
                 tabLabelText: "info",
@@ -289,6 +288,30 @@ namespace Game1
             CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
         }
 
+        public MyVector2 GetPosition(PosEnums origin)
+            => origin.GetPosInRect(center: Position, width: 2 * state.Radius, height: 2 * state.Radius);
+
+        public EfficientReadOnlyCollection<IResource> GetConsumedResources()
+            => Industry switch
+            {
+                IIndustry industry => industry.GetConsumedResources(),
+                null => new()
+            };
+
+        public EfficientReadOnlyCollection<IResource> GetPotentiallyNotNeededBuildingComponents()
+            => Industry switch
+            {
+                IIndustry industry => industry.PotentiallyNotNeededBuildingComponents,
+                null => new()
+            };
+
+        public EfficientReadOnlyCollection<IResource> GetProducedResources()
+            => Industry switch
+            {
+                IIndustry industry => industry.GetProducedResources(),
+                null => new()
+            };
+
         public void StartConstruction(Construction.ConcreteParams constrConcreteParams)
             => Industry = constrConcreteParams.CreateIndustry();
 
@@ -335,8 +358,7 @@ namespace Game1
                 destinId: destinationId,
                 defaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
                 defaultInactiveColor: Color.White * .5f,
-                popupHorizPos: HorizPos.Right,
-                popupVertPos: VertPos.Top,
+                popupPos: new(HorizPosEnum.Right, VertPosEnum.Top),
                 minImportance: 1,
                 startImportance: 1,
                 res: res

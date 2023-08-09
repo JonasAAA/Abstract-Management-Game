@@ -16,7 +16,7 @@ namespace Game1.Collections
 
         static ResAmounts()
         {
-            empty = new(resList: new(), amounts: new());
+            empty = new();
         }
 
         public bool IsEmpty
@@ -35,17 +35,15 @@ namespace Game1.Collections
         bool IFormOfEnergy<ResAmounts<TRes>>.IsZero
             => IsEmpty;
 
-        /// <summary>
-        /// Is reused between multiple instances of Dict to generate very slightly less garbage, e.g. in operator *
-        /// </summary>
-        private readonly List<TRes> resList;
-        private readonly List<ulong> amounts;
+        // Is reused between multiple instances of Dict to generate very slightly less garbage, e.g. in operator *
+        public readonly EfficientReadOnlyCollection<TRes> resList;
+        private readonly EfficientReadOnlyCollection<ulong> amounts;
 
         /// <summary>
-        /// USE SomeResAmounts.empty instead as it avoids unnecessary allocations
+        /// Equivalent to ResAmounts.empty
         /// </summary>
         public ResAmounts()
-            : this(resList: new(), amounts: new())
+            : this(resList: EfficientReadOnlyCollection<TRes>.empty, amounts: EfficientReadOnlyCollection<ulong>.empty)
         { }
 
         public ResAmounts(ResAmount<TRes> resAmount)
@@ -53,7 +51,7 @@ namespace Game1.Collections
         { }
 
         public ResAmounts(TRes res, ulong amount)
-            : this(resList: new() { res }, amounts: new() { amount })
+            : this(resList: new List<TRes>() { res }, amounts: new List<ulong>() { amount })
         { }
 
         /// <summary>
@@ -64,6 +62,10 @@ namespace Game1.Collections
         /// * amounts should not have a 0 value (as that means memory and processing power of dealing with that element are wasted)
         /// </summary>
         private ResAmounts(List<TRes> resList, List<ulong> amounts)
+            : this(resList: new EfficientReadOnlyCollection<TRes>(resList), amounts: new EfficientReadOnlyCollection<ulong>(amounts))
+        { }
+
+        private ResAmounts(EfficientReadOnlyCollection<TRes> resList, EfficientReadOnlyCollection<ulong> amounts)
         {
             this.resList = resList;
             this.amounts = amounts;
@@ -81,22 +83,24 @@ namespace Game1.Collections
         public ResAmounts(List<ResAmount<TRes>> resAmounts)
         {
             resAmounts.Sort(static (left, right) => CurResConfig.CompareRes(left: left.res, right: right.res));
-            resList = new(resAmounts.Count);
-            amounts = new(resAmounts.Count);
+            List<TRes> mutableResList = new(resAmounts.Count);
+            List<ulong> mutableAmounts = new(resAmounts.Count);
             for (int ind = 0; ind < resAmounts.Count; ind++)
             {
                 var res = resAmounts[ind].res;
                 var amount = resAmounts[ind].amount;
                 if (amount is 0)
                     continue;
-                if (resList.Count > 0 && resList[^1] == res)
-                    amounts[^1] += amount;
+                if (mutableResList.Count > 0 && mutableResList[^1] == res)
+                    mutableAmounts[^1] += amount;
                 else
                 {
-                    resList.Add(res);
-                    amounts.Add(amount);
+                    mutableResList.Add(res);
+                    mutableAmounts.Add(amount);
                 }
             }
+            resList = new(mutableResList);
+            amounts = new(mutableAmounts);
             Validate();
         }
 
@@ -165,7 +169,7 @@ namespace Game1.Collections
                     newResList.Add(filterRes);
                     newAmounts.Add(amounts[ind]);
                 }
-            return new(resList: newResList, amounts: amounts);
+            return new(resList: newResList, amounts: newAmounts);
         }
 
         public AllResAmounts ToAll()
@@ -173,7 +177,7 @@ namespace Game1.Collections
             List<IResource> newResList = new(Count);
             for (int ind = 0; ind < Count; ind++)
                 newResList.Add(resList[ind]);
-            return new(resList: newResList, amounts: amounts);
+            return new(resList: newResList.ToEfficientReadOnlyCollection(), amounts: amounts);
         }
 
         public ulong NumberOfTimesLargerThan(ResAmounts<TRes> other)
@@ -388,7 +392,7 @@ namespace Game1.Collections
         {
             if (right is 0)
                 return empty;
-            return new(left.resList, left.amounts.Select(amount => amount * right).ToList());
+            return new(left.resList, left.amounts.Select(amount => amount * right).ToEfficientReadOnlyCollection());
         }
 
         public static ResAmounts<TRes> operator *(ulong left, ResAmounts<TRes> right)

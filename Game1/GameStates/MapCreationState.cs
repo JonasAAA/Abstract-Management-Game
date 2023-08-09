@@ -307,7 +307,7 @@ namespace Game1.GameStates
                 action: switchToPauseMenu
             );
             globalTextBox = new(backgroundColor: ActiveUIManager.colorConfig.UIBackgroundColor);
-            activeUIManager.AddHUDElement(HUDElement: globalTextBox, horizPos: HorizPos.Left, vertPos: VertPos.Top);
+            activeUIManager.AddHUDElement(HUDElement: globalTextBox, position: new(HorizPosEnum.Left, VertPosEnum.Top));
             houseTextBox = new();
             activeUIManager.AddWorldHUDElement
             (
@@ -348,15 +348,11 @@ namespace Game1.GameStates
 
         // Can't use $"Cosmic body {Id}" straight up, as when loading initial map from the file, that mapName may be already taken
         private string GetNewCosmicBodyName()
-        {
-            HashSet<string> curCosmicBodyNames = new(CurMapInfo.CosmicBodies.Values.Select(cosmicBody => cosmicBody.Name));
-            for (int i = 0; ; i++)
-            {
-                string newName = $"Cosmic body {i}";
-                if (!curCosmicBodyNames.Contains(newName))
-                    return newName;
-            }
-        }
+            => Algorithms.GanerateNewName
+            (
+                prefix: "Cosmic body",
+                usedNames: CurMapInfo.CosmicBodies.Values.Select(cosmicBody => cosmicBody.Name).ToEfficientReadOnlyHashSet()
+            );
 
         public override void Update(TimeSpan elapsed)
         {

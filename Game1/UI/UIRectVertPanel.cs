@@ -6,9 +6,9 @@ namespace Game1.UI
     public sealed class UIRectVertPanel<TChild> : UIRectPanel<TChild>
         where TChild : IHUDElement
     {
-        private readonly HorizPos childHorizPos;
+        private readonly HorizPosEnum childHorizPos;
 
-        public UIRectVertPanel(HorizPos childHorizPos)
+        public UIRectVertPanel(HorizPosEnum childHorizPos)
             => this.childHorizPos = childHorizPos;
 
         protected override void PartOfRecalcSizeAndPos()
@@ -20,14 +20,14 @@ namespace Game1.UI
             Shape.Height = 2 * ActiveUIManager.RectOutlineWidth + children.Sum(child => child.Shape.Height);
 
             UDouble curHeightSum = 0;
+            PosEnums childOrigin = new(childHorizPos, VertPosEnum.Top);
             foreach (var child in children)
             {
                 child.Shape.SetPosition
                 (
-                    position: Shape.GetPosition(horizOrigin: childHorizPos, vertOrigin: VertPos.Top)
+                    position: Shape.GetPosition(origin: childOrigin)
                         + new MyVector2(-(int)childHorizPos * ActiveUIManager.RectOutlineWidth, curHeightSum + ActiveUIManager.RectOutlineWidth),
-                    horizOrigin: childHorizPos,
-                    vertOrigin: VertPos.Top
+                    origin: childOrigin
                 );
                 curHeightSum += child.Shape.Height;
             }

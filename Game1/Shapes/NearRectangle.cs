@@ -29,56 +29,48 @@ namespace Game1.Shapes
         {
             get => GetPosition
             (
-                horizOrigin: HorizPos.Left,
-                vertOrigin: VertPos.Top
+                origin: new(HorizPosEnum.Left, VertPosEnum.Top)
             );
             set => SetPosition
             (
                 position: value,
-                horizOrigin: HorizPos.Left,
-                vertOrigin: VertPos.Top
+                origin: new(HorizPosEnum.Left, VertPosEnum.Top)
             );
         }
         public MyVector2 TopRightCorner
         {
             get => GetPosition
             (
-                horizOrigin: HorizPos.Right,
-                vertOrigin: VertPos.Top
+                origin: new(HorizPosEnum.Right, VertPosEnum.Top)
             );
             set => SetPosition
             (
                 position: value,
-                horizOrigin: HorizPos.Right,
-                vertOrigin: VertPos.Top
+                origin: new(HorizPosEnum.Right, VertPosEnum.Top)
             );
         }
         public MyVector2 BottomLeftCorner
         {
             get => GetPosition
             (
-                horizOrigin: HorizPos.Left,
-                vertOrigin: VertPos.Bottom
+                origin: new(HorizPosEnum.Left, VertPosEnum.Bottom)
             );
             set => SetPosition
             (
                 position: value,
-                horizOrigin: HorizPos.Left,
-                vertOrigin: VertPos.Bottom
+                origin: new(HorizPosEnum.Left, VertPosEnum.Bottom)
             );
         }
         public MyVector2 BottomRightCorner
         {
             get => GetPosition
             (
-                horizOrigin: HorizPos.Right,
-                vertOrigin: VertPos.Bottom
+                origin: new(HorizPosEnum.Right, VertPosEnum.Bottom)
             );
             set => SetPosition
             (
                 position: value,
-                horizOrigin: HorizPos.Right,
-                vertOrigin: VertPos.Bottom
+                origin: new(HorizPosEnum.Right, VertPosEnum.Bottom)
             );
         }
         public UDouble Width
@@ -142,11 +134,11 @@ namespace Game1.Shapes
             SizeOrPosChanged = new();
         }
 
-        public MyVector2 GetPosition(HorizPos horizOrigin, VertPos vertOrigin)
-            => Center + new MyVector2((int)horizOrigin * Width, (int)vertOrigin * Height) * .5;
+        public MyVector2 GetPosition(PosEnums origin)
+            => origin.GetPosInRect(center: Center, width: Width, height: Height);
 
-        public void SetPosition(MyVector2 position, HorizPos horizOrigin, VertPos vertOrigin)
-            => Center = position - new MyVector2((int)horizOrigin * Width, (int)vertOrigin * Height) * .5;
+        public void SetPosition(MyVector2 position, PosEnums origin)
+            => Center = origin.GetRectCenter(position: position, width: Width, height: Height);
 
         public void ClampPosition(double left, double right, double top, double bottom)
             => Center = new MyVector2

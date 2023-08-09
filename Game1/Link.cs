@@ -220,8 +220,7 @@ namespace Game1
                 ),
                 activeColor: Color.White,
                 inactiveColor: ActiveUIManager.colorConfig.linkColor,
-                popupHorizPos: HorizPos.Right,
-                popupVertPos: VertPos.Top
+                popupPos: new(HorizPosEnum.Right, VertPosEnum.Top)
             )
         {
             if (node1 == node2)

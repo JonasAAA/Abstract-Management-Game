@@ -70,11 +70,11 @@ namespace Game1.UI
             {
                 true => new UIRectHorizPanel<SelectButton>
                 (
-                    childVertPos: VertPos.Top
+                    childVertPos: VertPosEnum.Top
                 ),
                 false => new UIRectVertPanel<SelectButton>
                 (
-                    childHorizPos: HorizPos.Left
+                    childHorizPos: HorizPosEnum.Left
                 )
             };
 

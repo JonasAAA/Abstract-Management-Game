@@ -8,16 +8,27 @@ namespace Game1.Collections
     [Serializable]
     public readonly struct EfficientReadOnlyCollection<T> : IReadOnlyCollection<T>
     {
+        public static readonly EfficientReadOnlyCollection<T> empty;
+
+        static EfficientReadOnlyCollection()
+            => empty = new(list: new());
+
         private readonly List<T> list;
 
         public EfficientReadOnlyCollection()
-            => list = new();
+            => list = empty.list;
 
         public EfficientReadOnlyCollection(List<T> list)
             => this.list = list;
 
         public int Count
             => list.Count;
+
+        public T this[int index]
+            => list[index];
+
+        public int BinarySearch(T item)
+            => list.BinarySearch(item);
 
         public IEnumerator<T> GetEnumerator()
             => list.GetEnumerator();

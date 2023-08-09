@@ -1,5 +1,4 @@
-﻿using Game1.Collections;
-using Game1.ContentHelpers;
+﻿using Game1.ContentHelpers;
 using Game1.Delegates;
 using Game1.GameStates;
 using Game1.Shapes;
@@ -126,21 +125,14 @@ namespace Game1
             );
 
         private static string GenerateMapName()
-        {
-            HashSet<string> usedNames = new
+            => Algorithms.GanerateNewName
             (
-                GetMapFullPaths().Select
+                prefix: "Map",
+                usedNames: GetMapFullPaths().Select
                 (
                     fullMapPath => Path.GetFileNameWithoutExtension(path: fullMapPath)
-                )
+                ).ToEfficientReadOnlyHashSet()
             );
-            for (uint i = 0; ; i++)
-            {
-                string newName = $"Map {i}";
-                if (!usedNames.Contains(newName))
-                    return newName;
-            }
-        }
 
         protected override void LoadContent()
         {

@@ -1,7 +1,6 @@
 ﻿using Game1.Collections;
 using Game1.Shapes;
 using Game1.UI;
-using static Game1.Industries.Industry;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
@@ -80,6 +79,7 @@ namespace Game1.Industries
             private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialChoices buildingMatChoices;
             private readonly AllResAmounts startingBuildingCost;
+            private readonly EfficientReadOnlyCollection<IResource> cosmicBodyResComposition;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
@@ -94,6 +94,7 @@ namespace Game1.Industries
                 this.generalParams = generalParams;
                 this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatChoices = buildingMatChoices;
+                cosmicBodyResComposition = nodeState.Composition.ToAll().resList;
 
                 startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
             }
@@ -128,8 +129,15 @@ namespace Game1.Industries
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => buildingImage;
 
+            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.PotentiallyNotNeededBuildingComponents
+                => startingBuildingCost.resList;
+
             Material? Industry.IConcreteBuildingParams<UnitType>.SurfaceMaterial(bool productionInProgress)
                 => SurfaceMaterial;
+
+            // This assumes that planet composition never changes while mining is happening
+            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
+                => cosmicBodyResComposition;
 
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.TargetStoredResAmounts(UnitType productionParams)
                 => AllResAmounts.empty;

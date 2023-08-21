@@ -17,7 +17,8 @@ using static Game1.UI.ActiveUIManager;
 namespace Game1
 {
     [Serializable]
-    public sealed class WorldManager : IClickedNowhereListener
+    public sealed class WorldManager
+        //: IClickedNowhereListener
     {
         [Serializable]
         private sealed class PauseButtonTooltip : TextTooltipBase
@@ -153,7 +154,7 @@ namespace Game1
                                 (
                                     CosmicBody: cosmicBody,
                                     CosmicBodyPanel: cosmicBodyBuildPanel,
-                                    AnchorInCosmicBody: new(HorizPosEnum.Right, VertPosEnum.Middle),
+                                    AnchorInCosmicBody: new(HorizPosEnum.Middle, VertPosEnum.Middle),
                                     Origin: new(HorizPosEnum.Middle, VertPosEnum.Middle)
                                 ),
                                 BuildButton: buildButton
@@ -326,7 +327,7 @@ namespace Game1
                                     CosmicBody: cosmicBody,
                                     CosmicBodyPanel: cosmicBodyAddDestinPanel,
                                     AnchorInCosmicBody: new(HorizPosEnum.Right, VertPosEnum.Middle),
-                                    Origin: new(HorizPosEnum.Middle, VertPosEnum.Middle)
+                                    Origin: new(HorizPosEnum.Left, VertPosEnum.Middle)
                                 )
                             );
                         }
@@ -382,7 +383,7 @@ namespace Game1
                                     CosmicBody: cosmicBody,
                                     CosmicBodyPanel: cosmicBodyAddSourcePanel,
                                     AnchorInCosmicBody: new(HorizPosEnum.Left, VertPosEnum.Middle),
-                                    Origin: new(HorizPosEnum.Middle, VertPosEnum.Middle)
+                                    Origin: new(HorizPosEnum.Right, VertPosEnum.Middle)
                                 )
                             );
                         }
@@ -616,6 +617,7 @@ namespace Game1
             knownTypesSet.UnionWith(Manufacturing.GetKnownTypes());
             knownTypesSet.UnionWith(Mining.GetKnownTypes());
             knownTypesSet.UnionWith(MaterialProduction.GetKnownTypes());
+            knownTypesSet.UnionWith(Storage.GetKnownTypes());
             List<Type> unserializedTypeList = new();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
@@ -656,34 +658,34 @@ namespace Game1
         public UDouble MaxLinkJoulesPerKg
             => CurGraph.MaxLinkJoulesPerKg;
 
-        /// <summary>
-        /// If null, then arrow drawing mode is not on
-        /// </summary>
-        public IResource? ArrowDrawingModeRes
-        {
-            get => arrowDrawingModeRes;
-            set
-            {
-                if (arrowDrawingModeRes == value)
-                    return;
+        ///// <summary>
+        ///// If null, then arrow drawing mode is not on
+        ///// </summary>
+        //public IResource? ArrowDrawingModeRes
+        //{
+        //    get => arrowDrawingModeRes;
+        //    set
+        //    {
+        //        if (arrowDrawingModeRes == value)
+        //            return;
 
-                arrowDrawingModeRes = value;
-                if (arrowDrawingModeRes is not null)
-                {
-                    activeUIManager.DisableAllUIElements();
-                    if (CurGraph.ActiveWorldElement is CosmicBody activeNode)
-                    {
-                        foreach (var node in CurGraph.Nodes)
-                            if (activeNode.CanHaveDestin(destinationId: node.NodeID, res: arrowDrawingModeRes))
-                                node.HasDisabledAncestor = false;
-                    }
-                    else
-                        throw new Exception();
-                }
-                else
-                    activeUIManager.EnableAllUIElements();
-            }
-        }
+        //        arrowDrawingModeRes = value;
+        //        if (arrowDrawingModeRes is not null)
+        //        {
+        //            activeUIManager.DisableAllUIElements();
+        //            if (CurGraph.ActiveWorldElement is CosmicBody activeNode)
+        //            {
+        //                foreach (var node in CurGraph.Nodes)
+        //                    if (activeNode.CanHaveDestin(destinationId: node.NodeID, res: arrowDrawingModeRes))
+        //                        node.HasDisabledAncestor = false;
+        //            }
+        //            else
+        //                throw new Exception();
+        //        }
+        //        else
+        //            activeUIManager.EnableAllUIElements();
+        //    }
+        //}
 
         //public bool ArrowDrawingModeOn
         //{
@@ -731,7 +733,7 @@ namespace Game1
         private Graph CurGraph
             => graph ?? throw new InvalidOperationException($"must initialize {nameof(graph)} first");
         private Graph? graph;
-        private IResource? arrowDrawingModeRes;
+        //private IResource? arrowDrawingModeRes;
         //private bool arrowDrawingModeOn;
 
         private WorldManager()
@@ -759,7 +761,7 @@ namespace Game1
             );
 
             activeUIManager = new(worldCamera: worldCamera);
-            activeUIManager.clickedNowhere.Add(listener: this);
+            //activeUIManager.clickedNowhere.Add(listener: this);
 
             globalTextBox = new(backgroundColor: colorConfig.UIBackgroundColor);
             // TODO: move these constants to a contants file
@@ -803,7 +805,7 @@ namespace Game1
             );
             pauseButtonTooltip.Initialize(onOffButton: pauseButton);
 
-            arrowDrawingModeRes = null;
+            //arrowDrawingModeRes = null;
         }
 
         private void Initialize()
@@ -950,7 +952,7 @@ namespace Game1
             serializer.WriteObject(writer, this);
         }
 
-        void IClickedNowhereListener.ClickedNowhereResponse()
-            => arrowDrawingModeRes = null;
+        //void IClickedNowhereListener.ClickedNowhereResponse()
+        //    => arrowDrawingModeRes = null;
     }
 }

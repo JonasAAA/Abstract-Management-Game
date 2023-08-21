@@ -332,45 +332,45 @@ namespace Game1
         public ulong TargetStoredResAmount(IResource res)
             => targetStoredResAmounts[res];
 
-        public bool CanHaveDestin(NodeID destinationId, IResource res)
-        {
-            if (!Active || CurWorldManager.ArrowDrawingModeRes is null)
-                throw new InvalidOperationException();
+        //public bool CanHaveDestin(NodeID destinationId, IResource res)
+        //{
+        //    if (!Active || CurWorldManager.ArrowDrawingModeRes is null)
+        //        throw new InvalidOperationException();
 
-            return destinationId != NodeID && !resSplittersToDestins.GetOrCreate(key: res).ContainsKey(destinationId);
-        }
+        //    return destinationId != NodeID && !resSplittersToDestins.GetOrCreate(key: res).ContainsKey(destinationId);
+        //}
 
-        public void AddResDestin(NodeID destinationId, IResource res)
-        {
-            if (!CanHaveDestin(destinationId: destinationId, res: res))
-                throw new ArgumentException();
+        //public void AddResDestin(NodeID destinationId, IResource res)
+        //{
+        //    if (!CanHaveDestin(destinationId: destinationId, res: res))
+        //        throw new ArgumentException();
 
-            if (resSplittersToDestins.GetOrCreate(key: res).ContainsKey(key: destinationId))
-                throw new ArgumentException();
+        //    if (resSplittersToDestins.GetOrCreate(key: res).ContainsKey(key: destinationId))
+        //        throw new ArgumentException();
 
-            ResDestinArrow resDestinArrow = new
-            (
-                shapeParams: new ResDestinShapeParams
-                (
-                    State: state,
-                    DestinationId: destinationId
-                ),
-                destinId: destinationId,
-                defaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
-                defaultInactiveColor: Color.White * .5f,
-                popupPos: new(HorizPosEnum.Right, VertPosEnum.Top),
-                minImportance: 1,
-                startImportance: 1,
-                res: res
-            );
-            ResDesinArrowEventListener resDesinArrowEventListener = new(Node: this, Res: res);
-            resDestinArrow.ImportanceNumberChanged.Add(listener: resDesinArrowEventListener);
-            resDestinArrow.Deleted.Add(listener: resDesinArrowEventListener);
+        //    ResDestinArrow resDestinArrow = new
+        //    (
+        //        shapeParams: new ResDestinShapeParams
+        //        (
+        //            State: state,
+        //            DestinationId: destinationId
+        //        ),
+        //        destinId: destinationId,
+        //        defaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
+        //        defaultInactiveColor: Color.White * .5f,
+        //        popupPos: new(HorizPosEnum.Right, VertPosEnum.Top),
+        //        minImportance: 1,
+        //        startImportance: 1,
+        //        res: res
+        //    );
+        //    ResDesinArrowEventListener resDesinArrowEventListener = new(Node: this, Res: res);
+        //    resDestinArrow.ImportanceNumberChanged.Add(listener: resDesinArrowEventListener);
+        //    resDestinArrow.Deleted.Add(listener: resDesinArrowEventListener);
 
-            resDistribArrows.AddChild(child: resDestinArrow);
-            CurWorldManager.AddResDestinArrow(resDestinArrow: resDestinArrow);
-            resDesinArrowEventListener.SyncSplittersWithArrows();
-        }
+        //    resDistribArrows.AddChild(child: resDestinArrow);
+        //    CurWorldManager.AddResDestinArrow(resDestinArrow: resDestinArrow);
+        //    resDesinArrowEventListener.SyncSplittersWithArrows();
+        //}
 
         public void PreEnergyDistribUpdate()
         {
@@ -624,21 +624,21 @@ namespace Game1
             //Industry?.Draw(otherColor: otherColor, otherColorPropor: otherColorPropor);
         }
 
-        protected override void DrawChildren()
-        {
-            base.DrawChildren();
+        //protected override void DrawChildren()
+        //{
+        //    base.DrawChildren();
 
-            if (Active && CurWorldManager.ArrowDrawingModeRes is not null)
-                // TODO: could create the arrow once with endPos calculated from mouse position
-                new Arrow
-                (
-                    parameters: new SingleFrameArrowParams
-                    (
-                        State: state,
-                        EndPos: CurWorldManager.MouseWorldPos
-                    )
-                ).Draw(color: Color.White);
-        }
+        //    if (Active && CurWorldManager.ArrowDrawingModeRes is not null)
+        //        // TODO: could create the arrow once with endPos calculated from mouse position
+        //        new Arrow
+        //        (
+        //            parameters: new SingleFrameArrowParams
+        //            (
+        //                State: state,
+        //                EndPos: CurWorldManager.MouseWorldPos
+        //            )
+        //        ).Draw(color: Color.White);
+        //}
 
         //public override void ChoiceChangedResponse(IOverlay prevOverlay)
         //{

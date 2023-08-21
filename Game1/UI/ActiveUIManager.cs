@@ -35,7 +35,7 @@ namespace Game1.UI
         public static UDouble HUDLengthToScreenLength(UDouble HUDLength)
             => HUDCamera.HUDLengthToScreenLength(HUDLength: HUDLength);
 
-        public Event<IClickedNowhereListener> clickedNowhere;
+        //public Event<IClickedNowhereListener> clickedNowhere;
 
         private readonly List<IUIElement> activeUIElements;
         private readonly HashSet<IHUDElement> HUDElements;
@@ -53,7 +53,7 @@ namespace Game1.UI
         public ActiveUIManager(WorldCamera? worldCamera)
         {
             this.worldCamera = worldCamera;
-            clickedNowhere = new();
+            //clickedNowhere = new();
 
             activeUIElements = new();
             HUDElements = new();
@@ -233,8 +233,8 @@ namespace Game1.UI
                 IUIElement? otherHalfClicked = contMouse;
                 if (halfClicked == otherHalfClicked && otherHalfClicked?.Enabled is true && otherHalfClicked.CanBeClicked)
                     otherHalfClicked.OnClick();
-                else
-                    clickedNowhere.Raise(action: listener => listener.ClickedNowhereResponse());
+                //else
+                //    clickedNowhere.Raise(action: listener => listener.ClickedNowhereResponse());
 
                 halfClicked = null;
             }

@@ -132,7 +132,7 @@ namespace Game1
         [NonSerialized] private Task<PersonAndResShortestPaths> shortestPathsTask;
         private readonly UITransparentPanel<ResDestinArrow> resDestinArrows;
 
-        public WorldUIElement? ActiveWorldElement { get; private set; }
+        private WorldUIElement? activeWorldElement;
 
         public static Graph CreateFromInfo(FullValidMapInfo mapInfo, WorldCamera mapInfoCamera)
         {
@@ -292,7 +292,7 @@ namespace Game1
             foreach (var worldUIElement in WorldUIElements)
                 worldUIElement.activeChanged.Add(listener: this);
 
-            ActiveWorldElement = null;
+            activeWorldElement = null;
 
             //CurOverlayChanged.Add(listener: this);
         }
@@ -423,10 +423,10 @@ namespace Game1
         {
             base.OnClick();
 
-            if (ActiveWorldElement is not null)
+            if (activeWorldElement is not null)
             {
-                ActiveWorldElement.Active = false;
-                ActiveWorldElement = null;
+                activeWorldElement.Active = false;
+                activeWorldElement = null;
             }
         }
 
@@ -565,29 +565,29 @@ namespace Game1
 
         void IActiveChangedListener.ActiveChangedResponse(WorldUIElement worldUIElement)
         {
-            if (CurWorldManager.ArrowDrawingModeRes is not null)
-            {
-                if (worldUIElement.Active)
-                {
-                    var sourceNode = ActiveWorldElement as CosmicBody;
-                    var destinationNode = worldUIElement as CosmicBody;
-                    Debug.Assert(sourceNode is not null && destinationNode is not null);
-                    sourceNode.AddResDestin(destinationId: destinationNode.NodeID, res: CurWorldManager.ArrowDrawingModeRes);
-                    worldUIElement.Active = false;
-                }
-                return;
-            }
+            //if (CurWorldManager.ArrowDrawingModeRes is not null)
+            //{
+            //    if (worldUIElement.Active)
+            //    {
+            //        var sourceNode = ActiveWorldElement as CosmicBody;
+            //        var destinationNode = worldUIElement as CosmicBody;
+            //        Debug.Assert(sourceNode is not null && destinationNode is not null);
+            //        sourceNode.AddResDestin(destinationId: destinationNode.NodeID, res: CurWorldManager.ArrowDrawingModeRes);
+            //        worldUIElement.Active = false;
+            //    }
+            //    return;
+            //}
 
             if (worldUIElement.Active)
             {
-                if (ActiveWorldElement is not null)
-                    ActiveWorldElement.Active = false;
-                ActiveWorldElement = worldUIElement;
+                if (activeWorldElement is not null)
+                    activeWorldElement.Active = false;
+                activeWorldElement = worldUIElement;
             }
             else
             {
-                if (ActiveWorldElement == worldUIElement)
-                    ActiveWorldElement = null;
+                if (activeWorldElement == worldUIElement)
+                    activeWorldElement = null;
             }
         }
     }

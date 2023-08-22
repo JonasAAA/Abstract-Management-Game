@@ -11,11 +11,9 @@ namespace Game1.Industries
         public sealed class GeneralParams : IGeneralBuildingConstructionParams
         {
             public string Name { get; }
-            public EfficientReadOnlyHashSet<IMaterialPurpose> NeededMaterialPurposes { get; }
-            public EfficientReadOnlyDictionary<IMaterialPurpose, Propor> BuildingComponentMaterialPropors { get; }
+            public GeneralProdAndMatAmounts BuildingCostPropors { get; }
 
             public readonly DiskBuildingImage.Params buildingImageParams;
-            public readonly GeneralProdAndMatAmounts buildingCostPropors;
             public readonly EnergyPriority energyPriority;
             public readonly Product.Params productParams;
 
@@ -24,11 +22,9 @@ namespace Game1.Industries
             public GeneralParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority, Product.Params productParams)
             {
                 Name = name;
-                BuildingComponentMaterialPropors = buildingCostPropors.materialPropors;
-                buildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
-                if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
+                BuildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
+                if (BuildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
                     throw new ArgumentException();
-                NeededMaterialPurposes = buildingCostPropors.neededMaterialPurposes;
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.manufacturingBuildingColor);
                 
                 if (energyPriority == EnergyPriority.mostImportant)
@@ -106,7 +102,7 @@ namespace Game1.Industries
             public CurProdStats CurProdStats(Mass productionMassIfFull)
                 => ResAndIndustryAlgos.CurMechProdStats
                 (
-                    buildingCostPropors: generalParams.buildingCostPropors,
+                    buildingCostPropors: generalParams.BuildingCostPropors,
                     buildingMatChoices: buildingMatChoices,
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,
@@ -186,7 +182,7 @@ namespace Game1.Industries
                 this.productParams = productParams;
                 Update(productMaterialChoices: productMaterialChoices);
             }
-
+            // FOR NOW, don't allow to change the material choices on the fly
             private void Update(MaterialChoices productMaterialChoices)
                 => CurProduct = productParams.CreateProduct(materialChoices: productMaterialChoices).ConvertMissingMatPurpsIntoError();
         }

@@ -23,7 +23,7 @@ namespace Game1.Industries
                 this.energyPriority = energyPriority;
                 buildButtonName = buildingGeneralParams.Name;
                 toopltip = new ImmutableTextTooltip(text: UIAlgorithms.ConstructionTooltip(constrGeneralParams: this));
-                neededMaterialPurposes = buildingGeneralParams.NeededMaterialPurposes;
+                neededMaterialPurposes = buildingGeneralParams.BuildingCostPropors.neededMaterialPurposes;
             }
 
             public bool SufficientbuildingMaterials(MaterialChoices curBuildingMaterialChoices)
@@ -33,7 +33,7 @@ namespace Game1.Industries
                 => buildingGeneralParams.CreateConcrete
                 (
                     nodeState: nodeState,
-                    neededBuildingMatChoices: buildingMatChoices.FilterOutUnneededMaterials(materialPropors: buildingGeneralParams.BuildingComponentMaterialPropors)
+                    neededBuildingMatChoices: buildingMatChoices.FilterOutUnneededMaterials(materialPropors: buildingGeneralParams.BuildingCostPropors.materialPropors)
                 ).Select
                 (
                     buildingConcreteParams => new ConcreteParams
@@ -75,7 +75,7 @@ namespace Game1.Industries
                 );
 
                 this.concreteBuildingParams = concreteBuildingParams;
-                buildingMaterialPropors = generalParams.buildingGeneralParams.BuildingComponentMaterialPropors;
+                buildingMaterialPropors = generalParams.buildingGeneralParams.BuildingCostPropors.materialPropors;
             }
 
             public IBuildingImage IncompleteBuildingImage(Propor donePropor)

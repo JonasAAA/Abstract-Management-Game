@@ -14,11 +14,9 @@ namespace Game1.Industries
         public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
             public string Name { get; }
-            public EfficientReadOnlyHashSet<IMaterialPurpose> NeededMaterialPurposes { get; }
-            public EfficientReadOnlyDictionary<IMaterialPurpose, Propor> BuildingComponentMaterialPropors { get; }
+            public GeneralProdAndMatAmounts BuildingCostPropors { get; }
 
             public readonly DiskBuildingImage.Params buildingImageParams;
-            public readonly GeneralProdAndMatAmounts buildingCostPropors;
             public readonly EnergyPriority energyPriority;
 
             private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
@@ -27,11 +25,9 @@ namespace Game1.Industries
             {
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.miningBuildingColor);
                 Name = name;
-                buildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
-                if (buildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
+                BuildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
+                if (BuildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
                     throw new ArgumentException();
-                NeededMaterialPurposes = buildingCostPropors.neededMaterialPurposes;
-                BuildingComponentMaterialPropors = buildingCostPropors.materialPropors;
 
                 energyPriority = EnergyPriority.mostImportant;
                 this.buildingComponentPropors = buildingComponentPropors;
@@ -97,7 +93,7 @@ namespace Game1.Industries
             public UDouble WattsToProduce(UDouble incidentWatts)
                 => ResAndIndustryAlgos.CurProducedWatts
                 (
-                    buildingCostPropors: generalParams.buildingCostPropors,
+                    buildingCostPropors: generalParams.BuildingCostPropors,
                     buildingMatChoices: buildingMatChoices,
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,

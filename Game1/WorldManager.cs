@@ -282,49 +282,46 @@ namespace Game1
             {
                 CurWorldManager.activeUIManager.DisableAllUIElements();
                 AddRouteManager addRouteManager = new();
-                foreach (var cosmicBodyAddDestinPanelManager in addRouteManager.cosmicBodyAddDestinPanelManagers)
+                foreach (var cosmicBodyAddDestinPanelManager in addRouteManager.industryAddDestinPanelManagers)
                     CurWorldManager.AddWorldHUDElement
                     (
-                        worldHUDElement: cosmicBodyAddDestinPanelManager.CosmicBodyAddDestinPanel,
-                        updateHUDPos: cosmicBodyAddDestinPanelManager.CosmicBodyPanelHUDPosUpdate
+                        worldHUDElement: cosmicBodyAddDestinPanelManager.IndustryAddDestinPanel,
+                        updateHUDPos: cosmicBodyAddDestinPanelManager.IndustryPanelHUDPosUpdate
                     );
 
-                foreach (var cosmicBodyAddSourcePanelManager in addRouteManager.cosmicBodyAddSourcePanelManagers)
+                foreach (var cosmicBodyAddSourcePanelManager in addRouteManager.industryAddSourcePanelManagers)
                     CurWorldManager.AddWorldHUDElement
                     (
-                        worldHUDElement: cosmicBodyAddSourcePanelManager.CosmicBodyAddSourcePanel,
-                        updateHUDPos: cosmicBodyAddSourcePanelManager.CosmicBodyPanelHUDPosUpdate
+                        worldHUDElement: cosmicBodyAddSourcePanelManager.IndustryAddSourcePanel,
+                        updateHUDPos: cosmicBodyAddSourcePanelManager.IndustryPanelHUDPosUpdate
                     );
             }
 
-            private readonly List<CosmicBodyAddDestinPanelManager> cosmicBodyAddDestinPanelManagers;
-            private readonly List<CosmicBodyAddSourcePanelManager> cosmicBodyAddSourcePanelManagers;
+            private readonly List<IndustryAddDestinPanelManager> industryAddDestinPanelManagers;
+            private readonly List<IndustryAddSourcePanelManager> industryAddSourcePanelManagers;
 
             public AddRouteManager()
             {
                 // Need to initialize all references so that when this gets copied, the fields are already initialized
-                cosmicBodyAddDestinPanelManagers = new();
-                cosmicBodyAddSourcePanelManagers = new();
+                industryAddDestinPanelManagers = new();
+                industryAddSourcePanelManagers = new();
 
-                cosmicBodyAddDestinPanelManagers.AddRange
+                industryAddDestinPanelManagers.AddRange
                 (
-                    collection: CurWorldManager.CurGraph.Nodes.Where
+                    collection: CurWorldManager.CurGraph.Industries.Select
                     (
-                        cosmicBody => cosmicBody.HasIndustry
-                    ).Select
-                    (
-                        cosmicBody =>
+                        industry =>
                         {
                             UIRectVertPanel<IHUDElement> cosmicBodyAddDestinPanel = new(childHorizPos: HorizPosEnum.Left);
                             cosmicBodyAddDestinPanel.AddChild(new TextBox() { Text = "Add resource\ndestination" });
-                            var potentiallyNotNeededBuildingComponents = cosmicBody.GetPotentiallyNotNeededBuildingComponents();
-                            return new CosmicBodyAddDestinPanelManager
+                            var potentiallyNotNeededBuildingComponents = industry.PotentiallyNotNeededBuildingComponents;
+                            return new IndustryAddDestinPanelManager
                             (
-                                CosmicBody: cosmicBody,
-                                CosmicBodyAddDestinPanel: cosmicBodyAddDestinPanel,
-                                CosmicBodyPanelHUDPosUpdate: new CosmicBodyPanelHUDPosUpdater
+                                Industry: industry,
+                                IndustryAddDestinPanel: cosmicBodyAddDestinPanel,
+                                IndustryPanelHUDPosUpdate: new IndustryPanelHUDPosUpdater
                                 (
-                                    CosmicBody: cosmicBody,
+                                    Industry: industry,
                                     CosmicBodyPanel: cosmicBodyAddDestinPanel,
                                     AnchorInCosmicBody: new(HorizPosEnum.Right, VertPosEnum.Middle),
                                     Origin: new(HorizPosEnum.Left, VertPosEnum.Middle)
@@ -334,14 +331,11 @@ namespace Game1
                     )
                 );
 
-                cosmicBodyAddSourcePanelManagers.AddRange
+                industryAddSourcePanelManagers.AddRange
                 (
-                    collection: CurWorldManager.CurGraph.Nodes.Where
+                    collection: CurWorldManager.CurGraph.Industries.Select
                     (
-                        cosmicBody => cosmicBody.HasIndustry
-                    ).Select
-                    (
-                        cosmicBody =>
+                        industry =>
                         {
                             UIRectVertPanel<IHUDElement> cosmicBodyAddSourcePanel = new(childHorizPos: HorizPosEnum.Left);
                             cosmicBodyAddSourcePanel.AddChild(new TextBox() { Text = "Add resource\nsource" });
@@ -352,7 +346,7 @@ namespace Game1
                             // * Buttons may appear/disappear,
                             // * ResDestinArrow in drawing may have a potential destination disappear right before connecting to it
                             // * Some ResDestinArrows may be deleted (those no longer needed)
-                            var consumedResources = cosmicBody.GetConsumedResources();
+                            var consumedResources = industry.GetConsumedResources();
                             if (consumedResources.Count is 0)
                             {
                                 cosmicBodyAddSourcePanel.AddChild(child: new TextBox() { Text = UIAlgorithms.NoSourcesNeeded });
@@ -374,13 +368,13 @@ namespace Game1
                                     //);
                                 }
                             }
-                            return new CosmicBodyAddSourcePanelManager
+                            return new IndustryAddSourcePanelManager
                             (
-                                CosmicBody: cosmicBody,
-                                CosmicBodyAddSourcePanel: cosmicBodyAddSourcePanel,
-                                CosmicBodyPanelHUDPosUpdate: new CosmicBodyPanelHUDPosUpdater
+                                Industry: industry,
+                                IndustryAddSourcePanel: cosmicBodyAddSourcePanel,
+                                IndustryPanelHUDPosUpdate: new IndustryPanelHUDPosUpdater
                                 (
-                                    CosmicBody: cosmicBody,
+                                    Industry: industry,
                                     CosmicBodyPanel: cosmicBodyAddSourcePanel,
                                     AnchorInCosmicBody: new(HorizPosEnum.Left, VertPosEnum.Middle),
                                     Origin: new(HorizPosEnum.Right, VertPosEnum.Middle)
@@ -394,20 +388,30 @@ namespace Game1
             public void StopAddingRoute()
             {
                 CurWorldManager.activeUIManager.EnableAllUIElements();
-                foreach (var cosmicBodyAddDestinPanelManager in cosmicBodyAddDestinPanelManagers)
-                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyAddDestinPanelManager.CosmicBodyAddDestinPanel);
+                foreach (var cosmicBodyAddDestinPanelManager in industryAddDestinPanelManagers)
+                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyAddDestinPanelManager.IndustryAddDestinPanel);
 
-                foreach (var cosmicBodyAddSourcePanelManager in cosmicBodyAddSourcePanelManagers)
-                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyAddSourcePanelManager.CosmicBodyAddSourcePanel);
+                foreach (var cosmicBodyAddSourcePanelManager in industryAddSourcePanelManagers)
+                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyAddSourcePanelManager.IndustryAddSourcePanel);
             }
         }
 
         [Serializable]
-        private readonly record struct CosmicBodyAddDestinPanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyAddDestinPanel, IAction CosmicBodyPanelHUDPosUpdate);
-
+        private readonly record struct IndustryAddDestinPanelManager(IIndustry Industry, UIRectVertPanel<IHUDElement> IndustryAddDestinPanel, IAction IndustryPanelHUDPosUpdate);
 
         [Serializable]
-        private readonly record struct CosmicBodyAddSourcePanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyAddSourcePanel, IAction CosmicBodyPanelHUDPosUpdate);
+        private readonly record struct IndustryAddSourcePanelManager(IIndustry Industry, UIRectVertPanel<IHUDElement> IndustryAddSourcePanel, IAction IndustryPanelHUDPosUpdate);
+
+        [Serializable]
+        private record IndustryPanelHUDPosUpdater(IIndustry Industry, UIRectVertPanel<IHUDElement> CosmicBodyPanel, PosEnums AnchorInCosmicBody, PosEnums Origin) : IAction
+        {
+            void IAction.Invoke()
+                => CosmicBodyPanel.Shape.SetPosition
+                (
+                    position: CurWorldManager.WorldPosToHUDPos(worldPos: Industry.BuildingImage.GetPosition(origin: AnchorInCosmicBody)),
+                    origin: Origin
+                );
+        }
 
 
         public static WorldManager CurWorldManager
@@ -617,7 +621,8 @@ namespace Game1
             knownTypesSet.UnionWith(Manufacturing.GetKnownTypes());
             knownTypesSet.UnionWith(Mining.GetKnownTypes());
             knownTypesSet.UnionWith(MaterialProduction.GetKnownTypes());
-            knownTypesSet.UnionWith(Storage.GetKnownTypes());
+            throw new NotImplementedException("don't forget to add known types from storage");
+            //knownTypesSet.UnionWith(Storage.GetKnownTypes());
             List<Type> unserializedTypeList = new();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {

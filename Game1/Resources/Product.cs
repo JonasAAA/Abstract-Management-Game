@@ -151,7 +151,6 @@ namespace Game1.Resources
             this.materialIngredients = materialIngredients;
             Mass = productIngredients.Mass() + materialIngredients.Mass();
             HeatCapacity = productIngredients.HeatCapacity() + materialIngredients.HeatCapacity();
-            //Area = arg1.Area() + arg2.Area();
             RawMatComposition = productIngredients.RawMatComposition() + materialIngredients.RawMatComposition();
 
             UsefulArea = parameters.usefulArea;

@@ -105,10 +105,10 @@ namespace Game1
             => state;
         public RealPeopleStats Stats { get; private set; }
 
-        private IIndustry? Industry
+        public IIndustry? Industry
         {
             get => industry;
-            set
+            private set
             {
                 if (industry == value)
                     return;
@@ -290,27 +290,6 @@ namespace Game1
 
         public MyVector2 GetPosition(PosEnums origin)
             => origin.GetPosInRect(center: Position, width: 2 * state.Radius, height: 2 * state.Radius);
-
-        public EfficientReadOnlyCollection<IResource> GetConsumedResources()
-            => Industry switch
-            {
-                IIndustry industry => industry.GetConsumedResources(),
-                null => new()
-            };
-
-        public EfficientReadOnlyCollection<IResource> GetPotentiallyNotNeededBuildingComponents()
-            => Industry switch
-            {
-                IIndustry industry => industry.PotentiallyNotNeededBuildingComponents,
-                null => new()
-            };
-
-        public EfficientReadOnlyCollection<IResource> GetProducedResources()
-            => Industry switch
-            {
-                IIndustry industry => industry.GetProducedResources(),
-                null => new()
-            };
 
         public void StartConstruction(Construction.ConcreteParams constrConcreteParams)
             => Industry = constrConcreteParams.CreateIndustry();

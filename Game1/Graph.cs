@@ -8,6 +8,7 @@ using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
 using Game1.ContentHelpers;
 using Game1.Collections;
+using Game1.Industries;
 
 namespace Game1
 {
@@ -92,6 +93,16 @@ namespace Game1
 
         public IEnumerable<CosmicBody> Nodes
             => nodes;
+
+        public IEnumerable<IIndustry> Industries
+        {
+            get
+            {
+                foreach (var node in nodes)
+                    if (node.Industry is not null)
+                        yield return node.Industry;
+            }
+        }
 
         public readonly EfficientReadOnlyDictionary<NodeID, CosmicBody> nodeIDToNode;
         public TimeSpan MaxLinkTravelTime { get; private set; }

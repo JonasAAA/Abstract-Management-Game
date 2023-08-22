@@ -49,6 +49,9 @@ namespace Game1.Shapes
         public AngleArc.Params BlockedAngleArcParams(MyVector2 lightPos)
             => DiskAlgos.BlockedAngleArcParams(center: nodeShapeParams.Position, radius: CurRadius, lightPos: lightPos);
 
+        public MyVector2 GetPosition(PosEnums origin)
+            => origin.GetPosInRect(center: nodeShapeParams.Position, width: 2 * FinishedBuildingRadius, height: 2 * FinishedBuildingRadius);
+
         public bool Contains(MyVector2 position)
             => DiskAlgos.Contains(center: nodeShapeParams.Position, radius: CurRadius, otherPos: position);
 

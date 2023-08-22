@@ -3,7 +3,7 @@ using Game1.UI;
 
 namespace Game1.Industries
 {
-    public interface IIndustry : IEnergyConsumer, IDeletable
+    public interface IIndustry : IDeletable
     {
         public string Name { get; }
         public IBuildingImage BuildingImage { get; }

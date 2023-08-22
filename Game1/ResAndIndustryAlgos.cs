@@ -221,5 +221,11 @@ namespace Game1
 
         public static ulong MaxAmountInProduction(AreaDouble areaInProduction, AreaInt itemUsefulArea)
             => throw new NotImplementedException();
+
+        public static AreaDouble StorageArea(AreaDouble buildingArea)
+            => throw new NotImplementedException();
+
+        public static ulong MaxAmountInStorage(AreaDouble areaInStorage, AreaInt itemArea)
+            => throw new NotImplementedException();
     }
 }

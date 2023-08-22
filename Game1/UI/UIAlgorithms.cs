@@ -20,6 +20,9 @@ namespace Game1.UI
         public static string NoMaterialIsChosen
             => "no material is chosen";
 
+        public static string NoResourceIsChosen
+            => "no resource is chosen";
+
         public static string GlobalBuildTabTooltip
             => "Builings to construct";
 

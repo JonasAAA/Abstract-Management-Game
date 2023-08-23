@@ -37,7 +37,7 @@ namespace Game1
         // The bigger the number, the easier this raw material will react with itself
         // Formula is plucked out of thin air
         public static UDouble RawMaterialFusionReactionStrengthCoeff(ulong ind)
-            => (UDouble)0.000000001;
+            => (UDouble)0.00000000000000001;
 
         public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
         {
@@ -63,34 +63,47 @@ namespace Game1
         public static ulong GatMaterialAmountFromArea(Material material, AreaInt area)
             => MyMathHelper.DivideThenTakeCeiling(dividend: area.valueInMetSq, divisor: material.Area.valueInMetSq);
 
-        public static Propor Reflectance(this RawMatAmounts rawMaterial, Temperature temperature)
+        public static Propor Reflectivity(this RawMatAmounts rawMatAmounts, Temperature temperature)
         {
-#warning Complete this
-            return (Propor).5;
-            //=> throw new NotImplementedException();
+            return rawMatAmounts.WeightedAverage
+            (
+                rawMatAmount => (weight: rawMatAmount.amount, value: Reflectance(rawMatAmount.res))
+            );
+
+            Propor Reflectance(RawMaterial rawMat)
+            {
+                // To look at the graph, paste formula into the link https://www.desmos.com/calculator \frac{1+\tanh\left(\frac{z+1}{5}\right)\ \cdot\sin\left(\left(z+1\right)\left(\frac{x}{500}+1\right)\right)}{2}
+                double wave = MyMathHelper.Sin((rawMat.Ind + 1) * (temperature.valueInK / 500 + 1));
+                Propor scale = MyMathHelper.Tanh((rawMat.Ind + 1) / 5);
+
+                return (Propor)((1 + scale * wave) / 2);
+        }
         }
 
-        public static Propor Reflectance(this Material material, Temperature temperature)
-            //Reflectance = Propor.CreateOrThrow
-            //(
-            //    part: composition.Sum(resAmount => resAmount.res.Area.valueInMetSq * resAmount.amount * resAmount.res.Reflectance),
-            //    whole: composition.Sum(resAmount => resAmount.res.Area.valueInMetSq * resAmount.amount)
-            //)!.Value;
-            => throw new NotImplementedException();
+        // For reflectivity vs reflectance, see https://en.wikipedia.org/wiki/Reflectance#Reflectivity
+        // TLDR: reflectivity is the used for thick materials
+        public static Propor Reflectivity(this Material material, Temperature temperature)
+            => Reflectivity(rawMatAmounts: material.RawMatComposition, temperature: temperature);
 
-        public static Propor Emissivity(this RawMatAmounts material, Temperature temperature)
+        public static Propor Emissivity(this RawMatAmounts rawMatAmounts, Temperature temperature)
         {
-#warning Complete this
-            return (Propor).5;
-            //Emissivity = Propor.CreateOrThrow
-            //(
-            //    part: composition.Sum(resAmount => resAmount.res.Area.valueInMetSq* resAmount.amount * resAmount.res.Emissivity),
-            //    whole: composition.Sum(resAmount => resAmount.res.Area.valueInMetSq* resAmount.amount)
-            //)!.Value;
+            return rawMatAmounts.WeightedAverage
+            (
+                rawMatAmount => (weight: rawMatAmount.amount, value: Emissivity(rawMatAmount.res))
+            );
+
+            Propor Emissivity(RawMaterial rawMat)
+        {
+                // The difference from Reflectivity is + 2 part in sin
+                double wave = MyMathHelper.Sin((rawMat.Ind + 1) * (temperature.valueInK / 500 + 2));
+                Propor scale = MyMathHelper.Tanh((rawMat.Ind + 1) / 5);
+
+                return (Propor)((1 + scale * wave) / 2);
+            }
         }
 
         public static Propor Emissivity(this Material material, Temperature temperature)
-            => throw new NotImplementedException();
+            => Emissivity(rawMatAmounts: material.RawMatComposition, temperature:temperature);
 
         public static UDouble Resistivity(this Material material, Temperature temperature)
             => throw new NotImplementedException();

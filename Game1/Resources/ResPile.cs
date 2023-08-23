@@ -97,7 +97,7 @@ namespace Game1.Resources
             return new(resPileInternal: newPile, thermalBody: source.thermalBody);
         }
 
-        public static ResPile CreateByMagic(AllResAmounts amount)
+        public static ResPile CreateByMagic(AllResAmounts amount, Temperature temperature)
         {
             // TODO: Look at this, want to insure that the (total amount of energy) * (max heat capacity) fit comfortably into ulong
             // If run into problems with overflow, could use int128 or uint128 instead of ulong from
@@ -106,7 +106,12 @@ namespace Game1.Resources
             return new
             (
                 resPileInternal: resPile,
-                thermalBody: ThermalBody.CreateByMagic(locationCounters: resPile.LocationCounters, amount: amount)
+                thermalBody: ThermalBody.CreateByMagic
+                (
+                    locationCounters: resPile.LocationCounters,
+                    amount: amount,
+                    temperature: temperature
+                )
             );
         }
 

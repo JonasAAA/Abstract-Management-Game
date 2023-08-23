@@ -12,10 +12,17 @@ namespace Game1.Resources
                 magicResAmounts: AllResAmounts.empty
             );
 
-        public static ThermalBody CreateByMagic(LocationCounters locationCounters, AllResAmounts amount)
+        public static ThermalBody CreateByMagic(LocationCounters locationCounters, AllResAmounts amount, Temperature temperature)
             => new
             (
-                heatEnergyPile: EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
+                heatEnergyPile: EnergyPile<HeatEnergy>.CreateByMagic
+                (
+                    locationCounters: locationCounters,
+                    amount: HeatEnergy.CreateFromJoules
+                    (
+                        valueInJ: MyMathHelper.Round(amount.HeatCapacity().valueInJPerK * temperature.valueInK)
+                    )
+                ),
                 magicResAmounts: amount
             );
 

@@ -408,6 +408,7 @@ namespace Game1
                 surfaceLength: state.SurfaceLength,
                 emissivity: Industry?.SurfaceMaterial?.Emissivity(temperature: state.Temperature) ?? state.Composition.Emissivity(temperature: state.Temperature),
                 temperature: state.Temperature,
+                duration: CurWorldManager.Elapsed,
                 energyInJToDissipateRoundFunc: energyInJ => energyToDissipateRounder.Round(value: energyInJ, curTime: CurWorldManager.CurTime),
                 stefanBoltzmannConstant: CurWorldConfig.stefanBoltzmannConstant,
                 temperatureExponent: CurWorldConfig.temperatureExponentInStefanBoltzmannLaw,
@@ -429,7 +430,7 @@ namespace Game1
                 amount: radiantEnergyToDissipate
             );
 
-            state.Temperature = Temperature.CreateFromK(valueInK: (UDouble)state.ThermalBody.HeatEnergy.ValueInJ() / state.ThermalBody.HeatCapacity.valueInJPerK);
+            state.UpdateTemperature();
 
             // MAKE sure that all resources (and people) leaving the planet do so AFTER the the temperatureInK is established for that frame,
             // i.e. after appropriate amount of energy is radiated to space.
@@ -588,7 +589,7 @@ namespace Game1
             //);
             textBox.Text = "";
 
-            textBox.Text += $"T = {state.Temperature:0.} K\nM to E = {massConvertedToEnergy.valueInKg}\n";
+            textBox.Text += $"T = {state.Temperature}\nM to E = {massConvertedToEnergy.valueInKg}\n";
             textBox.Text = textBox.Text.Trim();
 
             infoTextBox.Text += textBox.Text;
@@ -693,7 +694,7 @@ namespace Game1
                 amount: Algorithms.EnergyPropor
                 (
                     wholeAmount: state.RadiantEnergyPile.Amount,
-                    propor: Industry?.SurfaceMaterial?.Reflectance(temperature: state.Temperature) ?? state.Composition.Reflectance(temperature: state.Temperature),
+                    propor: Industry?.SurfaceMaterial?.Reflectivity(temperature: state.Temperature) ?? state.Composition.Reflectivity(temperature: state.Temperature),
                     roundFunc: amount => reflectedRadiantEnergyRounder.Round
                     (
                         value: amount,

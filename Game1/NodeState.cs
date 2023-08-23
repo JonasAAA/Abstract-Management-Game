@@ -35,7 +35,7 @@ namespace Game1
         /// This is current temperature to be used until the new value is calculated.
         /// Don't calculate temperature on the fly each time, as that would lead to temperature variations during the frame.
         /// </summary>
-        public Temperature Temperature { get; set; }
+        public Temperature Temperature { get; private set; }
 
         public readonly ResPile consistsOfResPile;
 
@@ -86,7 +86,11 @@ namespace Game1
                 isInActivityCenter: false
             );
             TooManyResStored = false;
+            UpdateTemperature();
         }
+
+        public void UpdateTemperature()
+            => Temperature = Temperature.CreateFromK(valueInK: (UDouble)ThermalBody.HeatEnergy.ValueInJ() / ThermalBody.HeatCapacity.valueInJPerK);
 
         public void RecalculateValues()
         {

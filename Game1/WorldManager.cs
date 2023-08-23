@@ -898,8 +898,9 @@ namespace Game1
         {
             if (elapsedGameTime < TimeSpan.Zero)
                 throw new ArgumentException();
-
-            Elapsed = pauseButton.On ? TimeSpan.Zero : elapsedGameTime * CurWorldConfig.worldSecondsInGameSecond;
+#warning Complete this. Do this speedup properly - have an initial simulation stage of the game (similar to Dwarf Fortress) when the speedup happens
+            double speedup = (Mouse.GetState().MiddleButton == ButtonState.Pressed) ? 100 : 1;
+            Elapsed = pauseButton.On ? TimeSpan.Zero : elapsedGameTime * CurWorldConfig.worldSecondsInGameSecond * speedup;
             CurTime += Elapsed;
 
             worldCamera.Update(elapsed: elapsedGameTime, canScroll: CurGraph.MouseOn);

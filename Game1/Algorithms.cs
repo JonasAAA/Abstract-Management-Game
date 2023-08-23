@@ -242,7 +242,7 @@ namespace Game1
             // Number density is from https://en.wikipedia.org/wiki/Number_density
             // Volume number density is the number of specified objects per unit volume
             double numberDensity = amount / compositionArea.valueInMetSq,
-                reactionStrength = fusionReactionStrengthCoeff * numberDensity * numberDensity * gravity * temperature.valueInK;
+                reactionStrength = fusionReactionStrengthCoeff * numberDensity * numberDensity * gravity * gravity * temperature.valueInK * temperature.valueInK;
             decimal nonReactingPropor = (decimal)MyMathHelper.Pow(@base: (UDouble)nonReactingProporForUnitReactionStrengthUnitTime, exponent: reactionStrength * duration.TotalSeconds);
             ulong maxReactions = amount / 2,
                 numberOfReactions = maxReactions - reactionNumberRounder(nonReactingPropor * maxReactions);
@@ -258,14 +258,14 @@ namespace Game1
         /// The splitting into heat energy and radiant energy algorithm is my creation
         /// </summary>
         public static (HeatEnergy heatEnergy, RadiantEnergy radiantEnergy) EnergiesToDissipate(HeatEnergy heatEnergy, UDouble surfaceLength, Propor emissivity, Temperature temperature,
-            Func<decimal, ulong> energyInJToDissipateRoundFunc, UDouble stefanBoltzmannConstant, ulong temperatureExponent, Func<decimal, ulong> heatEnergyInJRoundFunc,
+            TimeSpan duration, Func<decimal, ulong> energyInJToDissipateRoundFunc, UDouble stefanBoltzmannConstant, ulong temperatureExponent, Func<decimal, ulong> heatEnergyInJRoundFunc,
             Temperature allHeatMaxTemper, Temperature halfHeatTemper, UDouble heatEnergyDropoffExponent)
         {
 #warning test this
             ulong energyInJToDissipate = MyMathHelper.Min
             (
                 heatEnergy.ValueInJ,
-                energyInJToDissipateRoundFunc((decimal)(surfaceLength * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent)))
+                energyInJToDissipateRoundFunc((decimal)(duration.TotalSeconds * surfaceLength * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent)))
             );
             double heatEnergyPropor = (temperature <= allHeatMaxTemper) switch
             {

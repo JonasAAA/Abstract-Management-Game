@@ -105,6 +105,18 @@ namespace Game1
             return valueSum / weightSum;
         }
 
+        public static Propor WeightedAverage<TSource>(this IEnumerable<TSource> source, Func<TSource, (UDouble weight, Propor value)> selector)
+        {
+            UDouble weightSum = 0, valueSum = 0;
+            foreach (var item in source)
+            {
+                var (weight, value) = selector(item);
+                weightSum += weight;
+                valueSum += (UDouble)value;
+            }
+            return Propor.Create(part: valueSum, whole: weightSum)!.Value;
+        }
+
         public static IEnumerable<T> Clone<T>(this IEnumerable<T> source)
             => source.ToArray();
 

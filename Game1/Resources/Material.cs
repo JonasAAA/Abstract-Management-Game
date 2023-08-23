@@ -5,10 +5,10 @@ namespace Game1.Resources
     [Serializable]
     public sealed class Material : IResource
     {
-        public static void CreateAndAddToCurResConfig(string name, RawMatAmounts composition)
+        public static Material CreateAndAddToCurResConfig(string name, RawMatAmounts composition)
         {
             // Material consrutor adds itself to CurResConfig
-            _ = new Material(name, composition);
+            return new Material(name, composition);
         }
 
         public string Name { get; }

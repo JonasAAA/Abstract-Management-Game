@@ -33,7 +33,7 @@ namespace Game1.Industries
                 => buildingGeneralParams.CreateConcrete
                 (
                     nodeState: nodeState,
-                    neededBuildingMatChoices: buildingMatChoices.FilterOutUnneededMaterials(materialPropors: buildingGeneralParams.BuildingCostPropors.materialPropors)
+                    neededBuildingMatChoices: buildingMatChoices.FilterOutUnneededMaterials(neededMaterialPurposes: neededMaterialPurposes)
                 ).Select
                 (
                     buildingConcreteParams => new ConcreteParams

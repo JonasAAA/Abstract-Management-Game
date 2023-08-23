@@ -1,46 +1,68 @@
-﻿using Game1.Collections;
-using System.Collections.Immutable;
-
-namespace Game1.ContentHelpers
+﻿namespace Game1.ContentHelpers
 {
     [Serializable]
     public readonly struct FullValidStartingInfo
     {
         public static Result<FullValidStartingInfo, TextErrors> Create(ValidStartingInfo startingInfo)
         {
-            return Result.Lift<string, string, FullValidStartingInfo, string>
+            return Result.Lift
             (
-                func: (arg1, arg2) => new FullValidStartingInfo
+                func: (arg1, arg2, arg3, arg4) => new FullValidStartingInfo
                 (
-                    houseCosmicBody: arg1,
-                    powerPlantCosmicBody: arg2,
                     worldCenter: startingInfo.WorldCenter,
-                    cameraViewHeight: startingInfo.CameraViewHeight
+                    cameraViewHeight: startingInfo.CameraViewHeight,
+                    powerPlantCosmicBody: arg1,
+                    gearStorageCosmicBody: arg2,
+                    wireStorageCosmicBody: arg3,
+                    roofTileStorageCosmicBody: arg4
+
                 ),
-                arg1: startingInfo.HouseCosmicBody switch
-                {
-                    string houseCosmicBody => new(ok: houseCosmicBody),
-                    null => new(errors: new(value: $"Starting {nameof(StartingInfo.HouseCosmicBody)} must be set"))
-                },
-                arg2: startingInfo.PowerPlantCosmicBody switch
+                arg1: CosmicBodyNameOrNullToResult
+                (
+                    cosmicBodyName: startingInfo.PowerPlantCosmicBody,
+                    cosmicBodyPurpose: nameof(StartingInfo.PowerPlantCosmicBody)
+                ),
+                arg2: CosmicBodyNameOrNullToResult
+                (
+                    cosmicBodyName: startingInfo.GearStorageCosmicBody,
+                    cosmicBodyPurpose: nameof(StartingInfo.GearStorageCosmicBody)
+                ),
+                arg3: CosmicBodyNameOrNullToResult
+                (
+                    cosmicBodyName: startingInfo.WireStorageCosmicBody,
+                    cosmicBodyPurpose: nameof(StartingInfo.WireStorageCosmicBody)
+                ),
+                arg4: CosmicBodyNameOrNullToResult
+                (
+                    cosmicBodyName: startingInfo.RoofTileStorageCosmicBody,
+                    cosmicBodyPurpose: nameof(StartingInfo.RoofTileStorageCosmicBody)
+                )
+            );
+
+            static Result<string, TextErrors> CosmicBodyNameOrNullToResult(string? cosmicBodyName, string cosmicBodyPurpose)
+                => cosmicBodyName switch
                 {
                     string powerPlantCosmicBody => new(ok: powerPlantCosmicBody),
-                    null => new(errors: new(value: $"Starting {nameof(StartingInfo.PowerPlantCosmicBody)} must be set"))
-                }
-            );
+                    null => new(errors: new(value: $"Starting {cosmicBodyPurpose} must be not null"))
+                };
         }
 
-        public string HouseCosmicBody { get; }
-        public string PowerPlantCosmicBody { get; }
         public MyVector2 WorldCenter { get; }
         public UDouble CameraViewHeight { get; }
+        public string PowerPlantCosmicBody { get; }
+        public string GearStorageCosmicBody { get; }
+        public string WireStorageCosmicBody { get; }
+        public string RoofTileStorageCosmicBody { get; }
 
-        private FullValidStartingInfo(string houseCosmicBody, string powerPlantCosmicBody, MyVector2 worldCenter, UDouble cameraViewHeight)
+        private FullValidStartingInfo(MyVector2 worldCenter, UDouble cameraViewHeight, string powerPlantCosmicBody, string gearStorageCosmicBody,
+            string wireStorageCosmicBody, string roofTileStorageCosmicBody)
         {
-            HouseCosmicBody = houseCosmicBody;
-            PowerPlantCosmicBody = powerPlantCosmicBody;
             WorldCenter = worldCenter;
             CameraViewHeight = cameraViewHeight;
+            PowerPlantCosmicBody = powerPlantCosmicBody;
+            GearStorageCosmicBody = gearStorageCosmicBody;
+            WireStorageCosmicBody = wireStorageCosmicBody;
+            RoofTileStorageCosmicBody = roofTileStorageCosmicBody;
         }
     }
 }

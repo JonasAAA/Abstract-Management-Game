@@ -3,6 +3,8 @@
     [Serializable]
     public sealed class ResConfig
     {
+        public MaterialChoices StartingMaterialChoices { get; private set; }
+
         private readonly Dictionary<ulong, RawMaterial> indToRawMat;
         private readonly List<IResource> resources;
         private readonly Dictionary<IResource, ulong> resToOrder;
@@ -18,7 +20,7 @@
 
         public void Initialize()
         {
-            Material.CreateAndAddToCurResConfig
+            var material0 = Material.CreateAndAddToCurResConfig
             (
                 name: "Material 0",
                 composition: new
@@ -27,7 +29,7 @@
                     amount: 1
                 )
             );
-            Material.CreateAndAddToCurResConfig
+            var material1 = Material.CreateAndAddToCurResConfig
             (
                 name: "Material 1",
                 composition: new
@@ -36,7 +38,7 @@
                     amount: 1
                 )
             );
-            Material.CreateAndAddToCurResConfig
+            var material2 = Material.CreateAndAddToCurResConfig
             (
                 name: "Material 0 and 1 mix",
                 composition: new
@@ -48,6 +50,14 @@
                     }
                 )
             );
+            StartingMaterialChoices = new()
+            {
+                [IMaterialPurpose.electricalInsulator] = material0,
+                [IMaterialPurpose.electricalConductor] = material1,
+                [IMaterialPurpose.roofSurface] = material2,
+            };
+            foreach (var prodParams in Product.productParamsDict.Values)
+                prodParams.GetProduct(materialChoices: StartingMaterialChoices);
         }
 
         public RawMaterial? GetRawMatFromInd(ulong ind)

@@ -444,7 +444,13 @@ namespace Game1
                 screenBoundWidthForMapMoving: 1
             );
             curWorldManager = new();
-            CurWorldManager.graph = Graph.CreateFromInfo(mapInfo: mapInfo, mapInfoCamera: mapInfoCamera);
+            CurWorldManager.graph = Graph.CreateFromInfo
+            (
+                mapInfo: mapInfo,
+                mapInfoCamera: mapInfoCamera,
+                resConfig: curWorldManager.resConfig,
+                industryConfig: curWorldManager.industryConfig
+            );
             AddUIElements();
             CurWorldManager.Initialize();
 
@@ -621,8 +627,7 @@ namespace Game1
             knownTypesSet.UnionWith(Manufacturing.GetKnownTypes());
             knownTypesSet.UnionWith(Mining.GetKnownTypes());
             knownTypesSet.UnionWith(MaterialProduction.GetKnownTypes());
-            throw new NotImplementedException("don't forget to add known types from storage");
-            //knownTypesSet.UnionWith(Storage.GetKnownTypes());
+            knownTypesSet.UnionWith(Storage.GetKnownTypes());
             List<Type> unserializedTypeList = new();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {

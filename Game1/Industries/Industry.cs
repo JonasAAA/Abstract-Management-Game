@@ -50,7 +50,7 @@ namespace Game1.Industries
     }
 
     [Serializable]
-    public class Industry<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TProductionCycleState> : IIndustry, IEnergyConsumer
+    public sealed class Industry<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TProductionCycleState> : IIndustry, IEnergyConsumer
         where TConcreteBuildingParams : struct, Industry.IConcreteBuildingParams<TConcreteProductionParams>
         where TProductionCycleState : class, Industry.IProductionCycleState<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TProductionCycleState>
     {

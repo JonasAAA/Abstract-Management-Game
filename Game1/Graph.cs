@@ -145,7 +145,7 @@ namespace Game1
 
         private WorldUIElement? activeWorldElement;
 
-        public static Graph CreateFromInfo(FullValidMapInfo mapInfo, WorldCamera mapInfoCamera)
+        public static Graph CreateFromInfo(FullValidMapInfo mapInfo, WorldCamera mapInfoCamera, ResConfig resConfig, IndustryConfig industryConfig)
         {
             // DIFFICULT to have magicUnlimitedResAmounts as can always create new materials and thus new products
             // Maybe should just create infinite amount of raw materials and then convert them to more complicated things
@@ -165,15 +165,24 @@ namespace Game1
             (
                 amount: new
                 (
-                    resAmounts: startingRawMatTargetRatios.Select
+                    resAmounts: resConfig.GetAllCurRes().Select
                     (
-                        rawMatAmount => new ResAmount<IResource>
+                        res => new ResAmount<IResource>
                         (
-                            res: rawMatAmount.res,
-                            amount: CurWorldConfig.magicUnlimitedStartingMaterialCount
+                            res: res,
+                            amount: CurWorldConfig.magicUnlimitedStartingMaterialCount       
                         )
                     )
-                )
+                    //resAmounts: startingRawMatTargetRatios.Select
+                    //(
+                    //    rawMatAmount => new ResAmount<IResource>
+                    //    (
+                    //        res: rawMatAmount.res,
+                    //        amount: CurWorldConfig.magicUnlimitedStartingMaterialCount
+                    //    )
+                    //)
+                ),
+                temperature: CurWorldConfig.startingTemperature
             );
             Dictionary<string, CosmicBody> cosmicBodiesByName = mapInfo.CosmicBodies.ToDictionary
             (
@@ -187,18 +196,19 @@ namespace Game1
                         rawMatRatios: ResAndIndustryAlgos.CosmicBodyRandomRawMatRatios(startingRawMatTargetRatios: startingRawMatTargetRatios),
                         resSource: magicUnlimitedStartingRawMaterialPile
                     ),
-                    activeColor: colorConfig.selectedWorldUIElementColor
-                //startingConditions: cosmicBodyInfo.Name == mapInfo.StartingInfo.HouseCosmicBody ?
-                //(
-                //    industryFactory: CurIndustryConfig.basicHouseFactory,
-                //    personCount: CurWorldConfig.startingPersonNumInHouseCosmicBody,
-                //    resSource: magicResPile
-                //) : cosmicBodyInfo.Name == mapInfo.StartingInfo.PowerPlantCosmicBody ?
-                //(
-                //    industryFactory: CurIndustryConfig.basicPowerPlantFactory,
-                //    personCount: CurWorldConfig.startingPersonNumInPowerPlantCosmicBody,
-                //    resSource: magicResPile
-                //) : null
+                    activeColor: colorConfig.selectedWorldUIElementColor,
+                    createIndustry: nodeState => CreateIndustry(nodeState: nodeState, cosmicBodyName: cosmicBodyInfo.Name)
+                    //startingConditions: cosmicBodyInfo.Name == mapInfo.StartingInfo.HouseCosmicBody ?
+                    //(
+                    //    industryFactory: CurIndustryConfig.basicHouseFactory,
+                    //    personCount: CurWorldConfig.startingPersonNumInHouseCosmicBody,
+                    //    resSource: magicResPile
+                    //) : cosmicBodyInfo.Name == mapInfo.StartingInfo.PowerPlantCosmicBody ?
+                    //(
+                    //    industryFactory: CurIndustryConfig.basicPowerPlantFactory,
+                    //    personCount: CurWorldConfig.startingPersonNumInPowerPlantCosmicBody,
+                    //    resSource: magicResPile
+                    //) : null
                 )
             );
             return new
@@ -214,6 +224,39 @@ namespace Game1
                     )
                 ).ToList()
             );
+
+            IIndustry? CreateIndustry(IIndustryFacingNodeState nodeState, string cosmicBodyName)
+            {
+                if (cosmicBodyName == mapInfo.StartingInfo.PowerPlantCosmicBody)
+                {
+                    // This is done so that buildings and people take stuff from this planet(i.e.MassCounter is of this planet)
+                    nodeState.StoredResPile.TransferAllFrom(source: magicUnlimitedStartingRawMaterialPile);
+                    var concreteParams = industryConfig.startingPowerPlantParams.CreateConcrete
+                    (
+                        nodeState: nodeState,
+                        neededBuildingMatChoices: resConfig.StartingMaterialChoices
+                    ).UnwrapOrThrow
+                    (
+                        exception: missingMatChoices => new ArgumentException
+                        (
+                            $"Starting power plant is missing the following material choices {string.Join(", ", missingMatChoices.Select(materialChoice => materialChoice.Name))}"
+                        )
+                    );
+
+                    var buildingResPile = ResPile.CreateIfHaveEnough
+                    (
+                        source: nodeState.StoredResPile,
+                        amount: concreteParams.BuildingCost
+                    );
+                    Debug.Assert(buildingResPile is not null);
+                    magicUnlimitedStartingRawMaterialPile.TransferAllFrom(source: nodeState.StoredResPile);
+                    return concreteParams.CreateIndustry
+                    (
+                        buildingResPile: buildingResPile
+                    );
+                }
+                return null;
+            }
             //// DIFFICULT to have magicUnlimitedResAmounts as can always create new materials and thus new products
             //// Maybe should just create infinite amount of raw materials and then convert them to more complicated things
             //// However, even the max amount of raw materials is not clear

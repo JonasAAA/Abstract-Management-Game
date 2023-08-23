@@ -1,4 +1,6 @@
-﻿namespace Game1.ContentHelpers
+﻿using Game1.Collections;
+
+namespace Game1.ContentHelpers
 {
     [Serializable]
     public readonly struct ValidStartingInfo
@@ -6,51 +8,70 @@
         public static ValidStartingInfo CreateOrThrow(StartingInfo startingInfo)
             => CreateOrThrow
             (
-                houseCosmicBodyName: startingInfo.HouseCosmicBody,
-                powerPlantCosmicBodyName: startingInfo.PowerPlantCosmicBody,
                 worldCenter: new(x: startingInfo.WorldCenter.X, y: startingInfo.WorldCenter.Y),
-                cameraViewHeight: (UDouble)startingInfo.CameraViewHeight
+                cameraViewHeight: (UDouble)startingInfo.CameraViewHeight,
+                powerPlantCosmicBody: startingInfo.PowerPlantCosmicBody,
+                gearStorageCosmicBody: startingInfo.GearStorageCosmicBody,
+                wireStorageCosmicBody: startingInfo.WireStorageCosmicBody,
+                roofTileStorageCosmicBody: startingInfo.RoofTileStorageCosmicBody
             );
 
-        public static ValidStartingInfo CreateOrThrow(string? houseCosmicBodyName, string? powerPlantCosmicBodyName, MyVector2 worldCenter, UDouble cameraViewHeight)
+        public static ValidStartingInfo CreateOrThrow(MyVector2 worldCenter, UDouble cameraViewHeight, string? powerPlantCosmicBody, string? gearStorageCosmicBody,
+            string? wireStorageCosmicBody, string? roofTileStorageCosmicBody)
         {
             if (cameraViewHeight <= 0)
                 throw new ContentException("Starting camera view height must be positive");
-            if (houseCosmicBodyName is not null && houseCosmicBodyName == powerPlantCosmicBodyName)
-                throw new ContentException($"Starting house cosmic body name must differ from starting power plant cosmic body name. Currently they are both \"{houseCosmicBodyName}\"");
+            EfficientReadOnlyCollection<string?> notNullImportantCosmicBodyNames = new List<string?>()
+            {
+                powerPlantCosmicBody,
+                gearStorageCosmicBody,
+                wireStorageCosmicBody,
+                roofTileStorageCosmicBody
+            }.Where(cosmicBodyName => cosmicBodyName is not null).ToEfficientReadOnlyCollection();
+            if (notNullImportantCosmicBodyNames.ToEfficientReadOnlyHashSet().Count != notNullImportantCosmicBodyNames.Count)
+                throw new ArgumentException("${nameof(PowerPlantCosmicBody)}, {nameof(GearStorageCosmicBody)}, {nameof(WireStorageCosmicBody)}, {nameof(RoofTileStorageCosmicBody)} must be distinct");
             return new
             (
-                houseCosmicBodyName: houseCosmicBodyName,
-                powerPlantCosmicBodyName: powerPlantCosmicBodyName,
                 worldCenter: worldCenter,
-                cameraViewHeight: cameraViewHeight
+                cameraViewHeight: cameraViewHeight,
+                powerPlantCosmicBody: powerPlantCosmicBody,
+                gearStorageCosmicBody: gearStorageCosmicBody,
+                wireStorageCosmicBody: wireStorageCosmicBody,
+                roofTileStorageCosmicBody: roofTileStorageCosmicBody
             );
         }
 
-        public string? HouseCosmicBody { get; }
-        public string? PowerPlantCosmicBody { get; }
         public MyVector2 WorldCenter { get; }
         public UDouble CameraViewHeight { get; }
+        public string? PowerPlantCosmicBody { get; }
+        public string? GearStorageCosmicBody { get; }
+        public string? WireStorageCosmicBody { get; }
+        public string? RoofTileStorageCosmicBody { get; }
 
-        private ValidStartingInfo(string? houseCosmicBodyName, string? powerPlantCosmicBodyName, MyVector2 worldCenter, UDouble cameraViewHeight)
+        private ValidStartingInfo(MyVector2 worldCenter, UDouble cameraViewHeight, string? powerPlantCosmicBody, string? gearStorageCosmicBody,
+            string? wireStorageCosmicBody, string? roofTileStorageCosmicBody)
         {
-            HouseCosmicBody = houseCosmicBodyName;
-            PowerPlantCosmicBody = powerPlantCosmicBodyName;
             WorldCenter = worldCenter;
             CameraViewHeight = cameraViewHeight;
+            PowerPlantCosmicBody = powerPlantCosmicBody;
+            GearStorageCosmicBody = gearStorageCosmicBody;
+            WireStorageCosmicBody = wireStorageCosmicBody;
+            RoofTileStorageCosmicBody = roofTileStorageCosmicBody;
         }
 
         public StartingInfo ToJsonable()
             => new()
             {
-                HouseCosmicBody = HouseCosmicBody,
-                PowerPlantCosmicBody = PowerPlantCosmicBody,
                 WorldCenter = new()
                 {
                     X = WorldCenter.X,
                     Y = WorldCenter.Y
                 },
-                CameraViewHeight = CameraViewHeight
+                CameraViewHeight = CameraViewHeight,
+                PowerPlantCosmicBody = PowerPlantCosmicBody,
+                GearStorageCosmicBody = GearStorageCosmicBody,
+                WireStorageCosmicBody = WireStorageCosmicBody,
+                RoofTileStorageCosmicBody = RoofTileStorageCosmicBody
             };
     }
 }

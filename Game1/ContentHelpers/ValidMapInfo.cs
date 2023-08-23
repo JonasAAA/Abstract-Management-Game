@@ -28,11 +28,39 @@
                 if (!cosmicBodyNames.Contains(linkInfo.To))
                     throw new ContentException($"""Link {nameof(linkInfo.To)} must specify already existing cosmic body name. That's not the case for "{linkInfo.To}".""");
             }
-            if (startingInfo.HouseCosmicBody is not null && !cosmicBodyNames.Contains(startingInfo.HouseCosmicBody))
-                throw new ContentException($"Starting {nameof(ContentHelpers.StartingInfo.HouseCosmicBody)} must specify already existing cosmic body name. That's not the case for \"{startingInfo.HouseCosmicBody}\".");
-            if (startingInfo.PowerPlantCosmicBody is not null && !cosmicBodyNames.Contains(startingInfo.PowerPlantCosmicBody))
-                throw new ContentException($"Starting {nameof(ContentHelpers.StartingInfo.PowerPlantCosmicBody)} must specify already existing cosmic body name. That's not the case for \"{startingInfo.PowerPlantCosmicBody}\".");
-            return new(notReadyToUse: notReadyToUse, cosmicBodies: cosmicBodies, links: links, startingInfo: startingInfo);
+            CheckIfCosmicBodyNameIsValid
+            (
+                cosmicBodyName: startingInfo.PowerPlantCosmicBody,
+                cosmicBodyPurpose: nameof(ContentHelpers.StartingInfo.PowerPlantCosmicBody)
+            );
+            CheckIfCosmicBodyNameIsValid
+            (
+                cosmicBodyName: startingInfo.GearStorageCosmicBody,
+                cosmicBodyPurpose: nameof(ContentHelpers.StartingInfo.GearStorageCosmicBody)
+            );
+            CheckIfCosmicBodyNameIsValid
+            (
+                cosmicBodyName: startingInfo.WireStorageCosmicBody,
+                cosmicBodyPurpose: nameof(ContentHelpers.StartingInfo.WireStorageCosmicBody)
+            );
+            CheckIfCosmicBodyNameIsValid
+            (
+                cosmicBodyName: startingInfo.RoofTileStorageCosmicBody,
+                cosmicBodyPurpose: nameof(ContentHelpers.StartingInfo.RoofTileStorageCosmicBody)
+            );
+            return new
+            (
+                notReadyToUse: notReadyToUse,
+                cosmicBodies: cosmicBodies,
+                links: links,
+                startingInfo: startingInfo
+            );
+
+            void CheckIfCosmicBodyNameIsValid(string? cosmicBodyName, string cosmicBodyPurpose)
+            {
+                if (cosmicBodyName is not null && !cosmicBodyNames.Contains(cosmicBodyName))
+                    throw new ContentException($"Starting {cosmicBodyPurpose} must specify already existing cosmic body name. That's not the case for \"{cosmicBodyName}\".");
+            }
         }
 
         public bool NotReadyToUse { get; }

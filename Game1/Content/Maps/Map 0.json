@@ -80,12 +80,14 @@
     }
   ],
   "StartingInfo": {
-    "HouseCosmicBody": "Cosmic body 1",
-    "PowerPlantCosmicBody": "Cosmic body 2",
     "WorldCenter": {
       "X": 0,
       "Y": 0
     },
-    "CameraViewHeight": 1080
+    "CameraViewHeight": 1080,
+    "PowerPlantCosmicBody": "Cosmic body 0",
+    "GearStorageCosmicBody": "Cosmic body 1",
+    "WireStorageCosmicBody": "Cosmic body 2",
+    "RoofTileStorageCosmicBody": "Cosmic body 3"
   }
 }

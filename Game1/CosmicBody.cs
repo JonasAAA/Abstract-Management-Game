@@ -147,8 +147,7 @@ namespace Game1
         //private readonly string overlayTabLabel;
         private readonly UITransparentPanel<ResDestinArrow> resDistribArrows;
 
-        public CosmicBody(NodeState state, Color activeColor)
-            //, (IFactoryForIndustryWithBuilding industryFactory, ulong personCount, ResPile resSource)? startingConditions = null)
+        public CosmicBody(NodeState state, Color activeColor, Func<IIndustryFacingNodeState, IIndustry?> createIndustry)
             : base
             (
                 shape: new LightBlockingDisk(parameters: new ShapeParams(State: state)),
@@ -177,8 +176,6 @@ namespace Game1
             capturedForUseRadiantEnergyRounder = new();
             radiantEnergyToDissipatePile = EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: state.LocationCounters);
             radiantEnergyToDissipate = RadiantEnergy.zero;
-#warning have a config parameter for that
-            state.Temperature = Temperature.CreateFromK(valueInK: 100);
             massConvertedToEnergy = Mass.zero;
 
             textBox = new(textColor: colorConfig.almostWhiteColor);
@@ -244,6 +241,8 @@ namespace Game1
             //);
 
             resDistribArrows = new();
+
+            Industry = createIndustry(state);
 
             //Mass startingNonPlanetMass = Mass.zero;
             //// this is here beause it uses infoPanel, so that needs to be initialized first

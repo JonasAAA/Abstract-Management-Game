@@ -9,7 +9,7 @@ namespace Game1.Industries
     public sealed class Storage : IIndustry
     {
         [Serializable]
-        public sealed class GeneralParams
+        public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
             public string Name { get; }
             public GeneralProdAndMatAmounts BuildingCostPropors { get; }
@@ -18,7 +18,7 @@ namespace Game1.Industries
 
             private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
 
-            public GeneralParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
+            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
             {
                 Name = name;
                 BuildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
@@ -64,11 +64,11 @@ namespace Game1.Industries
                 => buildingImage.Area;
             // generalParams and buildingMatChoices will be used if/when storage industry depends on material choices.
             // Probably the only possible dependance is how much weight it can hold.
-            private readonly GeneralParams generalParams;
+            private readonly GeneralBuildingParams generalParams;
             private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialChoices buildingMatChoices;
 
-            public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage,
+            public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
                 MaterialChoices buildingMatChoices, Material surfaceMaterial)
             {

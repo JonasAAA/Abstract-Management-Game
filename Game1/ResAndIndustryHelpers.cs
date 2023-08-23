@@ -24,8 +24,8 @@ namespace Game1
         public static AreaInt RoundDown(this AreaDouble area)
             => AreaInt.CreateFromMetSq(valueInMetSq: (ulong)area.valueInMetSq);
 
-        public static MaterialChoices FilterOutUnneededMaterials(this MaterialChoices materialChoices, EfficientReadOnlyDictionary<IMaterialPurpose, Propor> materialPropors)
-            => materialChoices.Where(matChoice => !materialPropors[matChoice.Key].IsEmpty).ToEfficientReadOnlyDict
+        public static MaterialChoices FilterOutUnneededMaterials(this MaterialChoices materialChoices, EfficientReadOnlyHashSet<IMaterialPurpose> neededMaterialPurposes)
+            => materialChoices.Where(matChoice => neededMaterialPurposes.Contains(matChoice.Key)).ToEfficientReadOnlyDict
             (
                 keySelector: matChoice => matChoice.Key,
                 elementSelector: matChoice => matChoice.Value

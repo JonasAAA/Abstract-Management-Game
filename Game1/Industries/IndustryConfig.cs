@@ -6,24 +6,39 @@ namespace Game1.Industries
     public sealed class IndustryConfig
     {
         public readonly EfficientReadOnlyCollection<Construction.GeneralParams> constrGeneralParamsList;
-        //public readonly House.Factory basicHouseFactory;
-        //public readonly PowerPlant.Factory basicPowerPlantFactory;
+        public readonly PowerPlant.GeneralBuildingParams startingPowerPlantParams;
+        public readonly Storage.GeneralBuildingParams startingStorageParams;
 
         public IndustryConfig()
         {
+            startingPowerPlantParams = new PowerPlant.GeneralBuildingParams
+            (
+                name: "Basic Power Plant",
+                buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                {
+                    (prodParams: Product.productParamsDict["Wire"], amount: 4),
+                    (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                }.ToEfficientReadOnlyCollection()
+            );
+
             constrGeneralParamsList = new List<Construction.GeneralParams>()
             {
                 new
                 (
-                    buildingGeneralParams: new PowerPlant.GeneralBuildingParams
+                    buildingGeneralParams: new Storage.GeneralBuildingParams
                     (
-                        name: "Basic Power Plant",
+                        name: "Basic Storage",
                         buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                         {
-                            (prodParams: Product.productParamsDict["Wire"], amount: 4),
+                            (prodParams: Product.productParamsDict["Gear"], amount: 4),
                             (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
                         }.ToEfficientReadOnlyCollection()
                     ),
+                    energyPriority: new(value: 50)
+                ),
+                new
+                (
+                    buildingGeneralParams: startingPowerPlantParams,
                     energyPriority: new(value: 50)
                 ),
                 new

@@ -18,12 +18,18 @@
             return null;
         }
 
-        public static EnergyPile<TAmount> CreateByMagic(TAmount amount)
-            => new
+        public static EnergyPile<TAmount> CreateByMagic(LocationCounters locationCounters, TAmount amount)
+        {
+            // Needed in order to use given locationCounters
+            var magicHelperPile = new EnergyPile<TAmount>
             (
                 locationCounters: LocationCounters.CreateCounterByMagic(amount: amount),
                 counter: EnergyCounter<TAmount>.CreateByMagic(count: amount)
             );
+            var resultPile = CreateEmpty(locationCounters: locationCounters);
+            resultPile.TransferAllFrom(source: magicHelperPile);
+            return resultPile;
+        }
 
         protected override EnergyCounter<TAmount> Counter { get; }
 

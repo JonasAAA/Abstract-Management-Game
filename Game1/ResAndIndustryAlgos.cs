@@ -41,6 +41,7 @@ namespace Game1
 
         public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
         {
+#warning Complete this by making it actually random
             return startingRawMatTargetRatios;
         }
 
@@ -77,7 +78,7 @@ namespace Game1
                 Propor scale = MyMathHelper.Tanh((rawMat.Ind + 1) / 5);
 
                 return (Propor)((1 + scale * wave) / 2);
-        }
+            }
         }
 
         // For reflectivity vs reflectance, see https://en.wikipedia.org/wiki/Reflectance#Reflectivity
@@ -93,7 +94,7 @@ namespace Game1
             );
 
             Propor Emissivity(RawMaterial rawMat)
-        {
+            {
                 // The difference from Reflectivity is + 2 part in sin
                 double wave = MyMathHelper.Sin((rawMat.Ind + 1) * (temperature.valueInK / 500 + 2));
                 Propor scale = MyMathHelper.Tanh((rawMat.Ind + 1) / 5);
@@ -131,7 +132,7 @@ namespace Game1
             AreaInt buildingComponentProporsTotalArea = buildingComponentPropors.Sum(prodParamsAndAmount => prodParamsAndAmount.prodParams.usefulArea * prodParamsAndAmount.amount);
             return buildingComponentPropors.SelectMany
             (
-                prodParamsAndAmount => prodParamsAndAmount.prodParams.CreateProduct(materialChoices: buildingMatChoices).Select
+                prodParamsAndAmount => prodParamsAndAmount.prodParams.GetProduct(materialChoices: buildingMatChoices).Select
                 (
                     func: product =>
                     (

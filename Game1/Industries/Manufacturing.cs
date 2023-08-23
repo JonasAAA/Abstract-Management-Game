@@ -184,7 +184,7 @@ namespace Game1.Industries
             }
             // FOR NOW, don't allow to change the material choices on the fly
             private void Update(MaterialChoices productMaterialChoices)
-                => CurProduct = productParams.CreateProduct(materialChoices: productMaterialChoices).ConvertMissingMatPurpsIntoError();
+                => CurProduct = productParams.GetProduct(materialChoices: productMaterialChoices).ConvertMissingMatPurpsIntoError();
         }
 
         /// <summary>

@@ -132,75 +132,77 @@ namespace Game1.GameStates
 
             public static MapInfoInternal Create(ValidMapInfo mapInfo)
             {
-                List<CosmicBodyInfoInternal> cosmicBodies = mapInfo.CosmicBodies.Select
-                (
-                    cosmicBodyInfo => new CosmicBodyInfoInternal
-                    (
-                        Id: new(),
-                        Name: cosmicBodyInfo.Name,
-                        Position: cosmicBodyInfo.Position,
-                        Radius: cosmicBodyInfo.Radius
-                    )
-                ).ToList();
-                ImmutableDictionary<string, CosmicBodyId> cosmicBodyNameToId = cosmicBodies.ToImmutableDictionary
-                (
-                    keySelector: cosmicBody => cosmicBody.Name,
-                    elementSelector: cosmicBody => cosmicBody.Id
-                );
-                return new
-                (
-                    CosmicBodies: cosmicBodies.ToImmutableDictionary(keySelector: cosmicBody => cosmicBody.Id),
-                    Links: mapInfo.Links.Select
-                    (
-                        HUDLink => new LinkInfoInternal
-                        (
-                            Id: new(),
-                            From: cosmicBodyNameToId[HUDLink.From],
-                            To: cosmicBodyNameToId[HUDLink.To]
-                        )
-                    ).ToImmutableDictionary(keySelector: link => link.Id),
-                    StartingInfo: new
-                    (
-                        HouseCosmicBodyId: mapInfo.StartingInfo.HouseCosmicBody is null ? null : cosmicBodyNameToId[mapInfo.StartingInfo.HouseCosmicBody],
-                        PowerPlantCosmicBodyId: mapInfo.StartingInfo.PowerPlantCosmicBody is null ? null : cosmicBodyNameToId[mapInfo.StartingInfo.PowerPlantCosmicBody],
-                        WorldCenter: mapInfo.StartingInfo.WorldCenter,
-                        CameraViewHeight: mapInfo.StartingInfo.CameraViewHeight
-                    )
-                );
+                throw new NotImplementedException();
+                //List<CosmicBodyInfoInternal> cosmicBodies = mapInfo.CosmicBodies.Select
+                //(
+                //    cosmicBodyInfo => new CosmicBodyInfoInternal
+                //    (
+                //        Id: new(),
+                //        Name: cosmicBodyInfo.Name,
+                //        Position: cosmicBodyInfo.Position,
+                //        Radius: cosmicBodyInfo.Radius
+                //    )
+                //).ToList();
+                //ImmutableDictionary<string, CosmicBodyId> cosmicBodyNameToId = cosmicBodies.ToImmutableDictionary
+                //(
+                //    keySelector: cosmicBody => cosmicBody.Name,
+                //    elementSelector: cosmicBody => cosmicBody.Id
+                //);
+                //return new
+                //(
+                //    CosmicBodies: cosmicBodies.ToImmutableDictionary(keySelector: cosmicBody => cosmicBody.Id),
+                //    Links: mapInfo.Links.Select
+                //    (
+                //        HUDLink => new LinkInfoInternal
+                //        (
+                //            Id: new(),
+                //            From: cosmicBodyNameToId[HUDLink.From],
+                //            To: cosmicBodyNameToId[HUDLink.To]
+                //        )
+                //    ).ToImmutableDictionary(keySelector: link => link.Id),
+                //    StartingInfo: new
+                //    (
+                //        HouseCosmicBodyId: mapInfo.StartingInfo.HouseCosmicBody is null ? null : cosmicBodyNameToId[mapInfo.StartingInfo.HouseCosmicBody],
+                //        PowerPlantCosmicBodyId: mapInfo.StartingInfo.PowerPlantCosmicBody is null ? null : cosmicBodyNameToId[mapInfo.StartingInfo.PowerPlantCosmicBody],
+                //        WorldCenter: mapInfo.StartingInfo.WorldCenter,
+                //        CameraViewHeight: mapInfo.StartingInfo.CameraViewHeight
+                //    )
+                //);
             }
 
             public ValidMapInfo ToValidMapInfo()
             {
-                // needed to make code compile
-                var cosmicBodiesCopy = CosmicBodies;
-                return ValidMapInfo.CreateOrThrow
-                (
-                    notReadyToUse: true,
-                    cosmicBodies: CosmicBodies.Values.Select
-                    (
-                        cosmicBody => ValidCosmicBodyInfo.CreateOrThrow
-                        (
-                            name: cosmicBody.Name,
-                            position: cosmicBody.Position,
-                            radius: cosmicBody.Radius
-                        )
-                    ).ToArray(),
-                    links: Links.Values.Select
-                    (
-                        link => ValidLinkInfo.CreateOrThrow
-                        (
-                            from: cosmicBodiesCopy[link.From].Name,
-                            to: cosmicBodiesCopy[link.To].Name
-                        )
-                    ).ToArray(),
-                    startingInfo: ValidStartingInfo.CreateOrThrow
-                    (
-                        houseCosmicBodyName: StartingInfo.HouseCosmicBodyId is null ? null : cosmicBodiesCopy[StartingInfo.HouseCosmicBodyId.Value].Name,
-                        powerPlantCosmicBodyName: StartingInfo.PowerPlantCosmicBodyId is null ? null : cosmicBodiesCopy[StartingInfo.PowerPlantCosmicBodyId.Value].Name,
-                        worldCenter: StartingInfo.WorldCenter,
-                        cameraViewHeight: StartingInfo.CameraViewHeight
-                    )
-                );
+                throw new NotImplementedException();
+                //// needed to make code compile
+                //var cosmicBodiesCopy = CosmicBodies;
+                //return ValidMapInfo.CreateOrThrow
+                //(
+                //    notReadyToUse: true,
+                //    cosmicBodies: CosmicBodies.Values.Select
+                //    (
+                //        cosmicBody => ValidCosmicBodyInfo.CreateOrThrow
+                //        (
+                //            name: cosmicBody.Name,
+                //            position: cosmicBody.Position,
+                //            radius: cosmicBody.Radius
+                //        )
+                //    ).ToArray(),
+                //    links: Links.Values.Select
+                //    (
+                //        link => ValidLinkInfo.CreateOrThrow
+                //        (
+                //            from: cosmicBodiesCopy[link.From].Name,
+                //            to: cosmicBodiesCopy[link.To].Name
+                //        )
+                //    ).ToArray(),
+                //    startingInfo: ValidStartingInfo.CreateOrThrow
+                //    (
+                //        houseCosmicBodyName: StartingInfo.HouseCosmicBodyId is null ? null : cosmicBodiesCopy[StartingInfo.HouseCosmicBodyId.Value].Name,
+                //        powerPlantCosmicBodyName: StartingInfo.PowerPlantCosmicBodyId is null ? null : cosmicBodiesCopy[StartingInfo.PowerPlantCosmicBodyId.Value].Name,
+                //        worldCenter: StartingInfo.WorldCenter,
+                //        cameraViewHeight: StartingInfo.CameraViewHeight
+                //    )
+                //);
             }
         }
 

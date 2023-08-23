@@ -92,15 +92,14 @@
         public readonly Propor
             planetTransformRadiantToElectricalEnergyPropor = (Propor).001;
 
-        public readonly UDouble stefanBoltzmannConstant = (UDouble).0001;
+        public readonly UDouble stefanBoltzmannConstant = (UDouble).000000000001;
         public readonly ulong temperatureExponentInStefanBoltzmannLaw = 4;
         public readonly Temperature
             startingTemperature = Temperature.CreateFromK(valueInK: 250),
             allHeatMaxTemper = Temperature.CreateFromK(valueInK: 500),
             halfHeatTemper = Temperature.CreateFromK(valueInK: 1000);
         public readonly UDouble
-            heatEnergyDropoffExponent = 2,
-            reactionStrengthCoeff = (UDouble)0.000000000001;
+            heatEnergyDropoffExponent = 2;
         public readonly Propor
             nonReactingProporForUnitReactionStrengthUnitTime = (Propor)0.99999;
         public readonly AreaInt minUsefulBuildingComponentAreaToRemove = AreaInt.CreateFromMetSq(valueInMetSq: 30);

@@ -85,9 +85,9 @@
       "Y": 0
     },
     "CameraViewHeight": 1080,
-    "PowerPlantCosmicBody": "Cosmic body 0",
-    "GearStorageCosmicBody": "Cosmic body 1",
-    "WireStorageCosmicBody": "Cosmic body 2",
-    "RoofTileStorageCosmicBody": "Cosmic body 3"
+    "PowerPlantCosmicBody": "Cosmic body 1",
+    "GearStorageCosmicBody": "Cosmic body 2",
+    "WireStorageCosmicBody": "Cosmic body 3",
+    "RoofTileStorageCosmicBody": "Cosmic body 4"
   }
 }

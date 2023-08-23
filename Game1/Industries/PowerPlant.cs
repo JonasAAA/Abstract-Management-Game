@@ -203,5 +203,11 @@ namespace Game1.Industries
                     amount: energyToTransform
                 );
         }
+
+        public static HashSet<Type> GetKnownTypes()
+            => new()
+            {
+                typeof(Industry<UnitType, ConcreteBuildingParams, ResPile, PowerProductionState>)
+            };
     }
 }

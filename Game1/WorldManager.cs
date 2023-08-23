@@ -625,6 +625,7 @@ namespace Game1
             };
             knownTypesSet.UnionWith(Construction.GetKnownTypes());
             knownTypesSet.UnionWith(Manufacturing.GetKnownTypes());
+            knownTypesSet.UnionWith(PowerPlant.GetKnownTypes());
             knownTypesSet.UnionWith(Mining.GetKnownTypes());
             knownTypesSet.UnionWith(MaterialProduction.GetKnownTypes());
             knownTypesSet.UnionWith(Storage.GetKnownTypes());

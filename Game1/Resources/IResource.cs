@@ -1,6 +1,8 @@
-﻿namespace Game1.Resources
+﻿using static Game1.WorldManager;
+
+namespace Game1.Resources
 {
-    public interface IResource
+    public interface IResource : IComparable<IResource>
     {
         public string Name { get; }
         public Mass Mass { get; }
@@ -11,5 +13,13 @@
         /// </summary>
         public AreaInt UsefulArea { get; }
         public RawMatAmounts RawMatComposition { get; }
+
+        int IComparable<IResource>.CompareTo(IResource? other)
+        {
+            if (other is null)
+                return 1;
+
+            return CurResConfig.CompareRes(left: this, right: other);
+        }
     }
 }

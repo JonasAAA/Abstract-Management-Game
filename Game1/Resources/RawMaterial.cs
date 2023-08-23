@@ -15,7 +15,6 @@
                 mass: ResAndIndustryAlgos.RawMaterialMass(ind: ind),
                 heatCapacity: ResAndIndustryAlgos.RawMaterialHeatCapacity(ind: ind),
                 area: ResAndIndustryAlgos.RawMaterialArea(ind: ind),
-                meltingPoint: ResAndIndustryAlgos.RawMaterialMeltingPoint(ind: ind),
                 color: ResAndIndustryAlgos.RawMaterialColor(ind: ind),
                 fusionReactionStrengthCoeff: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ind)
             );
@@ -27,19 +26,17 @@
         public AreaInt Area { get; }
         public AreaInt UsefulArea { get; }
         public RawMatAmounts RawMatComposition { get; }
-        public Temperature MeltingPoint { get; }
         public Color Color { get; }
         public UDouble FusionReactionStrengthCoeff { get; }
         public ulong Ind { get; }
 
-        private RawMaterial(ResConfig curResConfig, ulong ind, string name, Mass mass, HeatCapacity heatCapacity, AreaInt area, Temperature meltingPoint, Color color, UDouble fusionReactionStrengthCoeff)
+        private RawMaterial(ResConfig curResConfig, ulong ind, string name, Mass mass, HeatCapacity heatCapacity, AreaInt area, Color color, UDouble fusionReactionStrengthCoeff)
         {
             Name = name;
             Mass = mass;
             HeatCapacity = heatCapacity;
             Area = area;
             UsefulArea = area;
-            MeltingPoint = meltingPoint;
             RawMatComposition = new(res: this, amount: 1);
             Color = color;
             FusionReactionStrengthCoeff = fusionReactionStrengthCoeff;

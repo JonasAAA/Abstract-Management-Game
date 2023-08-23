@@ -17,7 +17,6 @@ namespace Game1.Resources
         public AreaInt Area { get; }
         public AreaInt UsefulArea { get; }
         public RawMatAmounts RawMatComposition { get; }
-        public Temperature MeltingPoint { get; }
         public ResRecipe Recipe { get; }
 
         private Material(string name, RawMatAmounts composition)
@@ -28,8 +27,6 @@ namespace Game1.Resources
             Area = composition.Area();
             UsefulArea = Area;
             RawMatComposition = composition;
-
-            MeltingPoint = ResAndIndustryAlgos.MaterialMeltingPoint(materialComposition: composition);
 
             // Need this before creating the recipe since to create SomeResAmounts you need all used resources to be registered first
             CurResConfig.AddRes(resource: this);

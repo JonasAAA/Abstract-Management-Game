@@ -100,7 +100,7 @@ namespace Game1
             {
                 var (weight, value) = selector(item);
                 weightSum += weight;
-                valueSum += value;
+                valueSum += weight * value;
             }
             return valueSum / weightSum;
         }
@@ -112,7 +112,7 @@ namespace Game1
             {
                 var (weight, value) = selector(item);
                 weightSum += weight;
-                valueSum += (UDouble)value;
+                valueSum += weight * (UDouble)value;
             }
             return Propor.Create(part: valueSum, whole: weightSum)!.Value;
         }

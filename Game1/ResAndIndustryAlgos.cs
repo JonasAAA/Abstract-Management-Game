@@ -18,16 +18,12 @@ namespace Game1
         public static HeatCapacity RawMaterialHeatCapacity(ulong ind)
             => HeatCapacity.CreateFromJPerK(valueInJPerK: 1);
 
-        // As ind moves in either direction of 2.5, the raw materials become more dense
+        // 1 is least dense, 0 and 2 have very close density, and density increases with index
         // Formula is plucked out of thin air
+        // IF change this, make sure that fusion reaction produces smaller area, otherwise planets (and buildings on them)
+        // will need to expand
         public static AreaInt RawMaterialArea(ulong ind)
-            => AreaInt.CreateFromMetSq(valueInMetSq: (ind + 1) * (ind + 1));
-
-        // As ind increases, the raw material becomes harder to melt. Raw material 0 is always liquid
-        // Formula is plucked out of thin air
-        // Could take inspiration from https://en.wikipedia.org/wiki/Melting_point#Predicting_the_melting_point_of_substances_(Lindemann's_criterion)
-        public static Temperature RawMaterialMeltingPoint(ulong ind)
-            => Temperature.CreateFromK(valueInK: ind * 300);
+            => AreaInt.CreateFromMetSq(valueInMetSq: (ind + 3) * (ind + 3));
 
         // As ind increases, the color becomes more brown
         // Formula is plucked out of thin air
@@ -37,7 +33,7 @@ namespace Game1
         // The bigger the number, the easier this raw material will react with itself
         // Formula is plucked out of thin air
         public static UDouble RawMaterialFusionReactionStrengthCoeff(ulong ind)
-            => (UDouble)0.00000000000000001;
+            => (UDouble)0.000000000000001;
 
         public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
         {
@@ -48,18 +44,6 @@ namespace Game1
         public static MechComplexity Complexity(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToUsefulAreas)
 #warning Complete this
             => new(complexity: 10);
-
-        // The material melting point generally has no such formula, it depends heavily on what bonds are formed, as discussed in https://qr.ae/pytnoU
-        // Also some composites aren't mixed very well, so don't have a single melting point.
-        // So the formula below is entirely my creation
-        public static Temperature MaterialMeltingPoint(RawMatAmounts materialComposition)
-            => Temperature.CreateFromK
-            (
-                valueInK: materialComposition.WeightedAverage
-                (
-                    resAmount => (weight: resAmount.res.Mass.valueInKg * resAmount.amount, value: resAmount.res.MeltingPoint.valueInK)
-                )
-            );
 
         public static ulong GatMaterialAmountFromArea(Material material, AreaInt area)
             => MyMathHelper.DivideThenTakeCeiling(dividend: area.valueInMetSq, divisor: material.Area.valueInMetSq);
@@ -203,7 +187,8 @@ namespace Game1
         /// </summary>
         public static UDouble CurProducedWatts(GeneralProdAndMatAmounts buildingCostPropors, MaterialChoices buildingMatChoices,
             UDouble gravity, Temperature temperature, AreaDouble buildingArea, UDouble incidentWatts)
-            => throw new NotImplementedException();
+#warning Complete this
+            => incidentWatts * (UDouble).5;
 
         private static UDouble RelevantMassPUBA(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMatPropors, MaterialChoices buildingMatChoices, UDouble productionMassPUBA)
             => throw new NotImplementedException();

@@ -1,5 +1,4 @@
 ﻿using Game1.Collections;
-using System.Collections.ObjectModel;
 using static Game1.WorldManager;
 
 namespace Game1.Resources
@@ -61,9 +60,11 @@ namespace Game1.Resources
             /// </summary>
             public Result<Product, EfficientReadOnlyHashSet<IMaterialPurpose>> GetProduct(MaterialChoices materialChoices)
             {
-                foreach (var otherProd in CurResConfig.GetCurRes<Product>())
-                    if (otherProd.IsIdenticalTo(otherProdParams: this, otherMaterialChoices: materialChoices))
-                        return new(ok: otherProd);
+                // This is needed for when this is called to get the needed material purposes prior to CurResConfig initialization
+                if (CurResConfig is not null)
+                    foreach (var otherProd in CurResConfig.GetCurRes<Product>())
+                        if (otherProd.IsIdenticalTo(otherProdParams: this, otherMaterialChoices: materialChoices))
+                            return new(ok: otherProd);
 
                 MaterialChoices neededMaterialChoices = materialChoices.FilterOutUnneededMaterials(neededMaterialPurposes: neededMaterialPurposes);
                 return Result.Lift

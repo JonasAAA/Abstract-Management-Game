@@ -1,5 +1,6 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -25,7 +26,7 @@ namespace Game1.UI
             : base(shape: shape)
         {
             clicked = new();
-            textBox = new()
+            textBox = new(textColor: colorConfig.buttonTextColor)
             {
                 Text = text
             };

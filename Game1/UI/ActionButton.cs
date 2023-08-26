@@ -21,7 +21,7 @@ namespace Game1.UI
             : base(shape: shape)
         {
             this.action = action;
-            textBox = new()
+            textBox = new(textColor: colorConfig.buttonTextColor)
             {
                 Text = text
             };

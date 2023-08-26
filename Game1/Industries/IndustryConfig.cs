@@ -21,19 +21,21 @@ namespace Game1.Industries
                 }.ToEfficientReadOnlyCollection()
             );
 
+            startingStorageParams = new Storage.GeneralBuildingParams
+            (
+                name: "Basic Storage",
+                buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                {
+                    (prodParams: Product.productParamsDict["Gear"], amount: 4),
+                    (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                }.ToEfficientReadOnlyCollection()
+            );
+
             constrGeneralParamsList = new List<Construction.GeneralParams>()
             {
                 new
                 (
-                    buildingGeneralParams: new Storage.GeneralBuildingParams
-                    (
-                        name: "Basic Storage",
-                        buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
-                        {
-                            (prodParams: Product.productParamsDict["Gear"], amount: 4),
-                            (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
-                        }.ToEfficientReadOnlyCollection()
-                    ),
+                    buildingGeneralParams: startingStorageParams,
                     energyPriority: new(value: 50)
                 ),
                 new

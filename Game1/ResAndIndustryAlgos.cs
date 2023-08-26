@@ -33,7 +33,7 @@ namespace Game1
         // The bigger the number, the easier this raw material will react with itself
         // Formula is plucked out of thin air
         public static UDouble RawMaterialFusionReactionStrengthCoeff(ulong ind)
-            => (UDouble)0.000000000000001;
+            => (UDouble)0.000000000000005;
 
         public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
         {
@@ -99,19 +99,12 @@ namespace Game1
 #warning Complete this by scaling it appropriately (depending on the map scale) and putting it into config file
             => 1000;
 
-        private static Propor BuildingComponentsProporOfBuildingArea
-#warning add this constant to config file
-            => (Propor).1;
-
-        public static AreaDouble BuildingComponentUsefulArea(AreaDouble buildingArea)
-            => AreaDouble.CreateFromMetSq(valueInMetSq: BuildingComponentsProporOfBuildingArea * buildingArea.valueInMetSq);
-
         public static Result<AllResAmounts, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingCost(GeneralProdAndMatAmounts buildingCostPropors, MaterialChoices buildingMatChoices, AreaDouble buildingArea)
             => throw new NotImplementedException();
 
         /// <exception cref="ArgumentException">if buildingMatChoices doesn't contain all required matAmounts</exception>
         public static Result<EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)>, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingComponentsToAmountPUBA(
-            EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, MaterialChoices buildingMatChoices)
+            EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, MaterialChoices buildingMatChoices, Propor buildingComponentsProporOfBuildingArea)
         {
             AreaInt buildingComponentProporsTotalArea = buildingComponentPropors.Sum(prodParamsAndAmount => prodParamsAndAmount.prodParams.usefulArea * prodParamsAndAmount.amount);
             return buildingComponentPropors.SelectMany
@@ -121,7 +114,7 @@ namespace Game1
                     func: product =>
                     (
                         prod: product,
-                        amountPUBA: BuildingComponentsProporOfBuildingArea * prodParamsAndAmount.amount * prodParamsAndAmount.prodParams.usefulArea.valueInMetSq / buildingComponentProporsTotalArea.valueInMetSq
+                        amountPUBA: buildingComponentsProporOfBuildingArea * prodParamsAndAmount.amount * prodParamsAndAmount.prodParams.usefulArea.valueInMetSq / buildingComponentProporsTotalArea.valueInMetSq
                     )
                 )
             ).Select(prodToAmountPUBA => prodToAmountPUBA.ToEfficientReadOnlyCollection());
@@ -215,16 +208,10 @@ namespace Game1
         private static UDouble ElectricalEnergyPerUnitAreaPhys(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMatPropors, MaterialChoices buildingMatChoices, MechComplexity buildingComplexity, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
             => throw new NotImplementedException();
 
-        public static AreaDouble AreaInProduction(AreaDouble buildingArea)
-            => throw new NotImplementedException();
-
         public static ulong MaxAmountInProduction(AreaDouble areaInProduction, AreaInt itemUsefulArea)
-            => throw new NotImplementedException();
-
-        public static AreaDouble StorageArea(AreaDouble buildingArea)
-            => throw new NotImplementedException();
+            => (ulong)areaInProduction.valueInMetSq / itemUsefulArea.valueInMetSq;
 
         public static ulong MaxAmountInStorage(AreaDouble areaInStorage, AreaInt itemArea)
-            => throw new NotImplementedException();
+            => (ulong)areaInStorage.valueInMetSq / itemArea.valueInMetSq;
     }
 }

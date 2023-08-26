@@ -69,10 +69,7 @@ namespace Game1.Industries
                 NodeState = nodeState;
                 EnergyPriority = generalParams.energyPriority;
                 buildingCost = concreteBuildingParams.BuildingCost;
-                buildingComponentsUsefulArea = ResAndIndustryAlgos.BuildingComponentUsefulArea
-                (
-                    buildingArea: concreteBuildingParams.IncompleteBuildingImage(donePropor: Propor.full).Area
-                );
+                buildingComponentsUsefulArea = concreteBuildingParams.IncompleteBuildingImage(donePropor: Propor.full).Area * CurWorldConfig.buildingComponentsProporOfBuildingArea;
 
                 this.concreteBuildingParams = concreteBuildingParams;
                 buildingMaterialPropors = generalParams.buildingGeneralParams.BuildingCostPropors.materialPropors;

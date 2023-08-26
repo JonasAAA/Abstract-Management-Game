@@ -77,6 +77,10 @@
     {
       "From": "Cosmic body 6",
       "To": "Cosmic body 0"
+    },
+    {
+      "From": "Cosmic body 1",
+      "To": "Cosmic body 4"
     }
   ],
   "StartingInfo": {

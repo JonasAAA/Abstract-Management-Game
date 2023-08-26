@@ -2,6 +2,7 @@
 using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
+using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
@@ -28,12 +29,13 @@ namespace Game1.Industries
                 this.buildingComponentPropors = buildingComponentPropors;
             }
 
-            public Result<IConcreteBuildingConstructionParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
+            public Result<ConcreteBuildingParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
                 => ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
                 (
                     buildingComponentPropors: buildingComponentPropors,
-                    buildingMatChoices: neededBuildingMatChoices
-                ).Select<IConcreteBuildingConstructionParams>
+                    buildingMatChoices: neededBuildingMatChoices,
+                    buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
+                ).Select
                 (
                     buildingComponentsToAmountPUBA => new ConcreteBuildingParams
                     (
@@ -45,10 +47,16 @@ namespace Game1.Industries
                         surfaceMaterial: neededBuildingMatChoices[IMaterialPurpose.roofSurface]
                     )
                 );
+
+            Result<IConcreteBuildingConstructionParams, EfficientReadOnlyHashSet<IMaterialPurpose>> IGeneralBuildingConstructionParams.CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
+                => CreateConcrete(nodeState: nodeState, neededBuildingMatChoices: neededBuildingMatChoices).Select<IConcreteBuildingConstructionParams>
+                (
+                    concreteBuildingParams => concreteBuildingParams
+                );
         }
 
         [Serializable]
-        private readonly struct ConcreteBuildingParams : IConcreteBuildingConstructionParams
+        public readonly struct ConcreteBuildingParams : IConcreteBuildingConstructionParams
         {
             public string Name { get; }
             public IIndustryFacingNodeState NodeState { get; }
@@ -86,7 +94,15 @@ namespace Game1.Industries
             public void RemoveUnneededBuildingComponents(ResPile buildingResPile)
                 => ResAndIndustryHelpers.RemoveUnneededBuildingComponents(nodeState: NodeState, buildingResPile: buildingResPile, buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
 
-            AllResAmounts IConcreteBuildingConstructionParams.BuildingCost
+            public IIndustry CreateFullySpecifiedIndustry(ResPile buildingResPile, IResource storedRes)
+                => new Storage
+                (
+                    storageParams: new(storedRes: storedRes),
+                    buildingParams: this,
+                    buildingResPile: buildingResPile
+                );
+
+            public AllResAmounts BuildingCost
                 => startingBuildingCost;
 
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
@@ -177,7 +193,7 @@ namespace Game1.Industries
         private ulong MaxStoredAmount(IResource storedRes)
             => ResAndIndustryAlgos.MaxAmountInStorage
             (
-                areaInStorage: ResAndIndustryAlgos.StorageArea(buildingArea: buildingParams.CurBuildingArea),
+                areaInStorage: buildingParams.CurBuildingArea * CurWorldConfig.storageProporOfBuildingArea,
                 // Could use Area here instead, if decide to have such a thing
                 itemArea: storedRes.UsefulArea
             );

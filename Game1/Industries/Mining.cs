@@ -40,7 +40,8 @@ namespace Game1.Industries
                 => ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
                 (
                     buildingComponentPropors: buildingComponentPropors,
-                    buildingMatChoices: neededBuildingMatChoices
+                    buildingMatChoices: neededBuildingMatChoices,
+                    buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
                 ).Select<IConcreteBuildingConstructionParams>
                 (
                     buildingComponentsToAmountPUBA => new ConcreteBuildingParams
@@ -96,7 +97,7 @@ namespace Game1.Industries
             }
 
             public AreaDouble AreaToMine()
-                => ResAndIndustryAlgos.AreaInProduction(buildingArea: CurBuildingArea);
+                => CurBuildingArea * CurWorldConfig.productionProporOfBuildingArea;
 
             /// <param Name="splittingMass">Mass of materials curretly being mined</param>
             public CurProdStats CurMiningStats(Mass miningMass)

@@ -30,7 +30,13 @@ namespace Game1
         public LocationCounters LocationCounters { get; }
         public ThermalBody ThermalBody { get; }
         public UDouble SurfaceGravity
-            => WorldFunctions.SurfaceGravity(mass: LocationCounters.GetCount<AllResAmounts>().Mass(), radius: Radius);
+        {
+            get
+            {
+                var allResComposition = LocationCounters.GetCount<AllResAmounts>().RawMatComposition();
+                return WorldFunctions.Gravity(mass: allResComposition.Mass(), resArea: allResComposition.Area());
+            }
+        }
         /// <summary>
         /// This is current temperature to be used until the new value is calculated.
         /// Don't calculate temperature on the fly each time, as that would lead to temperature variations during the frame.

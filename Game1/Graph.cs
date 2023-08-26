@@ -197,18 +197,12 @@ namespace Game1
                         resSource: magicUnlimitedStartingRawMaterialPile
                     ),
                     activeColor: colorConfig.selectedWorldUIElementColor,
-                    createIndustry: nodeState => CreateIndustry(nodeState: nodeState, cosmicBodyName: cosmicBodyInfo.Name)
-                    //startingConditions: cosmicBodyInfo.Name == mapInfo.StartingInfo.HouseCosmicBody ?
-                    //(
-                    //    industryFactory: CurIndustryConfig.basicHouseFactory,
-                    //    personCount: CurWorldConfig.startingPersonNumInHouseCosmicBody,
-                    //    resSource: magicResPile
-                    //) : cosmicBodyInfo.Name == mapInfo.StartingInfo.PowerPlantCosmicBody ?
-                    //(
-                    //    industryFactory: CurIndustryConfig.basicPowerPlantFactory,
-                    //    personCount: CurWorldConfig.startingPersonNumInPowerPlantCosmicBody,
-                    //    resSource: magicResPile
-                    //) : null
+                    createIndustry: nodeState =>
+                    {
+                        var industry = CreateIndustry(nodeState: nodeState, cosmicBodyName: cosmicBodyInfo.Name);
+                        Debug.Assert(!magicUnlimitedStartingRawMaterialPile.IsEmpty);
+                        return industry;
+                    }
                 )
             );
             return new
@@ -235,13 +229,7 @@ namespace Game1
                     (
                         nodeState: nodeState,
                         neededBuildingMatChoices: resConfig.StartingMaterialChoices
-                    ).UnwrapOrThrow
-                    (
-                        exception: missingMatChoices => new ArgumentException
-                        (
-                            $"Starting power plant is missing the following material choices {string.Join(", ", missingMatChoices.Select(materialChoice => materialChoice.Name))}"
-                        )
-                    );
+                    ).UnwrapOrThrow();
 
                     var buildingResPile = ResPile.CreateIfHaveEnough
                     (
@@ -255,7 +243,43 @@ namespace Game1
                         buildingResPile: buildingResPile
                     );
                 }
+                if (cosmicBodyName == mapInfo.StartingInfo.GearStorageCosmicBody)
+                    return CreateStorageIndustry(productParamsName: "Gear");
+                if (cosmicBodyName == mapInfo.StartingInfo.WireStorageCosmicBody)
+                    return CreateStorageIndustry(productParamsName: "Wire");
+                if (cosmicBodyName == mapInfo.StartingInfo.RoofTileStorageCosmicBody)
+                    return CreateStorageIndustry(productParamsName: "Roof Tile");
                 return null;
+
+                IIndustry CreateStorageIndustry(string productParamsName)
+                {
+                    // This is done so that buildings and people take stuff from this planet(i.e.MassCounter is of this planet)
+                    nodeState.StoredResPile.TransferAllFrom(source: magicUnlimitedStartingRawMaterialPile);
+                    var concreteParams = industryConfig.startingStorageParams.CreateConcrete
+                    (
+                        nodeState: nodeState,
+                        neededBuildingMatChoices: resConfig.StartingMaterialChoices
+                    ).UnwrapOrThrow();
+
+                    var buildingResPile = ResPile.CreateIfHaveEnough
+                    (
+                        source: nodeState.StoredResPile,
+                        amount: concreteParams.BuildingCost
+                    );
+                    Debug.Assert(buildingResPile is not null);
+                    magicUnlimitedStartingRawMaterialPile.TransferAllFrom(source: nodeState.StoredResPile);
+                    var storageIndustry = concreteParams.CreateFullySpecifiedIndustry
+                    (
+                        buildingResPile: buildingResPile,
+                        storedRes: Product.productParamsDict[productParamsName].GetProduct(materialChoices: resConfig.StartingMaterialChoices).UnwrapOrThrow()
+                    );
+                    nodeState.StoredResPile.TransferFrom
+                    (
+                        source: magicUnlimitedStartingRawMaterialPile,
+                        amount: storageIndustry.TargetStoredResAmounts()
+                    );
+                    return storageIndustry;
+                }
             }
             //// DIFFICULT to have magicUnlimitedResAmounts as can always create new materials and thus new products
             //// Maybe should just create infinite amount of raw materials and then convert them to more complicated things

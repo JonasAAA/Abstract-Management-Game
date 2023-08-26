@@ -168,5 +168,8 @@ namespace Game1.Resources
             thermalBody.PerformFusion(source: resPileInternal, results: finalResAmounts);
             Debug.Assert(Amount == finalResAmounts.ToAll());
         }
+
+        public override string ToString()
+            => Amount.ToString();
     }
 }

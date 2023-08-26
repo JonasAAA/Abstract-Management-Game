@@ -39,7 +39,8 @@ namespace Game1.Industries
                 => ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
                 (
                     buildingComponentPropors: buildingComponentPropors,
-                    buildingMatChoices: neededBuildingMatChoices
+                    buildingMatChoices: neededBuildingMatChoices,
+                    buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
                 ).Select<IConcreteBuildingConstructionParams>
                 (
                     buildingComponentsToAmountPUBA => new ConcreteBuildingParams
@@ -93,7 +94,7 @@ namespace Game1.Industries
             public ulong MaxProductionAmount(AreaInt materialArea)
                 => ResAndIndustryAlgos.MaxAmountInProduction
                 (
-                    areaInProduction: ResAndIndustryAlgos.AreaInProduction(buildingArea: CurBuildingArea),
+                    areaInProduction: CurBuildingArea * CurWorldConfig.productionProporOfBuildingArea,
                     itemUsefulArea: materialArea
                 );
 

@@ -64,8 +64,17 @@ namespace Game1.UI
             => result.SwitchExpression<Result<TOk, TextErrors>>
             (
                 ok: okValue => new(ok: okValue),
-                error: missingMatPurposes => new(errors: new($"The following materials need to be chosen:\n{string.Join("\n", missingMatPurposes.Select(missingMatPurpose => missingMatPurpose.Name))}"))
+                error: missingMatPurposes => new(errors: new(ConvertMissingMatPurpsIntoErrorMessage(missingMatPurposes)))
             );
+
+        public static TOk UnwrapOrThrow<TOk>(this Result<TOk, EfficientReadOnlyHashSet<IMaterialPurpose>> result)
+            => result.UnwrapOrThrow
+            (
+                exception: missingMatChoices => new ArgumentException(ConvertMissingMatPurpsIntoErrorMessage(missingMatChoices))
+            );
+
+        private static string ConvertMissingMatPurpsIntoErrorMessage(EfficientReadOnlyHashSet<IMaterialPurpose> missingMatPurposes)
+            => $"The following materials need to be chosen:\n{string.Join("\n", missingMatPurposes.Select(missingMatPurpose => missingMatPurpose.Name))}";
 
         public static Color MixColorsAndMakeTransparent(Propor transparency, Color baseColor, Color otherColor, Propor otherColorPropor)
             => MixColors

@@ -52,6 +52,7 @@
             );
             StartingMaterialChoices = new()
             {
+                [IMaterialPurpose.mechanical] = material0,
                 [IMaterialPurpose.electricalInsulator] = material0,
                 [IMaterialPurpose.electricalConductor] = material1,
                 [IMaterialPurpose.roofSurface] = material2,

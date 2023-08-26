@@ -111,6 +111,10 @@
             (rawMatInd: 3, amount: 1),
             (rawMatInd: 4, amount: 1),
         };
+        public readonly Propor
+            buildingComponentsProporOfBuildingArea = (Propor)0.2,
+            productionProporOfBuildingArea = (Propor)0.1,
+            storageProporOfBuildingArea = (Propor)0.6;
 
         public readonly ulong magicUnlimitedStartingMaterialCount = uint.MaxValue;
 

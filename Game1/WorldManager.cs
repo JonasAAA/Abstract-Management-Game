@@ -313,8 +313,27 @@ namespace Game1
                         industry =>
                         {
                             UIRectVertPanel<IHUDElement> cosmicBodyAddDestinPanel = new(childHorizPos: HorizPosEnum.Left);
-                            cosmicBodyAddDestinPanel.AddChild(new TextBox() { Text = "Add resource\ndestination" });
+                            cosmicBodyAddDestinPanel.AddChild(new TextBox() { Text = "Add produced\nresource\ndestination" });
+                            var producedResources = industry.GetProducedResources();
+                            if (producedResources.Count is 0)
+                            {
+                                cosmicBodyAddDestinPanel.AddChild(child: new TextBox() { Text = UIAlgorithms.NoResourcesProduced });
+                            }
+                            else
+                            {
+                                foreach (var res in producedResources)
+                                {
+                                    Button addResDestin = new
+                                    (
+                                        shape: new MyRectangle(width: 100, height: 30),
+                                        tooltip: new ImmutableTextTooltip(UIAlgorithms.AddResDestinForBuildingTooltip(res: res)),
+                                        text: res.Name
+                                    );
+                                    cosmicBodyAddDestinPanel.AddChild(child: addResDestin);
+                                }
+                            }
                             var potentiallyNotNeededBuildingComponents = industry.PotentiallyNotNeededBuildingComponents;
+
                             return new IndustryAddDestinPanelManager
                             (
                                 Industry: industry,
@@ -482,7 +501,7 @@ namespace Game1
                 {
                     Button buildIndustryButton = new
                     (
-                        shape: new MyRectangle(width: 200, height: 20),
+                        shape: new MyRectangle(width: 200, height: 30),
                         tooltip: constrGeneralParams.toopltip,
                         text: constrGeneralParams.buildButtonName
                     );

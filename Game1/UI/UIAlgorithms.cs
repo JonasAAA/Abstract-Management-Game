@@ -32,11 +32,17 @@ namespace Game1.UI
         public static string GlobalAddRouteTooltip
             => "Add new route";
 
+        public static string AddResDestinForBuildingTooltip(IResource res)
+            => $"Add new destination for {res}";
+
         public static string AddResSourceForBuildingTooltip(IResource res)
             => $"Add new source of {res}";
 
+        public static string NoResourcesProduced
+            => "Produces no\nresources";
+
         public static string NoSourcesNeeded
-            => "Consumes no resources";
+            => "Consumes no\nresources";
         
         public static string BuildHereTooltip
             => "Build on this cosmic body";

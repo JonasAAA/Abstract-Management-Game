@@ -147,9 +147,6 @@ namespace Game1
 
         public static Graph CreateFromInfo(FullValidMapInfo mapInfo, WorldCamera mapInfoCamera, ResConfig resConfig, IndustryConfig industryConfig)
         {
-            // DIFFICULT to have magicUnlimitedResAmounts as can always create new materials and thus new products
-            // Maybe should just create infinite amount of raw materials and then convert them to more complicated things
-            // However, even the max amount of raw materials is not clear
             RawMatAmounts startingRawMatTargetRatios = new
             (
                 resAmounts: CurWorldConfig.startingRawMatTargetRatios.Select
@@ -173,14 +170,6 @@ namespace Game1
                             amount: CurWorldConfig.magicUnlimitedStartingMaterialCount       
                         )
                     )
-                    //resAmounts: startingRawMatTargetRatios.Select
-                    //(
-                    //    rawMatAmount => new ResAmount<IResource>
-                    //    (
-                    //        res: rawMatAmount.res,
-                    //        amount: CurWorldConfig.magicUnlimitedStartingMaterialCount
-                    //    )
-                    //)
                 ),
                 temperature: CurWorldConfig.startingTemperature
             );
@@ -281,49 +270,6 @@ namespace Game1
                     return storageIndustry;
                 }
             }
-            //// DIFFICULT to have magicUnlimitedResAmounts as can always create new materials and thus new products
-            //// Maybe should just create infinite amount of raw materials and then convert them to more complicated things
-            //// However, even the max amount of raw materials is not clear
-            //ResPile magicResPile = ResPile.CreateByMagic(amount: ResAmounts.magicUnlimitedResAmounts);
-            //Dictionary<string, CosmicBody> cosmicBodiesByName = mapInfo.CosmicBodies.ToDictionary
-            //(
-            //    keySelector: cosmicBodyInfo => cosmicBodyInfo.Name,
-            //    elementSelector: cosmicBodyInfo => new CosmicBody
-            //    (
-            //        state: new
-            //        (
-            //            mapInfoCamera: mapInfoCamera,
-            //            cosmicBodyInfo: cosmicBodyInfo,
-            //            consistsOf: BasicRes.Random(),
-            //            resSource: magicResPile
-            //        ),
-            //        activeColor: colorConfig.selectedWorldUIElementColor
-            //        //startingConditions: cosmicBodyInfo.Name == mapInfo.StartingInfo.HouseCosmicBody ?
-            //        //(
-            //        //    industryFactory: CurIndustryConfig.basicHouseFactory,
-            //        //    personCount: CurWorldConfig.startingPersonNumInHouseCosmicBody,
-            //        //    resSource: magicResPile
-            //        //) : cosmicBodyInfo.Name == mapInfo.StartingInfo.PowerPlantCosmicBody ?
-            //        //(
-            //        //    industryFactory: CurIndustryConfig.basicPowerPlantFactory,
-            //        //    personCount: CurWorldConfig.startingPersonNumInPowerPlantCosmicBody,
-            //        //    resSource: magicResPile
-            //        //) : null
-            //    )
-            //);
-            //return new
-            //(
-            //    nodes: cosmicBodiesByName.Values.ToList(),
-            //    links: mapInfo.Links.Select
-            //    (
-            //        linkInfo => new Link
-            //        (
-            //            node1: cosmicBodiesByName[linkInfo.From],
-            //            node2: cosmicBodiesByName[linkInfo.To],
-            //            minSafeDist: CurWorldConfig.minSafeDist
-            //        )
-            //    ).ToList()
-            //);
         }
 
         public Graph(List<CosmicBody> nodes, List<Link> links)

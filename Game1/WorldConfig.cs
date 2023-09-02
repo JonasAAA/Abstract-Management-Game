@@ -75,7 +75,7 @@
             linkJoulesPerMeterOfDistance = (UDouble).00001;
 
         public readonly ulong
-            energyInJPerKgOfMass = 1000000;
+            energyInJPerKgOfMass = 300000;
 
         public readonly EnergyPriority
             linkEnergyPrior = new(value: 90),

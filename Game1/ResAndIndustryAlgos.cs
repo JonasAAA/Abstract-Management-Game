@@ -8,8 +8,23 @@ namespace Game1
         public static string RawMaterialName(ulong ind)
             => $"Raw material {ind}";
 
+        // Formula is like this for the following reasons:
+        // * Want density -> 0 as ind -> inf. In this case, density is approximately 1 / ind
+        // * Want each fusion reaction to produce energy (i.e. mass after the reaction to be smaller than before)
+        // * Want the proportion of mass transformed to energy from fusion reactions to go to 0 as ind -> inf.
+        //   In this case, approximately 1 / (ind + 1)
+        // * Want the above relationships to be nice and smooth
+        // * Want first materials to not have large mass
+        // Paste 1-\frac{\operatorname{round}\left(a\cdot\frac{2^{\operatorname{round}\left(x\right)+1}}{\operatorname{round}\left(x\right)+1}\right)}{2\cdot\operatorname{round}\left(a\cdot\frac{2^{\operatorname{round}\left(x\right)}}{\operatorname{round}\left(x\right)}\right)}
+        // In https://www.desmos.com/calculator to see that a=3 gives really nice results for the proportion of mass transformed into energy
         public static Mass RawMaterialMass(ulong ind)
-            => Mass.CreateFromKg(valueInKg: MyMathHelper.Pow(@base: 2, exponent: ind) + 1);
+            => Mass.CreateFromKg
+            (
+                valueInKg: MyMathHelper.Round
+                (
+                    (UDouble)(3 * MyMathHelper.Pow(@base: 2, exponent: ind + 1)) / (ind + 1)
+                )
+            );
 
         // As ind increases, the raw materials require less energy to change temperature by one degree
         // As said in https://en.wikipedia.org/wiki/Specific_heat_capacity#Monatomic_gases
@@ -18,12 +33,11 @@ namespace Game1
         public static HeatCapacity RawMaterialHeatCapacity(ulong ind)
             => HeatCapacity.CreateFromJPerK(valueInJPerK: 1);
 
-        // 1 is least dense, 0 and 2 have very close density, and density increases with index
-        // Formula is plucked out of thin air
-        // IF change this, make sure that fusion reaction produces smaller area, otherwise planets (and buildings on them)
-        // will need to expand
+        // Formula is like this so that maximum density is 1 and fusion reactions don't change cosmic body area
+        // The non-changing area is nice as only mining and planet enlargement buildings need to change size in this case
+        // 
         public static AreaInt RawMaterialArea(ulong ind)
-            => AreaInt.CreateFromMetSq(valueInMetSq: (ind + 3) * (ind + 3));
+            => AreaInt.CreateFromMetSq(valueInMetSq: 3 * MyMathHelper.Pow(2, ind + 1));
 
         // As ind increases, the color becomes more brown
         // Formula is plucked out of thin air
@@ -33,7 +47,7 @@ namespace Game1
         // The bigger the number, the easier this raw material will react with itself
         // Formula is plucked out of thin air
         public static UDouble RawMaterialFusionReactionStrengthCoeff(ulong ind)
-            => (UDouble)0.000000000000005;
+            => (UDouble)0.000000000000001;
 
         public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
         {

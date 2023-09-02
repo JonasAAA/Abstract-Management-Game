@@ -208,14 +208,14 @@ namespace Game1
         }
 
         // Inspired by https://en.wikipedia.org/wiki/Lawson_criterion#Energy_balance
-        public static RawMatAmounts CosmicBodyNewComposition(ResConfig curResConfig, RawMatAmounts composition, UDouble gravity, Temperature temperature, TimeSpan duration,
+        public static RawMatAmounts CosmicBodyNewCompositionFromNuclearFusion(ResConfig curResConfig, RawMatAmounts composition, UDouble gravity, Temperature temperature, TimeSpan duration,
             Func<RawMaterial, decimal, ulong> reactionNumberRounder, Propor nonReactingProporForUnitReactionStrengthUnitTime)
         {
             AreaDouble compositionArea = composition.Area().ToDouble();
             Dictionary<RawMaterial, ulong> cosmicBodyNextComposition = new(2 * composition.Count);
             foreach (var (rawMaterial, amount) in composition)
             {
-                (ulong nonReactingAmount, ulong fusionProductAmount) = NuclearFusion
+                (ulong nonReactingAmount, ulong fusionProductAmount) = NuclearFusionSingleRawMat
                 (
                     amount: amount,
                     compositionArea: compositionArea,
@@ -233,10 +233,12 @@ namespace Game1
                     cosmicBodyNextComposition[fusionResult] = cosmicBodyNextComposition.GetValueOrDefault(key: fusionResult) + fusionProductAmount;
                 }
             }
-            return new(cosmicBodyNextComposition);
+            RawMatAmounts newComposition = new(cosmicBodyNextComposition);
+            Debug.Assert(composition.Area() == newComposition.Area());
+            return newComposition;
         }
 
-        public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusion(ulong amount, AreaDouble compositionArea, UDouble gravity, Temperature temperature,
+        public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusionSingleRawMat(ulong amount, AreaDouble compositionArea, UDouble gravity, Temperature temperature,
             TimeSpan duration, Func<decimal, ulong> reactionNumberRounder, Propor nonReactingProporForUnitReactionStrengthUnitTime, UDouble fusionReactionStrengthCoeff)
         {
             // Number density is from https://en.wikipedia.org/wiki/Number_density

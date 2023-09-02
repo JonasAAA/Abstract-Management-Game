@@ -15,7 +15,7 @@ namespace TestProject
             Assert.AreEqual<(ulong nonReactingAmount, ulong fusionProductAmount)>
             (
                 expected: (nonReactingAmount: 1000, fusionProductAmount: 0),
-                actual: Algorithms.NuclearFusion
+                actual: Algorithms.NuclearFusionSingleRawMat
                 (
                     amount: 1000,
                     compositionArea: Area<UDouble>.CreateFromMetSq(351),
@@ -35,7 +35,7 @@ namespace TestProject
             Assert.AreEqual<(ulong nonReactingAmount, ulong fusionProductAmount)>
             (
                 expected: (nonReactingAmount: 128, fusionProductAmount: 4936),
-                actual: Algorithms.NuclearFusion
+                actual: Algorithms.NuclearFusionSingleRawMat
                 (
                     amount: 10000,
                     compositionArea: Area<UDouble>.CreateFromMetSq(5415),

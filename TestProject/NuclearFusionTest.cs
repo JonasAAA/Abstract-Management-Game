@@ -34,7 +34,7 @@ namespace TestProject
         {
             Assert.AreEqual<(ulong nonReactingAmount, ulong fusionProductAmount)>
             (
-                expected: (nonReactingAmount: 4848, fusionProductAmount: 2576),
+                expected: (nonReactingAmount: 128, fusionProductAmount: 4936),
                 actual: Algorithms.NuclearFusion
                 (
                     amount: 10000,

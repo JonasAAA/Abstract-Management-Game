@@ -100,9 +100,6 @@ namespace Game1.Industries
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => IncompleteBuildingImage(donePropor: Propor.empty);
 
-            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.PotentiallyNotNeededBuildingComponents
-                => EfficientReadOnlyCollection<IResource>.empty;
-
             Material? Industry.IConcreteBuildingParams<UnitType>.SurfaceMaterial(bool productionInProgress)
                 => productionInProgress switch
                 {

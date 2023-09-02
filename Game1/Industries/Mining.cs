@@ -75,8 +75,8 @@ namespace Game1.Industries
             private readonly GeneralBuildingParams generalParams;
             private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialChoices buildingMatChoices;
+            private readonly EfficientReadOnlyCollection<IResource> producedResources;
             private readonly AllResAmounts startingBuildingCost;
-            private readonly EfficientReadOnlyCollection<IResource> cosmicBodyResComposition;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
@@ -91,9 +91,8 @@ namespace Game1.Industries
                 this.generalParams = generalParams;
                 this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatChoices = buildingMatChoices;
-                cosmicBodyResComposition = nodeState.Composition.ToAll().resList;
-
                 startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
+                producedResources = (nodeState.Composition.ToAll() + startingBuildingCost).resList;
             }
 
             public AreaDouble AreaToMine()
@@ -126,15 +125,12 @@ namespace Game1.Industries
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => buildingImage;
 
-            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.PotentiallyNotNeededBuildingComponents
-                => startingBuildingCost.resList;
-
             Material? Industry.IConcreteBuildingParams<UnitType>.SurfaceMaterial(bool productionInProgress)
                 => SurfaceMaterial;
 
             // This assumes that planet composition never changes while mining is happening
             EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
-                => cosmicBodyResComposition;
+                => producedResources;
 
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.TargetStoredResAmounts(UnitType productionParams)
                 => AllResAmounts.empty;

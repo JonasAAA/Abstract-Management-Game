@@ -62,17 +62,10 @@ namespace Game1.Industries
             public Material SurfaceMaterial { get; }
             public readonly DiskBuildingImage buildingImage;
 
-            /// <summary>
-            /// Things depend on this rather than on building components target area as can say that if planet underneath building shrinks,
-            /// building gets not enough space to operate at maximum efficiency
-            /// </summary>
-            private AreaDouble CurBuildingArea
-                => buildingImage.Area;
-
+            private readonly AreaDouble buildingArea;
             private readonly GeneralBuildingParams generalParams;
-            private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialChoices buildingMatChoices;
-            private readonly AllResAmounts startingBuildingCost;
+            private readonly AllResAmounts buildingCost;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
@@ -84,11 +77,11 @@ namespace Game1.Industries
                 this.SurfaceMaterial = surfaceMaterial;
                 EnergyPriority = generalParams.energyPriority;
 
+                buildingArea = buildingImage.Area;
                 this.generalParams = generalParams;
-                this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatChoices = buildingMatChoices;
 
-                startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
+                buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
 
             public UDouble WattsToProduce(UDouble incidentWatts)
@@ -98,15 +91,12 @@ namespace Game1.Industries
                     buildingMatChoices: buildingMatChoices,
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,
-                    buildingArea: CurBuildingArea,
+                    buildingArea: buildingArea,
                     incidentWatts: incidentWatts
                 );
 
-            public void RemoveUnneededBuildingComponents(ResPile buildingResPile)
-                => ResAndIndustryHelpers.RemoveUnneededBuildingComponents(nodeState: NodeState, buildingResPile: buildingResPile, buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
-
             AllResAmounts IConcreteBuildingConstructionParams.BuildingCost
-                => startingBuildingCost;
+                => buildingCost;
 
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
@@ -116,9 +106,6 @@ namespace Game1.Industries
 
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => buildingImage;
-
-            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.PotentiallyNotNeededBuildingComponents
-                => startingBuildingCost.resList;
 
             Material? Industry.IConcreteBuildingParams<UnitType>.SurfaceMaterial(bool productionInProgress)
                 => SurfaceMaterial;
@@ -181,15 +168,8 @@ namespace Game1.Industries
                 Debug.Assert(electricalEnergy.IsZero);
             }
 
-            /// <summary>
-            /// This will not remove no longer needed building components until mining cycle is done since fix current mining volume
-            /// and some other mining stats at the start of the mining cycle. 
-            /// </summary>
             public IIndustry? Update()
-            {
-                buildingParams.RemoveUnneededBuildingComponents(buildingResPile: buildingResPile);
-                return null;
-            }
+                => null;
 
             public void Delete()
             {

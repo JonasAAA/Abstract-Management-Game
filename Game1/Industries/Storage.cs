@@ -61,19 +61,13 @@ namespace Game1.Industries
             public string Name { get; }
             public IIndustryFacingNodeState NodeState { get; }
             public Material SurfaceMaterial { get; }
+            public AllResAmounts BuildingCost { get; }
             public readonly DiskBuildingImage buildingImage;
-            public readonly AllResAmounts startingBuildingCost;
 
-            /// <summary>
-            /// Things depend on this rather than on building components target area as can say that if planet underneath building shrinks,
-            /// building gets not enough space to operate at maximum efficiency
-            /// </summary>
-            public AreaDouble CurBuildingArea
-                => buildingImage.Area;
+            private readonly AreaDouble buildingArea;
             // generalParams and buildingMatChoices will be used if/when storage industry depends on material choices.
             // Probably the only possible dependance is how much weight it can hold.
             private readonly GeneralBuildingParams generalParams;
-            private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialChoices buildingMatChoices;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
@@ -84,15 +78,20 @@ namespace Game1.Industries
                 this.NodeState = nodeState;
                 this.buildingImage = buildingImage;
                 this.SurfaceMaterial = surfaceMaterial;
+                BuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
 
+                buildingArea = buildingImage.Area;
                 this.generalParams = generalParams;
-                this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatChoices = buildingMatChoices;
-                startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
             }
 
-            public void RemoveUnneededBuildingComponents(ResPile buildingResPile)
-                => ResAndIndustryHelpers.RemoveUnneededBuildingComponents(nodeState: NodeState, buildingResPile: buildingResPile, buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
+            public ulong MaxStoredAmount(IResource storedRes)
+                => ResAndIndustryAlgos.MaxAmountInStorage
+                (
+                    areaInStorage: buildingArea * CurWorldConfig.storageProporOfBuildingArea,
+                    // Could use Area here instead, if decide to have such a thing
+                    itemArea: storedRes.UsefulArea
+                );
 
             public IIndustry CreateFullySpecifiedIndustry(ResPile buildingResPile, IResource storedRes)
                 => new Storage
@@ -101,9 +100,6 @@ namespace Game1.Industries
                     buildingParams: this,
                     buildingResPile: buildingResPile
                 );
-
-            public AllResAmounts BuildingCost
-                => startingBuildingCost;
 
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
@@ -168,13 +164,15 @@ namespace Game1.Industries
         public IBuildingImage BuildingImage
             => buildingParams.buildingImage;
 
-        public EfficientReadOnlyCollection<IResource> PotentiallyNotNeededBuildingComponents
-            => buildingParams.startingBuildingCost.resList;
+        // CURRENTLY this doesn't handle changes in res consumed and res produced. So if choose to store a different thing later on (e.g. iron instead of nothing),
+        // this will not be updated accordingly
+        public IHUDElement RoutePanel { get; }
 
         private readonly StorageParams storageParams;
         private readonly ConcreteBuildingParams buildingParams;
         private readonly ResPile buildingResPile;
         private readonly Event<IDeletedListener> deleted;
+        private readonly EfficientReadOnlyDictionary<IResource, List<ResRoute>> resSources, resDestins;
 
         private Storage(StorageParams storageParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile)
         {
@@ -182,26 +180,26 @@ namespace Game1.Industries
             this.buildingParams = buildingParams;
             this.buildingResPile = buildingResPile;
             deleted = new();
+            resSources = IIndustry.CreateRoutesLists(resources: TargetStoredResAmounts().resList);
+            resDestins = IIndustry.CreateRoutesLists(resources: storageParams.ProducedResources);
+            RoutePanel = IIndustry.CreateRoutePanel
+            (
+                industry: this,
+                resSources: resSources,
+                resDestins: resDestins
+            );
         }
 
-        public EfficientReadOnlyCollection<IResource> GetConsumedResources()
-            => TargetStoredResAmounts().resList;
+        public bool IsSourceOf(IResource resource)
+            => resDestins.ContainsKey(resource);
 
-        public EfficientReadOnlyCollection<IResource> GetProducedResources()
-            => storageParams.ProducedResources;
-
-        private ulong MaxStoredAmount(IResource storedRes)
-            => ResAndIndustryAlgos.MaxAmountInStorage
-            (
-                areaInStorage: buildingParams.CurBuildingArea * CurWorldConfig.storageProporOfBuildingArea,
-                // Could use Area here instead, if decide to have such a thing
-                itemArea: storedRes.UsefulArea
-            );
+        public bool IsDestinOf(IResource resource)
+            => resSources.ContainsKey(resource);
 
         public AllResAmounts TargetStoredResAmounts()
             => storageParams.CurStoredRes.SwitchExpression
             (
-                ok: storedRes => new AllResAmounts(res: storedRes, amount: MaxStoredAmount(storedRes: storedRes)),
+                ok: storedRes => new AllResAmounts(res: storedRes, amount: buildingParams.MaxStoredAmount(storedRes: storedRes)),
                 error: _ => AllResAmounts.empty
             );
 
@@ -212,10 +210,7 @@ namespace Game1.Industries
         { }
 
         public IIndustry? Update()
-        {
-            buildingParams.RemoveUnneededBuildingComponents(buildingResPile: buildingResPile);
-            return this;
-        }
+            => this;
 
         public void Delete()
         {

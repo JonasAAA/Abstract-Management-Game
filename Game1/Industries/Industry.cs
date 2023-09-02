@@ -13,7 +13,6 @@ namespace Game1.Industries
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
             public IBuildingImage IdleBuildingImage { get; }
-            public EfficientReadOnlyCollection<IResource> PotentiallyNotNeededBuildingComponents { get; }
 
             public Material? SurfaceMaterial(bool productionInProgress);
             public EfficientReadOnlyCollection<IResource> GetProducedResources(TConcreteProductionParams productionParams);
@@ -73,10 +72,6 @@ namespace Game1.Industries
                 ok: state => state.BusyBuildingImage(),
                 error: _ => buildingParams.IdleBuildingImage
             );
-
-        public EfficientReadOnlyCollection<IResource> PotentiallyNotNeededBuildingComponents
-            => buildingParams.PotentiallyNotNeededBuildingComponents;
-
 
         private bool Busy
             => stateOrReasonForNotStartingProduction.isOk;

@@ -63,17 +63,12 @@ namespace Game1.Industries
             public Material SurfaceMaterial { get; }
             public readonly DiskBuildingImage buildingImage;
             public readonly Product.Params productParams;
+            public readonly ulong maxProductAmount, maxIngredientsCountStored;
 
-            /// <summary>
-            /// Things depend on this rather than on building components target area as can say that if planet underneath building shrinks,
-            /// building gets not enough space to operate at maximum efficiency
-            /// </summary>
-            private AreaDouble CurBuildingArea
-                => buildingImage.Area;
+            private readonly AreaDouble buildingArea;
             private readonly GeneralParams generalParams;
-            private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialChoices buildingMatChoices;
-            private readonly AllResAmounts startingBuildingCost;
+            private readonly AllResAmounts buildingCost;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
@@ -84,20 +79,19 @@ namespace Game1.Industries
                 this.buildingImage = buildingImage;
                 this.SurfaceMaterial = surfaceMaterial;
                 EnergyPriority = generalParams.energyPriority;
-                productParams = generalParams.productParams; 
-
-                this.generalParams = generalParams;
-                this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
-                this.buildingMatChoices = buildingMatChoices;
-                startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
-            }
-
-            public ulong MaxProductAmount()
-                => ResAndIndustryAlgos.MaxAmountInProduction
+                productParams = generalParams.productParams;
+                maxProductAmount = ResAndIndustryAlgos.MaxAmountInProduction
                 (
-                    areaInProduction: CurBuildingArea * CurWorldConfig.productionProporOfBuildingArea,
+                    areaInProduction: buildingArea * CurWorldConfig.productionProporOfBuildingArea,
                     itemUsefulArea: productParams.usefulArea
                 );
+                maxIngredientsCountStored = maxProductAmount * NodeState.MaxBatchDemResStored;
+
+                buildingArea = buildingImage.Area;
+                this.generalParams = generalParams;
+                this.buildingMatChoices = buildingMatChoices;
+                buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
+            }
 
             /// <param Name="productionMassIfFull">Mass of stuff in production if industry was fully operational</param>
             public CurProdStats CurProdStats(Mass productionMassIfFull)
@@ -107,15 +101,12 @@ namespace Game1.Industries
                     buildingMatChoices: buildingMatChoices,
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,
-                    buildingArea: CurBuildingArea,
+                    buildingArea: buildingArea,
                     productionMass: productionMassIfFull
                 );
 
-            public void RemoveUnneededBuildingComponents(ResPile buildingResPile)
-                => ResAndIndustryHelpers.RemoveUnneededBuildingComponents(nodeState: NodeState, buildingResPile: buildingResPile, buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
-
             AllResAmounts IConcreteBuildingConstructionParams.BuildingCost
-                => startingBuildingCost;
+                => buildingCost;
 
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
@@ -126,9 +117,6 @@ namespace Game1.Industries
             IBuildingImage Industry.IConcreteBuildingParams<ConcreteProductionParams>.IdleBuildingImage
                 => buildingImage;
 
-            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.PotentiallyNotNeededBuildingComponents
-                => startingBuildingCost.resList;
-
             Material? Industry.IConcreteBuildingParams<ConcreteProductionParams>.SurfaceMaterial(bool productionInProgress)
                 => SurfaceMaterial;
 
@@ -137,10 +125,10 @@ namespace Game1.Industries
 
             AllResAmounts Industry.IConcreteBuildingParams<ConcreteProductionParams>.TargetStoredResAmounts(ConcreteProductionParams productionParams)
             {
-                ulong maxIngredientsCountStored = MaxProductAmount() * NodeState.MaxBatchDemResStored;
+                var maxIngredientsCountStoredCopy = maxIngredientsCountStored;
                 return productionParams.CurProduct.SwitchExpression
                 (
-                    ok: product => product.Recipe.ingredients * maxIngredientsCountStored,
+                    ok: product => product.Recipe.ingredients * maxIngredientsCountStoredCopy,
                     error: _ => AllResAmounts.empty
                 );
             }
@@ -202,12 +190,11 @@ namespace Game1.Industries
                 (
                     product =>
                     {
-                        ulong maxProductionAmount = buildingParams.MaxProductAmount();
                         var resInUseAndCount = ResPile.CreateMultipleIfHaveEnough
                         (
                             source: buildingParams.NodeState.StoredResPile,
                             amount: product.Recipe.ingredients,
-                            maxCount: maxProductionAmount
+                            maxCount: buildingParams.maxProductAmount
                         );
                         return resInUseAndCount switch
                         {
@@ -220,7 +207,7 @@ namespace Game1.Industries
                                     resInUse: resInUse,
                                     productRecipe: product.Recipe,
                                     productionAmount: count,
-                                    maxProductionAmount: maxProductionAmount
+                                    maxProductionAmount: buildingParams.maxProductAmount
                                 )
                             ),
                             null => new(errors: new(UIAlgorithms.NotEnoughResourcesToStartProduction))
@@ -294,10 +281,7 @@ namespace Game1.Industries
                 );
 
                 if (donePropor.IsFull)
-                {
                     buildingParams.NodeState.StoredResPile.TransformFrom(source: resInUse, recipe: recipe);
-                    buildingParams.RemoveUnneededBuildingComponents(buildingResPile: buildingResPile);
-                }
                 return null;
             }
 

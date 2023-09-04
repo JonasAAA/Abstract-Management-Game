@@ -78,11 +78,11 @@ namespace Game1.Industries
                 this.NodeState = nodeState;
                 this.buildingImage = buildingImage;
                 this.SurfaceMaterial = surfaceMaterial;
-                BuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
-
+                // Building area is used in BuildingCost calculation, thus needs to be computed first
                 buildingArea = buildingImage.Area;
                 this.generalParams = generalParams;
                 this.buildingMatChoices = buildingMatChoices;
+                BuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
 
             public ulong MaxStoredAmount(IResource storedRes)

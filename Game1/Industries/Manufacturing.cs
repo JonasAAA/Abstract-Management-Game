@@ -80,16 +80,15 @@ namespace Game1.Industries
                 this.SurfaceMaterial = surfaceMaterial;
                 EnergyPriority = generalParams.energyPriority;
                 productParams = generalParams.productParams;
+                buildingArea = buildingImage.Area;
+                maxIngredientsCountStored = maxProductAmount * NodeState.MaxBatchDemResStored;
+                this.generalParams = generalParams;
+                this.buildingMatChoices = buildingMatChoices;
                 maxProductAmount = ResAndIndustryAlgos.MaxAmountInProduction
                 (
                     areaInProduction: buildingArea * CurWorldConfig.productionProporOfBuildingArea,
                     itemUsefulArea: productParams.usefulArea
                 );
-                maxIngredientsCountStored = maxProductAmount * NodeState.MaxBatchDemResStored;
-
-                buildingArea = buildingImage.Area;
-                this.generalParams = generalParams;
-                this.buildingMatChoices = buildingMatChoices;
                 buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
 

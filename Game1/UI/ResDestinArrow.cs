@@ -1,4 +1,5 @@
-﻿using Game1.Delegates;
+﻿using Game1.Collections;
+using Game1.Delegates;
 using Game1.Shapes;
 
 namespace Game1.UI
@@ -40,8 +41,11 @@ namespace Game1.UI
         public Event<INumberChangedListener> ImportanceNumberChanged
             => importanceIncDecrPanel.numberChanged;
 
+        protected override EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups
+            => throw new NotImplementedException();
+
         public readonly IResource res;
-        
+
         private readonly Event<IDeletedListener> deleted;
         private int totalImportance;
         private readonly NodeID destinId;
@@ -65,7 +69,7 @@ namespace Game1.UI
 
             deleted = new();
             UIRectPanel<IHUDElement> popup = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPosEnum.Left);
-            Popup = popup;
+            //Popup = popup;
             //SetPopup(HUDElement: popup, overlay: res);
 
             UIRectHorizPanel<IHUDElement> line1 = new(childVertPos: VertPosEnum.Middle);

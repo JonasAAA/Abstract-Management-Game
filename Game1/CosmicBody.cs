@@ -11,7 +11,7 @@ using Game1.Collections;
 namespace Game1
 {
     [Serializable]
-    public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, INodeAsResDestin, ILightCatchingObject, IWithRealPeopleStats
+    public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, INodeAsResDestin, ILightCatchingObject, IWithStandardPositions, IWithRealPeopleStats
     {
         [Serializable]
         private readonly record struct ResDesinArrowEventListener(CosmicBody Node, IResource Res) : IDeletedListener, INumberChangedListener
@@ -119,6 +119,39 @@ namespace Game1
                     infoPanel.AddChild(child: industry.UIElement);
             }
         }
+
+        protected override EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups
+        {
+            get
+            {
+                List<(IHUDElement popup, IAction popupHUDPosUpdater)> popups = new(capacity: 2)
+                {
+                    (
+                        popup: UITabPanel,
+                        popupHUDPosUpdater: UITabPanelHUDPosUpdater
+                    )
+                };
+                if (Industry is not null)
+                {
+                    var routePanel = Industry.RoutePanel;
+                    popups.Add
+                    (
+                        (
+                            popup: routePanel,
+                            popupHUDPosUpdater: new HUDElementPosUpdater
+                            (
+                                HUDElement: routePanel,
+                                baseWorldObject: this,
+                                HUDElementOrigin: new(HorizPosEnum.Right, VertPosEnum.Middle),
+                                anchorInBaseWorldObject: new(HorizPosEnum.Left, VertPosEnum.Middle)
+                            )
+                        )
+                    );
+                }
+                return popups.ToEfficientReadOnlyCollection();
+            }
+        }
+
         private readonly NodeState state;
         private readonly LightPolygon lightPolygon;
         private readonly List<Link> links;
@@ -141,6 +174,7 @@ namespace Game1
 
         private readonly TextBox textBox;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
+        private readonly IAction UITabPanelHUDPosUpdater;
         private readonly UIRectPanel<IHUDElement> infoPanel;
         //private readonly MyDict<IOverlay, UIRectPanel<IHUDElement>> overlayTabPanels;
         private readonly TextBox infoTextBox;
@@ -231,8 +265,13 @@ namespace Game1
                 tabLabelHeight: 30,
                 tabs: UITabs
             );
-
-            Popup = UITabPanel;
+            UITabPanelHUDPosUpdater = new HUDElementPosUpdater
+            (
+                HUDElement: UITabPanel,
+                baseWorldObject: this,
+                HUDElementOrigin: new(HorizPosEnum.Left, VertPosEnum.Middle),
+                anchorInBaseWorldObject: new(HorizPosEnum.Right, VertPosEnum.Middle)
+            );
 
             //SetPopup
             //(
@@ -288,7 +327,7 @@ namespace Game1
         }
 
         public MyVector2 GetPosition(PosEnums origin)
-            => origin.GetPosInRect(center: Position, width: 2 * state.Radius, height: 2 * state.Radius);
+            => Industry?.GetPosition(origin: origin) ?? origin.GetPosInRect(center: Position, width: 2 * state.Radius, height: 2 * state.Radius);
 
         public void StartConstruction(Construction.ConcreteParams constrConcreteParams)
             => Industry = constrConcreteParams.CreateIndustry();
@@ -379,7 +418,7 @@ namespace Game1
 
             state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: state.RadiantEnergyPile);
 
-            RawMatAmounts cosmicBodyNewComposition = Algorithms.CosmicBodyNewComposition
+            RawMatAmounts cosmicBodyNewComposition = Algorithms.CosmicBodyNewCompositionFromNuclearFusion
             (
                 curResConfig: CurResConfig,
                 composition: state.Composition,

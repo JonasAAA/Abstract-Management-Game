@@ -1,4 +1,5 @@
-﻿using Game1.Delegates;
+﻿using Game1.Collections;
+using Game1.Delegates;
 using Game1.Shapes;
 
 using static Game1.WorldManager;
@@ -27,16 +28,22 @@ namespace Game1.UI
 
                 active = value;
                 if (active)
-                    CurWorldManager.AddHUDElement
-                    (
-                        HUDElement: Popup,
-                        position: popupPos
-                    );
+                {
+                    foreach (var (popup, HUDPosUpdater) in Popups)
+                        CurWorldManager.AddWorldHUDElement
+                        (
+                            worldHUDElement: popup,
+                            updateHUDPos: HUDPosUpdater
+                        );
+                }
                 else
-                    CurWorldManager.RemoveHUDElement
-                    (
-                        HUDElement: Popup
-                    );
+                {
+                    foreach (var (popup, _) in Popups)
+                        CurWorldManager.RemoveWorldHUDElement
+                        (
+                            worldHUDElement: popup
+                        );
+                }
                 //if (active)
                 //    CurWorldManager.AddHUDElement
                 //    (
@@ -67,7 +74,11 @@ namespace Game1.UI
         
         private bool active;
 
-        protected IHUDElement? Popup { get; init; }
+        /// <summary>
+        /// POPUP must never change identity, at least while active. If it does, that will not be reflected in the UI and
+        /// previous popup will not be removed from ActiveUIManager, thus always staying on screen
+        /// </summary>
+        protected abstract EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups { get; }
         //private readonly MyDict<IOverlay, IHUDElement?> popups;
 
         public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, PosEnums popupPos)

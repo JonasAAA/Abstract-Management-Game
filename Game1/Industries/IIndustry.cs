@@ -1,9 +1,12 @@
 ﻿using Game1.Collections;
+using Game1.Delegates;
+using Game1.Shapes;
 using Game1.UI;
+using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
-    public interface IIndustry : IDeletable
+    public interface IIndustry : IWithStandardPositions, IDeletable
     {
         public string Name { get; }
         public IBuildingImage BuildingImage { get; }
@@ -15,11 +18,11 @@ namespace Game1.Industries
 
         public IHUDElement UIElement { get; }
 
-        public EfficientReadOnlyCollection<IResource> PotentiallyNotNeededBuildingComponents { get; }
+        //public EfficientReadOnlyCollection<IResource> PotentiallyNotNeededBuildingComponents { get; }
 
-        public EfficientReadOnlyCollection<IResource> GetConsumedResources();
+        //public EfficientReadOnlyCollection<IResource> GetConsumedResources();
 
-        public EfficientReadOnlyCollection<IResource> GetProducedResources();
+        //public EfficientReadOnlyCollection<IResource> GetProducedResources();
 
         public AllResAmounts TargetStoredResAmounts();
 
@@ -30,5 +33,171 @@ namespace Game1.Industries
         public IIndustry? Update();
 
         public string GetInfo();
+
+        MyVector2 IWithStandardPositions.GetPosition(PosEnums origin)
+            => BuildingImage.GetPosition(origin: origin);
+
+        public bool IsSourceOf(IResource resource);
+
+        public bool IsDestinOf(IResource resource);
+
+        public bool HasSource(IResource resource, IIndustry sourceIndustry);
+
+        public void HasDestin(IResource resource, IIndustry destinIndustry);
+
+        /// <summary>
+        /// If <paramref name="sourceIndustry"/> is already a source of <paramref name="resource"/>, delete it. If not, add it.
+        /// </summary>
+        public void ToggleSource(IResource resource, IIndustry sourceIndustry);
+
+        /// <summary>
+        /// If <paramref name="destinIndustry"/> is already a destination of <paramref name="resource"/>, delete it. If not, add it.
+        /// </summary>
+        public void ToggleDestin(IResource resource, IIndustry destinIndustry);
+
+        public IHUDElement RoutePanel { get; }
+
+        protected static void ToggleElement<T>(HashSet<T> set, T element)
+        {
+            if (set.Contains(element))
+                set.Remove(element);
+            else
+                set.Add(element);
+        }
+
+        protected static EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> CreateRoutesLists(EfficientReadOnlyCollection<IResource> resources)
+            => resources.ToEfficientReadOnlyDict(elementSelector: _ => new HashSet<IIndustry>());
+
+        protected static IHUDElement CreateRoutePanel(IIndustry industry, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources,
+            EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resDestins)
+            => new RoutePanelManager(industry: industry, resSources: resSources, resDestins: resDestins).routePanel;
+
+        [Serializable]
+        private readonly struct RoutePanelManager
+        {
+            public readonly UIRectVertPanel<IHUDElement> routePanel;
+            private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
+
+            public RoutePanelManager(IIndustry industry, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources,
+                EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resDestins)
+            {
+                this.resSources = resSources;
+                this.resDestins = resDestins;
+
+                const HorizPosEnum childHorizPos = HorizPosEnum.Left;
+                routePanel = new(childHorizPos: childHorizPos);
+
+                UIRectVertPanel<IHUDElement> resSourcePanel = new(childHorizPos: childHorizPos);
+                routePanel.AddChild(child: resSourcePanel);
+                resSourcePanel.AddChild(new TextBox() { Text = UIAlgorithms.ChangeResSources });
+                if (resSources.Count is 0)
+                {
+                    resSourcePanel.AddChild(child: new TextBox() { Text = UIAlgorithms.NoResourcesProduced });
+                }
+                else
+                {
+                    foreach (var (res, sources) in resSources)
+                    {
+                        Button addOrRemoveResSourceButton = new
+                        (
+                            shape: new MyRectangle(width: 100, height: 30),
+                            tooltip: new ImmutableTextTooltip(text: UIAlgorithms.AddOrRemoveResSourceTooltip(res: res)),
+                            text: res.Name
+                        );
+                        resSourcePanel.AddChild(child: addOrRemoveResSourceButton);
+                        addOrRemoveResSourceButton.clicked.Add
+                        (
+                            listener: new ChangeResSourcesButtonListener
+                            (
+                                Industry: industry,
+                                Resource: res,
+                                Sources: sources
+                            )
+                        );
+                    }
+                }
+
+                UIRectVertPanel<IHUDElement> resDestinPanel = new(childHorizPos: childHorizPos);
+                routePanel.AddChild(resDestinPanel);
+                resDestinPanel.AddChild(new TextBox() { Text = UIAlgorithms.ProducedResourcesDestinations });
+            }
+        }
+
+        [Serializable]
+        private sealed record ChangeResSourcesButtonListener(IIndustry Industry, IResource Resource, HashSet<IIndustry> Sources) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+            {
+                // Needed so that can pass toggleSourcePanelManagers when creating ChooseSourceButton clicked response
+                List<ToggleSourcePanelManager> toggleSourcePanelManagers = new();
+                toggleSourcePanelManagers.AddRange
+                (
+                    CurWorldManager.SourcesOf(resource: Resource)
+                        .Where(sourceIndustry => sourceIndustry != Industry)
+                        .Select
+                    (
+                        sourceIndustry =>
+                        {
+                            bool add = !Industry.HasSource(resource: Resource, sourceIndustry: sourceIndustry);
+                            Button toggleSourceButton = new
+                            (
+                                shape: new MyRectangle(width: 100, height: 60),
+                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleSourceTooltip(res: Resource, add: add)),
+                                text: UIAlgorithms.ToggleSourceButtonName(add: add)
+                            );
+
+                            toggleSourceButton.clicked.Add
+                            (
+                                listener: new ToggleRouteListener
+                                (
+                                    ToggleSourcePanelManagers: toggleSourcePanelManagers.ToEfficientReadOnlyCollection(),
+                                    Resource: Resource,
+                                    SourceIndustry: sourceIndustry,
+                                    DestinIndustry: Industry
+                                )
+                            );
+
+                            return new ToggleSourcePanelManager
+                            (
+                                ToggleSourcePanel: toggleSourceButton,
+                                SourceIndustry: sourceIndustry,
+                                PanelHUDPosUpdater: new HUDElementPosUpdater
+                                (
+                                    HUDElement: toggleSourceButton,
+                                    baseWorldObject: sourceIndustry,
+                                    HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Middle),
+                                    anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
+                                )
+                            );
+                        }
+                    )
+                );
+#warning Pause the game here. Also, when click anywhere else, cancel this action
+                // PROBABLY want to pause the game here so that sources don't appear and disappear before the player's eyes
+                CurWorldManager.DisableAllUIElements();
+
+                foreach (var (toggleSourcePanel, _, panelHUDPosUpdater) in toggleSourcePanelManagers)
+                    CurWorldManager.AddWorldHUDElement(worldHUDElement: toggleSourcePanel, updateHUDPos: panelHUDPosUpdater);
+
+#warning Add arrow visual for this
+            }
+        }
+
+        [Serializable]
+        private sealed record ToggleRouteListener(EfficientReadOnlyCollection<ToggleSourcePanelManager> ToggleSourcePanelManagers, IResource Resource, IIndustry SourceIndustry, IIndustry DestinIndustry) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+            {
+                SourceIndustry.ToggleDestin(resource: Resource, destinIndustry: DestinIndustry);
+                DestinIndustry.ToggleSource(resource: Resource, sourceIndustry: SourceIndustry);
+
+                foreach (var (toggleSourcePanel, _, _) in ToggleSourcePanelManagers)
+                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: toggleSourcePanel);
+                CurWorldManager.EnableAllUIElements();
+            }
+        }
+
+        [Serializable]
+        private readonly record struct ToggleSourcePanelManager(IHUDElement ToggleSourcePanel, IIndustry SourceIndustry, IAction PanelHUDPosUpdater);
     }
 }

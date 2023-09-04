@@ -94,16 +94,6 @@ namespace Game1
         public IEnumerable<CosmicBody> Nodes
             => nodes;
 
-        public IEnumerable<IIndustry> Industries
-        {
-            get
-            {
-                foreach (var node in nodes)
-                    if (node.Industry is not null)
-                        yield return node.Industry;
-            }
-        }
-
         public readonly EfficientReadOnlyDictionary<NodeID, CosmicBody> nodeIDToNode;
         public TimeSpan MaxLinkTravelTime { get; private set; }
         public UDouble MaxLinkJoulesPerKg { get; private set; }
@@ -134,6 +124,16 @@ namespace Game1
                     yield return link;
                 foreach (var resDestinArrow in resDestinArrows)
                     yield return resDestinArrow;
+            }
+        }
+
+        private IEnumerable<IIndustry> Industries
+        {
+            get
+            {
+                foreach (var node in nodes)
+                    if (node.Industry is not null)
+                        yield return node.Industry;
             }
         }
 
@@ -433,6 +433,12 @@ namespace Game1
 
         public UDouble ResDist(NodeID nodeID1, NodeID nodeID2)
             => resDists[(nodeID1, nodeID2)];
+
+        public IEnumerable<IIndustry> SourcesOf(IResource resource)
+            => Industries.Where(industry => industry.IsSourceOf(resource: resource));
+
+        public IEnumerable<IIndustry> DestinsOf(IResource resource)
+            => Industries.Where(industry => industry.IsDestinOf(resource: resource));
 
         public MyVector2 NodePosition(NodeID nodeID)
             => nodeIDToNode[nodeID].Position;

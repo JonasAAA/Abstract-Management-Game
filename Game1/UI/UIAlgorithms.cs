@@ -23,17 +23,20 @@ namespace Game1.UI
         public static string NoResourceIsChosen
             => "no resource is chosen";
 
-        public static string GlobalBuildTabTooltip
-            => "Builings to construct";
+        public static string ChangeResSources
+            => "Change sources of\nconsumed resources";
 
-        public static string GlobalTransportTabTooltip
-            => "Customize transport routes";
+        public static string ProducedResourcesDestinations
+            => "Produced resources\ndestinations";
 
-        public static string GlobalAddRouteTooltip
-            => "Add new route";
+        public static string AddOrRemoveResSourceTooltip(IResource res)
+            => $"Add or remove source of {res}";
 
-        public static string AddResDestinForBuildingTooltip(IResource res)
-            => $"Add new destination for {res}";
+        public static string ToggleSourceTooltip(IResource res, bool add)
+            => $"{(add ? "Choose" : "Remove")} this building as source of {res}";
+
+        public static string ToggleSourceButtonName(bool add)
+            => $"{(add ? "Choose" : "Remove")} this\nsource";
 
         public static string AddResSourceForBuildingTooltip(IResource res)
             => $"Add new source of {res}";

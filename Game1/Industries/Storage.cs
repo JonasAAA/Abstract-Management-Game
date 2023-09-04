@@ -172,7 +172,7 @@ namespace Game1.Industries
         private readonly ConcreteBuildingParams buildingParams;
         private readonly ResPile buildingResPile;
         private readonly Event<IDeletedListener> deleted;
-        private readonly EfficientReadOnlyDictionary<IResource, List<ResRoute>> resSources, resDestins;
+        private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
 
         private Storage(StorageParams storageParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile)
         {
@@ -195,6 +195,18 @@ namespace Game1.Industries
 
         public bool IsDestinOf(IResource resource)
             => resSources.ContainsKey(resource);
+
+        public bool HasSource(IResource resource, IIndustry sourceIndustry)
+            => resSources[resource].Contains(sourceIndustry);
+
+        public void HasDestin(IResource resource, IIndustry destinIndustry)
+            => resDestins[resource].Contains(destinIndustry);
+
+        public void ToggleSource(IResource resource, IIndustry sourceIndustry)
+            => IIndustry.ToggleElement(set: resSources[resource], element: sourceIndustry);
+
+        public void ToggleDestin(IResource resource, IIndustry destinIndustry)
+            => IIndustry.ToggleElement(set: resDestins[resource], element: destinIndustry);
 
         public AllResAmounts TargetStoredResAmounts()
             => storageParams.CurStoredRes.SwitchExpression

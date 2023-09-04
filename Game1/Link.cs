@@ -4,6 +4,7 @@ using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
 using Game1.Collections;
+using Game1.Delegates;
 
 namespace Game1
 {
@@ -13,7 +14,7 @@ namespace Game1
     /// Travellers going to the same direction mix their heat
     /// </summary>
     [Serializable]
-    public sealed class Link : WorldUIElement, IWithRealPeopleStats
+    public sealed class Link : WorldUIElement, IWithStandardPositions, IWithRealPeopleStats
     {
         [Serializable]
         private sealed class DirLink : IEnergyConsumer, IWithRealPeopleStats
@@ -208,6 +209,8 @@ namespace Game1
         public TimeSpan TravelTime { get; private set; }
         public RealPeopleStats Stats { get; private set; }
 
+        protected override EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups { get; }
+
         private readonly DirLink link1To2, link2To1;
         private readonly TextBox infoTextBox;
 
@@ -233,9 +236,24 @@ namespace Game1
             link2To1 = new(startNode: node2, endNode: node1, minSafeDist: minSafeDist);
 
             infoTextBox = new(backgroundColor: Color.White);
-            Popup = infoTextBox;
+            Popups = new List<(IHUDElement popup, IAction popupHUDPosUpdater)>()
+            {
+                (
+                    popup: infoTextBox,
+                    popupHUDPosUpdater: new HUDElementPosUpdater
+                    (
+                        HUDElement: infoTextBox,
+                        baseWorldObject: this,
+                        HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Middle),
+                        anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
+                    )
+                )
+            }.ToEfficientReadOnlyCollection();
             //SetPopup(HUDElement: infoTextBox, overlays: IOverlay.all);
         }
+
+        MyVector2 IWithStandardPositions.GetPosition(PosEnums origin)
+            => (node1.Position + node2.Position) / 2;
 
         public ILinkFacingCosmicBody OtherNode(ILinkFacingCosmicBody node)
         {

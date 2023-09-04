@@ -72,6 +72,9 @@ namespace Game1.Industries
                 ok: state => state.BusyBuildingImage(),
                 error: _ => buildingParams.IdleBuildingImage
             );
+        // CURRENTLY this doesn't handle changes in res consumed and res produced. So if change produced material recipe, or choose to recycle different thing,
+        // this will not be updated accordingly
+        public IHUDElement RoutePanel { get; }
 
         private bool Busy
             => stateOrReasonForNotStartingProduction.isOk;
@@ -81,7 +84,8 @@ namespace Game1.Industries
         private Result<TProductionCycleState, TextErrors> stateOrReasonForNotStartingProduction;
         private readonly Event<IDeletedListener> deleted;
         private bool paused;
-
+        private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
+        
         public Industry(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState)
         {
             this.productionParams = productionParams;
@@ -92,14 +96,34 @@ namespace Game1.Industries
             paused = false;
 
             CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
+
+            resSources = IIndustry.CreateRoutesLists(resources: buildingParams.TargetStoredResAmounts(productionParams: productionParams).resList);
+            resDestins = IIndustry.CreateRoutesLists(resources: buildingParams.GetProducedResources(productionParams: productionParams));
+            RoutePanel = IIndustry.CreateRoutePanel
+            (
+                industry: this,
+                resSources: resSources,
+                resDestins: resDestins
+            );
         }
 
-        // NEED to decide how these will be treated exactly. See more in my notes on paper and in NEWEST.txt
-        public EfficientReadOnlyCollection<IResource> GetConsumedResources()
-            => buildingParams.TargetStoredResAmounts(productionParams: productionParams).resList;
+        public bool IsSourceOf(IResource resource)
+            => resDestins.ContainsKey(resource);
 
-        public EfficientReadOnlyCollection<IResource> GetProducedResources()
-            => buildingParams.GetProducedResources(productionParams: productionParams);
+        public bool IsDestinOf(IResource resource)
+            => resSources.ContainsKey(resource);
+
+        public bool HasSource(IResource resource, IIndustry sourceIndustry)
+            => resSources[resource].Contains(sourceIndustry);
+
+        public void HasDestin(IResource resource, IIndustry destinIndustry)
+            => resDestins[resource].Contains(destinIndustry);
+
+        public void ToggleSource(IResource resource, IIndustry sourceIndustry)
+            => IIndustry.ToggleElement(set: resSources[resource], element: sourceIndustry);
+
+        public void ToggleDestin(IResource resource, IIndustry destinIndustry)
+            => IIndustry.ToggleElement(set: resDestins[resource], element: destinIndustry);
 
         public AllResAmounts TargetStoredResAmounts()
             => (TProductionCycleState.IsRepeatable || !Busy) switch

@@ -71,8 +71,6 @@ namespace Game1.UI
             HUDPopup = null;
         }
 
-        
-
         /// <summary>
         /// HUDElement is will not be drawn by this
         /// </summary>
@@ -123,15 +121,6 @@ namespace Game1.UI
             activeUIElements.Remove(HUDPopup);
             HUDPopup = null;
         }
-
-        ///// <summary>
-        ///// worldHUDElement will be drawn by this
-        ///// </summary>
-        //public void AddWorldHUDElement(IHUDElement worldHUDElement)
-        //{
-        //    activeUIElements.Add(worldHUDElement);
-        //    worldHUDElements.Add(worldHUDElement);
-        //}
 
         /// <summary>
         /// worldHUDElement will be drawn by this

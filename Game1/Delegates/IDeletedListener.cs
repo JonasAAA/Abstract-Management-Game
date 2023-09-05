@@ -6,7 +6,6 @@
         /// Needs to remove all mentions of deletable in the deletedListener
         /// No need to remove deletedListener from deletable.Deleted
         /// </summary>
-        /// <param Name="deletable"></param>
         public void DeletedResponse(IDeletable deletable);
     }
 }

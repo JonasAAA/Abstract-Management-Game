@@ -204,13 +204,6 @@ namespace Game1
             else
                 return new(errors: new(errors));
 
-            //T? UnpackLocal<T>(Result<T, IEnumerable<TError>> arg)
-            //{
-            //    var unpacked = Unpack<T, TError>(arg: arg);
-            //    foundErrors &= unpacked.foundErrors;
-            //    errors = errors.Concat(unpacked.errors);
-            //    return unpacked.argVal;
-            //}
             T? Unpack<T>(Result<T, EfficientReadOnlyHashSet<TError>> arg)
                 => arg.SwitchExpression
                 (

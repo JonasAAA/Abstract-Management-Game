@@ -14,7 +14,6 @@ namespace Game1
 {
     [Serializable]
     public sealed class Graph : UIElement<IUIElement>, IActiveChangedListener, IWithRealPeopleStats
-        //, IChoiceChangedListener<IOverlay>
     {
         [Serializable]
         private readonly record struct ShortestPaths(EfficientReadOnlyDictionary<(NodeID, NodeID), UDouble> Dists, EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> FirstLinks);
@@ -226,19 +225,11 @@ namespace Game1
                 child: resDestinArrows,
                 layer: CurWorldConfig.resDistribArrowsUILayer
             );
-            //if (CurWorldManager.Overlay is IResource singleRes)
-            //    AddChild
-            //    (
-            //        child: resDestinArrows.GetOrCreate(key: singleRes),
-            //        layer: CurWorldConfig.resDistribArrowsUILayer
-            //    );
 
             foreach (var worldUIElement in WorldUIElements)
                 worldUIElement.activeChanged.Add(listener: this);
 
             activeWorldElement = null;
-
-            //CurOverlayChanged.Add(listener: this);
         }
 
         public void Initialize()
@@ -471,34 +462,8 @@ namespace Game1
         protected override void DrawChildren()
             => throw new InvalidOperationException();
 
-        //void IChoiceChangedListener<IOverlay>.ChoiceChangedResponse(IOverlay prevOverlay)
-        //{
-        //    if (prevOverlay is IResource prevRes)
-        //        RemoveChild(child: resDestinArrows.GetOrCreate(key: prevRes));
-
-        //    if (CurWorldManager.Overlay is IResource res)
-        //        AddChild
-        //        (
-        //            child: resDestinArrows.GetOrCreate(key: res),
-        //            layer: CurWorldConfig.resDistribArrowsUILayer
-        //        );
-        //}
-
         void IActiveChangedListener.ActiveChangedResponse(WorldUIElement worldUIElement)
         {
-            //if (CurWorldManager.ArrowDrawingModeRes is not null)
-            //{
-            //    if (worldUIElement.Active)
-            //    {
-            //        var sourceNode = ActiveWorldElement as CosmicBody;
-            //        var destinationNode = worldUIElement as CosmicBody;
-            //        Debug.Assert(sourceNode is not null && destinationNode is not null);
-            //        sourceNode.AddResDestin(destinationId: destinationNode.NodeID, res: CurWorldManager.ArrowDrawingModeRes);
-            //        worldUIElement.Active = false;
-            //    }
-            //    return;
-            //}
-
             if (worldUIElement.Active)
             {
                 if (activeWorldElement is not null)

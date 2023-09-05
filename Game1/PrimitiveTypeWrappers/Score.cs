@@ -191,8 +191,5 @@ namespace Game1.PrimitiveTypeWrappers
 
         public override int GetHashCode()
             => value.GetHashCode();
-
-        //public string ToString(string? format, IFormatProvider? formatProvider)
-        //    => $"score {value.ToString(format, formatProvider)}";
     }
 }

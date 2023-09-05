@@ -13,13 +13,6 @@ namespace Game1
     [Serializable]
     public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, ILightCatchingObject, IWithStandardPositions, IWithRealPeopleStats
     {
-        //[Serializable]
-        //private readonly record struct AddResourceDestinationButtonClickedListener : IClickedListener
-        //{
-        //    void IClickedListener.ClickedResponse()
-        //        => CurWorldManager.ArrowDrawingModeOn = true;
-        //}
-
         [Serializable]
         private readonly record struct ShapeParams(NodeState State) : Disk.IParams
         {
@@ -28,29 +21,6 @@ namespace Game1
 
             public UDouble Radius
                 => State.Radius;
-        }
-
-        [Serializable]
-        private readonly record struct ResDestinShapeParams(NodeState State, NodeID DestinationId) : VectorShape.IParams
-        {
-            public MyVector2 StartPos
-                => State.Position;
-
-            public MyVector2 EndPos
-                => CurWorldManager.NodePosition(nodeID: DestinationId);
-
-            public UDouble Width
-                => 2 * State.Radius;
-        }
-
-        [Serializable]
-        private readonly record struct SingleFrameArrowParams(NodeState State, MyVector2 EndPos) : VectorShape.IParams
-        {
-            public MyVector2 StartPos
-                => State.Position;
-
-            public UDouble Width
-                => 2 * State.Radius;
         }
 
         [Serializable]
@@ -137,10 +107,7 @@ namespace Game1
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
         private readonly IAction UITabPanelHUDPosUpdater;
         private readonly UIRectPanel<IHUDElement> infoPanel;
-        //private readonly MyDict<IOverlay, UIRectPanel<IHUDElement>> overlayTabPanels;
         private readonly TextBox infoTextBox;
-        //private readonly string overlayTabLabel;
-        private readonly UITransparentPanel<ResDestinArrow> resDistribArrows;
 
         public CosmicBody(NodeState state, Color activeColor, Func<IIndustryFacingNodeState, IIndustry?> createIndustry)
             : base
@@ -188,33 +155,6 @@ namespace Game1
             infoTextBox = new();
             infoPanel.AddChild(child: infoTextBox);
 
-            //overlayTabLabel = "overlay tab";
-            //overlayTabPanels = new();
-
-            //foreach (var overlay in IOverlay.all)
-            //    overlayTabPanels[overlay] = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
-            //foreach (var res in Res.All)
-            //{
-            //    Button addResourceDestinationButton = new
-            //    (
-            //        shape: new MyRectangle(width: 150, height: 50),
-            //        tooltip: new ImmutableTextTooltip(text: $"Adds new place to where {res} should be transported"),
-            //        text: $"add resource {res}\ndestination"
-            //    );
-            //    addResourceDestinationButton.clicked.Add(listener: new AddResourceDestinationButtonClickedListener());
-
-            //    overlayTabPanels[res].AddChild
-            //    (
-            //        child: addResourceDestinationButton
-            //    );
-            //}
-            //UITabs.Add
-            //((
-            //    tabLabelText: overlayTabLabel,
-            //    tabTooltip: new ImmutableTextTooltip(text: "UI specific to the current overlay"),
-            //    tab: overlayTabPanels[CurWorldManager.Overlay]
-            //));
-
             UITabPanel = new
             (
                 tabLabelWidth: 100,
@@ -229,54 +169,7 @@ namespace Game1
                 anchorInBaseWorldObject: new(HorizPosEnum.Right, VertPosEnum.Middle)
             );
 
-            //SetPopup
-            //(
-            //    HUDElement: UITabPanel,
-            //    overlays: IOverlay.all
-            //);
-
-            resDistribArrows = new();
-
             Industry = createIndustry(state);
-
-            //Mass startingNonPlanetMass = Mass.zero;
-            //// this is here beause it uses infoPanel, so that needs to be initialized first
-            //if (startingConditions is var (industryFactory, personCount, resSource))
-            //{
-            //    // This is done so that buildings and people take stuff from this planet (i.e. MassCounter is of this planet)
-            //    state.StoredResPile.TransferAllFrom(source: resSource);
-            //    ResAmounts houseBuildingCost = industryFactory.BuildingCost(state: state);
-
-            //    {
-            //        var reservedBuildingRes = ResPile.CreateIfHaveEnough
-            //        (
-            //            source: state.StoredResPile,
-            //            amount: houseBuildingCost
-            //        );
-            //        Debug.Assert(reservedBuildingRes is not null);
-            //        startingNonPlanetMass += reservedBuildingRes.Amount.Mass();
-            //        BuildingShape building = new(resSource: reservedBuildingRes);
-            //        Industry = industryFactory.CreateIndustry
-            //        (
-            //            state: state,
-            //            building: building
-            //        );
-            //    }
-
-            //    for (ulong i = 0; i < personCount; i++)
-            //    {
-            //        RealPerson.GeneratePersonByMagic
-            //        (
-            //            closestNodeID: NodeID,
-            //            resSource: ResPile.CreateIfHaveEnough(source: state.StoredResPile, amount: RealPerson.resAmountsPerPerson)!,
-            //            childDestin: state.WaitingPeople
-            //        );
-            //    }
-            //    startingNonPlanetMass += state.WaitingPeople.Stats.totalMass;
-            //    resSource.TransferAllFrom(source: state.StoredResPile);
-            //}
-            //else
-            //    Industry = null;
 
             CurWorldManager.AddLightSource(lightSource: this);
             CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
@@ -287,54 +180,6 @@ namespace Game1
 
         public void StartConstruction(Construction.ConcreteParams constrConcreteParams)
             => Industry = constrConcreteParams.CreateIndustry();
-
-        ///// <summary>
-        ///// Returns the missing material purposes. If everything needed is set, then proceeds
-        ///// </summary>
-        //public EfficientReadOnlyHashSet<IMaterialPurpose> StartConstructionOrThrow(Construction.GeneralParams constrGeneralParams, MaterialChoices buildingMaterialChoices)
-        //{
-        //    Industry = constrGeneralParams.CreateConcreteOrThrow(nodeState: state, buildingMatChoices: buildingMaterialChoices).CreateIndustry();
-        //}
-
-        //public bool CanHaveDestin(NodeID destinationId, IResource res)
-        //{
-        //    if (!Active || CurWorldManager.ArrowDrawingModeRes is null)
-        //        throw new InvalidOperationException();
-
-        //    return destinationId != NodeID && !resSplittersToDestins.GetOrCreate(key: res).ContainsKey(destinationId);
-        //}
-
-        //public void AddResDestin(NodeID destinationId, IResource res)
-        //{
-        //    if (!CanHaveDestin(destinationId: destinationId, res: res))
-        //        throw new ArgumentException();
-
-        //    if (resSplittersToDestins.GetOrCreate(key: res).ContainsKey(key: destinationId))
-        //        throw new ArgumentException();
-
-        //    ResDestinArrow resDestinArrow = new
-        //    (
-        //        shapeParams: new ResDestinShapeParams
-        //        (
-        //            State: state,
-        //            DestinationId: destinationId
-        //        ),
-        //        destinId: destinationId,
-        //        defaultActiveColor: Color.Lerp(Color.Yellow, Color.White, .5f),
-        //        defaultInactiveColor: Color.White * .5f,
-        //        popupPos: new(HorizPosEnum.Right, VertPosEnum.Top),
-        //        minImportance: 1,
-        //        startImportance: 1,
-        //        res: res
-        //    );
-        //    ResDesinArrowEventListener resDesinArrowEventListener = new(Node: this, Res: res);
-        //    resDestinArrow.ImportanceNumberChanged.Add(listener: resDesinArrowEventListener);
-        //    resDestinArrow.Deleted.Add(listener: resDesinArrowEventListener);
-
-        //    resDistribArrows.AddChild(child: resDestinArrow);
-        //    CurWorldManager.AddResDestinArrow(resDestinArrow: resDestinArrow);
-        //    resDesinArrowEventListener.SyncSplittersWithArrows();
-        //}
 
         public void PreEnergyDistribUpdate()
             => Industry?.FrameStart();
@@ -469,143 +314,6 @@ namespace Game1
         //    Stats = state.WaitingPeople.Stats.CombineWith(Industry?.Stats ?? RealPeopleStats.empty);
         //}
 
-        //public void StartSplitRes()
-        //{
-        //    Debug.Assert(undecidedResPile.IsEmpty);
-
-        //    targetStoredResAmounts = Industry?.TargetStoredResAmounts() ?? AllResAmounts.empty;
-
-        //    // deal with resources
-        //    undecidedResPile.TransferAllFrom(source: state.StoredResPile);
-        //    undecidedResPile.TransferAllFrom
-        //    (
-        //        source: state.waitingResAmountsPackets.ReturnAndRemove
-        //        (
-        //            destination: NodeID
-        //        )
-        //    );
-
-        //    state.StoredResPile.TransferAtMostFrom
-        //    (
-        //        source: undecidedResPile,
-        //        maxAmount: targetStoredResAmounts
-        //    );
-        //}
-
-        ///// <summary>
-        ///// MUST call StartSplitRes first
-        ///// </summary>
-        //public void SplitRes(Func<NodeID, INodeAsResDestin> nodeIDToNode, IResource res, Func<NodeID, ulong> maxExtraResFunc)
-        //{
-        //    if (undecidedResPile.Amount[res] is 0)
-        //        return;
-
-        //    var resSplitter = resSplittersToDestins.GetOrCreate(key: res);
-        //    if (resSplitter.Empty)
-        //        state.StoredResPile.TransferAllSingleResFrom(source: undecidedResPile, res: res);
-        //    else
-        //    {
-        //        var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount[res], maxAmountsFunc: maxExtraResFunc);
-
-        //        {
-        //            var unsplitResPile = ResPile.CreateIfHaveEnough
-        //            (
-        //                source: undecidedResPile,
-        //                amount: new AllResAmounts
-        //                (
-        //                    res: res,
-        //                    amount: unsplitResAmount
-        //                )
-        //            );
-        //            Debug.Assert(unsplitResPile is not null);
-        //            state.StoredResPile.TransferAllFrom(source: unsplitResPile);
-        //        }
-
-        //        foreach (var (destination, resAmountNum) in splitResAmounts)
-        //        {
-        //            ResAmount<IResource> resAmount = new(res: res, amount: resAmountNum);
-        //            var resPileForDestin = ResPile.CreateIfHaveEnough
-        //            (
-        //                source: undecidedResPile,
-        //                amount: new AllResAmounts(resAmount: resAmount)
-        //            );
-        //            Debug.Assert(resPileForDestin is not null);
-        //            state.waitingResAmountsPackets.TransferAllFrom
-        //            (
-        //                source: resPileForDestin,
-        //                destination: destination
-        //            );
-        //            nodeIDToNode(destination).AddResTravelHere(resAmount: resAmount);
-        //        }
-        //    }
-        //    Debug.Assert(undecidedResPile.Amount[res] is 0);
-        //}
-
-//        /// <summary>
-//        /// MUST call SplitRes first
-//        /// </summary>
-//        public void EndSplitRes(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks)
-//        {
-//            foreach (var resAmountsPacket in state.waitingResAmountsPackets.DeconstructAndClear())
-//            {
-//                NodeID destinationId = resAmountsPacket.destination;
-//                Debug.Assert(destinationId != NodeID);
-
-//                resFirstLinks[(NodeID, destinationId)]!.TransferAllFrom(start: this, resAmountsPacket: resAmountsPacket);
-//            }
-
-//#warning Complete this
-//            //state.TooManyResStored = !(state.StoredResPile.Amount <= targetStoredResAmounts);
-
-//            // TODO: look at this
-//            infoTextBox.Text = $"""
-//                consists of {state.Composition}
-//                stores {state.StoredResPile}
-//                target {targetStoredResAmounts}
-//                Mass of everything {state.LocationCounters.GetCount<AllResAmounts>().Mass()}
-//                Mass of planet {state.PlanetMass}
-//                Number of people {state.LocationCounters.GetCount<NumPeople>()}
-
-//                travelling people stats:
-//                {state.WaitingPeople.Stats}
-
-//                """;
-
-//            // update text
-//            //textBox.Text = CurWorldManager.Overlay.SwitchExpression
-//            //(
-//            //    singleResCase: res =>
-//            //    {
-//            //        if (state.StoredResPile.Amount[res] is not 0 || targetStoredResAmounts[res] is not 0)
-//            //            return (state.StoredResPile.Amount[res] >= targetStoredResAmounts[res]) switch
-//            //            {
-//            //                true => $"have {state.StoredResPile.Amount[res] - targetStoredResAmounts[res]} extra resources",
-//            //                false => $"have {(double)state.StoredResPile.Amount[res] / targetStoredResAmounts[res] * 100:0.}% of target stored resources\n",
-//            //            };
-//            //        else
-//            //            return "";
-//            //    },
-//            //    allResCase: () =>
-//            //    {
-//            //        Mass totalStoredMass = state.StoredResPile.Amount.Mass();
-//            //        return totalStoredMass.IsZero switch
-//            //        {
-//            //            true => "",
-//            //            false => $"stored total res splittingMass {totalStoredMass}"
-//            //        };
-//            //    },
-//            //    powerCase: () => "",
-//            //    peopleCase: () => ""
-//            //);
-//            textBox.Text = "";
-
-//            textBox.Text += $"T = {state.Temperature}\nM to E = {massConvertedToEnergy.valueInKg}\n";
-//            textBox.Text = textBox.Text.Trim();
-
-//            infoTextBox.Text += textBox.Text;
-//            infoTextBox.Text = infoTextBox.Text.Trim();
-//        }
-
         protected override void DrawPreBackground(Color otherColor, Propor otherColorPropor)
         {
             base.DrawPreBackground(otherColor, otherColorPropor);
@@ -613,33 +321,6 @@ namespace Game1
             Industry?.BuildingImage.Draw(otherColor: otherColor, otherColorPropor: otherColorPropor);
             //Industry?.Draw(otherColor: otherColor, otherColorPropor: otherColorPropor);
         }
-
-        //protected override void DrawChildren()
-        //{
-        //    base.DrawChildren();
-
-        //    if (Active && CurWorldManager.ArrowDrawingModeRes is not null)
-        //        // TODO: could create the arrow once with endPos calculated from mouse position
-        //        new Arrow
-        //        (
-        //            parameters: new SingleFrameArrowParams
-        //            (
-        //                State: state,
-        //                EndPos: CurWorldManager.MouseWorldPos
-        //            )
-        //        ).Draw(color: Color.White);
-        //}
-
-        //public override void ChoiceChangedResponse(IOverlay prevOverlay)
-        //{
-        //    base.ChoiceChangedResponse(prevOverlay: prevOverlay);
-
-        //    UITabPanel.ReplaceTab
-        //        (
-        //            tabLabelText: overlayTabLabel,
-        //            tab: overlayTabPanels[CurWorldManager.Overlay]
-        //        );
-        //}
 
         UDouble ILinkFacingCosmicBody.SurfaceGravity
             => state.SurfaceGravity;
@@ -674,26 +355,12 @@ namespace Game1
             => state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: source);
 
         void INodeAsLocalEnergyProducerAndConsumer.ProduceLocalEnergy(EnergyPile<ElectricalEnergy> destin)
-        {
-            locallyProducedEnergy = state.RadiantEnergyPile.TransformProporTo
+            => locallyProducedEnergy = state.RadiantEnergyPile.TransformProporTo
             (
                 destin: destin,
                 propor: CurWorldConfig.planetTransformRadiantToElectricalEnergyPropor,
                 amountToTransformRoundFunc: amount => capturedForUseRadiantEnergyRounder.Round(value: amount, curTime: CurWorldManager.CurTime)
             );
-
-            //if (Industry?.PeopleWorkOnTop is true or null)
-            //{
-            //    locallyProducedEnergy = state.RadiantEnergyPile.TransformProporTo
-            //    (
-            //        destin: destin,
-            //        propor: CurWorldConfig.planetTransformRadiantToElectricalEnergyPropor,
-            //        amountToTransformRoundFunc: amount => capturedForUseRadiantEnergyRounder.Round(value: amount, curTime: CurWorldManager.CurTime)
-            //    );
-            //}
-            //else
-            //    locallyProducedEnergy = ElectricalEnergy.zero;
-        }
 
         private ILightBlockingObject CurLightCatchingObject
             => (ILightBlockingObject?)(Industry?.BuildingImage) ?? shape;

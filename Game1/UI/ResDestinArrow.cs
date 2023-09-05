@@ -69,8 +69,6 @@ namespace Game1.UI
 
             deleted = new();
             UIRectPanel<IHUDElement> popup = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPosEnum.Left);
-            //Popup = popup;
-            //SetPopup(HUDElement: popup, overlay: res);
 
             UIRectHorizPanel<IHUDElement> line1 = new(childVertPos: VertPosEnum.Middle);
             popup.AddChild(child: line1);

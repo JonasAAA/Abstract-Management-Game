@@ -43,9 +43,6 @@ namespace Game1.Industries
                         concreteBuildingParams: buildingConcreteParams
                     )
                 );
-
-            //public ConcreteParams CreateConcreteOrThrow(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices)
-            //    => CreateConcrete(nodeState: nodeState, buildingMatChoices: buildingMatChoices).UnwrapOrThrow(exception: ;
         }
 
         [Serializable]

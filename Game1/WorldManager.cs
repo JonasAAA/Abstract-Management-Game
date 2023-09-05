@@ -18,7 +18,6 @@ namespace Game1
 {
     [Serializable]
     public sealed class WorldManager
-        //: IClickedNowhereListener
     {
         [Serializable]
         private sealed class PauseButtonTooltip : TextTooltipBase
@@ -36,7 +35,6 @@ namespace Game1
             public void Initialize(OnOffButton onOffButton)
                 => this.onOffButton = onOffButton;
         }
-
 
         // Build helpers
         [Serializable]
@@ -255,167 +253,8 @@ namespace Game1
                     );
         }
 
-
-//        // Transport helpers
-//        [Serializable]
-//        private record AddRouteButtonClickedListener() : IClickedListener
-//        {
-//            void IClickedListener.ClickedResponse()
-//                => AddRouteManager.StartAddingRoute();
-//        }
-
-//        [Serializable]
-//        private readonly struct AddRouteManager
-//        {
-//            public static void StartAddingRoute()
-//            {
-//                CurWorldManager.activeUIManager.DisableAllUIElements();
-//                AddRouteManager addRouteManager = new();
-//                foreach (var cosmicBodyAddDestinPanelManager in addRouteManager.industryAddDestinPanelManagers)
-//                    CurWorldManager.AddWorldHUDElement
-//                    (
-//                        worldHUDElement: cosmicBodyAddDestinPanelManager.IndustryAddDestinPanel,
-//                        updateHUDPos: cosmicBodyAddDestinPanelManager.IndustryPanelHUDPosUpdate
-//                    );
-
-//                foreach (var cosmicBodyAddSourcePanelManager in addRouteManager.industryAddSourcePanelManagers)
-//                    CurWorldManager.AddWorldHUDElement
-//                    (
-//                        worldHUDElement: cosmicBodyAddSourcePanelManager.IndustryAddSourcePanel,
-//                        updateHUDPos: cosmicBodyAddSourcePanelManager.IndustryPanelHUDPosUpdate
-//                    );
-//            }
-
-//            private readonly List<IndustryAddDestinPanelManager> industryAddDestinPanelManagers;
-//            private readonly List<IndustryAddSourcePanelManager> industryAddSourcePanelManagers;
-
-//            public AddRouteManager()
-//            {
-//                // Need to initialize all references so that when this gets copied, the fields are already initialized
-//                industryAddDestinPanelManagers = new();
-//                industryAddSourcePanelManagers = new();
-
-//                industryAddDestinPanelManagers.AddRange
-//                (
-//                    collection: CurWorldManager.CurGraph.Industries.Select
-//                    (
-//                        industry =>
-//                        {
-//                            UIRectVertPanel<IHUDElement> cosmicBodyAddDestinPanel = new(childHorizPos: HorizPosEnum.Left);
-//                            cosmicBodyAddDestinPanel.AddChild(new TextBox() { Text = "Add produced\nresource\ndestination" });
-//                            var producedResources = industry.GetProducedResources();
-//                            if (producedResources.Count is 0)
-//                            {
-//                                cosmicBodyAddDestinPanel.AddChild(child: new TextBox() { Text = UIAlgorithms.NoResourcesProduced });
-//                            }
-//                            else
-//                            {
-//                                foreach (var res in producedResources)
-//                                {
-//                                    Button addResDestin = new
-//                                    (
-//                                        shape: new MyRectangle(width: 100, height: 30),
-//                                        tooltip: new ImmutableTextTooltip(UIAlgorithms.AddResDestinForBuildingTooltip(res: res)),
-//                                        text: res.Name
-//                                    );
-//                                    cosmicBodyAddDestinPanel.AddChild(child: addResDestin);
-//                                }
-//                            }
-//                            var potentiallyNotNeededBuildingComponents = industry.PotentiallyNotNeededBuildingComponents;
-
-//                            return new IndustryAddDestinPanelManager
-//                            (
-//                                Industry: industry,
-//                                IndustryAddDestinPanel: cosmicBodyAddDestinPanel,
-//                                IndustryPanelHUDPosUpdate: new HUDElementPosUpdater
-//                                (
-//                                    HUDElement: cosmicBodyAddDestinPanel,
-//                                    baseWorldObject: industry,
-//                                    HUDElementOrigin: new(HorizPosEnum.Left, VertPosEnum.Middle),
-//                                    anchorInBaseWorldObject: new(HorizPosEnum.Right, VertPosEnum.Middle)
-//                                )
-//                            );
-//                        }
-//                    )
-//                );
-
-//                industryAddSourcePanelManagers.AddRange
-//                (
-//                    collection: CurWorldManager.CurGraph.Industries.Select
-//                    (
-//                        industry =>
-//                        {
-//                            UIRectVertPanel<IHUDElement> cosmicBodyAddSourcePanel = new(childHorizPos: HorizPosEnum.Left);
-//                            cosmicBodyAddSourcePanel.AddChild(new TextBox() { Text = "Add resource\nsource" });
-//#warning
-//                            // GAME should probably be paused while this UI element is in use.
-//                            // Otherwise e.g. building may finish construction, thus changing the consumed and produced resources there.
-//                            // In that case:
-//                            // * Buttons may appear/disappear,
-//                            // * ResDestinArrow in drawing may have a potential destination disappear right before connecting to it
-//                            // * Some ResDestinArrows may be deleted (those no longer needed)
-//                            var consumedResources = industry.GetConsumedResources();
-//                            if (consumedResources.Count is 0)
-//                            {
-//                                cosmicBodyAddSourcePanel.AddChild(child: new TextBox() { Text = UIAlgorithms.NoSourcesNeeded });
-//                            }
-//                            else
-//                            {
-//                                foreach (var res in consumedResources)
-//                                {
-//                                    Button addResSource = new
-//                                    (
-//                                        shape: new MyRectangle(width: 100, height: 30),
-//                                        tooltip: new ImmutableTextTooltip(UIAlgorithms.AddResSourceForBuildingTooltip(res: res)),
-//                                        text: res.Name
-//                                    );
-//                                    cosmicBodyAddSourcePanel.AddChild(child: addResSource);
-//                                    //addResSource.clicked.Add
-//                                    //(
-//                                    //    listener: 
-//                                    //);
-//                                }
-//                            }
-//                            return new IndustryAddSourcePanelManager
-//                            (
-//                                Industry: industry,
-//                                IndustryAddSourcePanel: cosmicBodyAddSourcePanel,
-//                                IndustryPanelHUDPosUpdate: new HUDElementPosUpdater
-//                                (
-//                                    HUDElement: cosmicBodyAddSourcePanel,
-//                                    baseWorldObject: industry,
-//                                    HUDElementOrigin: new(HorizPosEnum.Left, VertPosEnum.Middle),
-//                                    anchorInBaseWorldObject: new(HorizPosEnum.Right, VertPosEnum.Middle)
-//                                )
-//                            );
-//                        }
-//                    )
-//                );
-//            }
-
-//            public void StopAddingRoute()
-//            {
-//                CurWorldManager.activeUIManager.EnableAllUIElements();
-//                foreach (var cosmicBodyAddDestinPanelManager in industryAddDestinPanelManagers)
-//                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyAddDestinPanelManager.IndustryAddDestinPanel);
-
-//                foreach (var cosmicBodyAddSourcePanelManager in industryAddSourcePanelManagers)
-//                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyAddSourcePanelManager.IndustryAddSourcePanel);
-//            }
-//        }
-
-//        [Serializable]
-//        private readonly record struct IndustryAddDestinPanelManager(IIndustry Industry, UIRectVertPanel<IHUDElement> IndustryAddDestinPanel, IAction IndustryPanelHUDPosUpdate);
-
-//        [Serializable]
-//        private readonly record struct IndustryAddSourcePanelManager(IIndustry Industry, UIRectVertPanel<IHUDElement> IndustryAddSourcePanel, IAction IndustryPanelHUDPosUpdate);
-        
-
         public static WorldManager CurWorldManager
             => Initialized ? curWorldManager : throw new InvalidOperationException($"must initialize {nameof(WorldManager)} first by calling {nameof(CreateWorldManager)} or {nameof(LoadWorldManager)}");
-
-        //public static IEvent<IChoiceChangedListener<IOverlay>> CurOverlayChanged
-        //    => CurWorldManager.overlayChoicePanel.choiceChanged;
 
         [MemberNotNullWhen(returnValue: true, member: nameof(curWorldManager))]
         public static bool Initialized
@@ -461,12 +300,6 @@ namespace Game1
                     HUDElement: CurWorldManager.globalTextBox,
                     position: new(HorizPosEnum.Left, VertPosEnum.Top)
                 );
-                //CurWorldManager.AddHUDElement
-                //(
-                //    HUDElement: CurWorldManager.overlayChoicePanel,
-                //    horizPos: HorizPos.Middle,
-                //    vertPos: VertPos.Top
-                //);
                 CurWorldManager.AddHUDElement
                 (
                     HUDElement: CurWorldManager.pauseButton,
@@ -489,37 +322,6 @@ namespace Game1
                 }
 
                 CurWorldManager.AddHUDElement(HUDElement: buildPanel, position: new(HorizPosEnum.Middle, VertPosEnum.Bottom));
-
-                //buildButtonPannel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
-                //UITabs.Add
-                //((
-                //    tabLabelText: "build",
-                //    tabTooltip: new ImmutableTextTooltip(text: "Buildings/industries which could be built here"),
-                //    tab: buildButtonPannel
-                //));
-                //foreach (var buildableParams in CurIndustryConfig.constrGeneralParamsList)
-                //{
-                //    Button buildIndustryButton = new
-                //    (
-                //        shape: new Ellipse
-                //        (
-                //            width: 200,
-                //            height: 20
-                //        ),
-                //        tooltip: buildableParams.CreateTooltip(state: state),
-                //        text: buildableParams.ButtonName
-                //    );
-                //    buildIndustryButton.clicked.Add
-                //    (
-                //        listener: new BuildIndustryButtonClickedListener
-                //        (
-                //            Node: this,
-                //            BuildableParams: buildableParams
-                //        )
-                //    );
-
-                //    buildButtonPannel.AddChild(child: buildIndustryButton);
-                //}
             }
         }
 
@@ -570,14 +372,11 @@ namespace Game1
             HashSet<Type> knownTypesSet = new()
             {
                 typeof(Dictionary<IndustryType, Score>),
-                //typeof(MyDict<IOverlay, IHUDElement>),
                 typeof(EfficientReadOnlyDictionary<NodeID, CosmicBody>),
                 typeof(UIHorizTabPanel<IHUDElement>),
                 typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
                 typeof(MultipleChoicePanel<string>),
                 typeof(MultipleChoicePanel<string>.ChoiceEventListener),
-                //typeof(MultipleChoicePanel<IOverlay>),
-                //typeof(MultipleChoicePanel<IOverlay>.ChoiceEventListener),
                 typeof(UIRectHorizPanel<IHUDElement>),
                 typeof(UIRectHorizPanel<SelectButton>),
                 typeof(UIRectVertPanel<IHUDElement>),
@@ -616,9 +415,6 @@ namespace Game1
             CurResConfig = null!;
         }
 
-        //public IOverlay Overlay
-        //    => overlayChoicePanel.SelectedChoiceLabel;
-
         public TimeSpan StartTime { get; }
 
         public TimeSpan CurTime { get; private set; }
@@ -634,63 +430,6 @@ namespace Game1
         public UDouble MaxLinkJoulesPerKg
             => CurGraph.MaxLinkJoulesPerKg;
 
-        ///// <summary>
-        ///// If null, then arrow drawing mode is not on
-        ///// </summary>
-        //public IResource? ArrowDrawingModeRes
-        //{
-        //    get => arrowDrawingModeRes;
-        //    set
-        //    {
-        //        if (arrowDrawingModeRes == value)
-        //            return;
-
-        //        arrowDrawingModeRes = value;
-        //        if (arrowDrawingModeRes is not null)
-        //        {
-        //            activeUIManager.DisableAllUIElements();
-        //            if (CurGraph.ActiveWorldElement is CosmicBody activeNode)
-        //            {
-        //                foreach (var node in CurGraph.Nodes)
-        //                    if (activeNode.CanHaveDestin(destinationId: node.NodeID, res: arrowDrawingModeRes))
-        //                        node.HasDisabledAncestor = false;
-        //            }
-        //            else
-        //                throw new Exception();
-        //        }
-        //        else
-        //            activeUIManager.EnableAllUIElements();
-        //    }
-        //}
-
-        //public bool ArrowDrawingModeOn
-        //{
-        //    get => arrowDrawingModeOn;
-        //    set
-        //    {
-        //        if (arrowDrawingModeOn == value)
-        //            return;
-
-        //        arrowDrawingModeOn = value;
-        //        if (arrowDrawingModeOn)
-        //        {
-        //            if (CurWorldManager.Overlay is not IResource)
-        //                throw new Exception();
-        //            activeUIManager.DisableAllUIElements();
-        //            if (CurGraph.ActiveWorldElement is CosmicBody activeNode)
-        //            {
-        //                foreach (var node in CurGraph.Nodes)
-        //                    if (activeNode.CanHaveDestin(destinationId: node.NodeID))
-        //                        node.HasDisabledAncestor = false;
-        //            }
-        //            else
-        //                throw new Exception();
-        //        }
-        //        else
-        //            activeUIManager.EnableAllUIElements();
-        //    }
-        //}
-
         private readonly WorldConfig worldConfig;
         private readonly ResConfig resConfig;
         private readonly IndustryConfig industryConfig;
@@ -703,14 +442,11 @@ namespace Game1
         private readonly ActiveUIManager activeUIManager;
         private readonly TextBox globalTextBox;
         private readonly ToggleButton pauseButton;
-        //private readonly MultipleChoicePanel<IOverlay> overlayChoicePanel;
         private readonly WorldCamera worldCamera;
 
         private Graph CurGraph
             => graph ?? throw new InvalidOperationException($"must initialize {nameof(graph)} first");
         private Graph? graph;
-        //private IResource? arrowDrawingModeRes;
-        //private bool arrowDrawingModeOn;
 
         private WorldManager()
         {
@@ -737,35 +473,10 @@ namespace Game1
             );
 
             activeUIManager = new(worldCamera: worldCamera);
-            //activeUIManager.clickedNowhere.Add(listener: this);
 
             globalTextBox = new(backgroundColor: colorConfig.UIBackgroundColor);
             // TODO: move these constants to a contants file
             globalTextBox.Shape.MinWidth = 300;
-
-            //// TODO: move these constants to a contants file
-            //overlayChoicePanel = new
-            //(
-            //    horizontal: true,
-            //    choiceWidth: 100,
-            //    choiceHeight: 30,
-            //    choiceLabelsAndTooltips:
-            //        from overlay in IOverlay.all
-            //        select
-            //        (
-            //            label: overlay,
-            //            tooltip: new ImmutableTextTooltip
-            //            (
-            //                text: overlay.SwitchExpression
-            //                (
-            //                    singleResCase: res => $"Display information about resource {res}",
-            //                    allResCase: () => "Display information about all resources",
-            //                    powerCase: () => "Display information about power (production and consumption)",
-            //                    peopleCase: () => "Display information about people"
-            //                )
-            //            ) as ITooltip
-            //        )
-            //);
 
             PauseButtonTooltip pauseButtonTooltip = new();
             pauseButton = new
@@ -780,8 +491,6 @@ namespace Game1
                 text: "Toggle\nPause"
             );
             pauseButtonTooltip.Initialize(onOffButton: pauseButton);
-
-            //arrowDrawingModeRes = null;
         }
 
         private void Initialize()
@@ -940,8 +649,5 @@ namespace Game1
             using XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);
             serializer.WriteObject(writer, this);
         }
-
-        //void IClickedNowhereListener.ClickedNowhereResponse()
-        //    => arrowDrawingModeRes = null;
     }
 }

@@ -402,11 +402,11 @@ namespace Game1
             }
 
             CalcAndSetMaxLinkStats();
-            links.ForEach(link => link.Update());
+            links.ForEach(link => link.StartUpdate());
             foreach (var node in nodes)
                 node.StartUpdate(personFirstLinks: personFirstLinks, vacuumHeatEnergyPile: vacuumHeatEnergyPile);
 
-            links.ForEach(link => link.UpdatePeople());
+            links.ForEach(link => link.EndUpdate());
             //nodes.ForEach(node => node.UpdatePeople());
             Stats = nodes.CombineRealPeopleStats().CombineWith(other: links.CombineRealPeopleStats());
 

@@ -128,37 +128,11 @@ namespace Game1
             public void DrawTravelingRes()
             {
                 foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                    DrawDisk(complProp: complProp, size: resAmounts.Mass().valueInKg);
-                //// temporary
-                //CurWorldManager.Overlay.SwitchStatement
-                //(
-                //    singleResCase: res =>
-                //    {
-                //        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                //            DrawDisk(complProp: complProp, size: resAmounts[res]);
-                //    },
-                //    allResCase: () =>
-                //    {
-                //        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                //            DrawDisk(complProp: complProp, size: resAmounts.Mass().valueInKg);
-                //    },
-                //    powerCase: () => { },
-                //    peopleCase: () =>
-                //    {
-                //        foreach (var (complProp, _, numPeople) in timedPacketQueue.GetData())
-                //            DrawDisk(complProp: complProp, size: numPeople.value);
-                //    }
-                //);
-
-                void DrawDisk(Propor complProp, UDouble size)
-                    => C.Draw
+                    DiskAlgos.Draw
                     (
-                        texture: diskTexture,
-                        position: startNode.Position + (double)complProp * (endNode.Position - startNode.Position),
-                        color: colorConfig.linkTravellerColor,
-                        rotation: 0,
-                        origin: new MyVector2(diskTexture.Width * .5, diskTexture.Height * .5),
-                        scale: MyMathHelper.Sqrt(size) * 2 / (UDouble)diskTexture.Width
+                        center: startNode.Position + (double)complProp * (endNode.Position - startNode.Position),
+                        radius: DiskAlgos.RadiusFromArea(area: resAmounts.UsefulArea().ToDouble()),
+                        color: colorConfig.linkTravellerColor
                     );
             }
 
@@ -283,7 +257,7 @@ namespace Game1
         public void TransferFrom(ILinkFacingCosmicBody start, RealPeople realPersonSource, RealPerson realPerson)
             => GetDirLink(start: start).TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
 
-        public void Update()
+        public void StartUpdate()
         {
             UDouble linkLength = MyVector2.Distance(value1: node1.Position, value2: node2.Position);
 
@@ -312,7 +286,7 @@ namespace Game1
             //);
         }
 
-        public void UpdatePeople()
+        public void EndUpdate()
         {
             link1To2.UpdatePeople();
             link2To1.UpdatePeople();

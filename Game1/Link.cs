@@ -86,13 +86,6 @@ namespace Game1
                 Debug.Assert(locationCounters.GetCount<AllResAmounts>().Mass() == waitingResAmountsPackets.Mass + waitingPeople.Stats.totalMass + timedPacketQueue.Mass);
                 Debug.Assert(locationCounters.GetCount<NumPeople>() == waitingPeople.NumPeople + timedPacketQueue.NumPeople);
                 return timedPacketQueue.TotalResAmounts;
-                //return CurWorldManager.Overlay.SwitchExpression
-                //(
-                //    singleResCase: res => timedPacketQueue.TotalResAmounts[res],
-                //    allResCase: () => timedPacketQueue.Mass.valueInKg,
-                //    peopleCase: () => locationCounters.GetCount<NumPeople>().value,
-                //    powerCase: () => throw new InvalidOperationException()
-                //);
             }
 
             public void Update(TimeSpan travelTime, UDouble reqJoulesPerKg, UDouble linkLength)
@@ -196,7 +189,7 @@ namespace Game1
                     parameters: new ShapeParams(Node1: node1, Node2: node2)
                 ),
                 activeColor: Color.White,
-                inactiveColor: ActiveUIManager.colorConfig.linkColor,
+                inactiveColor: colorConfig.costlyLinkColor,
                 popupPos: new(HorizPosEnum.Right, VertPosEnum.Top)
             )
         {
@@ -223,7 +216,6 @@ namespace Game1
                     )
                 )
             }.ToEfficientReadOnlyCollection();
-            //SetPopup(HUDElement: infoTextBox, overlays: IOverlay.all);
         }
 
         MyVector2 IWithStandardPositions.GetPosition(PosEnums origin)
@@ -274,16 +266,12 @@ namespace Game1
 
             //inactiveColor = ActiveUIManager.colorConfig.linkColor;
             // TODO(Color): turn activeColor and inactiveColor into abstract properties
-            //inactiveColor = Color.Lerp
-            //(
-            //    value1: Color.White,
-            //    value2: Color.Green,
-            //    amount: CurWorldManager.Overlay switch
-            //    {
-            //        IPeopleOverlay => (float)(TravelTime / CurWorldManager.MaxLinkTravelTime),
-            //        _ => (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
-            //    }
-            //);
+            inactiveColor = Color.Lerp
+            (
+                value1: colorConfig.cheapLinkColor,
+                value2: colorConfig.costlyLinkColor,
+                amount: (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
+            );
         }
 
         public void EndUpdate()
@@ -292,21 +280,9 @@ namespace Game1
             link2To1.UpdatePeople();
             Stats = link1To2.Stats.CombineWith(other: link2To1.Stats);
 
-            //if (CurWorldManager.Overlay is IPowerOverlay)
-            //    return;
-
-            // TODO: It may be more appropriate for link1To2.GetTravellingAmount() to return a dictionary from Overlay cases to amounts
-            // in order to not have two switch statements mirroring each other
             var travellingResAmounts = link1To2.GetTravellingResAmounts() + link2To1.GetTravellingResAmounts();
 
             infoTextBox.Text = $"Travel cost is {JoulesPerKg:0.000} J/Kg\nTravelling resources {travellingResAmounts}";
-            //+ CurWorldManager.Overlay.SwitchExpression
-            //(
-            //    singleResCase: res => $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",
-            //    allResCase: () => $"{travellingAmount} kg of resources are travelling",
-            //    peopleCase: () => $"travelling people stats:\n{Stats}",
-            //    powerCase: () => ""
-            //);
         }
 
         protected override void DrawChildren()

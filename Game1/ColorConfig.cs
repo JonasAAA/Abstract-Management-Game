@@ -8,8 +8,8 @@
             Res0Color,
             Res1Color,
             cosmosBackgroundColor,
-            //starColor,
-            linkColor,
+            cheapLinkColor,
+            costlyLinkColor,
             houseIndustryColor,
             linkTravellerColor,
             selectedWorldUIElementColor,
@@ -37,8 +37,8 @@
             Res0Color = C.ColorFromRGB(rgb: 0x00754D);
             Res1Color = C.ColorFromRGB(rgb: 0x00632D);
             cosmosBackgroundColor = C.ColorFromRGB(rgb: 0x000E24);
-            //starColor = C.ColorFromRGB(rgb: 0xB0FF00);
-            linkColor = C.ColorFromRGB(rgb: 0x003654);
+            cheapLinkColor = Color.DarkBlue;
+            costlyLinkColor = C.ColorFromRGB(rgb: 0x003654);
             houseIndustryColor = Color.Yellow;
             linkTravellerColor = Color.Black;
             selectedWorldUIElementColor = Color.White;

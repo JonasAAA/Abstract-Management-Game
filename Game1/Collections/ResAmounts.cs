@@ -51,8 +51,19 @@ namespace Game1.Collections
         { }
 
         public ResAmounts(TRes res, ulong amount)
-            : this(resList: new List<TRes>() { res }, amounts: new List<ulong>() { amount })
-        { }
+        {
+            if (amount is 0)
+            {
+                resList = EfficientReadOnlyCollection<TRes>.empty;
+                amounts = EfficientReadOnlyCollection<ulong>.empty;
+            }
+            else
+            {
+                resList = new List<TRes>() { res }.ToEfficientReadOnlyCollection();
+                amounts = new List<ulong>() { amount }.ToEfficientReadOnlyCollection();
+            }
+            Validate();
+        }
 
         /// <summary>
         /// Requirements:
@@ -149,6 +160,9 @@ namespace Game1.Collections
                 usefulArea += resList[ind].UsefulArea * amounts[ind];
             return usefulArea;
         }
+
+        public ResRecipe TurningIntoRawMatsRecipe()
+            => ResRecipe.CreateOrThrow(ingredients: ToAll(), results: RawMatComposition().ToAll());
 
         public RawMatAmounts RawMatComposition()
         {

@@ -1,6 +1,4 @@
-﻿using Game1.Collections;
-
-namespace Game1
+﻿namespace Game1
 {
     [Serializable]
     public sealed class ResAmountsPacketsByDestin
@@ -52,15 +50,18 @@ namespace Game1
             resAmountsPacketsByDestin[sourcePacket.destination].resPile.TransferAllFrom(source: sourcePacket.resPile);
         }
 
-        public void TransferAllFrom(ResPile source, NodeID destination)
+        public void TransferFrom(ResPile source, NodeID destination, AllResAmounts amount)
         {
-            ResAmounts += source.Amount;
-            Mass += source.Amount.Mass();
+            ResAmounts += amount;
+            Mass += amount.Mass();
 
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination, thermalBody: thermalBody);
-            resAmountsPacketsByDestin[destination].resPile.TransferAllFrom(source: source);
+            resAmountsPacketsByDestin[destination].resPile.TransferFrom(source: source, amount: amount);
         }
+
+        public void TransferAllFrom(ResPile source, NodeID destination)
+            => TransferFrom(source: source, destination: destination, amount: source.Amount);
 
         public ResPile ReturnAndRemove(NodeID destination)
         {

@@ -9,6 +9,7 @@ namespace Game1.Industries
     public interface IIndustry : IWithStandardPositions, IDeletable
     {
         public string Name { get; }
+        public NodeID NodeID { get; }
         public IBuildingImage BuildingImage { get; }
 
         /// <summary>
@@ -18,15 +19,7 @@ namespace Game1.Industries
 
         public IHUDElement UIElement { get; }
 
-        //public EfficientReadOnlyCollection<IResource> PotentiallyNotNeededBuildingComponents { get; }
-
-        //public EfficientReadOnlyCollection<IResource> GetConsumedResources();
-
-        //public EfficientReadOnlyCollection<IResource> GetProducedResources();
-
-        public AllResAmounts TargetStoredResAmounts();
-
-        public void FrameStartNoProduction(string error);
+        public IHUDElement RoutePanel { get; }
 
         public void FrameStart();
 
@@ -41,9 +34,23 @@ namespace Game1.Industries
 
         public bool IsDestinOf(IResource resource);
 
-        public bool HasSource(IResource resource, IIndustry sourceIndustry);
+        public IEnumerable<IResource> GetConsumedRes();
 
-        public void HasDestin(IResource resource, IIndustry destinIndustry);
+        public IEnumerable<IResource> GetProducedRes();
+
+        public EfficientReadOnlyHashSet<IIndustry> GetSources(IResource resource);
+
+        public EfficientReadOnlyHashSet<IIndustry> GetDestins(IResource resource);
+
+        public AllResAmounts GetSupply();
+
+        public AllResAmounts GetDemand();
+
+        public void TransportResTo(IIndustry destinIndustry, ResAmount<IResource> resAmount);
+
+        public void WaitForResFrom(IIndustry sourceIndustry, ResAmount<IResource> resAmount);
+        
+        public void Arrive(ResPile arrivingResPile);
 
         /// <summary>
         /// If <paramref name="sourceIndustry"/> is already a source of <paramref name="resource"/>, delete it. If not, add it.
@@ -55,14 +62,22 @@ namespace Game1.Industries
         /// </summary>
         public void ToggleDestin(IResource resource, IIndustry destinIndustry);
 
-        public IHUDElement RoutePanel { get; }
-
         protected static void ToggleElement<T>(HashSet<T> set, T element)
         {
             if (set.Contains(element))
                 set.Remove(element);
             else
                 set.Add(element);
+        }
+
+        protected static void DumpAllResIntoCosmicBody(IIndustryFacingNodeState nodeState, ResPile resPile)
+        {
+            resPile.TransformFrom
+            (
+                source: resPile,
+                recipe: resPile.Amount.TurningIntoRawMatsRecipe()
+            );
+            nodeState.EnlargeFrom(source: resPile, amount: resPile.Amount.RawMatComposition());
         }
 
         protected static EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> CreateRoutesLists(EfficientReadOnlyCollection<IResource> resources)
@@ -138,7 +153,7 @@ namespace Game1.Industries
                     (
                         sourceIndustry =>
                         {
-                            bool add = !Industry.HasSource(resource: Resource, sourceIndustry: sourceIndustry);
+                            bool add = !Industry.GetSources(resource: Resource).Contains(sourceIndustry);
                             Button toggleSourceButton = new
                             (
                                 shape: new MyRectangle(width: 100, height: 60),

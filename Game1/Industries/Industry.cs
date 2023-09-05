@@ -16,7 +16,8 @@ namespace Game1.Industries
 
             public Material? SurfaceMaterial(bool productionInProgress);
             public EfficientReadOnlyCollection<IResource> GetProducedResources(TConcreteProductionParams productionParams);
-            public AllResAmounts TargetStoredResAmounts(TConcreteProductionParams productionParams);
+            public AllResAmounts MaxStoredInput(TConcreteProductionParams productionParams);
+            public AreaInt MaxStoredOutputArea();
         }
 
         public interface IProductionCycleState<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TState>
@@ -29,22 +30,24 @@ namespace Game1.Industries
             /// </summary>
             public static abstract bool IsRepeatable { get; }
             
-            public static abstract Result<TState, TextErrors> Create(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState);
+            public static abstract Result<TState, TextErrors> Create(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState,
+                ResPile inputStorage, AreaInt maxOutputArea);
 
             public bool ShouldRestart { get; }
             public ElectricalEnergy ReqEnergy { get; }
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy);
-            /// <summary>
-            /// No need to adjust ReqEnergy here, as it's done in Industry implementation
-            /// </summary>
-            public void FrameStartNoProduction();
             public void FrameStart();
             /// <summary>
             /// Returns child industry if finished construction, null otherwise
             /// </summary>
-            public IIndustry? Update();
+            public IIndustry? Update(ResPile outputStorage);
             public IBuildingImage BusyBuildingImage();
-            public void Delete();
+            /// <summary>
+            /// Dump all stuff into <paramref name="outputStorage"/>
+            /// </summary>
+            public void Delete(ResPile outputStorage);
+
+            public static abstract void DeletePersistentState(TPersistentState persistentState, ResPile outputStorage);
         }
     }
 
@@ -55,6 +58,9 @@ namespace Game1.Industries
     {
         public string Name
             => buildingParams.Name;
+
+        public NodeID NodeID
+            => buildingParams.NodeState.NodeID;
 
         public Material? SurfaceMaterial
             => buildingParams.SurfaceMaterial(productionInProgress: Busy);
@@ -83,8 +89,9 @@ namespace Game1.Industries
         private readonly TPersistentState persistentState;
         private Result<TProductionCycleState, TextErrors> stateOrReasonForNotStartingProduction;
         private readonly Event<IDeletedListener> deleted;
-        private bool paused;
         private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
+        private readonly ResPile inputStorage, outputStorage;
+        private AllResAmounts resTravellingHere;
         
         public Industry(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState)
         {
@@ -93,11 +100,13 @@ namespace Game1.Industries
             this.persistentState = persistentState;
             stateOrReasonForNotStartingProduction = new(errors: new("Not yet initialized"));
             deleted = new();
-            paused = false;
+            inputStorage = ResPile.CreateEmpty(thermalBody: buildingParams.NodeState.ThermalBody);
+            outputStorage = ResPile.CreateEmpty(thermalBody: buildingParams.NodeState.ThermalBody);
+            resTravellingHere = AllResAmounts.empty;
 
             CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
 
-            resSources = IIndustry.CreateRoutesLists(resources: buildingParams.TargetStoredResAmounts(productionParams: productionParams).resList);
+            resSources = IIndustry.CreateRoutesLists(resources: buildingParams.MaxStoredInput(productionParams: productionParams).resList);
             resDestins = IIndustry.CreateRoutesLists(resources: buildingParams.GetProducedResources(productionParams: productionParams));
             RoutePanel = IIndustry.CreateRoutePanel
             (
@@ -113,11 +122,44 @@ namespace Game1.Industries
         public bool IsDestinOf(IResource resource)
             => resSources.ContainsKey(resource);
 
-        public bool HasSource(IResource resource, IIndustry sourceIndustry)
-            => resSources[resource].Contains(sourceIndustry);
+        public IEnumerable<IResource> GetConsumedRes()
+            => resSources.Keys;
 
-        public void HasDestin(IResource resource, IIndustry destinIndustry)
-            => resDestins[resource].Contains(destinIndustry);
+        public IEnumerable<IResource> GetProducedRes()
+            => resDestins.Keys;
+
+        public EfficientReadOnlyHashSet<IIndustry> GetSources(IResource resource)
+            => new(set: resSources[resource]);
+
+        public EfficientReadOnlyHashSet<IIndustry> GetDestins(IResource resource)
+            => new(set: resDestins[resource]);
+
+        public AllResAmounts GetSupply()
+            => outputStorage.Amount;
+
+        public AllResAmounts GetDemand()
+            => (TProductionCycleState.IsRepeatable || !Busy) switch
+            {
+                true => buildingParams.MaxStoredInput(productionParams: productionParams) - inputStorage.Amount - resTravellingHere,
+                false => AllResAmounts.empty
+            };
+
+        public void TransportResTo(IIndustry destinIndustry, ResAmount<IResource> resAmount)
+            => buildingParams.NodeState.TransportRes
+            (
+                source: outputStorage,
+                destination: destinIndustry.NodeID,
+                amount: new(resAmount: resAmount)
+            );
+
+        public void WaitForResFrom(IIndustry sourceIndustry, ResAmount<IResource> resAmount)
+            => resTravellingHere += new AllResAmounts(resAmount: resAmount);
+
+        public void Arrive(ResPile arrivingResPile)
+        {
+            resTravellingHere -= arrivingResPile.Amount;
+            inputStorage.TransferAllFrom(source: arrivingResPile);
+        }
 
         public void ToggleSource(IResource resource, IIndustry sourceIndustry)
             => IIndustry.ToggleElement(set: resSources[resource], element: sourceIndustry);
@@ -125,39 +167,34 @@ namespace Game1.Industries
         public void ToggleDestin(IResource resource, IIndustry destinIndustry)
             => IIndustry.ToggleElement(set: resDestins[resource], element: destinIndustry);
 
-        public AllResAmounts TargetStoredResAmounts()
-            => (TProductionCycleState.IsRepeatable || !Busy) switch
-            {
-                true => buildingParams.TargetStoredResAmounts(productionParams: productionParams),
-                false => AllResAmounts.empty
-            };
-
-        public void FrameStartNoProduction(string error)
-        {
-            paused = true;
-            stateOrReasonForNotStartingProduction.PerformAction(action: state => state.FrameStartNoProduction());
-#warning Complete this
-        }
-
         public void FrameStart()
         {
-            paused = false;
             stateOrReasonForNotStartingProduction = stateOrReasonForNotStartingProduction.SwitchExpression
             (
-                ok: state => state.ShouldRestart ? TProductionCycleState.Create(productionParams: productionParams, buildingParams: buildingParams, persistentState: persistentState) : new(ok: state),
-                error: _ => TProductionCycleState.Create(productionParams: productionParams, buildingParams: buildingParams, persistentState: persistentState)
+                ok: state => state.ShouldRestart ? CreateProductionCycleState() : new(ok: state),
+                error: _ => CreateProductionCycleState()
             );
             stateOrReasonForNotStartingProduction.PerformAction
             (
                 action: state => state.FrameStart()
             );
+
+            Result<TProductionCycleState, TextErrors> CreateProductionCycleState()
+                => TProductionCycleState.Create
+                (
+                    productionParams: productionParams,
+                    buildingParams: buildingParams,
+                    persistentState: persistentState,
+                    inputStorage: inputStorage,
+                    maxOutputArea: buildingParams.MaxStoredOutputArea() - outputStorage.Amount.UsefulArea()
+                );
         }
 
         public IIndustry? Update()
         {
             var childIndustry = stateOrReasonForNotStartingProduction.SwitchExpression
             (
-                ok: state => state.Update(),
+                ok: state => state.Update(outputStorage: outputStorage),
                 error: _ => null
             );
 
@@ -172,7 +209,14 @@ namespace Game1.Industries
 
         private void Delete()
         {
-            stateOrReasonForNotStartingProduction.PerformAction(action: state => state.Delete());
+            // Need to wait for all resources travelling here to arrive
+            throw new NotImplementedException();
+#warning Implement a proper industry deletion strategy
+            // For now, all building materials, unused input, production, and output materials are dumped inside the planet 
+            outputStorage.TransferAllFrom(source: inputStorage);
+            TProductionCycleState.DeletePersistentState(persistentState: persistentState, outputStorage: outputStorage);
+            stateOrReasonForNotStartingProduction.PerformAction(action: state => state.Delete(outputStorage: outputStorage));
+            IIndustry.DumpAllResIntoCosmicBody(nodeState: buildingParams.NodeState, resPile: outputStorage);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 
@@ -184,24 +228,15 @@ namespace Game1.Industries
         EnergyPriority IEnergyConsumer.EnergyPriority
             => buildingParams.EnergyPriority;
 
-        NodeID IEnergyConsumer.NodeID
-            => buildingParams.NodeState.NodeID;
-
         ElectricalEnergy IEnergyConsumer.ReqEnergy()
-            => paused switch
-            {
-                true => ElectricalEnergy.zero,
-                false => stateOrReasonForNotStartingProduction.SwitchExpression
-                (
-                    ok: state => state.ReqEnergy,
-                    error: _ => ElectricalEnergy.zero
-                )
-            };
+            => stateOrReasonForNotStartingProduction.SwitchExpression
+            (
+                ok: state => state.ReqEnergy,
+                error: _ => ElectricalEnergy.zero
+            );
 
         void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {
-            if (paused)
-                return;
             stateOrReasonForNotStartingProduction.SwitchStatement
             (
                 ok: state => state.ConsumeElectricalEnergy(source: source, electricalEnergy: electricalEnergy),

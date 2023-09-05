@@ -110,9 +110,19 @@ namespace Game1.Industries
                     productionMass: miningMass
                 );
 
-            public void RemoveUnneededBuildingComponents(ResPile buildingResPile)
-                => ResAndIndustryHelpers.RemoveUnneededBuildingComponents(nodeState: NodeState, buildingResPile: buildingResPile, buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
-
+            public void RemoveUnneededBuildingComponents(ResPile buildingResPile, ResPile outputStorage)
+            {
+                var buildingComponentsToRemove = buildingResPile.Amount - ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA, CurBuildingArea);
+                if (buildingComponentsToRemove.UsefulArea() >= CurWorldConfig.minUsefulBuildingComponentAreaToRemove)
+                {
+                    outputStorage.TransferFrom
+                    (
+                        source: buildingResPile,
+                        amount: buildingComponentsToRemove
+                    );
+                }
+            }
+            
             AllResAmounts IConcreteBuildingConstructionParams.BuildingCost
                 => startingBuildingCost;
 
@@ -132,8 +142,11 @@ namespace Game1.Industries
             EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
                 => producedResources;
 
-            AllResAmounts Industry.IConcreteBuildingParams<UnitType>.TargetStoredResAmounts(UnitType productionParams)
+            AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => AllResAmounts.empty;
+
+            AreaInt Industry.IConcreteBuildingParams<UnitType>.MaxStoredOutputArea()
+                => (CurBuildingArea * CurWorldConfig.outputStorageProporOfBuildingArea).RoundDown();
         }
 
         [Serializable]
@@ -157,12 +170,14 @@ namespace Game1.Industries
             public static bool IsRepeatable
                 => true;
 
-            public static Result<MiningCycleState, TextErrors> Create(UnitType productionParams, ConcreteBuildingParams parameters, PersistentState persistentState)
+            public static Result<MiningCycleState, TextErrors> Create(UnitType productionParams, ConcreteBuildingParams parameters, PersistentState persistentState,
+                ResPile inputStorage, AreaInt maxOutputArea)
             {
                 var minedAreaCorrectorWithTarget = persistentState.minedAreaHistoricCorrector.WithTarget(target: parameters.AreaToMine().valueInMetSq);
 
                 // Since will never mine more than requested, suggestion will never be smaller than parameters.AreaToSplit(), thus will always be >= 0.
-                var maxAreaToMine = (UDouble)minedAreaCorrectorWithTarget.suggestion;
+                var maxAreaToMine = MyMathHelper.Min((UDouble)minedAreaCorrectorWithTarget.suggestion, maxOutputArea.valueInMetSq);
+                bool isCapped = minedAreaCorrectorWithTarget.suggestion >= maxOutputArea.valueInMetSq;
                 return parameters.NodeState.Mine
                 (
                     targetArea: AreaDouble.CreateFromMetSq(valueInMetSq: maxAreaToMine),
@@ -171,8 +186,9 @@ namespace Game1.Industries
                 (
                     ok: miningRes =>
                     {
+                        // Filter and RawMatComposition does the same thing here as planet contains only raw materials
                         AreaInt miningArea = miningRes.Amount.Filter<RawMaterial>().Area();
-                        persistentState.minedAreaHistoricCorrector = minedAreaCorrectorWithTarget.WithValue(value: miningArea.valueInMetSq);
+                        persistentState.minedAreaHistoricCorrector = isCapped ? new() : minedAreaCorrectorWithTarget.WithValue(value: miningArea.valueInMetSq);
                         return new(ok: new MiningCycleState(buildingParams: parameters, buildingResPile: persistentState.buildingResPile, miningRes: miningRes, miningArea: miningArea));
                     },
                     error: errors =>
@@ -219,9 +235,6 @@ namespace Game1.Industries
             public IBuildingImage BusyBuildingImage()
                 => buildingParams.buildingImage;
 
-            public void FrameStartNoProduction()
-            { }
-
             public void FrameStart()
             {
                 curMiningStats = buildingParams.CurMiningStats(miningMass: miningMass);
@@ -238,7 +251,7 @@ namespace Game1.Industries
             /// This will not remove no longer needed building components until mining cycle is done since fix current mining volume
             /// and some other mining stats at the start of the mining cycle. 
             /// </summary>
-            public IIndustry? Update()
+            public IIndustry? Update(ResPile outputStorage)
             {
                 buildingParams.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
 
@@ -254,19 +267,21 @@ namespace Game1.Industries
 
                 if (donePropor.IsFull)
                 {
-                    buildingParams.NodeState.StoredResPile.TransferAllFrom(source: miningRes);
-                    buildingParams.RemoveUnneededBuildingComponents(buildingResPile: buildingResPile);
+                    outputStorage.TransferAllFrom(source: miningRes);
+                    buildingParams.RemoveUnneededBuildingComponents(buildingResPile: buildingResPile, outputStorage: outputStorage);
                 }
                 return null;
             }
 
-            public void Delete()
+            public void Delete(ResPile outputStorage)
             {
                 buildingParams.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
-                buildingParams.NodeState.StoredResPile.TransferAllFrom(source: buildingResPile);
                 buildingParams.NodeState.EnlargeFrom(source: miningRes, amount: miningRes.Amount.Filter<RawMaterial>());
                 Debug.Assert(miningRes.IsEmpty);
             }
+
+            public static void DeletePersistentState(PersistentState persistentState, ResPile outputStorage)
+                => outputStorage.TransferAllFrom(source: persistentState.buildingResPile);
         }
 
         public static HashSet<Type> GetKnownTypes()

@@ -110,8 +110,11 @@ namespace Game1.Industries
             EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
                 => EfficientReadOnlyCollection<IResource>.empty;
             
-            AllResAmounts Industry.IConcreteBuildingParams<UnitType>.TargetStoredResAmounts(UnitType productionParams)
+            AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => buildingCost;
+
+            AreaInt Industry.IConcreteBuildingParams<UnitType>.MaxStoredOutputArea()
+                => AreaInt.zero;
         }
 
         [Serializable]
@@ -120,11 +123,12 @@ namespace Game1.Industries
             public static bool IsRepeatable
                 => false;
 
-            public static Result<ConstructionState, TextErrors> Create(UnitType productionParams, ConcreteParams parameters, UnitType persistentState)
+            public static Result<ConstructionState, TextErrors> Create(UnitType productionParams, ConcreteParams parameters, UnitType persistentState,
+                ResPile inputStorage, AreaInt maxOutputArea)
             {
                 var buildingResPile = ResPile.CreateIfHaveEnough
                 (
-                    source: parameters.NodeState.StoredResPile,
+                    source: inputStorage,
                     amount: parameters.buildingCost
                 );
                 if (buildingResPile is null)
@@ -155,9 +159,6 @@ namespace Game1.Industries
             public IBuildingImage BusyBuildingImage()
                 => parameters.IncompleteBuildingImage(donePropor: donePropor);
 
-            public void FrameStartNoProduction()
-            { }
-
             public void FrameStart()
             {
                 curConstrStats = parameters.CurConstrStats();
@@ -173,7 +174,7 @@ namespace Game1.Industries
             /// <summary>
             /// Returns child industry if finished construction, null otherwise
             /// </summary>
-            public IIndustry? Update()
+            public IIndustry? Update(ResPile outputStorage)
             {
                 parameters.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
 
@@ -201,11 +202,14 @@ namespace Game1.Industries
                 return null;
             }
 
-            public void Delete()
+            public void Delete(ResPile outputStorage)
             {
                 parameters.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
-                parameters.NodeState.StoredResPile.TransferAllFrom(source: buildingResPile);
+                outputStorage.TransferAllFrom(source: buildingResPile);
             }
+
+            public static void DeletePersistentState(UnitType persistentState, ResPile outputStorage)
+            { }
         }
 
         public static HashSet<Type> GetKnownTypes()

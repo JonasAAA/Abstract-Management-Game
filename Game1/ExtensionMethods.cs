@@ -7,6 +7,15 @@ namespace Game1
 {
     public static class ExtensionMethods
     {
+        public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key)
+            where TKey : notnull
+            where TValue : class, new()
+            => dict.TryGetValue(key, out var value) switch
+            {
+                true => value,
+                false => dict[key] = new()
+            };
+
         public static ulong ValueInJ<T>(this T formOfEnergy)
             where T : IFormOfEnergy<T>
             => ((Energy)formOfEnergy).valueInJ;

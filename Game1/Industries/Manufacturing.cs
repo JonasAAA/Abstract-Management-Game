@@ -63,12 +63,14 @@ namespace Game1.Industries
             public Material SurfaceMaterial { get; }
             public readonly DiskBuildingImage buildingImage;
             public readonly Product.Params productParams;
-            public readonly ulong maxProductAmount, maxIngredientsCountStored;
+            public readonly ulong overallMaxProductAmount;
 
             private readonly AreaDouble buildingArea;
             private readonly GeneralParams generalParams;
             private readonly MaterialChoices buildingMatChoices;
             private readonly AllResAmounts buildingCost;
+            private readonly ulong maxInputAmountStored;
+            private readonly AreaInt maxStoredOutputArea;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
@@ -81,16 +83,29 @@ namespace Game1.Industries
                 EnergyPriority = generalParams.energyPriority;
                 productParams = generalParams.productParams;
                 buildingArea = buildingImage.Area;
-                maxIngredientsCountStored = maxProductAmount * NodeState.MaxBatchDemResStored;
                 this.generalParams = generalParams;
                 this.buildingMatChoices = buildingMatChoices;
-                maxProductAmount = ResAndIndustryAlgos.MaxAmountInProduction
+                maxStoredOutputArea = (buildingArea * CurWorldConfig.outputStorageProporOfBuildingArea).RoundDown();
+
+                maxInputAmountStored = ResAndIndustryAlgos.MaxAmount
                 (
-                    areaInProduction: buildingArea * CurWorldConfig.productionProporOfBuildingArea,
-                    itemUsefulArea: productParams.usefulArea
+                    availableArea: buildingArea * CurWorldConfig.inputStorageProporOfBuildingArea,
+                    itemArea: productParams.usefulArea
+                );
+                overallMaxProductAmount = ResAndIndustryAlgos.MaxAmount
+                (
+                    availableArea: buildingArea * CurWorldConfig.productionProporOfBuildingArea,
+                    itemArea: productParams.usefulArea
                 );
                 buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
+
+            public ulong CurMaxProductAmount(AreaInt maxOutputArea)
+                => ResAndIndustryAlgos.MaxAmount
+                (
+                    availableArea: MyMathHelper.Min(buildingArea * CurWorldConfig.productionProporOfBuildingArea, maxOutputArea.ToDouble()),
+                    itemArea: productParams.usefulArea
+                );
 
             /// <param Name="productionMassIfFull">Mass of stuff in production if industry was fully operational</param>
             public CurProdStats CurProdStats(Mass productionMassIfFull)
@@ -122,15 +137,18 @@ namespace Game1.Industries
             EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.GetProducedResources(ConcreteProductionParams productionParams)
                 => productionParams.ProducedResources;
 
-            AllResAmounts Industry.IConcreteBuildingParams<ConcreteProductionParams>.TargetStoredResAmounts(ConcreteProductionParams productionParams)
+            AllResAmounts Industry.IConcreteBuildingParams<ConcreteProductionParams>.MaxStoredInput(ConcreteProductionParams productionParams)
             {
-                var maxIngredientsCountStoredCopy = maxIngredientsCountStored;
+                var maxInputAmountStoredCopy = maxInputAmountStored;
                 return productionParams.CurProduct.SwitchExpression
                 (
-                    ok: product => product.Recipe.ingredients * maxIngredientsCountStoredCopy,
+                    ok: product => product.Recipe.ingredients * maxInputAmountStoredCopy,
                     error: _ => AllResAmounts.empty
                 );
             }
+
+            AreaInt Industry.IConcreteBuildingParams<ConcreteProductionParams>.MaxStoredOutputArea()
+                => maxStoredOutputArea;
         }
 
         [Serializable]
@@ -184,16 +202,17 @@ namespace Game1.Industries
             public static bool IsRepeatable
                 => true;
 
-            public static Result<ManufacturingCycleState, TextErrors> Create(ConcreteProductionParams productionParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile)
+            public static Result<ManufacturingCycleState, TextErrors> Create(ConcreteProductionParams productionParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile,
+                ResPile inputStorage, AreaInt maxOutputArea)
                 => productionParams.CurProduct.SelectMany
                 (
                     product =>
                     {
                         var resInUseAndCount = ResPile.CreateMultipleIfHaveEnough
                         (
-                            source: buildingParams.NodeState.StoredResPile,
+                            source: inputStorage,
                             amount: product.Recipe.ingredients,
-                            maxCount: buildingParams.maxProductAmount
+                            maxCount: buildingParams.CurMaxProductAmount(maxOutputArea: maxOutputArea)
                         );
                         return resInUseAndCount switch
                         {
@@ -202,11 +221,10 @@ namespace Game1.Industries
                                 ok: new
                                 (
                                     buildingParams: buildingParams,
-                                    buildingResPile: buildingResPile,
                                     resInUse: resInUse,
                                     productRecipe: product.Recipe,
                                     productionAmount: count,
-                                    maxProductionAmount: buildingParams.maxProductAmount
+                                    overallMaxProductionAmount: buildingParams.overallMaxProductAmount
                                 )
                             ),
                             null => new(errors: new(UIAlgorithms.NotEnoughResourcesToStartProduction))
@@ -220,7 +238,7 @@ namespace Game1.Industries
                 => donePropor.IsFull;
 
             private readonly ConcreteBuildingParams buildingParams;
-            private readonly ResPile buildingResPile, resInUse;
+            private readonly ResPile resInUse;
             private readonly ResRecipe recipe;
             private readonly Mass prodMassIfFull;
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
@@ -231,25 +249,21 @@ namespace Game1.Industries
             private CurProdStats curProdStats;
             private Propor donePropor, workingPropor;
 
-            private ManufacturingCycleState(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ResPile resInUse, ResRecipe productRecipe, ulong productionAmount, ulong maxProductionAmount)
+            private ManufacturingCycleState(ConcreteBuildingParams buildingParams, ResPile resInUse, ResRecipe productRecipe, ulong productionAmount, ulong overallMaxProductionAmount)
             {
                 this.buildingParams = buildingParams;
-                this.buildingResPile = buildingResPile;
                 this.resInUse = resInUse;
                 recipe = productRecipe * productionAmount;
-                prodMassIfFull = productRecipe.ingredients.Mass() * maxProductionAmount;
+                prodMassIfFull = productRecipe.ingredients.Mass() * overallMaxProductionAmount;
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
                 reqEnergyHistoricRounder = new();
-                proporUtilized = Propor.Create(part: productionAmount, whole: maxProductionAmount)!.Value;
+                proporUtilized = Propor.Create(part: productionAmount, whole: overallMaxProductionAmount)!.Value;
                 areaInProduction = buildingParams.productParams.usefulArea.ToDouble() * productionAmount;
                 donePropor = Propor.empty;
             }
 
             public IBuildingImage BusyBuildingImage()
                 => buildingParams.buildingImage;
-
-            public void FrameStartNoProduction()
-            { }
 
             public void FrameStart()
             {
@@ -268,7 +282,7 @@ namespace Game1.Industries
             /// This will not remove no longer needed building components until production cycle is done since fix current max production amount
             /// and some other production stats at the start of production cycle
             /// </summary>
-            public IIndustry? Update()
+            public IIndustry? Update(ResPile outputStorage)
             {
                 buildingParams.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
                 donePropor = donePropor.UpdateDonePropor
@@ -280,16 +294,18 @@ namespace Game1.Industries
                 );
 
                 if (donePropor.IsFull)
-                    buildingParams.NodeState.StoredResPile.TransformFrom(source: resInUse, recipe: recipe);
+                    outputStorage.TransformFrom(source: resInUse, recipe: recipe);
                 return null;
             }
 
-            public void Delete()
+            public void Delete(ResPile outputStorage)
             {
                 buildingParams.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
-                buildingParams.NodeState.StoredResPile.TransferAllFrom(source: buildingResPile);
-                buildingParams.NodeState.StoredResPile.TransferAllFrom(source: resInUse);
+                outputStorage.TransferAllFrom(source: resInUse);
             }
+
+            public static void DeletePersistentState(ResPile buildingResPile, ResPile outputStorage)
+                => outputStorage.TransferAllFrom(source: buildingResPile);
         }
 
         public static HashSet<Type> GetKnownTypes()

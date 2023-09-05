@@ -85,21 +85,29 @@ namespace Game1.Industries
                 BuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
 
-            public ulong MaxStoredAmount(IResource storedRes)
-                => ResAndIndustryAlgos.MaxAmountInStorage
+            public AllResAmounts MaxStored(IResource storedRes)
+                => new
                 (
-                    areaInStorage: buildingArea * CurWorldConfig.storageProporOfBuildingArea,
-                    // Could use Area here instead, if decide to have such a thing
-                    itemArea: storedRes.UsefulArea
+                    res: storedRes,
+                    amount: ResAndIndustryAlgos.MaxAmount
+                    (
+                        availableArea: buildingArea * CurWorldConfig.storageProporOfBuildingAreaForStorageIndustry,
+                        // Could use Area here instead, if decide to have such a thing
+                        itemArea: storedRes.UsefulArea
+                    )
                 );
 
-            public IIndustry CreateFullySpecifiedIndustry(ResPile buildingResPile, IResource storedRes)
-                => new Storage
+            public IIndustry CreateFullySpecifiedFilledStorage(ResPile buildingResPile, IResource storedRes, ResPile storedResSource)
+            {
+                var storageIndustry = new Storage
                 (
                     storageParams: new(storedRes: storedRes),
                     buildingParams: this,
                     buildingResPile: buildingResPile
                 );
+                storageIndustry.storage.TransferFrom(source: storedResSource, amount: MaxStored(storedRes: storedRes));
+                return storageIndustry;
+            }
 
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
@@ -111,7 +119,7 @@ namespace Game1.Industries
         [Serializable]
         public sealed class StorageParams
         {
-            public EfficientReadOnlyCollection<IResource> ProducedResources { get; private set; }
+            public EfficientReadOnlyCollection<IResource> StoredResources { get; private set; }
 
             /// <summary>
             /// Eiher material, or error saying no material was chosen
@@ -122,7 +130,7 @@ namespace Game1.Industries
                 private set
                 {
                     curStoredRes = value;
-                    ProducedResources = value.SwitchExpression
+                    StoredResources = value.SwitchExpression
                     (
                         ok: material => new List<IResource>() { material }.ToEfficientReadOnlyCollection(),
                         error: errors => EfficientReadOnlyCollection<IResource>.empty
@@ -151,6 +159,9 @@ namespace Game1.Industries
         public string Name
             => buildingParams.Name;
 
+        public NodeID NodeID
+            => buildingParams.NodeState.NodeID;
+
         public Material? SurfaceMaterial
             => buildingParams.SurfaceMaterial;
 
@@ -170,9 +181,10 @@ namespace Game1.Industries
 
         private readonly StorageParams storageParams;
         private readonly ConcreteBuildingParams buildingParams;
-        private readonly ResPile buildingResPile;
+        private readonly ResPile buildingResPile, storage;
         private readonly Event<IDeletedListener> deleted;
         private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
+        private AllResAmounts resTravellingHere;
 
         private Storage(StorageParams storageParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile)
         {
@@ -180,8 +192,11 @@ namespace Game1.Industries
             this.buildingParams = buildingParams;
             this.buildingResPile = buildingResPile;
             deleted = new();
-            resSources = IIndustry.CreateRoutesLists(resources: TargetStoredResAmounts().resList);
-            resDestins = IIndustry.CreateRoutesLists(resources: storageParams.ProducedResources);
+            storage = ResPile.CreateEmpty(thermalBody: buildingParams.NodeState.ThermalBody);
+            resTravellingHere = AllResAmounts.empty;
+
+            resSources = IIndustry.CreateRoutesLists(resources: storageParams.StoredResources);
+            resDestins = IIndustry.CreateRoutesLists(resources: storageParams.StoredResources);
             RoutePanel = IIndustry.CreateRoutePanel
             (
                 industry: this,
@@ -196,27 +211,50 @@ namespace Game1.Industries
         public bool IsDestinOf(IResource resource)
             => resSources.ContainsKey(resource);
 
-        public bool HasSource(IResource resource, IIndustry sourceIndustry)
-            => resSources[resource].Contains(sourceIndustry);
+        public IEnumerable<IResource> GetConsumedRes()
+            => resSources.Keys;
 
-        public void HasDestin(IResource resource, IIndustry destinIndustry)
-            => resDestins[resource].Contains(destinIndustry);
+        public IEnumerable<IResource> GetProducedRes()
+            => resDestins.Keys;
+
+        public EfficientReadOnlyHashSet<IIndustry> GetSources(IResource resource)
+            => new(set: resSources[resource]);
+
+        public EfficientReadOnlyHashSet<IIndustry> GetDestins(IResource resource)
+            => new(set: resDestins[resource]);
+
+        public AllResAmounts GetSupply()
+            => storage.Amount;
+
+        public AllResAmounts GetDemand()
+            => storageParams.CurStoredRes.SwitchExpression
+            (
+                ok: storedRes => buildingParams.MaxStored(storedRes: storedRes) - storage.Amount,
+                error: _ => AllResAmounts.empty
+            );
+
+        public void TransportResTo(IIndustry destinIndustry, ResAmount<IResource> resAmount)
+            => buildingParams.NodeState.TransportRes
+            (
+                source: storage,
+                destination: destinIndustry.NodeID,
+                amount: new(resAmount: resAmount)
+            );
+
+        public void WaitForResFrom(IIndustry sourceIndustry, ResAmount<IResource> resAmount)
+            => resTravellingHere += new AllResAmounts(resAmount: resAmount);
+
+        public void Arrive(ResPile arrivingResPile)
+        {
+            resTravellingHere -= arrivingResPile.Amount;
+            storage.TransferAllFrom(source: arrivingResPile);
+        }
 
         public void ToggleSource(IResource resource, IIndustry sourceIndustry)
             => IIndustry.ToggleElement(set: resSources[resource], element: sourceIndustry);
 
         public void ToggleDestin(IResource resource, IIndustry destinIndustry)
             => IIndustry.ToggleElement(set: resDestins[resource], element: destinIndustry);
-
-        public AllResAmounts TargetStoredResAmounts()
-            => storageParams.CurStoredRes.SwitchExpression
-            (
-                ok: storedRes => new AllResAmounts(res: storedRes, amount: buildingParams.MaxStoredAmount(storedRes: storedRes)),
-                error: _ => AllResAmounts.empty
-            );
-
-        public void FrameStartNoProduction(string error)
-        { }
 
         public void FrameStart()
         { }
@@ -226,7 +264,9 @@ namespace Game1.Industries
 
         public void Delete()
         {
-            buildingParams.NodeState.StoredResPile.TransferAllFrom(source: buildingResPile);
+            // Need to wait for all resources travelling here to arrive
+            throw new NotImplementedException();
+            IIndustry.DumpAllResIntoCosmicBody(nodeState: buildingParams.NodeState, resPile: storage);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 

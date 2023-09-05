@@ -17,75 +17,6 @@ namespace Game1
         //, IChoiceChangedListener<IOverlay>
     {
         [Serializable]
-        private sealed class NodeInfo
-        {
-            private static IResource res;
-
-            static NodeInfo()
-                => res = null!;
-
-            public static void Init(IResource res)
-                => NodeInfo.res = res;
-
-            public readonly CosmicBody node;
-            public readonly List<NodeInfo> nodesIn, nodesOut;
-            public uint unvisitedDestinsCount;
-            public bool isSplitAleady;
-
-            public NodeInfo(CosmicBody node)
-            {
-                Debug.Assert(res is not null);
-                this.node = node;
-                nodesIn = new();
-                nodesOut = new();
-                unvisitedDestinsCount = 0;
-                isSplitAleady = false;
-            }
-
-            public ulong MaxExtraRes()
-                => unvisitedDestinsCount switch
-                {
-                    0 => DFS().maxExtraRes,
-                    > 0 => ulong.MaxValue
-                };
-
-            private (ulong maxExtraRes, ulong subgraphUserTargetStoredRes) DFS()
-            {
-                if (unvisitedDestinsCount is not 0)
-                    throw new InvalidOperationException();
-
-                ulong maxExtraResFromNodesOut = 0,
-                    userTargetStoredResFromNodesOut = 0;
-
-                foreach (var nodeInfo in nodesOut)
-                {
-                    var (curMaxExtraRes, curSubgraphUserTargetStoredRes) = nodeInfo.DFS();
-                    maxExtraResFromNodesOut += curMaxExtraRes;
-                    userTargetStoredResFromNodesOut += curSubgraphUserTargetStoredRes;
-                }
-
-                ulong subgraphUserTargetStoredRes = node.TargetStoredResAmount(res: res) + userTargetStoredResFromNodesOut,
-                    targetStoredRes = node.TargetStoredResAmount(res: res);
-                // Use logic similar to below if want a not to store some extra resources for the "downstream" nodes.
-                //    targetStoredRes = node.IfStore(res: res) switch
-                //    {
-                //        true => subgraphUserTargetStoredRes,
-                //        false => node.TargetStoredResAmount(res: res)
-                //    };
-
-                return
-                (
-                    maxExtraRes: (maxExtraResFromNodesOut + targetStoredRes >= node.TotalQueuedRes(res: res)) switch
-                    {
-                        true => maxExtraResFromNodesOut + targetStoredRes - node.TotalQueuedRes(res: res),
-                        false => 0
-                    },
-                    subgraphUserTargetStoredRes: subgraphUserTargetStoredRes
-                );
-            }
-        }
-
-        [Serializable]
         private readonly record struct ShortestPaths(EfficientReadOnlyDictionary<(NodeID, NodeID), UDouble> Dists, EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> FirstLinks);
 
         [Serializable]
@@ -158,7 +89,7 @@ namespace Game1
                     )
                 )
             );
-            ResPile magicUnlimitedStartingRawMaterialPile = ResPile.CreateByMagic
+            ResPile magicUnlimitedStartingResPile = ResPile.CreateByMagic
             (
                 amount: new
                 (
@@ -183,13 +114,13 @@ namespace Game1
                         mapInfoCamera: mapInfoCamera,
                         cosmicBodyInfo: cosmicBodyInfo,
                         rawMatRatios: ResAndIndustryAlgos.CosmicBodyRandomRawMatRatios(startingRawMatTargetRatios: startingRawMatTargetRatios),
-                        resSource: magicUnlimitedStartingRawMaterialPile
+                        resSource: magicUnlimitedStartingResPile
                     ),
                     activeColor: colorConfig.selectedWorldUIElementColor,
                     createIndustry: nodeState =>
                     {
                         var industry = CreateIndustry(nodeState: nodeState, cosmicBodyName: cosmicBodyInfo.Name);
-                        Debug.Assert(!magicUnlimitedStartingRawMaterialPile.IsEmpty);
+                        Debug.Assert(!magicUnlimitedStartingResPile.IsEmpty);
                         return industry;
                     }
                 )
@@ -212,8 +143,6 @@ namespace Game1
             {
                 if (cosmicBodyName == mapInfo.StartingInfo.PowerPlantCosmicBody)
                 {
-                    // This is done so that buildings and people take stuff from this planet(i.e.MassCounter is of this planet)
-                    nodeState.StoredResPile.TransferAllFrom(source: magicUnlimitedStartingRawMaterialPile);
                     var concreteParams = industryConfig.startingPowerPlantParams.CreateConcrete
                     (
                         nodeState: nodeState,
@@ -222,11 +151,10 @@ namespace Game1
 
                     var buildingResPile = ResPile.CreateIfHaveEnough
                     (
-                        source: nodeState.StoredResPile,
+                        source: magicUnlimitedStartingResPile,
                         amount: concreteParams.BuildingCost
                     );
                     Debug.Assert(buildingResPile is not null);
-                    magicUnlimitedStartingRawMaterialPile.TransferAllFrom(source: nodeState.StoredResPile);
                     return concreteParams.CreateIndustry
                     (
                         buildingResPile: buildingResPile
@@ -242,8 +170,6 @@ namespace Game1
 
                 IIndustry CreateStorageIndustry(string productParamsName)
                 {
-                    // This is done so that buildings and people take stuff from this planet(i.e.MassCounter is of this planet)
-                    nodeState.StoredResPile.TransferAllFrom(source: magicUnlimitedStartingRawMaterialPile);
                     var concreteParams = industryConfig.startingStorageParams.CreateConcrete
                     (
                         nodeState: nodeState,
@@ -252,22 +178,16 @@ namespace Game1
 
                     var buildingResPile = ResPile.CreateIfHaveEnough
                     (
-                        source: nodeState.StoredResPile,
+                        source: magicUnlimitedStartingResPile,
                         amount: concreteParams.BuildingCost
                     );
                     Debug.Assert(buildingResPile is not null);
-                    magicUnlimitedStartingRawMaterialPile.TransferAllFrom(source: nodeState.StoredResPile);
-                    var storageIndustry = concreteParams.CreateFullySpecifiedIndustry
+                    return concreteParams.CreateFullySpecifiedFilledStorage
                     (
                         buildingResPile: buildingResPile,
-                        storedRes: Product.productParamsDict[productParamsName].GetProduct(materialChoices: resConfig.StartingMaterialChoices).UnwrapOrThrow()
+                        storedRes: Product.productParamsDict[productParamsName].GetProduct(materialChoices: resConfig.StartingMaterialChoices).UnwrapOrThrow(),
+                        storedResSource: magicUnlimitedStartingResPile
                     );
-                    nodeState.StoredResPile.TransferFrom
-                    (
-                        source: magicUnlimitedStartingRawMaterialPile,
-                        amount: storageIndustry.TargetStoredResAmounts()
-                    );
-                    return storageIndustry;
                 }
             }
         }
@@ -484,85 +404,56 @@ namespace Game1
             CalcAndSetMaxLinkStats();
             links.ForEach(link => link.Update());
             foreach (var node in nodes)
-                node.Update(personFirstLinks: personFirstLinks, vacuumHeatEnergyPile: vacuumHeatEnergyPile);
+                node.StartUpdate(personFirstLinks: personFirstLinks, vacuumHeatEnergyPile: vacuumHeatEnergyPile);
 
             links.ForEach(link => link.UpdatePeople());
             //nodes.ForEach(node => node.UpdatePeople());
             Stats = nodes.CombineRealPeopleStats().CombineWith(other: links.CombineRealPeopleStats());
-            
-            nodes.ForEach(node => node.StartSplitRes());
-            foreach (var res in CurResConfig.GetAllCurRes())
-                SplitRes(res: res);
-            foreach (var node in nodes)
-                node.EndSplitRes(resFirstLinks: resFirstLinks);
+
+            NewSplitRes();
+            nodes.ForEach(node => node.EndUpdate(resFirstLinks: resFirstLinks));
         }
 
-        /// <summary>
-        /// TODO:
-        /// choose random leafs
-        /// </summary>
-        public void SplitRes(IResource res)
+        public void NewSplitRes()
         {
-            NodeInfo.Init(res: res);
-            Dictionary<NodeID, NodeInfo> nodeInfos = nodes.ToDictionary
-            (
-                keySelector: node => node.NodeID,
-                elementSelector: node => new NodeInfo(node: node)
-            );
-
-            foreach (var nodeInfo in nodeInfos.Values)
-                foreach (var resDestin in nodeInfo.node.ResDestins(res: res))
-                {
-                    var nodeInfoDestin = nodeInfos[resDestin];
-
-                    nodeInfo.unvisitedDestinsCount++;
-                    nodeInfo.nodesOut.Add(nodeInfoDestin);
-                    nodeInfoDestin.nodesIn.Add(nodeInfo);
-                }
-            // sinks could use data stucture like from
-            // https://stackoverflow.com/questions/5682218/data-structure-insert-remove-contains-get-random-element-all-at-o1
-            // to support taking random element in O(1)
-            Queue<NodeInfo> sinks = new
-            (
-                from nodeInfo in nodeInfos.Values
-                where nodeInfo.unvisitedDestinsCount is 0
-                select nodeInfo
-            );
-
-            ulong MaxExtraRes(NodeID nodeID)
-                => nodeInfos[nodeID].MaxExtraRes();
-
-            while (sinks.Count > 0)
+            Dictionary<IResource, Dictionary<Algorithms.Vertex<IIndustry>, Algorithms.VertexInfo<IIndustry>>> resToRouteGraphs = new();
+            foreach (var industry in Industries)
             {
-                // want to choose random sink instead of this
-                NodeInfo sink = sinks.Dequeue();
-                sink.node.SplitRes
-                (
-                    nodeIDToNode: nodeID => nodeIDToNode[nodeID],
-                    res: res,
-                    maxExtraResFunc: MaxExtraRes
-                );
-
-                foreach (var nodeInfo in sink.nodesIn)
-                {
-                    nodeInfo.unvisitedDestinsCount--;
-                    if (nodeInfo.unvisitedDestinsCount is 0)
-                        sinks.Enqueue(nodeInfo);
-                }
-                sink.isSplitAleady = true;
+                AllResAmounts demand = industry.GetDemand(), supply = industry.GetSupply();
+                foreach (var res in industry.GetProducedRes())
+                    resToRouteGraphs.GetOrCreate(key: res).Add
+                    (
+                        key: new(ResOwner: industry, IsSource: true),
+                        value: new
+                        (
+                            directedNeighbours: industry.GetDestins(resource: res).ToList(),
+                            amount: supply[res]
+                        )
+                    );
+                foreach (var res in industry.GetConsumedRes())
+                    resToRouteGraphs.GetOrCreate(key: res).Add
+                    (
+                        key: new(ResOwner: industry, IsSource: false),
+                        value: new
+                        (
+                            directedNeighbours: industry.GetSources(resource: res).ToList(),
+                            amount: demand[res]
+                        )
+                    );
             }
 
-            foreach (var nodeInfo in nodeInfos.Values)
-                if (!nodeInfo.isSplitAleady)
+            foreach (var (res, routeGraph) in resToRouteGraphs)
+            {
+                EfficientReadOnlyCollection<Algorithms.ResPacket<IIndustry>> distribution = Algorithms.DistributeRes<IIndustry>(graph: new(dict: routeGraph));
+                foreach (var (sourceIndustry, destinIndustry, amount) in distribution)
                 {
-                    nodeInfo.node.SplitRes
-                    (
-                        nodeIDToNode: nodeID => nodeIDToNode[nodeID],
-                        res: res,
-                        maxExtraResFunc: MaxExtraRes
-                    );
-                    nodeInfo.isSplitAleady = true;
+                    if (amount is 0)
+                        continue;
+                    ResAmount<IResource> resAmount = new(res: res, amount: amount);
+                    sourceIndustry.TransportResTo(destinIndustry: destinIndustry, resAmount: resAmount);
+                    destinIndustry.WaitForResFrom(sourceIndustry: sourceIndustry, resAmount: resAmount);
                 }
+            }
         }
 
         public void DrawBeforeLight()

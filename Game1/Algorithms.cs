@@ -1,4 +1,5 @@
 ﻿using Game1.Collections;
+using Priority_Queue;
 using System.IO;
 using System.Numerics;
 
@@ -326,6 +327,93 @@ namespace Game1
                 string newName = $"{prefix} {i}";
                 if (!usedNames.Contains(newName))
                     return newName;
+            }
+        }
+
+        [Serializable]
+        public readonly record struct Vertex<T>(T ResOwner, bool IsSource);
+
+        [Serializable]
+        public sealed class VertexInfo<T>
+        {
+            public readonly List<T> directedNeighbours;
+            public ulong amount;
+
+            public VertexInfo(List<T> directedNeighbours, ulong amount)
+            {
+                this.directedNeighbours = directedNeighbours;
+                this.amount = amount;
+            }
+
+            public ulong GiveAmountRoundUp()
+                => MyMathHelper.DivideThenTakeCeiling(dividend: amount, divisor: (ulong)directedNeighbours.Count);
+
+
+            public double Priority()
+               => (double)amount / directedNeighbours.Count;
+        }
+
+        [Serializable]
+        public readonly record struct ResPacket<T>(T Source, T Destin, ulong Amount);
+
+        [Serializable]
+        private readonly record struct InternalResPacket<T>(T VertexA, T VertexB, bool IsASource, ulong Amount);
+
+        // Dictionary is from Vertex<T> rather than T directly, as the same Industry may be a source and a destination of the same resource, e.g. storage.
+        public static EfficientReadOnlyCollection<ResPacket<T>> DistributeRes<T>(EfficientReadOnlyDictionary<Vertex<T>, VertexInfo<T>> graph)
+        {
+            SimplePriorityQueue<Vertex<T>, double> vertsByPriority = new();
+            foreach (var (vertex, vertexInfo) in graph)
+                EnqueueVertexIfNeeded(vertex: vertex, vertexInfo: vertexInfo);
+            
+            List<ResPacket<T>> resPackets = new();
+            while (vertsByPriority.Count > 0)
+            {
+                var (resOwnerA, isASource) = vertsByPriority.Dequeue();
+                var vertexAInfo = graph[new(ResOwner: resOwnerA, IsSource: isASource)];
+                // ToList is needed as in this process neighbours are removed. Without it, may get error about modifying collection
+                // and iterating it at the same time
+                var orderedNeighbours = vertexAInfo.directedNeighbours.OrderByDescending
+                (
+                    resOwnerB => graph[new(ResOwner: resOwnerB, IsSource: !isASource)].Priority()
+                ).ToList();
+                foreach (var resOwnerB in orderedNeighbours)
+                {
+                    ulong amount = vertexAInfo.GiveAmountRoundUp();
+                    resPackets.Add
+                    (
+                        new
+                        (
+                            Source: isASource ? resOwnerA : resOwnerB,
+                            Destin: isASource ? resOwnerB : resOwnerA,
+                            Amount: amount
+                        )
+                    );
+                    Vertex<T> vertexB = new(ResOwner: resOwnerB, IsSource: !isASource);
+                    var vertexBInfo = graph[vertexB];
+
+                    vertexAInfo.directedNeighbours.Remove(resOwnerB);
+                    vertexBInfo.directedNeighbours.Remove(resOwnerA);
+                    vertexAInfo.amount -= amount;
+                    vertexBInfo.amount -= amount;
+                    
+                    vertsByPriority.Remove(vertexB);
+                    EnqueueVertexIfNeeded(vertex: vertexB, vertexInfo: vertexBInfo);
+                }
+                Debug.Assert(vertexAInfo.amount is 0);
+            }
+
+            return resPackets.ToEfficientReadOnlyCollection();
+
+            void EnqueueVertexIfNeeded(Vertex<T> vertex, VertexInfo<T> vertexInfo)
+            {
+                var priority = vertexInfo.Priority();
+                if (priority is not double.PositiveInfinity)
+                    vertsByPriority.Enqueue
+                    (
+                        item: vertex,
+                        priority: priority
+                    );
             }
         }
     }

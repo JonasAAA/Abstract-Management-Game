@@ -81,11 +81,11 @@ namespace Game1
             public void TransferFrom(RealPeople realPersonSource, RealPerson realPerson)
                 => waitingPeople.TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
 
-            public ulong GetTravellingAmount()
+            public AllResAmounts GetTravellingResAmounts()
             {
                 Debug.Assert(locationCounters.GetCount<AllResAmounts>().Mass() == waitingResAmountsPackets.Mass + waitingPeople.Stats.totalMass + timedPacketQueue.Mass);
                 Debug.Assert(locationCounters.GetCount<NumPeople>() == waitingPeople.NumPeople + timedPacketQueue.NumPeople);
-                return timedPacketQueue.Mass.valueInKg;
+                return timedPacketQueue.TotalResAmounts;
                 //return CurWorldManager.Overlay.SwitchExpression
                 //(
                 //    singleResCase: res => timedPacketQueue.TotalResAmounts[res],
@@ -323,9 +323,9 @@ namespace Game1
 
             // TODO: It may be more appropriate for link1To2.GetTravellingAmount() to return a dictionary from Overlay cases to amounts
             // in order to not have two switch statements mirroring each other
-            ulong travellingAmount = link1To2.GetTravellingAmount() + link2To1.GetTravellingAmount();
+            var travellingResAmounts = link1To2.GetTravellingResAmounts() + link2To1.GetTravellingResAmounts();
 
-            infoTextBox.Text = $"Travel cost is {JoulesPerKg:0.000} J/Kg\n";
+            infoTextBox.Text = $"Travel cost is {JoulesPerKg:0.000} J/Kg\nTravelling resources {travellingResAmounts}";
             //+ CurWorldManager.Overlay.SwitchExpression
             //(
             //    singleResCase: res => $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",

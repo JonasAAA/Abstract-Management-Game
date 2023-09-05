@@ -3,7 +3,7 @@
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly record struct Area<T> : IOrderedVector<Area<T>, T>
+    public readonly record struct Area<T> : IOrderedVector<Area<T>, T>, IMin<Area<T>>, IMax<Area<T>>
         where T : struct, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IMultiplyOperators<T, T, T>, IMultiplicativeIdentity<T, T>,
             IComparisonOperators<T, T, bool>, ISubtractionOperators<T, T, T>
     {
@@ -29,6 +29,12 @@ namespace Game1.Resources
 
         private Area(T valueInMetSq)
             => this.valueInMetSq = valueInMetSq;
+
+        public static Area<T> Min(Area<T> left, Area<T> right)
+            => left.valueInMetSq < right.valueInMetSq ? left : right;
+
+        public static Area<T> Max(Area<T> left, Area<T> right)
+            => left.valueInMetSq > right.valueInMetSq ? left : right;
 
         public override string ToString()
             => $"{valueInMetSq} m^2";

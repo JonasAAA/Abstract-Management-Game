@@ -222,10 +222,7 @@ namespace Game1
         private static UDouble ElectricalEnergyPerUnitAreaPhys(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMatPropors, MaterialChoices buildingMatChoices, MechComplexity buildingComplexity, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
             => throw new NotImplementedException();
 
-        public static ulong MaxAmountInProduction(AreaDouble areaInProduction, AreaInt itemUsefulArea)
-            => (ulong)areaInProduction.valueInMetSq / itemUsefulArea.valueInMetSq;
-
-        public static ulong MaxAmountInStorage(AreaDouble areaInStorage, AreaInt itemArea)
-            => (ulong)areaInStorage.valueInMetSq / itemArea.valueInMetSq;
+        public static ulong MaxAmount(AreaDouble availableArea, AreaInt itemArea)
+            => (ulong)availableArea.valueInMetSq / itemArea.valueInMetSq;
     }
 }

@@ -113,8 +113,11 @@ namespace Game1.Industries
             EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
                 => EfficientReadOnlyCollection<IResource>.empty;
 
-            AllResAmounts Industry.IConcreteBuildingParams<UnitType>.TargetStoredResAmounts(UnitType productionParams)
+            AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => AllResAmounts.empty;
+
+            AreaInt Industry.IConcreteBuildingParams<UnitType>.MaxStoredOutputArea()
+                => AreaInt.zero;
         }
 
         [Serializable]
@@ -123,8 +126,9 @@ namespace Game1.Industries
             public static bool IsRepeatable
                 => false;
 
-            public static Result<PowerProductionState, TextErrors> Create(UnitType productionParams, ConcreteBuildingParams parameters, ResPile buildingResPile)
-                => new(ok: new(buildingParams: parameters, buildingResPile: buildingResPile));
+            public static Result<PowerProductionState, TextErrors> Create(UnitType productionParams, ConcreteBuildingParams parameters, ResPile buildingResPile,
+                ResPile inputStorage, AreaInt maxOutputArea)
+                => new(ok: new(buildingParams: parameters));
 
             public ElectricalEnergy ReqEnergy
                 => ElectricalEnergy.zero;
@@ -133,15 +137,13 @@ namespace Game1.Industries
                 => false;
 
             private readonly ConcreteBuildingParams buildingParams;
-            private readonly ResPile buildingResPile;
             private readonly HistoricRounder prodEnergyHistoricRounder;
 
             private RadiantEnergy energyToTransform;
 
-            private PowerProductionState(ConcreteBuildingParams buildingParams, ResPile buildingResPile)
+            private PowerProductionState(ConcreteBuildingParams buildingParams)
             {
                 this.buildingParams = buildingParams;
-                this.buildingResPile = buildingResPile;
                 prodEnergyHistoricRounder = new();
                 energyToTransform = RadiantEnergy.zero;
 
@@ -150,9 +152,6 @@ namespace Game1.Industries
 
             public IBuildingImage BusyBuildingImage()
                 => buildingParams.buildingImage;
-
-            public void FrameStartNoProduction()
-                => energyToTransform = RadiantEnergy.zero;
 
             public void FrameStart()
             {
@@ -168,14 +167,14 @@ namespace Game1.Industries
                 Debug.Assert(electricalEnergy.IsZero);
             }
 
-            public IIndustry? Update()
+            public IIndustry? Update(ResPile outputStorage)
                 => null;
 
-            public void Delete()
-            {
-                buildingParams.NodeState.StoredResPile.TransferAllFrom(source: buildingResPile);
-                CurWorldManager.RemoveEnergyProducer(energyProducer: this);
-            }
+            public void Delete(ResPile outputStorage)
+                => CurWorldManager.RemoveEnergyProducer(energyProducer: this);
+
+            public static void DeletePersistentState(ResPile buildingResPile, ResPile outputStorage)
+                => outputStorage.TransferAllFrom(source: buildingResPile);
 
             void IEnergyProducer.ProduceEnergy(EnergyPile<ElectricalEnergy> destin)
                 => buildingParams.NodeState.RadiantEnergyPile.TransformTo

@@ -19,24 +19,14 @@ namespace Game1
         public UDouble Radius { get; private set; }
         public UDouble SurfaceLength { get; private set; }
         public MyVector2 Position { get; }
-        public ulong MaxBatchDemResStored { get; }
-        public ResPile StoredResPile { get; }
         public EnergyPile<RadiantEnergy> RadiantEnergyPile { get; }
         public readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
         public RealPeople WaitingPeople { get; }
         public RawMatAmounts Composition { get; private set; }
-        public bool TooManyResStored { get; set; }
         // TODO: could include linkEndPoints Mass in the Counter<Mass> in this NodeState
         public LocationCounters LocationCounters { get; }
         public ThermalBody ThermalBody { get; }
-        public UDouble SurfaceGravity
-        {
-            get
-            {
-                var allResComposition = LocationCounters.GetCount<AllResAmounts>().RawMatComposition();
-                return WorldFunctions.Gravity(mass: allResComposition.Mass(), resArea: allResComposition.Area());
-            }
-        }
+        public UDouble SurfaceGravity { get; private set; }
         /// <summary>
         /// This is current temperature to be used until the new value is calculated.
         /// Don't calculate temperature on the fly each time, as that would lead to temperature variations during the frame.
@@ -61,12 +51,11 @@ namespace Game1
                         screenLength: mapInfoCamera.WorldLengthToScreenLength(worldLength: cosmicBodyInfo.Radius)
                     )
                 ),
-                resSource: resSource,
-                maxBatchDemResStored: 2
+                resSource: resSource
             )
         { }
 
-        public NodeState(string name, MyVector2 position, RawMatAmounts composition, ResPile resSource, ulong maxBatchDemResStored)
+        public NodeState(string name, MyVector2 position, RawMatAmounts composition, ResPile resSource)
         {
 #warning display the name
             LocationCounters = LocationCounters.CreateEmpty();
@@ -77,11 +66,7 @@ namespace Game1
             consistsOfResPile = ResPile.CreateEmpty(thermalBody: ThermalBody);
             EnlargeFrom(source: resSource, amount: composition);
             
-            StoredResPile = ResPile.CreateEmpty(thermalBody: ThermalBody);
             RadiantEnergyPile = EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: LocationCounters);
-            if (maxBatchDemResStored is 0)
-                throw new ArgumentOutOfRangeException();
-            MaxBatchDemResStored = maxBatchDemResStored;
             waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(thermalBody: ThermalBody);
             WaitingPeople = RealPeople.CreateEmpty
             (
@@ -91,7 +76,6 @@ namespace Game1
                 closestNodeID: NodeID,
                 isInActivityCenter: false
             );
-            TooManyResStored = false;
             UpdateTemperature();
         }
 
@@ -104,6 +88,8 @@ namespace Game1
             Area = Composition.Area();
             Radius = MyMathHelper.Sqrt(value: Area.valueInMetSq / MyMathHelper.pi);
             SurfaceLength = 2 * MyMathHelper.pi * Radius;
+            var allResComposition = LocationCounters.GetCount<AllResAmounts>().RawMatComposition();
+            SurfaceGravity = WorldFunctions.Gravity(mass: allResComposition.Mass(), resArea: allResComposition.Area());
         }
 
         public Result<ResPile, TextErrors> Mine(AreaDouble targetArea, RawMatAllocator rawMatAllocator)
@@ -138,5 +124,8 @@ namespace Game1
             consistsOfResPile.TransferFrom(source: source, amount: amount.ToAll());
             RecalculateValues();
         }
+
+        public void TransportRes(ResPile source, NodeID destination, AllResAmounts amount)
+            => waitingResAmountsPackets.TransferFrom(source: source, destination: destination, amount: amount);
     }
 }

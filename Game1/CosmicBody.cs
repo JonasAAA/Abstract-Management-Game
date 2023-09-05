@@ -11,43 +11,8 @@ using Game1.Collections;
 namespace Game1
 {
     [Serializable]
-    public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, INodeAsResDestin, ILightCatchingObject, IWithStandardPositions, IWithRealPeopleStats
+    public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, ILightCatchingObject, IWithStandardPositions, IWithRealPeopleStats
     {
-        [Serializable]
-        private readonly record struct ResDesinArrowEventListener(CosmicBody Node, IResource Res) : IDeletedListener, INumberChangedListener
-        {
-            public void SyncSplittersWithArrows()
-            {
-                var resCopy = Res;
-                List<ResDestinArrow> relevantResDistribArrows = Node.resDistribArrows.Where(resDistribArrow => resDistribArrow.res == resCopy).ToList();
-                foreach (var resDestinArrow in relevantResDistribArrows)
-                    Node.resSplittersToDestins.GetOrCreate(key: Res).SetImportance
-                    (
-                        key: resDestinArrow.DestinationId,
-                        importance: (ulong)resDestinArrow.Importance
-                    );
-                int totalImportance = relevantResDistribArrows.Sum(resDestinArrow => resDestinArrow.Importance);
-                foreach (var resDestinArrow in relevantResDistribArrows)
-                    resDestinArrow.TotalImportance = totalImportance;
-            }
-
-            void IDeletedListener.DeletedResponse(IDeletable deletable)
-            {
-                if (deletable is ResDestinArrow resDestinArrow)
-                {
-                    Node.resDistribArrows.RemoveChild(child: resDestinArrow);
-                    CurWorldManager.RemoveResDestinArrow(resDestinArrow: resDestinArrow);
-                    Node.resSplittersToDestins.GetOrCreate(key: Res).RemoveKey(key: resDestinArrow.DestinationId);
-                    SyncSplittersWithArrows();
-                }
-                else
-                    throw new ArgumentException();
-            }
-
-            void INumberChangedListener.NumberChangedResponse()
-                => SyncSplittersWithArrows();
-        }
-
         //[Serializable]
         //private readonly record struct AddResourceDestinationButtonClickedListener : IClickedListener
         //{
@@ -159,10 +124,6 @@ namespace Game1
         /// NEVER use this directly, use Planet.Industry instead
         /// </summary>
         private IIndustry? industry;
-        private readonly AutoCreateValDict<IResource, HistoricProporSplitter<NodeID>> resSplittersToDestins;
-        private AllResAmounts targetStoredResAmounts;
-        private readonly ResPile undecidedResPile;
-        private AllResAmounts resTravelHereAmounts;
         private readonly new LightBlockingDisk shape;
         private ElectricalEnergy locallyProducedEnergy, usedLocalEnergy;
         private readonly SimpleHistoricProporSplitter<IRadiantEnergyConsumer> radiantEnergySplitter;
@@ -196,11 +157,6 @@ namespace Game1
 
             links = new();
 
-            resSplittersToDestins = new();
-            //selector: res => new HistoricProporSplitter<NodeID>()
-            targetStoredResAmounts = AllResAmounts.empty;
-            undecidedResPile = ResPile.CreateEmpty(thermalBody: state.ThermalBody);
-            resTravelHereAmounts = AllResAmounts.empty;
             usedLocalEnergy = ElectricalEnergy.zero;
             reactionNumberRounders = new();
             radiantEnergySplitter = new();
@@ -340,15 +296,6 @@ namespace Game1
         //    Industry = constrGeneralParams.CreateConcreteOrThrow(nodeState: state, buildingMatChoices: buildingMaterialChoices).CreateIndustry();
         //}
 
-        public ulong TotalQueuedRes(IResource res)
-            => state.StoredResPile.Amount[res] + resTravelHereAmounts[res];
-
-        public IEnumerable<NodeID> ResDestins(IResource res)
-            => resSplittersToDestins.GetOrCreate(key: res).Keys;
-
-        public ulong TargetStoredResAmount(IResource res)
-            => targetStoredResAmounts[res];
-
         //public bool CanHaveDestin(NodeID destinationId, IResource res)
         //{
         //    if (!Active || CurWorldManager.ArrowDrawingModeRes is null)
@@ -390,21 +337,12 @@ namespace Game1
         //}
 
         public void PreEnergyDistribUpdate()
-        {
-            if (state.TooManyResStored)
-            {
-                CurWorldManager.PublishMessage(message: new BasicMessage(nodeID: NodeID, message: UIAlgorithms.CosmicBodyContainsUnwantedResources));
-                Industry?.FrameStartNoProduction(error: UIAlgorithms.CosmicBodyContainsUnwantedResources);
-            }
-            else
-                Industry?.FrameStart();
-        }
+            => Industry?.FrameStart();
 
-        public void Update(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks, EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
+        public void StartUpdate(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks, EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
 #warning if the game is paused, may need to not call Industry.FrameStart() and Industry.Update() as they may fail due to division by 0 since Elapsed is 0
-            if (!state.TooManyResStored)
-                Industry = Industry?.Update();
+            Industry = Industry?.Update();
 
             // take people whose destination is this planet
             state.WaitingPeople.ForEach
@@ -489,90 +427,10 @@ namespace Game1
             Debug.Assert(state.RadiantEnergyPile.Amount.IsZero);
         }
 
-        //public void UpdatePeople()
-        //{
-        //    Industry?.UpdatePeople();
-        //    state.WaitingPeople.Update(updatePersonSkillsParams: null);
-        //    Debug.Assert(state.LocationCounters.GetCount<NumPeople>() == state.WaitingPeople.NumPeople + (Industry?.Stats.totalNumPeople ?? NumPeople.zero));
-        //    Stats = state.WaitingPeople.Stats.CombineWith(Industry?.Stats ?? RealPeopleStats.empty);
-        //}
-
-        public void StartSplitRes()
-        {
-            Debug.Assert(undecidedResPile.IsEmpty);
-
-            targetStoredResAmounts = Industry?.TargetStoredResAmounts() ?? AllResAmounts.empty;
-
-            // deal with resources
-            undecidedResPile.TransferAllFrom(source: state.StoredResPile);
-            undecidedResPile.TransferAllFrom
-            (
-                source: state.waitingResAmountsPackets.ReturnAndRemove
-                (
-                    destination: NodeID
-                )
-            );
-
-            state.StoredResPile.TransferAtMostFrom
-            (
-                source: undecidedResPile,
-                maxAmount: targetStoredResAmounts
-            );
-        }
-
         /// <summary>
-        /// MUST call StartSplitRes first
+        /// This must be called after distributing resources
         /// </summary>
-        public void SplitRes(Func<NodeID, INodeAsResDestin> nodeIDToNode, IResource res, Func<NodeID, ulong> maxExtraResFunc)
-        {
-            if (undecidedResPile.Amount[res] is 0)
-                return;
-
-            var resSplitter = resSplittersToDestins.GetOrCreate(key: res);
-            if (resSplitter.Empty)
-                state.StoredResPile.TransferAllSingleResFrom(source: undecidedResPile, res: res);
-            else
-            {
-                var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount[res], maxAmountsFunc: maxExtraResFunc);
-
-                {
-                    var unsplitResPile = ResPile.CreateIfHaveEnough
-                    (
-                        source: undecidedResPile,
-                        amount: new AllResAmounts
-                        (
-                            res: res,
-                            amount: unsplitResAmount
-                        )
-                    );
-                    Debug.Assert(unsplitResPile is not null);
-                    state.StoredResPile.TransferAllFrom(source: unsplitResPile);
-                }
-
-                foreach (var (destination, resAmountNum) in splitResAmounts)
-                {
-                    ResAmount<IResource> resAmount = new(res: res, amount: resAmountNum);
-                    var resPileForDestin = ResPile.CreateIfHaveEnough
-                    (
-                        source: undecidedResPile,
-                        amount: new AllResAmounts(resAmount: resAmount)
-                    );
-                    Debug.Assert(resPileForDestin is not null);
-                    state.waitingResAmountsPackets.TransferAllFrom
-                    (
-                        source: resPileForDestin,
-                        destination: destination
-                    );
-                    nodeIDToNode(destination).AddResTravelHere(resAmount: resAmount);
-                }
-            }
-            Debug.Assert(undecidedResPile.Amount[res] is 0);
-        }
-
-        /// <summary>
-        /// MUST call SplitRes first
-        /// </summary>
-        public void EndSplitRes(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks)
+        public void EndUpdate(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks)
         {
             foreach (var resAmountsPacket in state.waitingResAmountsPackets.DeconstructAndClear())
             {
@@ -583,13 +441,8 @@ namespace Game1
             }
 
 #warning Complete this
-            //state.TooManyResStored = !(state.StoredResPile.Amount <= targetStoredResAmounts);
-
-            // TODO: look at this
             infoTextBox.Text = $"""
                 consists of {state.Composition}
-                stores {state.StoredResPile}
-                target {targetStoredResAmounts}
                 Mass of everything {state.LocationCounters.GetCount<AllResAmounts>().Mass()}
                 Mass of planet {state.PlanetMass}
                 Number of people {state.LocationCounters.GetCount<NumPeople>()}
@@ -599,32 +452,6 @@ namespace Game1
 
                 """;
 
-            // update text
-            //textBox.Text = CurWorldManager.Overlay.SwitchExpression
-            //(
-            //    singleResCase: res =>
-            //    {
-            //        if (state.StoredResPile.Amount[res] is not 0 || targetStoredResAmounts[res] is not 0)
-            //            return (state.StoredResPile.Amount[res] >= targetStoredResAmounts[res]) switch
-            //            {
-            //                true => $"have {state.StoredResPile.Amount[res] - targetStoredResAmounts[res]} extra resources",
-            //                false => $"have {(double)state.StoredResPile.Amount[res] / targetStoredResAmounts[res] * 100:0.}% of target stored resources\n",
-            //            };
-            //        else
-            //            return "";
-            //    },
-            //    allResCase: () =>
-            //    {
-            //        Mass totalStoredMass = state.StoredResPile.Amount.Mass();
-            //        return totalStoredMass.IsZero switch
-            //        {
-            //            true => "",
-            //            false => $"stored total res splittingMass {totalStoredMass}"
-            //        };
-            //    },
-            //    powerCase: () => "",
-            //    peopleCase: () => ""
-            //);
             textBox.Text = "";
 
             textBox.Text += $"T = {state.Temperature}\nM to E = {massConvertedToEnergy.valueInKg}\n";
@@ -633,6 +460,151 @@ namespace Game1
             infoTextBox.Text += textBox.Text;
             infoTextBox.Text = infoTextBox.Text.Trim();
         }
+
+        //public void UpdatePeople()
+        //{
+        //    Industry?.UpdatePeople();
+        //    state.WaitingPeople.Update(updatePersonSkillsParams: null);
+        //    Debug.Assert(state.LocationCounters.GetCount<NumPeople>() == state.WaitingPeople.NumPeople + (Industry?.Stats.totalNumPeople ?? NumPeople.zero));
+        //    Stats = state.WaitingPeople.Stats.CombineWith(Industry?.Stats ?? RealPeopleStats.empty);
+        //}
+
+        //public void StartSplitRes()
+        //{
+        //    Debug.Assert(undecidedResPile.IsEmpty);
+
+        //    targetStoredResAmounts = Industry?.TargetStoredResAmounts() ?? AllResAmounts.empty;
+
+        //    // deal with resources
+        //    undecidedResPile.TransferAllFrom(source: state.StoredResPile);
+        //    undecidedResPile.TransferAllFrom
+        //    (
+        //        source: state.waitingResAmountsPackets.ReturnAndRemove
+        //        (
+        //            destination: NodeID
+        //        )
+        //    );
+
+        //    state.StoredResPile.TransferAtMostFrom
+        //    (
+        //        source: undecidedResPile,
+        //        maxAmount: targetStoredResAmounts
+        //    );
+        //}
+
+        ///// <summary>
+        ///// MUST call StartSplitRes first
+        ///// </summary>
+        //public void SplitRes(Func<NodeID, INodeAsResDestin> nodeIDToNode, IResource res, Func<NodeID, ulong> maxExtraResFunc)
+        //{
+        //    if (undecidedResPile.Amount[res] is 0)
+        //        return;
+
+        //    var resSplitter = resSplittersToDestins.GetOrCreate(key: res);
+        //    if (resSplitter.Empty)
+        //        state.StoredResPile.TransferAllSingleResFrom(source: undecidedResPile, res: res);
+        //    else
+        //    {
+        //        var (splitResAmounts, unsplitResAmount) = resSplitter.Split(amount: undecidedResPile.Amount[res], maxAmountsFunc: maxExtraResFunc);
+
+        //        {
+        //            var unsplitResPile = ResPile.CreateIfHaveEnough
+        //            (
+        //                source: undecidedResPile,
+        //                amount: new AllResAmounts
+        //                (
+        //                    res: res,
+        //                    amount: unsplitResAmount
+        //                )
+        //            );
+        //            Debug.Assert(unsplitResPile is not null);
+        //            state.StoredResPile.TransferAllFrom(source: unsplitResPile);
+        //        }
+
+        //        foreach (var (destination, resAmountNum) in splitResAmounts)
+        //        {
+        //            ResAmount<IResource> resAmount = new(res: res, amount: resAmountNum);
+        //            var resPileForDestin = ResPile.CreateIfHaveEnough
+        //            (
+        //                source: undecidedResPile,
+        //                amount: new AllResAmounts(resAmount: resAmount)
+        //            );
+        //            Debug.Assert(resPileForDestin is not null);
+        //            state.waitingResAmountsPackets.TransferAllFrom
+        //            (
+        //                source: resPileForDestin,
+        //                destination: destination
+        //            );
+        //            nodeIDToNode(destination).AddResTravelHere(resAmount: resAmount);
+        //        }
+        //    }
+        //    Debug.Assert(undecidedResPile.Amount[res] is 0);
+        //}
+
+//        /// <summary>
+//        /// MUST call SplitRes first
+//        /// </summary>
+//        public void EndSplitRes(EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks)
+//        {
+//            foreach (var resAmountsPacket in state.waitingResAmountsPackets.DeconstructAndClear())
+//            {
+//                NodeID destinationId = resAmountsPacket.destination;
+//                Debug.Assert(destinationId != NodeID);
+
+//                resFirstLinks[(NodeID, destinationId)]!.TransferAllFrom(start: this, resAmountsPacket: resAmountsPacket);
+//            }
+
+//#warning Complete this
+//            //state.TooManyResStored = !(state.StoredResPile.Amount <= targetStoredResAmounts);
+
+//            // TODO: look at this
+//            infoTextBox.Text = $"""
+//                consists of {state.Composition}
+//                stores {state.StoredResPile}
+//                target {targetStoredResAmounts}
+//                Mass of everything {state.LocationCounters.GetCount<AllResAmounts>().Mass()}
+//                Mass of planet {state.PlanetMass}
+//                Number of people {state.LocationCounters.GetCount<NumPeople>()}
+
+//                travelling people stats:
+//                {state.WaitingPeople.Stats}
+
+//                """;
+
+//            // update text
+//            //textBox.Text = CurWorldManager.Overlay.SwitchExpression
+//            //(
+//            //    singleResCase: res =>
+//            //    {
+//            //        if (state.StoredResPile.Amount[res] is not 0 || targetStoredResAmounts[res] is not 0)
+//            //            return (state.StoredResPile.Amount[res] >= targetStoredResAmounts[res]) switch
+//            //            {
+//            //                true => $"have {state.StoredResPile.Amount[res] - targetStoredResAmounts[res]} extra resources",
+//            //                false => $"have {(double)state.StoredResPile.Amount[res] / targetStoredResAmounts[res] * 100:0.}% of target stored resources\n",
+//            //            };
+//            //        else
+//            //            return "";
+//            //    },
+//            //    allResCase: () =>
+//            //    {
+//            //        Mass totalStoredMass = state.StoredResPile.Amount.Mass();
+//            //        return totalStoredMass.IsZero switch
+//            //        {
+//            //            true => "",
+//            //            false => $"stored total res splittingMass {totalStoredMass}"
+//            //        };
+//            //    },
+//            //    powerCase: () => "",
+//            //    peopleCase: () => ""
+//            //);
+//            textBox.Text = "";
+
+//            textBox.Text += $"T = {state.Temperature}\nM to E = {massConvertedToEnergy.valueInKg}\n";
+//            textBox.Text = textBox.Text.Trim();
+
+//            infoTextBox.Text += textBox.Text;
+//            infoTextBox.Text = infoTextBox.Text.Trim();
+//        }
 
         protected override void DrawPreBackground(Color otherColor, Propor otherColorPropor)
         {
@@ -681,7 +653,14 @@ namespace Game1
 
         void ILinkFacingCosmicBody.Arrive(ResAmountsPacketsByDestin resAmountsPackets)
         {
-            resTravelHereAmounts -= resAmountsPackets.ResToDestinAmounts(destination: NodeID);
+            var resArrivingHere = resAmountsPackets.ReturnAndRemove(destination: NodeID);
+            if (!resArrivingHere.IsEmpty)
+            {
+                if (Industry is null)
+                    throw new ArgumentException("Resources arrived but there is no industry to take them");
+                Industry.Arrive(arrivingResPile: resArrivingHere);
+            }
+            
             state.waitingResAmountsPackets.TransferAllFrom(sourcePackets: resAmountsPackets);
         }
 
@@ -740,9 +719,6 @@ namespace Game1
                     )
                 )
             );
-
-        void INodeAsResDestin.AddResTravelHere(ResAmount<IResource> resAmount)
-            => resTravelHereAmounts += new AllResAmounts(resAmount: resAmount);
 
         void INodeAsLocalEnergyProducerAndConsumer.ConsumeUnusedLocalEnergyFrom(EnergyPile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {

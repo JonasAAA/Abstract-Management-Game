@@ -112,7 +112,6 @@ namespace Game1
                         rawMatRatios: ResAndIndustryAlgos.CosmicBodyRandomRawMatRatios(startingRawMatTargetRatios: startingRawMatTargetRatios),
                         resSource: magicUnlimitedStartingResPile
                     ),
-                    activeColor: colorConfig.selectedWorldUIElementColor,
                     createIndustry: nodeState =>
                     {
                         var industry = CreateIndustry(nodeState: nodeState, cosmicBodyName: cosmicBodyInfo.Name);

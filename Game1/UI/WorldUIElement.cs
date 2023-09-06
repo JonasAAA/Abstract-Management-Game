@@ -47,14 +47,6 @@ namespace Game1.UI
             }
         }
 
-        protected sealed override Color Color
-            => Active switch
-            {
-                true => activeColor,
-                false => inactiveColor
-            };
-        protected Color activeColor, inactiveColor;
-        
         private bool active;
 
         /// <summary>
@@ -63,12 +55,10 @@ namespace Game1.UI
         /// </summary>
         protected abstract EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups { get; }
 
-        public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor)
+        public WorldUIElement(Shape shape)
             : base(shape: shape)
         {
             activeChanged = new();
-            this.activeColor = activeColor;
-            this.inactiveColor = inactiveColor;
             active = false;
         }
 

@@ -86,6 +86,8 @@ namespace Game1
                 return popups.ToEfficientReadOnlyCollection();
             }
         }
+        protected sealed override Color Color
+            => state.Composition.Color();
 
         private readonly NodeState state;
         private readonly LightPolygon lightPolygon;
@@ -109,13 +111,8 @@ namespace Game1
         private readonly UIRectPanel<IHUDElement> infoPanel;
         private readonly TextBox infoTextBox;
 
-        public CosmicBody(NodeState state, Color activeColor, Func<IIndustryFacingNodeState, IIndustry?> createIndustry)
-            : base
-            (
-                shape: new LightBlockingDisk(parameters: new ShapeParams(State: state)),
-                activeColor: activeColor,
-                inactiveColor: state.Composition.Color()
-            )
+        public CosmicBody(NodeState state, Func<IIndustryFacingNodeState, IIndustry?> createIndustry)
+            : base(shape: new LightBlockingDisk(parameters: new ShapeParams(State: state)))
         {
             this.state = state;
             lightPolygon = new(color: state.Composition.Color());

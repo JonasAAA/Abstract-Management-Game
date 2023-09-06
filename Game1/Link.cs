@@ -172,6 +172,13 @@ namespace Game1
         public RealPeopleStats Stats { get; private set; }
 
         protected override EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups { get; }
+        protected sealed override Color Color
+            => Color.Lerp
+            (
+                value1: colorConfig.cheapLinkColor,
+                value2: colorConfig.costlyLinkColor,
+                amount: (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
+            );
 
         private readonly DirLink link1To2, link2To1;
         private readonly TextBox infoTextBox;
@@ -182,9 +189,7 @@ namespace Game1
                 shape: new LineSegment
                 (
                     parameters: new ShapeParams(Node1: node1, Node2: node2)
-                ),
-                activeColor: Color.White,
-                inactiveColor: colorConfig.costlyLinkColor
+            )
             )
         {
             if (node1 == node2)
@@ -257,15 +262,6 @@ namespace Game1
 
             link1To2.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
             link2To1.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
-
-            //inactiveColor = ActiveUIManager.colorConfig.linkColor;
-            // TODO(Color): turn activeColor and inactiveColor into abstract properties
-            inactiveColor = Color.Lerp
-            (
-                value1: colorConfig.cheapLinkColor,
-                value2: colorConfig.costlyLinkColor,
-                amount: (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
-            );
         }
 
         public void EndUpdate()

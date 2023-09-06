@@ -12,7 +12,7 @@
             : base(width: width, height: height)
         { }
 
-        public override bool Contains(MyVector2 position)
+        public sealed override bool Contains(MyVector2 position)
         {
             MyVector2 relPos = position - Center;
             double propX = 2 * relPos.X / Width,
@@ -20,7 +20,7 @@
             return propX * propX + propY * propY < 1;
         }
 
-        public override void Draw(Color color)
+        public sealed override void Draw(Color color)
             => C.Draw
             (
                 texture: diskTexture,

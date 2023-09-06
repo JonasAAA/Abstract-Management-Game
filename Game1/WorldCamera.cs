@@ -85,7 +85,7 @@ namespace Game1
                 => 0 <= value && value <= screenBoundWidthForMapMoving; 
         }
 
-        public override Matrix GetToScreenTransform()
+        public sealed override Matrix GetToScreenTransform()
             => worldToScreen;
     }
 }

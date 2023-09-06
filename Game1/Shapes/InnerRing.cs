@@ -27,7 +27,7 @@
             );
         }
 
-        protected override Texture2D RingTexture
+        protected sealed override Texture2D RingTexture
             => ringTexture;
 
         public InnerRing(IParamsWithInnerRadius parameters)

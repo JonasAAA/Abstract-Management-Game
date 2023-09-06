@@ -8,14 +8,14 @@
         static Arrow()
             => triangleTexture = C.LoadTexture(name: "triangle");
 
-        protected override Texture2D Texture
+        protected sealed override Texture2D Texture
             => triangleTexture;
 
         public Arrow(IParams parameters)
             : base(parameters: parameters)
         { }
 
-        protected override bool Contains(Propor dirPropor, Propor orthDirPropor)
+        protected sealed override bool Contains(Propor dirPropor, Propor orthDirPropor)
             => (UDouble)dirPropor + (UDouble)orthDirPropor < 1;
     }
 }

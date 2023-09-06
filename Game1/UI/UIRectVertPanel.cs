@@ -11,7 +11,7 @@ namespace Game1.UI
         public UIRectVertPanel(HorizPosEnum childHorizPos)
             => this.childHorizPos = childHorizPos;
 
-        protected override void PartOfRecalcSizeAndPos()
+        protected sealed override void PartOfRecalcSizeAndPos()
         {
             base.PartOfRecalcSizeAndPos();
 

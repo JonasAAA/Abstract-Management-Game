@@ -171,7 +171,7 @@ namespace Game1
         public TimeSpan TravelTime { get; private set; }
         public RealPeopleStats Stats { get; private set; }
 
-        protected override EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups { get; }
+        protected sealed override EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups { get; }
         protected sealed override Color Color
             => Color.Lerp
             (
@@ -189,7 +189,7 @@ namespace Game1
                 shape: new LineSegment
                 (
                     parameters: new ShapeParams(Node1: node1, Node2: node2)
-            )
+                )
             )
         {
             if (node1 == node2)
@@ -275,7 +275,7 @@ namespace Game1
             infoTextBox.Text = $"Travel cost is {JoulesPerKg:0.000} J/Kg\nTravelling resources {travellingResAmounts}";
         }
 
-        protected override void DrawChildren()
+        protected sealed override void DrawChildren()
         {
             base.DrawChildren();
 
@@ -286,7 +286,7 @@ namespace Game1
         // this is commented out, otherwise the object construction fails as
         // tries to put object into HashSet before assigning node1 and node2
 
-        //public override int GetHashCode()
+        //public sealed override int GetHashCode()
         //    => node1.GetHashCode() ^ node2.GetHashCode();
 
         //public static bool operator ==(Link link1, Link link2)
@@ -296,7 +296,7 @@ namespace Game1
         //public static bool operator !=(Link link1, Link link2)
         //    => !(link1 == link2);
 
-        //public override bool Equals(object obj)
+        //public sealed override bool Equals(object obj)
         //{
         //    if (obj is Link other)
         //        return this == other;

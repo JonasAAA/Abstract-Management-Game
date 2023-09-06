@@ -19,7 +19,7 @@ namespace Game1.UI
                 );
         }
 
-        protected override Color Color
+        protected sealed override Color Color
             => colorConfig.UIBackgroundColor;
 
         private readonly MultipleChoicePanel<string> tabChoicePanel;
@@ -53,7 +53,7 @@ namespace Game1.UI
                 AddChild(tab);
         }
 
-        protected override void PartOfRecalcSizeAndPos()
+        protected sealed override void PartOfRecalcSizeAndPos()
         {
             base.PartOfRecalcSizeAndPos();
 
@@ -105,7 +105,7 @@ namespace Game1.UI
             AddChild(child: tab);
         }
 
-        public override IUIElement? CatchUIElement(MyVector2 mousePos)
+        public sealed override IUIElement? CatchUIElement(MyVector2 mousePos)
         {
             if (!Shape.Contains(position: mousePos))
                 return null;
@@ -122,7 +122,7 @@ namespace Game1.UI
             return ActiveTab.CatchUIElement(mousePos: mousePos) ?? this;
         }
 
-        protected override void DrawChildren()
+        protected sealed override void DrawChildren()
         {
             tabChoicePanel.Draw();
             ActiveTab?.Draw();

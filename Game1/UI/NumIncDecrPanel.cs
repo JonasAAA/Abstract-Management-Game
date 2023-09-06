@@ -41,7 +41,7 @@ namespace Game1.UI
 
         public Event<INumberChangedListener> numberChanged;
 
-        protected override Color Color
+        protected sealed override Color Color
             => colorConfig.UIBackgroundColor;
 
         private int number;
@@ -102,7 +102,7 @@ namespace Game1.UI
             SetNumber(newNumber: number);
         }
 
-        protected override void PartOfRecalcSizeAndPos()
+        protected sealed override void PartOfRecalcSizeAndPos()
         {
             base.PartOfRecalcSizeAndPos();
 

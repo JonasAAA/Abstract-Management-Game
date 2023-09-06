@@ -21,14 +21,14 @@ namespace Game1.UI
             inRecalcSizeAndPos = false;
         }
 
-        protected override void AddChild(IHUDElement child, ulong layer = 0)
+        protected sealed override void AddChild(IHUDElement child, ulong layer = 0)
         {
             base.AddChild(child, layer);
             child.SizeOrPosChanged.Add(listener: this);
             RecalcSizeAndPos();
         }
 
-        protected override void RemoveChild(IHUDElement child)
+        protected sealed override void RemoveChild(IHUDElement child)
         {
             base.RemoveChild(child);
             child.SizeOrPosChanged.Remove(listener: this);

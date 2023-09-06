@@ -9,7 +9,7 @@ namespace Game1.UI
             : base(shape: shape, tooltip: tooltip, text: text, on: on)
         { }
 
-        public override void OnClick()
+        public sealed override void OnClick()
             => On = !On;
     }
 }

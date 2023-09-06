@@ -185,7 +185,7 @@ namespace Game1.Resources
             return true;
         }
 
-        public override string ToString()
+        public sealed override string ToString()
             => Name;
     }
 }

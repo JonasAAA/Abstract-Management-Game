@@ -28,12 +28,12 @@ namespace Game1
         public TimeSpan MaxLinkTravelTime { get; private set; }
         public UDouble MaxLinkJoulesPerKg { get; private set; }
 
-        public override bool CanBeClicked
+        public sealed override bool CanBeClicked
             => true;
         public RealPeopleStats Stats { get; private set; }
 
         // THIS COLOR IS NOT USED
-        protected override Color Color
+        protected sealed override Color Color
             => colorConfig.cosmosBackgroundColor;
 
         private EfficientReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
@@ -342,7 +342,7 @@ namespace Game1
         public MyVector2 NodePosition(NodeID nodeID)
             => nodeIDToNode[nodeID].Position;
 
-        public override void OnClick()
+        public sealed override void OnClick()
         {
             base.OnClick();
 
@@ -435,7 +435,7 @@ namespace Game1
                 child.Draw();
         }
 
-        protected override void DrawChildren()
+        protected sealed override void DrawChildren()
             => throw new InvalidOperationException();
 
         void IActiveChangedListener.ActiveChangedResponse(WorldUIElement worldUIElement)

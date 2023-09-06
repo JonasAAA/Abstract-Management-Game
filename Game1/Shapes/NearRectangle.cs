@@ -3,7 +3,7 @@
 namespace Game1.Shapes
 {
     [Serializable]
-    public abstract class NearRectangle : Shape
+    public abstract class NearRectangle : Shape, IWithStandardPositions
     {
         // can do:
         //public abstract class GeneralParams

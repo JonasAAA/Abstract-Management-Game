@@ -46,7 +46,7 @@ namespace Game1.Resources
                     counter: ResCounter.CreateByMagic(count: amount)
                 );
 
-            protected override ResCounter Counter { get; }
+            protected sealed override ResCounter Counter { get; }
 
             private ResPileInternal(LocationCounters locationCounters, ResCounter counter)
                 : base(locationCounters: locationCounters, counter: counter)

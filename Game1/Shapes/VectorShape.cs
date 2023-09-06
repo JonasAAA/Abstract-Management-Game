@@ -22,7 +22,7 @@
             this.parameters = parameters;
         }
 
-        public override bool Contains(MyVector2 position)
+        public sealed override bool Contains(MyVector2 position)
         {
             MyVector2 relPos = position - parameters.StartPos,
                 direction = MyVector2.Normalized(parameters.EndPos - parameters.StartPos);
@@ -38,7 +38,7 @@
 
         protected abstract bool Contains(Propor dirPropor, Propor orthDirPropor);
 
-        public override void Draw(Color color)
+        public sealed override void Draw(Color color)
             => C.Draw
             (
                 texture: Texture,

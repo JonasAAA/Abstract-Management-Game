@@ -22,7 +22,7 @@ namespace Game1
         [Serializable]
         private sealed class PauseButtonTooltip : TextTooltipBase
         {
-            protected override string Text
+            protected sealed override string Text
                 => onOffButton?.On switch
                 {
                     true => "Press to resume the game",

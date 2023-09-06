@@ -16,13 +16,13 @@ namespace Game1.Shapes
             MinHeight = 2 * ActiveUIManager.RectOutlineWidth;
         }
 
-        public override bool Contains(MyVector2 position)
+        public sealed override bool Contains(MyVector2 position)
         {
             MyVector2 relPos = position - Center;
             return MyMathHelper.Abs(relPos.X) < Width * (UDouble).5 && MyMathHelper.Abs(relPos.Y) < Height * (UDouble).5;
         }
 
-        public override void Draw(Color color)
+        public sealed override void Draw(Color color)
         {
             if (Width.IsCloseTo(other: 0) || Height.IsCloseTo(other: 0))
                 return;

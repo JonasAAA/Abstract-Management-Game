@@ -55,7 +55,7 @@ namespace Game1
             }
         }
 
-        protected override EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups
+        protected sealed override EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups
         {
             get
             {
@@ -310,7 +310,7 @@ namespace Game1
         //    Stats = state.WaitingPeople.Stats.CombineWith(Industry?.Stats ?? RealPeopleStats.empty);
         //}
 
-        protected override void DrawPreBackground(Color otherColor, Propor otherColorPropor)
+        protected sealed override void DrawPreBackground(Color otherColor, Propor otherColorPropor)
         {
             base.DrawPreBackground(otherColor, otherColorPropor);
 

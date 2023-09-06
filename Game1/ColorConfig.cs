@@ -12,7 +12,7 @@
             costlyLinkColor,
             houseIndustryColor,
             linkTravellerColor,
-            selectedWorldUIElementColor,
+            mapCreationSelectedWorldUIElementColor,
             // industry colors
             miningBuildingColor,
             manufacturingBuildingColor,
@@ -41,7 +41,7 @@
             costlyLinkColor = C.ColorFromRGB(rgb: 0x003654);
             houseIndustryColor = Color.Yellow;
             linkTravellerColor = Color.Black;
-            selectedWorldUIElementColor = Color.White;
+            mapCreationSelectedWorldUIElementColor = Color.White;
             // industry colors
             miningBuildingColor = Color.Brown;
             manufacturingBuildingColor = Color.DarkGray;

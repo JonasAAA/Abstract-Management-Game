@@ -54,7 +54,7 @@ namespace Game1.UI
             }
         }
 
-        protected override Color Color
+        protected sealed override Color Color
             => colorConfig.UIBackgroundColor;
 
         private readonly UIRectPanel<SelectButton> choicePanel;
@@ -93,7 +93,7 @@ namespace Game1.UI
             AddChild(child: choicePanel);
         }
 
-        protected override void PartOfRecalcSizeAndPos()
+        protected sealed override void PartOfRecalcSizeAndPos()
         {
             base.PartOfRecalcSizeAndPos();
 

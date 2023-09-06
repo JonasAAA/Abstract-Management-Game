@@ -14,7 +14,7 @@ namespace Game1.UI
     {
         public readonly Event<IActiveChangedListener> activeChanged;
 
-        public override bool CanBeClicked
+        public sealed override bool CanBeClicked
             => !Active;
 
         public bool Active
@@ -46,7 +46,7 @@ namespace Game1.UI
                 activeChanged.Raise(action: listener => listener.ActiveChangedResponse(worldUIElement: this));
             }
         }
-
+        
         private bool active;
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Game1.UI
             active = false;
         }
 
-        public override void OnClick()
+        public sealed override void OnClick()
         {
             if (Active)
                 return;

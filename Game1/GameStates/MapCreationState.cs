@@ -63,7 +63,7 @@ namespace Game1.GameStates
                 nextId++;
             }
 
-            public override string ToString()
+            public sealed override string ToString()
                 => id.ToString();
         }
 
@@ -379,7 +379,7 @@ namespace Game1.GameStates
                 usedNames: CurMapInfo.CosmicBodies.Values.Select(cosmicBody => cosmicBody.Name).ToEfficientReadOnlyHashSet()
             );
 
-        public override void Update(TimeSpan elapsed)
+        public sealed override void Update(TimeSpan elapsed)
         {
             throw new NotImplementedException();
             //worldCamera.Update(elapsed: elapsed, canScroll: true);
@@ -605,7 +605,7 @@ namespace Game1.GameStates
                     id: id,
                     shape: cosmicBody.GetShape(),
                     color: (selectedUIElement is CosmicBodyId selectedCosmicBody && selectedCosmicBody == id)
-                        ? ActiveUIManager.colorConfig.selectedWorldUIElementColor
+                        ? ActiveUIManager.colorConfig.mapCreationSelectedWorldUIElementColor
                         : ActiveUIManager.colorConfig.Res0Color
                 );
             foreach (var (id, link) in CurMapInfo.Links)
@@ -614,12 +614,12 @@ namespace Game1.GameStates
                     id: id,
                     shape: link.GetShape(curMapInfo: CurMapInfo),
                     color: (selectedUIElement is LinkId selectedLink && selectedLink == id)
-                        ? ActiveUIManager.colorConfig.selectedWorldUIElementColor
+                        ? ActiveUIManager.colorConfig.mapCreationSelectedWorldUIElementColor
                         : ActiveUIManager.colorConfig.costlyLinkColor
                 );
         }
 
-        public override void Draw()
+        public sealed override void Draw()
         {
             C.GraphicsDevice.Clear(C.ColorFromRGB(rgb: 0x00035b));
 

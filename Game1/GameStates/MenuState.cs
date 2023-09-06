@@ -24,7 +24,7 @@ namespace Game1.GameStates
             this.getHUDElements = getHUDElements;
         }
 
-        public override void OnEnter()
+        public sealed override void OnEnter()
         {
             if (getHUDElements is null)
                 throw new ArgumentException();
@@ -38,10 +38,10 @@ namespace Game1.GameStates
             activeUIManager.AddHUDElement(HUDElement: UIPanel, position: new(HorizPosEnum.Middle, VertPosEnum.Middle));
         }
 
-        public override void Update(TimeSpan elapsed)
+        public sealed override void Update(TimeSpan elapsed)
             => activeUIManager.Update(elapsed: elapsed);
 
-        public override void Draw()
+        public sealed override void Draw()
         {
             if (getHUDElements is null)
                 throw new InvalidOperationException();

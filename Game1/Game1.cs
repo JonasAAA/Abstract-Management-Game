@@ -39,7 +39,7 @@ namespace Game1
             GCSettings.LatencyMode = GCLatencyMode.SustainedLowLatency;
         }
 
-        protected override void Initialize()
+        protected sealed override void Initialize()
         {
             graphics.GraphicsProfile = GraphicsProfile.HiDef;
             graphics.PreferMultiSampling = true;
@@ -134,7 +134,7 @@ namespace Game1
                 ).ToEfficientReadOnlyHashSet()
             );
 
-        protected override void LoadContent()
+        protected sealed override void LoadContent()
         {
             C.Initialize
             (
@@ -484,7 +484,7 @@ namespace Game1
             gameState.OnEnter();
         }
 
-        protected override void Update(GameTime gameTime)
+        protected sealed override void Update(GameTime gameTime)
         {
             TimeSpan elapsed = gameTime.ElapsedGameTime;
 
@@ -493,7 +493,7 @@ namespace Game1
             base.Update(gameTime);
         }
 
-        protected override void Draw(GameTime gameTime)
+        protected sealed override void Draw(GameTime gameTime)
         {
             gameState.Draw();
 

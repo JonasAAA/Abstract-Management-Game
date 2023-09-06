@@ -37,7 +37,7 @@ namespace Game1.GameStates
                 action: switchToPauseMenu
             );
 
-        public override void Update(TimeSpan elapsed)
+        public sealed override void Update(TimeSpan elapsed)
         {
             WorldManager.CurWorldManager.Update(elapsedGameTime: elapsed);
             switchToPauseMenuButton.Update();
@@ -46,7 +46,7 @@ namespace Game1.GameStates
         public void SaveGame(string saveFilePath)
             => WorldManager.CurWorldManager.Save(saveFilePath: saveFilePath);
 
-        public override void Draw()
+        public sealed override void Draw()
         {
             C.GraphicsDevice.Clear(colorConfig.cosmosBackgroundColor);
             WorldManager.CurWorldManager.Draw();

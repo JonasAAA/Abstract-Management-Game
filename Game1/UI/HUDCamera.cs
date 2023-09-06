@@ -23,7 +23,7 @@ namespace Game1.UI
         public UDouble HUDLengthToScreenLength(UDouble HUDLength)
             => HUDLength * ScreenScale;
 
-        public override Matrix GetToScreenTransform()
+        public sealed override Matrix GetToScreenTransform()
             => HUDToScreen;
     }
 }

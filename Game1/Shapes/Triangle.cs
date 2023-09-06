@@ -47,7 +47,7 @@
             scaleY = BaseLength / (UDouble)triangleTexture.Width;
         }
 
-        public override bool Contains(MyVector2 position)
+        public sealed override bool Contains(MyVector2 position)
         {
             MyVector2 relPos = position - BasePos;
             double dirProp = MyVector2.Dot(relPos, dirVector) / MainAltitudeLength,
@@ -57,7 +57,7 @@
             return dirProp + orthDirProp < 1;
         }
 
-        public override void Draw(Color color)
+        public sealed override void Draw(Color color)
             => C.Draw
             (
                 texture: triangleTexture,

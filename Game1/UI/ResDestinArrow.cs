@@ -53,13 +53,12 @@ namespace Game1.UI
         private readonly NumIncDecrPanel importanceIncDecrPanel;
         private readonly TextBox line2;
 
-        public ResDestinArrow(VectorShape.IParams shapeParams, NodeID destinId, Color defaultActiveColor, Color defaultInactiveColor, PosEnums popupPos, int minImportance, int startImportance, IResource res)
+        public ResDestinArrow(VectorShape.IParams shapeParams, NodeID destinId, Color defaultActiveColor, Color defaultInactiveColor, int minImportance, int startImportance, IResource res)
             : base
             (
                 shape: new Arrow(parameters: shapeParams),
                 activeColor: defaultActiveColor,
-                inactiveColor: defaultInactiveColor,
-                popupPos: popupPos
+                inactiveColor: defaultInactiveColor
             )
         {
             this.destinId = destinId;

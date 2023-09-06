@@ -114,8 +114,7 @@ namespace Game1
             (
                 shape: new LightBlockingDisk(parameters: new ShapeParams(State: state)),
                 activeColor: activeColor,
-                inactiveColor: state.Composition.Color(),
-                popupPos: new(HorizPosEnum.Right, VertPosEnum.Top)
+                inactiveColor: state.Composition.Color()
             )
         {
             this.state = state;

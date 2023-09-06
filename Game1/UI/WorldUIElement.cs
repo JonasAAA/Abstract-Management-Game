@@ -54,8 +54,6 @@ namespace Game1.UI
                 false => inactiveColor
             };
         protected Color activeColor, inactiveColor;
-
-        private readonly PosEnums popupPos;
         
         private bool active;
 
@@ -65,13 +63,12 @@ namespace Game1.UI
         /// </summary>
         protected abstract EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups { get; }
 
-        public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor, PosEnums popupPos)
+        public WorldUIElement(Shape shape, Color activeColor, Color inactiveColor)
             : base(shape: shape)
         {
             activeChanged = new();
             this.activeColor = activeColor;
             this.inactiveColor = inactiveColor;
-            this.popupPos = popupPos;
             active = false;
         }
 

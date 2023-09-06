@@ -14,8 +14,9 @@ namespace Game1.GameStates
         {
             void IAction.Invoke()
             {
-                if (MapCreationState.CurMapInfo.StartingInfo.HouseCosmicBodyId is CosmicBodyId houseCosmicBodyId)
-                    MapCreationState.houseTextBox.Shape.Center = MapCreationState.CurCosmicBodyHUDPos(cosmicBodyId: houseCosmicBodyId);
+                throw new NotImplementedException();
+                //if (MapCreationState.CurMapInfo.StartingInfo.HouseCosmicBodyId is CosmicBodyId houseCosmicBodyId)
+                //    MapCreationState.houseTextBox.Shape.Center = MapCreationState.CurCosmicBodyHUDPos(cosmicBodyId: houseCosmicBodyId);
             }
         }
 
@@ -111,7 +112,8 @@ namespace Game1.GameStates
         }
 
         [Serializable]
-        private readonly record struct StartingInfoInternal(CosmicBodyId? HouseCosmicBodyId, CosmicBodyId? PowerPlantCosmicBodyId, MyVector2 WorldCenter, UDouble CameraViewHeight);
+        private readonly record struct StartingInfoInternal(MyVector2 WorldCenter, UDouble CameraViewHeight, CosmicBodyId? PowerPlantCosmicBodyId,
+            CosmicBodyId? GearStorageCosmicBodyId, CosmicBodyId? WireStorageCosmicBodyId, CosmicBodyId? RoofTileStorageCosmicBodyId);
 
         [Serializable]
         private record struct MapInfoInternal(ImmutableDictionary<CosmicBodyId, CosmicBodyInfoInternal> CosmicBodies, ImmutableDictionary<LinkId, LinkInfoInternal> Links, StartingInfoInternal StartingInfo)
@@ -123,51 +125,54 @@ namespace Game1.GameStates
                     Links: ImmutableDictionary<LinkId, LinkInfoInternal>.Empty,
                     StartingInfo: new
                     (
-                        HouseCosmicBodyId: null,
-                        PowerPlantCosmicBodyId: null,
                         WorldCenter: MyVector2.zero,
-                        CameraViewHeight: ActiveUIManager.curUIConfig.standardScreenHeight
+                        CameraViewHeight: ActiveUIManager.curUIConfig.standardScreenHeight,
+                        PowerPlantCosmicBodyId: null,
+                        GearStorageCosmicBodyId: null,
+                        WireStorageCosmicBodyId: null,
+                        RoofTileStorageCosmicBodyId: null
                     )
                 );
 
             public static MapInfoInternal Create(ValidMapInfo mapInfo)
             {
-                throw new NotImplementedException();
-                //List<CosmicBodyInfoInternal> cosmicBodies = mapInfo.CosmicBodies.Select
-                //(
-                //    cosmicBodyInfo => new CosmicBodyInfoInternal
-                //    (
-                //        Id: new(),
-                //        Name: cosmicBodyInfo.Name,
-                //        Position: cosmicBodyInfo.Position,
-                //        Radius: cosmicBodyInfo.Radius
-                //    )
-                //).ToList();
-                //ImmutableDictionary<string, CosmicBodyId> cosmicBodyNameToId = cosmicBodies.ToImmutableDictionary
-                //(
-                //    keySelector: cosmicBody => cosmicBody.Name,
-                //    elementSelector: cosmicBody => cosmicBody.Id
-                //);
-                //return new
-                //(
-                //    CosmicBodies: cosmicBodies.ToImmutableDictionary(keySelector: cosmicBody => cosmicBody.Id),
-                //    Links: mapInfo.Links.Select
-                //    (
-                //        HUDLink => new LinkInfoInternal
-                //        (
-                //            Id: new(),
-                //            From: cosmicBodyNameToId[HUDLink.From],
-                //            To: cosmicBodyNameToId[HUDLink.To]
-                //        )
-                //    ).ToImmutableDictionary(keySelector: link => link.Id),
-                //    StartingInfo: new
-                //    (
-                //        HouseCosmicBodyId: mapInfo.StartingInfo.HouseCosmicBody is null ? null : cosmicBodyNameToId[mapInfo.StartingInfo.HouseCosmicBody],
-                //        PowerPlantCosmicBodyId: mapInfo.StartingInfo.PowerPlantCosmicBody is null ? null : cosmicBodyNameToId[mapInfo.StartingInfo.PowerPlantCosmicBody],
-                //        WorldCenter: mapInfo.StartingInfo.WorldCenter,
-                //        CameraViewHeight: mapInfo.StartingInfo.CameraViewHeight
-                //    )
-                //);
+                List<CosmicBodyInfoInternal> cosmicBodies = mapInfo.CosmicBodies.Select
+                (
+                    cosmicBodyInfo => new CosmicBodyInfoInternal
+                    (
+                        Id: new(),
+                        Name: cosmicBodyInfo.Name,
+                        Position: cosmicBodyInfo.Position,
+                        Radius: cosmicBodyInfo.Radius
+                    )
+                ).ToList();
+                ImmutableDictionary<string, CosmicBodyId> cosmicBodyNameToId = cosmicBodies.ToImmutableDictionary
+                (
+                    keySelector: cosmicBody => cosmicBody.Name,
+                    elementSelector: cosmicBody => cosmicBody.Id
+                );
+                return new
+                (
+                    CosmicBodies: cosmicBodies.ToImmutableDictionary(keySelector: cosmicBody => cosmicBody.Id),
+                    Links: mapInfo.Links.Select
+                    (
+                        HUDLink => new LinkInfoInternal
+                        (
+                            Id: new(),
+                            From: cosmicBodyNameToId[HUDLink.From],
+                            To: cosmicBodyNameToId[HUDLink.To]
+                        )
+                    ).ToImmutableDictionary(keySelector: link => link.Id),
+                    StartingInfo: new
+                    (
+                        WorldCenter: mapInfo.StartingInfo.WorldCenter,
+                        CameraViewHeight: mapInfo.StartingInfo.CameraViewHeight,
+                        PowerPlantCosmicBodyId: GetStructValueOrNull(dict: cosmicBodyNameToId, key: mapInfo.StartingInfo.PowerPlantCosmicBody),
+                        GearStorageCosmicBodyId: GetStructValueOrNull(dict: cosmicBodyNameToId, key: mapInfo.StartingInfo.GearStorageCosmicBody),
+                        WireStorageCosmicBodyId: GetStructValueOrNull(dict: cosmicBodyNameToId, key: mapInfo.StartingInfo.WireStorageCosmicBody),
+                        RoofTileStorageCosmicBodyId: GetStructValueOrNull(dict: cosmicBodyNameToId, key: mapInfo.StartingInfo.RoofTileStorageCosmicBody)
+                    )
+                );
             }
 
             public ValidMapInfo ToValidMapInfo()
@@ -197,13 +202,31 @@ namespace Game1.GameStates
                 //    ).ToArray(),
                 //    startingInfo: ValidStartingInfo.CreateOrThrow
                 //    (
-                //        houseCosmicBodyName: StartingInfo.HouseCosmicBodyId is null ? null : cosmicBodiesCopy[StartingInfo.HouseCosmicBodyId.Value].Name,
-                //        powerPlantCosmicBodyName: StartingInfo.PowerPlantCosmicBodyId is null ? null : cosmicBodiesCopy[StartingInfo.PowerPlantCosmicBodyId.Value].Name,
                 //        worldCenter: StartingInfo.WorldCenter,
-                //        cameraViewHeight: StartingInfo.CameraViewHeight
+                //        cameraViewHeight: StartingInfo.CameraViewHeight,
+                //        powerPlantCosmicBody: GetClassValueOrNull<CosmicBodyId, CosmicBodyInfoInternal>(dict: cosmicBodiesCopy, key: StartingInfo.PowerPlantCosmicBodyId).Name, // is null ? null : cosmicBodiesCopy[StartingInfo.PowerPlantCosmicBodyId.Value].Name,
+
                 //    )
                 //);
             }
+
+            private static TValue? GetClassValueOrNull<TKey, TValue>(ImmutableDictionary<TKey, TValue> dict, TKey? key)
+                where TKey : notnull
+                where TValue : class
+                => key switch
+                {
+                    TKey notNullKey => dict[notNullKey],
+                    null => null
+                };
+
+            private static TValue? GetStructValueOrNull<TKey, TValue>(ImmutableDictionary<TKey, TValue> dict, TKey? key)
+                where TKey : notnull
+                where TValue : struct
+                => key switch
+                {
+                    TKey notNullKey => dict[notNullKey],
+                    null => null
+                };
         }
 
         [Serializable]
@@ -358,16 +381,17 @@ namespace Game1.GameStates
 
         public override void Update(TimeSpan elapsed)
         {
-            worldCamera.Update(elapsed: elapsed, canScroll: true);
-            activeUIManager.Update(elapsed: elapsed);
+            throw new NotImplementedException();
+            //worldCamera.Update(elapsed: elapsed, canScroll: true);
+            //activeUIManager.Update(elapsed: elapsed);
 
-            var newMapInfo = HandleUserInput();
-            if (newMapInfo is not null)
-                changeHistory.LogNewChange(newMapInfo: newMapInfo.Value);
+            //var newMapInfo = HandleUserInput();
+            //if (newMapInfo is not null)
+            //    changeHistory.LogNewChange(newMapInfo: newMapInfo.Value);
             
-            globalTextBox.Text = expandControlDescr ? controlDescrExp : controlDescrContr + "\n\n" + changeHistory.CurInfoForUser;
-            houseTextBox.Text = CurMapInfo.StartingInfo.HouseCosmicBodyId is null ? null : "House";
-            powerPlantTextBox.Text = CurMapInfo.StartingInfo.PowerPlantCosmicBodyId is null ? null : "Power\nplant";
+            //globalTextBox.Text = expandControlDescr ? controlDescrExp : controlDescrContr + "\n\n" + changeHistory.CurInfoForUser;
+            //houseTextBox.Text = CurMapInfo.StartingInfo.HouseCosmicBodyId is null ? null : "House";
+            //powerPlantTextBox.Text = CurMapInfo.StartingInfo.PowerPlantCosmicBodyId is null ? null : "Power\nplant";
         }
 
         private MyVector2 CurCosmicBodyHUDPos(CosmicBodyId cosmicBodyId)
@@ -381,195 +405,196 @@ namespace Game1.GameStates
 
         private MapInfoInternal? HandleUserInput()
         {
-            switchToPauseMenuButton.Update();
-            var mouseState = Mouse.GetState();
-            var keyboardState = Keyboard.GetState();
-            mouseLeftButton.Update(down: mouseState.LeftButton == ButtonState.Pressed);
-            MyVector2 mouseWorldPos = worldCamera.ScreenPosToWorldPos
-            (
-                screenPos: new
-                (
-                    x: mouseState.Position.X,
-                    y: mouseState.Position.Y
-                )
-            );
+            throw new NotImplementedException();
+            //switchToPauseMenuButton.Update();
+            //var mouseState = Mouse.GetState();
+            //var keyboardState = Keyboard.GetState();
+            //mouseLeftButton.Update(down: mouseState.LeftButton == ButtonState.Pressed);
+            //MyVector2 mouseWorldPos = worldCamera.ScreenPosToWorldPos
+            //(
+            //    screenPos: new
+            //    (
+            //        x: mouseState.Position.X,
+            //        y: mouseState.Position.Y
+            //    )
+            //);
 
-            IWorldUIElementId? hoverUIElement = null;
-            foreach (var (id, shape, _) in GetCurWorldUIElements())
-                if (shape.Contains(mouseWorldPos))
-                {
-                    hoverUIElement = id;
-                    break;
-                }
-            toggleInfoKey.Update();
-            if (toggleInfoKey.HalfClicked)
-                expandControlDescr = !expandControlDescr;
-            // New cosmic body
-            if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.N))
-            {
-                CosmicBodyId newCosmicBodyId = new();
-                selectedUIElement = newCosmicBodyId;
-                return CurMapInfo with
-                {
-                    CosmicBodies = CurMapInfo.CosmicBodies.Add
-                    (
-                        key: newCosmicBodyId,
-                        value: new CosmicBodyInfoInternal
-                        (
-                            Id: newCosmicBodyId,
-                            Name: GetNewCosmicBodyName(),
-                            Position: mouseWorldPos,
-                            Radius: 100
-                        )
-                    )
-                };
-            }
-            if (selectedUIElement is CosmicBodyId selectedCosmicBodyId)
-            {
-                // Delete selected cosmic body
-                if (keyboardState.IsKeyDown(Keys.D))
-                {
-                    selectedUIElement = null;
-                    return new()
-                    {
-                        CosmicBodies = CurMapInfo.CosmicBodies.Remove(key: selectedCosmicBodyId),
-                        Links = CurMapInfo.Links.Where(link => link.Value.From != selectedCosmicBodyId && link.Value.To != selectedCosmicBodyId).ToImmutableDictionary
-                        (
-                            keySelector: keyValue => keyValue.Key,
-                            elementSelector: keyValue => keyValue.Value
-                        ),
-                        StartingInfo = CurMapInfo.StartingInfo with
-                        {
-                            HouseCosmicBodyId = CurMapInfo.StartingInfo.HouseCosmicBodyId == selectedCosmicBodyId ? null : CurMapInfo.StartingInfo.HouseCosmicBodyId,
-                            PowerPlantCosmicBodyId = CurMapInfo.StartingInfo.PowerPlantCosmicBodyId == selectedCosmicBodyId ? null : CurMapInfo.StartingInfo.PowerPlantCosmicBodyId
-                        }
-                    };
-                }
-                // Starting house location select
-                if (keyboardState.IsKeyDown(Keys.H))
-                    return CurMapInfo with
-                    {
-                        StartingInfo = CurMapInfo.StartingInfo with
-                        {
-                            HouseCosmicBodyId = selectedCosmicBodyId,
-                            PowerPlantCosmicBodyId = CurMapInfo.StartingInfo.PowerPlantCosmicBodyId == selectedCosmicBodyId ? null : CurMapInfo.StartingInfo.PowerPlantCosmicBodyId
-                        }
-                    };
-                // Starting power plant location selection
-                if (keyboardState.IsKeyDown(Keys.P))
-                    return CurMapInfo with
-                    {
-                        StartingInfo = CurMapInfo.StartingInfo with
-                        {
-                            HouseCosmicBodyId = CurMapInfo.StartingInfo.HouseCosmicBodyId == selectedCosmicBodyId ? null : CurMapInfo.StartingInfo.HouseCosmicBodyId,
-                            PowerPlantCosmicBodyId = selectedCosmicBodyId
-                        }
-                    };
-                // radius change
-                if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.R))
-                    return CurMapInfo with
-                    {
-                        CosmicBodies = CurMapInfo.CosmicBodies.SetItem
-                        (
-                            key: selectedCosmicBodyId,
-                            value: CurMapInfo.CosmicBodies[selectedCosmicBodyId] with
-                            {
-                                Radius = MyVector2.Distance
-                                (
-                                    value1: mouseWorldPos,
-                                    value2: CurMapInfo.CosmicBodies[selectedCosmicBodyId].Position
-                                )
-                            }
-                        )
-                    };
-                // Move
-                if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.M))
-                    return CurMapInfo with
-                    {
-                        CosmicBodies = CurMapInfo.CosmicBodies.SetItem
-                        (
-                            key: selectedCosmicBodyId,
-                            value: CurMapInfo.CosmicBodies[selectedCosmicBodyId] with
-                            {
-                                Position = mouseWorldPos
-                            }
-                        )
-                    };
-                // Link add
-                if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.L) && hoverUIElement is CosmicBodyId hoverCosmicBodyId && selectedCosmicBodyId != hoverCosmicBodyId)
-                {
-                    LinkInfoInternal newLink = new
-                    (
-                        Id: new(),
-                        From: selectedCosmicBodyId,
-                        To: hoverCosmicBodyId
-                    );
-                    // TODO: these checks should probably be performed by the mapInfo immediate validator, and a message explaining why the link can't be added should be shown
-                    if (CurMapInfo.Links.Values.All(link => (newLink.From, newLink.To) != (link.From, link.To) && (newLink.To, newLink.From) != (link.From, link.To)))
-                        return CurMapInfo with
-                        {
-                            Links = CurMapInfo.Links.Add(key: newLink.Id, value: newLink)
-                        };
-                }
-            }
-            // Delete selected link
-            if (keyboardState.IsKeyDown(Keys.D) && selectedUIElement is LinkId linkId)
-            {
-                selectedUIElement = null;
-                return CurMapInfo with
-                {
-                    Links = CurMapInfo.Links.Remove(key: linkId)
-                };
-            }
-            // Select/deselect planet/link
-            if (mouseLeftButton.Clicked)
-            {
-                selectedUIElement = hoverUIElement;
-                return null;
-            }
-            setCameraKey.Update();
-            // Set the starting camera to be current camera
-            if (setCameraKey.HalfClicked)
-                return CurMapInfo with
-                {
-                    StartingInfo = CurMapInfo.StartingInfo with
-                    {
-                        WorldCenter = worldCamera.WorldCenter,
-                        CameraViewHeight = worldCamera.CameraViewHeight
-                    }
-                };
-            zKey.Update();
-            bool controlDown = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl),
-                shiftDown = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
-            // Redo
-            if (controlDown && shiftDown && zKey.HalfClicked)
-            {
-                CenterCameraAfterActionIfNeeded(action: changeHistory.Redo);
-                return null;
-            }
-            // Undo
-            if (controlDown && zKey.HalfClicked)
-            {
-                CenterCameraAfterActionIfNeeded(action: changeHistory.Undo);
-                return null;
-            }
-            return null;
+            //IWorldUIElementId? hoverUIElement = null;
+            //foreach (var (id, shape, _) in GetCurWorldUIElements())
+            //    if (shape.Contains(mouseWorldPos))
+            //    {
+            //        hoverUIElement = id;
+            //        break;
+            //    }
+            //toggleInfoKey.Update();
+            //if (toggleInfoKey.HalfClicked)
+            //    expandControlDescr = !expandControlDescr;
+            //// New cosmic body
+            //if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.N))
+            //{
+            //    CosmicBodyId newCosmicBodyId = new();
+            //    selectedUIElement = newCosmicBodyId;
+            //    return CurMapInfo with
+            //    {
+            //        CosmicBodies = CurMapInfo.CosmicBodies.Add
+            //        (
+            //            key: newCosmicBodyId,
+            //            value: new CosmicBodyInfoInternal
+            //            (
+            //                Id: newCosmicBodyId,
+            //                Name: GetNewCosmicBodyName(),
+            //                Position: mouseWorldPos,
+            //                Radius: 100
+            //            )
+            //        )
+            //    };
+            //}
+            //if (selectedUIElement is CosmicBodyId selectedCosmicBodyId)
+            //{
+            //    // Delete selected cosmic body
+            //    if (keyboardState.IsKeyDown(Keys.D))
+            //    {
+            //        selectedUIElement = null;
+            //        return new()
+            //        {
+            //            CosmicBodies = CurMapInfo.CosmicBodies.Remove(key: selectedCosmicBodyId),
+            //            Links = CurMapInfo.Links.Where(link => link.Value.From != selectedCosmicBodyId && link.Value.To != selectedCosmicBodyId).ToImmutableDictionary
+            //            (
+            //                keySelector: keyValue => keyValue.Key,
+            //                elementSelector: keyValue => keyValue.Value
+            //            ),
+            //            StartingInfo = CurMapInfo.StartingInfo with
+            //            {
+            //                HouseCosmicBodyId = CurMapInfo.StartingInfo.HouseCosmicBodyId == selectedCosmicBodyId ? null : CurMapInfo.StartingInfo.HouseCosmicBodyId,
+            //                PowerPlantCosmicBodyId = CurMapInfo.StartingInfo.PowerPlantCosmicBodyId == selectedCosmicBodyId ? null : CurMapInfo.StartingInfo.PowerPlantCosmicBodyId
+            //            }
+            //        };
+            //    }
+            //    // Starting house location select
+            //    if (keyboardState.IsKeyDown(Keys.H))
+            //        return CurMapInfo with
+            //        {
+            //            StartingInfo = CurMapInfo.StartingInfo with
+            //            {
+            //                HouseCosmicBodyId = selectedCosmicBodyId,
+            //                PowerPlantCosmicBodyId = CurMapInfo.StartingInfo.PowerPlantCosmicBodyId == selectedCosmicBodyId ? null : CurMapInfo.StartingInfo.PowerPlantCosmicBodyId
+            //            }
+            //        };
+            //    // Starting power plant location selection
+            //    if (keyboardState.IsKeyDown(Keys.P))
+            //        return CurMapInfo with
+            //        {
+            //            StartingInfo = CurMapInfo.StartingInfo with
+            //            {
+            //                HouseCosmicBodyId = CurMapInfo.StartingInfo.HouseCosmicBodyId == selectedCosmicBodyId ? null : CurMapInfo.StartingInfo.HouseCosmicBodyId,
+            //                PowerPlantCosmicBodyId = selectedCosmicBodyId
+            //            }
+            //        };
+            //    // radius change
+            //    if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.R))
+            //        return CurMapInfo with
+            //        {
+            //            CosmicBodies = CurMapInfo.CosmicBodies.SetItem
+            //            (
+            //                key: selectedCosmicBodyId,
+            //                value: CurMapInfo.CosmicBodies[selectedCosmicBodyId] with
+            //                {
+            //                    Radius = MyVector2.Distance
+            //                    (
+            //                        value1: mouseWorldPos,
+            //                        value2: CurMapInfo.CosmicBodies[selectedCosmicBodyId].Position
+            //                    )
+            //                }
+            //            )
+            //        };
+            //    // Move
+            //    if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.M))
+            //        return CurMapInfo with
+            //        {
+            //            CosmicBodies = CurMapInfo.CosmicBodies.SetItem
+            //            (
+            //                key: selectedCosmicBodyId,
+            //                value: CurMapInfo.CosmicBodies[selectedCosmicBodyId] with
+            //                {
+            //                    Position = mouseWorldPos
+            //                }
+            //            )
+            //        };
+            //    // Link add
+            //    if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.L) && hoverUIElement is CosmicBodyId hoverCosmicBodyId && selectedCosmicBodyId != hoverCosmicBodyId)
+            //    {
+            //        LinkInfoInternal newLink = new
+            //        (
+            //            Id: new(),
+            //            From: selectedCosmicBodyId,
+            //            To: hoverCosmicBodyId
+            //        );
+            //        // TODO: these checks should probably be performed by the mapInfo immediate validator, and a message explaining why the link can't be added should be shown
+            //        if (CurMapInfo.Links.Values.All(link => (newLink.From, newLink.To) != (link.From, link.To) && (newLink.To, newLink.From) != (link.From, link.To)))
+            //            return CurMapInfo with
+            //            {
+            //                Links = CurMapInfo.Links.Add(key: newLink.Id, value: newLink)
+            //            };
+            //    }
+            //}
+            //// Delete selected link
+            //if (keyboardState.IsKeyDown(Keys.D) && selectedUIElement is LinkId linkId)
+            //{
+            //    selectedUIElement = null;
+            //    return CurMapInfo with
+            //    {
+            //        Links = CurMapInfo.Links.Remove(key: linkId)
+            //    };
+            //}
+            //// Select/deselect planet/link
+            //if (mouseLeftButton.Clicked)
+            //{
+            //    selectedUIElement = hoverUIElement;
+            //    return null;
+            //}
+            //setCameraKey.Update();
+            //// Set the starting camera to be current camera
+            //if (setCameraKey.HalfClicked)
+            //    return CurMapInfo with
+            //    {
+            //        StartingInfo = CurMapInfo.StartingInfo with
+            //        {
+            //            WorldCenter = worldCamera.WorldCenter,
+            //            CameraViewHeight = worldCamera.CameraViewHeight
+            //        }
+            //    };
+            //zKey.Update();
+            //bool controlDown = keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl),
+            //    shiftDown = keyboardState.IsKeyDown(Keys.LeftShift) || keyboardState.IsKeyDown(Keys.RightShift);
+            //// Redo
+            //if (controlDown && shiftDown && zKey.HalfClicked)
+            //{
+            //    CenterCameraAfterActionIfNeeded(action: changeHistory.Redo);
+            //    return null;
+            //}
+            //// Undo
+            //if (controlDown && zKey.HalfClicked)
+            //{
+            //    CenterCameraAfterActionIfNeeded(action: changeHistory.Undo);
+            //    return null;
+            //}
+            //return null;
 
-            void CenterCameraAfterActionIfNeeded(Action action)
-            {
-                MyVector2 prevWorldCenter = CurMapInfo.StartingInfo.WorldCenter;
-                UDouble prevCameraViewHeight = CurMapInfo.StartingInfo.CameraViewHeight;
-                action();
-                if (prevWorldCenter != CurMapInfo.StartingInfo.WorldCenter || prevCameraViewHeight != CurMapInfo.StartingInfo.CameraViewHeight)
-                    worldCamera.MoveTo
-                    (
-                        worldCenter: CurMapInfo.StartingInfo.WorldCenter,
-                        worldScale: WorldCamera.GetWorldScaleFromCameraViewHeight
-                        (
-                            cameraViewHeight: CurMapInfo.StartingInfo.CameraViewHeight
-                        )
-                    );
-            }
+            //void CenterCameraAfterActionIfNeeded(Action action)
+            //{
+            //    MyVector2 prevWorldCenter = CurMapInfo.StartingInfo.WorldCenter;
+            //    UDouble prevCameraViewHeight = CurMapInfo.StartingInfo.CameraViewHeight;
+            //    action();
+            //    if (prevWorldCenter != CurMapInfo.StartingInfo.WorldCenter || prevCameraViewHeight != CurMapInfo.StartingInfo.CameraViewHeight)
+            //        worldCamera.MoveTo
+            //        (
+            //            worldCenter: CurMapInfo.StartingInfo.WorldCenter,
+            //            worldScale: WorldCamera.GetWorldScaleFromCameraViewHeight
+            //            (
+            //                cameraViewHeight: CurMapInfo.StartingInfo.CameraViewHeight
+            //            )
+            //        );
+            //}
         }
 
         private IEnumerable<(IWorldUIElementId id, Shape shape, Color color)> GetCurWorldUIElements()
@@ -590,7 +615,7 @@ namespace Game1.GameStates
                     shape: link.GetShape(curMapInfo: CurMapInfo),
                     color: (selectedUIElement is LinkId selectedLink && selectedLink == id)
                         ? ActiveUIManager.colorConfig.selectedWorldUIElementColor
-                        : ActiveUIManager.colorConfig.linkColor
+                        : ActiveUIManager.colorConfig.costlyLinkColor
                 );
         }
 

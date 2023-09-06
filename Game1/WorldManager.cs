@@ -380,7 +380,6 @@ namespace Game1
                 typeof(UIRectHorizPanel<IHUDElement>),
                 typeof(UIRectHorizPanel<SelectButton>),
                 typeof(UIRectVertPanel<IHUDElement>),
-                typeof(UITransparentPanel<ResDestinArrow>),
                 //typeof(Counter<NumPeople>),
                 typeof(EnergyCounter<HeatEnergy>),
                 typeof(EnergyCounter<RadiantEnergy>),
@@ -517,12 +516,6 @@ namespace Game1
 
         public IEnumerable<IIndustry> DestinsOf(IResource resource)
             => throw new NotImplementedException();
-
-        public void AddResDestinArrow(ResDestinArrow resDestinArrow)
-            => CurGraph.AddResDestinArrow(resDestinArrow: resDestinArrow);
-
-        public void RemoveResDestinArrow(ResDestinArrow resDestinArrow)
-            => CurGraph.RemoveResDestinArrow(resDestinArrow: resDestinArrow);
 
         public MyVector2 ScreenPosToWorldPos(MyVector2 screenPos)
             => worldCamera.ScreenPosToWorldPos(screenPos: screenPos);

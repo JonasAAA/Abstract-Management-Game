@@ -53,8 +53,6 @@
             screenBoundWidthForMapMoving = 10,
             scrollSpeed = 60,
             minSafeDist = 10;
-        public readonly ulong
-            resDistribArrowsUILayer = 1;
         public readonly UDouble linkWidth;
         // So gravitational force between masses M1 and M2 at distance R is gravitConst * M1 * M2 / (R ^ gravitExponent)
         public readonly UDouble

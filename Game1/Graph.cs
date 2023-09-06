@@ -52,8 +52,6 @@ namespace Game1
                     yield return node;
                 foreach (var link in links)
                     yield return link;
-                foreach (var resDestinArrow in resDestinArrows)
-                    yield return resDestinArrow;
             }
         }
 
@@ -71,7 +69,6 @@ namespace Game1
         private readonly List<Link> links;
 
         [NonSerialized] private Task<PersonAndResShortestPaths> shortestPathsTask;
-        private readonly UITransparentPanel<ResDestinArrow> resDestinArrows;
 
         private WorldUIElement? activeWorldElement;
 
@@ -218,14 +215,6 @@ namespace Game1
             foreach (var link in links)
                 AddChild(child: link, layer: CurWorldConfig.linkLayer);
 
-            resDestinArrows = new();
-
-            AddChild
-            (
-                child: resDestinArrows,
-                layer: CurWorldConfig.resDistribArrowsUILayer
-            );
-
             foreach (var worldUIElement in WorldUIElements)
                 worldUIElement.activeChanged.Add(listener: this);
 
@@ -354,12 +343,6 @@ namespace Game1
         public MyVector2 NodePosition(NodeID nodeID)
             => nodeIDToNode[nodeID].Position;
 
-        public void AddResDestinArrow(ResDestinArrow resDestinArrow)
-        {
-            resDestinArrow.activeChanged.Add(listener: this);
-            resDestinArrows.AddChild(child: resDestinArrow);
-        }
-
         public override void OnClick()
         {
             base.OnClick();
@@ -369,12 +352,6 @@ namespace Game1
                 activeWorldElement.Active = false;
                 activeWorldElement = null;
             }
-        }
-
-        public void RemoveResDestinArrow(ResDestinArrow resDestinArrow)
-        {
-            resDestinArrow.activeChanged.Remove(listener: this);
-            resDestinArrows.RemoveChild(child: resDestinArrow);
         }
 
         public void PreEnergyDistribUpdate()

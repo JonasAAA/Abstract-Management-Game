@@ -606,7 +606,7 @@ namespace Game1
                 activityManager.ManageActivities(people: people);
 
                 Debug.Assert(people.Count == CurGraph.Stats.totalNumPeople);
-                globalTextBox.Text = (energyManager.Summary() + CurGraph.Stats.ToString()).Trim();
+                globalTextBox.Text = energyManager.Summary().Trim();
             }
             activeUIManager.Update(elapsed: elapsedGameTime);
 

@@ -229,7 +229,7 @@ namespace Game1.Industries
         public AllResAmounts GetDemand()
             => storageParams.CurStoredRes.SwitchExpression
             (
-                ok: storedRes => buildingParams.MaxStored(storedRes: storedRes) - storage.Amount,
+                ok: storedRes => buildingParams.MaxStored(storedRes: storedRes) - storage.Amount - resTravellingHere,
                 error: _ => AllResAmounts.empty
             );
 

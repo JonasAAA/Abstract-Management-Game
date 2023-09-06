@@ -50,10 +50,8 @@ namespace Game1
             => (UDouble)0.000000000000001;
 
         public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
-        {
 #warning Complete this by making it actually random
-            return startingRawMatTargetRatios;
-        }
+            => startingRawMatTargetRatios;
 
         public static MechComplexity Complexity(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToUsefulAreas)
 #warning Complete this
@@ -206,11 +204,9 @@ namespace Game1
         /// <param Name="relevantMassPUBA">Mass which needs to be moved/rotated. Until structural material purpose is in use, this is all the splittingMass of matAmounts and products</param>
         /// <param Name="mechStrength">Mechanical component strength</param>
         private static UDouble MaxMechThroughputPUBA(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMatPropors, MaterialChoices buildingMatChoices, MechComplexity buildingComplexity, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
-        {
             // SHOULD PROBABLY also take into account the complexity of the building
             // This is maximum of restriction from gravity and restriction from mechanical strength compared to total weigtht of things
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         private static UDouble MaxElectricalPowerPUBA(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMatPropors, MaterialChoices buildingMatChoices, Temperature temperature)
             => throw new NotImplementedException();

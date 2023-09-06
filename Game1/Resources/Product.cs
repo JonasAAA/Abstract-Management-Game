@@ -93,8 +93,7 @@ namespace Game1.Resources
         public static readonly EfficientReadOnlyDictionary<string, Params> productParamsDict;
 
         static Product()
-        {
-            productParamsDict = new List<Params>()
+            => productParamsDict = new List<Params>()
             {
                 new
                 (
@@ -137,7 +136,6 @@ namespace Game1.Resources
             (
                 keySelector: productParams => productParams.name
             );
-        }
 
         public string Name { get; }
         public Mass Mass { get; }

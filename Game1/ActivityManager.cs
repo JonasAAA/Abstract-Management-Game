@@ -39,7 +39,7 @@ namespace Game1
             while (availablePeople.Count > 0)
             {
                 var person = availablePeople.Dequeue();
-                IActivityCenter activityCenter = (IActivityCenter)person.ChooseActivityCenter
+                var activityCenter = (IActivityCenter)person.ChooseActivityCenter
                 (
                     activityCenters:
                         from possibActivityCenter in availableActivityCenters

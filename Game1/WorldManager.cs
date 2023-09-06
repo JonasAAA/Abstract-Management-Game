@@ -228,7 +228,7 @@ namespace Game1
         }
 
         [Serializable]
-        private record CancelBuildingButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager) : IClickedListener
+        private sealed record CancelBuildingButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => BuildingConfigPanelManager.StopBuildingConfig();
@@ -238,7 +238,7 @@ namespace Game1
         private readonly record struct CosmicBodyBuildPanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyBuildPanel, IAction CosmicBodyPanelHUDPosUpdate, Button BuildButton);
 
         [Serializable]
-        private record BuildOnCosmicBodyButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager, CosmicBody CosmicBody, Construction.GeneralParams ConstrGeneralParams, MaterialChoices BuildingMaterialChoices) : IClickedListener
+        private sealed record BuildOnCosmicBodyButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager, CosmicBody CosmicBody, Construction.GeneralParams ConstrGeneralParams, MaterialChoices BuildingMaterialChoices) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => ConstrGeneralParams.CreateConcrete(nodeState: CosmicBody.NodeState, buildingMatChoices: BuildingMaterialChoices)
@@ -249,7 +249,7 @@ namespace Game1
                             CosmicBody.StartConstruction(constrConcreteParams: constrConcreteParams);
                             BuildingConfigPanelManager.StopBuildingConfig();
                         },
-                        error: errors => throw new Exception(string.Join("\n", errors))
+                        error: errors => throw new ArgumentException(string.Join("\n", errors))
                     );
         }
 
@@ -342,7 +342,7 @@ namespace Game1
                 using FileStream fileStream = new(path: saveFilePath, FileMode.Open, FileAccess.Read);
                 DataContractSerializer serializer = GetDataContractSerializer();
 
-                using XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader
+                using var reader = XmlDictionaryReader.CreateBinaryReader
                 (
                     stream: fileStream,
                     quotas: new XmlDictionaryReaderQuotas()
@@ -408,7 +408,7 @@ namespace Game1
                     unserializedTypeList.Add(type);
             }
             if (unserializedTypeList.Count > 0)
-                throw new Exception($"Every non-static, non-interface, non-enum type (except for Game1) must have attribute Serializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
+                throw new InvalidStateException($"Every non-static, non-interface, non-enum type (except for Game1) must have attribute Serializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
             knownTypes = knownTypesSet.ToArray();
 
             CurWorldConfig = null!;
@@ -500,10 +500,8 @@ namespace Game1
         }
 
         public void PublishMessage(IMessage message)
-        {
             // If exact same message already exists, don't add it a second time
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         public UDouble PersonDist(NodeID nodeID1, NodeID nodeID2)
             => CurGraph.PersonDist(nodeID1: nodeID1, nodeID2: nodeID2);
@@ -646,7 +644,7 @@ namespace Game1
             using FileStream fileStream = new(path: saveFilePath, FileMode.Create);
             DataContractSerializer serializer = GetDataContractSerializer();
 
-            using XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);
+            using var writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);
             serializer.WriteObject(writer, this);
         }
     }

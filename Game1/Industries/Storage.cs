@@ -75,9 +75,9 @@ namespace Game1.Industries
                 MaterialChoices buildingMatChoices, Material surfaceMaterial)
             {
                 Name = generalParams.Name;
-                this.NodeState = nodeState;
+                NodeState = nodeState;
                 this.buildingImage = buildingImage;
-                this.SurfaceMaterial = surfaceMaterial;
+                SurfaceMaterial = surfaceMaterial;
                 // Building area is used in BuildingCost calculation, thus needs to be computed first
                 buildingArea = buildingImage.Area;
                 this.generalParams = generalParams;
@@ -272,8 +272,6 @@ namespace Game1.Industries
         }
 
         public string GetInfo()
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
     }
 }

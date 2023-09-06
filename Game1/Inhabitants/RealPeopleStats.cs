@@ -103,7 +103,7 @@ namespace Game1.Inhabitants
             this.totalReqWatts = totalReqWatts;
             this.timeCoefficient = timeCoefficient;
             this.age = age;
-            this.AllocEnergyPropor = allocEnergyPropor;
+            AllocEnergyPropor = allocEnergyPropor;
             this.happiness = happiness;
             this.momentaryHappiness = momentaryHappiness;
             this.enjoyments = enjoyments;

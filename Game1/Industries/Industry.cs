@@ -221,9 +221,7 @@ namespace Game1.Industries
         }
 
         public string GetInfo()
-        {
-            throw new NotImplementedException();
-        }
+            => throw new NotImplementedException();
 
         EnergyPriority IEnergyConsumer.EnergyPriority
             => buildingParams.EnergyPriority;
@@ -236,12 +234,10 @@ namespace Game1.Industries
             );
 
         void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
-        {
-            stateOrReasonForNotStartingProduction.SwitchStatement
+            => stateOrReasonForNotStartingProduction.SwitchStatement
             (
                 ok: state => state.ConsumeElectricalEnergy(source: source, electricalEnergy: electricalEnergy),
                 error: _ => Debug.Assert(electricalEnergy.IsZero)
             );
-        }
     }
 }

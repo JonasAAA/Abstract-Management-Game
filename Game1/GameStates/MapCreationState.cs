@@ -10,7 +10,7 @@ namespace Game1.GameStates
     public sealed class MapCreationState : GameState
     {
         [Serializable]
-        private record HouseTextBoxHUDPosUpdater(MapCreationState MapCreationState) : IAction
+        private sealed record HouseTextBoxHUDPosUpdater(MapCreationState MapCreationState) : IAction
         {
             void IAction.Invoke()
             {
@@ -21,7 +21,7 @@ namespace Game1.GameStates
         }
 
         [Serializable]
-        private record PowerPlantTextBoxHUDPosUpdater(MapCreationState MapCreationState) : IAction
+        private sealed record PowerPlantTextBoxHUDPosUpdater(MapCreationState MapCreationState) : IAction
         {
             void IAction.Invoke()
             {
@@ -36,7 +36,7 @@ namespace Game1.GameStates
         [Serializable]
         private readonly record struct CosmicBodyId : IWorldUIElementId
         {
-            static uint nextId = 0;
+            private static uint nextId = 0;
 
             private readonly uint id;
 
@@ -51,9 +51,9 @@ namespace Game1.GameStates
         }
 
         [Serializable]
-        private class LinkId : IWorldUIElementId
+        private sealed class LinkId : IWorldUIElementId
         {
-            static uint nextId = 0;
+            private static uint nextId = 0;
 
             private readonly uint id;
 
@@ -136,7 +136,7 @@ namespace Game1.GameStates
 
             public static MapInfoInternal Create(ValidMapInfo mapInfo)
             {
-                List<CosmicBodyInfoInternal> cosmicBodies = mapInfo.CosmicBodies.Select
+                var cosmicBodies = mapInfo.CosmicBodies.Select
                 (
                     cosmicBodyInfo => new CosmicBodyInfoInternal
                     (
@@ -146,7 +146,7 @@ namespace Game1.GameStates
                         Radius: cosmicBodyInfo.Radius
                     )
                 ).ToList();
-                ImmutableDictionary<string, CosmicBodyId> cosmicBodyNameToId = cosmicBodies.ToImmutableDictionary
+                var cosmicBodyNameToId = cosmicBodies.ToImmutableDictionary
                 (
                     keySelector: cosmicBody => cosmicBody.Name,
                     elementSelector: cosmicBody => cosmicBody.Id
@@ -230,7 +230,7 @@ namespace Game1.GameStates
         }
 
         [Serializable]
-        private class ChangeHistory
+        private sealed class ChangeHistory
         {
             public MapInfoInternal CurMapInfo
                 => changeHistory[historyCurInd].mapInfo;

@@ -72,9 +72,9 @@ namespace Game1.Industries
                 MaterialChoices buildingMatChoices, Material surfaceMaterial)
             {
                 Name = generalParams.Name;
-                this.NodeState = nodeState;
+                NodeState = nodeState;
                 this.buildingImage = buildingImage;
-                this.SurfaceMaterial = surfaceMaterial;
+                SurfaceMaterial = surfaceMaterial;
                 EnergyPriority = generalParams.energyPriority;
 
                 buildingArea = buildingImage.Area;
@@ -163,9 +163,7 @@ namespace Game1.Industries
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
-            {
-                Debug.Assert(electricalEnergy.IsZero);
-            }
+                => Debug.Assert(electricalEnergy.IsZero);
 
             public IIndustry? Update(ResPile outputStorage)
                 => null;

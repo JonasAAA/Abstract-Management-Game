@@ -75,9 +75,9 @@ namespace Game1.Industries
                 MaterialChoices buildingMatChoices, Material surfaceMaterial)
             {
                 Name = generalParams.Name;
-                this.NodeState = nodeState;
+                NodeState = nodeState;
                 this.buildingImage = buildingImage;
-                this.SurfaceMaterial = surfaceMaterial;
+                SurfaceMaterial = surfaceMaterial;
                 EnergyPriority = generalParams.energyPriority;
 
                 buildingArea = buildingImage.Area;

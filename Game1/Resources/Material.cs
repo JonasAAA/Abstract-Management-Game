@@ -6,10 +6,8 @@ namespace Game1.Resources
     public sealed class Material : IResource
     {
         public static Material CreateAndAddToCurResConfig(string name, RawMatAmounts composition)
-        {
             // Material consrutor adds itself to CurResConfig
-            return new Material(name, composition);
-        }
+            => new(name, composition);
 
         public string Name { get; }
         public Mass Mass { get; }

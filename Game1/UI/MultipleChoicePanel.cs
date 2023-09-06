@@ -26,7 +26,7 @@ namespace Game1.UI
                         posChoice.On = true;
                         return;
                     }
-                throw new Exception("enabled choice doesn't exist");
+                throw new ArgumentException("enabled choice doesn't exist");
             }
 
             void IOnChangedListener.OnChangedResponse()
@@ -116,7 +116,7 @@ namespace Game1.UI
                 ),
                 on: choicePanel.Count is 0,
                 tooltip: choiceTooltip,
-                text: choiceLabel.ToString() ?? throw new Exception("The label text must be not null")
+                text: choiceLabel.ToString() ?? throw new ArgumentException("The label text must be not null")
             );
 
             ChoiceEventListener choiceEventListener = new

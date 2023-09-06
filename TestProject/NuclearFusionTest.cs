@@ -11,8 +11,7 @@ namespace TestProject
     {
         [TestMethod]
         public void NonReactingProporForUnitReactionStrengthUnitTimeIsFullNoReactioHappens()
-        {
-            Assert.AreEqual<(ulong nonReactingAmount, ulong fusionProductAmount)>
+            => Assert.AreEqual<(ulong nonReactingAmount, ulong fusionProductAmount)>
             (
                 expected: (nonReactingAmount: 1000, fusionProductAmount: 0),
                 actual: Algorithms.NuclearFusionSingleRawMat
@@ -27,12 +26,10 @@ namespace TestProject
                     fusionReactionStrengthCoeff: 10000
                 )
             );
-        }
 
         [TestMethod]
         public void NuclearFusionGeneralTest()
-        {
-            Assert.AreEqual<(ulong nonReactingAmount, ulong fusionProductAmount)>
+            => Assert.AreEqual<(ulong nonReactingAmount, ulong fusionProductAmount)>
             (
                 expected: (nonReactingAmount: 128, fusionProductAmount: 4936),
                 actual: Algorithms.NuclearFusionSingleRawMat
@@ -47,6 +44,5 @@ namespace TestProject
                     fusionReactionStrengthCoeff: (UDouble)1 / 11
                 )
             );
-        }
     }
 }

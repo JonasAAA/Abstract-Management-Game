@@ -38,7 +38,7 @@ namespace Game1.PrimitiveTypeWrappers
         /// </summary>
         public EnergyPriority(ulong value)
         {
-            if (value < leastImportantEnergyPrior || value > mostImportantEnergyPrior)
+            if (value is < leastImportantEnergyPrior or > mostImportantEnergyPrior)
                 throw new ArgumentException();
             this.value = value;
         }

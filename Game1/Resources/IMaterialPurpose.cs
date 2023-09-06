@@ -52,10 +52,8 @@ namespace Game1.Resources
         public static readonly IMaterialPurpose electricalInsulator = new ElectricalInsulator();
 
         static IMaterialPurpose()
-        {
-            all = new IMaterialPurpose[] { mechanical, /* hydraulicFluid, */ roofSurface, electricalConductor, electricalInsulator };
+            => all = new IMaterialPurpose[] { mechanical, /* hydraulicFluid, */ roofSurface, electricalConductor, electricalInsulator };
 #warning Check that all contains all public fields and properties of type IMaterialPurpose. This should go into test project probably.
-        }
 
         public string Name { get; }
 

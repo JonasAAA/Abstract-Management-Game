@@ -19,9 +19,7 @@ namespace Game1.Collections
 
         public ThrowingSet(IEnumerable<T> collection)
             : this()
-        {
-            UnionWith(collection: collection);
-        }
+            => UnionWith(collection: collection);
 
         public bool Contains(T item)
             => set.Contains(item);

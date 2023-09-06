@@ -13,13 +13,10 @@ namespace Game1.Resources
             => new(createdByMagic: false);
 
         public static Counter<TAmount> CreateByMagic(TAmount count)
-        {
-            
-            return new(createdByMagic: true)
+            => new(createdByMagic: true)
             {
                 Count = count
             };
-        }
 
         public TAmount Count { get; protected set; }
 #if DEBUG2
@@ -29,7 +26,7 @@ namespace Game1.Resources
         protected Counter(bool createdByMagic)
         {
             if (createdByMagic && typeof(TAmount) != typeof(NumPeople) && CurWorldManager.CurTime != CurWorldManager.StartTime)
-                throw new Exception("Can only create non-people counters by magic at the very start of the game");
+                throw new ArgumentException("Can only create non-people counters by magic at the very start of the game");
             Count = TAmount.AdditiveIdentity;
 #if DEBUG2
             this.createdByMagic = createdByMagic;

@@ -24,7 +24,7 @@ namespace Game1
         }
 
         [Serializable]
-        private record TextBoxHUDPosUpdater(CosmicBody CosmicBody) : IAction
+        private sealed record TextBoxHUDPosUpdater(CosmicBody CosmicBody) : IAction
         {
             void IAction.Invoke()
                 => CosmicBody.textBox.Shape.Center = CurWorldManager.WorldPosToHUDPos(worldPos: CosmicBody.Position);
@@ -552,7 +552,7 @@ namespace Game1
 
             void DistributeStarPower(out UDouble usedArc)
             {
-                Dictionary<IRadiantEnergyConsumer, UDouble> arcsForObjects = lightCatchingObjects.ToDictionary
+                var arcsForObjects = lightCatchingObjects.ToDictionary
                 (
                     keySelector: lightCatchingObject => lightCatchingObject as IRadiantEnergyConsumer,
                     elementSelector: lightCatchingObject => UDouble.zero

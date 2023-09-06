@@ -109,7 +109,7 @@ namespace Game1
             if (rawMatsAmountsToMine.IsEmpty && minedOut)
                 return new(errors: new(UIAlgorithms.CosmicBodyIsMinedOut));
 
-            ResPile result = ResPile.CreateEmpty(thermalBody: ThermalBody);
+            var result = ResPile.CreateEmpty(thermalBody: ThermalBody);
             result.TransferFrom
             (
                 source: consistsOfResPile,

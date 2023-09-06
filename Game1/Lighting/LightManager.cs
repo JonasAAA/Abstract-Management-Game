@@ -8,7 +8,7 @@ namespace Game1.Lighting
     public sealed class LightManager : IDeletedListener
     {
         [Serializable]
-        private class VacuumAsRadiantEnergyConsumer : IRadiantEnergyConsumer
+        private sealed class VacuumAsRadiantEnergyConsumer : IRadiantEnergyConsumer
         {
             private readonly EnergyPile<HeatEnergy> vacuumHeatEnergyPile;
 

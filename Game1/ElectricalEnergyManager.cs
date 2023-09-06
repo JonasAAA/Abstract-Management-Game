@@ -46,7 +46,7 @@ namespace Game1
         }
 
         [Serializable]
-        private class EnhancedEnergyConsumer
+        private sealed class EnhancedEnergyConsumer
         {
             public ElectricalEnergy OwnedEnergy
                 => ownedEnergyPile.Amount;
@@ -85,7 +85,7 @@ namespace Game1
         {
             // TODO(performace): could probably improve performance by separating those requiring no electricity at the start
             // Then only those requiring non-zero electricity would be involved in more costly calculations
-            List<EnhancedEnergyConsumer> enhancedConsumers =
+            var enhancedConsumers =
                (from energyConsumer in energyConsumers
                 select new EnhancedEnergyConsumer
                 (
@@ -133,7 +133,7 @@ namespace Game1
             {
                 Debug.Assert(enhancedConsumer.OwnedEnergy <= enhancedConsumer.reqEnergy);
                 if (enhancedConsumer.energyPriority == EnergyPriority.mostImportant && enhancedConsumer.OwnedEnergy < enhancedConsumer.reqEnergy)
-                    throw new Exception();
+                    throw new InvalidStateException();
                 enhancedConsumer.ConsumeEnergy();
             }
 

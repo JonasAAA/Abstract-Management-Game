@@ -15,9 +15,7 @@ namespace Game1.Collections
         public static readonly ResAmounts<TRes> empty;
 
         static ResAmounts()
-        {
-            empty = new();
-        }
+            => empty = new();
 
         public bool IsEmpty
             // as amounts cannot contain value 0, the only way to be empty is to have no elements

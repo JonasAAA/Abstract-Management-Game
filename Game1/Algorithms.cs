@@ -98,7 +98,7 @@ namespace Game1
 
         // THIS IS A CLASS so that when it's later changed, it the changes are reflected everywhere
         [Serializable]
-        private record class ConsumerWithExtraEnergy<T>(int Index, T OwnedEnergy, T ReqEnergy, T AllocEnergy) : ConsumerWithEnergy<T>(Index: Index, ReqEnergy: ReqEnergy, AllocEnergy: AllocEnergy), IComparable<ConsumerWithExtraEnergy<T>>
+        private sealed record ConsumerWithExtraEnergy<T>(int Index, T OwnedEnergy, T ReqEnergy, T AllocEnergy) : ConsumerWithEnergy<T>(Index: Index, ReqEnergy: ReqEnergy, AllocEnergy: AllocEnergy), IComparable<ConsumerWithExtraEnergy<T>>
             where T : struct, IUnconstrainedEnergy<T>
         {
             int IComparable<ConsumerWithExtraEnergy<T>>.CompareTo(ConsumerWithExtraEnergy<T>? other)
@@ -125,7 +125,7 @@ namespace Game1
 
             List<T> SplitExtraEnergyEvenlyInternal()
             {
-                List<T> maxAllocEnergies = energies.Select(energy => energy.reqEnergy - energy.ownedEnergy).ToList();
+                var maxAllocEnergies = energies.Select(energy => energy.reqEnergy - energy.ownedEnergy).ToList();
                 if (maxAllocEnergies.Sum() <= availableEnergy)
                     return maxAllocEnergies;
 

@@ -224,7 +224,7 @@ namespace Game1.Inhabitants
         }
 
         public bool IfSeeksNewActivity()
-            => activityCenter is null || timeSinceActivitySearch >= seekChangeTime && activityCenter.CanPersonLeave(person: asVirtual);
+            => activityCenter is null || (timeSinceActivitySearch >= seekChangeTime && activityCenter.CanPersonLeave(person: asVirtual));
 
         public IPersonFacingActivityCenter ChooseActivityCenter(IEnumerable<IPersonFacingActivityCenter> activityCenters)
         {

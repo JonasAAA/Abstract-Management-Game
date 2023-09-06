@@ -121,8 +121,6 @@
         public readonly ulong magicUnlimitedStartingMaterialCount = uint.MaxValue;
 
         public WorldConfig()
-        {
-            linkWidth = 10 * metersPerStartingPixel;
-        }
+            => linkWidth = 10 * metersPerStartingPixel;
     }
 }

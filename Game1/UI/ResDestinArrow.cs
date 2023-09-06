@@ -108,8 +108,6 @@ namespace Game1.UI
         }
 
         protected override void Delete()
-        {
-            deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
-        }
+            => deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
     }
 }

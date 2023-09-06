@@ -139,7 +139,7 @@ namespace Game1
                 throw new ArgumentOutOfRangeException();
 
             Texture2D texture = new(GraphicsDevice, width, height);
-            Color[] colorData = new Color[width * height];
+            var colorData = new Color[width * height];
             MyVector2 textureCenter = .5 * new MyVector2(x: width, y: height);
             for (int y = 0; y < height; y++)
                 for (int x = 0; x < width; x++)

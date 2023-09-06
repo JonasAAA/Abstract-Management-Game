@@ -60,7 +60,7 @@ namespace Game1.Collections
             // The enum must be backed by int, so that conversion makes sense
             // This is very fast as explained here https://github.com/dotnet/csharplang/discussions/1993#discussioncomment-104851
             if (Unsafe.SizeOf<TKey>() != Unsafe.SizeOf<int>())
-                throw new Exception("type mismatch");
+                throw new InvalidOperationException("type mismatch");
             return Unsafe.As<TKey, int>(ref key);
         }
     }

@@ -35,9 +35,7 @@
 
         protected EnergyPile(LocationCounters locationCounters, EnergyCounter<TAmount> counter)
             : base(locationCounters: locationCounters, counter: counter)
-        {
-            Counter = counter;
-        }
+            => Counter = counter;
 
         public void TransformTo<TDestinAmount>(EnergyPile<TDestinAmount> destin, TAmount amount)
             where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>

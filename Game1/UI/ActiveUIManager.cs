@@ -187,7 +187,7 @@ namespace Game1.UI
                         return HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos);
                     if (worldUIElements.Contains(UIElement))
                         return worldCamera!.ScreenPosToWorldPos(screenPos: mouseScreenPos);
-                    throw new();
+                    throw new InvalidStateException();
                 }
             }
 

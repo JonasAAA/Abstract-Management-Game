@@ -12,12 +12,10 @@ namespace Game1.UI
         private readonly TextBox textBox;
 
         public ImmutableTextTooltip(string text)
-        {
-            textBox = new(backgroundColor: colorConfig.tooltipBackgroundColor)
+            => textBox = new(backgroundColor: colorConfig.tooltipBackgroundColor)
             {
                 Text = text
             };
-        }
 
         public void Update()
         { }

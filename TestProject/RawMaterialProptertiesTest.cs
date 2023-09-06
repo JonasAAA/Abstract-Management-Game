@@ -78,8 +78,6 @@ namespace TestProject
 
         [TestMethod]
         public void FirstRawMatHasSmallMass()
-        {
-            Assert.IsTrue(ResAndIndustryAlgos.RawMaterialMass(ind: 0).valueInKg <= 10);
-        }
+            => Assert.IsTrue(ResAndIndustryAlgos.RawMaterialMass(ind: 0).valueInKg <= 10);
     }
 }

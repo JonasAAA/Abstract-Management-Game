@@ -105,14 +105,9 @@ namespace Game1
         public static UDouble Resistivity(this Material material, Temperature temperature)
             => throw new NotImplementedException();
 
-        //public readonly record struct CompProporAndProperty(Propor ComponentPropor, UDouble Property);
-
         public static UDouble DiskBuildingHeight
 #warning Complete this by scaling it appropriately (depending on the map scale) and putting it into config file
             => 1000;
-
-        public static Result<AllResAmounts, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingCost(GeneralProdAndMatAmounts buildingCostPropors, MaterialChoices buildingMatChoices, AreaDouble buildingArea)
-            => throw new NotImplementedException();
 
         /// <exception cref="ArgumentException">if buildingMatChoices doesn't contain all required matAmounts</exception>
         public static Result<EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)>, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingComponentsToAmountPUBA(
@@ -133,14 +128,22 @@ namespace Game1
             ).Select(prodToAmountPUBA => prodToAmountPUBA.ToEfficientReadOnlyCollection());
         }
 
-        public static CurProdStats CurConstrStats(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors, UDouble gravity, Temperature temperature)
-            => throw new NotImplementedException();
+        public static CurProdStats CurConstrStats(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors,
+            UDouble gravity, Temperature temperature, AreaInt buildingComponentsUsefulArea, Mass finishedBuildingMass, ulong worldSecondsInGameSecond)
+#warning Complete this
+            => new
+            (
+                ReqWatts: buildingComponentsUsefulArea.valueInMetSq / 100000,
+                // Means that the building will complete in 10 real world seconds
+                ProducedAreaPerSec: buildingComponentsUsefulArea.valueInMetSq / (worldSecondsInGameSecond * 10)
+            );
 
         /// <summary>
         /// Mechanical production stats
         /// </summary>
         public static CurProdStats CurMechProdStats(GeneralProdAndMatAmounts buildingCostPropors, MaterialChoices buildingMatChoices,
             UDouble gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
+#warning Either this or the one that uses it should probably take into account worldSecondsInGameSecond. Probably would like to have separate configurable physics and gameplay speed multipliers
         {
             UDouble relevantMassPUBA = RelevantMassPUBA
             (

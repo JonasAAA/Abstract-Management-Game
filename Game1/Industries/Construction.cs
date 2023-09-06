@@ -52,7 +52,7 @@ namespace Game1.Industries
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
             public readonly AllResAmounts buildingCost;
-            public readonly AreaDouble buildingComponentsUsefulArea;
+            public readonly AreaInt buildingComponentsUsefulArea;
 
             private readonly IConcreteBuildingConstructionParams concreteBuildingParams;
             /// <summary>
@@ -66,7 +66,7 @@ namespace Game1.Industries
                 NodeState = nodeState;
                 EnergyPriority = generalParams.energyPriority;
                 buildingCost = concreteBuildingParams.BuildingCost;
-                buildingComponentsUsefulArea = concreteBuildingParams.IncompleteBuildingImage(donePropor: Propor.full).Area * CurWorldConfig.buildingComponentsProporOfBuildingArea;
+                buildingComponentsUsefulArea = buildingCost.UsefulArea();
 
                 this.concreteBuildingParams = concreteBuildingParams;
                 buildingMaterialPropors = generalParams.buildingGeneralParams.BuildingCostPropors.materialPropors;
@@ -91,7 +91,10 @@ namespace Game1.Industries
                 (
                     buildingMaterialPropors: buildingMaterialPropors,
                     gravity: NodeState.SurfaceGravity,
-                    temperature: NodeState.Temperature
+                    temperature: NodeState.Temperature,
+                    buildingComponentsUsefulArea: buildingComponentsUsefulArea,
+                    finishedBuildingMass: buildingCost.Mass(),
+                    worldSecondsInGameSecond: CurWorldConfig.worldSecondsInGameSecond
                 );
 
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
@@ -180,7 +183,7 @@ namespace Game1.Industries
                     workingPropor: workingPropor,
                     producedAreaPerSec: curConstrStats.ProducedAreaPerSec,
                     elapsed: CurWorldManager.Elapsed,
-                    areaInProduction: parameters.buildingComponentsUsefulArea
+                    areaInProduction: parameters.buildingComponentsUsefulArea.ToDouble()
                 );
 
                 if (donePropor.IsFull)

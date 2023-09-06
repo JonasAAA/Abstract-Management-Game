@@ -62,7 +62,7 @@ namespace TestProject
 
                 EfficientReadOnlyDictionary<Algorithms.Vertex<int>, Algorithms.VertexInfo<int>> GenerateRandomGraph(int vertCount, int edgeCount, int maxAmountInVert)
                 {
-                    List<(int source, int destin)> simpleGraph =
+                    var simpleGraph =
                        (from _ in Enumerable.Range(0, edgeCount)
                         select (source: random.Next(maxValue: vertCount), destin: random.Next(maxValue: vertCount))).ToList();
                     Dictionary<Algorithms.Vertex<int>, Algorithms.VertexInfo<int>> graph = new();
@@ -99,7 +99,7 @@ namespace TestProject
         [DataTestMethod]
         public void EachGetsMinOfEvenSplit(EfficientReadOnlyDictionary<Algorithms.Vertex<int>, Algorithms.VertexInfo<int>> graph)
         {
-            List<((int source, int destin) route, ulong amount)> minAmounts =
+            var minAmounts =
                (from sourceVertAndInfo in graph
                 where sourceVertAndInfo.Key.IsSource
                 let sourceInfo = sourceVertAndInfo.Value

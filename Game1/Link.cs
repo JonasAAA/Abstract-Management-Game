@@ -215,6 +215,8 @@ namespace Game1
                     )
                 )
             }.ToEfficientReadOnlyCollection();
+
+            RecalculateValuesAndGetLinkLength();
         }
 
         MyVector2 IWithStandardPositions.GetPosition(PosEnums origin)
@@ -248,7 +250,7 @@ namespace Game1
         public void TransferFrom(ILinkFacingCosmicBody start, RealPeople realPersonSource, RealPerson realPerson)
             => GetDirLink(start: start).TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
 
-        public void StartUpdate()
+        private UDouble RecalculateValuesAndGetLinkLength()
         {
             UDouble linkLength = MyVector2.Distance(value1: node1.Position, value2: node2.Position);
 
@@ -259,6 +261,13 @@ namespace Game1
                 surfaceGravity2: node2.SurfaceGravity,
                 linkLength: linkLength
             );
+
+            return linkLength;
+        }
+
+        public void StartUpdate()
+        {
+            var linkLength = RecalculateValuesAndGetLinkLength();
 
             link1To2.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
             link2To1.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);

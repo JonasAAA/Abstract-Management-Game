@@ -85,7 +85,7 @@ namespace Game1
                     )
                 )
             );
-            ResPile magicUnlimitedStartingResPile = ResPile.CreateByMagic
+            var magicUnlimitedStartingResPile = ResPile.CreateByMagic
             (
                 amount: new
                 (
@@ -100,7 +100,7 @@ namespace Game1
                 ),
                 temperature: CurWorldConfig.startingTemperature
             );
-            Dictionary<string, CosmicBody> cosmicBodiesByName = mapInfo.CosmicBodies.ToDictionary
+            var cosmicBodiesByName = mapInfo.CosmicBodies.ToDictionary
             (
                 keySelector: cosmicBodyInfo => cosmicBodyInfo.Name,
                 elementSelector: cosmicBodyInfo => new CosmicBody
@@ -274,8 +274,8 @@ namespace Game1
         // TODO: implement Dijkstra and use pre-allocated buffers for computations to reduce GC pressure
         private static ShortestPaths FindShortestPaths(List<CosmicBody> nodes, List<Link> links, UDouble distTimeCoeff, UDouble distEnergyCoeff)
         {
-            UDouble[,] distsArray = new UDouble[nodes.Count, nodes.Count];
-            Link?[,] firstLinksArray = new Link[nodes.Count, nodes.Count];
+            var distsArray = new UDouble[nodes.Count, nodes.Count];
+            var firstLinksArray = new Link?[nodes.Count, nodes.Count];
 
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)

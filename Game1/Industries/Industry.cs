@@ -66,8 +66,7 @@ namespace Game1.Industries
             => buildingParams.SurfaceMaterial(productionInProgress: Busy);
 
         public IHUDElement UIElement
-#warning Complete this
-            => new TextBox() { Text = "Industry UI Panel" };
+            => industryUI;
 
         public IEvent<IDeletedListener> Deleted
             => deleted;
@@ -92,6 +91,7 @@ namespace Game1.Industries
         private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
         private readonly ResPile inputStorage, outputStorage;
         private AllResAmounts resTravellingHere;
+        private readonly TextBox industryUI;
         
         public Industry(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState)
         {
@@ -114,6 +114,7 @@ namespace Game1.Industries
                 resSources: resSources,
                 resDestins: resDestins
             );
+            industryUI = new();
         }
 
         public bool IsSourceOf(IResource resource)
@@ -192,6 +193,13 @@ namespace Game1.Industries
 
         public IIndustry? Update()
         {
+#warning Complete this
+            industryUI.Text = $"""
+                Industry UI Panel
+                stored inputs {inputStorage.Amount}
+                stored outputs {outputStorage.Amount}
+                demand {GetDemand()}
+                """;
             var childIndustry = stateOrReasonForNotStartingProduction.SwitchExpression
             (
                 ok: state => state.Update(outputStorage: outputStorage),

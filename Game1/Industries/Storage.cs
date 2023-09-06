@@ -166,8 +166,7 @@ namespace Game1.Industries
             => buildingParams.SurfaceMaterial;
 
         public IHUDElement UIElement
-#warning Complete this
-            => new TextBox() { Text = "Storage UI Panel" };
+            => storageUI;
 
         public IEvent<IDeletedListener> Deleted
             => deleted;
@@ -185,6 +184,7 @@ namespace Game1.Industries
         private readonly Event<IDeletedListener> deleted;
         private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
         private AllResAmounts resTravellingHere;
+        private readonly TextBox storageUI;
 
         private Storage(StorageParams storageParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile)
         {
@@ -203,6 +203,8 @@ namespace Game1.Industries
                 resSources: resSources,
                 resDestins: resDestins
             );
+
+            storageUI = new();
         }
 
         public bool IsSourceOf(IResource resource)
@@ -260,7 +262,14 @@ namespace Game1.Industries
         { }
 
         public IIndustry? Update()
-            => this;
+        {
+#warning Complete this
+            storageUI.Text = $"""
+                Storage UI Panel
+                stored {storage.Amount}
+                """;
+            return this;
+        }
 
         public void Delete()
         {

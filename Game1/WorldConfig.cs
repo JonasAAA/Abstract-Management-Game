@@ -114,7 +114,7 @@
             productionProporOfBuildingArea = (Propor).05,
             inputStorageProporOfBuildingArea = (Propor).1,
             outputStorageProporOfBuildingArea = (Propor).1,
-            storageProporOfBuildingAreaForStorageIndustry = (Propor)0.6;
+            storageProporOfBuildingAreaForStorageIndustry = (Propor).6;
 
         public readonly ulong magicUnlimitedStartingMaterialCount = uint.MaxValue;
 

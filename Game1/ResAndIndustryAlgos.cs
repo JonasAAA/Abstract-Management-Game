@@ -126,7 +126,8 @@ namespace Game1
                     func: product =>
                     (
                         prod: product,
-                        amountPUBA: buildingComponentsProporOfBuildingArea * prodParamsAndAmount.amount * prodParamsAndAmount.prodParams.usefulArea.valueInMetSq / buildingComponentProporsTotalArea.valueInMetSq
+                        // This is productAreaPUBA / prodAmount. prodAmount cancelled out.
+                        amountPUBA: buildingComponentsProporOfBuildingArea * prodParamsAndAmount.amount / buildingComponentProporsTotalArea.valueInMetSq
                     )
                 )
             ).Select(prodToAmountPUBA => prodToAmountPUBA.ToEfficientReadOnlyCollection());

@@ -286,11 +286,7 @@ namespace Game1
                 consists of {state.Composition}
                 Mass of everything {state.LocationCounters.GetCount<AllResAmounts>().Mass()}
                 Mass of planet {state.PlanetMass}
-                Number of people {state.LocationCounters.GetCount<NumPeople>()}
-
-                travelling people stats:
-                {state.WaitingPeople.Stats}
-
+                
                 """;
 
             textBox.Text = "";

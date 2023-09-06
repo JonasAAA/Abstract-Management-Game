@@ -39,7 +39,7 @@ namespace Game1.Resources
                 return newPile;
             }
 
-            public new static ResPileInternal CreateByMagic(AllResAmounts amount)
+            public static ResPileInternal CreateByMagic(AllResAmounts amount)
                 => new
                 (
                     locationCounters: LocationCounters.CreateCounterByMagic(amount: amount),

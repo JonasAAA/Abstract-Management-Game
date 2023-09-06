@@ -19,11 +19,6 @@ namespace Game1
         [Serializable]
         private sealed class DirLink : IEnergyConsumer, IWithRealPeopleStats
         {
-            private static readonly Texture2D diskTexture;
-
-            static DirLink()
-                => diskTexture = C.LoadTexture(name: "big disk");
-
             public RealPeopleStats Stats { get; private set; }
 
             public readonly ILinkFacingCosmicBody startNode, endNode;
@@ -189,8 +184,7 @@ namespace Game1
                     parameters: new ShapeParams(Node1: node1, Node2: node2)
                 ),
                 activeColor: Color.White,
-                inactiveColor: colorConfig.costlyLinkColor,
-                popupPos: new(HorizPosEnum.Right, VertPosEnum.Top)
+                inactiveColor: colorConfig.costlyLinkColor
             )
         {
             if (node1 == node2)
@@ -202,7 +196,7 @@ namespace Game1
             link1To2 = new(startNode: node1, endNode: node2, minSafeDist: minSafeDist);
             link2To1 = new(startNode: node2, endNode: node1, minSafeDist: minSafeDist);
 
-            infoTextBox = new(backgroundColor: Color.White);
+            infoTextBox = new(backgroundColor: colorConfig.UIBackgroundColor);
             Popups = new List<(IHUDElement popup, IAction popupHUDPosUpdater)>()
             {
                 (

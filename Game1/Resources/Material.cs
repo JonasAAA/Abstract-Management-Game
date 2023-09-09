@@ -9,7 +9,6 @@ namespace Game1.Resources
             // Material consrutor adds itself to CurResConfig
             => new(name, composition);
 
-        public string Name { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
@@ -17,9 +16,11 @@ namespace Game1.Resources
         public RawMatAmounts RawMatComposition { get; }
         public ResRecipe Recipe { get; }
 
+        private readonly string name;
+
         private Material(string name, RawMatAmounts composition)
         {
-            Name = name;
+            this.name = name;
             Mass = composition.Mass();
             HeatCapacity = composition.HeatCapacity();
             Area = composition.Area();
@@ -37,6 +38,6 @@ namespace Game1.Resources
         }
 
         public override string ToString()
-            => Name;
+            => name;
     }
 }

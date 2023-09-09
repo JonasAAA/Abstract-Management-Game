@@ -117,7 +117,7 @@ namespace Game1.Industries
                         (
                             shape: new MyRectangle(width: 100, height: 30),
                             tooltip: new ImmutableTextTooltip(text: UIAlgorithms.AddOrRemoveResSourceTooltip(res: res)),
-                            text: res.Name
+                            text: res.ToString()
                         );
                         resSourcePanel.AddChild(child: addOrRemoveResSourceButton);
                         addOrRemoveResSourceButton.clicked.Add

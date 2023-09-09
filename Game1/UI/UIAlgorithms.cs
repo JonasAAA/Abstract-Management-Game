@@ -61,10 +61,10 @@ namespace Game1.UI
             => $"{constrGeneralParams.buildingGeneralParams.Name}\nEnergy priority {constrGeneralParams.energyPriority}\n";
 
         public static string ChooseMaterialForMaterialPurpose(Material material, IMaterialPurpose materialPurpose)
-            => $"Choose {material.Name} for {materialPurpose.Name}";
+            => $"Choose {material} for {materialPurpose}";
 
         public static string StartMaterialChoiceForPurposeTooltip(IMaterialPurpose materialPurpose)
-            => $"Choose {materialPurpose.Name} material";
+            => $"Choose {materialPurpose} material";
 
         public static string ConstructionComplete(string buildingName)
             => $"Building {buildingName} is complete!";
@@ -83,7 +83,7 @@ namespace Game1.UI
             );
 
         private static string ConvertMissingMatPurpsIntoErrorMessage(EfficientReadOnlyHashSet<IMaterialPurpose> missingMatPurposes)
-            => $"The following materials need to be chosen:\n{string.Join("\n", missingMatPurposes.Select(missingMatPurpose => missingMatPurpose.Name))}";
+            => $"The following materials need to be chosen:\n{string.Join("\n", missingMatPurposes)}";
 
         public static Color MixColorsAndMakeTransparent(Propor transparency, Color baseColor, Color otherColor, Propor otherColorPropor)
             => MixColors

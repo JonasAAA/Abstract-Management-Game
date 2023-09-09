@@ -20,7 +20,6 @@
             );
         }
 
-        public string Name { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
@@ -30,9 +29,11 @@
         public UDouble FusionReactionStrengthCoeff { get; }
         public ulong Ind { get; }
 
+        private readonly string name;
+
         private RawMaterial(ResConfig curResConfig, ulong ind, string name, Mass mass, HeatCapacity heatCapacity, AreaInt area, Color color, UDouble fusionReactionStrengthCoeff)
         {
-            Name = name;
+            this.name = name;
             Mass = mass;
             HeatCapacity = heatCapacity;
             Area = area;
@@ -49,6 +50,6 @@
             => GetAndAddToCurResConfigIfNeeded(curResConfig: curResConfig, ind: Ind + 1);
 
         public override string ToString()
-            => Name;
+            => name;
     }
 }

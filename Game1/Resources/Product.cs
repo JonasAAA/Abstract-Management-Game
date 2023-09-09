@@ -52,7 +52,7 @@ namespace Game1.Resources
                 => Algorithms.GanerateNewName
                 (
                     prefix: name,
-                    usedNames: CurResConfig.GetCurRes<Product>().Select(product => product.Name).ToEfficientReadOnlyHashSet()
+                    usedNames: CurResConfig.GetCurRes<Product>().Select(product => product.name).ToEfficientReadOnlyHashSet()
                 );
 
             /// <summary>
@@ -137,13 +137,13 @@ namespace Game1.Resources
                 keySelector: productParams => productParams.name
             );
 
-        public string Name { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt UsefulArea { get; }
         public RawMatAmounts RawMatComposition { get; }
         public ResRecipe Recipe { get; }
 
+        private readonly string name;
         private readonly Params parameters;
         private readonly MaterialChoices materialChoices;
 
@@ -152,7 +152,7 @@ namespace Game1.Resources
 
         private Product(string name, Params parameters, MaterialChoices materialChoices, ResAmounts<Product> productIngredients, ResAmounts<Material> materialIngredients)
         {
-            Name = name;
+            this.name = name;
             this.parameters = parameters;
             this.materialChoices = materialChoices;
             this.productIngredients = productIngredients;
@@ -186,6 +186,6 @@ namespace Game1.Resources
         }
 
         public sealed override string ToString()
-            => Name;
+            => name;
     }
 }

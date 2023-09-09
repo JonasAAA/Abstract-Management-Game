@@ -92,7 +92,7 @@ namespace Game1
                 {
                     UIRectHorizPanel<IHUDElement> materialChoiceLine = new(childVertPos: VertPosEnum.Middle);
                     buildingConfigPanel.AddChild(child: materialChoiceLine);
-                    materialChoiceLine.AddChild(child: new TextBox() { Text = materialPurpose.Name + " " });
+                    materialChoiceLine.AddChild(child: new TextBox() { Text = "${materialPurpose} " });
                     Button startMaterialChoice = new
                     (
                         shape: new MyRectangle(width: 200, height: 30),
@@ -199,7 +199,7 @@ namespace Game1
                     (
                         shape: new MyRectangle(width: 200, height: 30),
                         tooltip: new ImmutableTextTooltip(MaterialPurpose.TooltipTextFor(material: material)),
-                        text: material.Name
+                        text: material.ToString()
                     );
                     materialChoicePopup.AddChild(child: chooseMatButton);
                     chooseMatButton.clicked.Add
@@ -222,7 +222,7 @@ namespace Game1
         {
             void IClickedListener.ClickedResponse()
             {
-                StartMaterialChoice.Text = Material.Name;
+                StartMaterialChoice.Text = Material.ToString();
                 BuildingConfigPanelManager.SetMatChoice(materialPurpose: MaterialPurpose, material: Material);
             }
         }

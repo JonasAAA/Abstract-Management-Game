@@ -2,12 +2,12 @@
 
 namespace Game1.Resources
 {
-    public interface IMaterialPurpose
+    public interface IMaterialPurpose : IHasToString
     {
         [Serializable]
         private sealed class Mechanical : IMaterialPurpose
         {
-            string IMaterialPurpose.Name
+            public sealed override string ToString()
                 => "Mechanical";
         }
 
@@ -25,21 +25,21 @@ namespace Game1.Resources
         [Serializable]
         private sealed class RoofSurface : IMaterialPurpose
         {
-            string IMaterialPurpose.Name
+            public sealed override string ToString()
                 => "Roof Surface";
         }
 
         [Serializable]
         private sealed class ElectricalConductor : IMaterialPurpose
         {
-            string IMaterialPurpose.Name
+            public sealed override string ToString()
                 => "Electrical Conductor";
         }
 
         [Serializable]
         private sealed class ElectricalInsulator : IMaterialPurpose
         {
-            string IMaterialPurpose.Name
+            public sealed override string ToString()
                 => "Electrical Insulator";
         }
 
@@ -54,8 +54,6 @@ namespace Game1.Resources
         static IMaterialPurpose()
             => all = new IMaterialPurpose[] { mechanical, /* hydraulicFluid, */ roofSurface, electricalConductor, electricalInsulator };
 #warning Check that all contains all public fields and properties of type IMaterialPurpose. This should go into test project probably.
-
-        public string Name { get; }
 
         public sealed string TooltipTextFor(Material material)
             => UIAlgorithms.ChooseMaterialForMaterialPurpose(material: material, materialPurpose: this);

@@ -2,9 +2,8 @@
 
 namespace Game1.Resources
 {
-    public interface IResource : IComparable<IResource>
+    public interface IResource : IComparable<IResource>, IHasToString
     {
-        public string Name { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         /// <summary>

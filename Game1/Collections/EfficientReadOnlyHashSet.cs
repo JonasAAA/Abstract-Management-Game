@@ -5,10 +5,7 @@ namespace Game1.Collections
     [Serializable]
     public readonly struct EfficientReadOnlyHashSet<T> : IReadOnlySet<T>
     {
-        public static readonly EfficientReadOnlyHashSet<T> empty;
-
-        static EfficientReadOnlyHashSet()
-            => empty = new(set: new());
+        public static readonly EfficientReadOnlyHashSet<T> empty = new(set: new());
 
         public int Count
             => set.Count;

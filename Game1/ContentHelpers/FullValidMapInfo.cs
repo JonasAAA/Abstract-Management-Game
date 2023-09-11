@@ -19,17 +19,17 @@ namespace Game1.ContentHelpers
             //   select new FullValidMapInfo(cosmicBodies, links, startingInfo);
             => Result.Lift
             (
-                func: (arg1, arg2, arg3) => new FullValidMapInfo(cosmicBodies: arg1.ToArray(), links: arg2.ToArray(), startingInfo: arg3),
+                func: (arg1, arg2, arg3) => new FullValidMapInfo(cosmicBodies: arg1.ToEfficientReadOnlyCollection(), links: arg2.ToEfficientReadOnlyCollection(), startingInfo: arg3),
                 arg1: mapInfo.CosmicBodies.SelectMany(FullValidCosmicBodyInfo.Create),
                 arg2: mapInfo.Links.SelectMany(FullValidLinkInfo.Create),
                 arg3: FullValidStartingInfo.Create(startingInfo: mapInfo.StartingInfo)
             );
 
-        public FullValidCosmicBodyInfo[] CosmicBodies { get; }
-        public FullValidLinkInfo[] Links { get; }
+        public EfficientReadOnlyCollection<FullValidCosmicBodyInfo> CosmicBodies { get; }
+        public EfficientReadOnlyCollection<FullValidLinkInfo> Links { get; }
         public FullValidStartingInfo StartingInfo { get; }
 
-        private FullValidMapInfo(FullValidCosmicBodyInfo[] cosmicBodies, FullValidLinkInfo[] links, FullValidStartingInfo startingInfo)
+        private FullValidMapInfo(EfficientReadOnlyCollection<FullValidCosmicBodyInfo> cosmicBodies, EfficientReadOnlyCollection<FullValidLinkInfo> links, FullValidStartingInfo startingInfo)
         {
             CosmicBodies = cosmicBodies;
             Links = links;

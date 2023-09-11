@@ -22,10 +22,7 @@ namespace Game1
         private static GraphicsDevice? graphicsDevice;
         private static SpriteBatch? spriteBatch;
         private static Texture2D? pixelTexture;
-        private static readonly Random random;
-
-        static C()
-            => random = new();
+        private static readonly Random random = new();
 
         public static void Initialize(ContentManager contentManager, GraphicsDevice graphicsDevice)
         {

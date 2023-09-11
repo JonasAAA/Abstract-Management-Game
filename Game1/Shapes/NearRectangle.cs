@@ -3,7 +3,7 @@
 namespace Game1.Shapes
 {
     [Serializable]
-    public abstract class NearRectangle : Shape, IWithStandardPositions
+    public abstract class NearRectangle : Shape, IWithSpecialPositions
     {
         // can do:
         //public abstract class GeneralParams
@@ -27,7 +27,7 @@ namespace Game1.Shapes
 
         public MyVector2 TopLeftCorner
         {
-            get => GetPosition
+            get => GetSpecPos
             (
                 origin: new(HorizPosEnum.Left, VertPosEnum.Top)
             );
@@ -39,7 +39,7 @@ namespace Game1.Shapes
         }
         public MyVector2 TopRightCorner
         {
-            get => GetPosition
+            get => GetSpecPos
             (
                 origin: new(HorizPosEnum.Right, VertPosEnum.Top)
             );
@@ -51,7 +51,7 @@ namespace Game1.Shapes
         }
         public MyVector2 BottomLeftCorner
         {
-            get => GetPosition
+            get => GetSpecPos
             (
                 origin: new(HorizPosEnum.Left, VertPosEnum.Bottom)
             );
@@ -63,7 +63,7 @@ namespace Game1.Shapes
         }
         public MyVector2 BottomRightCorner
         {
-            get => GetPosition
+            get => GetSpecPos
             (
                 origin: new(HorizPosEnum.Right, VertPosEnum.Bottom)
             );
@@ -134,7 +134,7 @@ namespace Game1.Shapes
             SizeOrPosChanged = new();
         }
 
-        public MyVector2 GetPosition(PosEnums origin)
+        public MyVector2 GetSpecPos(PosEnums origin)
             => origin.GetPosInRect(center: Center, width: Width, height: Height);
 
         public void SetPosition(MyVector2 position, PosEnums origin)

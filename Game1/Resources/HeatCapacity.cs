@@ -8,16 +8,13 @@ namespace Game1.Resources
     [Serializable]
     public readonly record struct HeatCapacity : IOrderedVector<HeatCapacity, ulong>
     {
-        public static readonly HeatCapacity zero;
+        public static readonly HeatCapacity zero = new(valueInJPerK: 0);
 
         static HeatCapacity IAdditiveIdentity<HeatCapacity, HeatCapacity>.AdditiveIdentity
             => zero;
 
         static ulong IMultiplicativeIdentity<HeatCapacity, ulong>.MultiplicativeIdentity
             => 1;
-
-        static HeatCapacity()
-            => zero = new(valueInJPerK: 0);
 
         public static HeatCapacity CreateFromJPerK(ulong valueInJPerK)
             => new(valueInJPerK: valueInJPerK);

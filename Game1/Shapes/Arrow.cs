@@ -3,10 +3,7 @@
     [Serializable]
     public sealed class Arrow : VectorShape
     {
-        private static readonly Texture2D triangleTexture;
-
-        static Arrow()
-            => triangleTexture = C.LoadTexture(name: "triangle");
+        private static readonly Texture2D triangleTexture = C.LoadTexture(name: "triangle");
 
         protected sealed override Texture2D Texture
             => triangleTexture;

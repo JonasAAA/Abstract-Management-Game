@@ -4,7 +4,7 @@ using Game1.Collections;
 namespace Game1.Inhabitants
 {
     [Serializable]
-    public class VirtualPeople : IEnumerable<VirtualPerson>
+    public sealed class VirtualPeople : IEnumerable<VirtualPerson>
     {
         public NumPeople Count
             => new(people.Count);

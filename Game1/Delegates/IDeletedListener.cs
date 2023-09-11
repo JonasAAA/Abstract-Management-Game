@@ -1,6 +1,6 @@
 ﻿namespace Game1.Delegates
 {
-    public interface IDeletedListener : IListener
+    public interface IDeletedListener
     {
         /// <summary>
         /// Needs to remove all mentions of deletable in the deletedListener

@@ -1,6 +1,6 @@
 ﻿namespace Game1.Delegates
 {
-    public interface IClickedListener : IListener
+    public interface IClickedListener
     {
         public void ClickedResponse();
     }

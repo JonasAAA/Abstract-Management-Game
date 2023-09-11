@@ -91,10 +91,7 @@ namespace Game1.Inhabitants
 
         // TODO: move to some config file
         // Long-term, make each person require different amount of resources
-        public static readonly AllResAmounts resAmountsPerPerson;
-
-        static RealPerson()
-            => resAmountsPerPerson = new
+        public static readonly AllResAmounts resAmountsPerPerson = new
             (
                 resAmounts: new List<ResAmount<IResource>>()
                 {

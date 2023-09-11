@@ -92,7 +92,7 @@ namespace Game1
                 {
                     UIRectHorizPanel<IHUDElement> materialChoiceLine = new(childVertPos: VertPosEnum.Middle);
                     buildingConfigPanel.AddChild(child: materialChoiceLine);
-                    materialChoiceLine.AddChild(child: new TextBox() { Text = "${materialPurpose} " });
+                    materialChoiceLine.AddChild(child: new TextBox() { Text = $"{materialPurpose} " });
                     Button startMaterialChoice = new
                     (
                         shape: new MyRectangle(width: 200, height: 30),
@@ -190,7 +190,7 @@ namespace Game1
                 CurWorldManager.SetHUDPopup
                 (
                     HUDElement: materialChoicePopup,
-                    HUDPos: StartMaterialChoice.Shape.GetPosition(origin: popupOrigin),
+                    HUDPos: StartMaterialChoice.Shape.GetSpecPos(origin: popupOrigin),
                     origin: popupOrigin
                 );
                 foreach (var material in CurResConfig.GetCurRes<Material>())
@@ -260,15 +260,62 @@ namespace Game1
         public static bool Initialized
             => curWorldManager is not null;
 
-        public static WorldConfig CurWorldConfig { get; private set; }
+        public static WorldConfig CurWorldConfig { get; private set; } = null!;
 
-        public static ResConfig CurResConfig { get; private set; }
+        public static ResConfig CurResConfig { get; private set; } = null!;
 
         public static IndustryConfig CurIndustryConfig
             => CurWorldManager.industryConfig;
 
         private static WorldManager? curWorldManager;
-        private static readonly Type[] knownTypes;
+        private static readonly EfficientReadOnlyCollection<Type> knownTypes = ComputeKnownTypes();
+
+        private static EfficientReadOnlyCollection<Type> ComputeKnownTypes()
+        {
+            var nonSerializableTypes = GameMain.NonSerializableTypes();
+
+            // TODO: move to a more appropriate class?
+            HashSet<Type> knownTypesSet = new()
+            {
+                typeof(Dictionary<IndustryType, Score>),
+                typeof(EfficientReadOnlyDictionary<NodeID, CosmicBody>),
+                typeof(UIHorizTabPanel<IHUDElement>),
+                typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
+                typeof(MultipleChoicePanel<string>),
+                typeof(MultipleChoicePanel<string>.ChoiceEventListener),
+                typeof(UIRectHorizPanel<IHUDElement>),
+                typeof(UIRectHorizPanel<SelectButton>),
+                typeof(UIRectVertPanel<IHUDElement>),
+                //typeof(Counter<NumPeople>),
+                typeof(EnergyCounter<HeatEnergy>),
+                typeof(EnergyCounter<RadiantEnergy>),
+                typeof(EnergyCounter<ElectricalEnergy>),
+                //typeof(EnergyCounter<ResAmounts>),
+            };
+            knownTypesSet.UnionWith(Construction.GetKnownTypes());
+            knownTypesSet.UnionWith(Manufacturing.GetKnownTypes());
+            knownTypesSet.UnionWith(PowerPlant.GetKnownTypes());
+            knownTypesSet.UnionWith(Mining.GetKnownTypes());
+            knownTypesSet.UnionWith(MaterialProduction.GetKnownTypes());
+            knownTypesSet.UnionWith(Storage.GetKnownTypes());
+            List<Type> unserializedTypeList = new();
+            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                if (Attribute.GetCustomAttribute(type, typeof(CompilerGeneratedAttribute)) is not null)
+                    continue;
+
+                if (Attribute.GetCustomAttribute(type, typeof(DataContractAttribute)) is not null
+                    || Attribute.GetCustomAttribute(type, typeof(SerializableAttribute)) is not null
+                    || type.IsEnum)
+                    knownTypesSet.Add(type);
+                else
+                    if (!nonSerializableTypes.Contains(type) && !(type.IsAbstract && type.IsSealed) && !type.IsInterface)
+                    unserializedTypeList.Add(type);
+            }
+            if (unserializedTypeList.Count > 0)
+                throw new InvalidStateException($"Every non-static, non-interface, non-enum type (except for types returned from NonSerializableTypes method(s)) must have attribute Serializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
+            return knownTypesSet.ToEfficientReadOnlyCollection();
+        }
 
         public static void CreateWorldManager(FullValidMapInfo mapInfo)
         {
@@ -365,54 +412,6 @@ namespace Game1
                     SerializeReadOnlyTypes = true
                 }
             );
-
-        static WorldManager()
-        {
-            // TODO: move to a more appropriate class?
-            HashSet<Type> knownTypesSet = new()
-            {
-                typeof(Dictionary<IndustryType, Score>),
-                typeof(EfficientReadOnlyDictionary<NodeID, CosmicBody>),
-                typeof(UIHorizTabPanel<IHUDElement>),
-                typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
-                typeof(MultipleChoicePanel<string>),
-                typeof(MultipleChoicePanel<string>.ChoiceEventListener),
-                typeof(UIRectHorizPanel<IHUDElement>),
-                typeof(UIRectHorizPanel<SelectButton>),
-                typeof(UIRectVertPanel<IHUDElement>),
-                //typeof(Counter<NumPeople>),
-                typeof(EnergyCounter<HeatEnergy>),
-                typeof(EnergyCounter<RadiantEnergy>),
-                typeof(EnergyCounter<ElectricalEnergy>),
-                //typeof(EnergyCounter<ResAmounts>),
-            };
-            knownTypesSet.UnionWith(Construction.GetKnownTypes());
-            knownTypesSet.UnionWith(Manufacturing.GetKnownTypes());
-            knownTypesSet.UnionWith(PowerPlant.GetKnownTypes());
-            knownTypesSet.UnionWith(Mining.GetKnownTypes());
-            knownTypesSet.UnionWith(MaterialProduction.GetKnownTypes());
-            knownTypesSet.UnionWith(Storage.GetKnownTypes());
-            List<Type> unserializedTypeList = new();
-            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
-            {
-                if (Attribute.GetCustomAttribute(type, typeof(CompilerGeneratedAttribute)) is not null)
-                    continue;
-
-                if (Attribute.GetCustomAttribute(type, typeof(DataContractAttribute)) is not null
-                    || Attribute.GetCustomAttribute(type, typeof(SerializableAttribute)) is not null
-                    || type.IsEnum)
-                    knownTypesSet.Add(type);
-                else
-                    if (type != typeof(Game1) && !(type.IsAbstract && type.IsSealed) && !type.IsInterface)
-                    unserializedTypeList.Add(type);
-            }
-            if (unserializedTypeList.Count > 0)
-                throw new InvalidStateException($"Every non-static, non-interface, non-enum type (except for Game1) must have attribute Serializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
-            knownTypes = knownTypesSet.ToArray();
-
-            CurWorldConfig = null!;
-            CurResConfig = null!;
-        }
 
         public TimeSpan StartTime { get; }
 

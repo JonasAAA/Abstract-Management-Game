@@ -4,10 +4,7 @@ namespace Game1.Shapes
 {
     public static class DiskAlgos
     {
-        private static readonly Texture2D diskTexture;
-
-        static DiskAlgos()
-            => diskTexture = C.LoadTexture(name: "big disk");
+        private static readonly Texture2D diskTexture = C.LoadTexture(name: "big disk");
 
         public static UDouble RadiusFromArea(AreaDouble area)
             => MyMathHelper.Sqrt(area.valueInMetSq / MyMathHelper.pi);

@@ -5,16 +5,13 @@ namespace Game1.Resources
     [Serializable]
     public readonly record struct Mass : IOrderedVector<Mass, ulong>
     {
-        public static readonly Mass zero;
+        public static readonly Mass zero = new(valueInKg: 0);
 
         static Mass IAdditiveIdentity<Mass, Mass>.AdditiveIdentity
             => zero;
 
         static ulong IMultiplicativeIdentity<Mass, ulong>.MultiplicativeIdentity
             => 1;
-
-        static Mass()
-            => zero = new(valueInKg: 0);
 
         public static Mass CreateFromKg(ulong valueInKg)
             => new(valueInKg: valueInKg);

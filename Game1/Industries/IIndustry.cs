@@ -6,7 +6,7 @@ using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
-    public interface IIndustry : IWithStandardPositions, IDeletable
+    public interface IIndustry : IWithSpecialPositions, IDeletable
     {
         public string Name { get; }
         public NodeID NodeID { get; }
@@ -27,7 +27,7 @@ namespace Game1.Industries
 
         public string GetInfo();
 
-        MyVector2 IWithStandardPositions.GetPosition(PosEnums origin)
+        MyVector2 IWithSpecialPositions.GetSpecPos(PosEnums origin)
             => BuildingImage.GetPosition(origin: origin);
 
         public bool IsSourceOf(IResource resource);

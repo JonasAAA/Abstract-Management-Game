@@ -11,10 +11,7 @@ namespace Game1.Inhabitants
     [Serializable]
     public readonly struct RealPeopleStats
     {
-        public static readonly RealPeopleStats empty = default;
-
-        static RealPeopleStats()
-            => empty = new
+        public static readonly RealPeopleStats empty = new
             (
                 totalMass: Mass.zero,
                 totalNumPeople: NumPeople.zero,

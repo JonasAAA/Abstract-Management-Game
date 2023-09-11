@@ -1,9 +1,14 @@
-﻿namespace Game1.Resources
+﻿using Game1.Collections;
+
+namespace Game1.Resources
 {
     [Serializable]
     public sealed class ResConfig
     {
         public MaterialChoices StartingMaterialChoices { get; private set; }
+
+        public EfficientReadOnlyCollection<IResource> AllCurRes
+            => new(list: resources);
 
         private readonly Dictionary<ulong, RawMaterial> indToRawMat;
         private readonly List<IResource> resources;
@@ -71,9 +76,6 @@
                 if (res is TRes wantedRes)
                     yield return wantedRes;
         }
-
-        public IEnumerable<IResource> GetAllCurRes()
-            => resources;
 
         public void AddRes(IResource resource)
         {

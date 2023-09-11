@@ -5,13 +5,10 @@ namespace Game1.Resources
     [Serializable]
     public readonly record struct Energy : IAdditionOperators<Energy, Energy, Energy>, IAdditiveIdentity<Energy, Energy>, IComparisonOperators<Energy, Energy, bool>
     {
-        public static readonly Energy zero;
+        public static readonly Energy zero = new(valueInJ: 0);
 
         static Energy IAdditiveIdentity<Energy, Energy>.AdditiveIdentity
             => zero;
-
-        static Energy()
-            => zero = new(valueInJ: 0);
 
         public static Energy CreateFromJoules(ulong valueInJ)
             => new(valueInJ: valueInJ);

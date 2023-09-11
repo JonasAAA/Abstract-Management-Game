@@ -6,25 +6,17 @@ namespace Game1.UI
     [Serializable]
     public sealed class ActiveUIManager
     {
-        public static readonly UIConfig curUIConfig;
-        public static readonly ColorConfig colorConfig;
-        public static readonly UDouble screenWidth, screenHeight;
+        public static readonly UIConfig curUIConfig = new();
+        public static readonly ColorConfig colorConfig = new();
+        public static readonly UDouble
+            screenWidth = (UDouble)C.GraphicsDevice.Viewport.Width * curUIConfig.standardScreenHeight / (UDouble)C.GraphicsDevice.Viewport.Height,
+            screenHeight = curUIConfig.standardScreenHeight;
         public static MyVector2 MouseHUDPos
             => HUDCamera.ScreenPosToHUDPos(screenPos: (MyVector2)Mouse.GetState().Position);
         public static UDouble RectOutlineWidth
             => curUIConfig.rectOutlineWidth;
 
-        private static readonly HUDCamera HUDCamera;
-
-        static ActiveUIManager()
-        {
-            curUIConfig = new();
-            colorConfig = new();
-            Camera.Initialize();
-            screenWidth = (UDouble)C.GraphicsDevice.Viewport.Width * curUIConfig.standardScreenHeight / (UDouble)C.GraphicsDevice.Viewport.Height;
-            screenHeight = curUIConfig.standardScreenHeight;
-            HUDCamera = new();
-        }
+        private static readonly HUDCamera HUDCamera = new();
 
         public static MyVector2 ScreenPosToHUDPos(MyVector2 screenPos)
             => HUDCamera.ScreenPosToHUDPos(screenPos: screenPos);

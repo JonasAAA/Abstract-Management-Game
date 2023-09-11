@@ -2,7 +2,7 @@
 
 namespace Game1.Delegates
 {
-    public interface ISizeOrPosChangedListener : IListener
+    public interface ISizeOrPosChangedListener
     {
         public void SizeOrPosChangedResponse(Shape shape);
     }

@@ -1,6 +1,6 @@
 ﻿namespace Game1.Delegates
 {
-    public interface INumberChangedListener : IListener
+    public interface INumberChangedListener
     {
         public void NumberChangedResponse();
     }

@@ -5,7 +5,7 @@ namespace Game1.PrimitiveTypeWrappers
     // TODO: could rename to MyUFloat
     [Serializable]
     public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>,
-        IComparisonOperators<UDouble, UDouble, bool>, IMin<UDouble>, IMax<UDouble>, IComparable<UDouble>, IMinMaxValue<UDouble>,
+        IComparisonOperators<UDouble, UDouble, bool>, IMin<UDouble>, IMax<UDouble>, IComparable<UDouble>, IEquatable<UDouble>, IMinMaxValue<UDouble>,
         IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>,
         ISubtractionOperators<UDouble, UDouble, UDouble>,
         IMultiplyOperators<UDouble, UDouble, UDouble>, IMultiplicativeIdentity<UDouble, UDouble>,
@@ -131,6 +131,9 @@ namespace Game1.PrimitiveTypeWrappers
 
         public override bool Equals(object? obj)
             => obj is UDouble UDouble && value == UDouble.value;
+
+        bool IEquatable<UDouble>.Equals(UDouble UDouble)
+            => value == UDouble.value;
 
         public override int GetHashCode()
             => value.GetHashCode();

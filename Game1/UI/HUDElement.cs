@@ -13,7 +13,7 @@ namespace Game1.UI
 
         private bool inRecalcSizeAndPos;
 
-        public HUDElement(NearRectangle shape)
+        protected HUDElement(NearRectangle shape)
             : base(shape: shape)
         {
             Shape = shape;

@@ -4,7 +4,6 @@ namespace Game1.Delegates
 {
     [Serializable]
     public sealed class Event<T> : IEvent<T>
-        where T : IListener
     {
         private readonly ThrowingSet<T> listeners;
 

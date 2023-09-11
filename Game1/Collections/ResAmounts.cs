@@ -12,10 +12,7 @@ namespace Game1.Collections
     public readonly struct ResAmounts<TRes> : IResAmounts<ResAmounts<TRes>>, IEnumerable<ResAmount<TRes>>
         where TRes : class, IResource
     {
-        public static readonly ResAmounts<TRes> empty;
-
-        static ResAmounts()
-            => empty = new();
+        public static readonly ResAmounts<TRes> empty = new();
 
         public bool IsEmpty
             // as amounts cannot contain value 0, the only way to be empty is to have no elements

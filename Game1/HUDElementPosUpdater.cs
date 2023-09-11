@@ -8,11 +8,11 @@ namespace Game1
     public sealed class HUDElementPosUpdater : IAction
     {
         private readonly IHUDElement HUDElement;
-        private readonly IWithStandardPositions baseWorldObject;
+        private readonly IWithSpecialPositions baseWorldObject;
         private readonly PosEnums HUDElementOrigin, anchorInBaseWorldObject;
 
         // TODO: HUDElementOrigin could be the opposite of anchorInBaseWorldObject
-        public HUDElementPosUpdater(IHUDElement HUDElement, IWithStandardPositions baseWorldObject, PosEnums HUDElementOrigin, PosEnums anchorInBaseWorldObject)
+        public HUDElementPosUpdater(IHUDElement HUDElement, IWithSpecialPositions baseWorldObject, PosEnums HUDElementOrigin, PosEnums anchorInBaseWorldObject)
         {
             this.HUDElement = HUDElement;
             this.baseWorldObject = baseWorldObject;
@@ -23,7 +23,7 @@ namespace Game1
         void IAction.Invoke()
             => HUDElement.Shape.SetPosition
             (
-                position: WorldManager.CurWorldManager.WorldPosToHUDPos(worldPos: baseWorldObject.GetPosition(origin: anchorInBaseWorldObject)),
+                position: WorldManager.CurWorldManager.WorldPosToHUDPos(worldPos: baseWorldObject.GetSpecPos(origin: anchorInBaseWorldObject)),
                 origin: HUDElementOrigin
             );
     }

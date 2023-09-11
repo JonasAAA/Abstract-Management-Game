@@ -55,7 +55,7 @@ namespace Game1.UI
         /// </summary>
         protected abstract EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups { get; }
 
-        public WorldUIElement(Shape shape)
+        protected WorldUIElement(Shape shape)
             : base(shape: shape)
         {
             activeChanged = new();

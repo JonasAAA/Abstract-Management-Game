@@ -9,7 +9,7 @@ namespace Game1.UI
 
         public HUDCamera()
         {
-            HUDToScreen = Matrix.CreateScale(scale: (float)ScreenScale);
+            HUDToScreen = Matrix.CreateScale(scale: (float)screenScale);
             screenToHUD = Matrix.Invert(HUDToScreen);
         }
 
@@ -21,7 +21,7 @@ namespace Game1.UI
 
         [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "This is so that the player doesn't need to care about internal implementation details")]
         public UDouble HUDLengthToScreenLength(UDouble HUDLength)
-            => HUDLength * ScreenScale;
+            => HUDLength * screenScale;
 
         public sealed override Matrix GetToScreenTransform()
             => HUDToScreen;

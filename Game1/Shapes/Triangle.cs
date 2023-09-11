@@ -11,9 +11,7 @@
             Right = 0
         }
 
-        private static readonly Texture2D triangleTexture;
-        static Triangle()
-            => triangleTexture = C.LoadTexture(name: "triangle");
+        private static readonly Texture2D triangleTexture = C.LoadTexture(name: "triangle");
 
         private MyVector2 BasePos
             => Center - dirVector * MainAltitudeLength * .5;

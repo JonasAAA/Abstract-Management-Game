@@ -1,23 +1,38 @@
-﻿using Game1.ContentHelpers;
+﻿using Game1.Collections;
+using Game1.ContentHelpers;
 using Game1.Delegates;
 using Game1.GameStates;
 using Game1.Shapes;
 using Game1.UI;
+using System.Globalization;
 using System.IO;
 using System.Runtime;
 using System.Text.Json;
 
 namespace Game1
 {
-    public sealed class Game1 : Game
+    public sealed class GameMain : Game
     {
+        public static EfficientReadOnlyHashSet<Type> NonSerializableTypes()
+            => new
+            (
+                set: new()
+                {
+                    typeof(GameMain),
+                    typeof(SetGameStateToPause)
+                }
+            );
+
         private readonly GraphicsDeviceManager graphics;
         private PlayState? playState;
         private MapCreationState? mapCreationState;
         private GameState gameState;
 
-        public Game1()
+        public GameMain()
         {
+            // Since all the spelling and such will use US conventions, want numbers, dates, and so on to use that as well.
+            CultureInfo.CurrentCulture = new CultureInfo("en-US");
+
             graphics = new(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
@@ -58,8 +73,7 @@ namespace Game1
             base.Initialize();
         }
 
-        [Serializable]
-        private readonly record struct SetGameStateToPause(Game1 Game, GameState PauseMenu) : IAction
+        private readonly record struct SetGameStateToPause(GameMain Game, GameState PauseMenu) : IAction
         {
             public void Invoke()
                 => Game.SetGameState(newGameState: PauseMenu);

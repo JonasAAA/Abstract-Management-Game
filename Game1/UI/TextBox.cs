@@ -6,10 +6,7 @@ namespace Game1.UI
     [Serializable]
     public sealed class TextBox : HUDElement
     {
-        private static readonly SpriteFont font;
-
-        static TextBox()
-            => font = C.LoadFont(name: "Fonts/MainFont");
+        private static readonly SpriteFont font = C.LoadFont(name: "Fonts/MainFont");
 
         public string? Text
         {

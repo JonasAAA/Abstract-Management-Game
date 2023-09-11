@@ -1,4 +1,6 @@
-﻿namespace Game1.ContentHelpers
+﻿using Game1.Collections;
+
+namespace Game1.ContentHelpers
 {
     /// <summary>
     /// All the contained data is valid, but not all data may be present
@@ -10,12 +12,12 @@
             => CreateOrThrow
             (
                 notReadyToUse: mapInfo.NotReadyToUse,
-                cosmicBodies: mapInfo.CosmicBodies.Select(ValidCosmicBodyInfo.CreateOrThrow).ToArray(),
-                links: mapInfo.Links.Select(ValidLinkInfo.CreateOrThrow).ToArray(),
+                cosmicBodies: mapInfo.CosmicBodies.Select(ValidCosmicBodyInfo.CreateOrThrow).ToEfficientReadOnlyCollection(),
+                links: mapInfo.Links.Select(ValidLinkInfo.CreateOrThrow).ToEfficientReadOnlyCollection(),
                 startingInfo: ValidStartingInfo.CreateOrThrow(startingInfo: mapInfo.StartingInfo)
             );
 
-        public static ValidMapInfo CreateOrThrow(bool notReadyToUse, ValidCosmicBodyInfo[] cosmicBodies, ValidLinkInfo[] links, ValidStartingInfo startingInfo)
+        public static ValidMapInfo CreateOrThrow(bool notReadyToUse, EfficientReadOnlyCollection<ValidCosmicBodyInfo> cosmicBodies, EfficientReadOnlyCollection<ValidLinkInfo> links, ValidStartingInfo startingInfo)
         {
             HashSet<string> cosmicBodyNames = new();
             foreach (var cosmicBodyInfo in cosmicBodies)
@@ -64,11 +66,11 @@
         }
 
         public bool NotReadyToUse { get; }
-        public ValidCosmicBodyInfo[] CosmicBodies { get; }
-        public ValidLinkInfo[] Links { get; }
+        public EfficientReadOnlyCollection<ValidCosmicBodyInfo> CosmicBodies { get; }
+        public EfficientReadOnlyCollection<ValidLinkInfo> Links { get; }
         public ValidStartingInfo StartingInfo { get; }
 
-        private ValidMapInfo(bool notReadyToUse, ValidCosmicBodyInfo[] cosmicBodies, ValidLinkInfo[] links, ValidStartingInfo startingInfo)
+        private ValidMapInfo(bool notReadyToUse, EfficientReadOnlyCollection<ValidCosmicBodyInfo> cosmicBodies, EfficientReadOnlyCollection<ValidLinkInfo> links, ValidStartingInfo startingInfo)
         {
             NotReadyToUse = notReadyToUse;
             CosmicBodies = cosmicBodies;

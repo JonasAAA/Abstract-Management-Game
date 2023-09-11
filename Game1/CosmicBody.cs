@@ -11,7 +11,7 @@ using Game1.Collections;
 namespace Game1
 {
     [Serializable]
-    public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, ILightCatchingObject, IWithStandardPositions, IWithRealPeopleStats
+    public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, ILightCatchingObject, IWithSpecialPositions, IWithRealPeopleStats
     {
         [Serializable]
         private readonly record struct ShapeParams(NodeState State) : Disk.IParams
@@ -171,8 +171,8 @@ namespace Game1
             CurWorldManager.AddLightCatchingObject(lightCatchingObject: this);
         }
 
-        public MyVector2 GetPosition(PosEnums origin)
-            => Industry?.GetPosition(origin: origin) ?? origin.GetPosInRect(center: Position, width: 2 * state.Radius, height: 2 * state.Radius);
+        public MyVector2 GetSpecPos(PosEnums origin)
+            => Industry?.GetSpecPos(origin: origin) ?? origin.GetPosInRect(center: Position, width: 2 * state.Radius, height: 2 * state.Radius);
 
         public void StartConstruction(Construction.ConcreteParams constrConcreteParams)
             => Industry = constrConcreteParams.CreateIndustry();

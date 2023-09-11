@@ -22,13 +22,9 @@ namespace Game1.Lighting
             { }
         }
 
-        private static readonly int actualScreenWidth, actualScreenHeight;
-
-        static LightManager()
-        {
-            actualScreenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width;
+        private static readonly int
+            actualScreenWidth = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Width,
             actualScreenHeight = GraphicsAdapter.DefaultAdapter.CurrentDisplayMode.Height;
-        }
 
         private readonly ThrowingSet<ILightCatchingObject> lightCatchingObjects;
         private readonly ThrowingSet<ILightSource> lightSources;

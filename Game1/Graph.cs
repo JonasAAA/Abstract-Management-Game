@@ -89,7 +89,7 @@ namespace Game1
             (
                 amount: new
                 (
-                    resAmounts: resConfig.GetAllCurRes().Select
+                    resAmounts: resConfig.AllCurRes.Select
                     (
                         res => new ResAmount<IResource>
                         (

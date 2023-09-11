@@ -4,14 +4,14 @@
     public sealed class InnerRing : Ring
     {
         private const int ringTextureWidthAndHeight = 2048;
-        private static readonly Texture2D ringTexture;
+        private static readonly Texture2D ringTexture = CreateRingTexture();
 
-        static InnerRing()
+        private static Texture2D CreateRingTexture()
         {
             UDouble outerRadius = ringTextureWidthAndHeight * (UDouble).5,
                 innerRadius = GetInnerRadius(outerRadius: outerRadius);
 
-            ringTexture = C.CreateTexture
+            return C.CreateTexture
             (
                 width: ringTextureWidthAndHeight,
                 height: ringTextureWidthAndHeight,

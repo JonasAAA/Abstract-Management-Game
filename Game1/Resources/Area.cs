@@ -7,16 +7,13 @@ namespace Game1.Resources
         where T : struct, IAdditionOperators<T, T, T>, IAdditiveIdentity<T, T>, IMultiplyOperators<T, T, T>, IMultiplicativeIdentity<T, T>,
             IComparisonOperators<T, T, bool>, ISubtractionOperators<T, T, T>
     {
-        public static readonly Area<T> zero;
+        public static readonly Area<T> zero = new(valueInMetSq: T.AdditiveIdentity);
 
         static Area<T> IAdditiveIdentity<Area<T>, Area<T>>.AdditiveIdentity
             => zero;
 
         static T IMultiplicativeIdentity<Area<T>, T>.MultiplicativeIdentity
             => T.MultiplicativeIdentity;
-
-        static Area()
-            => zero = new(valueInMetSq: T.AdditiveIdentity);
 
         public static Area<T> CreateFromMetSq(T valueInMetSq)
             => new(valueInMetSq: valueInMetSq);

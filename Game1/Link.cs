@@ -14,7 +14,7 @@ namespace Game1
     /// Travellers going to the same direction mix their heat
     /// </summary>
     [Serializable]
-    public sealed class Link : WorldUIElement, IWithStandardPositions, IWithRealPeopleStats
+    public sealed class Link : WorldUIElement, IWithSpecialPositions, IWithRealPeopleStats
     {
         [Serializable]
         private sealed class DirLink : IEnergyConsumer, IWithRealPeopleStats
@@ -219,7 +219,7 @@ namespace Game1
             RecalculateValuesAndGetLinkLength();
         }
 
-        MyVector2 IWithStandardPositions.GetPosition(PosEnums origin)
+        MyVector2 IWithSpecialPositions.GetSpecPos(PosEnums origin)
             => (node1.Position + node2.Position) / 2;
 
         public ILinkFacingCosmicBody OtherNode(ILinkFacingCosmicBody node)

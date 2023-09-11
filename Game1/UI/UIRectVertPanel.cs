@@ -25,7 +25,7 @@ namespace Game1.UI
             {
                 child.Shape.SetPosition
                 (
-                    position: Shape.GetPosition(origin: childOrigin)
+                    position: Shape.GetSpecPos(origin: childOrigin)
                         + new MyVector2(-(int)childHorizPos * ActiveUIManager.RectOutlineWidth, curHeightSum + ActiveUIManager.RectOutlineWidth),
                     origin: childOrigin
                 );

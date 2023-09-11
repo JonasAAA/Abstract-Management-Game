@@ -90,10 +90,7 @@ namespace Game1.Resources
         }
 
 #warning Complete this by moving to a separate file so that this can be configured
-        public static readonly EfficientReadOnlyDictionary<string, Params> productParamsDict;
-
-        static Product()
-            => productParamsDict = new List<Params>()
+        public static readonly EfficientReadOnlyDictionary<string, Params> productParamsDict = new List<Params>()
             {
                 new
                 (

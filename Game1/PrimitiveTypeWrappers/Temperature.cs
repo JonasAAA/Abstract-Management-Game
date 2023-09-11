@@ -3,10 +3,7 @@
     [Serializable]
     public readonly record struct Temperature : IComparable<Temperature>
     {
-        public static readonly Temperature zero;
-
-        static Temperature()
-            => zero = new(valueInK: 0);
+        public static readonly Temperature zero = new(valueInK: 0);
 
         public static Temperature CreateFromK(UDouble valueInK)
             => new(valueInK: valueInK);

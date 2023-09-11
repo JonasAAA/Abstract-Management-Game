@@ -5,13 +5,10 @@ namespace Game1.Resources
     [Serializable]
     public readonly record struct NumPeople : ICountable<NumPeople>
     {
-        public static readonly NumPeople zero;
+        public static readonly NumPeople zero = new(value: 0);
 
         static NumPeople IAdditiveIdentity<NumPeople, NumPeople>.AdditiveIdentity
             => zero;
-
-        static NumPeople()
-            => zero = new(value: 0);
 
         // This must be property rather than field so that auto-initialized numPeople IsZero returns true
         public bool IsZero

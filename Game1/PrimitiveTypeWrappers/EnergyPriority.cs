@@ -5,14 +5,16 @@ namespace Game1.PrimitiveTypeWrappers
     [Serializable]
     public readonly record struct EnergyPriority : IEquatable<EnergyPriority>, IComparable<EnergyPriority>, IPrimitiveTypeWrapper, IComparisonOperators<EnergyPriority, EnergyPriority, bool>, IMinMaxValue<EnergyPriority>, IMax<EnergyPriority>
     {
+        // These values must be here so that the EnergyPriority constructor doesn't have to reference CurWorldConfig
+        // (as that would mean runtime error)
         /// <summary>
         /// 0
         /// </summary>
-        public static readonly EnergyPriority leastImportant;
+        public static readonly EnergyPriority leastImportant = new(value: leastImportantEnergyPrior);
         /// <summary>
         /// 100
         /// </summary>
-        public static readonly EnergyPriority mostImportant;
+        public static readonly EnergyPriority mostImportant = new(value: mostImportantEnergyPrior);
 
         static EnergyPriority IMinMaxValue<EnergyPriority>.MinValue
             => leastImportant;
@@ -21,14 +23,6 @@ namespace Game1.PrimitiveTypeWrappers
             => mostImportant;
 
         private const ulong leastImportantEnergyPrior = 0, mostImportantEnergyPrior = 100;
-
-        static EnergyPriority()
-        {
-            // These values must be here so that the EnergyPriority constructor doesn't have to reference CurWorldConfig
-            // (as that would mean runtime error)
-            leastImportant = new(value: leastImportantEnergyPrior);
-            mostImportant = new(value: mostImportantEnergyPrior);
-        }
 
         private readonly ulong value;
 

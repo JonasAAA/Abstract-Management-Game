@@ -49,7 +49,8 @@ namespace Game1.Resources
         public static readonly IMaterialPurpose electricalConductor = new ElectricalConductor();
         public static readonly IMaterialPurpose electricalInsulator = new ElectricalInsulator();
 
-#warning Check that all contains all public fields and properties of type IMaterialPurpose. This should go into test project probably.
+        // DON'T forget to put all material purposes in this list.
+        // There is a test to check that
         public static readonly IReadOnlyCollection<IMaterialPurpose> all = new IMaterialPurpose[] { mechanical, /* hydraulicFluid, */ roofSurface, electricalConductor, electricalInsulator };
 
         public sealed string TooltipTextFor(Material material)

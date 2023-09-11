@@ -12,8 +12,7 @@ namespace TestProject
             => CollectionAssert.AreEquivalent
             (
                 expected: TestHelpers.GetAllPublicStaticFieldValuesInType<IMaterialPurpose>(type: typeof(IMaterialPurpose)),
-                actual: 
-                IMaterialPurpose.all.ToList()
+                actual: IMaterialPurpose.all.ToList()
             );
 
         [TestMethod]

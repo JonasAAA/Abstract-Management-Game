@@ -35,9 +35,14 @@ namespace Game1
 
         // Formula is like this so that maximum density is 1 and fusion reactions don't change cosmic body area
         // The non-changing area is nice as only mining and planet enlargement buildings need to change size in this case
-        // 
         public static AreaInt RawMaterialArea(ulong ind)
             => AreaInt.CreateFromMetSq(valueInMetSq: 3 * MyMathHelper.Pow(2, ind + 1));
+
+        /// <summary>
+        /// Any material target area must be a multiple of this
+        /// </summary>
+        public static AreaInt MaterialTargetAreaDivisor
+            => RawMaterialArea(ind: 9) * 9 * 5 * 7;
 
         // As ind increases, the color becomes more brown
         // Formula is plucked out of thin air

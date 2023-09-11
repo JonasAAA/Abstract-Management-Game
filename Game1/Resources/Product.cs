@@ -9,32 +9,61 @@ namespace Game1.Resources
         [Serializable]
         public sealed class Params
         {
+            private static readonly Dictionary<IProductClass, ulong> nextInds = IProductClass.all.ToDictionary(elementSelector: prodClass => 0ul);
+
+            private static ulong GetNextInd(IProductClass productClass)
+            {
+                var ind = nextInds[productClass];
+                nextInds[productClass]++;
+                return ind;
+            }
+
+            public static Params CreateNextOrThrow(string name, IProductClass productClass, ulong materialPaletteAmount, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
+            {
+                ulong indInClass = GetNextInd(productClass: productClass);
+                foreach (var (ingredProd, amount) in ingredProdToAmounts)
+                {
+                    if (amount is 0)
+                        throw new ArgumentException();
+                    if (ingredProd.productClass != productClass)
+                        throw new ArgumentException();
+                    if (ingredProd.indInClass >= indInClass)
+                        throw new ArgumentException();
+                }
+                return new
+                (
+                    name: name,
+                    productClass: productClass,
+                    materialPaletteAmount: materialPaletteAmount,
+                    indInClass: indInClass,
+                    ingredProdToAmounts: ingredProdToAmounts
+                );
+            }
+
             public EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> MaterialUsefulAreas
                 => ingredients.materialUsefulAreas;
 
             public readonly string name;
-            public readonly GeneralProdAndMatAmounts ingredients;
+            public readonly IProductClass productClass;
+            public readonly ulong materialPaletteAmount, indInClass;
             public readonly AreaInt usefulArea;
             public readonly MechComplexity complexity;
-            public readonly EfficientReadOnlyHashSet<IMaterialPurpose> neededMaterialPurposes;
 
             //private readonly HashSet<IMaterialPurpose> neededPurposes;
             //private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
             //private readonly Area usefulArea;
 
-            public Params(string name, GeneralProdAndMatAmounts ingredients)
+            private Params(string name, IProductClass productClass, ulong materialPaletteAmount, ulong indInClass, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
             {
+                // Product will still need to know what product class it is, so probably need to take such parameter here as well.
+                // That means need to assert that the components are from the same product class.
                 this.name = name;
-                this.ingredients = ingredients;
-                usefulArea = ingredients.usefulArea;
-                complexity = ingredients.complexity;
-                //BuildingComponentMaterialPropors = generalRecipe.BuildingComponentMaterialPropors;
-                //buildingMaterialPropors = generalRecipe.buildingMaterialPropors;
-
-                neededMaterialPurposes =
-                    (from matPurpAndUsefulArea in ingredients.materialUsefulAreas
-                     where !matPurpAndUsefulArea.Value.IsZero
-                     select matPurpAndUsefulArea.Key).ToEfficientReadOnlyHashSet();
+                this.productClass = productClass;
+                this.materialPaletteAmount = materialPaletteAmount;
+                this.indInClass = indInClass;
+                usefulArea = ingredProdToAmounts.Sum(ingredProdAndAmount => ingredProdAndAmount.prodParams.usefulArea * ingredProdAndAmount.amount)
+                    + productClass.MatPurposeToMultipleOfMatTargetAreaDivisor.Values.Sum(amount => amount * ResAndIndustryAlgos.MaterialTargetAreaDivisor);
+                complexity = ResAndIndustryAlgos.Complexity(ingredProdToAmounts: ingredProdToAmounts, ingredMatPurposeToUsefulAreas: ingredMatPurposeToUsefulAreas);
 
                 Debug.Assert
                 (
@@ -44,8 +73,6 @@ namespace Game1.Resources
                         error: errors => errors
                     ).SetEquals(neededMaterialPurposes)
                 );
-                if (neededMaterialPurposes.Count is 0)
-                    throw new ArgumentException("Product should require at least one material to be created");
             }
 
             private string GenerateProductName()
@@ -58,8 +85,10 @@ namespace Game1.Resources
             /// <summary>
             /// Gets such product if it already exists, otherwise creates it.
             /// </summary>
-            public Result<Product, EfficientReadOnlyHashSet<IMaterialPurpose>> GetProduct(MaterialChoices materialChoices)
+            public Result<Product, EfficientReadOnlyHashSet<IMaterialPurpose>> GetProduct(MaterialPalette materialPalette)
             {
+                if (materialPalette.productClass != productClass)
+                    throw new ArgumentException();
                 // This is needed for when this is called to get the needed material purposes prior to CurResConfig initialization
                 if (CurResConfig is not null)
                     foreach (var otherProd in CurResConfig.GetCurRes<Product>())
@@ -90,49 +119,77 @@ namespace Game1.Resources
         }
 
 #warning Complete this by moving to a separate file so that this can be configured
-        public static readonly EfficientReadOnlyDictionary<string, Params> productParamsDict = new List<Params>()
+        public static readonly EfficientReadOnlyDictionary<IProductClass, EfficientReadOnlyDictionary<string, Params>> productParamsDict = CreateProductParamsDict();
+
+        private static EfficientReadOnlyDictionary<IProductClass, EfficientReadOnlyDictionary<string, Params>> CreateProductParamsDict()
+        {
+            EfficientReadOnlyDictionary<IProductClass, EfficientReadOnlyDictionary<string, Params>> result = new()
             {
-                new
+                [IProductClass.mechanical] = ParamsDict
                 (
-                    name: "Gear",
-                    ingredients: new
+                    new Params
                     (
+                        name: "Gear",
                         ingredProdToAmounts: new(),
                         ingredMatPurposeToUsefulAreas: new EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt>
                         {
                             [IMaterialPurpose.mechanical] = AreaInt.CreateFromMetSq(10),
                         }
                     )
-                ),
-                new
-                (
-                    name: "Roof Tile",
-                    ingredients: new
-                    (
-                        ingredProdToAmounts: new(),
-                        ingredMatPurposeToUsefulAreas: new EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt>
-                        {
-                            [IMaterialPurpose.roofSurface] = AreaInt.CreateFromMetSq(10)
-                        }
-                    )
-                ),
-                new
-                (
-                    name: "Wire",
-                    ingredients: new
-                    (
-                        ingredProdToAmounts: new(),
-                        ingredMatPurposeToUsefulAreas: new EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt>
-                        {
-                            [IMaterialPurpose.electricalConductor] = AreaInt.CreateFromMetSq(10),
-                            [IMaterialPurpose.electricalInsulator] = AreaInt.CreateFromMetSq(5)
-                        }
-                    )
                 )
-            }.ToEfficientReadOnlyDict
-            (
-                keySelector: productParams => productParams.name
-            );
+            };
+
+            
+            //new List<Params>()
+            //{
+            //    new
+            //    (
+            //        name: "Gear",
+            //        ingredients: new
+            //        (
+            //            ingredProdToAmounts: new(),
+            //            ingredMatPurposeToUsefulAreas: new EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt>
+            //            {
+            //                [IMaterialPurpose.mechanical] = AreaInt.CreateFromMetSq(10),
+            //            }
+            //        )
+            //    ),
+            //    new
+            //    (
+            //        name: "Roof Tile",
+            //        ingredients: new
+            //        (
+            //            ingredProdToAmounts: new(),
+            //            ingredMatPurposeToUsefulAreas: new EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt>
+            //            {
+            //                [IMaterialPurpose.roofSurface] = AreaInt.CreateFromMetSq(10)
+            //            }
+            //        )
+            //    ),
+            //    new
+            //    (
+            //        name: "Wire",
+            //        ingredients: new
+            //        (
+            //            ingredProdToAmounts: new(),
+            //            ingredMatPurposeToUsefulAreas: new EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt>
+            //            {
+            //                [IMaterialPurpose.electricalConductor] = AreaInt.CreateFromMetSq(10),
+            //                [IMaterialPurpose.electricalInsulator] = AreaInt.CreateFromMetSq(5)
+            //            }
+            //        )
+            //    )
+            //}.ToEfficientReadOnlyDict
+            //(
+            //    keySelector: productParams => productParams.name
+            //);
+
+            EfficientReadOnlyDictionary<string, Params> ParamsDict(params Params[] prodParams)
+                => prodParams.ToEfficientReadOnlyDict
+                (
+                    keySelector: productParams => productParams.name
+                );
+        }
 
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }

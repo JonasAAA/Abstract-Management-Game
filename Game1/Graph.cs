@@ -180,7 +180,7 @@ namespace Game1
                     return concreteParams.CreateFullySpecifiedFilledStorage
                     (
                         buildingResPile: buildingResPile,
-                        storedRes: Product.productParamsDict[productParamsName].GetProduct(materialChoices: resConfig.StartingMaterialChoices).UnwrapOrThrow(),
+                        storedRes: IProduct.productParamsDict[productParamsName].GetProduct(materialChoices: resConfig.StartingMaterialChoices).UnwrapOrThrow(),
                         storedResSource: magicUnlimitedStartingResPile
                     );
                 }

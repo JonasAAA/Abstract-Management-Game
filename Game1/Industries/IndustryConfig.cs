@@ -14,20 +14,20 @@ namespace Game1.Industries
             startingPowerPlantParams = new PowerPlant.GeneralBuildingParams
             (
                 name: "Basic Power Plant",
-                buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                buildingComponentPropors: new List<(IProduct.IParams prodParams, ulong amount)>()
                 {
-                    (prodParams: Product.productParamsDict["Wire"], amount: 4),
-                    (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                    (prodParams: IProduct.productParamsDict["Wire"], amount: 4),
+                    (prodParams: IProduct.productParamsDict["Roof Tile"], amount: 1)
                 }.ToEfficientReadOnlyCollection()
             );
 
             startingStorageParams = new Storage.GeneralBuildingParams
             (
                 name: "Basic Storage",
-                buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                buildingComponentPropors: new List<(IProduct.IParams prodParams, ulong amount)>()
                 {
-                    (prodParams: Product.productParamsDict["Gear"], amount: 4),
-                    (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                    (prodParams: IProduct.productParamsDict["Gear"], amount: 4),
+                    (prodParams: IProduct.productParamsDict["Roof Tile"], amount: 1)
                 }.ToEfficientReadOnlyCollection()
             );
 
@@ -49,11 +49,11 @@ namespace Game1.Industries
                     (
                         name: "Basic Mining",
                         energyPriority: new(value: 20),
-                        buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                        buildingComponentPropors: new List<(IProduct.IParams prodParams, ulong amount)>()
                         {
-                            (prodParams: Product.productParamsDict["Gear"], amount: 4),
-                            (prodParams: Product.productParamsDict["Wire"], amount: 1),
-                            (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                            (prodParams: IProduct.productParamsDict["Gear"], amount: 4),
+                            (prodParams: IProduct.productParamsDict["Wire"], amount: 1),
+                            (prodParams: IProduct.productParamsDict["Roof Tile"], amount: 1)
                         }.ToEfficientReadOnlyCollection()
                     ),
                     energyPriority: new(value: 50)

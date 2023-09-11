@@ -58,7 +58,7 @@ namespace Game1
 #warning Complete this by making it actually random
             => startingRawMatTargetRatios;
 
-        public static MechComplexity Complexity(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToUsefulAreas)
+        public static MechComplexity Complexity(EfficientReadOnlyCollection<(IProduct.IParams prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToUsefulAreas)
 #warning Complete this
             => new(complexity: 10);
 
@@ -115,8 +115,8 @@ namespace Game1
             => 1000;
 
         /// <exception cref="ArgumentException">if buildingMatChoices doesn't contain all required matAmounts</exception>
-        public static Result<EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)>, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingComponentsToAmountPUBA(
-            EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, MaterialChoices buildingMatChoices, Propor buildingComponentsProporOfBuildingArea)
+        public static Result<EfficientReadOnlyCollection<(IProduct prod, UDouble amountPUBA)>, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingComponentsToAmountPUBA(
+            EfficientReadOnlyCollection<(IProduct.IParams prodParams, ulong amount)> buildingComponentPropors, MaterialChoices buildingMatChoices, Propor buildingComponentsProporOfBuildingArea)
         {
             AreaInt buildingComponentProporsTotalArea = buildingComponentPropors.Sum(prodParamsAndAmount => prodParamsAndAmount.prodParams.usefulArea * prodParamsAndAmount.amount);
             return buildingComponentPropors.SelectMany

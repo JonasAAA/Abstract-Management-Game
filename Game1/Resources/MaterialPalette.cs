@@ -1,8 +1,13 @@
 ﻿namespace Game1.Resources
 {
     [Serializable]
-    public readonly struct MaterialPalette
+    public sealed class MaterialPalette<TProductClass> : IMaterialPalette
+        where TProductClass : struct, IProductClass
     {
-        public readonly IProductClass productClass;
+    }
+
+    public interface IMaterialPalette
+    {
+
     }
 }

@@ -15,11 +15,11 @@ namespace Game1.Industries
 
             public readonly DiskBuildingImage.Params buildingImageParams;
             public readonly EnergyPriority energyPriority;
-            public readonly Product.Params productParams;
+            public readonly IProduct.IParams productParams;
 
-            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
+            private readonly EfficientReadOnlyCollection<(IProduct.IParams prodParams, ulong amount)> buildingComponentPropors;
 
-            public GeneralParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority, Product.Params productParams)
+            public GeneralParams(string name, EfficientReadOnlyCollection<(IProduct.IParams prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority, IProduct.IParams productParams)
             {
                 Name = name;
                 BuildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
@@ -62,7 +62,7 @@ namespace Game1.Industries
             public EnergyPriority EnergyPriority { get; }
             public Material SurfaceMaterial { get; }
             public readonly DiskBuildingImage buildingImage;
-            public readonly Product.Params productParams;
+            public readonly IProduct.IParams productParams;
             public readonly ulong overallMaxProductAmount;
 
             private readonly AreaDouble buildingArea;
@@ -73,7 +73,7 @@ namespace Game1.Industries
             private readonly AreaInt maxStoredOutputArea;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage,
-                EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
+                EfficientReadOnlyCollection<(IProduct prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
                 MaterialChoices buildingMatChoices, Material surfaceMaterial)
             {
                 Name = generalParams.Name;
@@ -159,7 +159,7 @@ namespace Game1.Industries
             /// <summary>
             /// In case of error, returns the needed but not yet set material purposes
             /// </summary>
-            public Result<Product, TextErrors> CurProduct
+            public Result<IProduct, TextErrors> CurProduct
             {
                 get => curProduct;
                 private set
@@ -176,21 +176,21 @@ namespace Game1.Industries
             /// <summary>
             /// NEVER use this directly. Always use CurProduct instead
             /// </summary>
-            private Result<Product, TextErrors> curProduct;
-            private readonly Product.Params productParams;
+            private Result<IProduct, TextErrors> curProduct;
+            private readonly IProduct.IParams productParams;
 
-            public ConcreteProductionParams(Product.Params productParams)
-                : this(productParams: productParams, productMaterialChoices: MaterialChoices.empty)
+            public ConcreteProductionParams(IProduct.IParams productParams)
+                : this(productParams: productParams, productMaterialPalette: null)
             { }
 
-            public ConcreteProductionParams(Product.Params productParams, MaterialChoices productMaterialChoices)
+            public ConcreteProductionParams(IProduct.IParams productParams, IMaterialPalette? productMaterialPalette)
             {
                 this.productParams = productParams;
-                Update(productMaterialChoices: productMaterialChoices);
+                Update(productMaterialPalette: productMaterialPalette);
             }
             // FOR NOW, don't allow to change the material choices on the fly
-            private void Update(MaterialChoices productMaterialChoices)
-                => CurProduct = productParams.GetProduct(materialChoices: productMaterialChoices).ConvertMissingMatPurpsIntoError();
+            private void Update(IMaterialPalette? productMaterialPalette)
+                => CurProduct = productParams.GetProduct(materialPalette: productMaterialPalette);
         }
 
         /// <summary>

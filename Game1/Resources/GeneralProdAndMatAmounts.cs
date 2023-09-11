@@ -6,7 +6,7 @@ namespace Game1.Resources
     public readonly struct GeneralProdAndMatAmounts
     {
         public readonly EfficientReadOnlyHashSet<IMaterialPurpose> neededMaterialPurposes;
-        public readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts;
+        public readonly EfficientReadOnlyCollection<(IProduct.IParams prodParams, ulong amount)> ingredProdToAmounts;
         public readonly EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToUsefulAreas;
         public readonly AreaInt usefulArea;
         public readonly MechComplexity complexity;
@@ -19,7 +19,7 @@ namespace Game1.Resources
         /// </summary>
         public readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> materialPropors;
 
-        public GeneralProdAndMatAmounts(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToUsefulAreas)
+        public GeneralProdAndMatAmounts(EfficientReadOnlyCollection<(IProduct.IParams prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToUsefulAreas)
         {
             this.ingredProdToAmounts = ingredProdToAmounts;
             this.ingredMatPurposeToUsefulAreas = ingredMatPurposeToUsefulAreas;

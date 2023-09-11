@@ -2,19 +2,19 @@
 
 namespace Game1.Resources
 {
-    public interface IProductClass : IHasToString
+    public interface IProductClass
     {
         [Serializable]
-        private sealed class Mechanical : IProductClass
+        public readonly struct Mechanical : IProductClass
         {
-            public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToMultipleOfMatTargetAreaDivisor
+            public static string Name
+                => "Mechanical";
+
+            public static EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToMultipleOfMatTargetAreaDivisor
                 => new()
                 {
                     [IMaterialPurpose.mechanical] = 1
                 };
-
-            public sealed override string ToString()
-                => "Mechanical";
         }
 
         [Serializable]
@@ -44,14 +44,16 @@ namespace Game1.Resources
                 => "Roof";
         }
 
-        public static readonly IProductClass mechanical = new Mechanical();
-        public static readonly IProductClass electronics = new Electronics();
-        public static readonly IProductClass roof = new Roof();
+        //public static readonly IProductClass mechanical = new Mechanical();
+        //public static readonly IProductClass electronics = new Electronics();
+        //public static readonly IProductClass roof = new Roof();
 
-        // DON'T forget to put all material purposes in this list.
-        // There is a test to check that
-        public static readonly EfficientReadOnlyCollection<IProductClass> all = new List<IProductClass>() { mechanical, electronics, roof }.ToEfficientReadOnlyCollection();
+        //// DON'T forget to put all material purposes in this list.
+        //// There is a test to check that
+        //public static readonly EfficientReadOnlyCollection<IProductClass> all = new List<IProductClass>() { mechanical, electronics, roof }.ToEfficientReadOnlyCollection();
 
-        public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToMultipleOfMatTargetAreaDivisor { get; }
+        public static abstract string Name { get; }
+
+        public static abstract EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToMultipleOfMatTargetAreaDivisor { get; }
     }
 }

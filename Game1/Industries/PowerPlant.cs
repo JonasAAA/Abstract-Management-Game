@@ -19,9 +19,9 @@ namespace Game1.Industries
             public readonly DiskBuildingImage.Params buildingImageParams;
             public readonly EnergyPriority energyPriority;
 
-            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
+            private readonly EfficientReadOnlyCollection<(IProduct.IParams prodParams, ulong amount)> buildingComponentPropors;
 
-            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
+            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(IProduct.IParams prodParams, ulong amount)> buildingComponentPropors)
             {
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.miningBuildingColor);
                 Name = name;
@@ -68,7 +68,7 @@ namespace Game1.Industries
             private readonly AllResAmounts buildingCost;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
-                EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
+                EfficientReadOnlyCollection<(IProduct prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
                 MaterialChoices buildingMatChoices, Material surfaceMaterial)
             {
                 Name = generalParams.Name;

@@ -51,7 +51,7 @@ namespace Game1
             return Propor.CreateByClamp((UDouble)donePropor + areaProduced / areaInProduction.valueInMetSq);
         }
 
-        public static AllResAmounts CurNeededBuildingComponents(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
+        public static AllResAmounts CurNeededBuildingComponents(EfficientReadOnlyCollection<(IProduct prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
             => new
             (
                 buildingComponentsToAmountPUBA.Select

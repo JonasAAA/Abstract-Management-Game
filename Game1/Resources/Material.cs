@@ -5,9 +5,13 @@ namespace Game1.Resources
     [Serializable]
     public sealed class Material : IResource
     {
-        public static Material CreateAndAddToCurResConfig(string name, RawMatAmounts composition)
+        public static Material CreateAndAddToCurResConfig(string name, RawMatAmounts rawMatAreaPropors)
             // Material consrutor adds itself to CurResConfig
-            => new(name, composition);
+            => new
+            (
+                name: name,
+                composition: ResAndIndustryAlgos.CreateMatCompositionFromRawMatPropors(rawMatAreaPropors: rawMatAreaPropors)
+            );
 
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
@@ -24,7 +28,7 @@ namespace Game1.Resources
             Mass = composition.Mass();
             HeatCapacity = composition.HeatCapacity();
             Area = composition.Area();
-            UsefulArea = Area;
+            UsefulArea = ResAndIndustryAlgos.MaterialUsefulArea;
             RawMatComposition = composition;
 
             // Need this before creating the recipe since to create SomeResAmounts you need all used resources to be registered first

@@ -5,14 +5,20 @@ namespace Game1.UI
 {
     public static class UIAlgorithms
     {
+        public static string ProductName(string prodParamsName, string paletteName)
+            => $"{prodParamsName}\n{paletteName}";
+
+        public static string NoMaterialPaletteChosen
+            => "no material palette chosen";
+
+        public static string MatPaletteWithThisNameAlreadyExists
+            => "Material palette with this name already exists. Pick a different name.";
+
+        public static string ExactSamePaletteAlreadyExists
+            => "Material palette with exact same material choices already exists.";
+
         public static string NotEnoughResourcesToStartProduction
             => "not enough resources to start production";
-
-        public static string NoRawMaterialMixToSplit
-            => "no raw material mix to split";
-
-        public static string CosmicBodyContainsUnwantedResources
-            => "cosmic body contains unwanted resources";
 
         public static string CosmicBodyIsMinedOut
             => "cosmic body is mined out";
@@ -60,11 +66,11 @@ namespace Game1.UI
 #warning Complete this by adding info from constrGeneralParams.buildingGeneralParams
             => $"{constrGeneralParams.buildingGeneralParams.Name}\nEnergy priority {constrGeneralParams.energyPriority}\n";
 
-        public static string ChooseMaterialForMaterialPurpose(Material material, IMaterialPurpose materialPurpose)
-            => $"Choose {material} for {materialPurpose}";
+        public static string ChooseMatPaletteForProductClass(MaterialPalette materialPalette, IProductClass productClass)
+            => $"Choose {materialPalette} for {productClass}";
 
-        public static string StartMaterialChoiceForPurposeTooltip(IMaterialPurpose materialPurpose)
-            => $"Choose {materialPurpose} material";
+        public static string StartMatPaletteChoiceForProductClassTooltip(IProductClass productClass)
+            => $"Choose {productClass} material palette";
 
         public static string ConstructionComplete(string buildingName)
             => $"Building {buildingName} is complete!";
@@ -79,11 +85,17 @@ namespace Game1.UI
         public static TOk UnwrapOrThrow<TOk>(this Result<TOk, EfficientReadOnlyHashSet<IMaterialPurpose>> result)
             => result.UnwrapOrThrow
             (
-                exception: missingMatChoices => new ArgumentException(ConvertMissingMatPurpsIntoErrorMessage(missingMatChoices))
+                exception: missingMatPaletteChoices => new ArgumentException(ConvertMissingMatPurpsIntoErrorMessage(missingMatPaletteChoices))
+            );
+
+        public static TOk UnwrapOrThrow<TOk>(this Result<TOk, TextErrors> result)
+            => result.UnwrapOrThrow
+            (
+                exception: errors => new ArgumentException($"Error(s) occured:\n{string.Join('\n', errors)}")
             );
 
         private static string ConvertMissingMatPurpsIntoErrorMessage(EfficientReadOnlyHashSet<IMaterialPurpose> missingMatPurposes)
-            => $"The following materials need to be chosen:\n{string.Join("\n", missingMatPurposes)}";
+            => $"The following materials need to be chosen:\n{string.Join('\n', missingMatPurposes)}";
 
         public static Color MixColorsAndMakeTransparent(Propor transparency, Color baseColor, Color otherColor, Propor otherColorPropor)
             => MixColors

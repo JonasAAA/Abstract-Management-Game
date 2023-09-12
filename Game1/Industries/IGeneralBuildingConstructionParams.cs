@@ -1,12 +1,17 @@
-﻿using Game1.Collections;
-
-namespace Game1.Industries
+﻿namespace Game1.Industries
 {
     public interface IGeneralBuildingConstructionParams
     {
         public string Name { get; }
-        public GeneralProdAndMatAmounts BuildingCostPropors { get; }
+        public BuildingCostPropors BuildingCostPropors { get; }
 
-        public Result<IConcreteBuildingConstructionParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices);
+        public sealed IConcreteBuildingConstructionParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices)
+        {
+            if (!BuildingCostPropors.neededProductClasses.SetEquals(neededBuildingMatPaletteChoices.choices.Keys))
+                throw new ArgumentException();
+            return CreateConcreteImpl(nodeState: nodeState, neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices);
+        }
+
+        public IConcreteBuildingConstructionParams CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices);
     }
 }

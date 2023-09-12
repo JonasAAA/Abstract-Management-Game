@@ -141,8 +141,11 @@ namespace Game1
                     var concreteParams = industryConfig.startingPowerPlantParams.CreateConcrete
                     (
                         nodeState: nodeState,
-                        neededBuildingMatChoices: resConfig.StartingMaterialChoices
-                    ).UnwrapOrThrow();
+                        neededBuildingMatPaletteChoices: resConfig.StartingMaterialPaletteChoices.FilterOutUnneededMatPalettes
+                        (
+                            neededProductClasses: industryConfig.startingPowerPlantParams.BuildingCostPropors.neededProductClasses
+                        )
+                    );
 
                     var buildingResPile = ResPile.CreateIfHaveEnough
                     (
@@ -168,8 +171,11 @@ namespace Game1
                     var concreteParams = industryConfig.startingStorageParams.CreateConcrete
                     (
                         nodeState: nodeState,
-                        neededBuildingMatChoices: resConfig.StartingMaterialChoices
-                    ).UnwrapOrThrow();
+                        neededBuildingMatPaletteChoices: resConfig.StartingMaterialPaletteChoices.FilterOutUnneededMatPalettes
+                        (
+                            neededProductClasses: industryConfig.startingStorageParams.BuildingCostPropors.neededProductClasses
+                        )
+                    );
 
                     var buildingResPile = ResPile.CreateIfHaveEnough
                     (
@@ -177,10 +183,11 @@ namespace Game1
                         amount: concreteParams.BuildingCost
                     );
                     Debug.Assert(buildingResPile is not null);
+                    var productParams = Product.productParamsDict[productParamsName];
                     return concreteParams.CreateFullySpecifiedFilledStorage
                     (
                         buildingResPile: buildingResPile,
-                        storedRes: Product.productParamsDict[productParamsName].GetProduct(materialChoices: resConfig.StartingMaterialChoices).UnwrapOrThrow(),
+                        storedRes: productParams.GetProduct(materialPalette: resConfig.StartingMaterialPaletteChoices[productParams.productClass]),
                         storedResSource: magicUnlimitedStartingResPile
                     );
                 }

@@ -1,11 +1,12 @@
 ﻿using Game1.Collections;
+using Game1.UI;
 
 namespace Game1.Resources
 {
     [Serializable]
     public sealed class ResConfig
     {
-        public MaterialChoices StartingMaterialChoices { get; private set; }
+        public MaterialPaletteChoices StartingMaterialPaletteChoices { get; private set; }
 
         public EfficientReadOnlyCollection<IResource> AllCurRes
             => new(list: resources);
@@ -14,6 +15,7 @@ namespace Game1.Resources
         private readonly List<IResource> resources;
         private readonly Dictionary<IResource, ulong> resToOrder;
         private ulong nextOrder;
+        private readonly EfficientReadOnlyDictionary<IProductClass, List<MaterialPalette>> materialPalettes;
 
         public ResConfig()
         {
@@ -21,6 +23,7 @@ namespace Game1.Resources
             indToRawMat = new();
             resToOrder = new();
             nextOrder = 0;
+            materialPalettes = IProductClass.all.ToEfficientReadOnlyDict(elementSelector: _ => new List<MaterialPalette>());
         }
 
         public void Initialize()
@@ -28,7 +31,7 @@ namespace Game1.Resources
             var material0 = Material.CreateAndAddToCurResConfig
             (
                 name: "Material 0",
-                composition: new
+                rawMatAreaPropors: new
                 (
                     res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: this, ind: 0),
                     amount: 1
@@ -37,7 +40,7 @@ namespace Game1.Resources
             var material1 = Material.CreateAndAddToCurResConfig
             (
                 name: "Material 1",
-                composition: new
+                rawMatAreaPropors: new
                 (
                     res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: this, ind: 1),
                     amount: 1
@@ -46,7 +49,7 @@ namespace Game1.Resources
             var material2 = Material.CreateAndAddToCurResConfig
             (
                 name: "Material 0 and 1 mix",
-                composition: new
+                rawMatAreaPropors: new
                 (
                     resAmounts: new List<ResAmount<RawMaterial>>()
                     {
@@ -55,15 +58,43 @@ namespace Game1.Resources
                     }
                 )
             );
-            StartingMaterialChoices = new()
-            {
-                [IMaterialPurpose.mechanical] = material0,
-                [IMaterialPurpose.electricalInsulator] = material0,
-                [IMaterialPurpose.electricalConductor] = material1,
-                [IMaterialPurpose.roofSurface] = material2,
-            };
+
+            StartingMaterialPaletteChoices = MaterialPaletteChoices.Create
+            (
+                choices: new List<MaterialPalette>()
+                {
+                    MaterialPalette.CreateAndAddToResConfig
+                    (
+                        name: "default mechanical",
+                        productClass: IProductClass.mechanical,
+                        materialChoices: new()
+                        {
+                            [IMaterialPurpose.mechanical] = material0
+                        }
+                    ).UnwrapOrThrow(),
+                    MaterialPalette.CreateAndAddToResConfig
+                    (
+                        name: "default electronics",
+                        productClass: IProductClass.electronics,
+                        materialChoices: new()
+                        {
+                            [IMaterialPurpose.electricalConductor] = material1,
+                            [IMaterialPurpose.electricalInsulator] = material0
+                        }
+                    ).UnwrapOrThrow(),
+                    MaterialPalette.CreateAndAddToResConfig
+                    (
+                        name: "default roof",
+                        productClass: IProductClass.roof,
+                        materialChoices: new()
+                        {
+                            [IMaterialPurpose.roofSurface] = material2
+                        }
+                    ).UnwrapOrThrow()
+                }
+            );
             foreach (var prodParams in Product.productParamsDict.Values)
-                prodParams.GetProduct(materialChoices: StartingMaterialChoices);
+                prodParams.GetProduct(materialPalette: StartingMaterialPaletteChoices[prodParams.productClass]);
         }
 
         public RawMaterial? GetRawMatFromInd(ulong ind)
@@ -91,5 +122,26 @@ namespace Game1.Resources
 
         public int CompareRes(IResource left, IResource right)
             => resToOrder[left].CompareTo(resToOrder[right]);
+
+        /// <summary>
+        /// Returns error string if material palette with such name already exists
+        /// </summary>
+        public Result<UnitType, TextErrors> AddMaterialPalette(MaterialPalette materialPalette)
+        {
+            var relevantMatPalettes = materialPalettes[materialPalette.productClass];
+            foreach (var otherMatPalette in relevantMatPalettes)
+            {
+                if (otherMatPalette.name == materialPalette.name)
+                    return new(errors: new(UIAlgorithms.MatPaletteWithThisNameAlreadyExists));
+                var possibleErrors = materialPalette.VerifyThatHasdifferentContents(otherMatPalette: otherMatPalette);
+                if (!possibleErrors.isOk)
+                    return possibleErrors;
+            }
+            relevantMatPalettes.Add(materialPalette);
+            return new(ok: new());
+        }
+
+        public EfficientReadOnlyCollection<MaterialPalette> GetMatPalettes(IProductClass productClass)
+            => new(list: materialPalettes[productClass]);
     }
 }

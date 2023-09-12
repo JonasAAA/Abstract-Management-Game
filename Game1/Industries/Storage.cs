@@ -13,7 +13,7 @@ namespace Game1.Industries
         public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
             public string Name { get; }
-            public GeneralProdAndMatAmounts BuildingCostPropors { get; }
+            public BuildingCostPropors BuildingCostPropors { get; }
 
             public readonly DiskBuildingImage.Params buildingImageParams;
 
@@ -22,37 +22,35 @@ namespace Game1.Industries
             public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
             {
                 Name = name;
-                BuildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
-                if (BuildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
-                    throw new ArgumentException();
+                BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
+
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.manufacturingBuildingColor);
                 this.buildingComponentPropors = buildingComponentPropors;
             }
 
-            public Result<ConcreteBuildingParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
-                => ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
-                (
-                    buildingComponentPropors: buildingComponentPropors,
-                    buildingMatChoices: neededBuildingMatChoices,
-                    buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
-                ).Select
-                (
-                    buildingComponentsToAmountPUBA => new ConcreteBuildingParams
-                    (
-                        nodeState: nodeState,
-                        generalParams: this,
-                        buildingImage: buildingImageParams.CreateImage(nodeState),
-                        buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
-                        buildingMatChoices: neededBuildingMatChoices,
-                        surfaceMaterial: neededBuildingMatChoices[IMaterialPurpose.roofSurface]
-                    )
-                );
+            public ConcreteBuildingParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices)
+            {
+                if (!BuildingCostPropors.neededProductClasses.SetEquals(neededBuildingMatPaletteChoices.choices.Keys))
+                    throw new ArgumentException();
 
-            Result<IConcreteBuildingConstructionParams, EfficientReadOnlyHashSet<IMaterialPurpose>> IGeneralBuildingConstructionParams.CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
-                => CreateConcrete(nodeState: nodeState, neededBuildingMatChoices: neededBuildingMatChoices).Select<IConcreteBuildingConstructionParams>
+                return new
                 (
-                    concreteBuildingParams => concreteBuildingParams
+                    nodeState: nodeState,
+                    generalParams: this,
+                    buildingImage: buildingImageParams.CreateImage(nodeState),
+                    buildingComponentsToAmountPUBA: ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
+                    (
+                        buildingComponentPropors: buildingComponentPropors,
+                        buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
+                        buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
+                    ),
+                    buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
+                    surfaceMatPalette: neededBuildingMatPaletteChoices[IProductClass.roof]
                 );
+            }
+
+            IConcreteBuildingConstructionParams IGeneralBuildingConstructionParams.CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices)
+                => CreateConcrete(nodeState: nodeState, neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices);
         }
 
         [Serializable]
@@ -60,28 +58,28 @@ namespace Game1.Industries
         {
             public string Name { get; }
             public IIndustryFacingNodeState NodeState { get; }
-            public Material SurfaceMaterial { get; }
+            public MaterialPalette SurfaceMatPalette { get; }
             public AllResAmounts BuildingCost { get; }
             public readonly DiskBuildingImage buildingImage;
 
             private readonly AreaDouble buildingArea;
-            // generalParams and buildingMatChoices will be used if/when storage industry depends on material choices.
+            // generalParams and buildingMatPaletteChoices will be used if/when storage industry depends on material choices.
             // Probably the only possible dependance is how much weight it can hold.
             private readonly GeneralBuildingParams generalParams;
-            private readonly MaterialChoices buildingMatChoices;
+            private readonly MaterialPaletteChoices buildingMatPaletteChoices;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
-                MaterialChoices buildingMatChoices, Material surfaceMaterial)
+                MaterialPaletteChoices buildingMatPaletteChoices, MaterialPalette surfaceMatPalette)
             {
                 Name = generalParams.Name;
                 NodeState = nodeState;
                 this.buildingImage = buildingImage;
-                SurfaceMaterial = surfaceMaterial;
+                SurfaceMatPalette = surfaceMatPalette;
                 // Building area is used in BuildingCost calculation, thus needs to be computed first
                 buildingArea = buildingImage.Area;
                 this.generalParams = generalParams;
-                this.buildingMatChoices = buildingMatChoices;
+                this.buildingMatPaletteChoices = buildingMatPaletteChoices;
                 BuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
 
@@ -162,8 +160,8 @@ namespace Game1.Industries
         public NodeID NodeID
             => buildingParams.NodeState.NodeID;
 
-        public Material? SurfaceMaterial
-            => buildingParams.SurfaceMaterial;
+        public MaterialPalette? SurfaceMatPalette
+            => buildingParams.SurfaceMatPalette;
 
         public IHUDElement UIElement
             => storageUI;

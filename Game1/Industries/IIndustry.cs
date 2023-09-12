@@ -15,7 +15,7 @@ namespace Game1.Industries
         /// <summary>
         /// Null if no building
         /// </summary>
-        public Material? SurfaceMaterial { get; }
+        public MaterialPalette? SurfaceMatPalette { get; }
 
         public IHUDElement UIElement { get; }
 
@@ -115,7 +115,7 @@ namespace Game1.Industries
                     {
                         Button addOrRemoveResSourceButton = new
                         (
-                            shape: new MyRectangle(width: 100, height: 30),
+                            shape: new MyRectangle(width: 200, height: 60),
                             tooltip: new ImmutableTextTooltip(text: UIAlgorithms.AddOrRemoveResSourceTooltip(res: res)),
                             text: res.ToString()
                         );

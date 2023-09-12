@@ -5,6 +5,8 @@
     {
         public static RawMaterial GetAndAddToCurResConfigIfNeeded(ResConfig curResConfig, ulong ind)
         {
+            if (ind > ResAndIndustryAlgos.MaxRawMatInd)
+                throw new ArgumentException();
             if (curResConfig.GetRawMatFromInd(ind: ind) is RawMaterial rawMaterial)
                 return rawMaterial;
             return new

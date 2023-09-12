@@ -53,8 +53,5 @@ namespace Game1.Resources
         // DON'T forget to put all material purposes in this list.
         // There is a test to check that
         public static readonly EfficientReadOnlyCollection<IMaterialPurpose> all = new List<IMaterialPurpose> { mechanical, /* hydraulicFluid, */ roofSurface, electricalConductor, electricalInsulator }.ToEfficientReadOnlyCollection();
-
-        public sealed string TooltipTextFor(Material material)
-            => UIAlgorithms.ChooseMaterialForMaterialPurpose(material: material, materialPurpose: this);
     }
 }

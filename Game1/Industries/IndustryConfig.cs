@@ -6,7 +6,7 @@ namespace Game1.Industries
     public sealed class IndustryConfig
     {
         public readonly EfficientReadOnlyCollection<Construction.GeneralParams> constrGeneralParamsList;
-        public readonly PowerPlant.GeneralBuildingParams startingPowerPlantParams;
+        public readonly IGeneralBuildingConstructionParams startingPowerPlantParams;
         public readonly Storage.GeneralBuildingParams startingStorageParams;
 
         public IndustryConfig()

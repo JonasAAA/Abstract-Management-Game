@@ -1,4 +1,5 @@
 ﻿using Game1;
+using Game1.PrimitiveTypeWrappers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Linq;
@@ -79,5 +80,13 @@ namespace TestProject
         [TestMethod]
         public void FirstRawMatHasSmallMass()
             => Assert.IsTrue(ResAndIndustryAlgos.RawMaterialMass(ind: 0).valueInKg <= 10);
+
+        [TestMethod]
+        public void LatestRawMatCannotFuse()
+            => Assert.AreEqual
+            (
+                expected: (UDouble)0,
+                actual: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ResAndIndustryAlgos.MaxRawMatInd)
+            );
     }
 }

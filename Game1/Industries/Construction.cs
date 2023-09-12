@@ -14,7 +14,7 @@ namespace Game1.Industries
             public readonly EnergyPriority energyPriority;
             public readonly string buildButtonName;
             public readonly ITooltip toopltip;
-            public readonly EfficientReadOnlyHashSet<IMaterialPurpose> neededMaterialPurposes;
+            public readonly EfficientReadOnlyHashSet<IProductClass> neededProductClasses;
 
             public GeneralParams(IGeneralBuildingConstructionParams buildingGeneralParams, EnergyPriority energyPriority)
             {
@@ -23,24 +23,21 @@ namespace Game1.Industries
                 this.energyPriority = energyPriority;
                 buildButtonName = buildingGeneralParams.Name;
                 toopltip = new ImmutableTextTooltip(text: UIAlgorithms.ConstructionTooltip(constrGeneralParams: this));
-                neededMaterialPurposes = buildingGeneralParams.BuildingCostPropors.neededMaterialPurposes;
+                neededProductClasses = buildingGeneralParams.BuildingCostPropors.neededProductClasses;
             }
 
-            public bool SufficientbuildingMaterials(MaterialChoices curBuildingMaterialChoices)
-                => neededMaterialPurposes.IsSubsetOf(other: curBuildingMaterialChoices.Keys);
+            public bool SufficientBuildingMatPalettes(MaterialPaletteChoices curBuildingMatPaletteChoices)
+                => neededProductClasses.IsSubsetOf(other: curBuildingMatPaletteChoices.choices.Keys);
 
-            public Result<ConcreteParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices buildingMatChoices)
-                => buildingGeneralParams.CreateConcrete
+            public ConcreteParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices)
+                => new
                 (
                     nodeState: nodeState,
-                    neededBuildingMatChoices: buildingMatChoices.FilterOutUnneededMaterials(neededMaterialPurposes: neededMaterialPurposes)
-                ).Select
-                (
-                    buildingConcreteParams => new ConcreteParams
+                    generalParams: this,
+                    concreteBuildingParams: buildingGeneralParams.CreateConcrete
                     (
                         nodeState: nodeState,
-                        generalParams: this,
-                        concreteBuildingParams: buildingConcreteParams
+                        neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices
                     )
                 );
         }
@@ -55,10 +52,6 @@ namespace Game1.Industries
             public readonly AreaInt buildingComponentsUsefulArea;
 
             private readonly IConcreteBuildingConstructionParams concreteBuildingParams;
-            /// <summary>
-            /// Keys contain ALL material purposes, not just used ones
-            /// </summary>
-            private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
 
             public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, IConcreteBuildingConstructionParams concreteBuildingParams)
             {
@@ -69,7 +62,6 @@ namespace Game1.Industries
                 buildingComponentsUsefulArea = buildingCost.UsefulArea();
 
                 this.concreteBuildingParams = concreteBuildingParams;
-                buildingMaterialPropors = generalParams.buildingGeneralParams.BuildingCostPropors.materialPropors;
             }
 
             public IBuildingImage IncompleteBuildingImage(Propor donePropor)
@@ -89,21 +81,19 @@ namespace Game1.Industries
             public CurProdStats CurConstrStats()
                 => ResAndIndustryAlgos.CurConstrStats
                 (
-                    buildingMaterialPropors: buildingMaterialPropors,
+                    buildingCost: buildingCost,
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,
-                    buildingComponentsUsefulArea: buildingComponentsUsefulArea,
-                    finishedBuildingMass: buildingCost.Mass(),
                     worldSecondsInGameSecond: CurWorldConfig.worldSecondsInGameSecond
                 );
 
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => IncompleteBuildingImage(donePropor: Propor.empty);
 
-            Material? Industry.IConcreteBuildingParams<UnitType>.SurfaceMaterial(bool productionInProgress)
+            MaterialPalette? Industry.IConcreteBuildingParams<UnitType>.SurfaceMatPalette(bool productionInProgress)
                 => productionInProgress switch
                 {
-                    true => concreteBuildingParams.SurfaceMaterial,
+                    true => concreteBuildingParams.SurfaceMatPalette,
                     false => null
                 };
             

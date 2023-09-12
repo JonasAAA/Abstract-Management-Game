@@ -14,7 +14,7 @@ namespace Game1.Industries
         public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
             public string Name { get; }
-            public GeneralProdAndMatAmounts BuildingCostPropors { get; }
+            public BuildingCostPropors BuildingCostPropors { get; }
 
             public readonly DiskBuildingImage.Params buildingImageParams;
             public readonly EnergyPriority energyPriority;
@@ -25,31 +25,26 @@ namespace Game1.Industries
             {
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.miningBuildingColor);
                 Name = name;
-                BuildingCostPropors = new GeneralProdAndMatAmounts(ingredProdToAmounts: buildingComponentPropors, ingredMatPurposeToUsefulAreas: new());
-                if (BuildingCostPropors.materialPropors[IMaterialPurpose.roofSurface].IsEmpty)
-                    throw new ArgumentException();
+                BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
 
                 energyPriority = EnergyPriority.mostImportant;
                 this.buildingComponentPropors = buildingComponentPropors;
             }
 
-            public Result<IConcreteBuildingConstructionParams, EfficientReadOnlyHashSet<IMaterialPurpose>> CreateConcrete(IIndustryFacingNodeState nodeState, MaterialChoices neededBuildingMatChoices)
-                => ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
+            public IConcreteBuildingConstructionParams CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices)
+                => new ConcreteBuildingParams
                 (
-                    buildingComponentPropors: buildingComponentPropors,
-                    buildingMatChoices: neededBuildingMatChoices,
-                    buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
-                ).Select<IConcreteBuildingConstructionParams>
-                (
-                    buildingComponentsToAmountPUBA => new ConcreteBuildingParams
+                    nodeState: nodeState,
+                    generalParams: this,
+                    buildingImage: buildingImageParams.CreateImage(nodeShapeParams: nodeState),
+                    buildingComponentsToAmountPUBA: ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
                     (
-                        nodeState: nodeState,
-                        generalParams: this,
-                        buildingImage: buildingImageParams.CreateImage(nodeShapeParams: nodeState),
-                        buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
-                        buildingMatChoices: neededBuildingMatChoices,
-                        surfaceMaterial: neededBuildingMatChoices[IMaterialPurpose.roofSurface]
-                    )
+                        buildingComponentPropors: buildingComponentPropors,
+                        buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
+                        buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
+                    ),
+                    buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
+                    surfaceMatPalette: neededBuildingMatPaletteChoices[IProductClass.roof]
                 );
         }
 
@@ -59,27 +54,27 @@ namespace Game1.Industries
             public string Name { get; }
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
-            public Material SurfaceMaterial { get; }
+            public MaterialPalette SurfaceMatPalette { get; }
             public readonly DiskBuildingImage buildingImage;
 
             private readonly AreaDouble buildingArea;
             private readonly GeneralBuildingParams generalParams;
-            private readonly MaterialChoices buildingMatChoices;
+            private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly AllResAmounts buildingCost;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
-                MaterialChoices buildingMatChoices, Material surfaceMaterial)
+                MaterialPaletteChoices buildingMatPaletteChoices, MaterialPalette surfaceMatPalette)
             {
                 Name = generalParams.Name;
                 NodeState = nodeState;
                 this.buildingImage = buildingImage;
-                SurfaceMaterial = surfaceMaterial;
+                SurfaceMatPalette = surfaceMatPalette;
                 EnergyPriority = generalParams.energyPriority;
 
                 buildingArea = buildingImage.Area;
                 this.generalParams = generalParams;
-                this.buildingMatChoices = buildingMatChoices;
+                this.buildingMatPaletteChoices = buildingMatPaletteChoices;
 
                 buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
@@ -88,7 +83,7 @@ namespace Game1.Industries
                 => ResAndIndustryAlgos.CurProducedWatts
                 (
                     buildingCostPropors: generalParams.BuildingCostPropors,
-                    buildingMatChoices: buildingMatChoices,
+                    buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,
                     buildingArea: buildingArea,
@@ -107,8 +102,8 @@ namespace Game1.Industries
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => buildingImage;
 
-            Material? Industry.IConcreteBuildingParams<UnitType>.SurfaceMaterial(bool productionInProgress)
-                => SurfaceMaterial;
+            MaterialPalette? Industry.IConcreteBuildingParams<UnitType>.SurfaceMatPalette(bool productionInProgress)
+                => SurfaceMatPalette;
 
             EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
                 => EfficientReadOnlyCollection<IResource>.empty;

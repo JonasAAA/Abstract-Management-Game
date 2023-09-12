@@ -1,5 +1,4 @@
 ﻿using Game1.Collections;
-using Game1.Industries;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -24,12 +23,17 @@ namespace Game1
         public static AreaInt RoundDown(this AreaDouble area)
             => AreaInt.CreateFromMetSq(valueInMetSq: (ulong)area.valueInMetSq);
 
-        public static MaterialChoices FilterOutUnneededMaterials(this MaterialChoices materialChoices, EfficientReadOnlyHashSet<IMaterialPurpose> neededMaterialPurposes)
-            => materialChoices.Where(matChoice => neededMaterialPurposes.Contains(matChoice.Key)).ToEfficientReadOnlyDict
-            (
-                keySelector: matChoice => matChoice.Key,
-                elementSelector: matChoice => matChoice.Value
-            );
+        public static bool DictEquals<TKey, TValue>(this EfficientReadOnlyDictionary<TKey, TValue> dict, EfficientReadOnlyDictionary<TKey, TValue> otherDict)
+            where TKey : notnull
+            where TValue : class
+        {
+            if (dict.Count != otherDict.Count)
+                return false;
+            foreach (var (key, value) in dict)
+                if (!otherDict.TryGetValue(key, out var otherValue) || value != otherValue)
+                    return false;
+            return true;
+        }
 
         public static TEnergy CurEnergy<TEnergy>(this HistoricRounder energyHistoricRounder, UDouble watts, Propor proporUtilized, TimeSpan elapsed)
             where TEnergy : struct, IUnconstrainedEnergy<TEnergy>

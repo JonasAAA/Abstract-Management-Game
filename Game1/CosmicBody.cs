@@ -223,7 +223,7 @@ namespace Game1
             (
                 heatEnergy: state.ThermalBody.HeatEnergy,
                 surfaceLength: state.SurfaceLength,
-                emissivity: Industry?.SurfaceMaterial?.Emissivity(temperature: state.Temperature) ?? state.Composition.Emissivity(temperature: state.Temperature),
+                emissivity: Industry?.SurfaceMatPalette?.Emissivity(temperature: state.Temperature) ?? state.Composition.Emissivity(temperature: state.Temperature),
                 temperature: state.Temperature,
                 duration: CurWorldManager.Elapsed,
                 energyInJToDissipateRoundFunc: energyInJ => energyToDissipateRounder.Round(value: energyInJ, curTime: CurWorldManager.CurTime),
@@ -370,7 +370,7 @@ namespace Game1
                 amount: Algorithms.EnergyPropor
                 (
                     wholeAmount: state.RadiantEnergyPile.Amount,
-                    propor: Industry?.SurfaceMaterial?.Reflectivity(temperature: state.Temperature) ?? state.Composition.Reflectivity(temperature: state.Temperature),
+                    propor: Industry?.SurfaceMatPalette?.Reflectivity(temperature: state.Temperature) ?? state.Composition.Reflectivity(temperature: state.Temperature),
                     roundFunc: amount => reflectedRadiantEnergyRounder.Round
                     (
                         value: amount,

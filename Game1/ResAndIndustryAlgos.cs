@@ -1,5 +1,6 @@
 ﻿using Game1.Collections;
 using Game1.Industries;
+using Game1.Resources;
 
 namespace Game1
 {
@@ -38,11 +39,37 @@ namespace Game1
         public static AreaInt RawMaterialArea(ulong ind)
             => AreaInt.CreateFromMetSq(valueInMetSq: 3 * MyMathHelper.Pow(2, ind + 1));
 
+        public static ulong MaxRawMatInd
+            => 9;
+
         /// <summary>
-        /// Any material target area must be a multiple of this
+        /// All material useful areas must the this.
+        /// Ideally, the areas would be this as well.
+        /// Currently the way to achieve such is to never create raw material with index more than 9 (so 10 raw materials in total)
+        /// and have raw material area propor weights sum to no more than 10.
+        /// COULD mutiply by 100 instead of 8 * 9 * 5 * 7, and force each raw material to specify the exact percentage of material area it should take up.
         /// </summary>
-        public static AreaInt MaterialTargetAreaDivisor
-            => RawMaterialArea(ind: 9) * 9 * 5 * 7;
+        public static AreaInt MaterialUsefulArea
+            => RawMaterialArea(ind: MaxRawMatInd) * 8 * 9 * 5 * 7;
+
+        public static RawMatAmounts CreateMatCompositionFromRawMatPropors(RawMatAmounts rawMatAreaPropors)
+        {
+            ulong totalWeights = rawMatAreaPropors.Sum(resAmount => resAmount.amount);
+            if (totalWeights is 0)
+                throw new ArgumentException();
+            if (totalWeights > 10)
+                throw new ArgumentException();
+            RawMatAmounts composition = new
+            (
+                resAmounts: rawMatAreaPropors.Select
+                (
+                    rawMatAmount => rawMatAmount * (MaterialUsefulArea.valueInMetSq / (totalWeights * rawMatAmount.res.Area.valueInMetSq))
+                )
+            );
+            var bla = composition.Area();
+            Debug.Assert(composition.Area() == MaterialUsefulArea);
+            return composition;
+        }
 
         // As ind increases, the color becomes more brown
         // Formula is plucked out of thin air
@@ -52,18 +79,19 @@ namespace Game1
         // The bigger the number, the easier this raw material will react with itself
         // Formula is plucked out of thin air
         public static UDouble RawMaterialFusionReactionStrengthCoeff(ulong ind)
-            => (UDouble)0.000000000000001;
+            => (UDouble)0.000000000000001 * (MaxRawMatInd - ind);
 
         public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
 #warning Complete this by making it actually random
             => startingRawMatTargetRatios;
 
-        public static MechComplexity Complexity(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IMaterialPurpose, AreaInt> ingredMatPurposeToUsefulAreas)
+        public static MechComplexity IndustryMechComplexity(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IProductClass, Propor> productClassPropors)
 #warning Complete this
             => new(complexity: 10);
 
-        public static ulong GatMaterialAmountFromArea(Material material, AreaInt area)
-            => MyMathHelper.DivideThenTakeCeiling(dividend: area.valueInMetSq, divisor: material.Area.valueInMetSq);
+        public static MechComplexity ProductMechComplexity(IProductClass productClass, ulong materialPaletteAmount, ulong indInClass, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts)
+#warning Complete this
+            => new(complexity: 10);
 
         public static Propor Reflectivity(this RawMatAmounts rawMatAmounts, Temperature temperature)
         {
@@ -84,8 +112,8 @@ namespace Game1
 
         // For reflectivity vs reflectance, see https://en.wikipedia.org/wiki/Reflectance#Reflectivity
         // TLDR: reflectivity is the used for thick materials
-        public static Propor Reflectivity(this Material material, Temperature temperature)
-            => Reflectivity(rawMatAmounts: material.RawMatComposition, temperature: temperature);
+        public static Propor Reflectivity(this MaterialPalette roofMatPalette, Temperature temperature)
+            => Reflectivity(rawMatAmounts: roofMatPalette.materialChoices[IMaterialPurpose.roofSurface].RawMatComposition, temperature: temperature);
 
         public static Propor Emissivity(this RawMatAmounts rawMatAmounts, Temperature temperature)
         {
@@ -104,8 +132,12 @@ namespace Game1
             }
         }
 
-        public static Propor Emissivity(this Material material, Temperature temperature)
-            => Emissivity(rawMatAmounts: material.RawMatComposition, temperature:temperature);
+        public static Propor Emissivity(this MaterialPalette roofMatPalette, Temperature temperature)
+            => Emissivity
+            (
+                rawMatAmounts: roofMatPalette.materialChoices[IMaterialPurpose.roofSurface].RawMatComposition,
+                temperature:temperature
+            );
 
         public static UDouble Resistivity(this Material material, Temperature temperature)
             => throw new NotImplementedException();
@@ -114,53 +146,59 @@ namespace Game1
 #warning Complete this by scaling it appropriately (depending on the map scale) and putting it into config file
             => 1000;
 
-        /// <exception cref="ArgumentException">if buildingMatChoices doesn't contain all required matAmounts</exception>
-        public static Result<EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)>, EfficientReadOnlyHashSet<IMaterialPurpose>> BuildingComponentsToAmountPUBA(
-            EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, MaterialChoices buildingMatChoices, Propor buildingComponentsProporOfBuildingArea)
+        /// <exception cref="ArgumentException">if buildingMatPaletteChoices doesn't contain all required product classes</exception>
+        public static EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> BuildingComponentsToAmountPUBA(
+            EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors,
+            MaterialPaletteChoices buildingMatPaletteChoices, Propor buildingComponentsProporOfBuildingArea)
         {
-            AreaInt buildingComponentProporsTotalArea = buildingComponentPropors.Sum(prodParamsAndAmount => prodParamsAndAmount.prodParams.usefulArea * prodParamsAndAmount.amount);
-            return buildingComponentPropors.SelectMany
+            AreaInt buildingComponentProporsTotalArea = buildingComponentPropors.Sum
             (
-                prodParamsAndAmount => prodParamsAndAmount.prodParams.GetProduct(materialChoices: buildingMatChoices).Select
+                prodParamsAndAmount => prodParamsAndAmount.prodParams.usefulArea * prodParamsAndAmount.amount
+            );
+            return buildingComponentPropors.Select
+            (
+                prodParamsAndAmount =>
                 (
-                    func: product =>
+                    prod: prodParamsAndAmount.prodParams.GetProduct
                     (
-                        prod: product,
-                        // This is productAreaPUBA / prodAmount. prodAmount cancelled out.
-                        amountPUBA: buildingComponentsProporOfBuildingArea * prodParamsAndAmount.amount / buildingComponentProporsTotalArea.valueInMetSq
-                    )
+                        materialPalette: buildingMatPaletteChoices[prodParamsAndAmount.prodParams.productClass]
+                    ),
+                    // This is productAreaPUBA / prodAmount. prodAmount cancelled out.
+                    amountPUBA: buildingComponentsProporOfBuildingArea * prodParamsAndAmount.amount / buildingComponentProporsTotalArea.valueInMetSq
                 )
-            ).Select(prodToAmountPUBA => prodToAmountPUBA.ToEfficientReadOnlyCollection());
+            ).ToEfficientReadOnlyCollection();
         }
 
-        public static CurProdStats CurConstrStats(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors,
-            UDouble gravity, Temperature temperature, AreaInt buildingComponentsUsefulArea, Mass finishedBuildingMass, ulong worldSecondsInGameSecond)
+        public static CurProdStats CurConstrStats(AllResAmounts buildingCost, UDouble gravity, Temperature temperature, ulong worldSecondsInGameSecond)
+        {
+            var buildingComponentsUsefulArea = buildingCost.UsefulArea();
 #warning Complete this
-            => new
+            return new
             (
                 ReqWatts: buildingComponentsUsefulArea.valueInMetSq / 100000,
                 // Means that the building will complete in 10 real world seconds
                 ProducedAreaPerSec: buildingComponentsUsefulArea.valueInMetSq / (worldSecondsInGameSecond * 10)
             );
+        }
 
         /// <summary>
         /// Mechanical production stats
         /// </summary>
-        public static CurProdStats CurMechProdStats(GeneralProdAndMatAmounts buildingCostPropors, MaterialChoices buildingMatChoices,
+        public static CurProdStats CurMechProdStats(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
             UDouble gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
 #warning Either this or the one that uses it should probably take into account worldSecondsInGameSecond. Probably would like to have separate configurable physics and gameplay speed multipliers
         {
             UDouble relevantMassPUBA = RelevantMassPUBA
             (
-                buildingMatPropors: buildingCostPropors.materialPropors,
-                buildingMatChoices: buildingMatChoices,
+                buildingProdClassPropors: buildingCostPropors.productClassPropors,
+                buildingMatPaletteChoices: buildingMatPaletteChoices,
                 productionMassPUBA: productionMass.valueInKg / buildingArea.valueInMetSq
             );
 
             UDouble maxMechThroughputPUBA = MaxMechThroughputPUBA
             (
-                buildingMatPropors: buildingCostPropors.materialPropors,
-                buildingMatChoices: buildingMatChoices,
+                mechanicalProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.mechanical],
+                mechanicalMatPalette: buildingMatPaletteChoices[IProductClass.mechanical],
                 buildingComplexity: buildingCostPropors.complexity,
                 gravity: gravity,
                 temperature: temperature,
@@ -169,15 +207,15 @@ namespace Game1
 
             UDouble maxElectricalPowerPUBA = MaxElectricalPowerPUBA
             (
-                buildingMatPropors: buildingCostPropors.materialPropors,
-                buildingMatChoices: buildingMatChoices,
+                electronicsProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.electronics],
+                electronicsMatPalette: buildingMatPaletteChoices[IProductClass.electronics],
                 temperature: temperature
             );
 
             UDouble electricalEnergyPerUnitArea = ElectricalEnergyPerUnitAreaPhys
             (
-                buildingMatPropors: buildingCostPropors.materialPropors,
-                buildingMatChoices: buildingMatChoices,
+                electronicsProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.electronics],
+                electronicsMatPalette: buildingMatPaletteChoices[IProductClass.electronics],
                 buildingComplexity: buildingCostPropors.complexity,
                 gravity: gravity,
                 temperature: temperature,
@@ -199,12 +237,12 @@ namespace Game1
         /// <summary>
         /// To be called by po
         /// </summary>
-        public static UDouble CurProducedWatts(GeneralProdAndMatAmounts buildingCostPropors, MaterialChoices buildingMatChoices,
+        public static UDouble CurProducedWatts(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
             UDouble gravity, Temperature temperature, AreaDouble buildingArea, UDouble incidentWatts)
 #warning Complete this
             => incidentWatts * (UDouble).5;
 
-        private static UDouble RelevantMassPUBA(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMatPropors, MaterialChoices buildingMatChoices, UDouble productionMassPUBA)
+        private static UDouble RelevantMassPUBA(EfficientReadOnlyDictionary<IProductClass, Propor> buildingProdClassPropors, MaterialPaletteChoices buildingMatPaletteChoices, UDouble productionMassPUBA)
             => throw new NotImplementedException();
 
         /// <summary>
@@ -212,19 +250,19 @@ namespace Game1
         /// </summary>
         /// <param Name="relevantMassPUBA">Mass which needs to be moved/rotated. Until structural material purpose is in use, this is all the splittingMass of matAmounts and products</param>
         /// <param Name="mechStrength">Mechanical component strength</param>
-        private static UDouble MaxMechThroughputPUBA(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMatPropors, MaterialChoices buildingMatChoices, MechComplexity buildingComplexity, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
+        private static UDouble MaxMechThroughputPUBA(Propor mechanicalProporInBuilding, MaterialPalette mechanicalMatPalette, MechComplexity buildingComplexity, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
             // SHOULD PROBABLY also take into account the complexity of the building
             // This is maximum of restriction from gravity and restriction from mechanical strength compared to total weigtht of things
             => throw new NotImplementedException();
 
-        private static UDouble MaxElectricalPowerPUBA(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMatPropors, MaterialChoices buildingMatChoices, Temperature temperature)
+        private static UDouble MaxElectricalPowerPUBA(Propor electronicsProporInBuilding, MaterialPalette electronicsMatPalette, Temperature temperature)
             => throw new NotImplementedException();
 
         /// <summary>
         /// Electrical energy needed to use/produce unit area of physical result.
         /// relevantMass here is the exact same thing as in MaxMechThroughput function
         /// </summary>
-        private static UDouble ElectricalEnergyPerUnitAreaPhys(EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMatPropors, MaterialChoices buildingMatChoices, MechComplexity buildingComplexity, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
+        private static UDouble ElectricalEnergyPerUnitAreaPhys(Propor electronicsProporInBuilding, MaterialPalette electronicsMatPalette, MechComplexity buildingComplexity, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
             => throw new NotImplementedException();
 
         public static ulong MaxAmount(AreaDouble availableArea, AreaInt itemArea)

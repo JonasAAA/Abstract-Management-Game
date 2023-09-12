@@ -1,5 +1,6 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
+﻿using Game1.Resources;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Linq;
 
 namespace TestProject
 {
@@ -8,14 +9,17 @@ namespace TestProject
     {
         [TestMethod]
         public void ProductParamsNamesAreUnique()
-        {
-            throw new NotImplementedException();
-        }
+            => CollectionAssert.AllItemsAreUnique
+            (
+                Product.productParamsDict.Keys.ToList()
+            );
 
         [TestMethod]
         public void ProductClassesContainAtLeastOneProduct()
-        {
-            throw new NotImplementedException();
-        }
+            => CollectionAssert.AreEquivalent
+            (
+                expected: IProductClass.all.ToList(),
+                actual: Product.productParamsDict.Values.Select(prodParams => prodParams.productClass).ToHashSet().ToList()
+            );
     }
 }

@@ -25,7 +25,7 @@ namespace TestProject
         public void ProductClassMaterialPurposesPartition()
         {
             var productClasses = IProductClass.all;
-            var mentionedMaterialPurposes = productClasses.SelectMany(productClass => productClass.MatPurposeToMultipleOfMatTargetAreaDivisor.Keys).ToList();
+            var mentionedMaterialPurposes = productClasses.SelectMany(productClass => productClass.MatPurposeToAmount.Keys).ToList();
             CollectionAssert.AllItemsAreUnique(mentionedMaterialPurposes);
             CollectionAssert.AreEquivalent
             (
@@ -40,8 +40,8 @@ namespace TestProject
             var productClasses = IProductClass.all;
             foreach (var productClass in productClasses)
             {
-                Assert.IsTrue(productClass.MatPurposeToMultipleOfMatTargetAreaDivisor.Count > 0);
-                Assert.IsTrue(productClass.MatPurposeToMultipleOfMatTargetAreaDivisor.Values.All(value => value > 0));
+                Assert.IsTrue(productClass.MatPurposeToAmount.Count > 0);
+                Assert.IsTrue(productClass.MatPurposeToAmount.Values.All(value => value > 0));
             }
         }
     }

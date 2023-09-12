@@ -14,7 +14,7 @@ namespace Game1.Industries
             public EnergyPriority EnergyPriority { get; }
             public IBuildingImage IdleBuildingImage { get; }
 
-            public Material? SurfaceMaterial(bool productionInProgress);
+            public MaterialPalette? SurfaceMatPalette(bool productionInProgress);
             public EfficientReadOnlyCollection<IResource> GetProducedResources(TConcreteProductionParams productionParams);
             public AllResAmounts MaxStoredInput(TConcreteProductionParams productionParams);
             public AreaInt MaxStoredOutputArea();
@@ -62,8 +62,8 @@ namespace Game1.Industries
         public NodeID NodeID
             => buildingParams.NodeState.NodeID;
 
-        public Material? SurfaceMaterial
-            => buildingParams.SurfaceMaterial(productionInProgress: Busy);
+        public MaterialPalette? SurfaceMatPalette
+            => buildingParams.SurfaceMatPalette(productionInProgress: Busy);
 
         public IHUDElement UIElement
             => industryUI;

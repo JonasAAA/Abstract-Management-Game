@@ -16,14 +16,20 @@ namespace BenchmarkProject
             (
                 new[]
                 {
-                    BenchmarkConverter.TypeToBenchmarks(typeof(IntegerBenchmark<UInt64Generator, ulong>), config),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<UInt32Generator, uint>), config),
 
-                    BenchmarkConverter.TypeToBenchmarks(typeof(IntegerBenchmark<UInt128DivideByUInt64Generator, UInt128>), config),
-                    BenchmarkConverter.TypeToBenchmarks(typeof(IntegerBenchmark<UInt128Generator, UInt128>), config),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<UInt64Generator, ulong>), config),
 
-                    BenchmarkConverter.TypeToBenchmarks(typeof(IntegerBenchmark<UInt256DivideByUInt64Generator, MyUInt256>), config),
-                    BenchmarkConverter.TypeToBenchmarks(typeof(IntegerBenchmark<UInt256DivideByUInt128Generator, MyUInt256>), config),
-                    BenchmarkConverter.TypeToBenchmarks(typeof(IntegerBenchmark<UInt256Generator, MyUInt256>), config)
+                    BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<DoubleGenerator, double>), config),
+
+                    BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<DecimalGenerator, decimal>), config),
+
+                    BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<UInt128DivideByUInt64Generator, UInt128>), config),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<UInt128Generator, UInt128>), config),
+
+                    BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<UInt256DivideByUInt64Generator, MyUInt256>), config),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<UInt256DivideByUInt128Generator, MyUInt256>), config),
+                    BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<UInt256Generator, MyUInt256>), config)
                 }
             );
         }
@@ -51,6 +57,15 @@ namespace BenchmarkProject
             => (ulong)random.NextInt64();
     }
 
+    public readonly struct UInt32Generator : INumberGenerator<uint>
+    {
+        public static uint GenerateDividend(Random random)
+            => random.NextUInt32();
+
+        public static uint GenerateDivisor(Random random)
+            => (uint)random.Next(maxValue: 1 << 16);
+    }
+
     public readonly struct UInt64Generator : INumberGenerator<ulong>
     {
         public static ulong GenerateDividend(Random random)
@@ -58,6 +73,24 @@ namespace BenchmarkProject
 
         public static ulong GenerateDivisor(Random random)
             => random.NextUInt32();
+    }
+
+    public readonly struct DoubleGenerator : INumberGenerator<double>
+    {
+        public static double GenerateDividend(Random random)
+            => random.NextUInt64();
+
+        public static double GenerateDivisor(Random random)
+            => random.NextUInt32();
+    }
+
+    public readonly struct DecimalGenerator : INumberGenerator<decimal>
+    {
+        public static decimal GenerateDividend(Random random)
+            => (decimal)random.NextUInt64() * random.NextUInt32();
+
+        public static decimal GenerateDivisor(Random random)
+            => random.NextUInt64();
     }
 
     public readonly struct UInt128DivideByUInt64Generator : INumberGenerator<UInt128>
@@ -112,18 +145,20 @@ namespace BenchmarkProject
         static abstract TNum GenerateDivisor(Random random);
     }
 
-    public class IntegerBenchmark<TNumberGenerator, TNum>
+    // Some good advice on designing benchmarks https://stackoverflow.com/a/76107209
+    [ShortRunJob]
+    public class DivisionBenchmark<TNumberGenerator, TNum>
         where TNumberGenerator : struct, INumberGenerator<TNum>
         where TNum : struct, IDivisionOperators<TNum, TNum, TNum>
     {
         private static readonly Random random = new(Seed: 100);
 
-        private readonly TNum
+        public TNum
             dividend = TNumberGenerator.GenerateDividend(random: random),
             divisor = TNumberGenerator.GenerateDivisor(random: random);
 
         [Benchmark]
-        public TNum DivisionBenchmark()
+        public TNum Division()
             => dividend / divisor;
     }
 }

@@ -15,8 +15,8 @@ namespace Game1.Resources
 
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
-        public AreaInt Area { get; }
-        public AreaInt UsefulArea { get; }
+        public Area Area { get; }
+        public Area UsefulArea { get; }
         public RawMatAmounts RawMatComposition { get; }
         public ResRecipe Recipe { get; }
 

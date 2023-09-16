@@ -18,6 +18,8 @@ namespace BenchmarkProject
                 {
                     BenchmarkConverter.TypeToBenchmarks(typeof(IntegerBenchmark<UInt64Generator, ulong>), config),
 
+                    BenchmarkConverter.TypeToBenchmarks(typeof(IntegerBenchmark<DecimalGenerator, decimal>), config),
+
                     BenchmarkConverter.TypeToBenchmarks(typeof(IntegerBenchmark<UInt128DivideByUInt64Generator, UInt128>), config),
                     BenchmarkConverter.TypeToBenchmarks(typeof(IntegerBenchmark<UInt128Generator, UInt128>), config),
 
@@ -28,6 +30,7 @@ namespace BenchmarkProject
             );
         }
     }
+
     public readonly struct MyUInt256 : IDivisionOperators<MyUInt256, MyUInt256, MyUInt256>
     {
         private readonly UInt256 value;
@@ -58,6 +61,15 @@ namespace BenchmarkProject
 
         public static ulong GenerateDivisor(Random random)
             => random.NextUInt32();
+    }
+
+    public readonly struct DecimalGenerator : INumberGenerator<decimal>
+    {
+        public static decimal GenerateDividend(Random random)
+            => (decimal)random.NextUInt64() * random.NextUInt32();
+
+        public static decimal GenerateDivisor(Random random)
+            => random.NextUInt64();
     }
 
     public readonly struct UInt128DivideByUInt64Generator : INumberGenerator<UInt128>

@@ -19,9 +19,9 @@ namespace Game1.Industries
             public readonly DiskBuildingImage.Params buildingImageParams;
             public readonly EnergyPriority energyPriority;
 
-            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
+            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> buildingComponentPropors;
 
-            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
+            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> buildingComponentPropors)
             {
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.miningBuildingColor);
                 Name = name;
@@ -57,7 +57,7 @@ namespace Game1.Industries
             public MaterialPalette SurfaceMatPalette { get; }
             public readonly DiskBuildingImage buildingImage;
 
-            private readonly AreaDouble buildingArea;
+            private readonly Area buildingArea;
             private readonly GeneralBuildingParams generalParams;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly AllResAmounts buildingCost;
@@ -79,7 +79,7 @@ namespace Game1.Industries
                 buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
 
-            public UDouble WattsToProduce(UDouble incidentWatts)
+            public decimal WattsToProduce(decimal incidentWatts)
                 => ResAndIndustryAlgos.CurProducedWatts
                 (
                     buildingCostPropors: generalParams.BuildingCostPropors,
@@ -111,8 +111,8 @@ namespace Game1.Industries
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => AllResAmounts.empty;
 
-            AreaInt Industry.IConcreteBuildingParams<UnitType>.MaxStoredOutputArea()
-                => AreaInt.zero;
+            Area Industry.IConcreteBuildingParams<UnitType>.MaxStoredOutputArea()
+                => Area.zero;
         }
 
         [Serializable]
@@ -122,7 +122,7 @@ namespace Game1.Industries
                 => false;
 
             public static Result<PowerProductionState, TextErrors> Create(UnitType productionParams, ConcreteBuildingParams parameters, ResPile buildingResPile,
-                ResPile inputStorage, AreaInt maxOutputArea)
+                ResPile inputStorage, Area maxOutputArea)
                 => new(ok: new(buildingParams: parameters));
 
             public ElectricalEnergy ReqEnergy
@@ -150,9 +150,9 @@ namespace Game1.Industries
 
             public void FrameStart()
             {
-                UDouble wattsToProduce = buildingParams.WattsToProduce
+                decimal wattsToProduce = buildingParams.WattsToProduce
                 (
-                    incidentWatts: buildingParams.NodeState.RadiantEnergyPile.Amount.ValueInJ / (UDouble)CurWorldManager.Elapsed.TotalSeconds
+                    incidentWatts: buildingParams.NodeState.RadiantEnergyPile.Amount.ValueInJ / (decimal)CurWorldManager.Elapsed.TotalSeconds
                 );
                 energyToTransform = MyMathHelper.Min(buildingParams.NodeState.RadiantEnergyPile.Amount, prodEnergyHistoricRounder.CurEnergy<RadiantEnergy>(watts: wattsToProduce, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed));
             }

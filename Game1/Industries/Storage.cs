@@ -17,9 +17,9 @@ namespace Game1.Industries
 
             public readonly DiskBuildingImage.Params buildingImageParams;
 
-            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
+            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> buildingComponentPropors;
 
-            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
+            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> buildingComponentPropors)
             {
                 Name = name;
                 BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
@@ -62,7 +62,7 @@ namespace Game1.Industries
             public AllResAmounts BuildingCost { get; }
             public readonly DiskBuildingImage buildingImage;
 
-            private readonly AreaDouble buildingArea;
+            private readonly Area buildingArea;
             // generalParams and buildingMatPaletteChoices will be used if/when storage industry depends on material choices.
             // Probably the only possible dependance is how much weight it can hold.
             private readonly GeneralBuildingParams generalParams;

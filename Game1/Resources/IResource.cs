@@ -10,7 +10,7 @@ namespace Game1.Resources
         /// Be careful - useful area is not additive, e.g. if product consists of some components,
         /// to get its useful area can't just add useful areas of the components
         /// </summary>
-        public AreaInt UsefulArea { get; }
+        public Area UsefulArea { get; }
         public RawMatAmounts RawMatComposition { get; }
 
         int IComparable<IResource>.CompareTo(IResource? other)

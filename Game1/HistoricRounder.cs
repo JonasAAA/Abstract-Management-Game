@@ -4,7 +4,7 @@
     public class HistoricRounder
     {
         private decimal historicalInaccuracy, lastValue;
-        private ulong lastResult;
+        private UInt96 lastResult;
         private TimeSpan lastRoundTime;
 
         public HistoricRounder()
@@ -15,7 +15,7 @@
             lastResult = 0;
         }
 
-        public ulong Round(decimal value, TimeSpan curTime)
+        public UInt96 Round(decimal value, TimeSpan curTime)
         {
             if (lastRoundTime == curTime)
             {
@@ -26,7 +26,7 @@
             lastValue = value;
             lastRoundTime = curTime;
             value += historicalInaccuracy;
-            lastResult = Convert.ToUInt64(value);
+            lastResult = MyMathHelper.RoundUnsigned(value: value);
             historicalInaccuracy = value - lastResult;
             return lastResult;
         }

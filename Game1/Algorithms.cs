@@ -36,9 +36,9 @@ namespace Game1
                 (true, true) => 0,
                 (true, false) => 1,
                 (false, true) => -1,
-                (false, false) => ((UInt128)left.totOwnedEnergy.ValueInJ() * right.reqEnergy.ValueInJ()).CompareTo
+                (false, false) => ((UInt256)left.totOwnedEnergy.ValueInJ() * right.reqEnergy.ValueInJ()).CompareTo
                     (
-                        (UInt128)right.totOwnedEnergy.ValueInJ() * left.reqEnergy.ValueInJ()
+                        (UInt256)right.totOwnedEnergy.ValueInJ() * left.reqEnergy.ValueInJ()
                     )
             };
             return compareValues is 0 ? left.index.CompareTo(right.index) : compareValues;
@@ -72,7 +72,7 @@ namespace Game1
                         ReqEnergy: reqEnergy,
                         AllocEnergy: IUnconstrainedEnergy<T>.CreateFromJoules
                         (
-                            valueInJ: (ulong)((UInt128)reqEnergy.ValueInJ() * availableEnergy.ValueInJ() / totalReqEnergy.ValueInJ())
+                            valueInJ: MyMathHelper.MultThenDivideFloor(factor1: reqEnergy.ValueInJ(), factor2: availableEnergy.ValueInJ(), divisor: totalReqEnergy.ValueInJ())
                         )
                     )
                 ).ToList()
@@ -176,7 +176,7 @@ namespace Game1
                             ReqEnergy: energy.reqEnergy,
                             AllocEnergy: IUnconstrainedEnergy<T>.CreateFromJoules
                             (
-                                valueInJ: (ulong)MyMathHelper.Max
+                                valueInJ: (UInt96)MyMathHelper.Max
                                 (
                                     0,
                                     MyMathHelper.Ceiling
@@ -192,7 +192,7 @@ namespace Game1
                 if (totAllocEnergies > availableEnergy)
                     return new(value2: Size.TooBig);
                 var remainingEnergyInJ = availableEnergy.ValueInJ() - totAllocEnergies.ValueInJ();
-                if (remainingEnergyInJ > (ulong)energies.Count)
+                if (remainingEnergyInJ > (uint)energies.Count)
                     return new(value2: Size.TooSmall);
                 SortedSet<ConsumerWithExtraEnergy<T>> sortedConsumersWithExtraEnergy = new(consumersWithExtraEnergy);
                 while (remainingEnergyInJ > 0)
@@ -210,13 +210,13 @@ namespace Game1
 
         // Inspired by https://en.wikipedia.org/wiki/Lawson_criterion#Energy_balance
         public static RawMatAmounts CosmicBodyNewCompositionFromNuclearFusion(ResConfig curResConfig, RawMatAmounts composition, UDouble gravity, Temperature temperature, TimeSpan duration,
-            Func<RawMaterial, decimal, ulong> reactionNumberRounder, Propor nonReactingProporForUnitReactionStrengthUnitTime)
+            Func<RawMaterial, decimal, UInt96> reactionNumberRounder, Propor nonReactingProporForUnitReactionStrengthUnitTime)
         {
-            AreaDouble compositionArea = composition.Area().ToDouble();
-            Dictionary<RawMaterial, ulong> cosmicBodyNextComposition = new(2 * composition.Count);
+            Area compositionArea = composition.Area();
+            Dictionary<RawMaterial, UInt96> cosmicBodyNextComposition = new(2 * composition.Count);
             foreach (var (rawMaterial, amount) in composition)
             {
-                (ulong nonReactingAmount, ulong fusionProductAmount) = NuclearFusionSingleRawMat
+                (UInt96 nonReactingAmount, UInt96 fusionProductAmount) = NuclearFusionSingleRawMat
                 (
                     amount: amount,
                     compositionArea: compositionArea,
@@ -239,15 +239,15 @@ namespace Game1
             return newComposition;
         }
 
-        public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusionSingleRawMat(ulong amount, AreaDouble compositionArea, UDouble gravity, Temperature temperature,
-            TimeSpan duration, Func<decimal, ulong> reactionNumberRounder, Propor nonReactingProporForUnitReactionStrengthUnitTime, UDouble fusionReactionStrengthCoeff)
+        public static (UInt96 nonReactingAmount, UInt96 fusionProductAmount) NuclearFusionSingleRawMat(UInt96 amount, Area compositionArea, UDouble gravity, Temperature temperature,
+            TimeSpan duration, Func<decimal, UInt96> reactionNumberRounder, Propor nonReactingProporForUnitReactionStrengthUnitTime, UDouble fusionReactionStrengthCoeff)
         {
             // Number density is from https://en.wikipedia.org/wiki/Number_density
             // Volume number density is the number of specified objects per unit volume
             double numberDensity = amount / compositionArea.valueInMetSq,
                 reactionStrength = fusionReactionStrengthCoeff * numberDensity * numberDensity * gravity * gravity * temperature.valueInK * temperature.valueInK;
             decimal nonReactingPropor = (decimal)MyMathHelper.Pow(@base: (UDouble)nonReactingProporForUnitReactionStrengthUnitTime, exponent: reactionStrength * duration.TotalSeconds);
-            ulong maxReactions = amount / 2,
+            UInt96 maxReactions = amount / 2,
                 numberOfReactions = maxReactions - reactionNumberRounder(nonReactingPropor * maxReactions);
             return
             (
@@ -261,11 +261,11 @@ namespace Game1
         /// The splitting into heat energy and radiant energy algorithm is my creation
         /// </summary>
         public static (HeatEnergy heatEnergy, RadiantEnergy radiantEnergy) EnergiesToDissipate(HeatEnergy heatEnergy, UDouble surfaceLength, Propor emissivity, Temperature temperature,
-            TimeSpan duration, Func<decimal, ulong> energyInJToDissipateRoundFunc, UDouble stefanBoltzmannConstant, ulong temperatureExponent, Func<decimal, ulong> heatEnergyInJRoundFunc,
+            TimeSpan duration, Func<decimal, UInt96> energyInJToDissipateRoundFunc, UDouble stefanBoltzmannConstant, uint temperatureExponent, Func<decimal, UInt96> heatEnergyInJRoundFunc,
             Temperature allHeatMaxTemper, Temperature halfHeatTemper, UDouble heatEnergyDropoffExponent)
         {
 #warning test this
-            ulong energyInJToDissipate = MyMathHelper.Min
+            UInt96 energyInJToDissipate = MyMathHelper.Min
             (
                 heatEnergy.ValueInJ,
                 energyInJToDissipateRoundFunc((decimal)(duration.TotalSeconds * surfaceLength * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent)))
@@ -276,7 +276,7 @@ namespace Game1
                 false => 1 / (1 + MyMathHelper.Pow(@base: (temperature.valueInK - allHeatMaxTemper.valueInK) / (halfHeatTemper.valueInK - allHeatMaxTemper.valueInK), exponent: heatEnergyDropoffExponent))
             };
 
-            ulong heatEnergyInJ = heatEnergyInJRoundFunc(energyInJToDissipate * (decimal)heatEnergyPropor);
+            UInt96 heatEnergyInJ = heatEnergyInJRoundFunc((decimal)energyInJToDissipate * (decimal)heatEnergyPropor);
             return
             (
                 heatEnergy: HeatEnergy.CreateFromJoules(valueInJ: heatEnergyInJ),
@@ -313,7 +313,7 @@ namespace Game1
             return true;
         }
         
-        public static TAmount EnergyPropor<TAmount>(TAmount wholeAmount, Propor propor, Func<decimal, ulong> roundFunc)
+        public static TAmount EnergyPropor<TAmount>(TAmount wholeAmount, Propor propor, Func<decimal, UInt96> roundFunc)
             where TAmount : struct, IUnconstrainedEnergy<TAmount>
             => IUnconstrainedEnergy<TAmount>.CreateFromJoules
             (
@@ -337,27 +337,27 @@ namespace Game1
         public sealed class VertexInfo<T>
         {
             public readonly List<T> directedNeighbours;
-            public ulong amount;
+            public UInt96 amount;
 
-            public VertexInfo(List<T> directedNeighbours, ulong amount)
+            public VertexInfo(List<T> directedNeighbours, UInt96 amount)
             {
                 this.directedNeighbours = directedNeighbours;
                 this.amount = amount;
             }
 
-            public ulong GiveAmountRoundUp()
-                => MyMathHelper.DivideThenTakeCeiling(dividend: amount, divisor: (ulong)directedNeighbours.Count);
+            public UInt96 GiveAmountRoundUp()
+                => MyMathHelper.DivideThenTakeCeiling(dividend: amount, divisor: (uint)directedNeighbours.Count);
 
 
-            public double Priority()
-               => (double)amount / directedNeighbours.Count;
+            public decimal Priority()
+               => (decimal)amount / directedNeighbours.Count;
         }
 
         [Serializable]
-        public readonly record struct ResPacket<T>(T Source, T Destin, ulong Amount);
+        public readonly record struct ResPacket<T>(T Source, T Destin, UInt96 Amount);
 
         [Serializable]
-        private readonly record struct InternalResPacket<T>(T VertexA, T VertexB, bool IsASource, ulong Amount);
+        private readonly record struct InternalResPacket<T>(T VertexA, T VertexB, bool IsASource, UInt96 Amount);
 
         // Dictionary is from Vertex<T> rather than T directly, as the same Industry may be a source and a destination of the same resource, e.g. storage.
         public static EfficientReadOnlyCollection<ResPacket<T>> DistributeRes<T>(EfficientReadOnlyDictionary<Vertex<T>, VertexInfo<T>> graph)
@@ -379,7 +379,7 @@ namespace Game1
                 ).ToList();
                 foreach (var resOwnerB in orderedNeighbours)
                 {
-                    ulong amount = vertexAInfo.GiveAmountRoundUp();
+                    UInt96 amount = vertexAInfo.GiveAmountRoundUp();
                     resPackets.Add
                     (
                         new
@@ -400,7 +400,7 @@ namespace Game1
                     vertsByPriority.Remove(vertexB);
                     EnqueueVertexIfNeeded(vertex: vertexB, vertexInfo: vertexBInfo);
                 }
-                Debug.Assert(vertexAInfo.amount is 0);
+                Debug.Assert(vertexAInfo.amount == 0);
             }
 
             return resPackets.ToEfficientReadOnlyCollection();

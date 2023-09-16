@@ -24,7 +24,7 @@ namespace Game1.Collections
         static ResAmounts<TRes> IAdditiveIdentity<ResAmounts<TRes>, ResAmounts<TRes>>.AdditiveIdentity
             => empty;
 
-        static ulong IMultiplicativeIdentity<ResAmounts<TRes>, ulong>.MultiplicativeIdentity
+        static UInt96 IMultiplicativeIdentity<ResAmounts<TRes>, UInt96>.MultiplicativeIdentity
             => 1;
 
         bool IFormOfEnergy<ResAmounts<TRes>>.IsZero
@@ -32,30 +32,30 @@ namespace Game1.Collections
 
         // Is reused between multiple instances of Dict to generate very slightly less garbage, e.g. in operator *
         public readonly EfficientReadOnlyCollection<TRes> resList;
-        private readonly EfficientReadOnlyCollection<ulong> amounts;
+        private readonly EfficientReadOnlyCollection<UInt96> amounts;
 
         /// <summary>
         /// Equivalent to ResAmounts.empty
         /// </summary>
         public ResAmounts()
-            : this(resList: EfficientReadOnlyCollection<TRes>.empty, amounts: EfficientReadOnlyCollection<ulong>.empty)
+            : this(resList: EfficientReadOnlyCollection<TRes>.empty, amounts: EfficientReadOnlyCollection<UInt96>.empty)
         { }
 
         public ResAmounts(ResAmount<TRes> resAmount)
             : this(res: resAmount.res, amount: resAmount.amount)
         { }
 
-        public ResAmounts(TRes res, ulong amount)
+        public ResAmounts(TRes res, UInt96 amount)
         {
-            if (amount is 0)
+            if (amount == 0)
             {
                 resList = EfficientReadOnlyCollection<TRes>.empty;
-                amounts = EfficientReadOnlyCollection<ulong>.empty;
+                amounts = EfficientReadOnlyCollection<UInt96>.empty;
             }
             else
             {
                 resList = new List<TRes>() { res }.ToEfficientReadOnlyCollection();
-                amounts = new List<ulong>() { amount }.ToEfficientReadOnlyCollection();
+                amounts = new List<UInt96>() { amount }.ToEfficientReadOnlyCollection();
             }
             Validate();
         }
@@ -67,18 +67,18 @@ namespace Game1.Collections
         /// * resList must not contain duplicate elements
         /// * amounts should not have a 0 value (as that means memory and processing power of dealing with that element are wasted)
         /// </summary>
-        private ResAmounts(List<TRes> resList, List<ulong> amounts)
-            : this(resList: new EfficientReadOnlyCollection<TRes>(resList), amounts: new EfficientReadOnlyCollection<ulong>(amounts))
+        private ResAmounts(List<TRes> resList, List<UInt96> amounts)
+            : this(resList: new EfficientReadOnlyCollection<TRes>(resList), amounts: new EfficientReadOnlyCollection<UInt96>(amounts))
         { }
 
-        private ResAmounts(EfficientReadOnlyCollection<TRes> resList, EfficientReadOnlyCollection<ulong> amounts)
+        private ResAmounts(EfficientReadOnlyCollection<TRes> resList, EfficientReadOnlyCollection<UInt96> amounts)
         {
             this.resList = resList;
             this.amounts = amounts;
             Validate();
         }
 
-        public ResAmounts(Dictionary<TRes, ulong> resAmounts)
+        public ResAmounts(Dictionary<TRes, UInt96> resAmounts)
             : this(resAmounts: resAmounts.Select(resAmount => new ResAmount<TRes>(res: resAmount.Key, amount: resAmount.Value)))
         { }
 
@@ -90,12 +90,12 @@ namespace Game1.Collections
         {
             resAmounts.Sort(static (left, right) => CurResConfig.CompareRes(left: left.res, right: right.res));
             List<TRes> mutableResList = new(resAmounts.Count);
-            List<ulong> mutableAmounts = new(resAmounts.Count);
+            List<UInt96> mutableAmounts = new(resAmounts.Count);
             for (int ind = 0; ind < resAmounts.Count; ind++)
             {
                 var res = resAmounts[ind].res;
                 var amount = resAmounts[ind].amount;
-                if (amount is 0)
+                if (amount == 0)
                     continue;
                 if (mutableResList.Count > 0 && mutableResList[^1] == res)
                     mutableAmounts[^1] += amount;
@@ -120,7 +120,7 @@ namespace Game1.Collections
 #endif
         }
 
-        public ulong this[TRes res]
+        public UInt96 this[TRes res]
         {
             get
             {
@@ -148,9 +148,9 @@ namespace Game1.Collections
             return heatCapacity;
         }
 
-        public AreaInt UsefulArea()
+        public Area UsefulArea()
         {
-            AreaInt usefulArea = AreaInt.zero;
+            Area usefulArea = Area.zero;
             for (int ind = 0; ind < Count; ind++)
                 usefulArea += resList[ind].UsefulArea * amounts[ind];
             return usefulArea;
@@ -171,7 +171,7 @@ namespace Game1.Collections
             where TFilterRes : class, IResource
         {
             List<TFilterRes> newResList = new(Count);
-            List<ulong> newAmounts = new(Count);
+            List<UInt96> newAmounts = new(Count);
             for (int ind = 0; ind < Count; ind++)
                 if (resList[ind] is TFilterRes filterRes)
                 {
@@ -189,14 +189,14 @@ namespace Game1.Collections
             return new(resList: newResList.ToEfficientReadOnlyCollection(), amounts: amounts);
         }
 
-        public ulong NumberOfTimesLargerThan(ResAmounts<TRes> other)
+        public UInt96 NumberOfTimesLargerThan(ResAmounts<TRes> other)
         {
-            ulong numberOfTimesLarger = ulong.MaxValue;
+            UInt96 numberOfTimesLarger = UInt96.maxValue;
             int thisInd = 0, rightInd = 0;
             while (true)
             {
-                (TRes? thisRes, ulong thisAmount) = GetResAndAmount(someResAmounts: this, ind: thisInd);
-                (TRes? otherRes, ulong otherAmount) = GetResAndAmount(someResAmounts: other, ind: rightInd);
+                (TRes? thisRes, UInt96 thisAmount) = GetResAndAmount(someResAmounts: this, ind: thisInd);
+                (TRes? otherRes, UInt96 otherAmount) = GetResAndAmount(someResAmounts: other, ind: rightInd);
                 int compare = CompareRes(thisRes, otherRes);
                 if (compare < 0)
                 {
@@ -216,7 +216,7 @@ namespace Game1.Collections
                     Debug.Assert(otherRes is null);
                     break;
                 }
-                if (otherAmount is not 0)
+                if (otherAmount != 0)
                     numberOfTimesLarger = MyMathHelper.Min(numberOfTimesLarger, thisAmount / otherAmount);
                 thisInd++;
                 rightInd++;
@@ -244,12 +244,12 @@ namespace Game1.Collections
         {
             int resultCapacity = MyMathHelper.Min(left.Count, right.Count);
             List<TRes> minResList = new(capacity: resultCapacity);
-            List<ulong> minAmounts = new(capacity: resultCapacity);
+            List<UInt96> minAmounts = new(capacity: resultCapacity);
             int leftInd = 0, rightInd = 0;
             while (true)
             {
-                (TRes? leftRes, ulong leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
-                (TRes? rightRes, ulong rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
+                (TRes? leftRes, UInt96 leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
+                (TRes? rightRes, UInt96 rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
                 int compare = CompareRes(leftRes, rightRes);
                 if (compare < 0)
                 {
@@ -277,7 +277,7 @@ namespace Game1.Collections
             return new(minResList, minAmounts);
         }
 
-        private static (TRes? res, ulong amount) GetResAndAmount(ResAmounts<TRes> someResAmounts, int ind)
+        private static (TRes? res, UInt96 amount) GetResAndAmount(ResAmounts<TRes> someResAmounts, int ind)
             => (ind < someResAmounts.Count) switch
             {
                 true => (res: someResAmounts.resList[ind], amount: someResAmounts.amounts[ind]),
@@ -296,15 +296,15 @@ namespace Game1.Collections
         public static ResAmounts<TRes> operator +(ResAmounts<TRes> left, ResAmounts<TRes> right)
         {
             List<TRes> sumResList = new(capacity: left.Count + right.Count);
-            List<ulong> sumAmountsList = new(capacity: left.Count + right.Count);
+            List<UInt96> sumAmountsList = new(capacity: left.Count + right.Count);
             int leftInd = 0, rightInd = 0;
             while (true)
             {
-                (TRes? leftRes, ulong leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
-                (TRes? rightRes, ulong rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
+                (TRes? leftRes, UInt96 leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
+                (TRes? rightRes, UInt96 rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
                 int compare = CompareRes(leftRes, rightRes);
                 TRes? newRes = null;
-                ulong newAmount = 0;
+                UInt96 newAmount = 0;
                 if (compare <= 0)
                 {
                     newRes = leftRes;
@@ -328,12 +328,12 @@ namespace Game1.Collections
 
             //// This indirection is necessary as can't put managed pointers on stack
             //Span<(bool isLeft, int ind)> sumResSpan = stackalloc (bool isLeft, int ind)[left.Count + right.Count];
-            //Span<ulong> sumAmountsSpan = stackalloc ulong[left.Count + right.Count];
+            //Span<UInt96> sumAmountsSpan = stackalloc UInt96[left.Count + right.Count];
             //int sumInd = 0, thisInd = 0, rightInd = 0;
             //while (true)
             //{
-            //    (TRes? thisRes, ulong thisAmount) = GetResAndAmount(someResAmounts: left, ind: thisInd);
-            //    (TRes? otherRes, ulong otherAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
+            //    (TRes? thisRes, UInt96 thisAmount) = GetResAndAmount(someResAmounts: left, ind: thisInd);
+            //    (TRes? otherRes, UInt96 otherAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
             //    int compare = CompareRes(thisRes, otherRes);
             //    if (thisRes is null && otherRes is null)
             //        break;
@@ -352,7 +352,7 @@ namespace Game1.Collections
             //    sumInd++;
             //}
             //List<TRes> sumResList = new(sumInd);
-            //List<ulong> sumAmounts = new(sumInd);
+            //List<UInt96> sumAmounts = new(sumInd);
             //for (int ind = 0; ind < sumResList.Count; ind++)
             //{
             //    sumResList.Add(sumResSpan[ind].isLeft ? left.resList[sumResSpan[ind].ind] : right.resList[sumResSpan[ind].ind]);
@@ -364,15 +364,15 @@ namespace Game1.Collections
         public static ResAmounts<TRes> operator -(ResAmounts<TRes> left, ResAmounts<TRes> right)
         {
             List<TRes> diffResList = new(capacity: left.Count + right.Count);
-            List<ulong> diffAmounts = new(capacity: left.Count + right.Count);
+            List<UInt96> diffAmounts = new(capacity: left.Count + right.Count);
             int leftInd = 0, rightInd = 0;
             while (true)
             {
-                (TRes? leftRes, ulong leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
-                (TRes? rightRes, ulong rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
+                (TRes? leftRes, UInt96 leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
+                (TRes? rightRes, UInt96 rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
                 int compare = CompareRes(leftRes, rightRes);
                 TRes? newRes = null;
-                ulong newAmount = 0;
+                UInt96 newAmount = 0;
                 if (compare <= 0)
                 {
                     newRes = leftRes;
@@ -388,7 +388,7 @@ namespace Game1.Collections
                 if (newRes is null)
                     break;
                 // THIS is an important difference from add method version
-                if (newAmount is not 0)
+                if (newAmount != 0)
                 {
                     diffResList.Add(newRes);
                     diffAmounts.Add(newAmount);
@@ -397,14 +397,14 @@ namespace Game1.Collections
             return new(diffResList, diffAmounts);
         }
 
-        public static ResAmounts<TRes> operator *(ResAmounts<TRes> left, ulong right)
+        public static ResAmounts<TRes> operator *(ResAmounts<TRes> left, UInt96 right)
         {
-            if (right is 0)
+            if (right == 0)
                 return empty;
             return new(left.resList, left.amounts.Select(amount => amount * right).ToEfficientReadOnlyCollection());
         }
 
-        public static ResAmounts<TRes> operator *(ulong left, ResAmounts<TRes> right)
+        public static ResAmounts<TRes> operator *(UInt96 left, ResAmounts<TRes> right)
             => right * left;
 
         bool IEquatable<ResAmounts<TRes>>.Equals(ResAmounts<TRes> other)
@@ -446,8 +446,8 @@ namespace Game1.Collections
             int leftInd = 0, rightInd = 0;
             while (true)
             {
-                (TRes? leftRes, ulong leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
-                (TRes? rightRes, ulong rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
+                (TRes? leftRes, UInt96 leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
+                (TRes? rightRes, UInt96 rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
                 int compare = CompareRes(leftRes, rightRes);
                 if (leftRes is null && rightRes is null)
                     break;

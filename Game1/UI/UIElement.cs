@@ -67,8 +67,8 @@ namespace Game1.UI
 
         private bool personallyEnabled, hasDisabledAncestor, mouseOn;
 
-        private readonly SortedDictionary<ulong, List<TChild>> layerToChildren;
-        private readonly Dictionary<TChild, ulong> childToLayer;
+        private readonly SortedDictionary<uint, List<TChild>> layerToChildren;
+        private readonly Dictionary<TChild, uint> childToLayer;
 
         protected UIElement(Shape shape)
         {
@@ -81,13 +81,13 @@ namespace Game1.UI
             childToLayer = new();
         }
 
-        protected IEnumerable<TChild> Children(ulong minLayer = 0, ulong maxLayer = ulong.MaxValue)
+        protected IEnumerable<TChild> Children(uint minLayer = 0, uint maxLayer = uint.MaxValue)
             => from childrenLayer in layerToChildren
                where minLayer <= childrenLayer.Key && childrenLayer.Key <= maxLayer
                from child in childrenLayer.Value
                select child;
 
-        protected virtual void AddChild(TChild child, ulong layer = 0)
+        protected virtual void AddChild(TChild child, uint layer = 0)
         {
             if (!layerToChildren.ContainsKey(layer))
                 layerToChildren[layer] = new();
@@ -101,7 +101,7 @@ namespace Game1.UI
 
         protected virtual void RemoveChild(TChild child)
         {
-            ulong layer = childToLayer[child];
+            uint layer = childToLayer[child];
             if (!layerToChildren[layer].Remove(child) || !childToLayer.Remove(child))
                 throw new ArgumentException();
             if (layerToChildren[layer].Count is 0)

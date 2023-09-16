@@ -1,6 +1,7 @@
 ﻿using Game1.ContentHelpers;
 using Game1.Industries;
 using Game1.Inhabitants;
+using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
 
@@ -15,7 +16,7 @@ namespace Game1
         public NodeID NodeID { get; }
         public Mass PlanetMass
             => consistsOfResPile.Amount.Mass();
-        public AreaInt Area { get; private set; }
+        public Area Area { get; private set; }
         public UDouble Radius { get; private set; }
         public UDouble SurfaceLength { get; private set; }
         public MyVector2 Position { get; }
@@ -86,20 +87,19 @@ namespace Game1
         {
             Composition = consistsOfResPile.Amount.Filter<RawMaterial>();
             Area = Composition.Area();
-            Radius = MyMathHelper.Sqrt(value: Area.valueInMetSq / MyMathHelper.pi);
+            Radius = DiskAlgos.RadiusFromArea(area: Area);
             SurfaceLength = 2 * MyMathHelper.pi * Radius;
             var allResComposition = LocationCounters.GetCount<AllResAmounts>().RawMatComposition();
             SurfaceGravity = WorldFunctions.Gravity(mass: allResComposition.Mass(), resArea: allResComposition.Area());
         }
 
-        public Result<ResPile, TextErrors> Mine(AreaDouble targetArea, RawMatAllocator rawMatAllocator)
+        public Result<ResPile, TextErrors> Mine(Area targetArea, RawMatAllocator rawMatAllocator)
         {
             Debug.Assert(Composition == consistsOfResPile.Amount.Filter<RawMaterial>());
-            AreaInt targetAreaInt = targetArea.RoundDown();
-            (AreaInt finalMaxArea, bool minedOut) = (Area <= CurWorldConfig.minPlanetArea + targetAreaInt) switch
+            (Area finalMaxArea, bool minedOut) = (Area <= CurWorldConfig.minPlanetArea + targetArea) switch
             {
                 true => (finalMaxArea: Area - CurWorldConfig.minPlanetArea, minedOut: true),
-                false => (finalMaxArea: targetAreaInt, minedOut: false),
+                false => (finalMaxArea: targetArea, minedOut: false),
             };
             var rawMatsAmountsToMine = rawMatAllocator.TakeAtMostFrom
             (

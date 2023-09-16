@@ -21,7 +21,7 @@ namespace Game1.UI
             inRecalcSizeAndPos = false;
         }
 
-        protected sealed override void AddChild(IHUDElement child, ulong layer = 0)
+        protected sealed override void AddChild(IHUDElement child, uint layer = 0)
         {
             base.AddChild(child, layer);
             child.SizeOrPosChanged.Add(listener: this);

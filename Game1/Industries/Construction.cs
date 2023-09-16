@@ -49,7 +49,7 @@ namespace Game1.Industries
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
             public readonly AllResAmounts buildingCost;
-            public readonly AreaInt buildingComponentsUsefulArea;
+            public readonly Area buildingComponentsUsefulArea;
 
             private readonly IConcreteBuildingConstructionParams concreteBuildingParams;
 
@@ -103,8 +103,8 @@ namespace Game1.Industries
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => buildingCost;
 
-            AreaInt Industry.IConcreteBuildingParams<UnitType>.MaxStoredOutputArea()
-                => AreaInt.zero;
+            Area Industry.IConcreteBuildingParams<UnitType>.MaxStoredOutputArea()
+                => Area.zero;
         }
 
         [Serializable]
@@ -114,7 +114,7 @@ namespace Game1.Industries
                 => false;
 
             public static Result<ConstructionState, TextErrors> Create(UnitType productionParams, ConcreteParams parameters, UnitType persistentState,
-                ResPile inputStorage, AreaInt maxOutputArea)
+                ResPile inputStorage, Area maxOutputArea)
             {
                 var buildingResPile = ResPile.CreateIfHaveEnough
                 (
@@ -173,7 +173,7 @@ namespace Game1.Industries
                     workingPropor: workingPropor,
                     producedAreaPerSec: curConstrStats.ProducedAreaPerSec,
                     elapsed: CurWorldManager.Elapsed,
-                    areaInProduction: parameters.buildingComponentsUsefulArea.ToDouble()
+                    areaInProduction: parameters.buildingComponentsUsefulArea
                 );
 
                 if (donePropor.IsFull)

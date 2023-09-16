@@ -3,7 +3,7 @@
     public interface INodeShapeParams
     {
         public NodeID NodeID { get; }
-        public AreaInt Area { get; }
+        public Area Area { get; }
         public UDouble Radius { get; }
         public UDouble SurfaceLength { get; }
         public MyVector2 Position { get; }

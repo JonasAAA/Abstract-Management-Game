@@ -11,12 +11,12 @@ namespace Game1.Resources
             public new static ResPileInternal CreateEmpty(LocationCounters locationCounters)
                 => new(locationCounters: locationCounters, counter: ResCounter.CreateEmpty());
 
-            public static (ResPileInternal resPile, ulong count)? CreateMultipleIfHaveEnough(ResPileInternal source, AllResAmounts amount, ulong maxCount)
+            public static (ResPileInternal resPile, UInt96 count)? CreateMultipleIfHaveEnough(ResPileInternal source, AllResAmounts amount, UInt96 maxCount)
             {
-                if (maxCount is 0)
+                if (maxCount == 0)
                     throw new ArgumentException();
-                ulong count = MyMathHelper.Min(source.Amount.NumberOfTimesLargerThan(other: amount), maxCount);
-                if (count is 0)
+                UInt96 count = MyMathHelper.Min(source.Amount.NumberOfTimesLargerThan(other: amount), maxCount);
+                if (count == 0)
                     return null;
                 var newResPile = Create(source: source, amount: amount * count);
                 return (resPile: newResPile, count: count);
@@ -74,10 +74,10 @@ namespace Game1.Resources
                 thermalBody: thermalBody
             );
 
-        public static (ResPile resPile, ulong count)? CreateMultipleIfHaveEnough(ResPile source, AllResAmounts amount, ulong maxCount)
+        public static (ResPile resPile, UInt96 count)? CreateMultipleIfHaveEnough(ResPile source, AllResAmounts amount, UInt96 maxCount)
             => ResPileInternal.CreateMultipleIfHaveEnough(source: source.resPileInternal, amount: amount, maxCount: maxCount) switch
             {
-                (ResPileInternal newInternalPile, ulong count) =>
+                (ResPileInternal newInternalPile, UInt96 count) =>
                 (
                     resPile: new
                     (
@@ -99,8 +99,8 @@ namespace Game1.Resources
 
         public static ResPile CreateByMagic(AllResAmounts amount, Temperature temperature)
         {
-            // TODO: Look at this, want to insure that the (total amount of energy) * (max heat capacity) fit comfortably into ulong
-            // If run into problems with overflow, could use int128 or uint128 instead of ulong from
+            // TODO: Look at this, want to insure that the (total amount of energy) * (max heat capacity) fit comfortably into UInt96
+            // If run into problems with overflow, could use int128 or uint128 instead of UInt96 from
             // https://learn.microsoft.com/en-us/dotnet/api/system.int128?view=net-7.0 https://learn.microsoft.com/en-us/dotnet/api/system.uint128?view=net-7.0
             var resPile = ResPileInternal.CreateByMagic(amount: amount);
             return new

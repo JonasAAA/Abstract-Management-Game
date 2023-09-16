@@ -10,18 +10,18 @@ namespace Game1.Resources
         [Serializable]
         public sealed class Params
         {
-            private static readonly Dictionary<IProductClass, ulong> nextInds = IProductClass.all.ToDictionary(elementSelector: prodClass => 0ul);
+            private static readonly Dictionary<IProductClass, uint> nextInds = IProductClass.all.ToDictionary(elementSelector: prodClass => 0u);
 
-            private static ulong GetNextInd(IProductClass productClass)
+            private static uint GetNextInd(IProductClass productClass)
             {
                 var ind = nextInds[productClass];
                 nextInds[productClass]++;
                 return ind;
             }
 
-            public static Params CreateNextOrThrow(string name, IProductClass productClass, ulong materialPaletteAmount, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
+            public static Params CreateNextOrThrow(string name, IProductClass productClass, uint materialPaletteAmount, EfficientReadOnlyCollection<(Params prodParams, uint amount)> ingredProdToAmounts)
             {
-                ulong indInClass = GetNextInd(productClass: productClass);
+                uint indInClass = GetNextInd(productClass: productClass);
                 foreach (var (ingredProd, amount) in ingredProdToAmounts)
                 {
                     if (amount is 0)
@@ -43,16 +43,16 @@ namespace Game1.Resources
 
             public readonly string name;
             public readonly IProductClass productClass;
-            public readonly ulong materialPaletteAmount, indInClass;
-            public readonly EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts;
-            public readonly AreaInt usefulArea;
+            public readonly uint materialPaletteAmount, indInClass;
+            public readonly EfficientReadOnlyCollection<(Params prodParams, uint amount)> ingredProdToAmounts;
+            public readonly Area usefulArea;
             public readonly MechComplexity complexity;
 
             //private readonly HashSet<IMaterialPurpose> neededPurposes;
             //private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
             //private readonly Area usefulArea;
 
-            private Params(string name, IProductClass productClass, ulong materialPaletteAmount, ulong indInClass, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
+            private Params(string name, IProductClass productClass, uint materialPaletteAmount, uint indInClass, EfficientReadOnlyCollection<(Params prodParams, uint amount)> ingredProdToAmounts)
             {
                 // Product will still need to know what product class it is, so probably need to take such parameter here as well.
                 // That means need to assert that the components are from the same product class.
@@ -139,7 +139,7 @@ namespace Game1.Resources
 
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
-        public AreaInt UsefulArea { get; }
+        public Area UsefulArea { get; }
         public RawMatAmounts RawMatComposition { get; }
         public ResRecipe Recipe { get; }
 

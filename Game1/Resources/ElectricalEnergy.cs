@@ -13,7 +13,7 @@ namespace Game1.Resources
         static ElectricalEnergy IUnconstrainedEnergy<ElectricalEnergy>.CreateFromEnergy(Energy energy)
             => new(energy: energy);
 
-        public ulong ValueInJ
+        public UInt96 ValueInJ
             => energy.valueInJ;
 
         public bool IsZero
@@ -21,7 +21,7 @@ namespace Game1.Resources
 
         private readonly Energy energy;
 
-        public static ElectricalEnergy CreateFromJoules(ulong valueInJ)
+        public static ElectricalEnergy CreateFromJoules(UInt96 valueInJ)
             => new(energy: Energy.CreateFromJoules(valueInJ: valueInJ));
 
         private ElectricalEnergy(Energy energy)
@@ -31,7 +31,7 @@ namespace Game1.Resources
             => energy.ToString();
 
         static ElectricalEnergy IMin<ElectricalEnergy>.Min(ElectricalEnergy left, ElectricalEnergy right)
-            => left < right ? left : right;
+            => MyMathHelper.TotalOrderMin(left, right);
 
         public static explicit operator Energy(ElectricalEnergy electricalEnergy)
             => electricalEnergy.energy;

@@ -17,9 +17,9 @@ namespace Game1.Industries
             public readonly EnergyPriority energyPriority;
             public readonly Product.Params productParams;
 
-            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
+            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> buildingComponentPropors;
 
-            public GeneralParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority, Product.Params productParams)
+            public GeneralParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> buildingComponentPropors, EnergyPriority energyPriority, Product.Params productParams)
             {
                 Name = name;
                 BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
@@ -59,14 +59,14 @@ namespace Game1.Industries
             public MaterialPalette SurfaceMatPalette { get; }
             public readonly DiskBuildingImage buildingImage;
             public readonly Product.Params productParams;
-            public readonly ulong overallMaxProductAmount;
+            public readonly UInt96 overallMaxProductAmount;
 
-            private readonly AreaDouble buildingArea;
+            private readonly Area buildingArea;
             private readonly GeneralParams generalParams;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly AllResAmounts buildingCost;
-            private readonly ulong maxInputAmountStored;
-            private readonly AreaInt maxStoredOutputArea;
+            private readonly UInt96 maxInputAmountStored;
+            private readonly Area maxStoredOutputArea;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
@@ -81,7 +81,7 @@ namespace Game1.Industries
                 buildingArea = buildingImage.Area;
                 this.generalParams = generalParams;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
-                maxStoredOutputArea = (buildingArea * CurWorldConfig.outputStorageProporOfBuildingArea).RoundDown();
+                maxStoredOutputArea = buildingArea * CurWorldConfig.outputStorageProporOfBuildingArea;
 
                 maxInputAmountStored = ResAndIndustryAlgos.MaxAmount
                 (
@@ -96,10 +96,10 @@ namespace Game1.Industries
                 buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
 
-            public ulong CurMaxProductAmount(AreaInt maxOutputArea)
+            public UInt96 CurMaxProductAmount(Area maxOutputArea)
                 => ResAndIndustryAlgos.MaxAmount
                 (
-                    availableArea: MyMathHelper.Min(buildingArea * CurWorldConfig.productionProporOfBuildingArea, maxOutputArea.ToDouble()),
+                    availableArea: MyMathHelper.Min(buildingArea * CurWorldConfig.productionProporOfBuildingArea, maxOutputArea),
                     itemArea: productParams.usefulArea
                 );
 
@@ -143,7 +143,7 @@ namespace Game1.Industries
                 );
             }
 
-            AreaInt Industry.IConcreteBuildingParams<ConcreteProductionParams>.MaxStoredOutputArea()
+            Area Industry.IConcreteBuildingParams<ConcreteProductionParams>.MaxStoredOutputArea()
                 => maxStoredOutputArea;
         }
 
@@ -203,7 +203,7 @@ namespace Game1.Industries
                 => true;
 
             public static Result<ManufacturingCycleState, TextErrors> Create(ConcreteProductionParams productionParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile,
-                ResPile inputStorage, AreaInt maxOutputArea)
+                ResPile inputStorage, Area maxOutputArea)
                 => productionParams.CurProduct.SelectMany
                 (
                     product =>
@@ -216,7 +216,7 @@ namespace Game1.Industries
                         );
                         return resInUseAndCount switch
                         {
-                            (ResPile resInUse, ulong count) => new Result<ManufacturingCycleState, TextErrors>
+                            (ResPile resInUse, UInt96 count) => new Result<ManufacturingCycleState, TextErrors>
                             (
                                 ok: new
                                 (
@@ -244,12 +244,12 @@ namespace Game1.Industries
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
             private readonly HistoricRounder reqEnergyHistoricRounder;
             private readonly Propor proporUtilized;
-            private readonly AreaDouble areaInProduction;
+            private readonly Area areaInProduction;
 
             private CurProdStats curProdStats;
             private Propor donePropor, workingPropor;
 
-            private ManufacturingCycleState(ConcreteBuildingParams buildingParams, ResPile resInUse, ResRecipe productRecipe, ulong productionAmount, ulong overallMaxProductionAmount)
+            private ManufacturingCycleState(ConcreteBuildingParams buildingParams, ResPile resInUse, ResRecipe productRecipe, UInt96 productionAmount, UInt96 overallMaxProductionAmount)
             {
                 this.buildingParams = buildingParams;
                 this.resInUse = resInUse;
@@ -258,7 +258,7 @@ namespace Game1.Industries
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
                 reqEnergyHistoricRounder = new();
                 proporUtilized = Propor.Create(part: productionAmount, whole: overallMaxProductionAmount)!.Value;
-                areaInProduction = buildingParams.productParams.usefulArea.ToDouble() * productionAmount;
+                areaInProduction = buildingParams.productParams.usefulArea * productionAmount;
                 donePropor = Propor.empty;
             }
 

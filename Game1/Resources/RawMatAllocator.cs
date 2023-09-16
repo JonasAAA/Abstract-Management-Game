@@ -8,7 +8,7 @@
         public RawMatAllocator()
             => historicalInaccuracies = new();
 
-        public RawMatAmounts TakeAtMostFrom(RawMatAmounts source, AreaInt maxArea)
+        public RawMatAmounts TakeAtMostFrom(RawMatAmounts source, Area maxArea)
         {
 #warning test this
             var takeProporOrNull = Propor.Create(part: maxArea.valueInMetSq, whole: source.Area().valueInMetSq);
@@ -18,8 +18,8 @@
                     if (source[rawMat] == 0)
                         historicalInaccuracies[rawMat] = 0;
 
-                Dictionary<RawMaterial, ulong> destinDict = new();
-                AreaInt destinArea = AreaInt.zero;
+                Dictionary<RawMaterial, UInt96> destinDict = new();
+                Area destinArea = Area.zero;
 
                 foreach (var (rawMat, amount) in source)
                 {
@@ -37,7 +37,7 @@
                         historicalInaccuracies[rawMat] = 0;
                         continue;
                     }
-                    ulong result = (ulong)idealResult;
+                    var result = (UInt96)idealResult;
                     destinDict[rawMat] = result;
                     historicalInaccuracies[rawMat] = idealResult - result;
                     destinArea += result * rawMat.Area;

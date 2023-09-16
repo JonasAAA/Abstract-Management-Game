@@ -9,8 +9,8 @@
     public class UniqueQueue<T>
         where T : notnull
     {
-        public ulong Count
-            => (ulong)elementToPriority.Count;
+        public uint Count
+            => (uint)elementToPriority.Count;
 
         private readonly SortedDictionary<ulong, T> priorityToElement;
         private readonly Dictionary<T, ulong> elementToPriority;

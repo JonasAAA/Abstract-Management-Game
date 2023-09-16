@@ -572,7 +572,7 @@ namespace Game1
 
                 Debug.Assert(arcsForObjects.Values.Sum().IsCloseTo(other: 2 * MyMathHelper.pi));
 
-                Dictionary<IRadiantEnergyConsumer, ulong> splitAmounts = radiantEnergySplitter.Split
+                Dictionary<IRadiantEnergyConsumer, UInt96> splitAmounts = radiantEnergySplitter.Split
                 (
                     amount: producedRadiantEnergy.ValueInJ,
                     importances: arcsForObjects

@@ -16,12 +16,12 @@ namespace Game1.Resources
         public bool IsZero
             => this == zero;
 
-        public ulong ValueInJ
+        public UInt96 ValueInJ
             => energy.valueInJ;
 
         private readonly Energy energy;
 
-        public static HeatEnergy CreateFromJoules(ulong valueInJ)
+        public static HeatEnergy CreateFromJoules(UInt96 valueInJ)
             => new(energy: Energy.CreateFromJoules(valueInJ: valueInJ));
 
         private HeatEnergy(Energy energy)
@@ -31,7 +31,7 @@ namespace Game1.Resources
             => energy.ToString();
 
         static HeatEnergy IMin<HeatEnergy>.Min(HeatEnergy left, HeatEnergy right)
-            => left < right ? left : right;
+            => MyMathHelper.TotalOrderMin(left, right);
 
         public static explicit operator Energy(HeatEnergy heatEnergy)
             => heatEnergy.energy;
@@ -54,10 +54,10 @@ namespace Game1.Resources
         public static bool operator <=(HeatEnergy left, HeatEnergy right)
             => left.ValueInJ <= right.ValueInJ;
 
-        //public static HeatEnergy operator *(ulong left, HeatEnergy right)
+        //public static HeatEnergy operator *(UInt96 left, HeatEnergy right)
         //    => new(energy: left * right.energy);
 
-        //public static HeatEnergy operator *(HeatEnergy left, ulong right)
+        //public static HeatEnergy operator *(HeatEnergy left, UInt96 right)
         //    => right * left;
     }
 }

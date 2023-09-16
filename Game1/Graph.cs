@@ -421,7 +421,7 @@ namespace Game1
                 EfficientReadOnlyCollection<Algorithms.ResPacket<IIndustry>> distribution = Algorithms.DistributeRes<IIndustry>(graph: new(dict: routeGraph));
                 foreach (var (sourceIndustry, destinIndustry, amount) in distribution)
                 {
-                    if (amount is 0)
+                    if (amount == 0)
                         continue;
                     ResAmount<IResource> resAmount = new(res: res, amount: amount);
                     sourceIndustry.TransportResTo(destinIndustry: destinIndustry, resAmount: resAmount);

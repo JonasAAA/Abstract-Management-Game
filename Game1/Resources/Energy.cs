@@ -10,16 +10,16 @@ namespace Game1.Resources
         static Energy IAdditiveIdentity<Energy, Energy>.AdditiveIdentity
             => zero;
 
-        public static Energy CreateFromJoules(ulong valueInJ)
+        public static Energy CreateFromJoules(UInt96 valueInJ)
             => new(valueInJ: valueInJ);
 
         // This must be property rather than field so that auto-initialized Mass IsZero returns true
         public bool IsZero
             => this == zero;
 
-        public readonly ulong valueInJ;
+        public readonly UInt96 valueInJ;
 
-        private Energy(ulong valueInJ)
+        private Energy(UInt96 valueInJ)
             => this.valueInJ = valueInJ;
 
         public override string ToString()
@@ -43,10 +43,10 @@ namespace Game1.Resources
         public static bool operator <=(Energy left, Energy right)
             => left.valueInJ <= right.valueInJ;
 
-        //public static Energy operator *(ulong left, Energy right)
+        //public static Energy operator *(UInt96 left, Energy right)
         //    => new(valueInJ: left * right.valueInJ);
 
-        //public static Energy operator *(Energy left, ulong right)
+        //public static Energy operator *(Energy left, UInt96 right)
         //    => right * left;
     }
 }

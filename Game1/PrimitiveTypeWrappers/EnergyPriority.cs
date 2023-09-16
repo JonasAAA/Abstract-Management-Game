@@ -22,15 +22,15 @@ namespace Game1.PrimitiveTypeWrappers
         static EnergyPriority IMinMaxValue<EnergyPriority>.MaxValue
             => mostImportant;
 
-        private const ulong leastImportantEnergyPrior = 0, mostImportantEnergyPrior = 100;
+        private const uint leastImportantEnergyPrior = 0, mostImportantEnergyPrior = 100;
 
-        private readonly ulong value;
+        private readonly uint value;
 
         /// <summary>
         /// The higher, the more important.
         /// 0 - least important, 100 - most important
         /// </summary>
-        public EnergyPriority(ulong value)
+        public EnergyPriority(uint value)
         {
             if (value is < leastImportantEnergyPrior or > mostImportantEnergyPrior)
                 throw new ArgumentException();
@@ -44,7 +44,7 @@ namespace Game1.PrimitiveTypeWrappers
             => $"energy priority {value.ToString(format, formatProvider)}";
 
         static EnergyPriority IMax<EnergyPriority>.Max(EnergyPriority left, EnergyPriority right)
-            => left > right ? left : right;
+            => MyMathHelper.TotalOrderMax(left, right);
 
         public static bool operator >(EnergyPriority left, EnergyPriority right)
             => left.value > right.value;

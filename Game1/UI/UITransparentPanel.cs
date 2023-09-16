@@ -19,7 +19,7 @@ namespace Game1.UI
             : base(shape: new InfinitePlane())
             => children = new();
 
-        public void AddChild(TChild child, ulong layer = 0)
+        public void AddChild(TChild child, uint layer = 0)
         {
             children.Add(child);
             base.AddChild(child: child, layer: layer);

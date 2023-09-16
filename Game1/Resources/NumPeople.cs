@@ -14,16 +14,16 @@ namespace Game1.Resources
         public bool IsZero
             => this == zero;
 
-        public readonly ulong value;
+        public readonly UInt96 value;
 
-        public NumPeople(ulong value)
+        public NumPeople(UInt96 value)
             => this.value = value;
 
         public override string ToString()
             => value.ToString();
 
         static NumPeople IMin<NumPeople>.Min(NumPeople left, NumPeople right)
-            => left < right ? left : right;
+            => MyMathHelper.TotalOrderMin(left, right);
 
         public static NumPeople operator +(NumPeople numPeople1, NumPeople numPeople2)
             => new(value: numPeople1.value + numPeople2.value);

@@ -25,10 +25,10 @@
         private static bool AreValid(AllResAmounts ingredients, AllResAmounts results)
             => ingredients.RawMatComposition() == results.RawMatComposition();
 
-        public static ResRecipe operator *(ulong scalar, ResRecipe resRecipe)
+        public static ResRecipe operator *(UInt96 scalar, ResRecipe resRecipe)
             => new(ingredients: scalar * resRecipe.ingredients, results: scalar * resRecipe.results);
 
-        public static ResRecipe operator *(ResRecipe resRecipe, ulong scalar)
+        public static ResRecipe operator *(ResRecipe resRecipe, UInt96 scalar)
             => scalar * resRecipe;
     }
 }

@@ -5,7 +5,7 @@
     {
         public static abstract T CreateFromEnergy(Energy energy);
 
-        public static T CreateFromJoules(ulong valueInJ)
+        public static T CreateFromJoules(UInt96 valueInJ)
             => T.CreateFromEnergy(energy: Energy.CreateFromJoules(valueInJ: valueInJ));
     }
 }

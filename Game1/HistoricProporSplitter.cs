@@ -138,19 +138,19 @@
                 AddKey(key: key, importance: importance);
         }
 
-        public (Dictionary<TKey, ulong> splitAmounts, ulong unsplitAmount) Split(ulong amount, Func<TKey, ulong> maxAmountsFunc)
+        public (Dictionary<TKey, UInt96> splitAmounts, UInt96 unsplitAmount) Split(UInt96 amount, Func<TKey, UInt96> maxAmountsFunc)
         {
             if (Empty)
                 throw new InvalidOperationException();
 
-            if (amount is 0)
+            if (amount == 0)
                 return
                 (
-                    splitAmounts: MakeDictionary(func: key => (ulong)0),
+                    splitAmounts: MakeDictionary(func: key => (UInt96)0),
                     unsplitAmount: 0
                 );
 
-            Dictionary<TKey, ulong> maxAmounts = MakeDictionary(func: key => maxAmountsFunc(key)),
+            Dictionary<TKey, UInt96> maxAmounts = MakeDictionary(func: key => maxAmountsFunc(key)),
                 splitAmounts = new();
             HashSet<TKey> unusedKeys = new(Keys);
             decimal unusedPropSum = (decimal)importances.Values.Sum();
@@ -159,7 +159,7 @@
             {
                 bool didSomething = false;
                 foreach (var key in unusedKeys.Clone())
-                    if ((ulong)(amount * (decimal)importances[key] / unusedPropSum + necAdds[key]) >= maxAmounts[key])
+                    if ((UInt96)(amount * (decimal)importances[key] / unusedPropSum + necAdds[key]) >= maxAmounts[key])
                     {
                         //could turn this into a function
                         necAdds.LockAtZero(key: key);
@@ -176,12 +176,12 @@
             }
 
             Dictionary<TKey, decimal> perfect = new();
-            ulong splitAmount = amount;
+            UInt96 splitAmount = amount;
             foreach (var key in unusedKeys)
             {
                 perfect.Add(key, splitAmount * (decimal)importances[key] / unusedPropSum + necAdds[key]);
-#warning Now that we know that (ulong)perfect[key] doesn't always round down, need to ensure that will not give out more than have
-                splitAmounts.Add(key, (ulong)perfect[key]);
+#warning Now that we know that (UInt96)perfect[key] doesn't always round down, need to ensure that will not give out more than have
+                splitAmounts.Add(key, (UInt96)perfect[key]);
                 amount -= splitAmounts[key];
             }
 
@@ -194,7 +194,7 @@
             var priorityKeys = unusedKeys.OrderByDescending(key => tempNecAdds[key]);
             foreach (var key in priorityKeys)
             {
-                if (amount is 0)
+                if (amount == 0)
                     break;
                 splitAmounts[key]++;
                 tempNecAdds[key]--;

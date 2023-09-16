@@ -16,7 +16,7 @@ namespace Game1
                 false => dict[key] = new()
             };
 
-        public static ulong ValueInJ<T>(this T formOfEnergy)
+        public static UInt96 ValueInJ<T>(this T formOfEnergy)
             where T : IFormOfEnergy<T>
             => ((Energy)formOfEnergy).valueInJ;
 
@@ -206,7 +206,7 @@ namespace Game1
         }
 
         /// <returns>The amount of energy transfered to destin</returns>
-        public static TAmount TransferProporTo<TAmount>(this EnergyPile<TAmount> source, EnergyPile<TAmount> destin, Propor propor, Func<decimal, ulong> amountToTransferRoundFunc)
+        public static TAmount TransferProporTo<TAmount>(this EnergyPile<TAmount> source, EnergyPile<TAmount> destin, Propor propor, Func<decimal, UInt96> amountToTransferRoundFunc)
             where TAmount : struct, IUnconstrainedEnergy<TAmount>
         {
             TAmount amountToTransfer = Algorithms.EnergyPropor
@@ -220,7 +220,7 @@ namespace Game1
         }
 
         /// <returns>The amount of energy transfered to destin</returns>
-        public static TDestinAmount TransformProporTo<TSourceAmount, TDestinAmount>(this EnergyPile<TSourceAmount> source, EnergyPile<TDestinAmount> destin, Propor propor, Func<decimal, ulong> amountToTransformRoundFunc)
+        public static TDestinAmount TransformProporTo<TSourceAmount, TDestinAmount>(this EnergyPile<TSourceAmount> source, EnergyPile<TDestinAmount> destin, Propor propor, Func<decimal, UInt96> amountToTransformRoundFunc)
             where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
             where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
         {

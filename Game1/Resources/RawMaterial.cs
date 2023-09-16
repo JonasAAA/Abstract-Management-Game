@@ -3,7 +3,7 @@
     [Serializable]
     public class RawMaterial : IResource
     {
-        public static RawMaterial GetAndAddToCurResConfigIfNeeded(ResConfig curResConfig, ulong ind)
+        public static RawMaterial GetAndAddToCurResConfigIfNeeded(ResConfig curResConfig, uint ind)
         {
             if (ind > ResAndIndustryAlgos.MaxRawMatInd)
                 throw new ArgumentException();
@@ -24,16 +24,16 @@
 
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
-        public AreaInt Area { get; }
-        public AreaInt UsefulArea { get; }
+        public Area Area { get; }
+        public Area UsefulArea { get; }
         public RawMatAmounts RawMatComposition { get; }
         public Color Color { get; }
         public UDouble FusionReactionStrengthCoeff { get; }
-        public ulong Ind { get; }
+        public uint Ind { get; }
 
         private readonly string name;
 
-        private RawMaterial(ResConfig curResConfig, ulong ind, string name, Mass mass, HeatCapacity heatCapacity, AreaInt area, Color color, UDouble fusionReactionStrengthCoeff)
+        private RawMaterial(ResConfig curResConfig, uint ind, string name, Mass mass, HeatCapacity heatCapacity, Area area, Color color, UDouble fusionReactionStrengthCoeff)
         {
             this.name = name;
             Mass = mass;

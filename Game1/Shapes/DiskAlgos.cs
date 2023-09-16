@@ -6,11 +6,11 @@ namespace Game1.Shapes
     {
         private static readonly Texture2D diskTexture = C.LoadTexture(name: "big disk");
 
-        public static UDouble RadiusFromArea(AreaDouble area)
+        public static UDouble RadiusFromArea(Area area)
             => MyMathHelper.Sqrt(area.valueInMetSq / MyMathHelper.pi);
 
-        public static AreaDouble Area(UDouble radius)
-            => AreaDouble.CreateFromMetSq(valueInMetSq: MyMathHelper.pi * radius * radius);
+        public static Area AreaFromRadius(UDouble radius)
+            => Area.CreateFromMetSq(valueInMetSq: MyMathHelper.Round(MyMathHelper.pi * radius * radius));
 
         public static AngleArc.Params BlockedAngleArcParams(MyVector2 center, UDouble radius, MyVector2 lightPos)
         {

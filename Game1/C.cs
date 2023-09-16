@@ -35,12 +35,6 @@ namespace Game1
         /// <summary>
         /// inclusive min, exclusive max
         /// </summary>
-        public static ulong Random(ulong min, ulong max)
-            => (ulong)Random((int)min, (int)max);
-
-        /// <summary>
-        /// inclusive min, exclusive max
-        /// </summary>
         public static int Random(int min, int max)
             => random.Next(min, max);
 

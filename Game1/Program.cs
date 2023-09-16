@@ -10,8 +10,6 @@ global using System.Diagnostics;
 global using System.Linq;
 global using UpdatePersonSkillsParams = System.Collections.Generic.List<(Game1.Industries.IndustryType industryType, Game1.PrimitiveTypeWrappers.Score.ParamsOfChange paramsOfSkillChange)>;
 global using TextErrors = Game1.Collections.EfficientReadOnlyHashSet<string>;
-global using AreaInt = Game1.Resources.Area<ulong>;
-global using AreaDouble = Game1.Resources.Area<Game1.PrimitiveTypeWrappers.UDouble>;
 global using RawMatAmounts = Game1.Collections.ResAmounts<Game1.Resources.RawMaterial>;
 global using AllResAmounts = Game1.Collections.ResAmounts<Game1.Resources.IResource>;
 

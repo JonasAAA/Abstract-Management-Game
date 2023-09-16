@@ -27,7 +27,7 @@ namespace Game1.Inhabitants
                 totalProductivities: new(value: 0)
             );
 
-        public static RealPeopleStats ForNewPerson(Mass totalMass, ulong reqWatts, TimeSpan age, Score startingHappiness, EnumDict<IndustryType, Score> enjoyments, EnumDict<IndustryType, Score> talents, EnumDict<IndustryType, Score> skills)
+        public static RealPeopleStats ForNewPerson(Mass totalMass, UInt128 reqWatts, TimeSpan age, Score startingHappiness, EnumDict<IndustryType, Score> enjoyments, EnumDict<IndustryType, Score> talents, EnumDict<IndustryType, Score> skills)
         {
             if (age < TimeSpan.Zero)
                 throw new ArgumentException();
@@ -58,14 +58,14 @@ namespace Game1.Inhabitants
 
         public readonly Mass totalMass;
         public readonly NumPeople totalNumPeople;
-        public readonly ulong totalReqWatts;
+        public readonly UInt128 totalReqWatts;
         public readonly Propor timeCoefficient;
         public readonly TimeSpan age;
         public readonly Score happiness, momentaryHappiness;
         public readonly EnumDict<IndustryType, Score> enjoyments, talents, skills;
         public readonly EnumDict<IndustryType, UDouble> totalProductivities;
 
-        public RealPeopleStats(Mass totalMass, NumPeople totalNumPeople, ulong totalReqWatts, Propor timeCoefficient, TimeSpan age, Propor allocEnergyPropor, Score happiness,
+        public RealPeopleStats(Mass totalMass, NumPeople totalNumPeople, UInt128 totalReqWatts, Propor timeCoefficient, TimeSpan age, Propor allocEnergyPropor, Score happiness,
             Score momentaryHappiness, EnumDict<IndustryType, Score> enjoyments, EnumDict<IndustryType, Score> talents, EnumDict<IndustryType, Score> skills)
             : this
             (
@@ -92,7 +92,7 @@ namespace Game1.Inhabitants
             )
         { }
 
-        private RealPeopleStats(Mass totalMass, NumPeople totalNumPeople, ulong totalReqWatts, Propor timeCoefficient, TimeSpan age, Propor allocEnergyPropor, Score happiness,
+        private RealPeopleStats(Mass totalMass, NumPeople totalNumPeople, UInt128 totalReqWatts, Propor timeCoefficient, TimeSpan age, Propor allocEnergyPropor, Score happiness,
             Score momentaryHappiness, EnumDict<IndustryType, Score> enjoyments, EnumDict<IndustryType, Score> talents, EnumDict<IndustryType, Score> skills, EnumDict<IndustryType, UDouble> totalProductivities)
         {
             this.totalMass = totalMass;

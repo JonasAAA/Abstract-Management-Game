@@ -5,7 +5,7 @@ namespace Game1.Industries
 {
     public interface IBuildingImage : ILightBlockingObject
     {
-        public AreaDouble Area { get; }
+        public Area Area { get; }
 
         public MyVector2 GetPosition(PosEnums origin);
 

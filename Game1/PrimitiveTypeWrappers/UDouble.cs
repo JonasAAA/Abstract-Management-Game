@@ -9,7 +9,7 @@ namespace Game1.PrimitiveTypeWrappers
         IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>,
         ISubtractionOperators<UDouble, UDouble, UDouble>,
         IMultiplyOperators<UDouble, UDouble, UDouble>, IMultiplicativeIdentity<UDouble, UDouble>,
-        IMultiplyOperators<UDouble, ulong, UDouble>, IMultiplicativeIdentity<UDouble, ulong>,
+        //IMultiplyOperators<UDouble, ulong, UDouble>, IMultiplicativeIdentity<UDouble, ulong>,
         IPrimitiveTypeWrapper
     {
         public static readonly UDouble positiveInfinity = new(value: double.PositiveInfinity);
@@ -22,8 +22,8 @@ namespace Game1.PrimitiveTypeWrappers
         static UDouble IMultiplicativeIdentity<UDouble, UDouble>.MultiplicativeIdentity
             => 1;
 
-        static ulong IMultiplicativeIdentity<UDouble, ulong>.MultiplicativeIdentity
-            => 1;
+        //static ulong IMultiplicativeIdentity<UDouble, ulong>.MultiplicativeIdentity
+        //    => 1;
 
         /// <summary>
         /// Note that this is maximum possible double value, not positive infinity!
@@ -82,14 +82,17 @@ namespace Game1.PrimitiveTypeWrappers
         public static explicit operator decimal(UDouble value)
             => (decimal)value.value;
 
-        public static explicit operator ulong(UDouble value)
-            => (ulong)value.value;
+        //public static explicit operator ulong(UDouble value)
+        //    => (ulong)value.value;
 
         public static implicit operator UDouble(uint value)
             => new(value: value);
 
-        public static implicit operator UDouble(ulong value)
-            => new(value: value);
+        //public static implicit operator UDouble(ulong value)
+        //    => new(value: value);
+
+        public static explicit operator UDouble(UInt96 value)
+            => new(value: (double)value);
 
         public static explicit operator UDouble(double value)
             => Create(value: value) switch
@@ -107,8 +110,8 @@ namespace Game1.PrimitiveTypeWrappers
         public static UDouble operator *(UDouble value1, UDouble value2)
             => new(value1.value * value2.value);
 
-        public static UDouble operator *(UDouble value1, ulong value2)
-            => new(value1.value * value2);
+        //public static UDouble operator *(UDouble value1, ulong value2)
+        //    => new(value1.value * value2);
 
         public static TimeSpan operator *(UDouble scale, TimeSpan timeSpan)
             => scale.value * timeSpan;
@@ -139,9 +142,9 @@ namespace Game1.PrimitiveTypeWrappers
             => value.GetHashCode();
 
         static UDouble IMin<UDouble>.Min(UDouble left, UDouble right)
-            => left < right ? left : right;
+            => MyMathHelper.TotalOrderMin(left, right);
 
         static UDouble IMax<UDouble>.Max(UDouble left, UDouble right)
-            => left > right ? left : right;
+            => MyMathHelper.TotalOrderMax(left, right);
     }
 }

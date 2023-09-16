@@ -19,9 +19,9 @@ namespace Game1.Industries
             public readonly DiskBuildingImage.Params buildingImageParams;
             public readonly EnergyPriority energyPriority;
 
-            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
+            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> buildingComponentPropors;
 
-            public GeneralBuildingParams(string name, EnergyPriority energyPriority, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
+            public GeneralBuildingParams(string name, EnergyPriority energyPriority, EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> buildingComponentPropors)
             {
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: ResAndIndustryAlgos.DiskBuildingHeight, color: ActiveUIManager.colorConfig.miningBuildingColor);
                 Name = name;
@@ -63,7 +63,7 @@ namespace Game1.Industries
             /// Things depend on this rather than on building components target area as can say that if planet underneath building shrinks,
             /// building gets not enough space to operate at maximum efficiency
             /// </summary>
-            private AreaDouble CurBuildingArea
+            private Area CurBuildingArea
                 => buildingImage.Area;
 
             private readonly GeneralBuildingParams generalParams;
@@ -89,7 +89,7 @@ namespace Game1.Industries
                 producedResources = (nodeState.Composition.ToAll() + startingBuildingCost).resList;
             }
 
-            public AreaDouble AreaToMine()
+            public Area AreaToMine()
                 => CurBuildingArea * CurWorldConfig.productionProporOfBuildingArea;
 
             /// <param Name="splittingMass">Mass of materials curretly being mined</param>
@@ -139,8 +139,8 @@ namespace Game1.Industries
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => AllResAmounts.empty;
 
-            AreaInt Industry.IConcreteBuildingParams<UnitType>.MaxStoredOutputArea()
-                => (CurBuildingArea * CurWorldConfig.outputStorageProporOfBuildingArea).RoundDown();
+            Area Industry.IConcreteBuildingParams<UnitType>.MaxStoredOutputArea()
+                => CurBuildingArea * CurWorldConfig.outputStorageProporOfBuildingArea;
         }
 
         [Serializable]
@@ -165,23 +165,23 @@ namespace Game1.Industries
                 => true;
 
             public static Result<MiningCycleState, TextErrors> Create(UnitType productionParams, ConcreteBuildingParams parameters, PersistentState persistentState,
-                ResPile inputStorage, AreaInt maxOutputArea)
+                ResPile inputStorage, Area maxOutputArea)
             {
                 var minedAreaCorrectorWithTarget = persistentState.minedAreaHistoricCorrector.WithTarget(target: parameters.AreaToMine().valueInMetSq);
 
                 // Since will never mine more than requested, suggestion will never be smaller than parameters.AreaToSplit(), thus will always be >= 0.
-                var maxAreaToMine = MyMathHelper.Min((UDouble)minedAreaCorrectorWithTarget.suggestion, maxOutputArea.valueInMetSq);
+                var maxAreaToMine = MyMathHelper.Min(minedAreaCorrectorWithTarget.suggestion, maxOutputArea.valueInMetSq);
                 bool isCapped = minedAreaCorrectorWithTarget.suggestion >= maxOutputArea.valueInMetSq;
                 return parameters.NodeState.Mine
                 (
-                    targetArea: AreaDouble.CreateFromMetSq(valueInMetSq: maxAreaToMine),
+                    targetArea: Area.CreateFromMetSq(valueInMetSq: maxAreaToMine),
                     rawMatAllocator: persistentState.minedResAllocator
                 ).SwitchExpression<Result<MiningCycleState, TextErrors>>
                 (
                     ok: miningRes =>
                     {
                         // Filter and RawMatComposition does the same thing here as planet contains only raw materials
-                        AreaInt miningArea = miningRes.Amount.Filter<RawMaterial>().Area();
+                        Area miningArea = miningRes.Amount.Filter<RawMaterial>().Area();
                         persistentState.minedAreaHistoricCorrector = isCapped ? new() : minedAreaCorrectorWithTarget.WithValue(value: miningArea.valueInMetSq);
                         return new(ok: new MiningCycleState(buildingParams: parameters, buildingResPile: persistentState.buildingResPile, miningRes: miningRes, miningArea: miningArea));
                     },
@@ -207,14 +207,14 @@ namespace Game1.Industries
             /// <summary>
             /// Area in process of mining
             /// </summary>
-            private readonly AreaInt miningArea;
+            private readonly Area miningArea;
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
             private readonly HistoricRounder reqEnergyHistoricRounder;
 
             private CurProdStats curMiningStats;
             private Propor donePropor, workingPropor;
 
-            private MiningCycleState(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ResPile miningRes, AreaInt miningArea)
+            private MiningCycleState(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ResPile miningRes, Area miningArea)
             {
                 this.buildingParams = buildingParams;
                 this.buildingResPile = buildingResPile;
@@ -256,7 +256,7 @@ namespace Game1.Industries
                     workingPropor: workingPropor,
                     producedAreaPerSec: curMiningStats.ProducedAreaPerSec,
                     elapsed: CurWorldManager.Elapsed,
-                    areaInProduction: miningArea.ToDouble()
+                    areaInProduction: miningArea
                 );
 
                 if (donePropor.IsFull)

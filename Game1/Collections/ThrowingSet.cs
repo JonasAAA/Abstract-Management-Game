@@ -9,8 +9,8 @@ namespace Game1.Collections
     [Serializable]
     public sealed class ThrowingSet<T> : IEnumerable<T>
     {
-        public ulong Count
-            => (ulong)set.Count;
+        public uint Count
+            => (uint)set.Count;
 
         private readonly HashSet<T> set;
 

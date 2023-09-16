@@ -6,21 +6,21 @@ namespace Game1.Resources
     public readonly struct BuildingCostPropors
     {
         public readonly EfficientReadOnlyHashSet<IProductClass> neededProductClasses;
-        public readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts;
-        public readonly AreaInt usefulArea;
+        public readonly EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> ingredProdToAmounts;
+        public readonly Area usefulArea;
         public readonly MechComplexity complexity;
         public readonly EfficientReadOnlyDictionary<IProductClass, Propor> productClassPropors;
 
-        public BuildingCostPropors(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts)
+        public BuildingCostPropors(EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> ingredProdToAmounts)
         {
             this.ingredProdToAmounts = ingredProdToAmounts;
 
-            Dictionary<IProductClass, AreaInt> productClassUsefulAreas = new();
+            Dictionary<IProductClass, Area> productClassUsefulAreas = new();
             foreach (var (prodParams, amount) in ingredProdToAmounts)
             {
                 if (amount is 0)
                     throw new ArgumentException();
-                productClassUsefulAreas.TryAdd(key: prodParams.productClass, value: AreaInt.zero);
+                productClassUsefulAreas.TryAdd(key: prodParams.productClass, value: Area.zero);
                 productClassUsefulAreas[prodParams.productClass] += prodParams.usefulArea * amount;
             }
             usefulArea = productClassUsefulAreas.Values.Sum();
@@ -30,7 +30,7 @@ namespace Game1.Resources
 
             complexity = ResAndIndustryAlgos.IndustryMechComplexity(ingredProdToAmounts: ingredProdToAmounts, productClassPropors: productClassPropors);
             // Needed to satisfy compiler
-            AreaInt usefulAreaCopy = usefulArea;
+            Area usefulAreaCopy = usefulArea;
             productClassPropors = productClassUsefulAreas.ToEfficientReadOnlyDict
             (
                 keySelector: prodClassAndArea => prodClassAndArea.Key,

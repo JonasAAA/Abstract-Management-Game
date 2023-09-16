@@ -19,9 +19,9 @@ namespace Game1.Industries
             public readonly DiskBuildingImage.Params buildingImageParams;
             public readonly EnergyPriority energyPriority;
 
-            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
+            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> buildingComponentPropors;
 
-            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority)
+            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> buildingComponentPropors, EnergyPriority energyPriority)
             {
                 Name = name;
                 BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
@@ -60,11 +60,11 @@ namespace Game1.Industries
             public MaterialPalette SurfaceMatPalette { get; }
             public readonly DiskBuildingImage buildingImage;
 
-            private readonly AreaDouble buildingArea;
+            private readonly Area buildingArea;
             private readonly GeneralBuildingParams generalParams;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly AllResAmounts buildingCost;
-            private readonly AreaInt maxStoredOutputArea;
+            private readonly Area maxStoredOutputArea;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
@@ -79,21 +79,21 @@ namespace Game1.Industries
                 buildingArea = buildingImage.Area;
                 this.generalParams = generalParams;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
-                maxStoredOutputArea = (buildingArea * CurWorldConfig.outputStorageProporOfBuildingArea).RoundDown();
+                maxStoredOutputArea = buildingArea * CurWorldConfig.outputStorageProporOfBuildingArea;
                 buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
 
-            public ulong OverallMaxProductionAmount(AreaInt materialArea)
+            public UInt96 OverallMaxProductionAmount(Area materialArea)
                 => ResAndIndustryAlgos.MaxAmount
                 (
                     availableArea: buildingArea * CurWorldConfig.productionProporOfBuildingArea,
                     itemArea: materialArea
                 );
 
-            public ulong CurMaxProductionAmount(AreaInt materialArea, AreaInt maxOutputArea)
+            public UInt96 CurMaxProductionAmount(Area materialArea, Area maxOutputArea)
                 => ResAndIndustryAlgos.MaxAmount
                 (
-                    availableArea: MyMathHelper.Min(buildingArea * CurWorldConfig.productionProporOfBuildingArea, maxOutputArea.ToDouble()),
+                    availableArea: MyMathHelper.Min(buildingArea * CurWorldConfig.productionProporOfBuildingArea, maxOutputArea),
                     itemArea: materialArea
                 );
 
@@ -141,7 +141,7 @@ namespace Game1.Industries
                 );
             }
 
-            AreaInt Industry.IConcreteBuildingParams<ConcreteProductionParams>.MaxStoredOutputArea()
+            Area Industry.IConcreteBuildingParams<ConcreteProductionParams>.MaxStoredOutputArea()
                 => maxStoredOutputArea;
         }
 
@@ -186,7 +186,7 @@ namespace Game1.Industries
                 => true;
 
             public static Result<ProductionCycleState, TextErrors> Create(ConcreteProductionParams productionParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile,
-                ResPile inputStorage, AreaInt maxOutputArea)
+                ResPile inputStorage, Area maxOutputArea)
                 => productionParams.CurMaterial.SelectMany
                 (
                     material =>
@@ -199,7 +199,7 @@ namespace Game1.Industries
                         );
                         return resInUseAndCount switch
                         {
-                            (ResPile resInUse, ulong count) => new Result<ProductionCycleState, TextErrors>
+                            (ResPile resInUse, UInt96 count) => new Result<ProductionCycleState, TextErrors>
                             (
                                 ok: new
                                 (
@@ -227,12 +227,12 @@ namespace Game1.Industries
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
             private readonly HistoricRounder reqEnergyHistoricRounder;
             private readonly Propor proporUtilized;
-            private readonly AreaDouble areaInProduction;
+            private readonly Area areaInProduction;
 
             private CurProdStats curProdStats;
             private Propor donePropor, workingPropor;
 
-            private ProductionCycleState(ConcreteBuildingParams buildingParams, ResPile resInUse, Material material, ulong productionAmount, ulong overallMaxProductionAmount)
+            private ProductionCycleState(ConcreteBuildingParams buildingParams, ResPile resInUse, Material material, UInt96 productionAmount, UInt96 overallMaxProductionAmount)
             {
                 this.buildingParams = buildingParams;
                 this.resInUse = resInUse;
@@ -241,7 +241,7 @@ namespace Game1.Industries
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
                 reqEnergyHistoricRounder = new();
                 proporUtilized = Propor.Create(part: productionAmount, whole: overallMaxProductionAmount)!.Value;
-                areaInProduction = material.Area.ToDouble() * productionAmount;
+                areaInProduction = material.Area * productionAmount;
                 donePropor = Propor.empty;
             }
 

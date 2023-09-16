@@ -6,7 +6,7 @@ namespace Game1
 {
     public static class ResAndIndustryAlgos
     {
-        public static string RawMaterialName(ulong ind)
+        public static string RawMaterialName(uint ind)
             => $"Raw material {ind}";
 
         // Formula is like this for the following reasons:
@@ -18,7 +18,7 @@ namespace Game1
         // * Want first materials to not have large mass
         // Paste 1-\frac{\operatorname{round}\left(a\cdot\frac{2^{\operatorname{round}\left(x\right)+1}}{\operatorname{round}\left(x\right)+1}\right)}{2\cdot\operatorname{round}\left(a\cdot\frac{2^{\operatorname{round}\left(x\right)}}{\operatorname{round}\left(x\right)}\right)}
         // In https://www.desmos.com/calculator to see that a=3 gives really nice results for the proportion of mass transformed into energy
-        public static Mass RawMaterialMass(ulong ind)
+        public static Mass RawMaterialMass(uint ind)
             => Mass.CreateFromKg
             (
                 valueInKg: MyMathHelper.Round
@@ -31,15 +31,15 @@ namespace Game1
         // As said in https://en.wikipedia.org/wiki/Specific_heat_capacity#Monatomic_gases
         // heat capacity per mole is the same for all monatomic gases
         // That's because the atoms have nowhere else to store energy, other than in kinetic energy (and hence temperature)
-        public static HeatCapacity RawMaterialHeatCapacity(ulong ind)
+        public static HeatCapacity RawMaterialHeatCapacity(uint ind)
             => HeatCapacity.CreateFromJPerK(valueInJPerK: 1);
 
         // Formula is like this so that maximum density is 1 and fusion reactions don't change cosmic body area
         // The non-changing area is nice as only mining and planet enlargement buildings need to change size in this case
-        public static AreaInt RawMaterialArea(ulong ind)
-            => AreaInt.CreateFromMetSq(valueInMetSq: 3 * MyMathHelper.Pow(2, ind + 1));
+        public static Area RawMaterialArea(uint ind)
+            => Area.CreateFromMetSq(valueInMetSq: 3 * MyMathHelper.Pow(2, ind + 1));
 
-        public static ulong MaxRawMatInd
+        public static uint MaxRawMatInd
             => 9;
 
         /// <summary>
@@ -49,13 +49,13 @@ namespace Game1
         /// and have raw material area propor weights sum to no more than 10.
         /// COULD mutiply by 100 instead of 8 * 9 * 5 * 7, and force each raw material to specify the exact percentage of material area it should take up.
         /// </summary>
-        public static AreaInt MaterialUsefulArea
+        public static Area MaterialUsefulArea
             => RawMaterialArea(ind: MaxRawMatInd) * 8 * 9 * 5 * 7;
 
         public static RawMatAmounts CreateMatCompositionFromRawMatPropors(RawMatAmounts rawMatAreaPropors)
         {
-            ulong totalWeights = rawMatAreaPropors.Sum(resAmount => resAmount.amount);
-            if (totalWeights is 0)
+            UInt96 totalWeights = rawMatAreaPropors.Sum(resAmount => resAmount.amount);
+            if (totalWeights == 0)
                 throw new ArgumentException();
             if (totalWeights > 10)
                 throw new ArgumentException();
@@ -73,23 +73,23 @@ namespace Game1
 
         // As ind increases, the color becomes more brown
         // Formula is plucked out of thin air
-        public static Color RawMaterialColor(ulong ind)
+        public static Color RawMaterialColor(uint ind)
             => Color.Lerp(Color.Green, Color.Brown, amount: (float)MyMathHelper.Tanh(ind / 3.0));
 
         // The bigger the number, the easier this raw material will react with itself
         // Formula is plucked out of thin air
-        public static UDouble RawMaterialFusionReactionStrengthCoeff(ulong ind)
+        public static UDouble RawMaterialFusionReactionStrengthCoeff(uint ind)
             => (UDouble)0.000000000000001 * (MaxRawMatInd - ind);
 
         public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
 #warning Complete this by making it actually random
             => startingRawMatTargetRatios;
 
-        public static MechComplexity IndustryMechComplexity(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IProductClass, Propor> productClassPropors)
+        public static MechComplexity IndustryMechComplexity(EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> ingredProdToAmounts, EfficientReadOnlyDictionary<IProductClass, Propor> productClassPropors)
 #warning Complete this
             => new(complexity: 10);
 
-        public static MechComplexity ProductMechComplexity(IProductClass productClass, ulong materialPaletteAmount, ulong indInClass, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts)
+        public static MechComplexity ProductMechComplexity(IProductClass productClass, uint materialPaletteAmount, uint indInClass, EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> ingredProdToAmounts)
 #warning Complete this
             => new(complexity: 10);
 
@@ -148,10 +148,10 @@ namespace Game1
 
         /// <exception cref="ArgumentException">if buildingMatPaletteChoices doesn't contain all required product classes</exception>
         public static EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> BuildingComponentsToAmountPUBA(
-            EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors,
+            EfficientReadOnlyCollection<(Product.Params prodParams, uint amount)> buildingComponentPropors,
             MaterialPaletteChoices buildingMatPaletteChoices, Propor buildingComponentsProporOfBuildingArea)
         {
-            AreaInt buildingComponentProporsTotalArea = buildingComponentPropors.Sum
+            Area buildingComponentProporsTotalArea = buildingComponentPropors.Sum
             (
                 prodParamsAndAmount => prodParamsAndAmount.prodParams.usefulArea * prodParamsAndAmount.amount
             );
@@ -169,7 +169,7 @@ namespace Game1
             ).ToEfficientReadOnlyCollection();
         }
 
-        public static CurProdStats CurConstrStats(AllResAmounts buildingCost, UDouble gravity, Temperature temperature, ulong worldSecondsInGameSecond)
+        public static CurProdStats CurConstrStats(AllResAmounts buildingCost, UDouble gravity, Temperature temperature, uint worldSecondsInGameSecond)
         {
             var buildingComponentsUsefulArea = buildingCost.UsefulArea();
 #warning Complete this
@@ -185,7 +185,7 @@ namespace Game1
         /// Mechanical production stats
         /// </summary>
         public static CurProdStats CurMechProdStats(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
-            UDouble gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
+            UDouble gravity, Temperature temperature, Area buildingArea, Mass productionMass)
 #warning Either this or the one that uses it should probably take into account worldSecondsInGameSecond. Probably would like to have separate configurable physics and gameplay speed multipliers
         {
             UDouble relevantMassPUBA = RelevantMassPUBA
@@ -237,8 +237,8 @@ namespace Game1
         /// <summary>
         /// To be called by po
         /// </summary>
-        public static UDouble CurProducedWatts(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
-            UDouble gravity, Temperature temperature, AreaDouble buildingArea, UDouble incidentWatts)
+        public static decimal CurProducedWatts(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
+            UDouble gravity, Temperature temperature, Area buildingArea, decimal incidentWatts)
 #warning Complete this
             => incidentWatts * (UDouble).5;
 
@@ -265,7 +265,7 @@ namespace Game1
         private static UDouble ElectricalEnergyPerUnitAreaPhys(Propor electronicsProporInBuilding, MaterialPalette electronicsMatPalette, MechComplexity buildingComplexity, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
             => throw new NotImplementedException();
 
-        public static ulong MaxAmount(AreaDouble availableArea, AreaInt itemArea)
-            => (ulong)availableArea.valueInMetSq / itemArea.valueInMetSq;
+        public static UInt96 MaxAmount(Area availableArea, Area itemArea)
+            => availableArea.valueInMetSq / itemArea.valueInMetSq;
     }
 }

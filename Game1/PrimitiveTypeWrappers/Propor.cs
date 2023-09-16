@@ -15,6 +15,9 @@ namespace Game1.PrimitiveTypeWrappers
         static Propor IMultiplicativeIdentity<Propor, Propor>.MultiplicativeIdentity
             => full;
 
+        public static Propor? Create(UInt96 part, UInt96 whole)
+            => Create(part: (UDouble)part, whole: (UDouble)whole);
+
         public static Propor? Create(double part, double whole)
             => Create(value: part / whole);
 
@@ -110,10 +113,10 @@ namespace Game1.PrimitiveTypeWrappers
         public static Color operator *(Color value, Propor propor)
             => propor * value;
 
-        public static AreaDouble operator *(Propor propor, AreaDouble value)
-            => AreaDouble.CreateFromMetSq(valueInMetSq: propor * value.valueInMetSq);
+        public static Area operator *(Propor propor, Area value)
+            => Area.CreateFromMetSq(valueInMetSq: propor * value.valueInMetSq);
 
-        public static AreaDouble operator *(AreaDouble value, Propor propor)
+        public static Area operator *(Area value, Propor propor)
             => propor * value;
 
         public static bool operator >(Propor left, Propor right)
@@ -132,6 +135,6 @@ namespace Game1.PrimitiveTypeWrappers
             => $"{value:0.00}";
 
         static Propor IMin<Propor>.Min(Propor left, Propor right)
-            => left < right ? left : right;
+            => MyMathHelper.TotalOrderMin(left, right);
     }
 }

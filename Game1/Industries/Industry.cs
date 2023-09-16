@@ -17,7 +17,7 @@ namespace Game1.Industries
             public MaterialPalette? SurfaceMatPalette(bool productionInProgress);
             public EfficientReadOnlyCollection<IResource> GetProducedResources(TConcreteProductionParams productionParams);
             public AllResAmounts MaxStoredInput(TConcreteProductionParams productionParams);
-            public AreaInt MaxStoredOutputArea();
+            public Area MaxStoredOutputArea();
         }
 
         public interface IProductionCycleState<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TState>
@@ -31,7 +31,7 @@ namespace Game1.Industries
             public static abstract bool IsRepeatable { get; }
             
             public static abstract Result<TState, TextErrors> Create(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState,
-                ResPile inputStorage, AreaInt maxOutputArea);
+                ResPile inputStorage, Area maxOutputArea);
 
             public bool ShouldRestart { get; }
             public ElectricalEnergy ReqEnergy { get; }

@@ -26,33 +26,41 @@ namespace Game1.MyMath
         public static T Min<T>(T left, T right) where T : IMin<T>
             => T.Min(left, right);
 
-        public static ulong Min(ulong left, ulong right)
+        public static T TotalOrderMin<T>(T left, T right)
+            where T : IComparisonOperators<T, T, bool>
             => left < right ? left : right;
+
+        public static UInt96 Min(UInt96 left, UInt96 right)
+            => TotalOrderMin(left, right);
+
+        //public static ulong Min(ulong left, ulong right)
+        //    => TotalOrderMin(left, right);
 
         public static int Min(int left, int right)
-            => left < right ? left : right;
+            => TotalOrderMin(left, right);
 
         public static decimal Min(decimal left, decimal right)
-            => left < right ? left : right;
+            => TotalOrderMin(left, right);
 
         public static double Min(double left, double right)
-            => left < right ? left : right;
+            => TotalOrderMin(left, right);
 
         // T is not IComparisonOperators<T, T, bool> for the same reason as Min function
         public static T Max<T>(T left, T right) where T : IMax<T>
             => T.Max(left, right);
 
-        //public static T Max<T>(T left, T right) where T : IComparisonOperators<T, T, bool>
-        //    => left > right ? left : right;
+        public static T TotalOrderMax<T>(T left, T right)
+            where T : IComparisonOperators<T, T, bool>
+            => left > right ? left : right;
 
         public static int Max(int left, int right)
-            => left > right ? left : right;
+            => TotalOrderMax(left, right);
 
         public static double Max(double left, double right)
-            => left > right ? left : right;
+            => TotalOrderMax(left, right);
 
-        public static ulong Max(ulong left, ulong right)
-            => left > right ? left : right;
+        //public static ulong Max(ulong left, ulong right)
+        //    => TotalOrderMax(left, right);
 
         public static TimeSpan Max(TimeSpan left, TimeSpan right)
             => left > right ? left : right;
@@ -92,14 +100,14 @@ namespace Game1.MyMath
         public static double Pow(double @base, double exponent)
             => Math.Pow(@base, exponent);
 
-        public static ulong Pow(ulong @base, ulong exponent)
-        {
-            if (exponent is 0)
-                return 1;
-            if (exponent is 1)
-                return @base;
-            return Pow(@base: @base * @base, exponent: exponent / 2) * Pow(@base: @base, exponent: exponent % 2);
-        }
+        //public static ulong Pow(ulong @base, ulong exponent)
+        //{
+        //    if (exponent is 0)
+        //        return 1;
+        //    if (exponent is 1)
+        //        return @base;
+        //    return Pow(@base: @base * @base, exponent: exponent / 2) * Pow(@base: @base, exponent: exponent % 2);
+        //}
 
         /// <summary>
         /// Returns equivalent angle between -pi and pi
@@ -156,25 +164,24 @@ namespace Game1.MyMath
         public static bool IsTiny(decimal value)
             => Abs(value) < minPosDecimal;
 
-        /// <returns>factor1 * factor2 / divisor rounded using the usual half to even rule https://en.wikipedia.org/wiki/Rounding#Rounding_half_to_even</returns>
-        public static ulong MultThenDivideRound(ulong factor1, ulong factor2, ulong divisor)
-        {
-            UInt128 product = (UInt128)factor1 * factor2;
-            ulong quotient = (ulong)(product / divisor),
-                remainder = (ulong)(product % divisor);
-            return ((long)remainder * 2 - (long)divisor) switch
-            {
-                < 0 => quotient,
-                0 => quotient + (quotient % 2),
-                > 0 => quotient + 1
-            };
-        }
+        /// <returns>factor1 * factor2 / dividend rounded down</returns>
+        public static UInt96 MultThenDivideFloor(UInt96 factor1, UInt96 factor2, UInt96 divisor)
+            // + divisor / 2 part is there to get rounding
+            => (UInt96)((UInt256)factor1 * factor2 / divisor);
 
-        public static ulong DivideThenTakeCeiling(ulong dividend, ulong divisor)
+        /// <returns>factor1 * factor2 / dividend rounded with .5 rounded up</returns>
+        public static UInt96 MultThenDivideRound(UInt96 factor1, UInt96 factor2, UInt96 divisor)
+            // + divisor / 2 part is there to get rounding
+            => (UInt96)(((UInt256)factor1 * factor2 + divisor / 2) / divisor);
+
+        public static UInt96 DivideThenTakeCeiling(UInt96 dividend, UInt96 divisor)
             => (dividend + divisor - 1) / divisor;
 
-        public static ulong Round(UDouble value)
-            => (ulong)Math.Round(value);
+        //public static ulong Round(UDouble value)
+        //    => (ulong)Math.Round(value);
+
+        public static UInt96 RoundUnsigned(decimal value)
+            => (UInt96)decimal.Round(value);
 
         public static long Round(double value)
             => (long)Math.Round(value);
@@ -182,11 +189,14 @@ namespace Game1.MyMath
         public static long Ceiling(double value)
             => (long)Math.Ceiling(value);
 
-        public static ulong Ceiling(UDouble value)
-            => (ulong)Math.Ceiling(value);
+        public static UInt96 Round(UDouble value)
+            => (UInt96)Math.Round(value);
 
-        public static long Ceiling(decimal value)
-            => (long)Math.Ceiling(value);
+        public static UInt96 Ceiling(UDouble value)
+            => (UInt96)Math.Ceiling(value);
+
+        public static UInt96 CeilingUnsigned(decimal value)
+            => (UInt96)Math.Ceiling(value);
 
         /// <summary>
         /// If part and whole are zero, returns full

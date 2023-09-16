@@ -11,10 +11,10 @@ namespace Game1.Resources
         public EfficientReadOnlyCollection<IResource> AllCurRes
             => new(list: resources);
 
-        private readonly Dictionary<ulong, RawMaterial> indToRawMat;
+        private readonly Dictionary<uint, RawMaterial> indToRawMat;
         private readonly List<IResource> resources;
-        private readonly Dictionary<IResource, ulong> resToOrder;
-        private ulong nextOrder;
+        private readonly Dictionary<IResource, uint> resToOrder;
+        private uint nextOrder;
         private readonly EfficientReadOnlyDictionary<IProductClass, List<MaterialPalette>> materialPalettes;
 
         public ResConfig()
@@ -97,7 +97,7 @@ namespace Game1.Resources
                 prodParams.GetProduct(materialPalette: StartingMaterialPaletteChoices[prodParams.productClass]);
         }
 
-        public RawMaterial? GetRawMatFromInd(ulong ind)
+        public RawMaterial? GetRawMatFromInd(uint ind)
             => indToRawMat.GetValueOrDefault(key: ind);
 
         public IEnumerable<TRes> GetCurRes<TRes>()

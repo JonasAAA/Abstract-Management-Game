@@ -88,7 +88,7 @@ namespace Game1.Inhabitants
                     allocEnergyPropor: Stats.AllocEnergyPropor
                 );
             Stats = virtualToRealPeople.Values.CombineRealPeopleStats();
-            Debug.Assert(Stats.totalNumPeople.value == (ulong)virtualToRealPeople.Count);
+            Debug.Assert(Stats.totalNumPeople.value == (uint)virtualToRealPeople.Count);
         }
 
         public bool Contains(VirtualPerson person)

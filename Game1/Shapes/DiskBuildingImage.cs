@@ -25,8 +25,8 @@ namespace Game1.Shapes
         }
 
         // Note that this is building area, not disk area
-        public AreaDouble Area
-            => DiskAlgos.Area(radius: CurRadius) - nodeShapeParams.Area.ToDouble();
+        public Area Area
+            => DiskAlgos.AreaFromRadius(radius: CurRadius) - nodeShapeParams.Area;
 
         private UDouble FinishedBuildingRadius
             => nodeShapeParams.Radius + parameters.finishedBuildingHeight;
@@ -83,7 +83,7 @@ namespace Game1.Shapes
         public IBuildingImage IncompleteBuildingImage(Propor donePropor)
         {
             incompleteBuildingImage ??= parameters.CreateImage(nodeShapeParams: nodeShapeParams);
-            incompleteBuildingImage.buildingHeight = (UDouble)(DiskAlgos.RadiusFromArea(area: nodeShapeParams.Area.ToDouble() + donePropor * Area) - nodeShapeParams.Radius);
+            incompleteBuildingImage.buildingHeight = DiskAlgos.RadiusFromArea(area: nodeShapeParams.Area + donePropor * Area) - nodeShapeParams.Radius;
             return incompleteBuildingImage;
         }
     }

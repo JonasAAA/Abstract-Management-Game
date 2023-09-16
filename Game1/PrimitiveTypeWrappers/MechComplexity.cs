@@ -6,9 +6,9 @@
     [Serializable]
     public readonly struct MechComplexity
     {
-        private readonly ulong complexity;
+        private readonly uint complexity;
 
-        public MechComplexity(ulong complexity)
+        public MechComplexity(uint complexity)
             => this.complexity = complexity;
     }
 }

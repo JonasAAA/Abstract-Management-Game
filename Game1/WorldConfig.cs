@@ -60,8 +60,8 @@
             gravitConst = 1;
         public readonly Propor
             desperationMemoryPropor = (Propor).9;
-        public readonly AreaInt
-            minPlanetArea = AreaInt.CreateFromMetSq(valueInMetSq: 100);
+        public readonly Area
+            minPlanetArea = Area.CreateFromMetSq(valueInMetSq: 100);
         public readonly UDouble
             defaultIndustryHeight = 500;
         public readonly ulong
@@ -100,7 +100,7 @@
             heatEnergyDropoffExponent = 2;
         public readonly Propor
             nonReactingProporForUnitReactionStrengthUnitTime = (Propor)0.99999;
-        public readonly AreaInt minUsefulBuildingComponentAreaToRemove = AreaInt.CreateFromMetSq(valueInMetSq: 30);
+        public readonly Area minUsefulBuildingComponentAreaToRemove = Area.CreateFromMetSq(valueInMetSq: 30);
         public readonly List<(ulong rawMatInd, ulong amount)> startingRawMatTargetRatios = new()
         {
             (rawMatInd: 0, amount: 8),

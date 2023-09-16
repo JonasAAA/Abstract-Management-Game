@@ -10,7 +10,7 @@ namespace Game1.Industries
         public LocationCounters LocationCounters { get; }
         public ThermalBody ThermalBody { get; }
 
-        public Result<ResPile, TextErrors> Mine(AreaDouble targetArea, RawMatAllocator rawMatAllocator);
+        public Result<ResPile, TextErrors> Mine(Area targetArea, RawMatAllocator rawMatAllocator);
 
         public void EnlargeFrom(ResPile source, RawMatAmounts amount);
 

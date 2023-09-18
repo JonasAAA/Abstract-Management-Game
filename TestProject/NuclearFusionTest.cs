@@ -18,8 +18,10 @@ namespace TestProject
                 (
                     amount: 1000,
                     compositionArea: Area<UDouble>.CreateFromMetSq(5415),
-                    gravity: 2,
+                    surfaceGravity: 2,
+                    surfaceGravityExponent: 2,
                     temperature: Temperature.CreateFromK(3),
+                    temperatureExponent: 2,
                     duration: TimeSpan.FromSeconds(0.2),
                     reactionNumberRounder: reactionNum => (ulong)reactionNum,
                     fusionReactionStrengthCoeff: (UDouble)1 / 7

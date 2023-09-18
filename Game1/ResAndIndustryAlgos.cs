@@ -41,7 +41,7 @@ namespace Game1
 
         public static readonly AreaInt blockArea = rawMaterialArea * 100 * materialCompositionDivisor;
 
-        private const ulong temperatureScaling = 1000;
+        private const ulong temperatureScaling = 10000;
 
         public static Temperature Temperature(HeatEnergy heatEnergy, HeatCapacity heatCapacity)
             => PrimitiveTypeWrappers.Temperature.CreateFromK(valueInK: temperatureScaling * (UDouble)heatEnergy.ValueInJ() / heatCapacity.valueInJPerK);
@@ -86,7 +86,7 @@ namespace Game1
         // Want the amount of energy generated from fusion to be proportional to 1 / (ind + 1),
         // i.e. decreasing with ind quite fast
         public static UDouble RawMaterialFusionReactionStrengthCoeff(ulong ind)
-            => (ind == maxRawMatInd) ? 0 : (UDouble)0.00000000000000000001 * (RawMaterialMass(ind: ind) - RawMaterialMass(ind: ind + 1)).valueInKg / (ind + 1);
+            => (ind == maxRawMatInd) ? 0 : (UDouble)0.0000000000000001 * (RawMaterialMass(ind: ind) - RawMaterialMass(ind: ind + 1)).valueInKg / (ind + 1);
 
         public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
 #warning Complete this by making it actually random
@@ -149,10 +149,6 @@ namespace Game1
         public static UDouble Resistivity(this Material material, Temperature temperature)
             => throw new NotImplementedException();
 
-        public static UDouble DiskBuildingHeight
-#warning Complete this by scaling it appropriately (depending on the map scale) and putting it into config file
-            => 1000;
-
         /// <exception cref="ArgumentException">if buildingMatPaletteChoices doesn't contain all required product classes</exception>
         public static EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> BuildingComponentsToAmountPUBA(
             EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors,
@@ -182,7 +178,7 @@ namespace Game1
 #warning Complete this
             return new
             (
-                ReqWatts: buildingComponentsArea.valueInMetSq / 100000,
+                ReqWatts: buildingComponentsArea.valueInMetSq / 1000000000,
                 // Means that the building will complete in 10 real world seconds
                 ProducedAreaPerSec: buildingComponentsArea.valueInMetSq / (worldSecondsInGameSecond * 10)
             );

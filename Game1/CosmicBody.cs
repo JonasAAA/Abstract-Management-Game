@@ -202,8 +202,11 @@ namespace Game1
                 curResConfig: CurResConfig,
                 composition: state.Composition,
                 temperature: state.Temperature,
-                gravity: state.SurfaceGravity,
+                temperatureExponent: CurWorldConfig.fusionReactionTemperatureExponent,
+                surfaceGravity: state.SurfaceGravity,
+                surfaceGravityExponent: CurWorldConfig.fusionReactionSurfaceGravityExponent,
                 duration: CurWorldManager.Elapsed,
+                fusionReactionStrengthCoeff: CurWorldConfig.fusionReactionStrengthCoeff,
                 reactionNumberRounder: (RawMaterial rawMaterial, decimal reactionNum) =>
                 {
                     if (!reactionNumberRounders.ContainsKey(rawMaterial))
@@ -290,7 +293,7 @@ namespace Game1
 
             textBox.Text = "";
 
-            textBox.Text += $"T = {state.Temperature}\nM to E = {massConvertedToEnergy.valueInKg}\n";
+            textBox.Text += $"Gravity = {state.SurfaceGravity:#,0.}\nT = {state.Temperature}\nM to E per real world second =\n{massConvertedToEnergy.valueInKg / (CurWorldManager.Elapsed.TotalSeconds / CurWorldConfig.worldSecondsInGameSecond):#,0.}\n";
             textBox.Text = textBox.Text.Trim();
 
             infoTextBox.Text += textBox.Text;

@@ -89,7 +89,7 @@ namespace Game1
             Radius = MyMathHelper.Sqrt(value: Area.valueInMetSq / MyMathHelper.pi);
             SurfaceLength = 2 * MyMathHelper.pi * Radius;
             var allResComposition = LocationCounters.GetCount<AllResAmounts>().RawMatComposition();
-            SurfaceGravity = WorldFunctions.Gravity(mass: allResComposition.Mass(), resArea: allResComposition.Area());
+            SurfaceGravity = WorldFunctions.SurfaceGravity(mass: allResComposition.Mass(), resArea: allResComposition.Area());
         }
 
         public Result<ResPile, TextErrors> Mine(AreaDouble targetArea, RawMatAllocator rawMatAllocator)

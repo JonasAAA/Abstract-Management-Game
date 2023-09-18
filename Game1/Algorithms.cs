@@ -242,8 +242,8 @@ namespace Game1
         }
 
         // Inspired by https://en.wikipedia.org/wiki/Lawson_criterion#Energy_balance
-        public static RawMatAmounts CosmicBodyNewCompositionFromNuclearFusion(ResConfig curResConfig, RawMatAmounts composition, UDouble gravity, Temperature temperature, TimeSpan duration,
-            Func<RawMaterial, decimal, ulong> reactionNumberRounder)
+        public static RawMatAmounts CosmicBodyNewCompositionFromNuclearFusion(ResConfig curResConfig, RawMatAmounts composition, UDouble surfaceGravity, UDouble surfaceGravityExponent,
+            Temperature temperature, UDouble temperatureExponent, TimeSpan duration, UDouble fusionReactionStrengthCoeff, Func<RawMaterial, decimal, ulong> reactionNumberRounder)
         {
             AreaDouble compositionArea = composition.Area().ToDouble();
             Dictionary<RawMaterial, ulong> cosmicBodyNextComposition = new(2 * composition.Count);
@@ -253,11 +253,13 @@ namespace Game1
                 (
                     amount: amount,
                     compositionArea: compositionArea,
-                    gravity: gravity,
+                    surfaceGravity: surfaceGravity,
+                    surfaceGravityExponent: surfaceGravityExponent,
                     temperature: temperature,
+                    temperatureExponent: temperatureExponent,
                     duration: duration,
                     reactionNumberRounder: reactionNum => reactionNumberRounder(rawMaterial, reactionNum),
-                    fusionReactionStrengthCoeff: rawMaterial.FusionReactionStrengthCoeff
+                    fusionReactionStrengthCoeff: fusionReactionStrengthCoeff * rawMaterial.FusionReactionStrengthCoeff
                 );
                 cosmicBodyNextComposition[rawMaterial] = cosmicBodyNextComposition.GetValueOrDefault(key: rawMaterial) + nonReactingAmount;
                 if (fusionProductAmount > 0)
@@ -271,13 +273,16 @@ namespace Game1
             return newComposition;
         }
 
-        public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusionSingleRawMat(ulong amount, AreaDouble compositionArea, UDouble gravity, Temperature temperature,
-            TimeSpan duration, Func<decimal, ulong> reactionNumberRounder, UDouble fusionReactionStrengthCoeff)
+        public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusionSingleRawMat(ulong amount, AreaDouble compositionArea, UDouble surfaceGravity, UDouble surfaceGravityExponent,
+            Temperature temperature, UDouble temperatureExponent, TimeSpan duration, Func<decimal, ulong> reactionNumberRounder, UDouble fusionReactionStrengthCoeff)
         {
             // Somewhat equivalent to https://en.wikipedia.org/wiki/Number_density.
             // Since all raw mats have the same area, this naming makes sense
             double rawMatProporInComposition = (double)amount / compositionArea.valueInMetSq,
-                reactionStrength = fusionReactionStrengthCoeff * rawMatProporInComposition * rawMatProporInComposition * gravity * gravity * temperature.valueInK * temperature.valueInK;
+                reactionStrength = fusionReactionStrengthCoeff
+                    * rawMatProporInComposition * rawMatProporInComposition
+                    * MyMathHelper.Pow(@base: surfaceGravity, exponent: surfaceGravityExponent)
+                    * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent);
             ulong reactingAmount = MyMathHelper.Min
             (
                 amount,

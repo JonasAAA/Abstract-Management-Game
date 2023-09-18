@@ -9,18 +9,11 @@ namespace TestProject
     [TestClass]
     public class RawMaterialProptertiesTest
     {
-        private const uint maxRelevantRawMatInd = 20;
-
         [TestMethod]
-        public void FusionLeavesSameArea()
-        {
-            for (uint ind = 0; ind < maxRelevantRawMatInd; ind++)
-                Assert.AreEqual
-                (
-                    expected: ResAndIndustryAlgos.RawMaterialArea(ind: ind + 1),
-                    actual: 2 * ResAndIndustryAlgos.RawMaterialArea(ind: ind)
-                );
-        }
+        public void AllRawMatAreasAreTheSame()
+            // This test is vacuous for now, this is here if the calculation is changed in the future to tell future me (by e.g. not compiling)
+            // that I relied on all raw mat areas being the same
+            => Assert.AreEqual(expected: ResAndIndustryAlgos.rawMaterialArea, actual: ResAndIndustryAlgos.rawMaterialArea);
 
         [TestMethod]
         public void MaxDensityIsOne()
@@ -29,7 +22,7 @@ namespace TestProject
             (
                 Math.Abs
                 (
-                    Enumerable.Range(start: 0, count: (int)maxRelevantRawMatInd).Max
+                    Enumerable.Range(start: 0, count: (int)ResAndIndustryAlgos.maxRawMatInd + 1).Max
                     (
                         ind => RawMatDensity((uint)ind)
                     ) - 1
@@ -37,56 +30,56 @@ namespace TestProject
             );
 
             static double RawMatDensity(uint ind)
-                => (double)ResAndIndustryAlgos.RawMaterialMass(ind: ind).valueInKg / ResAndIndustryAlgos.RawMaterialArea(ind: ind).valueInMetSq;
+                => (double)ResAndIndustryAlgos.RawMaterialMass(ind: ind).valueInKg / ResAndIndustryAlgos.rawMaterialArea.valueInMetSq;
         }
 
         [TestMethod]
         public void RawMatDensityDecreases()
         {
-            for (uint ind = 0; ind < maxRelevantRawMatInd; ind++)
+            for (uint ind = 0; ind < ResAndIndustryAlgos.maxRawMatInd; ind++)
                 Assert.IsTrue
                 (
                     RawMatDensity(ind: ind) > RawMatDensity(ind: ind + 1)
                 );
 
             static double RawMatDensity(uint ind)
-                => (double)ResAndIndustryAlgos.RawMaterialMass(ind: ind).valueInKg / ResAndIndustryAlgos.RawMaterialArea(ind: ind).valueInMetSq;
+                => (double)ResAndIndustryAlgos.RawMaterialMass(ind: ind).valueInKg / ResAndIndustryAlgos.rawMaterialArea.valueInMetSq;
         }
 
         [TestMethod]
         public void FusionReactionProducesEnergy()
         {
-            for (uint ind = 0; ind < maxRelevantRawMatInd; ind++)
-                Assert.IsTrue(2 * ResAndIndustryAlgos.RawMaterialMass(ind: ind) > ResAndIndustryAlgos.RawMaterialMass(ind: ind + 1));
+            for (uint ind = 0; ind < ResAndIndustryAlgos.maxRawMatInd; ind++)
+                Assert.IsTrue(ResAndIndustryAlgos.RawMaterialMass(ind: ind) > ResAndIndustryAlgos.RawMaterialMass(ind: ind + 1));
         }
 
         [TestMethod]
-        public void ProporOfMassTransformedToEnergyByFusionDecreases()
+        public void FusionGeneratesLessEnergyFromLaterRawMats()
         {
-            for (uint ind = 0; ind < maxRelevantRawMatInd; ind++)
-            {
-                Console.WriteLine($"{ind} {ProporOfMassTransformedToEnergy(ind: ind)} {ProporOfMassTransformedToEnergy(ind: ind + 1)}");
-                Assert.IsTrue(ProporOfMassTransformedToEnergy(ind: ind) > ProporOfMassTransformedToEnergy(ind: ind + 1));
-            }
+            for (uint ind = 0; ind < ResAndIndustryAlgos.maxRawMatInd - 1; ind++)
+                Assert.IsTrue(FusionEnergyFromRawMat(ind: ind) > FusionEnergyFromRawMat(ind: ind + 1));
 
-            static double ProporOfMassTransformedToEnergy(uint ind)
+            static double FusionEnergyFromRawMat(uint ind)
             {
                 double curMatMass = ResAndIndustryAlgos.RawMaterialMass(ind: ind).valueInKg,
                     nextMatMass = ResAndIndustryAlgos.RawMaterialMass(ind: ind + 1).valueInKg;
-                return (2 * curMatMass - nextMatMass) / (2 * curMatMass);
+                return (curMatMass - nextMatMass) * ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ind);
             }
         }
 
         [TestMethod]
-        public void FirstRawMatHasSmallMass()
-            => Assert.IsTrue(ResAndIndustryAlgos.RawMaterialMass(ind: 0).valueInKg <= 10);
+        public void AllRawMatsHaveSmallMass()
+        {
+            for (uint ind = 0; ind <= ResAndIndustryAlgos.maxRawMatInd; ind++)
+                Assert.IsTrue(ResAndIndustryAlgos.RawMaterialMass(ind: ind).valueInKg <= 60);
+        }
 
         [TestMethod]
         public void LatestRawMatCannotFuse()
             => Assert.AreEqual
             (
                 expected: (UDouble)0,
-                actual: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ResAndIndustryAlgos.MaxRawMatInd)
+                actual: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ResAndIndustryAlgos.maxRawMatInd)
             );
     }
 }

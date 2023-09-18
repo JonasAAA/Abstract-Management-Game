@@ -119,7 +119,7 @@ namespace Game1
                     DiskAlgos.Draw
                     (
                         center: startNode.Position + (double)complProp * (endNode.Position - startNode.Position),
-                        radius: DiskAlgos.RadiusFromArea(area: resAmounts.UsefulArea().ToDouble()),
+                        radius: DiskAlgos.RadiusFromArea(area: resAmounts.Area().ToDouble()),
                         color: colorConfig.linkTravellerColor
                     );
             }

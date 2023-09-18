@@ -94,7 +94,7 @@ namespace Game1
                         res => new ResAmount<IResource>
                         (
                             res: res,
-                            amount: CurWorldConfig.magicUnlimitedStartingMaterialCount       
+                            amount: CurWorldConfig.magicUnlimitedStartingMaterialCount / res.Area.valueInMetSq
                         )
                     )
                 ),
@@ -384,11 +384,11 @@ namespace Game1
             //nodes.ForEach(node => node.UpdatePeople());
             Stats = nodes.CombineRealPeopleStats().CombineWith(other: links.CombineRealPeopleStats());
 
-            NewSplitRes();
+            DistributeRes();
             nodes.ForEach(node => node.EndUpdate(resFirstLinks: resFirstLinks));
         }
 
-        public void NewSplitRes()
+        public void DistributeRes()
         {
             Dictionary<IResource, Dictionary<Algorithms.Vertex<IIndustry>, Algorithms.VertexInfo<IIndustry>>> resToRouteGraphs = new();
             foreach (var industry in Industries)

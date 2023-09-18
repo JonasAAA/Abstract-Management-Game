@@ -7,7 +7,7 @@ namespace Game1.Resources
     {
         public readonly EfficientReadOnlyHashSet<IProductClass> neededProductClasses;
         public readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts;
-        public readonly AreaInt usefulArea;
+        public readonly AreaInt area;
         public readonly MechComplexity complexity;
         public readonly EfficientReadOnlyDictionary<IProductClass, Propor> productClassPropors;
 
@@ -15,26 +15,26 @@ namespace Game1.Resources
         {
             this.ingredProdToAmounts = ingredProdToAmounts;
 
-            Dictionary<IProductClass, AreaInt> productClassUsefulAreas = new();
+            Dictionary<IProductClass, AreaInt> productClassAmounts = new();
             foreach (var (prodParams, amount) in ingredProdToAmounts)
             {
                 if (amount is 0)
                     throw new ArgumentException();
-                productClassUsefulAreas.TryAdd(key: prodParams.productClass, value: AreaInt.zero);
-                productClassUsefulAreas[prodParams.productClass] += prodParams.usefulArea * amount;
+                productClassAmounts.TryAdd(key: prodParams.productClass, value: AreaInt.zero);
+                productClassAmounts[prodParams.productClass] += prodParams.area * amount;
             }
-            usefulArea = productClassUsefulAreas.Values.Sum();
-            Debug.Assert(usefulArea == ingredProdToAmounts.Sum(prodParamsAndAmount => prodParamsAndAmount.prodParams.usefulArea * prodParamsAndAmount.amount));
+            area = productClassAmounts.Values.Sum();
+            Debug.Assert(area == ingredProdToAmounts.Sum(prodParamsAndAmount => prodParamsAndAmount.prodParams.area * prodParamsAndAmount.amount));
 
-            neededProductClasses = productClassUsefulAreas.Keys.ToEfficientReadOnlyHashSet();
+            neededProductClasses = productClassAmounts.Keys.ToEfficientReadOnlyHashSet();
 
             complexity = ResAndIndustryAlgos.IndustryMechComplexity(ingredProdToAmounts: ingredProdToAmounts, productClassPropors: productClassPropors);
             // Needed to satisfy compiler
-            AreaInt usefulAreaCopy = usefulArea;
-            productClassPropors = productClassUsefulAreas.ToEfficientReadOnlyDict
+            AreaInt areaCopy = area;
+            productClassPropors = productClassAmounts.ToEfficientReadOnlyDict
             (
                 keySelector: prodClassAndArea => prodClassAndArea.Key,
-                elementSelector: prodClassAndArea => Propor.Create(part: prodClassAndArea.Value.valueInMetSq, usefulAreaCopy.valueInMetSq)!.Value
+                elementSelector: prodClassAndArea => Propor.Create(part: prodClassAndArea.Value.valueInMetSq, areaCopy.valueInMetSq)!.Value
             );
             if (!productClassPropors.ContainsKey(IProductClass.roof))
                 throw new ArgumentException();

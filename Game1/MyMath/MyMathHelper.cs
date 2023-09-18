@@ -197,5 +197,12 @@ namespace Game1.MyMath
                 return Propor.full;
             return Propor.Create(part: part.ValueInJ, whole: whole.ValueInJ)!.Value;
         }
+
+        /// <summary>
+        /// Meaning is equivalent to ((Real)numeratorA / denominatorA).CompareTo((Real)numeratorB / denominatorB)
+        /// if infinite precision Real type existed
+        /// </summary>
+        public static int CompareFractions(ulong numeratorA, ulong denominatorA, ulong numeratorB, ulong denominatorB)
+            => ((UInt128)numeratorA * denominatorB).CompareTo((UInt128)numeratorB * denominatorA);
     }
 }

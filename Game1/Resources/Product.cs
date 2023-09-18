@@ -1,5 +1,6 @@
 ﻿using Game1.Collections;
 using Game1.UI;
+using System.Resources;
 using static Game1.WorldManager;
 
 namespace Game1.Resources
@@ -15,6 +16,8 @@ namespace Game1.Resources
             private static ulong GetNextInd(IProductClass productClass)
             {
                 var ind = nextInds[productClass];
+                if (ind > ResAndIndustryAlgos.maxRawMatInd)
+                    throw new ArgumentException();
                 nextInds[productClass]++;
                 return ind;
             }
@@ -45,15 +48,21 @@ namespace Game1.Resources
             public readonly IProductClass productClass;
             public readonly ulong materialPaletteAmount, indInClass;
             public readonly EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts;
-            public readonly AreaInt usefulArea;
+            public readonly AreaInt area;
             public readonly MechComplexity complexity;
 
             //private readonly HashSet<IMaterialPurpose> neededPurposes;
             //private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
-            //private readonly Area usefulArea;
 
             private Params(string name, IProductClass productClass, ulong materialPaletteAmount, ulong indInClass, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
             {
+                Debug.Assert
+                (
+                    ResAndIndustryAlgos.productRecipeInputAmountMultiple
+                    // ingredient amount
+                    % productClass.MatPurposeToAmount.Values.Sum() * materialPaletteAmount + ingredProdToAmounts.Sum(prodParamsAndAmount => prodParamsAndAmount.amount)
+                    is 0
+                );
                 // Product will still need to know what product class it is, so probably need to take such parameter here as well.
                 // That means need to assert that the components are from the same product class.
                 this.name = name;
@@ -61,8 +70,9 @@ namespace Game1.Resources
                 this.materialPaletteAmount = materialPaletteAmount;
                 this.indInClass = indInClass;
                 this.ingredProdToAmounts = ingredProdToAmounts;
-                usefulArea = ingredProdToAmounts.Sum(ingredProdAndAmount => ingredProdAndAmount.prodParams.usefulArea * ingredProdAndAmount.amount)
-                    + productClass.MatPurposeToAmount.Values.Sum() * ResAndIndustryAlgos.MaterialUsefulArea;
+                Debug.Assert(ingredProdToAmounts.All(prodParamsAndAmounts => prodParamsAndAmounts.prodParams.productClass == productClass));
+                Debug.Assert(ingredProdToAmounts.All(prodParamsAndAmounts => prodParamsAndAmounts.prodParams.indInClass < indInClass));
+                area = ResAndIndustryAlgos.blockArea;
                 complexity = ResAndIndustryAlgos.ProductMechComplexity
                 (
                     productClass: productClass,
@@ -139,7 +149,7 @@ namespace Game1.Resources
 
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
-        public AreaInt UsefulArea { get; }
+        public AreaInt Area { get; }
         public RawMatAmounts RawMatComposition { get; }
         public ResRecipe Recipe { get; }
 
@@ -147,29 +157,46 @@ namespace Game1.Resources
         private readonly Params parameters;
         private readonly MaterialPalette materialPalette;
 
-        private readonly ResAmounts<Product> productIngredients;
-        private readonly ResAmounts<Material> materialIngredients;
-
         private Product(string name, Params parameters, MaterialPalette materialPalette, ResAmounts<Product> productIngredients, ResAmounts<Material> materialIngredients)
         {
             this.name = name;
             this.parameters = parameters;
             this.materialPalette = materialPalette;
-            this.productIngredients = productIngredients;
-            this.materialIngredients = materialIngredients;
-            Mass = productIngredients.Mass() + materialIngredients.Mass();
-            HeatCapacity = productIngredients.HeatCapacity() + materialIngredients.HeatCapacity();
-            RawMatComposition = productIngredients.RawMatComposition() + materialIngredients.RawMatComposition();
-
-            UsefulArea = parameters.usefulArea;
+            var ingredients = productIngredients.ToAll() + materialIngredients.ToAll();
+            var ingredAmount = ingredients.Sum(resAmount => resAmount.amount);
+            RawMatComposition = new
+            (
+                resAmounts: ingredients.RawMatComposition().Select
+                (
+                    resAmount =>
+                    {
+                        Debug.Assert(resAmount.amount % ingredAmount is 0);
+                        return new ResAmount<RawMaterial>(res: resAmount.res, resAmount.amount / ingredAmount);
+                    }
+                )
+            );
+            Debug.Assert(RawMatComposition * ingredAmount == ingredients.RawMatComposition());
+            Debug.Assert
+            (
+                RawMatComposition.All
+                (
+                    rawMatAmount => rawMatAmount.amount
+                        % ResAndIndustryAlgos.ProductRawMatCompositionDivisor(prodIndInClass: parameters.indInClass)
+                        is 0
+                )
+            );
+            Mass = RawMatComposition.Mass();
+            HeatCapacity = RawMatComposition.HeatCapacity();
+            Area = parameters.area;
+            Debug.Assert(Area == RawMatComposition.Area());
 
             // Need this before creating the recipe since to create SomeResAmounts you need all used resources to be registered first
             CurResConfig.AddRes(resource: this);
 
             Recipe = ResRecipe.CreateOrThrow
             (
-                ingredients: productIngredients.ToAll() + materialIngredients.ToAll(),
-                results: new AllResAmounts(res: this, amount: 1)
+                ingredients: ingredients,
+                results: new AllResAmounts(res: this, amount: ingredients.Sum(resAmount => resAmount.amount))
             );
         }
 

@@ -5,9 +5,6 @@ namespace Game1
 {
     public static class ResAndIndustryHelpers
     {
-        public static AreaInt Area(this RawMatAmounts rawMatAmounts)
-            => rawMatAmounts.Sum(resAmount => resAmount.res.Area * resAmount.amount);
-
         public static Color Color(this RawMatAmounts rawMatAmounts)
         {
             Vector3 colorSum = Vector3.Zero;

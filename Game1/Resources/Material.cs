@@ -10,13 +10,12 @@ namespace Game1.Resources
             => new
             (
                 name: name,
-                composition: ResAndIndustryAlgos.CreateMatCompositionFromRawMatPropors(rawMatAreaPropors: rawMatAreaPropors)
+                composition: ResAndIndustryAlgos.CreateRawMatCompositionFromRawMatPropors(rawMatPropors: rawMatAreaPropors)
             );
 
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
-        public AreaInt UsefulArea { get; }
         public RawMatAmounts RawMatComposition { get; }
         public ResRecipe Recipe { get; }
 
@@ -27,9 +26,10 @@ namespace Game1.Resources
             this.name = name;
             Mass = composition.Mass();
             HeatCapacity = composition.HeatCapacity();
-            Area = composition.Area();
-            UsefulArea = ResAndIndustryAlgos.MaterialUsefulArea;
+            Area = ResAndIndustryAlgos.blockArea;
+            Debug.Assert(Area == composition.Area());
             RawMatComposition = composition;
+            Debug.Assert(RawMatComposition.All(rawMatAmount => rawMatAmount.amount % ResAndIndustryAlgos.materialCompositionDivisor is 0));
 
             // Need this before creating the recipe since to create SomeResAmounts you need all used resources to be registered first
             CurResConfig.AddRes(resource: this);

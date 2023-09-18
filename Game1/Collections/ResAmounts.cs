@@ -134,6 +134,7 @@ namespace Game1.Collections
 
         public Mass Mass()
         {
+            // Resources. is needed so that Mass doesn't mean the name of this method
             Mass mass = Resources.Mass.zero;
             for (int ind = 0; ind < Count; ind++)
                 mass += resList[ind].Mass * amounts[ind];
@@ -148,12 +149,12 @@ namespace Game1.Collections
             return heatCapacity;
         }
 
-        public AreaInt UsefulArea()
+        public AreaInt Area()
         {
-            AreaInt usefulArea = AreaInt.zero;
+            AreaInt area = AreaInt.zero;
             for (int ind = 0; ind < Count; ind++)
-                usefulArea += resList[ind].UsefulArea * amounts[ind];
-            return usefulArea;
+                area += resList[ind].Area * amounts[ind];
+            return area;
         }
 
         public ResRecipe TurningIntoRawMatsRecipe()
@@ -238,7 +239,7 @@ namespace Game1.Collections
 
         // May need to change this if later on materials and/or products are able to store energy
         public static explicit operator Energy(ResAmounts<TRes> formOfEnergy)
-            => Energy.CreateFromJoules(valueInJ: formOfEnergy.Mass().valueInKg * CurWorldConfig.energyInJPerKgOfMass);
+            => Energy.CreateFromJoules(valueInJ: formOfEnergy.Mass().valueInKg * ResAndIndustryAlgos.energyInJPerKgOfMass);
 
         static ResAmounts<TRes> IMin<ResAmounts<TRes>>.Min(ResAmounts<TRes> left, ResAmounts<TRes> right)
         {

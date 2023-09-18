@@ -86,12 +86,12 @@ namespace Game1.Industries
                 maxInputAmountStored = ResAndIndustryAlgos.MaxAmount
                 (
                     availableArea: buildingArea * CurWorldConfig.inputStorageProporOfBuildingArea,
-                    itemArea: productParams.usefulArea
+                    itemArea: productParams.area
                 );
                 overallMaxProductAmount = ResAndIndustryAlgos.MaxAmount
                 (
                     availableArea: buildingArea * CurWorldConfig.productionProporOfBuildingArea,
-                    itemArea: productParams.usefulArea
+                    itemArea: productParams.area
                 );
                 buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
@@ -100,7 +100,7 @@ namespace Game1.Industries
                 => ResAndIndustryAlgos.MaxAmount
                 (
                     availableArea: MyMathHelper.Min(buildingArea * CurWorldConfig.productionProporOfBuildingArea, maxOutputArea.ToDouble()),
-                    itemArea: productParams.usefulArea
+                    itemArea: productParams.area
                 );
 
             /// <param Name="productionMassIfFull">Mass of stuff in production if industry was fully operational</param>
@@ -258,7 +258,7 @@ namespace Game1.Industries
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
                 reqEnergyHistoricRounder = new();
                 proporUtilized = Propor.Create(part: productionAmount, whole: overallMaxProductionAmount)!.Value;
-                areaInProduction = buildingParams.productParams.usefulArea.ToDouble() * productionAmount;
+                areaInProduction = buildingParams.productParams.area.ToDouble() * productionAmount;
                 donePropor = Propor.empty;
             }
 

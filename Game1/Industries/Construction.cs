@@ -49,7 +49,7 @@ namespace Game1.Industries
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
             public readonly AllResAmounts buildingCost;
-            public readonly AreaInt buildingComponentsUsefulArea;
+            public readonly AreaInt buildingComponentsArea;
 
             private readonly IConcreteBuildingConstructionParams concreteBuildingParams;
 
@@ -59,7 +59,7 @@ namespace Game1.Industries
                 NodeState = nodeState;
                 EnergyPriority = generalParams.energyPriority;
                 buildingCost = concreteBuildingParams.BuildingCost;
-                buildingComponentsUsefulArea = buildingCost.UsefulArea();
+                buildingComponentsArea = buildingCost.Area();
 
                 this.concreteBuildingParams = concreteBuildingParams;
             }
@@ -173,7 +173,7 @@ namespace Game1.Industries
                     workingPropor: workingPropor,
                     producedAreaPerSec: curConstrStats.ProducedAreaPerSec,
                     elapsed: CurWorldManager.Elapsed,
-                    areaInProduction: parameters.buildingComponentsUsefulArea.ToDouble()
+                    areaInProduction: parameters.buildingComponentsArea.ToDouble()
                 );
 
                 if (donePropor.IsFull)

@@ -80,7 +80,7 @@ namespace Game1
         }
 
         public void UpdateTemperature()
-            => Temperature = Temperature.CreateFromK(valueInK: (UDouble)ThermalBody.HeatEnergy.ValueInJ() / ThermalBody.HeatCapacity.valueInJPerK);
+            => Temperature = ResAndIndustryAlgos.Temperature(heatEnergy: ThermalBody.HeatEnergy, heatCapacity: ThermalBody.HeatCapacity);
 
         public void RecalculateValues()
         {

@@ -209,8 +209,7 @@ namespace Game1
                     if (!reactionNumberRounders.ContainsKey(rawMaterial))
                         reactionNumberRounders[rawMaterial] = new();
                     return reactionNumberRounders[rawMaterial].Round(value: reactionNum, curTime: CurWorldManager.CurTime);
-                },
-                nonReactingProporForUnitReactionStrengthUnitTime: CurWorldConfig.nonReactingProporForUnitReactionStrengthUnitTime
+                }
             );
 
             massConvertedToEnergy = state.consistsOfResPile.Amount.Mass() - cosmicBodyNewComposition.Mass();

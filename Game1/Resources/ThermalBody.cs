@@ -18,9 +18,10 @@ namespace Game1.Resources
                 heatEnergyPile: EnergyPile<HeatEnergy>.CreateByMagic
                 (
                     locationCounters: locationCounters,
-                    amount: HeatEnergy.CreateFromJoules
+                    amount: ResAndIndustryAlgos.HeatEnergyFromTemperature
                     (
-                        valueInJ: MyMathHelper.Round(amount.HeatCapacity().valueInJPerK * temperature.valueInK)
+                        temperature: temperature,
+                        heatCapacity: amount.HeatCapacity()
                     )
                 ),
                 magicResAmounts: amount

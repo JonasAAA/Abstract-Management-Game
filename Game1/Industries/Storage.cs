@@ -91,7 +91,7 @@ namespace Game1.Industries
                     (
                         availableArea: buildingArea * CurWorldConfig.storageProporOfBuildingAreaForStorageIndustry,
                         // Could use Area here instead, if decide to have such a thing
-                        itemArea: storedRes.UsefulArea
+                        itemArea: storedRes.Area
                     )
                 );
 

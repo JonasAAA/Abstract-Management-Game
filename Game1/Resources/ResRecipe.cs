@@ -18,6 +18,9 @@
         private ResRecipe(AllResAmounts ingredients, AllResAmounts results)
         {
             Debug.Assert(AreValid(ingredients: ingredients, results: results));
+            Debug.Assert(ingredients.Area() == results.Area());
+            Debug.Assert(ingredients.HeatCapacity() == results.HeatCapacity());
+            Debug.Assert(ingredients.Mass() == results.Mass());
             this.ingredients = ingredients;
             this.results = results;
         }

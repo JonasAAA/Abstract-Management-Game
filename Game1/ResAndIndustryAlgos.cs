@@ -1,6 +1,5 @@
 ﻿using Game1.Collections;
 using Game1.Industries;
-using Game1.Resources;
 
 namespace Game1
 {
@@ -9,65 +8,73 @@ namespace Game1
         public static string RawMaterialName(ulong ind)
             => $"Raw material {ind}";
 
+        // Want max density to be 1
+        public static readonly AreaInt rawMaterialArea = AreaInt.CreateFromMetSq(valueInMetSq: RawMaterialMass(ind: 0).valueInKg);
+
         // Formula is like this for the following reasons:
-        // * Want density -> 0 as ind -> inf. In this case, density is approximately 1 / ind
-        // * Want each fusion reaction to produce energy (i.e. mass after the reaction to be smaller than before)
-        // * Want the proportion of mass transformed to energy from fusion reactions to go to 0 as ind -> inf.
-        //   In this case, approximately 1 / (ind + 1)
-        // * Want the above relationships to be nice and smooth
-        // * Want first materials to not have large mass
-        // Paste 1-\frac{\operatorname{round}\left(a\cdot\frac{2^{\operatorname{round}\left(x\right)+1}}{\operatorname{round}\left(x\right)+1}\right)}{2\cdot\operatorname{round}\left(a\cdot\frac{2^{\operatorname{round}\left(x\right)}}{\operatorname{round}\left(x\right)}\right)}
-        // In https://www.desmos.com/calculator to see that a=3 gives really nice results for the proportion of mass transformed into energy
+        // * Want max mass to be quite small in order to have larger amount of blocks in the world
+        // * Want mass to decrease with ind
         public static Mass RawMaterialMass(ulong ind)
-            => Mass.CreateFromKg
-            (
-                valueInKg: MyMathHelper.Round
-                (
-                    (UDouble)(3 * MyMathHelper.Pow(@base: 2, exponent: ind + 1)) / (ind + 1)
-                )
-            );
+            => Mass.CreateFromKg(valueInKg: 1 + maxRawMatInd - ind);
 
         // As ind increases, the raw materials require less energy to change temperature by one degree
         // As said in https://en.wikipedia.org/wiki/Specific_heat_capacity#Monatomic_gases
         // heat capacity per mole is the same for all monatomic gases
         // That's because the atoms have nowhere else to store energy, other than in kinetic energy (and hence temperature)
-        public static HeatCapacity RawMaterialHeatCapacity(ulong ind)
+        public static HeatCapacity RawMaterialHeatCapacityPerArea(ulong ind)
+#warning Make this more interesting?
             => HeatCapacity.CreateFromJPerK(valueInJPerK: 1);
 
-        // Formula is like this so that maximum density is 1 and fusion reactions don't change cosmic body area
-        // The non-changing area is nice as only mining and planet enlargement buildings need to change size in this case
-        public static AreaInt RawMaterialArea(ulong ind)
-            => AreaInt.CreateFromMetSq(valueInMetSq: 3 * MyMathHelper.Pow(2, ind + 1));
+        public const ulong energyInJPerKgOfMass = 1;
 
-        public static ulong MaxRawMatInd
-            => 9;
+        public const ulong maxRawMatInd = 9;
 
-        /// <summary>
-        /// All material useful areas must the this.
-        /// Ideally, the areas would be this as well.
-        /// Currently the way to achieve such is to never create raw material with index more than 9 (so 10 raw materials in total)
-        /// and have raw material area propor weights sum to no more than 10.
-        /// COULD mutiply by 100 instead of 8 * 9 * 5 * 7, and force each raw material to specify the exact percentage of material area it should take up.
-        /// </summary>
-        public static AreaInt MaterialUsefulArea
-            => RawMaterialArea(ind: MaxRawMatInd) * 8 * 9 * 5 * 7;
+        public const ulong maxProductIndInClass = 9;
 
-        public static RawMatAmounts CreateMatCompositionFromRawMatPropors(RawMatAmounts rawMatAreaPropors)
+        // Means all products must be from 1, 2, 3, or 6 components (some of which could be the same)
+        public const ulong productRecipeInputAmountMultiple = 6;
+
+        public static readonly ulong materialCompositionDivisor = ProductRawMatCompositionDivisor(prodIndInClass: 0) * productRecipeInputAmountMultiple;
+
+        public static ulong ProductRawMatCompositionDivisor(ulong prodIndInClass)
+            => MyMathHelper.Pow(productRecipeInputAmountMultiple, maxProductIndInClass - prodIndInClass);
+
+        public static readonly AreaInt blockArea = rawMaterialArea * 100 * materialCompositionDivisor;
+
+        private const ulong temperatureScaling = 1000;
+
+        public static Temperature Temperature(HeatEnergy heatEnergy, HeatCapacity heatCapacity)
+            => PrimitiveTypeWrappers.Temperature.CreateFromK(valueInK: temperatureScaling * (UDouble)heatEnergy.ValueInJ() / heatCapacity.valueInJPerK);
+
+        public static HeatEnergy HeatEnergyFromTemperature(Temperature temperature, HeatCapacity heatCapacity)
+            => HeatEnergy.CreateFromJoules(valueInJ: MyMathHelper.Round(heatCapacity.valueInJPerK * temperature.valueInK / temperatureScaling));
+
+        public static RawMatAmounts CreateRawMatCompositionFromRawMatPropors(RawMatAmounts rawMatPropors)
         {
-            ulong totalWeights = rawMatAreaPropors.Sum(resAmount => resAmount.amount);
+            ulong totalWeights = rawMatPropors.Sum(resAmount => resAmount.amount);
             if (totalWeights is 0)
                 throw new ArgumentException();
-            if (totalWeights > 10)
+            if (totalWeights > 20)
                 throw new ArgumentException();
-            RawMatAmounts composition = new
+            ulong smallCompositionsInBlock = materialCompositionDivisor;
+            Debug.Assert(blockArea.valueInMetSq % (smallCompositionsInBlock * rawMaterialArea.valueInMetSq) is 0);
+            ulong rawMatTotalAmountInSmallComposition = blockArea.valueInMetSq / (smallCompositionsInBlock * rawMaterialArea.valueInMetSq);
+            
+            RawMatAmounts smallComposition = new
             (
-                resAmounts: rawMatAreaPropors.Select
+                resAmounts: Algorithms.Split
                 (
-                    rawMatAmount => rawMatAmount * (MaterialUsefulArea.valueInMetSq / (totalWeights * rawMatAmount.res.Area.valueInMetSq))
-                )
+                    weights: rawMatPropors.ToEfficientReadOnlyDict
+                    (
+                        keySelector: rawMatAmount => rawMatAmount.res,
+                        elementSelector: rawMatAmount => rawMatAmount.amount
+                    ),
+                    totalAmount: rawMatTotalAmountInSmallComposition
+                ).Select(resAndAmount => new ResAmount<RawMaterial>(res: resAndAmount.owner, resAndAmount.amount))
             );
-            var bla = composition.Area();
-            Debug.Assert(composition.Area() == MaterialUsefulArea);
+            RawMatAmounts composition = smallComposition * smallCompositionsInBlock;
+            Debug.Assert(composition.Area() == blockArea);
+            Debug.Assert(composition.All(rawMatAmount => rawMatAmount.amount % materialCompositionDivisor is 0));
             return composition;
         }
 
@@ -76,10 +83,10 @@ namespace Game1
         public static Color RawMaterialColor(ulong ind)
             => Color.Lerp(Color.Green, Color.Brown, amount: (float)MyMathHelper.Tanh(ind / 3.0));
 
-        // The bigger the number, the easier this raw material will react with itself
-        // Formula is plucked out of thin air
+        // Want the amount of energy generated from fusion to be proportional to 1 / (ind + 1),
+        // i.e. decreasing with ind quite fast
         public static UDouble RawMaterialFusionReactionStrengthCoeff(ulong ind)
-            => (UDouble)0.000000000000001 * (MaxRawMatInd - ind);
+            => (ind == maxRawMatInd) ? 0 : (UDouble)0.00000000000000000001 * (RawMaterialMass(ind: ind) - RawMaterialMass(ind: ind + 1)).valueInKg / (ind + 1);
 
         public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
 #warning Complete this by making it actually random
@@ -153,7 +160,7 @@ namespace Game1
         {
             AreaInt buildingComponentProporsTotalArea = buildingComponentPropors.Sum
             (
-                prodParamsAndAmount => prodParamsAndAmount.prodParams.usefulArea * prodParamsAndAmount.amount
+                prodParamsAndAmount => prodParamsAndAmount.prodParams.area * prodParamsAndAmount.amount
             );
             return buildingComponentPropors.Select
             (
@@ -171,13 +178,13 @@ namespace Game1
 
         public static CurProdStats CurConstrStats(AllResAmounts buildingCost, UDouble gravity, Temperature temperature, ulong worldSecondsInGameSecond)
         {
-            var buildingComponentsUsefulArea = buildingCost.UsefulArea();
+            var buildingComponentsArea = buildingCost.Area();
 #warning Complete this
             return new
             (
-                ReqWatts: buildingComponentsUsefulArea.valueInMetSq / 100000,
+                ReqWatts: buildingComponentsArea.valueInMetSq / 100000,
                 // Means that the building will complete in 10 real world seconds
-                ProducedAreaPerSec: buildingComponentsUsefulArea.valueInMetSq / (worldSecondsInGameSecond * 10)
+                ProducedAreaPerSec: buildingComponentsArea.valueInMetSq / (worldSecondsInGameSecond * 10)
             );
         }
 
@@ -249,7 +256,6 @@ namespace Game1
         /// Throughput is the input/output area of building per unit time
         /// </summary>
         /// <param Name="relevantMassPUBA">Mass which needs to be moved/rotated. Until structural material purpose is in use, this is all the splittingMass of matAmounts and products</param>
-        /// <param Name="mechStrength">Mechanical component strength</param>
         private static UDouble MaxMechThroughputPUBA(Propor mechanicalProporInBuilding, MaterialPalette mechanicalMatPalette, MechComplexity buildingComplexity, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
             // SHOULD PROBABLY also take into account the complexity of the building
             // This is maximum of restriction from gravity and restriction from mechanical strength compared to total weigtht of things

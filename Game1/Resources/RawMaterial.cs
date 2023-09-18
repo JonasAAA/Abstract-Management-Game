@@ -5,7 +5,7 @@
     {
         public static RawMaterial GetAndAddToCurResConfigIfNeeded(ResConfig curResConfig, ulong ind)
         {
-            if (ind > ResAndIndustryAlgos.MaxRawMatInd)
+            if (ind > ResAndIndustryAlgos.maxRawMatInd)
                 throw new ArgumentException();
             if (curResConfig.GetRawMatFromInd(ind: ind) is RawMaterial rawMaterial)
                 return rawMaterial;
@@ -15,8 +15,7 @@
                 ind: ind,
                 name: ResAndIndustryAlgos.RawMaterialName(ind: ind),
                 mass: ResAndIndustryAlgos.RawMaterialMass(ind: ind),
-                heatCapacity: ResAndIndustryAlgos.RawMaterialHeatCapacity(ind: ind),
-                area: ResAndIndustryAlgos.RawMaterialArea(ind: ind),
+                heatCapacity: ResAndIndustryAlgos.RawMaterialHeatCapacityPerArea(ind: ind),
                 color: ResAndIndustryAlgos.RawMaterialColor(ind: ind),
                 fusionReactionStrengthCoeff: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ind)
             );
@@ -25,7 +24,6 @@
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
-        public AreaInt UsefulArea { get; }
         public RawMatAmounts RawMatComposition { get; }
         public Color Color { get; }
         public UDouble FusionReactionStrengthCoeff { get; }
@@ -33,13 +31,12 @@
 
         private readonly string name;
 
-        private RawMaterial(ResConfig curResConfig, ulong ind, string name, Mass mass, HeatCapacity heatCapacity, AreaInt area, Color color, UDouble fusionReactionStrengthCoeff)
+        private RawMaterial(ResConfig curResConfig, ulong ind, string name, Mass mass, HeatCapacity heatCapacity, Color color, UDouble fusionReactionStrengthCoeff)
         {
             this.name = name;
             Mass = mass;
             HeatCapacity = heatCapacity;
-            Area = area;
-            UsefulArea = area;
+            Area = ResAndIndustryAlgos.rawMaterialArea;
             RawMatComposition = new(res: this, amount: 1);
             Color = color;
             FusionReactionStrengthCoeff = fusionReactionStrengthCoeff;

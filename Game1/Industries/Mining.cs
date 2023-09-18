@@ -92,7 +92,7 @@ namespace Game1.Industries
             public AreaDouble AreaToMine()
                 => CurBuildingArea * CurWorldConfig.productionProporOfBuildingArea;
 
-            /// <param Name="splittingMass">Mass of materials curretly being mined</param>
+            /// <param Name="miningMass">Mass of materials curretly being mined</param>
             public CurProdStats CurMiningStats(Mass miningMass)
                 => ResAndIndustryAlgos.CurMechProdStats
                 (
@@ -107,7 +107,7 @@ namespace Game1.Industries
             public void RemoveUnneededBuildingComponents(ResPile buildingResPile, ResPile outputStorage)
             {
                 var buildingComponentsToRemove = buildingResPile.Amount - ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA, CurBuildingArea);
-                if (buildingComponentsToRemove.UsefulArea() >= CurWorldConfig.minUsefulBuildingComponentAreaToRemove)
+                if (buildingComponentsToRemove.Area() >= CurWorldConfig.minUsefulBuildingComponentAreaToRemove)
                 {
                     outputStorage.TransferFrom
                     (

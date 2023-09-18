@@ -187,7 +187,7 @@ namespace Game1.Industries
                     buildingParams: buildingParams,
                     persistentState: persistentState,
                     inputStorage: inputStorage,
-                    maxOutputArea: buildingParams.MaxStoredOutputArea() - outputStorage.Amount.UsefulArea()
+                    maxOutputArea: buildingParams.MaxStoredOutputArea() - outputStorage.Amount.Area()
                 );
         }
 

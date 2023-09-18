@@ -1,4 +1,5 @@
 ﻿using Game1.Collections;
+using Game1.Delegates;
 using Priority_Queue;
 using System.IO;
 using System.Numerics;
@@ -36,10 +37,13 @@ namespace Game1
                 (true, true) => 0,
                 (true, false) => 1,
                 (false, true) => -1,
-                (false, false) => ((UInt128)left.totOwnedEnergy.ValueInJ() * right.reqEnergy.ValueInJ()).CompareTo
-                    (
-                        (UInt128)right.totOwnedEnergy.ValueInJ() * left.reqEnergy.ValueInJ()
-                    )
+                (false, false) => MyMathHelper.CompareFractions
+                (
+                    numeratorA: left.totOwnedEnergy.ValueInJ(),
+                    denominatorA: left.reqEnergy.ValueInJ(),
+                    numeratorB: right.totOwnedEnergy.ValueInJ(),
+                    denominatorB: right.reqEnergy.ValueInJ()
+                )
             };
             return compareValues is 0 ? left.index.CompareTo(right.index) : compareValues;
         }
@@ -62,21 +66,18 @@ namespace Game1
                 );
 
             Debug.Assert(!totalReqEnergy.IsZero);
-            EfficientReadOnlyCollection<ConsumerWithEnergy<T>> consumersWithEnergy = new
+            EfficientReadOnlyCollection<ConsumerWithEnergy<T>> consumersWithEnergy = reqEnergies.Select
             (
-                reqEnergies.Select
+                (reqEnergy, index) => new ConsumerWithEnergy<T>
                 (
-                    (reqEnergy, index) => new ConsumerWithEnergy<T>
+                    Index: index,
+                    ReqEnergy: reqEnergy,
+                    AllocEnergy: IUnconstrainedEnergy<T>.CreateFromJoules
                     (
-                        Index: index,
-                        ReqEnergy: reqEnergy,
-                        AllocEnergy: IUnconstrainedEnergy<T>.CreateFromJoules
-                        (
-                            valueInJ: (ulong)((UInt128)reqEnergy.ValueInJ() * availableEnergy.ValueInJ() / totalReqEnergy.ValueInJ())
-                        )
+                        valueInJ: (ulong)((UInt128)reqEnergy.ValueInJ() * availableEnergy.ValueInJ() / totalReqEnergy.ValueInJ())
                     )
-                ).ToList()
-            );
+                )
+            ).ToEfficientReadOnlyCollection();
             var sortedConsumersWithEnergy = consumersWithEnergy.Order().ToList();
             var remainingEnergy = availableEnergy - sortedConsumersWithEnergy.Sum(energyConsumer => energyConsumer.AllocEnergy);
             // Give the remaining energy to those that got the least of it.
@@ -208,9 +209,41 @@ namespace Game1
             }
         }
 
+        public static EfficientReadOnlyCollection<(TOwner owner, ulong amount)> Split<TOwner>(EfficientReadOnlyDictionary<TOwner, ulong> weights, ulong totalAmount)
+            where TOwner : notnull
+        {
+#warning Test this
+            ulong weightSum = weights.Sum(ownerAndWeight => ownerAndWeight.Value);
+            List<(TOwner owner, ulong amount)> ownersToAmounts = weights.Select
+            (
+                ownerAndWeight =>
+                (
+                    owner: ownerAndWeight.Key,
+                    amount: (ulong)((UInt128)totalAmount * ownerAndWeight.Value / weightSum)
+                )
+            ).ToList();
+            ulong unusedAmount = totalAmount - ownersToAmounts.Sum(ownerAndAmount => ownerAndAmount.amount);
+            Debug.Assert(unusedAmount <= (ulong)ownersToAmounts.Count);
+            ownersToAmounts.Sort
+            (
+                comparison: (ownerAndAmount, otherOwnerAndAmount)
+                    => MyMathHelper.CompareFractions
+                    (
+                        numeratorA: ownerAndAmount.amount,
+                        denominatorA: weights[ownerAndAmount.owner],
+                        numeratorB: otherOwnerAndAmount.amount,
+                        denominatorB: weights[otherOwnerAndAmount.owner]
+                    )
+            );
+            for (int i = 0; i < (int)unusedAmount; i++)
+                ownersToAmounts[i] = (owner: ownersToAmounts[i].owner, amount: ownersToAmounts[i].amount + 1);
+            Debug.Assert(ownersToAmounts.Sum(ownerAndAmount => ownerAndAmount.amount) == totalAmount);
+            return ownersToAmounts.ToEfficientReadOnlyCollection();
+        }
+
         // Inspired by https://en.wikipedia.org/wiki/Lawson_criterion#Energy_balance
         public static RawMatAmounts CosmicBodyNewCompositionFromNuclearFusion(ResConfig curResConfig, RawMatAmounts composition, UDouble gravity, Temperature temperature, TimeSpan duration,
-            Func<RawMaterial, decimal, ulong> reactionNumberRounder, Propor nonReactingProporForUnitReactionStrengthUnitTime)
+            Func<RawMaterial, decimal, ulong> reactionNumberRounder)
         {
             AreaDouble compositionArea = composition.Area().ToDouble();
             Dictionary<RawMaterial, ulong> cosmicBodyNextComposition = new(2 * composition.Count);
@@ -224,7 +257,6 @@ namespace Game1
                     temperature: temperature,
                     duration: duration,
                     reactionNumberRounder: reactionNum => reactionNumberRounder(rawMaterial, reactionNum),
-                    nonReactingProporForUnitReactionStrengthUnitTime: nonReactingProporForUnitReactionStrengthUnitTime,
                     fusionReactionStrengthCoeff: rawMaterial.FusionReactionStrengthCoeff
                 );
                 cosmicBodyNextComposition[rawMaterial] = cosmicBodyNextComposition.GetValueOrDefault(key: rawMaterial) + nonReactingAmount;
@@ -240,19 +272,21 @@ namespace Game1
         }
 
         public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusionSingleRawMat(ulong amount, AreaDouble compositionArea, UDouble gravity, Temperature temperature,
-            TimeSpan duration, Func<decimal, ulong> reactionNumberRounder, Propor nonReactingProporForUnitReactionStrengthUnitTime, UDouble fusionReactionStrengthCoeff)
+            TimeSpan duration, Func<decimal, ulong> reactionNumberRounder, UDouble fusionReactionStrengthCoeff)
         {
-            // Number density is from https://en.wikipedia.org/wiki/Number_density
-            // Volume number density is the number of specified objects per unit volume
-            double numberDensity = amount / compositionArea.valueInMetSq,
-                reactionStrength = fusionReactionStrengthCoeff * numberDensity * numberDensity * gravity * gravity * temperature.valueInK * temperature.valueInK;
-            decimal nonReactingPropor = (decimal)MyMathHelper.Pow(@base: (UDouble)nonReactingProporForUnitReactionStrengthUnitTime, exponent: reactionStrength * duration.TotalSeconds);
-            ulong maxReactions = amount / 2,
-                numberOfReactions = maxReactions - reactionNumberRounder(nonReactingPropor * maxReactions);
+            // Somewhat equivalent to https://en.wikipedia.org/wiki/Number_density.
+            // Since all raw mats have the same area, this naming makes sense
+            double rawMatProporInComposition = (double)amount / compositionArea.valueInMetSq,
+                reactionStrength = fusionReactionStrengthCoeff * rawMatProporInComposition * rawMatProporInComposition * gravity * gravity * temperature.valueInK * temperature.valueInK;
+            ulong reactingAmount = MyMathHelper.Min
+            (
+                amount,
+                reactionNumberRounder((decimal)(amount * reactionStrength * duration.TotalSeconds))
+            );
             return
             (
-                nonReactingAmount: amount - 2 * numberOfReactions,
-                fusionProductAmount: numberOfReactions
+                nonReactingAmount: amount - reactingAmount,
+                fusionProductAmount: reactingAmount
             );
         }
 

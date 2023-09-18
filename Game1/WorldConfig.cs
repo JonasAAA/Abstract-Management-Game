@@ -72,9 +72,6 @@
             linkJoulesPerNewtonOfGravity = (UDouble).001,
             linkJoulesPerMeterOfDistance = (UDouble).00001;
 
-        public readonly ulong
-            energyInJPerKgOfMass = 300000;
-
         public readonly EnergyPriority
             linkEnergyPrior = new(value: 90),
             industryConstructionEnergyPrior = new(value: 90),
@@ -98,8 +95,6 @@
             halfHeatTemper = Temperature.CreateFromK(valueInK: 1000);
         public readonly UDouble
             heatEnergyDropoffExponent = 2;
-        public readonly Propor
-            nonReactingProporForUnitReactionStrengthUnitTime = (Propor)0.99999;
         public readonly AreaInt minUsefulBuildingComponentAreaToRemove = AreaInt.CreateFromMetSq(valueInMetSq: 30);
         public readonly List<(ulong rawMatInd, ulong amount)> startingRawMatTargetRatios = new()
         {
@@ -116,7 +111,7 @@
             outputStorageProporOfBuildingArea = (Propor).1,
             storageProporOfBuildingAreaForStorageIndustry = (Propor).6;
 
-        public readonly ulong magicUnlimitedStartingMaterialCount = uint.MaxValue;
+        public readonly ulong magicUnlimitedStartingMaterialCount = ulong.MaxValue / 100;
 
         public WorldConfig()
             => linkWidth = 10 * metersPerStartingPixel;

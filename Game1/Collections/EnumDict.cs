@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Collections;
+using System.Runtime.CompilerServices;
 
 namespace Game1.Collections
 {
@@ -8,7 +9,7 @@ namespace Game1.Collections
     /// </summary>
     /// <typeparam Name="TKey">must be integer-backed enum</typeparam>
     [Serializable]
-    public readonly struct EnumDict<TKey, TValue>
+    public readonly struct EnumDict<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
         where TKey : unmanaged, Enum
     {
         public IEnumerable<TValue> Values
@@ -63,5 +64,14 @@ namespace Game1.Collections
                 throw new InvalidOperationException("type mismatch");
             return Unsafe.As<TKey, int>(ref key);
         }
+
+        public IEnumerator<KeyValuePair<TKey, TValue>> GetEnumerator()
+        {
+            foreach (var key in Enum.GetValues<TKey>())
+                yield return new KeyValuePair<TKey, TValue>(key: key, value: this[key]);
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+            => GetEnumerator();
     }
 }

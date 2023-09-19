@@ -1,4 +1,5 @@
 ﻿using Game1.Collections;
+using Game1.Delegates;
 using Game1.UI;
 using static Game1.WorldManager;
 
@@ -26,10 +27,16 @@ namespace Game1.Industries
                 neededProductClasses = buildingGeneralParams.BuildingCostPropors.neededProductClasses;
             }
 
+            /// <summary>
+            /// Return null if no production choice is needed
+            /// </summary>
+            public IHUDElement? CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
+                => buildingGeneralParams.CreateProductionChoicePanel(productionChoiceSetter: productionChoiceSetter);
+
             public bool SufficientBuildingMatPalettes(MaterialPaletteChoices curBuildingMatPaletteChoices)
                 => neededProductClasses.IsSubsetOf(other: curBuildingMatPaletteChoices.choices.Keys);
 
-            public ConcreteParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices)
+            public ConcreteParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
                 => new
                 (
                     nodeState: nodeState,
@@ -37,7 +44,8 @@ namespace Game1.Industries
                     concreteBuildingParams: buildingGeneralParams.CreateConcrete
                     (
                         nodeState: nodeState,
-                        neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices
+                        neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices,
+                        productionChoice: productionChoice
                     )
                 );
         }

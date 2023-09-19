@@ -146,10 +146,6 @@ namespace Game1
             linkJoulesPerUnitGravitAccel = metersPerStartingPixel * (UDouble).00000000000000001;
             // Since [linkJoulesPerMeterOfDistance] ~ J/m
             linkJoulesPerMeterOfDistance = metersPerStartingPixel * (UDouble).0000000000000000001;
-
-            // J ~ S * [coeff]
-            // ReqWatts: buildingComponentsArea.valueInMetSq / 100000,
-            // ProducedAreaPerSec: buildingComponentsArea.valueInMetSq / (worldSecondsInGameSecond * 10)
         }
     }
 }

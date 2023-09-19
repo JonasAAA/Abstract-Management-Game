@@ -1,15 +1,19 @@
 ﻿using Game1.Collections;
+using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
+    // So that if change MaterialProductionChoice, will get compilation errors about giving player something to choose in UI and using something different in code
+    using MaterialProductionChoice = Material;
     /// <summary>
     /// Responds properly to planet shrinking, but NOT to planet widening
     /// </summary>
     public static class MaterialProduction
     {
+#pragma warning disable IDE0001 // Otherwise it says to use MaterialProductionChoice instead of Material everywhere
         [Serializable]
         public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
@@ -34,7 +38,10 @@ namespace Game1.Industries
                 this.buildingComponentPropors = buildingComponentPropors;
             }
 
-            public IConcreteBuildingConstructionParams CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices)
+            public IHUDElement? CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
+                => IndustryUIAlgos.CreateMaterialChoiceDropdown(materialChoiceSetter: productionChoiceSetter.Convert<MaterialProductionChoice>());
+
+            public IConcreteBuildingConstructionParams CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
                 => new ConcreteBuildingParams
                 (
                     nodeState: nodeState,
@@ -47,6 +54,7 @@ namespace Game1.Industries
                         buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
                     ),
                     buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
+                    productionMaterialChoice: (MaterialProductionChoice)productionChoice.Choice,
                     surfaceMatPalette: neededBuildingMatPaletteChoices[IProductClass.roof]
                 );
         }
@@ -63,12 +71,13 @@ namespace Game1.Industries
             private readonly AreaDouble buildingArea;
             private readonly GeneralBuildingParams generalParams;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
+            private readonly MaterialProductionChoice productionMaterialChoice;
             private readonly AllResAmounts buildingCost;
             private readonly AreaInt maxStoredOutputArea;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
-                MaterialPaletteChoices buildingMatPaletteChoices, MaterialPalette surfaceMatPalette)
+                MaterialPaletteChoices buildingMatPaletteChoices, MaterialProductionChoice productionMaterialChoice, MaterialPalette surfaceMatPalette)
             {
                 Name = generalParams.Name;
                 NodeState = nodeState;
@@ -79,6 +88,7 @@ namespace Game1.Industries
                 buildingArea = buildingImage.Area;
                 this.generalParams = generalParams;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
+                this.productionMaterialChoice = productionMaterialChoice;
                 maxStoredOutputArea = (buildingArea * CurWorldConfig.outputStorageProporOfBuildingArea).RoundDown();
                 buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
@@ -116,7 +126,12 @@ namespace Game1.Industries
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
             IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
-                => new Industry<ConcreteProductionParams, ConcreteBuildingParams, ResPile, ProductionCycleState>(productionParams: new(), buildingParams: this, persistentState: buildingResPile);
+                => new Industry<ConcreteProductionParams, ConcreteBuildingParams, ResPile, ProductionCycleState>
+                (
+                    productionParams: new(material: productionMaterialChoice),
+                    buildingParams: this,
+                    persistentState: buildingResPile
+                );
 
             IBuildingImage Industry.IConcreteBuildingParams<ConcreteProductionParams>.IdleBuildingImage
                 => buildingImage;
@@ -297,5 +312,6 @@ namespace Game1.Industries
             {
                 typeof(Industry<ConcreteProductionParams, ConcreteBuildingParams, ResPile, ProductionCycleState>)
             };
+#pragma warning restore IDE0001
     }
 }

@@ -6,9 +6,12 @@ using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
+    // So that if change StorageProductionChoice, will get compilation errors about giving player something to choose in UI and using something different in code
+    using StorageProductionChoice = IResource;
     [Serializable]
     public sealed class Storage : IIndustry
     {
+#pragma warning disable IDE0001 // Otherwise it says to use StorageProductionChoice instead of IResource everywhere
         [Serializable]
         public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
@@ -28,7 +31,10 @@ namespace Game1.Industries
                 this.buildingComponentPropors = buildingComponentPropors;
             }
 
-            public ConcreteBuildingParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices)
+            public IHUDElement? CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
+                => IndustryUIAlgos.CreateRresourceChoiceDropdown(resChoiceSetter: productionChoiceSetter.Convert<StorageProductionChoice>());
+
+            public ConcreteBuildingParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, StorageProductionChoice resToStoreChoice)
             {
                 if (!BuildingCostPropors.neededProductClasses.SetEquals(neededBuildingMatPaletteChoices.choices.Keys))
                     throw new ArgumentException();
@@ -45,12 +51,13 @@ namespace Game1.Industries
                         buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
                     ),
                     buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
+                    resToStoreChoice: resToStoreChoice,
                     surfaceMatPalette: neededBuildingMatPaletteChoices[IProductClass.roof]
                 );
             }
 
-            IConcreteBuildingConstructionParams IGeneralBuildingConstructionParams.CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices)
-                => CreateConcrete(nodeState: nodeState, neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices);
+            IConcreteBuildingConstructionParams IGeneralBuildingConstructionParams.CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
+                => CreateConcrete(nodeState: nodeState, neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices, resToStoreChoice: (StorageProductionChoice)productionChoice.Choice);
         }
 
         [Serializable]
@@ -67,10 +74,11 @@ namespace Game1.Industries
             // Probably the only possible dependance is how much weight it can hold.
             private readonly GeneralBuildingParams generalParams;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
+            private readonly StorageProductionChoice resToStoreChoice;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
-                MaterialPaletteChoices buildingMatPaletteChoices, MaterialPalette surfaceMatPalette)
+                MaterialPaletteChoices buildingMatPaletteChoices, StorageProductionChoice resToStoreChoice, MaterialPalette surfaceMatPalette)
             {
                 Name = generalParams.Name;
                 NodeState = nodeState;
@@ -80,6 +88,7 @@ namespace Game1.Industries
                 buildingArea = buildingImage.Area;
                 this.generalParams = generalParams;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
+                this.resToStoreChoice = resToStoreChoice;
                 BuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
 
@@ -95,15 +104,15 @@ namespace Game1.Industries
                     )
                 );
 
-            public IIndustry CreateFullySpecifiedFilledStorage(ResPile buildingResPile, IResource storedRes, ResPile storedResSource)
+            public IIndustry CreateFilledStorage(ResPile buildingResPile, ResPile storedResSource)
             {
                 var storageIndustry = new Storage
                 (
-                    storageParams: new(storedRes: storedRes),
+                    storageParams: new(storedRes: resToStoreChoice),
                     buildingParams: this,
                     buildingResPile: buildingResPile
                 );
-                storageIndustry.storage.TransferFrom(source: storedResSource, amount: MaxStored(storedRes: storedRes));
+                storageIndustry.storage.TransferFrom(source: storedResSource, amount: MaxStored(storedRes: resToStoreChoice));
                 return storageIndustry;
             }
 
@@ -111,7 +120,12 @@ namespace Game1.Industries
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
             IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
-                => new Storage(storageParams: new(), buildingParams: this, buildingResPile: buildingResPile);
+                => new Storage
+                (
+                    storageParams: new(storedRes: resToStoreChoice),
+                    buildingParams: this,
+                    buildingResPile: buildingResPile
+                );
         }
 
         [Serializable]
@@ -280,5 +294,6 @@ namespace Game1.Industries
 
         public string GetInfo()
             => throw new NotImplementedException();
+#pragma warning restore IDE0001
     }
 }

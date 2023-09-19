@@ -1,4 +1,5 @@
 ﻿using Game1.Collections;
+using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
@@ -31,8 +32,15 @@ namespace Game1.Industries
                 this.buildingComponentPropors = buildingComponentPropors;
             }
 
-            public IConcreteBuildingConstructionParams CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices)
-                => new ConcreteBuildingParams
+            IHUDElement? IGeneralBuildingConstructionParams.CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
+                => null;
+
+            public IConcreteBuildingConstructionParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices)
+            {
+                if (!BuildingCostPropors.neededProductClasses.SetEquals(neededBuildingMatPaletteChoices.choices.Keys))
+                    throw new ArgumentException();
+
+                return new ConcreteBuildingParams
                 (
                     nodeState: nodeState,
                     generalParams: this,
@@ -45,6 +53,14 @@ namespace Game1.Industries
                     ),
                     buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
                     surfaceMatPalette: neededBuildingMatPaletteChoices[IProductClass.roof]
+                );
+            }
+
+            IConcreteBuildingConstructionParams IGeneralBuildingConstructionParams.CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
+                => CreateConcrete
+                (
+                    nodeState: nodeState,
+                    neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices
                 );
         }
 

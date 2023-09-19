@@ -168,13 +168,15 @@ namespace Game1
 
                 IIndustry CreateStorageIndustry(string productParamsName)
                 {
+                    var productParams = Product.productParamsDict[productParamsName];
                     var concreteParams = industryConfig.startingStorageParams.CreateConcrete
                     (
                         nodeState: nodeState,
                         neededBuildingMatPaletteChoices: resConfig.StartingMaterialPaletteChoices.FilterOutUnneededMatPalettes
                         (
                             neededProductClasses: industryConfig.startingStorageParams.BuildingCostPropors.neededProductClasses
-                        )
+                        ),
+                        resToStoreChoice: productParams.GetProduct(materialPalette: resConfig.StartingMaterialPaletteChoices[productParams.productClass])
                     );
 
                     var buildingResPile = ResPile.CreateIfHaveEnough
@@ -183,11 +185,9 @@ namespace Game1
                         amount: concreteParams.BuildingCost
                     );
                     Debug.Assert(buildingResPile is not null);
-                    var productParams = Product.productParamsDict[productParamsName];
-                    return concreteParams.CreateFullySpecifiedFilledStorage
+                    return concreteParams.CreateFilledStorage
                     (
                         buildingResPile: buildingResPile,
-                        storedRes: productParams.GetProduct(materialPalette: resConfig.StartingMaterialPaletteChoices[productParams.productClass]),
                         storedResSource: magicUnlimitedStartingResPile
                     );
                 }

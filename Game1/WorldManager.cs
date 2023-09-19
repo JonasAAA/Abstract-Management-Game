@@ -4,7 +4,6 @@ using Game1.Delegates;
 using Game1.Industries;
 using Game1.Inhabitants;
 using Game1.Lighting;
-using Game1.Resources;
 using Game1.Shapes;
 using Game1.UI;
 using System.Diagnostics.CodeAnalysis;
@@ -46,7 +45,7 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly struct BuildingConfigPanelManager
+        private sealed class BuildingConfigPanelManager : IItemChoiceSetter<MaterialPalette>, IItemChoiceSetter<ProductionChoice>
         {
             public static void StartBuildingConfig(Construction.GeneralParams constrGeneralParams)
             {
@@ -65,6 +64,8 @@ namespace Game1
                     );
             }
 
+            public ProductionChoice? ProductionChoice { get; private set; }
+
             private readonly Construction.GeneralParams constrGeneralParams;
             private readonly UIRectVertPanel<IHUDElement> buildingConfigPanel;
             private readonly List<CosmicBodyBuildPanelManager> cosmicBodyBuildPanelManagers;
@@ -75,6 +76,7 @@ namespace Game1
             {
                 this.constrGeneralParams = constrGeneralParams;
                 mutableBuildingMatPaletteChoices = new();
+                ProductionChoice = null;
                 buildingConfigPanel = new(childHorizPos: HorizPosEnum.Left);
                 buildingConfigPanel.AddChild(child: new TextBox() { Text = "Material Choices" });
                 cancelButton = new
@@ -94,28 +96,24 @@ namespace Game1
                     UIRectHorizPanel<IHUDElement> matPaletteChoiceLine = new(childVertPos: VertPosEnum.Middle);
                     buildingConfigPanel.AddChild(child: matPaletteChoiceLine);
                     matPaletteChoiceLine.AddChild(child: new TextBox() { Text = $"{productClass} " });
-                    Button startMatPaletteChoice = new
-                    (
-                        shape: new MyRectangle(width: 200, height: 30),
-                        tooltip: new ImmutableTextTooltip(text: UIAlgorithms.StartMatPaletteChoiceForProductClassTooltip(productClass: productClass)),
-                        text: "+"
-                    );
+                    Button startMatPaletteChoice = IndustryUIAlgos.CreateMatPaletteChoiceDropdown(matPaletteChoiceSetter: this, productClass: productClass);
                     matPaletteChoiceLine.AddChild(child: startMatPaletteChoice);
-                    startMatPaletteChoice.clicked.Add
-                    (
-                        listener: new StartMatPaletteChoiceListener
-                        (
-                            BuildingConfigPanelManager: this,
-                            StartMatPaletteChoice: startMatPaletteChoice,
-                            ProductClass: productClass
-                        )
-                    );
                 }
+
+                buildingConfigPanel.AddChild(child: new TextBox() { Text = "Production config" });
+
+                var productionChoicePanel = constrGeneralParams.CreateProductionChoicePanel(productionChoiceSetter: this);
+                if (productionChoicePanel is null)
+                {
+                    buildingConfigPanel.AddChild(child: new TextBox() { Text = UIAlgorithms.NothingToConfigure });
+                    SetProductionChoice(productionChoice: new ProductionChoice(Choice: new UnitType()));
+                }
+                else
+                    buildingConfigPanel.AddChild(child: productionChoicePanel);
 
                 buildingConfigPanel.AddChild(child: cancelButton);
                 cancelButton.clicked.Add(listener: new CancelBuildingButtonListener(BuildingConfigPanelManager: this));
                 
-                var thisCopy = this;
                 cosmicBodyBuildPanelManagers.AddRange
                 (
                     collection: CurWorldManager.CurGraph.Nodes.Where
@@ -139,10 +137,10 @@ namespace Game1
                             (
                                 listener: new BuildOnCosmicBodyButtonListener
                                 (
-                                    BuildingConfigPanelManager: thisCopy,
+                                    BuildingConfigPanelManager: this,
                                     CosmicBody: cosmicBody,
                                     ConstrGeneralParams: constrGeneralParams,
-                                    NeededBuildingMatPaletteChoices: thisCopy.GetBuildingMatPaletteChoices()
+                                    NeededBuildingMatPaletteChoices: this.GetBuildingMatPaletteChoices()
                                 )
                             );
                             return new CosmicBodyBuildPanelManager
@@ -169,13 +167,30 @@ namespace Game1
                     choices: new(dict: mutableBuildingMatPaletteChoices)
                 );
 
-            public void SetMatPaletteChoice(MaterialPalette materialPalette)
+            void IItemChoiceSetter<ProductionChoice>.SetChoice(ProductionChoice item)
+                => SetProductionChoice(productionChoice: item);
+
+            private void SetProductionChoice(ProductionChoice productionChoice)
+            {
+                ProductionChoice = productionChoice;
+                EnableOrDisableBuildButtons();
+            }
+
+            void IItemChoiceSetter<MaterialPalette>.SetChoice(MaterialPalette item)
+                => SetMatPaletteChoice(materialPalette: item);
+
+            private void SetMatPaletteChoice(MaterialPalette materialPalette)
             {
                 mutableBuildingMatPaletteChoices[materialPalette.productClass] = materialPalette;
-                bool enableBuildButtons = constrGeneralParams.SufficientBuildingMatPalettes(curBuildingMatPaletteChoices: GetBuildingMatPaletteChoices());
+#warning Complete this. In case all material choices are made, show player the stats of the to-be-constructed building
+                EnableOrDisableBuildButtons();
+            }
+
+            private void EnableOrDisableBuildButtons()
+            {
+                bool enableBuildButtons = ProductionChoice is not null && constrGeneralParams.SufficientBuildingMatPalettes(curBuildingMatPaletteChoices: GetBuildingMatPaletteChoices());
                 foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers)
                     cosmicBodyPanelManager.BuildButton.PersonallyEnabled = enableBuildButtons;
-#warning Complete this. In case all material choices are made, show player the stats of the to-be-constructed building
             }
 
             public void StopBuildingConfig()
@@ -184,60 +199,6 @@ namespace Game1
                 foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers)
                     CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyPanelManager.CosmicBodyBuildPanel);
                 CurWorldManager.activeUIManager.EnableAllUIElements();
-            }
-        }
-
-        [Serializable]
-        private sealed record StartMatPaletteChoiceListener(BuildingConfigPanelManager BuildingConfigPanelManager, Button StartMatPaletteChoice, IProductClass ProductClass) : IClickedListener
-        {
-            void IClickedListener.ClickedResponse()
-            {
-                UIRectVertPanel<IHUDElement> matPaletteChoicePopup = new(childHorizPos: HorizPosEnum.Middle);
-                PosEnums popupOrigin = new(HorizPosEnum.Middle, VertPosEnum.Middle);
-                CurWorldManager.SetHUDPopup
-                (
-                    HUDElement: matPaletteChoicePopup,
-                    HUDPos: StartMatPaletteChoice.Shape.GetSpecPos(origin: popupOrigin),
-                    origin: popupOrigin
-                );
-                foreach (var materialPalette in CurResConfig.GetMatPalettes(productClass: ProductClass))
-                {
-                    Debug.Assert(materialPalette.productClass == ProductClass);
-                    Button chooseMatButton = new
-                    (
-                        shape: new MyRectangle(width: 200, height: 30),
-                        tooltip: new ImmutableTextTooltip
-                        (
-                            text: UIAlgorithms.ChooseMatPaletteForProductClass
-                            (
-                                materialPalette: materialPalette,
-                                productClass: ProductClass
-                            )
-                        ),
-                        text: materialPalette.ToString()
-                    );
-                    matPaletteChoicePopup.AddChild(child: chooseMatButton);
-                    chooseMatButton.clicked.Add
-                    (
-                        listener: new MatPaletteChoiceListener
-                        (
-                            BuildingConfigPanelManager: BuildingConfigPanelManager,
-                            StartMatPaletteChoice: StartMatPaletteChoice,
-                            MaterialPalette: materialPalette
-                        )
-                    );
-                }
-
-            }
-        }
-
-        [Serializable]
-        private sealed record MatPaletteChoiceListener(BuildingConfigPanelManager BuildingConfigPanelManager, Button StartMatPaletteChoice, MaterialPalette MaterialPalette) : IClickedListener
-        {
-            void IClickedListener.ClickedResponse()
-            {
-                StartMatPaletteChoice.Text = MaterialPalette.ToString();
-                BuildingConfigPanelManager.SetMatPaletteChoice(materialPalette: MaterialPalette);
             }
         }
 
@@ -261,7 +222,8 @@ namespace Game1
                     constrConcreteParams: ConstrGeneralParams.CreateConcrete
                     (
                         nodeState: CosmicBody.NodeState,
-                        neededBuildingMatPaletteChoices: NeededBuildingMatPaletteChoices
+                        neededBuildingMatPaletteChoices: NeededBuildingMatPaletteChoices,
+                        productionChoice: BuildingConfigPanelManager.ProductionChoice ?? throw new InvalidOperationException()
                     )
                 );
                 BuildingConfigPanelManager.StopBuildingConfig();

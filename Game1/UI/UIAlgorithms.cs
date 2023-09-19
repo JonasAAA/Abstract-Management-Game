@@ -47,6 +47,9 @@ namespace Game1.UI
         public static string AddResSourceForBuildingTooltip(IResource res)
             => $"Add new source of {res}";
 
+        public static string NothingToConfigure
+            => "Nothing to configure";
+
         public static string NoResourcesProduced
             => "Produces no\nresources";
 
@@ -66,11 +69,23 @@ namespace Game1.UI
 #warning Complete this by adding info from constrGeneralParams.buildingGeneralParams
             => $"{constrGeneralParams.buildingGeneralParams.Name}\nEnergy priority {constrGeneralParams.energyPriority}\n";
 
+        public static string StartMatPaletteChoiceForProductClassTooltip(IProductClass productClass)
+            => $"Choose {productClass} material palette";
+
         public static string ChooseMatPaletteForProductClass(MaterialPalette materialPalette, IProductClass productClass)
             => $"Choose {materialPalette} for {productClass}";
 
-        public static string StartMatPaletteChoiceForProductClassTooltip(IProductClass productClass)
-            => $"Choose {productClass} material palette";
+        public static string StartMaterialChoice
+            => "Choose material";
+
+        public static string ChooseMaterial(Material material)
+            => $"Choose {material}";
+
+        public static string StartResourceChoiceTooltip
+            => "Choose resource";
+
+        public static string ChooseResource(IResource resource)
+            => $"Choose {resource}";
 
         public static string ConstructionComplete(string buildingName)
             => $"Building {buildingName} is complete!";

@@ -115,7 +115,8 @@ namespace Game1
             productionProporOfBuildingArea = (Propor).05,
             inputStorageProporOfBuildingArea = (Propor).1,
             outputStorageProporOfBuildingArea = (Propor).1,
-            storageProporOfBuildingAreaForStorageIndustry = (Propor).6;
+            storageProporOfBuildingAreaForStorageIndustry = (Propor).6,
+            buildingComponentStorageProporOfInputStorageArea = (Propor).1;
 
         public readonly ulong magicUnlimitedStartingMaterialCount = ulong.MaxValue / 100;
 

@@ -7,6 +7,8 @@ namespace Game1.Industries
     {
         public AreaDouble Area { get; }
 
+        public AreaDouble HypotheticalArea(AreaInt hypotheticPlanetArea);
+
         public MyVector2 GetPosition(PosEnums origin);
 
         public bool Contains(MyVector2 position);

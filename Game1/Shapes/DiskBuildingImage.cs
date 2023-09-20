@@ -26,12 +26,25 @@ namespace Game1.Shapes
 
         // Note that this is building area, not disk area
         public AreaDouble Area
-            => DiskAlgos.Area(radius: CurRadius) - nodeShapeParams.Area.ToDouble();
+            => AreaImpl(planetArea: nodeShapeParams.Area);
+
+        public AreaDouble HypotheticalArea(AreaInt hypotheticPlanetArea)
+            => AreaImpl(planetArea: hypotheticPlanetArea);
+
+        private AreaDouble AreaImpl(AreaInt planetArea)
+            => DiskAlgos.Area(radius: RadiusImpl(planetArea: planetArea)) - planetArea.ToDouble();
 
         private UDouble FinishedBuildingRadius
             => nodeShapeParams.Radius + parameters.finishedBuildingHeight;
         private UDouble CurRadius
-            => nodeShapeParams.Radius + buildingHeight;
+            => RadiusImpl(planetArea: nodeShapeParams.Area);
+        private UDouble RadiusImpl(AreaInt planetArea)
+        {
+            // The algorithm to calculate hypothetical building area in case planet size changes relies on planet radius to be
+            // exactly what you would get from the planet area assuming that the planet is disk.
+            Debug.Assert(DiskAlgos.RadiusFromArea(area: planetArea.ToDouble()).IsCloseTo(nodeShapeParams.Radius));
+            return DiskAlgos.RadiusFromArea(area: planetArea.ToDouble()) + buildingHeight;
+        }
 
         private readonly Params parameters;
         private readonly INodeShapeParams nodeShapeParams;

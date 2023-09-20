@@ -46,11 +46,27 @@ namespace Game1
         public static Propor WorkingPropor(Propor proporUtilized, ElectricalEnergy allocatedEnergy, ElectricalEnergy reqEnergy)
             => proporUtilized * Propor.Create(part: allocatedEnergy.ValueInJ, whole: reqEnergy.ValueInJ)!.Value;
 
-        public static Propor UpdateDonePropor(this Propor donePropor, Propor workingPropor, UDouble producedAreaPerSec, TimeSpan elapsed, AreaDouble areaInProduction)
+        public static Propor UpdateDonePropor(this Propor donePropor, Propor workingPropor, UDouble producedAreaPerSec, TimeSpan elapsed, AreaInt areaInProduction)
         {
             UDouble areaProduced = workingPropor * (UDouble)elapsed.TotalSeconds * producedAreaPerSec;
             return Propor.CreateByClamp((UDouble)donePropor + areaProduced / areaInProduction.valueInMetSq);
         }
+
+        /// <summary>
+        /// The only difference from CurNeededBuildingComponents is rounding down instead of up
+        /// </summary>
+        public static AllResAmounts MaxBuildingComponentsInArea(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
+            => new
+            (
+                buildingComponentsToAmountPUBA.Select
+                (
+                    prodAndAmountPUBA => new ResAmount<IResource>
+                    (
+                        res: prodAndAmountPUBA.prod,
+                        amount: (ulong)(prodAndAmountPUBA.amountPUBA * curBuildingArea.valueInMetSq)
+                    )
+                )
+            );
 
         public static AllResAmounts CurNeededBuildingComponents(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
             => new
@@ -59,8 +75,8 @@ namespace Game1
                 (
                     prodAndAmountPUBA => new ResAmount<IResource>
                     (
-                        prodAndAmountPUBA.prod,
-                        MyMathHelper.Ceiling(prodAndAmountPUBA.amountPUBA * curBuildingArea.valueInMetSq)
+                        res: prodAndAmountPUBA.prod,
+                        amount: MyMathHelper.Ceiling(prodAndAmountPUBA.amountPUBA * curBuildingArea.valueInMetSq)
                     )
                 )
             );

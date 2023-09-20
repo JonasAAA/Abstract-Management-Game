@@ -260,7 +260,7 @@ namespace Game1.Industries
                     workingPropor: workingPropor,
                     producedAreaPerSec: curMiningStats.ProducedAreaPerSec,
                     elapsed: CurWorldManager.Elapsed,
-                    areaInProduction: miningArea.ToDouble()
+                    areaInProduction: miningArea
                 );
 
                 if (donePropor.IsFull)

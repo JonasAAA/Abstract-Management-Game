@@ -181,7 +181,7 @@ namespace Game1.Industries
                     workingPropor: workingPropor,
                     producedAreaPerSec: curConstrStats.ProducedAreaPerSec,
                     elapsed: CurWorldManager.Elapsed,
-                    areaInProduction: parameters.buildingComponentsArea.ToDouble()
+                    areaInProduction: parameters.buildingComponentsArea
                 );
 
                 if (donePropor.IsFull)

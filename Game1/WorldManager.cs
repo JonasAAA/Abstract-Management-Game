@@ -273,6 +273,7 @@ namespace Game1
             knownTypesSet.UnionWith(Manufacturing.GetKnownTypes());
             knownTypesSet.UnionWith(PowerPlant.GetKnownTypes());
             knownTypesSet.UnionWith(Mining.GetKnownTypes());
+            knownTypesSet.UnionWith(Landfill.GetKnownTypes());
             knownTypesSet.UnionWith(MaterialProduction.GetKnownTypes());
             knownTypesSet.UnionWith(Storage.GetKnownTypes());
             List<Type> unserializedTypeList = new();

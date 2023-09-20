@@ -54,7 +54,7 @@ namespace Game1.Industries
                         buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
                     ),
                     buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
-                    productionMaterialChoice: (MaterialProductionChoice)productionChoice.Choice,
+                    materialProductionChoice: (MaterialProductionChoice)productionChoice.Choice,
                     surfaceMatPalette: neededBuildingMatPaletteChoices[IProductClass.roof]
                 );
         }
@@ -71,13 +71,13 @@ namespace Game1.Industries
             private readonly AreaDouble buildingArea;
             private readonly GeneralBuildingParams generalParams;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
-            private readonly MaterialProductionChoice productionMaterialChoice;
+            private readonly MaterialProductionChoice materialProductionChoice;
             private readonly AllResAmounts buildingCost;
             private readonly AreaInt maxStoredOutputArea;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
-                MaterialPaletteChoices buildingMatPaletteChoices, MaterialProductionChoice productionMaterialChoice, MaterialPalette surfaceMatPalette)
+                MaterialPaletteChoices buildingMatPaletteChoices, MaterialProductionChoice materialProductionChoice, MaterialPalette surfaceMatPalette)
             {
                 Name = generalParams.Name;
                 NodeState = nodeState;
@@ -88,7 +88,7 @@ namespace Game1.Industries
                 buildingArea = buildingImage.Area;
                 this.generalParams = generalParams;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
-                this.productionMaterialChoice = productionMaterialChoice;
+                this.materialProductionChoice = materialProductionChoice;
                 maxStoredOutputArea = (buildingArea * CurWorldConfig.outputStorageProporOfBuildingArea).RoundDown();
                 buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
@@ -128,7 +128,7 @@ namespace Game1.Industries
             IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
                 => new Industry<ConcreteProductionParams, ConcreteBuildingParams, ResPile, ProductionCycleState>
                 (
-                    productionParams: new(material: productionMaterialChoice),
+                    productionParams: new(materialProductionChoice: materialProductionChoice),
                     buildingParams: this,
                     persistentState: buildingResPile
                 );
@@ -190,8 +190,8 @@ namespace Game1.Industries
             public ConcreteProductionParams()
                 => CurMaterial = new(errors: new(UIAlgorithms.NoMaterialIsChosen));
 
-            public ConcreteProductionParams(Material material)
-                => CurMaterial = new(ok: material);
+            public ConcreteProductionParams(MaterialProductionChoice materialProductionChoice)
+                => CurMaterial = new(ok: materialProductionChoice);
         }
 
         [Serializable]
@@ -242,7 +242,7 @@ namespace Game1.Industries
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
             private readonly HistoricRounder reqEnergyHistoricRounder;
             private readonly Propor proporUtilized;
-            private readonly AreaDouble areaInProduction;
+            private readonly AreaInt areaInProduction;
 
             private CurProdStats curProdStats;
             private Propor donePropor, workingPropor;
@@ -256,7 +256,7 @@ namespace Game1.Industries
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
                 reqEnergyHistoricRounder = new();
                 proporUtilized = Propor.Create(part: productionAmount, whole: overallMaxProductionAmount)!.Value;
-                areaInProduction = material.Area.ToDouble() * productionAmount;
+                areaInProduction = material.Area * productionAmount;
                 donePropor = Propor.empty;
             }
 

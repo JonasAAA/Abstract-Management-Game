@@ -114,9 +114,14 @@ namespace Game1
                     ),
                     createIndustry: nodeState =>
                     {
-                        var industry = CreateIndustry(nodeState: nodeState, cosmicBodyName: cosmicBodyInfo.Name);
-                        Debug.Assert(!magicUnlimitedStartingResPile.IsEmpty);
-                        return industry;
+                        foreach (var (startingBuilding, cosmicBodyName) in mapInfo.StartingInfo.StartingBuildingToCosmicBody)
+                            if (cosmicBodyName == cosmicBodyInfo.Name)
+                            {
+                                var industry = CreateIndustry(nodeState: nodeState, startingBuilding: startingBuilding);
+                                Debug.Assert(!magicUnlimitedStartingResPile.IsEmpty);
+                                return industry;
+                            }
+                        return null;
                     }
                 )
             );
@@ -134,9 +139,17 @@ namespace Game1
                 ).ToList()
             );
 
-            IIndustry? CreateIndustry(IIndustryFacingNodeState nodeState, string cosmicBodyName)
+            IIndustry CreateIndustry(IIndustryFacingNodeState nodeState, StartingBuilding startingBuilding)
             {
-                if (cosmicBodyName == mapInfo.StartingInfo.PowerPlantCosmicBody)
+                return startingBuilding switch
+                {
+                    StartingBuilding.PowerPlant => CreatePowerPlantIndustry(),
+                    StartingBuilding.GearStorage => CreateStorageIndustry(productParamsName: "Gear"),
+                    StartingBuilding.WireStorage => CreateStorageIndustry(productParamsName: "Wire"),
+                    StartingBuilding.RoofTileStorage => CreateStorageIndustry(productParamsName: "Roof Tile")
+                };
+
+                IIndustry CreatePowerPlantIndustry()
                 {
                     var concreteParams = industryConfig.startingPowerPlantParams.CreateConcrete
                     (
@@ -158,13 +171,6 @@ namespace Game1
                         buildingResPile: buildingResPile
                     );
                 }
-                if (cosmicBodyName == mapInfo.StartingInfo.GearStorageCosmicBody)
-                    return CreateStorageIndustry(productParamsName: "Gear");
-                if (cosmicBodyName == mapInfo.StartingInfo.WireStorageCosmicBody)
-                    return CreateStorageIndustry(productParamsName: "Wire");
-                if (cosmicBodyName == mapInfo.StartingInfo.RoofTileStorageCosmicBody)
-                    return CreateStorageIndustry(productParamsName: "Roof Tile");
-                return null;
 
                 IIndustry CreateStorageIndustry(string productParamsName)
                 {
@@ -176,7 +182,7 @@ namespace Game1
                         (
                             neededProductClasses: industryConfig.startingStorageParams.BuildingCostPropors.neededProductClasses
                         ),
-                        resToStoreChoice: productParams.GetProduct(materialPalette: resConfig.StartingMaterialPaletteChoices[productParams.productClass])
+                        storageChoice: productParams.GetProduct(materialPalette: resConfig.StartingMaterialPaletteChoices[productParams.productClass])
                     );
 
                     var buildingResPile = ResPile.CreateIfHaveEnough

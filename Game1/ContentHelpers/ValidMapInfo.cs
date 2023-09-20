@@ -30,26 +30,9 @@ namespace Game1.ContentHelpers
                 if (!cosmicBodyNames.Contains(linkInfo.To))
                     throw new ContentException($"""Link {nameof(linkInfo.To)} must specify already existing cosmic body name. That's not the case for "{linkInfo.To}".""");
             }
-            CheckIfCosmicBodyNameIsValid
-            (
-                cosmicBodyName: startingInfo.PowerPlantCosmicBody,
-                cosmicBodyPurpose: nameof(ContentHelpers.StartingInfo.PowerPlantCosmicBody)
-            );
-            CheckIfCosmicBodyNameIsValid
-            (
-                cosmicBodyName: startingInfo.GearStorageCosmicBody,
-                cosmicBodyPurpose: nameof(ContentHelpers.StartingInfo.GearStorageCosmicBody)
-            );
-            CheckIfCosmicBodyNameIsValid
-            (
-                cosmicBodyName: startingInfo.WireStorageCosmicBody,
-                cosmicBodyPurpose: nameof(ContentHelpers.StartingInfo.WireStorageCosmicBody)
-            );
-            CheckIfCosmicBodyNameIsValid
-            (
-                cosmicBodyName: startingInfo.RoofTileStorageCosmicBody,
-                cosmicBodyPurpose: nameof(ContentHelpers.StartingInfo.RoofTileStorageCosmicBody)
-            );
+            foreach (var (startingBuilding, cosmicBodyName) in startingInfo.StartingBuildingToCosmicBody)
+                if (cosmicBodyName is not null && !cosmicBodyNames.Contains(cosmicBodyName))
+                    throw new ContentException($"{startingBuilding} must specify already existing cosmic body name. That's not the case for \"{cosmicBodyName}\".");
             return new
             (
                 notReadyToUse: notReadyToUse,
@@ -57,12 +40,6 @@ namespace Game1.ContentHelpers
                 links: links,
                 startingInfo: startingInfo
             );
-
-            void CheckIfCosmicBodyNameIsValid(string? cosmicBodyName, string cosmicBodyPurpose)
-            {
-                if (cosmicBodyName is not null && !cosmicBodyNames.Contains(cosmicBodyName))
-                    throw new ContentException($"Starting {cosmicBodyPurpose} must specify already existing cosmic body name. That's not the case for \"{cosmicBodyName}\".");
-            }
         }
 
         public bool NotReadyToUse { get; }

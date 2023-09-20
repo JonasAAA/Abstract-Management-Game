@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 
 namespace Game1.Collections
 {
-
     /// <summary>
     /// Immutable dictionary where keys are (TRes)0, (TRes)1, ...
     /// </summary>
@@ -26,6 +25,21 @@ namespace Game1.Collections
 
         public EnumDict(Func<TKey, TValue> selector)
             => values = Enum.GetValues<TKey>().Select(selector).ToArray();
+
+        public SortedDictionary<TKey, TValue> ToSortedDictionary()
+            => new(dictionary: new Dictionary<TKey, TValue>(this));
+
+        public EnumDict<TKey, TNewValue> SelectValues<TNewValue>(Func<TValue, TNewValue> valueSelector)
+        {
+            var thisCopy = this;
+            return new(key => valueSelector(thisCopy[key]));
+        }
+
+        public EnumDict<TKey, TNewValue> SelectValues<TNewValue>(Func<TKey, TValue, TNewValue> valueSelector)
+        {
+            var thisCopy = this;
+            return new(key => valueSelector(key, thisCopy[key]));
+        }
 
         private EnumDict<TKey, TValue> Clone()
         {
@@ -73,5 +87,25 @@ namespace Game1.Collections
 
         IEnumerator IEnumerable.GetEnumerator()
             => GetEnumerator();
+    }
+
+    public static class EnumDict
+    {
+        public static Result<EnumDict<TKey, TValue>, EfficientReadOnlyHashSet<TError>> AccumulateErrors<TKey, TValue, TError>(this EnumDict<TKey, Result<TValue, EfficientReadOnlyHashSet<TError>>> enumDict)
+            where TKey : unmanaged, Enum
+            => enumDict.SelectMany
+            (
+                keyAndValue => keyAndValue.Value.Select
+                (
+                    value => new KeyValuePair<TKey, TValue>(key: keyAndValue.Key, value: value)
+                )
+            ).Select
+            (
+                resultDictCollection =>
+                {
+                    var resultDict = new Dictionary<TKey, TValue>(resultDictCollection);
+                    return new EnumDict<TKey, TValue>(key => resultDict[key]);
+                }
+            );
     }
 }

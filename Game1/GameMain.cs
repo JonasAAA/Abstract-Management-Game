@@ -8,6 +8,7 @@ using System.Globalization;
 using System.IO;
 using System.Runtime;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Game1
 {
@@ -92,6 +93,10 @@ namespace Game1
             {
                 AllowTrailingCommas = true,
                 WriteIndented = true,
+                Converters =
+                {
+                    new JsonStringEnumConverter()
+                }
             };
 
         private static IEnumerable<string> GetMapFullPaths()

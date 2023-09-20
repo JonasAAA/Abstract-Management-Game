@@ -7,9 +7,7 @@ namespace Game1.ContentHelpers
     {
         [JsonPropertyOrder(0)] public required Vector2Info WorldCenter { get; init; }
         [JsonPropertyOrder(1)] public required double CameraViewHeight { get; init; }
-        [JsonPropertyOrder(2)] public required string? PowerPlantCosmicBody { get; init; }
-        [JsonPropertyOrder(3)] public required string? GearStorageCosmicBody { get; init; }
-        [JsonPropertyOrder(3)] public required string? WireStorageCosmicBody { get; init; }
-        [JsonPropertyOrder(3)] public required string? RoofTileStorageCosmicBody { get; init; }
+        // SortedDictionary so that the key value pair always appear in the same order
+        [JsonPropertyOrder(2)] public required SortedDictionary<StartingBuilding, string?> StartingBuildingLocations { get; init; }
     }
 }

@@ -11,14 +11,6 @@ namespace Game1.GameStates
     [Serializable]
     public sealed class MapCreationState : GameState
     {
-        private enum StartingBuilding
-        {
-            PowerPlant,
-            GearStorage,
-            WireStorage,
-            RoofTileStorage
-        }
-
         [Serializable]
         private sealed record BuildingCosmicBodyTextBoxHUDPosUpdater(MapCreationState MapCreationState, StartingBuilding StartingBuilding) : IAction
         {
@@ -162,21 +154,16 @@ namespace Game1.GameStates
                     (
                         WorldCenter: mapInfo.StartingInfo.WorldCenter,
                         CameraViewHeight: mapInfo.StartingInfo.CameraViewHeight,
-                        StartingBuildingToCosmicBodyId: new
+                        StartingBuildingToCosmicBodyId: mapInfo.StartingInfo.StartingBuildingToCosmicBody.SelectValues<CosmicBodyId?>
                         (
-                            startingBuilding => startingBuilding switch
+                            cosmicBodyOrNull => cosmicBodyOrNull switch
                             {
-                                StartingBuilding.PowerPlant => GetCosmicBodyId(cosmicBodyName: mapInfo.StartingInfo.PowerPlantCosmicBody),
-                                StartingBuilding.GearStorage => GetCosmicBodyId(cosmicBodyName: mapInfo.StartingInfo.GearStorageCosmicBody),
-                                StartingBuilding.WireStorage => GetCosmicBodyId(cosmicBodyName: mapInfo.StartingInfo.WireStorageCosmicBody),
-                                StartingBuilding.RoofTileStorage => GetCosmicBodyId(cosmicBodyName: mapInfo.StartingInfo.RoofTileStorageCosmicBody)
-                            } 
+                                string cosmicBody => cosmicBodyNameToId[cosmicBody],
+                                null => null
+                            }
                         )
                     )
                 );
-
-                CosmicBodyId? GetCosmicBodyId(string? cosmicBodyName)
-                    => GetValueOrNullFromKeyClass(dict: cosmicBodyNameToId, key: cosmicBodyName);
             }
 
             public ValidMapInfo ToValidMapInfo()
@@ -208,34 +195,17 @@ namespace Game1.GameStates
                     (
                         worldCenter: StartingInfo.WorldCenter,
                         cameraViewHeight: StartingInfo.CameraViewHeight,
-                        powerPlantCosmicBody: GetCosmicBodyName(startingBuilding: StartingBuilding.PowerPlant),
-                        gearStorageCosmicBody: GetCosmicBodyName(startingBuilding: StartingBuilding.GearStorage),
-                        wireStorageCosmicBody: GetCosmicBodyName(startingBuilding: StartingBuilding.WireStorage),
-                        roofTileStorageCosmicBody: GetCosmicBodyName(startingBuilding: StartingBuilding.RoofTileStorage)
+                        startingBuildingToCosmicBody: startingInfoCopy.StartingBuildingToCosmicBodyId.SelectValues
+                        (
+                            cosmicBodyIdOrNull => cosmicBodyIdOrNull switch
+                            {
+                                CosmicBodyId cosmicBodyId => cosmicBodiesCopy[cosmicBodyId].Name,
+                                null => null
+                            }
+                        )
                     )
                 );
-
-                string? GetCosmicBodyName(StartingBuilding startingBuilding)
-                    => GetStructValueOrNullFromKeyStruct(dict: cosmicBodiesCopy, key: startingInfoCopy.StartingBuildingToCosmicBodyId[startingBuilding])?.Name;
             }
-
-            private static TValue? GetValueOrNullFromKeyClass<TKey, TValue>(ImmutableDictionary<TKey, TValue> dict, TKey? key)
-                where TKey : class
-                where TValue : struct
-                => key switch
-                {
-                    TKey notNullKey => dict[notNullKey],
-                    null => null
-                };
-
-            private static TValue? GetStructValueOrNullFromKeyStruct<TKey, TValue>(ImmutableDictionary<TKey, TValue> dict, TKey? key)
-                where TKey : struct
-                where TValue : struct
-                => key switch
-                {
-                    TKey notNullKey => dict[notNullKey],
-                    null => null
-                };
         }
 
         [Serializable]
@@ -355,9 +325,9 @@ namespace Game1.GameStates
                     StartingBuilding.RoofTileStorage => "Roof tile\nstorage"
                 }
             );
-            startingBuildingToKeyAndExplanation = new
+            startingBuildingToKeyAndExplanation = startingBuildingToName.SelectValues
             (
-                startingBuilding =>
+                (startingBuilding, buildingName) =>
                 {
                     char keyLetter = startingBuilding switch
                     {
@@ -370,7 +340,7 @@ namespace Game1.GameStates
                     Regex emphasizeRegex = new(keyLetterString, RegexOptions.IgnoreCase);
                     var emphasizedName = emphasizeRegex.Replace
                     (
-                        input: startingBuildingToName[startingBuilding].ToLower().Replace('\n', ' '),
+                        input: buildingName.ToLower().Replace('\n', ' '),
                         replacement: $"[{char.ToLower(keyLetter)}]",
                         count: 1
                     );
@@ -531,13 +501,9 @@ namespace Game1.GameStates
                         };
 
                 EnumDict<StartingBuilding, CosmicBodyId?> RemoveBuildingFromSelectedCosmicBody()
-                    => new
+                    => CurMapInfo.StartingInfo.StartingBuildingToCosmicBodyId.SelectValues
                     (
-                        startingBuilding =>
-                        {
-                            var buildingCosmicBodyId = CurMapInfo.StartingInfo.StartingBuildingToCosmicBodyId[startingBuilding];
-                            return buildingCosmicBodyId == selectedCosmicBodyId ? null : buildingCosmicBodyId;
-                        }
+                        buildingCosmicBodyId => buildingCosmicBodyId == selectedCosmicBodyId ? null : buildingCosmicBodyId
                     );
                 // radius change
                 if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.R))

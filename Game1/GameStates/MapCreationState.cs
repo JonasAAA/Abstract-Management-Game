@@ -24,8 +24,9 @@ namespace Game1.GameStates
         private interface IWorldUIElementId
         { }
 
+        // This is not struct as it's often used as IWorldUIElementId, which would result in a lot of boxing and unboxing
         [Serializable]
-        private readonly record struct CosmicBodyId : IWorldUIElementId
+        private sealed record CosmicBodyId : IWorldUIElementId, IComparable<CosmicBodyId>
         {
             private static uint nextId = 0;
 
@@ -39,10 +40,14 @@ namespace Game1.GameStates
 
             public override string ToString()
                 => id.ToString();
+            
+            int IComparable<CosmicBodyId>.CompareTo(CosmicBodyId? other)
+                // Convention of what to do when comparing to null https://stackoverflow.com/a/23787253
+                => other is null ? 1 : id.CompareTo(other.id);
         }
 
         [Serializable]
-        private sealed class LinkId : IWorldUIElementId
+        private sealed record LinkId : IWorldUIElementId, IComparable<LinkId>
         {
             private static uint nextId = 0;
 
@@ -54,8 +59,11 @@ namespace Game1.GameStates
                 nextId++;
             }
 
-            public sealed override string ToString()
+            public override string ToString()
                 => id.ToString();
+
+            int IComparable<LinkId>.CompareTo(LinkId? other)
+                => other is null ? 1 : id.CompareTo(other.id);
         }
 
         [Serializable]
@@ -174,7 +182,8 @@ namespace Game1.GameStates
                 return ValidMapInfo.CreateOrThrow
                 (
                     notReadyToUse: true,
-                    cosmicBodies: CosmicBodies.Values.Select
+                    // The "to sorted dictionary" part is imporant - that ensures the same ordering of cosmic bodies and links in output json as in input json
+                    cosmicBodies: CosmicBodies.ToImmutableSortedDictionary().Values.Select
                     (
                         cosmicBody => ValidCosmicBodyInfo.CreateOrThrow
                         (
@@ -183,7 +192,7 @@ namespace Game1.GameStates
                             radius: cosmicBody.Radius
                         )
                     ).ToEfficientReadOnlyCollection(),
-                    links: Links.Values.Select
+                    links: Links.ToImmutableSortedDictionary().Values.Select
                     (
                         link => ValidLinkInfo.CreateOrThrow
                         (

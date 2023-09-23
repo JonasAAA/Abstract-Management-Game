@@ -287,6 +287,13 @@ namespace Game1.Industries
         {
             // Need to wait for all resources travelling here to arrive
             throw new NotImplementedException();
+            IIndustry.DeleteSourcesAndDestins
+            (
+                industry: this,
+                resSources: resSources,
+                resDestins: resDestins
+            );
+#warning Implement a proper industry deletion strategy
             storage.TransferAllFrom(source: buildingResPile);
             IIndustry.DumpAllResIntoCosmicBody(nodeState: buildingParams.NodeState, resPile: storage);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));

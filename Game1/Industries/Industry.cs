@@ -217,8 +217,14 @@ namespace Game1.Industries
 
         private void Delete()
         {
-            // Need to wait for all resources travelling here to arrive
-            throw new NotImplementedException();
+            if (!resTravellingHere.IsEmpty)
+                throw new NotImplementedException("Need to wait for all resources travelling here to arrive");
+            IIndustry.DeleteSourcesAndDestins
+            (
+                industry: this,
+                resSources: resSources,
+                resDestins: resDestins
+            );
 #warning Implement a proper industry deletion strategy
             // For now, all building materials, unused input, production, and output materials are dumped inside the planet 
             outputStorage.TransferAllFrom(source: inputStorage);

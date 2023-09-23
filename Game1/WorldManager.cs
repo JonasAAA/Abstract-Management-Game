@@ -476,8 +476,10 @@ namespace Game1
         }
 
         public void PublishMessage(IMessage message)
+        {
+#warning Implement this
             // If exact same message already exists, don't add it a second time
-            => throw new NotImplementedException();
+        }
 
         public UDouble PersonDist(NodeID nodeID1, NodeID nodeID2)
             => CurGraph.PersonDist(nodeID1: nodeID1, nodeID2: nodeID2);

@@ -83,6 +83,22 @@ namespace Game1.Industries
         protected static EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> CreateRoutesLists(EfficientReadOnlyCollection<IResource> resources)
             => resources.ToEfficientReadOnlyDict(elementSelector: _ => new HashSet<IIndustry>());
 
+        protected static void DeleteSourcesAndDestins(IIndustry industry, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resDestins)
+        {
+            foreach (var (res, sources) in resSources)
+                foreach (var source in sources)
+                {
+                    source.ToggleDestin(resource: res, destinIndustry: industry);
+                    Debug.Assert(!source.GetDestins(resource: res).Contains(industry));
+                }
+            foreach (var (res, destins) in resDestins)
+                foreach (var destin in destins)
+                {
+                    destin.ToggleSource(resource: res, sourceIndustry: industry);
+                    Debug.Assert(!destin.GetSources(resource: res).Contains(industry));
+                }
+        }
+
         protected static IHUDElement CreateRoutePanel(IIndustry industry, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources,
             EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resDestins)
             => new RoutePanelManager(industry: industry, resSources: resSources, resDestins: resDestins).routePanel;

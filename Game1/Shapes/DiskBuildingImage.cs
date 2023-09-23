@@ -42,7 +42,7 @@ namespace Game1.Shapes
         {
             // The algorithm to calculate hypothetical building area in case planet size changes relies on planet radius to be
             // exactly what you would get from the planet area assuming that the planet is disk.
-            Debug.Assert(DiskAlgos.RadiusFromArea(area: planetArea.ToDouble()).IsCloseTo(nodeShapeParams.Radius));
+            Debug.Assert(DiskAlgos.RadiusFromArea(area: nodeShapeParams.Area.ToDouble()).IsCloseTo(nodeShapeParams.Radius));
             return DiskAlgos.RadiusFromArea(area: planetArea.ToDouble()) + buildingHeight;
         }
 

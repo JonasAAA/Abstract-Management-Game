@@ -157,9 +157,6 @@ namespace Game1.Industries
                     error: _ => AllResAmounts.empty
                 ) + MaxBuildingComponentStoredAmount();
             }
-
-            AreaInt Industry.IConcreteBuildingParams<ConcreteProductionParams>.MaxStoredOutputArea()
-                => AreaInt.zero;
         }
 
         [Serializable]
@@ -215,7 +212,7 @@ namespace Game1.Industries
                 => true;
 
             public static Result<LandfillCycleState, TextErrors> Create(ConcreteProductionParams productionParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile,
-                ResPile inputStorage, AreaInt maxOutputArea)
+                ResPile inputStorage, AreaInt storedOutputArea)
             {
                 return productionParams.CurResource.SelectMany
                 (
@@ -229,11 +226,15 @@ namespace Game1.Industries
                         // Ensure that only the resource chosen for dumping is being dumped
                         Debug.Assert(resForDumpingAll == new AllResAmounts(resForDumping));
 
-                        (AllResAmounts buildingComponentsToAdd, ulong resToDump) = TakeResToUse
+                        ulong resToDump = Algorithms.FindMaxOkValue
                         (
-                            resForBuildingExpansion: resForBuildingExpansion,
-                            resForDumping: resForDumping
+                            minValue: 0,
+                            maxValue: resForDumping.amount,
+                            isValueOk: tryResToDump => BuildingComponentsToAdd(resToDump: tryResToDump) <= resForBuildingExpansion
                         );
+                        var buildingComponentsToAdd = BuildingComponentsToAdd(resToDump: resToDump);
+                        Debug.Assert(buildingComponentsToAdd <= resForBuildingExpansion);
+
                         return resToDump switch
                         {
                             > 0 => new Result<LandfillCycleState, TextErrors>
@@ -254,31 +255,18 @@ namespace Game1.Industries
                             ),
                             0 => new(errors: new(UIAlgorithms.NotEnoughResourcesToStartProduction))
                         };
+
+                        AllResAmounts BuildingComponentsToAdd(ulong resToDump)
+                        {
+                            var newPlanetArea = buildingParams.NodeState.Area + resource.Area * resToDump;
+                            return ResAndIndustryHelpers.CurNeededBuildingComponents
+                            (
+                                buildingComponentsToAmountPUBA: buildingParams.buildingComponentsToAmountPUBA,
+                                curBuildingArea: buildingParams.buildingImage.HypotheticalArea(hypotheticPlanetArea: newPlanetArea)
+                            ) - buildingResPile.Amount;
+                        }
                     }
                 );
-
-                (AllResAmounts buildingComponentsToAdd, ulong resToDump) TakeResToUse(AllResAmounts resForBuildingExpansion, ResAmount<IResource> resForDumping)
-                {
-#warning Test this (probably extract it to a method, put it into ResAndIndustryAlgos, and test that
-                    // TODO: extract the binary search part to a separate algorithm? Or it it not general enough?
-                    ulong minResToDump = 0, maxResToDump = resForDumping.amount;
-                    while (true)
-                    {
-                        ulong midResToDump = (minResToDump + maxResToDump + 1) / 2;
-                        var newPlanetArea = buildingParams.NodeState.Area + resForDumping.res.Area * midResToDump;
-                        var newNeededBuildingComponents = ResAndIndustryHelpers.CurNeededBuildingComponents
-                        (
-                            buildingComponentsToAmountPUBA: buildingParams.buildingComponentsToAmountPUBA,
-                            curBuildingArea: buildingParams.buildingImage.HypotheticalArea(hypotheticPlanetArea: newPlanetArea)
-                        ) - buildingResPile.Amount;
-                        if (newNeededBuildingComponents <= resForBuildingExpansion)
-                            minResToDump = midResToDump;
-                        else
-                            maxResToDump = midResToDump - 1;
-                        if (minResToDump == maxResToDump)
-                            return (buildingComponentsToAdd: newNeededBuildingComponents, resToDump: minResToDump);
-                    }
-                }
             }
 
             public ElectricalEnergy ReqEnergy { get; private set; }

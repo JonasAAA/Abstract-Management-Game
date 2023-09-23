@@ -20,6 +20,10 @@ namespace Game1.UI
         public static string NotEnoughResourcesToStartProduction
             => "not enough resources to start production";
 
+        // Output storage is not necessarily exactly full, but it can't accomodate any more outputs.
+        public static string OutputStorageFullSoNoProduction
+            => "output storage full";
+
         public static string CosmicBodyIsMinedOut
             => "cosmic body is mined out";
 

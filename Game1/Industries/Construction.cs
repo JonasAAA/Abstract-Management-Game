@@ -110,9 +110,6 @@ namespace Game1.Industries
             
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => buildingCost;
-
-            AreaInt Industry.IConcreteBuildingParams<UnitType>.MaxStoredOutputArea()
-                => AreaInt.zero;
         }
 
         [Serializable]
@@ -122,7 +119,7 @@ namespace Game1.Industries
                 => false;
 
             public static Result<ConstructionState, TextErrors> Create(UnitType productionParams, ConcreteParams parameters, UnitType persistentState,
-                ResPile inputStorage, AreaInt maxOutputArea)
+                ResPile inputStorage, AreaInt storedOutputArea)
             {
                 var buildingResPile = ResPile.CreateIfHaveEnough
                 (

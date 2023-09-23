@@ -67,13 +67,13 @@ namespace Game1.Industries
             public EnergyPriority EnergyPriority { get; }
             public MaterialPalette SurfaceMatPalette { get; }
             public readonly DiskBuildingImage buildingImage;
+            public readonly AreaInt maxStoredOutputArea;
 
             private readonly AreaDouble buildingArea;
             private readonly GeneralBuildingParams generalParams;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly MaterialProductionChoice materialProductionChoice;
             private readonly AllResAmounts buildingCost;
-            private readonly AreaInt maxStoredOutputArea;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
@@ -155,9 +155,6 @@ namespace Game1.Industries
                     error: _ => AllResAmounts.empty
                 );
             }
-
-            AreaInt Industry.IConcreteBuildingParams<ConcreteProductionParams>.MaxStoredOutputArea()
-                => maxStoredOutputArea;
         }
 
         [Serializable]
@@ -201,7 +198,7 @@ namespace Game1.Industries
                 => true;
 
             public static Result<ProductionCycleState, TextErrors> Create(ConcreteProductionParams productionParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile,
-                ResPile inputStorage, AreaInt maxOutputArea)
+                ResPile inputStorage, AreaInt storedOutputArea)
                 => productionParams.CurMaterial.SelectMany
                 (
                     material =>
@@ -210,7 +207,7 @@ namespace Game1.Industries
                         (
                             source: inputStorage,
                             amount: material.Recipe.ingredients,
-                            maxCount: buildingParams.CurMaxProductionAmount(materialArea: material.Area, maxOutputArea: maxOutputArea)
+                            maxCount: buildingParams.CurMaxProductionAmount(materialArea: material.Area, maxOutputArea: buildingParams.maxStoredOutputArea - storedOutputArea)
                         );
                         return resInUseAndCount switch
                         {

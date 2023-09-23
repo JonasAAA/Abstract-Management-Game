@@ -191,50 +191,56 @@ namespace Game1
             UDouble gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
 #warning Either this or the one that uses it should probably take into account worldSecondsInGameSecond. Probably would like to have separate configurable physics and gameplay speed multipliers
         {
-            UDouble relevantMassPUBA = RelevantMassPUBA
-            (
-                buildingProdClassPropors: buildingCostPropors.productClassPropors,
-                buildingMatPaletteChoices: buildingMatPaletteChoices,
-                productionMassPUBA: productionMass.valueInKg / buildingArea.valueInMetSq
-            );
-
-            UDouble maxMechThroughputPUBA = MaxMechThroughputPUBA
-            (
-                mechanicalProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.mechanical],
-                mechanicalMatPalette: buildingMatPaletteChoices[IProductClass.mechanical],
-                buildingComplexity: buildingCostPropors.complexity,
-                gravity: gravity,
-                temperature: temperature,
-                relevantMassPUBA: relevantMassPUBA
-            );
-
-            UDouble maxElectricalPowerPUBA = MaxElectricalPowerPUBA
-            (
-                electronicsProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.electronics],
-                electronicsMatPalette: buildingMatPaletteChoices[IProductClass.electronics],
-                temperature: temperature
-            );
-
-            UDouble electricalEnergyPerUnitArea = ElectricalEnergyPerUnitAreaPhys
-            (
-                electronicsProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.electronics],
-                electronicsMatPalette: buildingMatPaletteChoices[IProductClass.electronics],
-                buildingComplexity: buildingCostPropors.complexity,
-                gravity: gravity,
-                temperature: temperature,
-                relevantMassPUBA: relevantMassPUBA
-            );
-
-            UDouble
-                reqWattsPUBA = MyMathHelper.Min(maxElectricalPowerPUBA, maxMechThroughputPUBA * electricalEnergyPerUnitArea),
-                reqWatts = reqWattsPUBA * buildingArea.valueInMetSq,
-                producedAreaPerSec = reqWatts / electricalEnergyPerUnitArea;
-
+#warning Implement this properly
             return new
             (
-                ReqWatts: reqWatts,
-                ProducedAreaPerSec: producedAreaPerSec
+                ReqWatts: buildingArea.valueInMetSq / 1000000000,
+                ProducedAreaPerSec: buildingArea.valueInMetSq * WorldManager.CurWorldConfig.productionProporOfBuildingArea / (WorldManager.CurWorldConfig.worldSecondsInGameSecond * 4)
             );
+            //UDouble relevantMassPUBA = RelevantMassPUBA
+            //(
+            //    buildingProdClassPropors: buildingCostPropors.productClassPropors,
+            //    buildingMatPaletteChoices: buildingMatPaletteChoices,
+            //    productionMassPUBA: productionMass.valueInKg / buildingArea.valueInMetSq
+            //);
+
+            //UDouble maxMechThroughputPUBA = MaxMechThroughputPUBA
+            //(
+            //    mechanicalProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.mechanical],
+            //    mechanicalMatPalette: buildingMatPaletteChoices[IProductClass.mechanical],
+            //    buildingComplexity: buildingCostPropors.complexity,
+            //    gravity: gravity,
+            //    temperature: temperature,
+            //    relevantMassPUBA: relevantMassPUBA
+            //);
+
+            //UDouble maxElectricalPowerPUBA = MaxElectricalPowerPUBA
+            //(
+            //    electronicsProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.electronics],
+            //    electronicsMatPalette: buildingMatPaletteChoices[IProductClass.electronics],
+            //    temperature: temperature
+            //);
+
+            //UDouble electricalEnergyPerUnitArea = ElectricalEnergyPerUnitAreaPhys
+            //(
+            //    electronicsProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.electronics],
+            //    electronicsMatPalette: buildingMatPaletteChoices[IProductClass.electronics],
+            //    buildingComplexity: buildingCostPropors.complexity,
+            //    gravity: gravity,
+            //    temperature: temperature,
+            //    relevantMassPUBA: relevantMassPUBA
+            //);
+
+            //UDouble
+            //    reqWattsPUBA = MyMathHelper.Min(maxElectricalPowerPUBA, maxMechThroughputPUBA * electricalEnergyPerUnitArea),
+            //    reqWatts = reqWattsPUBA * buildingArea.valueInMetSq,
+            //    producedAreaPerSec = reqWatts / electricalEnergyPerUnitArea;
+
+            //return new
+            //(
+            //    ReqWatts: reqWatts,
+            //    ProducedAreaPerSec: producedAreaPerSec
+            //);
         }
 
         /// <summary>

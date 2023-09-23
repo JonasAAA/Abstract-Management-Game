@@ -126,9 +126,6 @@ namespace Game1.Industries
 
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => AllResAmounts.empty;
-
-            AreaInt Industry.IConcreteBuildingParams<UnitType>.MaxStoredOutputArea()
-                => AreaInt.zero;
         }
 
         [Serializable]
@@ -138,7 +135,7 @@ namespace Game1.Industries
                 => false;
 
             public static Result<PowerProductionState, TextErrors> Create(UnitType productionParams, ConcreteBuildingParams parameters, ResPile buildingResPile,
-                ResPile inputStorage, AreaInt maxOutputArea)
+                ResPile inputStorage, AreaInt storedOutputArea)
                 => new(ok: new(buildingParams: parameters));
 
             public ElectricalEnergy ReqEnergy

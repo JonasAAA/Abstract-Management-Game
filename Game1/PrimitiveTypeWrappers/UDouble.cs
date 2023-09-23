@@ -119,7 +119,7 @@ namespace Game1.PrimitiveTypeWrappers
         public static UDouble operator /(UDouble value1, UDouble value2)
         {
             if (value2.value is 0)
-                throw new ArithmeticException("Divident cannot be 0");
+                throw new ArithmeticException("Dividend cannot be 0");
             return new(value1.value / value2.value);
         }
 

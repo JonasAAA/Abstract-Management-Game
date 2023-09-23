@@ -455,5 +455,34 @@ namespace Game1
                     );
             }
         }
+
+        /// <summary>
+        /// Assumptions:
+        /// * minValue <= maxValue
+        /// * isValueOk(minValue) is true
+        /// * there exists maxOkValue s.t.:
+        ///   * for value <= maxOkValue, isValueOk(value) is true
+        ///   * for value > maxOkValue, isValueOk(value) is false
+        /// </summary>
+        public static ulong FindMaxOkValue(ulong minValue, ulong maxValue, Func<ulong, bool> isValueOk)
+        {
+            if (minValue > maxValue)
+                throw new ArgumentException();
+            if (!isValueOk(minValue))
+                throw new ArgumentException();
+#warning Test this
+            while (minValue < maxValue)
+            {
+                ulong midValue = (minValue + maxValue + 1) / 2;
+                if (isValueOk(midValue))
+                    minValue = midValue;
+                else
+                    maxValue = midValue - 1;
+            }
+            var value = minValue;
+            Debug.Assert(minValue <= value && value <= maxValue && isValueOk(value));
+            Debug.Assert(minValue + 1 > maxValue || !isValueOk(value + 1));
+            return value;
+        }
     }
 }

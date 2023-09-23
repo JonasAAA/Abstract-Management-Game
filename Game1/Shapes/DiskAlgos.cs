@@ -12,6 +12,9 @@ namespace Game1.Shapes
         public static AreaDouble Area(UDouble radius)
             => AreaDouble.CreateFromMetSq(valueInMetSq: MyMathHelper.pi * radius * radius);
 
+        public static UDouble Length(UDouble radius)
+            => 2 * MyMathHelper.pi * radius;
+
         public static AngleArc.Params BlockedAngleArcParams(MyVector2 center, UDouble radius, MyVector2 lightPos)
         {
             UDouble dist = MyVector2.Distance(lightPos, center);

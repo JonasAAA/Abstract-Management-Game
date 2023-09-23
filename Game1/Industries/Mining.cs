@@ -62,16 +62,16 @@ namespace Game1.Industries
             public EnergyPriority EnergyPriority { get; }
             public MaterialPalette SurfaceMatPalette { get; }
             public readonly DiskBuildingImage buildingImage;
+            public readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
 
             /// <summary>
             /// Things depend on this rather than on building components target area as can say that if planet underneath building shrinks,
             /// building gets not enough space to operate at maximum efficiency
             /// </summary>
-            private AreaDouble CurBuildingArea
+            public AreaDouble CurBuildingArea
                 => buildingImage.Area;
 
             private readonly GeneralBuildingParams generalParams;
-            private readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly EfficientReadOnlyCollection<IResource> producedResources;
             private readonly AllResAmounts startingBuildingCost;
@@ -92,6 +92,9 @@ namespace Game1.Industries
                 startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
                 producedResources = (nodeState.Composition.ToAll() + startingBuildingCost).resList;
             }
+
+            public static AreaInt HypotheticOutputStorageArea(AreaDouble hypotheticBuildingArea)
+                => (hypotheticBuildingArea * CurWorldConfig.outputStorageProporOfBuildingArea).RoundDown();
 
             public AreaDouble AreaToMine()
                 => CurBuildingArea * CurWorldConfig.productionProporOfBuildingArea;
@@ -142,9 +145,6 @@ namespace Game1.Industries
 
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => AllResAmounts.empty;
-
-            AreaInt Industry.IConcreteBuildingParams<UnitType>.MaxStoredOutputArea()
-                => (CurBuildingArea * CurWorldConfig.outputStorageProporOfBuildingArea).RoundDown();
         }
 
         [Serializable]
@@ -169,16 +169,39 @@ namespace Game1.Industries
                 => true;
 
             public static Result<MiningCycleState, TextErrors> Create(UnitType productionParams, ConcreteBuildingParams parameters, PersistentState persistentState,
-                ResPile inputStorage, AreaInt maxOutputArea)
+                ResPile inputStorage, AreaInt storedOutputArea)
             {
+                ulong maxPossibleAreaToMine = Algorithms.FindMaxOkValue
+                (
+                    minValue: 0,
+                    maxValue: MyMathHelper.Min
+                    (
+                        parameters.NodeState.Area,
+                        ConcreteBuildingParams.HypotheticOutputStorageArea(hypotheticBuildingArea: parameters.CurBuildingArea) - storedOutputArea
+                    ).valueInMetSq,
+                    isValueOk: tryMaxAreaToMineInMetSq =>
+                    {
+                        var tryMaxAreaToMine = AreaInt.CreateFromMetSq(valueInMetSq: tryMaxAreaToMineInMetSq);
+                        var newPlanetArea = parameters.NodeState.Area - tryMaxAreaToMine;
+                        var newBuildingArea = parameters.buildingImage.HypotheticalArea(hypotheticPlanetArea: newPlanetArea);
+                        var newBuildingComponents = ResAndIndustryHelpers.CurNeededBuildingComponents
+                        (
+                            buildingComponentsToAmountPUBA: parameters.buildingComponentsToAmountPUBA,
+                            curBuildingArea: newBuildingArea
+                        );
+                        AllResAmounts newNoLongerNeededBuildingComponents = persistentState.buildingResPile.Amount - newBuildingComponents;
+                        return storedOutputArea + tryMaxAreaToMine + newNoLongerNeededBuildingComponents.Area() <= ConcreteBuildingParams.HypotheticOutputStorageArea(hypotheticBuildingArea: newBuildingArea);
+                    }
+                );
+
                 var minedAreaCorrectorWithTarget = persistentState.minedAreaHistoricCorrector.WithTarget(target: parameters.AreaToMine().valueInMetSq);
 
                 // Since will never mine more than requested, suggestion will never be smaller than parameters.AreaToSplit(), thus will always be >= 0.
-                var maxAreaToMine = MyMathHelper.Min((UDouble)minedAreaCorrectorWithTarget.suggestion, maxOutputArea.valueInMetSq);
-                bool isCapped = minedAreaCorrectorWithTarget.suggestion >= maxOutputArea.valueInMetSq;
+                var maxAreaToMine = MyMathHelper.Min((ulong)minedAreaCorrectorWithTarget.suggestion, maxPossibleAreaToMine);
+                bool isCapped = minedAreaCorrectorWithTarget.suggestion >= maxPossibleAreaToMine;
                 return parameters.NodeState.Mine
                 (
-                    targetArea: AreaDouble.CreateFromMetSq(valueInMetSq: maxAreaToMine),
+                    targetArea: AreaInt.CreateFromMetSq(valueInMetSq: maxAreaToMine),
                     rawMatAllocator: persistentState.minedResAllocator
                 ).SwitchExpression<Result<MiningCycleState, TextErrors>>
                 (
@@ -187,7 +210,20 @@ namespace Game1.Industries
                         // Filter and RawMatComposition does the same thing here as planet contains only raw materials
                         AreaInt miningArea = miningRes.Amount.Filter<RawMaterial>().Area();
                         persistentState.minedAreaHistoricCorrector = isCapped ? new() : minedAreaCorrectorWithTarget.WithValue(value: miningArea.valueInMetSq);
-                        return new(ok: new MiningCycleState(buildingParams: parameters, buildingResPile: persistentState.buildingResPile, miningRes: miningRes, miningArea: miningArea));
+                        return miningArea.IsZero switch
+                        {
+                            true => new(errors: new(UIAlgorithms.OutputStorageFullSoNoProduction)),
+                            false => new
+                            (
+                                ok: new MiningCycleState
+                                (
+                                    buildingParams: parameters,
+                                    buildingResPile: persistentState.buildingResPile,
+                                    miningRes: miningRes,
+                                    miningArea: miningArea
+                                )
+                            )
+                        };
                     },
                     error: errors =>
                     {

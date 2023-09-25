@@ -1,6 +1,5 @@
 ﻿using Game1.Delegates;
 using Game1.Inhabitants;
-using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
 using System.Diagnostics.CodeAnalysis;
@@ -8,79 +7,16 @@ using System.Threading.Tasks;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
 using Game1.ContentHelpers;
+using Game1.Collections;
+using Game1.Industries;
 
 namespace Game1
 {
     [Serializable]
-    public sealed class Graph : UIElement<IUIElement>, IChoiceChangedListener<IOverlay>, IActiveChangedListener, IWithRealPeopleStats
+    public sealed class Graph : UIElement<IUIElement>, IActiveChangedListener, IWithRealPeopleStats
     {
         [Serializable]
-        private sealed class NodeInfo
-        {
-            private static ResInd resInd;
-
-            public static void Init(ResInd resInd)
-                => NodeInfo.resInd = resInd;
-
-            public readonly CosmicBody node;
-            public readonly List<NodeInfo> nodesIn, nodesOut;
-            public uint unvisitedDestinsCount;
-            public bool isSplitAleady;
-
-            public NodeInfo(CosmicBody node)
-            {
-                this.node = node;
-                nodesIn = new();
-                nodesOut = new();
-                unvisitedDestinsCount = 0;
-                isSplitAleady = false;
-            }
-
-            public ulong MaxExtraRes()
-                => unvisitedDestinsCount switch
-                {
-                    0 => DFS().maxExtraRes,
-                    > 0 => ulong.MaxValue
-                };
-
-            private (ulong maxExtraRes, ulong subgraphUserTargetStoredRes) DFS()
-            {
-                if (unvisitedDestinsCount is not 0)
-                    throw new InvalidOperationException();
-
-                ulong maxExtraResFromNodesOut = 0,
-                    userTargetStoredResFromNodesOut = 0;
-
-                foreach (var nodeInfo in nodesOut)
-                {
-                    var (curMaxExtraRes, curSubgraphUserTargetStoredRes) = nodeInfo.DFS();
-                    maxExtraResFromNodesOut += curMaxExtraRes;
-                    userTargetStoredResFromNodesOut += curSubgraphUserTargetStoredRes;
-                }
-
-                ulong subgraphUserTargetStoredRes = node.TargetStoredResAmount(resInd: resInd) + userTargetStoredResFromNodesOut,
-                    targetStoredRes = node.TargetStoredResAmount(resInd: resInd);
-                // Use logic similar to below if want a not to store some extra resources for the "downstream" nodes.
-                //    targetStoredRes = node.IfStore(resInd: resInd) switch
-                //    {
-                //        true => subgraphUserTargetStoredRes,
-                //        false => node.TargetStoredResAmount(resInd: resInd)
-                //    };
-
-                return
-                (
-                    maxExtraRes: (maxExtraResFromNodesOut + targetStoredRes >= node.TotalQueuedRes(resInd: resInd)) switch
-                    {
-                        true => maxExtraResFromNodesOut + targetStoredRes - node.TotalQueuedRes(resInd: resInd),
-                        false => 0
-                    },
-                    subgraphUserTargetStoredRes: subgraphUserTargetStoredRes
-                );
-            }
-        }
-
-        [Serializable]
-        private readonly record struct ShortestPaths(ReadOnlyDictionary<(NodeID, NodeID), UDouble> Dists, ReadOnlyDictionary<(NodeID, NodeID), Link?> FirstLinks);
+        private readonly record struct ShortestPaths(EfficientReadOnlyDictionary<(NodeID, NodeID), UDouble> Dists, EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> FirstLinks);
 
         [Serializable]
         private readonly record struct PersonAndResShortestPaths(ShortestPaths PersonShortestPaths, ShortestPaths ResShortestPaths);
@@ -88,25 +24,25 @@ namespace Game1
         public IEnumerable<CosmicBody> Nodes
             => nodes;
 
-        public readonly ReadOnlyDictionary<NodeID, CosmicBody> nodeIDToNode;
+        public readonly EfficientReadOnlyDictionary<NodeID, CosmicBody> nodeIDToNode;
         public TimeSpan MaxLinkTravelTime { get; private set; }
         public UDouble MaxLinkJoulesPerKg { get; private set; }
 
-        public override bool CanBeClicked
+        public sealed override bool CanBeClicked
             => true;
         public RealPeopleStats Stats { get; private set; }
 
         // THIS COLOR IS NOT USED
-        protected override Color Color
+        protected sealed override Color Color
             => colorConfig.cosmosBackgroundColor;
 
-        private ReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
-        private ReadOnlyDictionary<(NodeID, NodeID), UDouble> resDists;
+        private EfficientReadOnlyDictionary<(NodeID, NodeID), UDouble> personDists;
+        private EfficientReadOnlyDictionary<(NodeID, NodeID), UDouble> resDists;
         /// <summary>
         /// if both key nodes are the same, value is null
         /// </summary>
-        private ReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks;
-        private ReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks;
+        private EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> personFirstLinks;
+        private EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks;
 
         private IEnumerable<WorldUIElement> WorldUIElements
         {
@@ -116,9 +52,16 @@ namespace Game1
                     yield return node;
                 foreach (var link in links)
                     yield return link;
-                foreach (var resDestinArrowsByRes in resDestinArrows)
-                    foreach (var resDestinArrow in resDestinArrowsByRes)
-                        yield return resDestinArrow;
+            }
+        }
+
+        private IEnumerable<IIndustry> Industries
+        {
+            get
+            {
+                foreach (var node in nodes)
+                    if (node.Industry is not null)
+                        yield return node.Industry;
             }
         }
 
@@ -126,14 +69,38 @@ namespace Game1
         private readonly List<Link> links;
 
         [NonSerialized] private Task<PersonAndResShortestPaths> shortestPathsTask;
-        private readonly MyArray<UITransparentPanel<ResDestinArrow>> resDestinArrows;
 
-        public WorldUIElement? ActiveWorldElement { get; private set; }
+        private WorldUIElement? activeWorldElement;
 
-        public static Graph CreateFromInfo(FullValidMapInfo mapInfo, WorldCamera mapInfoCamera)
+        public static Graph CreateFromInfo(FullValidMapInfo mapInfo, WorldCamera mapInfoCamera, ResConfig resConfig, IndustryConfig industryConfig)
         {
-            ResPile magicResPile = ResPile.CreateByMagic(amount: ResAmounts.magicUnlimitedResAmounts);
-            Dictionary<string, CosmicBody> cosmicBodiesByName = mapInfo.CosmicBodies.ToDictionary
+            RawMatAmounts startingRawMatTargetRatios = new
+            (
+                resAmounts: CurWorldConfig.startingRawMatTargetRatios.Select
+                (
+                    rawMatAmount => new ResAmount<RawMaterial>
+                    (
+                        res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: CurResConfig, ind: rawMatAmount.rawMatInd),
+                        amount: rawMatAmount.amount
+                    )
+                )
+            );
+            var magicUnlimitedStartingResPile = ResPile.CreateByMagic
+            (
+                amount: new
+                (
+                    resAmounts: resConfig.AllCurRes.Select
+                    (
+                        res => new ResAmount<IResource>
+                        (
+                            res: res,
+                            amount: CurWorldConfig.magicUnlimitedStartingMaterialCount / res.Area.valueInMetSq
+                        )
+                    )
+                ),
+                temperature: CurWorldConfig.startingTemperature
+            );
+            var cosmicBodiesByName = mapInfo.CosmicBodies.ToDictionary
             (
                 keySelector: cosmicBodyInfo => cosmicBodyInfo.Name,
                 elementSelector: cosmicBodyInfo => new CosmicBody
@@ -142,21 +109,20 @@ namespace Game1
                     (
                         mapInfoCamera: mapInfoCamera,
                         cosmicBodyInfo: cosmicBodyInfo,
-                        consistsOfResInd: BasicResInd.Random(),
-                        resSource: magicResPile
+                        rawMatRatios: ResAndIndustryAlgos.CosmicBodyRandomRawMatRatios(startingRawMatTargetRatios: startingRawMatTargetRatios),
+                        resSource: magicUnlimitedStartingResPile
                     ),
-                    activeColor: colorConfig.selectedWorldUIElementColor,
-                    startingConditions: cosmicBodyInfo.Name == mapInfo.StartingInfo.HouseCosmicBody ?
-                    (
-                        industryFactory: CurIndustryConfig.basicHouseFactory,
-                        personCount: CurWorldConfig.startingPersonNumInHouseCosmicBody,
-                        resSource: magicResPile
-                    ) : cosmicBodyInfo.Name == mapInfo.StartingInfo.PowerPlantCosmicBody ?
-                    (
-                        industryFactory: CurIndustryConfig.basicPowerPlantFactory,
-                        personCount: CurWorldConfig.startingPersonNumInPowerPlantCosmicBody,
-                        resSource: magicResPile
-                    ) : null
+                    createIndustry: nodeState =>
+                    {
+                        foreach (var (startingBuilding, cosmicBodyName) in mapInfo.StartingInfo.StartingBuildingToCosmicBody)
+                            if (cosmicBodyName == cosmicBodyInfo.Name)
+                            {
+                                var industry = CreateIndustry(nodeState: nodeState, startingBuilding: startingBuilding);
+                                Debug.Assert(!magicUnlimitedStartingResPile.IsEmpty);
+                                return industry;
+                            }
+                        return null;
+                    }
                 )
             );
             return new
@@ -172,6 +138,66 @@ namespace Game1
                     )
                 ).ToList()
             );
+
+            IIndustry CreateIndustry(IIndustryFacingNodeState nodeState, StartingBuilding startingBuilding)
+            {
+                return startingBuilding switch
+                {
+                    StartingBuilding.PowerPlant => CreatePowerPlantIndustry(),
+                    StartingBuilding.GearStorage => CreateStorageIndustry(productParamsName: "Gear"),
+                    StartingBuilding.WireStorage => CreateStorageIndustry(productParamsName: "Wire"),
+                    StartingBuilding.RoofTileStorage => CreateStorageIndustry(productParamsName: "Roof Tile")
+                };
+
+                IIndustry CreatePowerPlantIndustry()
+                {
+                    var concreteParams = industryConfig.startingPowerPlantParams.CreateConcrete
+                    (
+                        nodeState: nodeState,
+                        neededBuildingMatPaletteChoices: resConfig.StartingMaterialPaletteChoices.FilterOutUnneededMatPalettes
+                        (
+                            neededProductClasses: industryConfig.startingPowerPlantParams.BuildingCostPropors.neededProductClasses
+                        )
+                    );
+
+                    var buildingResPile = ResPile.CreateIfHaveEnough
+                    (
+                        source: magicUnlimitedStartingResPile,
+                        amount: concreteParams.BuildingCost
+                    );
+                    Debug.Assert(buildingResPile is not null);
+                    return concreteParams.CreateIndustry
+                    (
+                        buildingResPile: buildingResPile
+                    );
+                }
+
+                IIndustry CreateStorageIndustry(string productParamsName)
+                {
+                    var productParams = Product.productParamsDict[productParamsName];
+                    var concreteParams = industryConfig.startingStorageParams.CreateConcrete
+                    (
+                        nodeState: nodeState,
+                        neededBuildingMatPaletteChoices: resConfig.StartingMaterialPaletteChoices.FilterOutUnneededMatPalettes
+                        (
+                            neededProductClasses: industryConfig.startingStorageParams.BuildingCostPropors.neededProductClasses
+                        ),
+                        storageChoice: productParams.GetProduct(materialPalette: resConfig.StartingMaterialPaletteChoices[productParams.productClass])
+                    );
+
+                    var buildingResPile = ResPile.CreateIfHaveEnough
+                    (
+                        source: magicUnlimitedStartingResPile,
+                        amount: concreteParams.BuildingCost
+                    );
+                    Debug.Assert(buildingResPile is not null);
+                    return concreteParams.CreateFilledStorage
+                    (
+                        buildingResPile: buildingResPile,
+                        storedResSource: magicUnlimitedStartingResPile
+                    );
+                }
+            }
         }
 
         public Graph(List<CosmicBody> nodes, List<Link> links)
@@ -191,12 +217,9 @@ namespace Game1
             SetPersonAndResShortestPaths(personAndResShortestPaths: FindPersonAndResShortestPaths(nodes: this.nodes, links: this.links));
             SetShortestPathsTask();
 
-            nodeIDToNode = new
+            nodeIDToNode = nodes.ToEfficientReadOnlyDict
             (
-                dictionary: nodes.ToDictionary
-                (
-                    keySelector: node => node.NodeID
-                )
+                keySelector: node => node.NodeID
             );
 
             foreach (var node in nodes)
@@ -204,23 +227,10 @@ namespace Game1
             foreach (var link in links)
                 AddChild(child: link, layer: CurWorldConfig.linkLayer);
 
-            resDestinArrows = new();
-            foreach (var resInd in ResInd.All)
-                resDestinArrows[resInd] = new();
-
-            if (CurWorldManager.Overlay is ResInd singleResInd)
-                AddChild
-                (
-                    child: resDestinArrows[singleResInd],
-                    layer: CurWorldConfig.resDistribArrowsUILayer
-                );
-
             foreach (var worldUIElement in WorldUIElements)
                 worldUIElement.activeChanged.Add(listener: this);
 
-            ActiveWorldElement = null;
-
-            CurOverlayChanged.Add(listener: this);
+            activeWorldElement = null;
         }
 
         public void Initialize()
@@ -277,8 +287,8 @@ namespace Game1
         // TODO: implement Dijkstra and use pre-allocated buffers for computations to reduce GC pressure
         private static ShortestPaths FindShortestPaths(List<CosmicBody> nodes, List<Link> links, UDouble distTimeCoeff, UDouble distEnergyCoeff)
         {
-            UDouble[,] distsArray = new UDouble[nodes.Count, nodes.Count];
-            Link?[,] firstLinksArray = new Link[nodes.Count, nodes.Count];
+            var distsArray = new UDouble[nodes.Count, nodes.Count];
+            var firstLinksArray = new Link?[nodes.Count, nodes.Count];
 
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)
@@ -336,30 +346,30 @@ namespace Game1
         public UDouble ResDist(NodeID nodeID1, NodeID nodeID2)
             => resDists[(nodeID1, nodeID2)];
 
+        public IEnumerable<IIndustry> SourcesOf(IResource resource)
+            => Industries.Where(industry => industry.IsSourceOf(resource: resource));
+
+        public IEnumerable<IIndustry> DestinsOf(IResource resource)
+            => Industries.Where(industry => industry.IsDestinOf(resource: resource));
+
         public MyVector2 NodePosition(NodeID nodeID)
             => nodeIDToNode[nodeID].Position;
 
-        public void AddResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
-        {
-            resDestinArrow.activeChanged.Add(listener: this);
-            resDestinArrows[resInd].AddChild(child: resDestinArrow);
-        }
-
-        public override void OnClick()
+        public sealed override void OnClick()
         {
             base.OnClick();
 
-            if (ActiveWorldElement is not null)
+            if (activeWorldElement is not null)
             {
-                ActiveWorldElement.Active = false;
-                ActiveWorldElement = null;
+                activeWorldElement.Active = false;
+                activeWorldElement = null;
             }
         }
 
-        public void RemoveResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
+        public void PreEnergyDistribUpdate()
         {
-            resDestinArrow.activeChanged.Remove(listener: this);
-            resDestinArrows[resInd].RemoveChild(child: resDestinArrow);
+            foreach (var node in nodes)
+                node.PreEnergyDistribUpdate();
         }
 
         public void Update(EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
@@ -372,90 +382,58 @@ namespace Game1
             }
 
             CalcAndSetMaxLinkStats();
-            links.ForEach(link => link.Update());
+            links.ForEach(link => link.StartUpdate());
             foreach (var node in nodes)
-                node.Update(personFirstLinks: personFirstLinks, vacuumHeatEnergyPile: vacuumHeatEnergyPile);
+                node.StartUpdate(personFirstLinks: personFirstLinks, vacuumHeatEnergyPile: vacuumHeatEnergyPile);
 
-            links.ForEach(link => link.UpdatePeople());
-            nodes.ForEach(node => node.UpdatePeople());
+            links.ForEach(link => link.EndUpdate());
+            //nodes.ForEach(node => node.UpdatePeople());
             Stats = nodes.CombineRealPeopleStats().CombineWith(other: links.CombineRealPeopleStats());
-            
-            nodes.ForEach(node => node.StartSplitRes());
-            foreach (var resInd in ResInd.All)
-                SplitRes(resInd: resInd);
-            foreach (var node in nodes)
-                node.EndSplitRes(resFirstLinks: resFirstLinks);
+
+            DistributeRes();
+            nodes.ForEach(node => node.EndUpdate(resFirstLinks: resFirstLinks));
         }
 
-        public void UpdateHUDPos()
-            => nodes.ForEach(node => node.UpdateHUDPos());
-
-        /// <summary>
-        /// TODO:
-        /// choose random leafs
-        /// </summary>
-        public void SplitRes(ResInd resInd)
+        public void DistributeRes()
         {
-            NodeInfo.Init(resInd: resInd);
-            Dictionary<NodeID, NodeInfo> nodeInfos = nodes.ToDictionary
-            (
-                keySelector: node => node.NodeID,
-                elementSelector: node => new NodeInfo(node: node)
-            );
-
-            foreach (var nodeInfo in nodeInfos.Values)
-                foreach (var resDestin in nodeInfo.node.ResDestins(resInd: resInd))
-                {
-                    var nodeInfoDestin = nodeInfos[resDestin];
-
-                    nodeInfo.unvisitedDestinsCount++;
-                    nodeInfo.nodesOut.Add(nodeInfoDestin);
-                    nodeInfoDestin.nodesIn.Add(nodeInfo);
-                }
-            // sinks could use data stucture like from
-            // https://stackoverflow.com/questions/5682218/data-structure-insert-remove-contains-get-random-element-all-at-o1
-            // to support taking random element in O(1)
-            Queue<NodeInfo> sinks = new
-            (
-                from nodeInfo in nodeInfos.Values
-                where nodeInfo.unvisitedDestinsCount is 0
-                select nodeInfo
-            );
-
-            ulong MaxExtraRes(NodeID nodeID)
-                => nodeInfos[nodeID].MaxExtraRes();
-
-            while (sinks.Count > 0)
+            Dictionary<IResource, Dictionary<Algorithms.Vertex<IIndustry>, Algorithms.VertexInfo<IIndustry>>> resToRouteGraphs = new();
+            foreach (var industry in Industries)
             {
-                // want to choose random sink instead of this
-                NodeInfo sink = sinks.Dequeue();
-                sink.node.SplitRes
-                (
-                    nodeIDToNode: nodeID => nodeIDToNode[nodeID],
-                    resInd: resInd,
-                    maxExtraResFunc: MaxExtraRes
-                );
-
-                foreach (var nodeInfo in sink.nodesIn)
-                {
-                    nodeInfo.unvisitedDestinsCount--;
-                    if (nodeInfo.unvisitedDestinsCount is 0)
-                        sinks.Enqueue(nodeInfo);
-                }
-                sink.isSplitAleady = true;
+                AllResAmounts demand = industry.GetDemand(), supply = industry.GetSupply();
+                foreach (var res in industry.GetProducedRes())
+                    resToRouteGraphs.GetOrCreate(key: res).Add
+                    (
+                        key: new(ResOwner: industry, IsSource: true),
+                        value: new
+                        (
+                            directedNeighbours: industry.GetDestins(resource: res).ToList(),
+                            amount: supply[res]
+                        )
+                    );
+                foreach (var res in industry.GetConsumedRes())
+                    resToRouteGraphs.GetOrCreate(key: res).Add
+                    (
+                        key: new(ResOwner: industry, IsSource: false),
+                        value: new
+                        (
+                            directedNeighbours: industry.GetSources(resource: res).ToList(),
+                            amount: demand[res]
+                        )
+                    );
             }
 
-            foreach (var nodeInfo in nodeInfos.Values)
-                if (!nodeInfo.isSplitAleady)
+            foreach (var (res, routeGraph) in resToRouteGraphs)
+            {
+                EfficientReadOnlyCollection<Algorithms.ResPacket<IIndustry>> distribution = Algorithms.DistributeRes<IIndustry>(graph: new(dict: routeGraph));
+                foreach (var (sourceIndustry, destinIndustry, amount) in distribution)
                 {
-                    nodeInfo.node.SplitRes
-                    (
-                        nodeIDToNode: nodeID => nodeIDToNode[nodeID],
-                        resInd: resInd,
-                        maxExtraResFunc: MaxExtraRes
-                    );
-                    nodeInfo.isSplitAleady = true;
+                    if (amount is 0)
+                        continue;
+                    ResAmount<IResource> resAmount = new(res: res, amount: amount);
+                    sourceIndustry.TransportResTo(destinIndustry: destinIndustry, resAmount: resAmount);
+                    destinIndustry.WaitForResFrom(sourceIndustry: sourceIndustry, resAmount: resAmount);
                 }
+            }
         }
 
         public void DrawBeforeLight()
@@ -470,47 +448,21 @@ namespace Game1
                 child.Draw();
         }
 
-        protected override void DrawChildren()
+        protected sealed override void DrawChildren()
             => throw new InvalidOperationException();
-
-        void IChoiceChangedListener<IOverlay>.ChoiceChangedResponse(IOverlay prevOverlay)
-        {
-            if (prevOverlay is ResInd prevResInd)
-                RemoveChild(child: resDestinArrows[prevResInd]);
-
-            if (CurWorldManager.Overlay is ResInd resInd)
-                AddChild
-                (
-                    child: resDestinArrows[resInd],
-                    layer: CurWorldConfig.resDistribArrowsUILayer
-                );
-        }
 
         void IActiveChangedListener.ActiveChangedResponse(WorldUIElement worldUIElement)
         {
-            if (CurWorldManager.ArrowDrawingModeOn)
-            {
-                if (worldUIElement.Active)
-                {
-                    var sourceNode = ActiveWorldElement as CosmicBody;
-                    var destinationNode = worldUIElement as CosmicBody;
-                    Debug.Assert(sourceNode is not null && destinationNode is not null);
-                    sourceNode.AddResDestin(destinationId: destinationNode.NodeID);
-                    worldUIElement.Active = false;
-                }
-                return;
-            }
-
             if (worldUIElement.Active)
             {
-                if (ActiveWorldElement is not null)
-                    ActiveWorldElement.Active = false;
-                ActiveWorldElement = worldUIElement;
+                if (activeWorldElement is not null)
+                    activeWorldElement.Active = false;
+                activeWorldElement = worldUIElement;
             }
             else
             {
-                if (ActiveWorldElement == worldUIElement)
-                    ActiveWorldElement = null;
+                if (activeWorldElement == worldUIElement)
+                    activeWorldElement = null;
             }
         }
     }

@@ -5,8 +5,9 @@ namespace Game1.PrimitiveTypeWrappers
     // TODO: could rename to MyUFloat
     [Serializable]
     public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>,
-        IComparisonOperators<UDouble, UDouble, bool>, IMin<UDouble>, IMax<UDouble>, IComparable<UDouble>, IMinMaxValue<UDouble>,
+        IComparisonOperators<UDouble, UDouble, bool>, IMin<UDouble>, IMax<UDouble>, IComparable<UDouble>, IEquatable<UDouble>, IMinMaxValue<UDouble>,
         IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>,
+        ISubtractionOperators<UDouble, UDouble, UDouble>,
         IMultiplyOperators<UDouble, UDouble, UDouble>, IMultiplicativeIdentity<UDouble, UDouble>,
         IMultiplyOperators<UDouble, ulong, UDouble>, IMultiplicativeIdentity<UDouble, ulong>,
         IPrimitiveTypeWrapper
@@ -100,6 +101,9 @@ namespace Game1.PrimitiveTypeWrappers
         public static UDouble operator +(UDouble value1, UDouble value2)
             => new(value1.value + value2.value);
 
+        public static UDouble operator -(UDouble value1, UDouble value2)
+            => new(value1.value - value2.value);
+
         public static UDouble operator *(UDouble value1, UDouble value2)
             => new(value1.value * value2.value);
 
@@ -113,7 +117,11 @@ namespace Game1.PrimitiveTypeWrappers
             => scale * timeSpan;
 
         public static UDouble operator /(UDouble value1, UDouble value2)
-           => new(value1.value / value2.value);
+        {
+            if (value2.value is 0)
+                throw new ArithmeticException("Dividend cannot be 0");
+            return new(value1.value / value2.value);
+        }
 
         public string ToString(string? format, IFormatProvider? formatProvider)
             => value.ToString(format, formatProvider);
@@ -123,6 +131,9 @@ namespace Game1.PrimitiveTypeWrappers
 
         public override bool Equals(object? obj)
             => obj is UDouble UDouble && value == UDouble.value;
+
+        bool IEquatable<UDouble>.Equals(UDouble UDouble)
+            => value == UDouble.value;
 
         public override int GetHashCode()
             => value.GetHashCode();

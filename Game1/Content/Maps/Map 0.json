@@ -77,15 +77,23 @@
     {
       "From": "Cosmic body 6",
       "To": "Cosmic body 0"
+    },
+    {
+      "From": "Cosmic body 1",
+      "To": "Cosmic body 4"
     }
   ],
   "StartingInfo": {
-    "HouseCosmicBody": "Cosmic body 1",
-    "PowerPlantCosmicBody": "Cosmic body 2",
     "WorldCenter": {
       "X": 0,
       "Y": 0
     },
-    "CameraViewHeight": 1080
+    "CameraViewHeight": 1080,
+    "StartingBuildingLocations": {
+      "PowerPlant": "Cosmic body 1",
+      "GearStorage": "Cosmic body 2",
+      "WireStorage": "Cosmic body 3",
+      "RoofTileStorage": "Cosmic body 4"
+    }
   }
 }

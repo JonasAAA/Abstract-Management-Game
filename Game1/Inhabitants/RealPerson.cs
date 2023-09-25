@@ -1,4 +1,5 @@
-﻿using Game1.Industries;
+﻿using Game1.Collections;
+using Game1.Industries;
 using System.Diagnostics.CodeAnalysis;
 using static Game1.WorldManager;
 
@@ -90,13 +91,13 @@ namespace Game1.Inhabitants
 
         // TODO: move to some config file
         // Long-term, make each person require different amount of resources
-        public static readonly ResAmounts resAmountsPerPerson;
-
-        static RealPerson()
-            => resAmountsPerPerson = new()
-            {
-                [(ResInd)0] = 10
-            };
+        public static readonly AllResAmounts resAmountsPerPerson = new
+            (
+                resAmounts: new List<ResAmount<IResource>>()
+                {
+                    new(res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: CurResConfig, ind: 0), amount: 10)
+                }
+            );
 
         public readonly VirtualPerson asVirtual;
         
@@ -119,7 +120,7 @@ namespace Game1.Inhabitants
         private readonly ResPile consistsOfResPile;
         private LocationCounters locationCounters;
         
-        private RealPerson(RealPeopleStats realPeopleStats, NodeID closestNodeID, TimeSpan seekChangeTime, ResPile resSource, ResAmounts consistsOfResAmounts)
+        private RealPerson(RealPeopleStats realPeopleStats, NodeID closestNodeID, TimeSpan seekChangeTime, ResPile resSource, AllResAmounts consistsOfResAmounts)
         {
             Stats = realPeopleStats;
             ClosestNodeID = closestNodeID;
@@ -158,7 +159,7 @@ namespace Game1.Inhabitants
         public void UpdateAllocEnergyPropor(Propor newAllocEnergyPropor)
             => Stats = Stats with { AllocEnergyPropor = newAllocEnergyPropor };
 
-        /// <param name="updateSkillsParams">if null, will use default update</param>
+        /// <param Name="updateSkillsParams">if null, will use default update</param>
         public void Update(UpdatePersonSkillsParams? updateSkillsParams, Propor allocEnergyPropor)
         {
             var timeCoeff = Stats.totalReqWatts == 0 ? Propor.empty : allocEnergyPropor;
@@ -220,7 +221,7 @@ namespace Game1.Inhabitants
         }
 
         public bool IfSeeksNewActivity()
-            => activityCenter is null || timeSinceActivitySearch >= seekChangeTime && activityCenter.CanPersonLeave(person: asVirtual);
+            => activityCenter is null || (timeSinceActivitySearch >= seekChangeTime && activityCenter.CanPersonLeave(person: asVirtual));
 
         public IPersonFacingActivityCenter ChooseActivityCenter(IEnumerable<IPersonFacingActivityCenter> activityCenters)
         {

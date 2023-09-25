@@ -1,4 +1,6 @@
-﻿namespace Game1.Resources
+﻿using Game1.Collections;
+
+namespace Game1.Resources
 {
     [Serializable]
     public class Counters
@@ -14,7 +16,7 @@
                 {
                     PeopleCounter = Counter<NumPeople>.CreateByMagic(count: numPeople)
                 },
-                ResAmounts resAmounts => new()
+                AllResAmounts resAmounts => new()
                 {
                     ResCounter = ResCounter.CreateByMagic(count: resAmounts)
                 },
@@ -100,7 +102,7 @@
             object counter = default(TAmount) switch
             {
                 NumPeople => PeopleCounter,
-                ResAmounts => ResCounter,
+                AllResAmounts => ResCounter,
                 HeatEnergy => HeatEnergyCounter,
                 RadiantEnergy => RadiantEnergyCounter,
                 ElectricalEnergy => ElectricalEnergyCounter,

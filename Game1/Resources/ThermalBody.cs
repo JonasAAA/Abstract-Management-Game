@@ -1,4 +1,6 @@
-﻿namespace Game1.Resources
+﻿using Game1.Collections;
+
+namespace Game1.Resources
 {
     [Serializable]
     public class ThermalBody
@@ -7,13 +9,21 @@
             => new
             (
                 heatEnergyPile: EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
-                magicResAmounts: ResAmounts.Empty
+                magicResAmounts: AllResAmounts.empty
             );
 
-        public static ThermalBody CreateByMagic(LocationCounters locationCounters, ResAmounts amount)
+        public static ThermalBody CreateByMagic(LocationCounters locationCounters, AllResAmounts amount, Temperature temperature)
             => new
             (
-                heatEnergyPile: EnergyPile<HeatEnergy>.CreateEmpty(locationCounters: locationCounters),
+                heatEnergyPile: EnergyPile<HeatEnergy>.CreateByMagic
+                (
+                    locationCounters: locationCounters,
+                    amount: ResAndIndustryAlgos.HeatEnergyFromTemperature
+                    (
+                        temperature: temperature,
+                        heatCapacity: amount.HeatCapacity()
+                    )
+                ),
                 magicResAmounts: amount
             );
 
@@ -27,16 +37,16 @@
         // This may need to not be any counter, as when resources are transformed into radiant energy,
         // there is no counter to transfer that stuff to. After all, this counter is just to keep track
         // of resources in this thermal body, not to enforce conservation of energy
-        private ResAmounts resAmounts;
+        private AllResAmounts resAmounts;
 
-        private ThermalBody(EnergyPile<HeatEnergy> heatEnergyPile, ResAmounts magicResAmounts)
+        private ThermalBody(EnergyPile<HeatEnergy> heatEnergyPile, AllResAmounts magicResAmounts)
         {
             locationCounters = heatEnergyPile.LocationCounters;
             this.heatEnergyPile = heatEnergyPile;
             resAmounts = magicResAmounts;
         }
 
-        public void TransferResFrom(ThermalBody source, ResAmounts amount)
+        public void TransferResFrom(ThermalBody source, AllResAmounts amount)
         {
             var sourceHeatCapacityInJPerK = source.resAmounts.HeatCapacity().valueInJPerK;
             if (sourceHeatCapacityInJPerK > 0)
@@ -81,11 +91,17 @@
 
         /// <summary>
         /// Source must be from this thermal body
+        /// If this reaction loses energy, it is assumed that thermal body contains enough heat to cover the difference
         /// </summary>
-        public void TransformResToHeatEnergy(EnergyPile<ResAmounts> source, ResAmounts amount)
+        public void PerformFusion(EnergyPile<AllResAmounts> source, RawMatAmounts results)
         {
-            source.TransformTo(destin: heatEnergyPile, amount: amount);
-            resAmounts -= amount;
+            var initialResAmounts = source.Amount;
+            source.TransformAllTo(destin: heatEnergyPile);
+            resAmounts -= initialResAmounts;
+
+            var finalResAmounts = results.ToAll();
+            source.TransformFrom(source: heatEnergyPile, amount: finalResAmounts);
+            resAmounts += finalResAmounts;
         }
     }
 }

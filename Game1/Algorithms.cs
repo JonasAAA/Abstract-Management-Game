@@ -1,4 +1,7 @@
-﻿using System.IO;
+﻿using Game1.Collections;
+using Game1.Delegates;
+using Priority_Queue;
+using System.IO;
 using System.Numerics;
 
 namespace Game1
@@ -34,10 +37,13 @@ namespace Game1
                 (true, true) => 0,
                 (true, false) => 1,
                 (false, true) => -1,
-                (false, false) => ((UInt128)left.totOwnedEnergy.ValueInJ() * right.reqEnergy.ValueInJ()).CompareTo
-                    (
-                        (UInt128)right.totOwnedEnergy.ValueInJ() * left.reqEnergy.ValueInJ()
-                    )
+                (false, false) => MyMathHelper.CompareFractions
+                (
+                    numeratorA: left.totOwnedEnergy.ValueInJ(),
+                    denominatorA: left.reqEnergy.ValueInJ(),
+                    numeratorB: right.totOwnedEnergy.ValueInJ(),
+                    denominatorB: right.reqEnergy.ValueInJ()
+                )
             };
             return compareValues is 0 ? left.index.CompareTo(right.index) : compareValues;
         }
@@ -60,21 +66,18 @@ namespace Game1
                 );
 
             Debug.Assert(!totalReqEnergy.IsZero);
-            ReadOnlyCollection<ConsumerWithEnergy<T>> consumersWithEnergy = new
+            EfficientReadOnlyCollection<ConsumerWithEnergy<T>> consumersWithEnergy = reqEnergies.Select
             (
-                reqEnergies.Select
+                (reqEnergy, index) => new ConsumerWithEnergy<T>
                 (
-                    (reqEnergy, index) => new ConsumerWithEnergy<T>
+                    Index: index,
+                    ReqEnergy: reqEnergy,
+                    AllocEnergy: IUnconstrainedEnergy<T>.CreateFromJoules
                     (
-                        Index: index,
-                        ReqEnergy: reqEnergy,
-                        AllocEnergy: IUnconstrainedEnergy<T>.CreateFromJoules
-                        (
-                            valueInJ: (ulong)((UInt128)reqEnergy.ValueInJ() * availableEnergy.ValueInJ() / totalReqEnergy.ValueInJ())
-                        )
+                        valueInJ: (ulong)((UInt128)reqEnergy.ValueInJ() * availableEnergy.ValueInJ() / totalReqEnergy.ValueInJ())
                     )
-                ).ToList()
-            );
+                )
+            ).ToEfficientReadOnlyCollection();
             var sortedConsumersWithEnergy = consumersWithEnergy.Order().ToList();
             var remainingEnergy = availableEnergy - sortedConsumersWithEnergy.Sum(energyConsumer => energyConsumer.AllocEnergy);
             // Give the remaining energy to those that got the least of it.
@@ -96,7 +99,7 @@ namespace Game1
 
         // THIS IS A CLASS so that when it's later changed, it the changes are reflected everywhere
         [Serializable]
-        private record class ConsumerWithExtraEnergy<T>(int Index, T OwnedEnergy, T ReqEnergy, T AllocEnergy) : ConsumerWithEnergy<T>(Index: Index, ReqEnergy: ReqEnergy, AllocEnergy: AllocEnergy), IComparable<ConsumerWithExtraEnergy<T>>
+        private sealed record ConsumerWithExtraEnergy<T>(int Index, T OwnedEnergy, T ReqEnergy, T AllocEnergy) : ConsumerWithEnergy<T>(Index: Index, ReqEnergy: ReqEnergy, AllocEnergy: AllocEnergy), IComparable<ConsumerWithExtraEnergy<T>>
             where T : struct, IUnconstrainedEnergy<T>
         {
             int IComparable<ConsumerWithExtraEnergy<T>>.CompareTo(ConsumerWithExtraEnergy<T>? other)
@@ -123,7 +126,7 @@ namespace Game1
 
             List<T> SplitExtraEnergyEvenlyInternal()
             {
-                List<T> maxAllocEnergies = energies.Select(energy => energy.reqEnergy - energy.ownedEnergy).ToList();
+                var maxAllocEnergies = energies.Select(energy => energy.reqEnergy - energy.ownedEnergy).ToList();
                 if (maxAllocEnergies.Sum() <= availableEnergy)
                     return maxAllocEnergies;
 
@@ -163,7 +166,7 @@ namespace Game1
             // Otherwise returns
             GeneralEnum<List<T>, Size> TryAllocPropor(decimal allocPropor)
             {
-                ReadOnlyCollection<ConsumerWithExtraEnergy<T>> consumersWithExtraEnergy = new
+                EfficientReadOnlyCollection<ConsumerWithExtraEnergy<T>> consumersWithExtraEnergy = new
                 (
                     energies.Select
                     (
@@ -206,35 +209,110 @@ namespace Game1
             }
         }
 
-        public static ulong MatterToConvertToEnergy(BasicRes basicRes, ulong resAmount, UDouble temperatureInK, UDouble surfaceGravity, TimeSpan duration,
-            Func<decimal, ulong> massInKgRoundFunc, UDouble reactionStrengthCoeff, Propor nonConvertedMassForUnitReactionStrengthUnitTime)
+        public static EfficientReadOnlyCollection<(TOwner owner, ulong amount)> Split<TOwner>(EfficientReadOnlyDictionary<TOwner, ulong> weights, ulong totalAmount)
+            where TOwner : notnull
         {
-#warning test this
-            double density = (double)basicRes.Area / basicRes.Mass.valueInKg,
-                reactionStrength = reactionStrengthCoeff * density * surfaceGravity * temperatureInK;
-            var nonConvertedMassPropor = (decimal)MyMathHelper.Pow(@base: (UDouble)nonConvertedMassForUnitReactionStrengthUnitTime, exponent: reactionStrength * duration.TotalSeconds);
-            ulong matterToConvert = resAmount - massInKgRoundFunc(nonConvertedMassPropor * resAmount);
-            return matterToConvert;
+#warning Test this
+            ulong weightSum = weights.Sum(ownerAndWeight => ownerAndWeight.Value);
+            List<(TOwner owner, ulong amount)> ownersToAmounts = weights.Select
+            (
+                ownerAndWeight =>
+                (
+                    owner: ownerAndWeight.Key,
+                    amount: (ulong)((UInt128)totalAmount * ownerAndWeight.Value / weightSum)
+                )
+            ).ToList();
+            ulong unusedAmount = totalAmount - ownersToAmounts.Sum(ownerAndAmount => ownerAndAmount.amount);
+            Debug.Assert(unusedAmount <= (ulong)ownersToAmounts.Count);
+            ownersToAmounts.Sort
+            (
+                comparison: (ownerAndAmount, otherOwnerAndAmount)
+                    => MyMathHelper.CompareFractions
+                    (
+                        numeratorA: ownerAndAmount.amount,
+                        denominatorA: weights[ownerAndAmount.owner],
+                        numeratorB: otherOwnerAndAmount.amount,
+                        denominatorB: weights[otherOwnerAndAmount.owner]
+                    )
+            );
+            for (int i = 0; i < (int)unusedAmount; i++)
+                ownersToAmounts[i] = (owner: ownersToAmounts[i].owner, amount: ownersToAmounts[i].amount + 1);
+            Debug.Assert(ownersToAmounts.Sum(ownerAndAmount => ownerAndAmount.amount) == totalAmount);
+            return ownersToAmounts.ToEfficientReadOnlyCollection();
+        }
+
+        // Inspired by https://en.wikipedia.org/wiki/Lawson_criterion#Energy_balance
+        public static RawMatAmounts CosmicBodyNewCompositionFromNuclearFusion(ResConfig curResConfig, RawMatAmounts composition, UDouble surfaceGravity, UDouble surfaceGravityExponent,
+            Temperature temperature, UDouble temperatureExponent, TimeSpan duration, UDouble fusionReactionStrengthCoeff, Func<RawMaterial, decimal, ulong> reactionNumberRounder)
+        {
+            AreaDouble compositionArea = composition.Area().ToDouble();
+            Dictionary<RawMaterial, ulong> cosmicBodyNextComposition = new(2 * composition.Count);
+            foreach (var (rawMaterial, amount) in composition)
+            {
+                (ulong nonReactingAmount, ulong fusionProductAmount) = NuclearFusionSingleRawMat
+                (
+                    amount: amount,
+                    compositionArea: compositionArea,
+                    surfaceGravity: surfaceGravity,
+                    surfaceGravityExponent: surfaceGravityExponent,
+                    temperature: temperature,
+                    temperatureExponent: temperatureExponent,
+                    duration: duration,
+                    reactionNumberRounder: reactionNum => reactionNumberRounder(rawMaterial, reactionNum),
+                    fusionReactionStrengthCoeff: fusionReactionStrengthCoeff * rawMaterial.FusionReactionStrengthCoeff
+                );
+                cosmicBodyNextComposition[rawMaterial] = cosmicBodyNextComposition.GetValueOrDefault(key: rawMaterial) + nonReactingAmount;
+                if (fusionProductAmount > 0)
+                {
+                    RawMaterial fusionResult = rawMaterial.GetFusionResult(curResConfig: curResConfig);
+                    cosmicBodyNextComposition[fusionResult] = cosmicBodyNextComposition.GetValueOrDefault(key: fusionResult) + fusionProductAmount;
+                }
+            }
+            RawMatAmounts newComposition = new(cosmicBodyNextComposition);
+            Debug.Assert(composition.Area() == newComposition.Area());
+            return newComposition;
+        }
+
+        public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusionSingleRawMat(ulong amount, AreaDouble compositionArea, UDouble surfaceGravity, UDouble surfaceGravityExponent,
+            Temperature temperature, UDouble temperatureExponent, TimeSpan duration, Func<decimal, ulong> reactionNumberRounder, UDouble fusionReactionStrengthCoeff)
+        {
+            // Somewhat equivalent to https://en.wikipedia.org/wiki/Number_density.
+            // Since all raw mats have the same area, this naming makes sense
+            double rawMatProporInComposition = (double)amount / compositionArea.valueInMetSq,
+                reactionStrength = fusionReactionStrengthCoeff
+                    * rawMatProporInComposition * rawMatProporInComposition
+                    * MyMathHelper.Pow(@base: surfaceGravity, exponent: surfaceGravityExponent)
+                    * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent);
+            ulong reactingAmount = MyMathHelper.Min
+            (
+                amount,
+                reactionNumberRounder((decimal)(amount * reactionStrength * duration.TotalSeconds))
+            );
+            return
+            (
+                nonReactingAmount: amount - reactingAmount,
+                fusionProductAmount: reactingAmount
+            );
         }
 
         /// <summary>
         /// Implements Stefan-Boltzmann law https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law to calculate how much energy in total to dissipate
         /// The splitting into heat energy and radiant energy algorithm is my creation
         /// </summary>
-        public static (HeatEnergy heatEnergy, RadiantEnergy radiantEnergy) EnergiesToDissipate(HeatEnergy heatEnergy, UDouble surfaceLength, Propor emissivity, UDouble temperatureInK,
-            Func<decimal, ulong> energyInJToDissipateRoundFunc, UDouble stefanBoltzmannConstant, ulong temperatureExponent, Func<decimal, ulong> heatEnergyInJRoundFunc,
-            UDouble allHeatMaxTemper, UDouble halfHeatTemper, UDouble heatEnergyDropoffExponent)
+        public static (HeatEnergy heatEnergy, RadiantEnergy radiantEnergy) EnergiesToDissipate(HeatEnergy heatEnergy, UDouble surfaceLength, Propor emissivity, Temperature temperature,
+            TimeSpan duration, Func<decimal, ulong> energyInJToDissipateRoundFunc, UDouble stefanBoltzmannConstant, ulong temperatureExponent, Func<decimal, ulong> heatEnergyInJRoundFunc,
+            Temperature allHeatMaxTemper, Temperature halfHeatTemper, UDouble heatEnergyDropoffExponent)
         {
 #warning test this
             ulong energyInJToDissipate = MyMathHelper.Min
             (
                 heatEnergy.ValueInJ,
-                energyInJToDissipateRoundFunc((decimal)(surfaceLength * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: temperatureInK, exponent: temperatureExponent)))
+                energyInJToDissipateRoundFunc((decimal)(duration.TotalSeconds * surfaceLength * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent)))
             );
-            double heatEnergyPropor = (temperatureInK <= allHeatMaxTemper) switch
+            double heatEnergyPropor = (temperature <= allHeatMaxTemper) switch
             {
                 true => 1,
-                false => 1 / (1 + MyMathHelper.Pow(@base: (temperatureInK - allHeatMaxTemper) / (halfHeatTemper - allHeatMaxTemper), exponent: heatEnergyDropoffExponent))
+                false => 1 / (1 + MyMathHelper.Pow(@base: (temperature.valueInK - allHeatMaxTemper.valueInK) / (halfHeatTemper.valueInK - allHeatMaxTemper.valueInK), exponent: heatEnergyDropoffExponent))
             };
 
             ulong heatEnergyInJ = heatEnergyInJRoundFunc(energyInJToDissipate * (decimal)heatEnergyPropor);
@@ -248,8 +326,8 @@ namespace Game1
         /// <summary>
         /// Checks if streamReader starts with tokens, with potentially whitespace at the start and between tokens
         /// </summary>
-        /// <param name="streamReader"></param>
-        /// <param name="tokens"></param>
+        /// <param Name="streamReader"></param>
+        /// <param Name="tokens"></param>
         /// <returns></returns>
         public static bool StreamStartsWith(StreamReader streamReader, string[] tokens)
         {
@@ -280,5 +358,131 @@ namespace Game1
             (
                 valueInJ: roundFunc(wholeAmount.ValueInJ() * (decimal)propor)
             );
+
+        public static string GanerateNewName(string prefix, EfficientReadOnlyHashSet<string> usedNames)
+        {
+            for (int i = 0; ; i++)
+            {
+                string newName = $"{prefix} {i}";
+                if (!usedNames.Contains(newName))
+                    return newName;
+            }
+        }
+
+        [Serializable]
+        public readonly record struct Vertex<T>(T ResOwner, bool IsSource);
+
+        [Serializable]
+        public sealed class VertexInfo<T>
+        {
+            public readonly List<T> directedNeighbours;
+            public ulong amount;
+
+            public VertexInfo(List<T> directedNeighbours, ulong amount)
+            {
+                this.directedNeighbours = directedNeighbours;
+                this.amount = amount;
+            }
+
+            public ulong GiveAmountRoundUp()
+                => MyMathHelper.DivideThenTakeCeiling(dividend: amount, divisor: (ulong)directedNeighbours.Count);
+
+
+            public double Priority()
+               => (double)amount / directedNeighbours.Count;
+        }
+
+        [Serializable]
+        public readonly record struct ResPacket<T>(T Source, T Destin, ulong Amount);
+
+        [Serializable]
+        private readonly record struct InternalResPacket<T>(T VertexA, T VertexB, bool IsASource, ulong Amount);
+
+        // Dictionary is from Vertex<T> rather than T directly, as the same Industry may be a source and a destination of the same resource, e.g. storage.
+        public static EfficientReadOnlyCollection<ResPacket<T>> DistributeRes<T>(EfficientReadOnlyDictionary<Vertex<T>, VertexInfo<T>> graph)
+        {
+            SimplePriorityQueue<Vertex<T>, double> vertsByPriority = new();
+            foreach (var (vertex, vertexInfo) in graph)
+                EnqueueVertexIfNeeded(vertex: vertex, vertexInfo: vertexInfo);
+            
+            List<ResPacket<T>> resPackets = new();
+            while (vertsByPriority.Count > 0)
+            {
+                var (resOwnerA, isASource) = vertsByPriority.Dequeue();
+                var vertexAInfo = graph[new(ResOwner: resOwnerA, IsSource: isASource)];
+                // ToList is needed as in this process neighbours are removed. Without it, may get error about modifying collection
+                // and iterating it at the same time
+                var orderedNeighbours = vertexAInfo.directedNeighbours.OrderByDescending
+                (
+                    resOwnerB => graph[new(ResOwner: resOwnerB, IsSource: !isASource)].Priority()
+                ).ToList();
+                foreach (var resOwnerB in orderedNeighbours)
+                {
+                    ulong amount = vertexAInfo.GiveAmountRoundUp();
+                    resPackets.Add
+                    (
+                        new
+                        (
+                            Source: isASource ? resOwnerA : resOwnerB,
+                            Destin: isASource ? resOwnerB : resOwnerA,
+                            Amount: amount
+                        )
+                    );
+                    Vertex<T> vertexB = new(ResOwner: resOwnerB, IsSource: !isASource);
+                    var vertexBInfo = graph[vertexB];
+
+                    vertexAInfo.directedNeighbours.Remove(resOwnerB);
+                    vertexBInfo.directedNeighbours.Remove(resOwnerA);
+                    vertexAInfo.amount -= amount;
+                    vertexBInfo.amount -= amount;
+                    
+                    vertsByPriority.Remove(vertexB);
+                    EnqueueVertexIfNeeded(vertex: vertexB, vertexInfo: vertexBInfo);
+                }
+                Debug.Assert(vertexAInfo.amount is 0);
+            }
+
+            return resPackets.ToEfficientReadOnlyCollection();
+
+            void EnqueueVertexIfNeeded(Vertex<T> vertex, VertexInfo<T> vertexInfo)
+            {
+                var priority = vertexInfo.Priority();
+                if (priority is not double.PositiveInfinity)
+                    vertsByPriority.Enqueue
+                    (
+                        item: vertex,
+                        priority: priority
+                    );
+            }
+        }
+
+        /// <summary>
+        /// Assumptions:
+        /// * minValue <= maxValue
+        /// * isValueOk(minValue) is true
+        /// * there exists maxOkValue s.t.:
+        ///   * for value <= maxOkValue, isValueOk(value) is true
+        ///   * for value > maxOkValue, isValueOk(value) is false
+        /// </summary>
+        public static ulong FindMaxOkValue(ulong minValue, ulong maxValue, Func<ulong, bool> isValueOk)
+        {
+            if (minValue > maxValue)
+                throw new ArgumentException();
+            if (!isValueOk(minValue))
+                throw new ArgumentException();
+#warning Test this
+            while (minValue < maxValue)
+            {
+                ulong midValue = (minValue + maxValue + 1) / 2;
+                if (isValueOk(midValue))
+                    minValue = midValue;
+                else
+                    maxValue = midValue - 1;
+            }
+            var value = minValue;
+            Debug.Assert(minValue <= value && value <= maxValue && isValueOk(value));
+            Debug.Assert(minValue + 1 > maxValue || !isValueOk(value + 1));
+            return value;
+        }
     }
 }

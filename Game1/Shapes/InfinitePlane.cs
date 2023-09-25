@@ -5,10 +5,10 @@ namespace Game1.Shapes
     [Serializable]
     public sealed class InfinitePlane : Shape
     {
-        public override bool Contains(MyVector2 position)
+        public sealed override bool Contains(MyVector2 position)
             => true;
 
-        public override void Draw(Color color)
+        public sealed override void Draw(Color color)
         {
             if (!color.Transparent())
                 C.Draw

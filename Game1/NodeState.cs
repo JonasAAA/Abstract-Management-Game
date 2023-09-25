@@ -1,6 +1,8 @@
 ﻿using Game1.ContentHelpers;
 using Game1.Industries;
 using Game1.Inhabitants;
+using Game1.Shapes;
+using Game1.UI;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -8,37 +10,33 @@ namespace Game1
     [Serializable]
     public sealed class NodeState : IIndustryFacingNodeState
     {
-        public static ulong ResAmountFromApproxRadius(BasicResInd basicResInd, UDouble approxRadius)
-            => Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / CurResConfig.resources[basicResInd].Area);
+        public static RawMatAmounts CalculateComposition(RawMatAmounts rawMatRatios, UDouble approxRadius)
+            => rawMatRatios * Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / rawMatRatios.Area().valueInMetSq);
 
         public NodeID NodeID { get; }
         public Mass PlanetMass
             => consistsOfResPile.Amount.Mass();
-        public ulong Area { get; private set; }
+        public AreaInt Area { get; private set; }
         public UDouble Radius { get; private set; }
-        public ulong ApproxSurfaceLength { get; private set; }
-        public ulong MainResAmount
-            => consistsOfResPile.Amount[ConsistsOfResInd];
-        public ulong MaxAvailableResAmount
-            => MainResAmount - CurWorldConfig.minResAmountInPlanet;
+        public UDouble SurfaceLength { get; private set; }
         public MyVector2 Position { get; }
-        public ulong MaxBatchDemResStored { get; }
-        public ResPile StoredResPile { get; }
         public EnergyPile<RadiantEnergy> RadiantEnergyPile { get; }
         public readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
         public RealPeople WaitingPeople { get; }
-        public BasicResInd ConsistsOfResInd { get; }
-        public BasicRes ConsistsOfRes { get; }
-        public bool TooManyResStored { get; set; }
+        public RawMatAmounts Composition { get; private set; }
         // TODO: could include linkEndPoints Mass in the Counter<Mass> in this NodeState
         public LocationCounters LocationCounters { get; }
         public ThermalBody ThermalBody { get; }
-        public UDouble SurfaceGravity
-            => WorldFunctions.SurfaceGravity(mass: LocationCounters.GetCount<ResAmounts>().Mass(), radius: Radius);
+        public UDouble SurfaceGravity { get; private set; }
+        /// <summary>
+        /// This is current temperature to be used until the new value is calculated.
+        /// Don't calculate temperature on the fly each time, as that would lead to temperature variations during the frame.
+        /// </summary>
+        public Temperature Temperature { get; private set; }
 
         public readonly ResPile consistsOfResPile;
 
-        public NodeState(WorldCamera mapInfoCamera, FullValidCosmicBodyInfo cosmicBodyInfo, BasicResInd consistsOfResInd, ResPile resSource)
+        public NodeState(WorldCamera mapInfoCamera, FullValidCosmicBodyInfo cosmicBodyInfo, RawMatAmounts rawMatRatios, ResPile resSource)
             : this
             (
                 name: cosmicBodyInfo.Name,
@@ -46,37 +44,30 @@ namespace Game1
                 (
                     screenPos: mapInfoCamera.WorldPosToScreenPos(worldPos: cosmicBodyInfo.Position)
                 ),
-                consistsOfResInd: consistsOfResInd,
-                mainResAmount: ResAmountFromApproxRadius
+                composition: CalculateComposition
                 (
-                    basicResInd: consistsOfResInd,
+                    rawMatRatios: rawMatRatios,
                     approxRadius: CurWorldManager.ScreenLengthToWorldLength
                     (
                         screenLength: mapInfoCamera.WorldLengthToScreenLength(worldLength: cosmicBodyInfo.Radius)
                     )
                 ),
-                resSource: resSource,
-                maxBatchDemResStored: 2
+                resSource: resSource
             )
         { }
 
-        public NodeState(string name, MyVector2 position, BasicResInd consistsOfResInd, ulong mainResAmount, ResPile resSource, ulong maxBatchDemResStored)
+        public NodeState(string name, MyVector2 position, RawMatAmounts composition, ResPile resSource)
         {
 #warning display the name
             LocationCounters = LocationCounters.CreateEmpty();
             ThermalBody = ThermalBody.CreateEmpty(locationCounters: LocationCounters);
             NodeID = NodeID.Create();
             Position = position;
-            ConsistsOfResInd = consistsOfResInd;
-            ConsistsOfRes = CurResConfig.resources[consistsOfResInd];
+            Composition = composition;
             consistsOfResPile = ResPile.CreateEmpty(thermalBody: ThermalBody);
-            EnlargeFrom(source: resSource, resAmount: mainResAmount);
+            EnlargeFrom(source: resSource, amount: composition);
             
-            StoredResPile = ResPile.CreateEmpty(thermalBody: ThermalBody);
             RadiantEnergyPile = EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: LocationCounters);
-            if (maxBatchDemResStored is 0)
-                throw new ArgumentOutOfRangeException();
-            MaxBatchDemResStored = maxBatchDemResStored;
             waitingResAmountsPackets = ResAmountsPacketsByDestin.CreateEmpty(thermalBody: ThermalBody);
             WaitingPeople = RealPeople.CreateEmpty
             (
@@ -86,42 +77,55 @@ namespace Game1
                 closestNodeID: NodeID,
                 isInActivityCenter: false
             );
-            TooManyResStored = false;
+            UpdateTemperature();
         }
 
-        public bool CanRemove(ulong resAmount)
-            => MainResAmount >= resAmount + CurWorldConfig.minResAmountInPlanet;
+        public void UpdateTemperature()
+            => Temperature = ResAndIndustryAlgos.Temperature(heatEnergy: ThermalBody.HeatEnergy, heatCapacity: ThermalBody.HeatCapacity);
 
         public void RecalculateValues()
         {
-            Area = MainResAmount * ConsistsOfRes.Area;
-            Radius = MyMathHelper.Sqrt(value: Area / MyMathHelper.pi);
-            ApproxSurfaceLength = (ulong)(2 * MyMathHelper.pi * Radius);
+            Composition = consistsOfResPile.Amount.Filter<RawMaterial>();
+            Area = Composition.Area();
+            Radius = DiskAlgos.RadiusFromArea(area: Area.ToDouble());
+            SurfaceLength = DiskAlgos.Length(radius: Radius);
+            var allResComposition = LocationCounters.GetCount<AllResAmounts>().RawMatComposition();
+            SurfaceGravity = WorldFunctions.SurfaceGravity(mass: allResComposition.Mass(), resArea: allResComposition.Area());
         }
 
-        public void MineTo(ResPile destin, ulong resAmount)
+        public Result<ResPile, TextErrors> Mine(AreaInt targetArea, RawMatAllocator rawMatAllocator)
         {
-            if (!CanRemove(resAmount: resAmount))
-                throw new ArgumentException();
-            var reservedResPile = ResPile.CreateIfHaveEnough
+            Debug.Assert(Composition == consistsOfResPile.Amount.Filter<RawMaterial>());
+            (AreaInt finalMaxArea, bool minedOut) = (Area <= CurWorldConfig.minPlanetArea + targetArea) switch
+            {
+                true => (finalMaxArea: Area - CurWorldConfig.minPlanetArea, minedOut: true),
+                false => (finalMaxArea: targetArea, minedOut: false),
+            };
+            var rawMatsAmountsToMine = rawMatAllocator.TakeAtMostFrom
+            (
+                source: Composition,
+                maxArea: finalMaxArea
+            );
+            if (rawMatsAmountsToMine.IsEmpty && minedOut)
+                return new(errors: new(UIAlgorithms.CosmicBodyIsMinedOut));
+
+            var result = ResPile.CreateEmpty(thermalBody: ThermalBody);
+            result.TransferFrom
             (
                 source: consistsOfResPile,
-                amount: new(resInd: ConsistsOfResInd, amount: resAmount)
+                amount: rawMatsAmountsToMine.ToAll()
             );
-            Debug.Assert(reservedResPile is not null);
-            destin.TransferAllFrom(source: reservedResPile);
+            RecalculateValues();
+            return new(ok: result);
+        }
+
+        public void EnlargeFrom(ResPile source, RawMatAmounts amount)
+        {
+            consistsOfResPile.TransferFrom(source: source, amount: amount.ToAll());
             RecalculateValues();
         }
 
-        public void EnlargeFrom(ResPile source, ulong resAmount)
-        {
-            var reservedResPile = ResPile.CreateIfHaveEnough
-            (
-                source: source,
-                amount: new(resInd: ConsistsOfResInd, amount: resAmount)
-            ) ?? throw new ArgumentException();
-            consistsOfResPile.TransferAllFrom(source: reservedResPile);
-            RecalculateValues();
-        }
+        public void TransportRes(ResPile source, NodeID destination, AllResAmounts amount)
+            => waitingResAmountsPackets.TransferFrom(source: source, destination: destination, amount: amount);
     }
 }

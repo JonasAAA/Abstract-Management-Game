@@ -6,10 +6,7 @@ namespace Game1.UI
     [Serializable]
     public sealed class TextBox : HUDElement
     {
-        private static readonly SpriteFont font;
-
-        static TextBox()
-            => font = C.LoadFont(name: "Fonts/MainFont");
+        private static readonly SpriteFont font = C.LoadFont(name: "Fonts/MainFont");
 
         public string? Text
         {
@@ -30,7 +27,7 @@ namespace Game1.UI
             }
         }
 
-        protected override Color Color { get; }
+        protected sealed override Color Color { get; }
 
         private readonly Color textColor;
         private string? text;
@@ -48,7 +45,7 @@ namespace Game1.UI
         public MyVector2 MeasureText(string text)
             => (MyVector2)font.MeasureString(text) * scale;
 
-        protected override void DrawChildren()
+        protected sealed override void DrawChildren()
         {
             if (text is null)
                 return;

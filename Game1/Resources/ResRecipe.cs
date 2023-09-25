@@ -3,27 +3,30 @@
     [Serializable]
     public readonly struct ResRecipe
     {
-        public static ResRecipe? Create(ResAmounts ingredients, ResAmounts results)
+        public static ResRecipe CreateOrThrow(AllResAmounts ingredients, AllResAmounts results)
         {
             if (AreValid(ingredients: ingredients, results: results))
                 return new(ingredients: ingredients, results: results);
-            return null;
+            throw new ArgumentException();
         }
 
         public bool IsEmpty
-            => ingredients.IsEmpty();
+            => ingredients.IsEmpty;
 
-        public readonly ResAmounts ingredients, results;
+        public readonly AllResAmounts ingredients, results;
 
-        private ResRecipe(ResAmounts ingredients, ResAmounts results)
+        private ResRecipe(AllResAmounts ingredients, AllResAmounts results)
         {
             Debug.Assert(AreValid(ingredients: ingredients, results: results));
+            Debug.Assert(ingredients.Area() == results.Area());
+            Debug.Assert(ingredients.HeatCapacity() == results.HeatCapacity());
+            Debug.Assert(ingredients.Mass() == results.Mass());
             this.ingredients = ingredients;
             this.results = results;
         }
 
-        private static bool AreValid(ResAmounts ingredients, ResAmounts results)
-            => ingredients.ConvertToBasic() == results.ConvertToBasic();
+        private static bool AreValid(AllResAmounts ingredients, AllResAmounts results)
+            => ingredients.RawMatComposition() == results.RawMatComposition();
 
         public static ResRecipe operator *(ulong scalar, ResRecipe resRecipe)
             => new(ingredients: scalar * resRecipe.ingredients, results: scalar * resRecipe.results);
@@ -40,7 +43,7 @@
 //        where TAmount : struct, IFormOfEnergy<TAmount>
 //        where TAmount : struct, IFormOfEnergy<TAmount>
 //    {
-//        public static EnergyRecipe<TAmount, TAmount>? Create(TAmount ingredients, TAmount results)
+//        public static EnergyRecipe<TAmount, TAmount>? CreateOrThrow(TAmount ingredients, TAmount results)
 //        {
 //            if (AreValid(ingredients: ingredients, results: results))
 //                return new(ingredients: ingredients, results: results);

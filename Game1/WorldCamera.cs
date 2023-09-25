@@ -37,10 +37,10 @@ namespace Game1
             => MyVector2.Transform(position: worldPos, matrix: worldToScreen);
 
         public UDouble WorldLengthToScreenLength(UDouble worldLength)
-            => worldLength * scale * ScreenScale;
+            => worldLength * scale * screenScale;
 
         public UDouble ScreenLengthToWorldLength(UDouble screenLength)
-            => screenLength / (scale * ScreenScale);
+            => screenLength / (scale * screenScale);
 
         public void MoveTo(MyVector2 worldCenter, UDouble worldScale)
         {
@@ -74,7 +74,7 @@ namespace Game1
             worldToScreen = Matrix.CreateTranslation(-(float)WorldCenter.X, -(float)WorldCenter.Y, 0) *
                 Matrix.CreateScale((float)scale) *
                 Matrix.CreateTranslation((float)screenCenter.X, (float)screenCenter.Y, 0) *
-                Matrix.CreateScale((float)ScreenScale);
+                Matrix.CreateScale((float)screenScale);
 
             screenToWorld = Matrix.Invert(worldToScreen);
 
@@ -85,7 +85,7 @@ namespace Game1
                 => 0 <= value && value <= screenBoundWidthForMapMoving; 
         }
 
-        public override Matrix GetToScreenTransform()
+        public sealed override Matrix GetToScreenTransform()
             => worldToScreen;
     }
 }

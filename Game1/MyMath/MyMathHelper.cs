@@ -35,6 +35,9 @@ namespace Game1.MyMath
         public static decimal Min(decimal left, decimal right)
             => left < right ? left : right;
 
+        public static double Min(double left, double right)
+            => left < right ? left : right;
+
         // T is not IComparisonOperators<T, T, bool> for the same reason as Min function
         public static T Max<T>(T left, T right) where T : IMax<T>
             => T.Max(left, right);
@@ -88,6 +91,15 @@ namespace Game1.MyMath
 
         public static double Pow(double @base, double exponent)
             => Math.Pow(@base, exponent);
+
+        public static ulong Pow(ulong @base, ulong exponent)
+        {
+            if (exponent is 0)
+                return 1;
+            if (exponent is 1)
+                return @base;
+            return Pow(@base: @base * @base, exponent: exponent / 2) * Pow(@base: @base, exponent: exponent % 2);
+        }
 
         /// <summary>
         /// Returns equivalent angle between -pi and pi
@@ -158,6 +170,9 @@ namespace Game1.MyMath
             };
         }
 
+        public static ulong DivideThenTakeCeiling(ulong dividend, ulong divisor)
+            => (dividend + divisor - 1) / divisor;
+
         public static ulong Round(UDouble value)
             => (ulong)Math.Round(value);
 
@@ -166,6 +181,9 @@ namespace Game1.MyMath
 
         public static long Ceiling(double value)
             => (long)Math.Ceiling(value);
+
+        public static ulong Ceiling(UDouble value)
+            => (ulong)Math.Ceiling(value);
 
         public static long Ceiling(decimal value)
             => (long)Math.Ceiling(value);
@@ -179,5 +197,12 @@ namespace Game1.MyMath
                 return Propor.full;
             return Propor.Create(part: part.ValueInJ, whole: whole.ValueInJ)!.Value;
         }
+
+        /// <summary>
+        /// Meaning is equivalent to ((Real)numeratorA / denominatorA).CompareTo((Real)numeratorB / denominatorB)
+        /// if infinite precision Real type existed
+        /// </summary>
+        public static int CompareFractions(ulong numeratorA, ulong denominatorA, ulong numeratorB, ulong denominatorB)
+            => ((UInt128)numeratorA * denominatorB).CompareTo((UInt128)numeratorB * denominatorA);
     }
 }

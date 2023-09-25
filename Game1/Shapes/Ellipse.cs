@@ -3,16 +3,13 @@
     [Serializable]
     public sealed class Ellipse : NearRectangle
     {
-        private static readonly Texture2D diskTexture;
-
-        static Ellipse()
-            => diskTexture = C.LoadTexture(name: "big disk");
+        private static readonly Texture2D diskTexture = C.LoadTexture(name: "big disk");
 
         public Ellipse(UDouble width, UDouble height)
             : base(width: width, height: height)
         { }
 
-        public override bool Contains(MyVector2 position)
+        public sealed override bool Contains(MyVector2 position)
         {
             MyVector2 relPos = position - Center;
             double propX = 2 * relPos.X / Width,
@@ -20,7 +17,7 @@
             return propX * propX + propY * propY < 1;
         }
 
-        public override void Draw(Color color)
+        public sealed override void Draw(Color color)
             => C.Draw
             (
                 texture: diskTexture,

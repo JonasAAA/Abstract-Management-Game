@@ -1,208 +1,256 @@
-﻿using Game1.Delegates;
-using Game1.Lighting;
-using Game1.Shapes;
+﻿using Game1.Collections;
+using Game1.Delegates;
 using Game1.UI;
 using static Game1.WorldManager;
-using static Game1.UI.ActiveUIManager;
-using Game1.Inhabitants;
 
 namespace Game1.Industries
 {
-    [Serializable]
-    public abstract class Industry : IWithRealPeopleStats, IDeletable
+    public static class Industry
     {
-        // TODO: could rename this class to ParamsOfParams or ParamsIndepFromState
-        // all fields and properties in this and derived classes must have unchangeable state
-        [Serializable]
-        public abstract class Factory
+        public interface IConcreteBuildingParams<TConcreteProductionParams>
         {
             public string Name { get; }
-            public Color Color { get; }
+            public IIndustryFacingNodeState NodeState { get; }
+            public EnergyPriority EnergyPriority { get; }
+            public IBuildingImage IdleBuildingImage { get; }
 
-            protected Factory(string name, Color color)
-            {
-                Name = name;
-                Color = color;
-            }
-
-            public abstract Params CreateParams(IIndustryFacingNodeState state);
-
-            protected ITooltip Tooltip(IIndustryFacingNodeState state)
-                => (CreateParams(state: state) as IWithTooltip).Tooltip;
+            public MaterialPalette? SurfaceMatPalette(bool productionInProgress);
+            public EfficientReadOnlyCollection<IResource> GetProducedResources(TConcreteProductionParams productionParams);
+            public AllResAmounts MaxStoredInput(TConcreteProductionParams productionParams);
         }
 
-        [Serializable]
-        public abstract class Params : IWithTooltip
+        public interface IProductionCycleState<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TState>
+            where TConcreteBuildingParams : struct, IConcreteBuildingParams<TConcreteProductionParams>
+            where TState : class, IProductionCycleState<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TState>
         {
-            [Serializable]
-            private sealed class TextTooltip : TextTooltipBase
-            {
-                protected override string Text
-                    => parameters.TooltipText;
+            /// <summary>
+            /// Says if multiple production cycles can happen
+            /// E.g. in Manufacturing they can, in Construction they can't
+            /// </summary>
+            public static abstract bool IsRepeatable { get; }
 
-                private readonly Params parameters;
+            public static abstract Result<TState, TextErrors> Create(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState,
+                ResPile inputStorage, AreaInt storedOutputArea);
 
-                public TextTooltip(Params parameters)
-                    => this.parameters = parameters;
-            }
+            public bool ShouldRestart { get; }
+            public ElectricalEnergy ReqEnergy { get; }
+            public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy);
+            public void FrameStart();
+            /// <summary>
+            /// Returns child industry if finished construction, null otherwise
+            /// </summary>
+            public IIndustry? Update(ResPile outputStorage);
+            public IBuildingImage BusyBuildingImage();
+            /// <summary>
+            /// Dump all stuff into <paramref name="outputStorage"/>
+            /// </summary>
+            public void Delete(ResPile outputStorage);
 
-            public readonly IIndustryFacingNodeState state;
-            public readonly string name;
-            public readonly Color color;
-
-            private readonly ITooltip tooltip;
-
-            public virtual string TooltipText
-                => $"{nameof(name)}: {name}";
-
-            public Params(IIndustryFacingNodeState state, Factory factory)
-            {
-                this.state = state;
-
-                name = factory.Name;
-                color = factory.Color;
-                tooltip = new TextTooltip(parameters: this);
-            }
-
-            ITooltip IWithTooltip.Tooltip
-                => tooltip;
+            public static abstract void DeletePersistentState(TPersistentState persistentState, ResPile outputStorage);
         }
+    }
 
-        [Serializable]
-        private readonly record struct DeleteButtonClickedListener(Industry Industry) : IClickedListener
-        {
-            void IClickedListener.ClickedResponse()
-                => Industry.isDeleted = true;
-        }
+    [Serializable]
+    public sealed class Industry<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TProductionCycleState> : IIndustry, IEnergyConsumer
+        where TConcreteBuildingParams : struct, Industry.IConcreteBuildingParams<TConcreteProductionParams>
+        where TProductionCycleState : class, Industry.IProductionCycleState<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TProductionCycleState>
+    {
+        public string Name
+            => buildingParams.Name;
 
-        [Serializable]
-        private readonly record struct LightCatchingDiskParams(Industry Industry) : Disk.IParams
-        {
-            public MyVector2 Center
-                => Industry.parameters.state.Position;
+        public NodeID NodeID
+            => buildingParams.NodeState.NodeID;
 
-            public UDouble Radius
-                => Industry.parameters.state.Radius + Industry.Height;
-        }
+        public MaterialPalette? SurfaceMatPalette
+            => buildingParams.SurfaceMatPalette(productionInProgress: Busy);
+
+        public IHUDElement UIElement
+            => industryUI;
 
         public IEvent<IDeletedListener> Deleted
             => deleted;
 
-        public ILightBlockingObject? LightBlockingObject
-            => lightCatchingDisk.Radius.IsCloseTo(other: parameters.state.Radius) switch
+        public IBuildingImage BuildingImage
+            => stateOrReasonForNotStartingProduction.SwitchExpression
+            (
+                ok: state => state.BusyBuildingImage(),
+                error: _ => buildingParams.IdleBuildingImage
+            );
+        // CURRENTLY this doesn't handle changes in res consumed and res produced. So if change produced material recipe, or choose to recycle different thing,
+        // this will not be updated accordingly
+        public IHUDElement RoutePanel { get; }
+
+        private bool Busy
+            => stateOrReasonForNotStartingProduction.isOk;
+        private readonly TConcreteProductionParams productionParams;
+        private readonly TConcreteBuildingParams buildingParams;
+        private readonly TPersistentState persistentState;
+        private Result<TProductionCycleState, TextErrors> stateOrReasonForNotStartingProduction;
+        private readonly Event<IDeletedListener> deleted;
+        private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
+        private readonly ResPile inputStorage, outputStorage;
+        private AllResAmounts resTravellingHere;
+        private readonly TextBox industryUI;
+        
+        public Industry(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState)
+        {
+            this.productionParams = productionParams;
+            this.buildingParams = buildingParams;
+            this.persistentState = persistentState;
+            stateOrReasonForNotStartingProduction = new(errors: new("Not yet initialized"));
+            deleted = new();
+            inputStorage = ResPile.CreateEmpty(thermalBody: buildingParams.NodeState.ThermalBody);
+            outputStorage = ResPile.CreateEmpty(thermalBody: buildingParams.NodeState.ThermalBody);
+            resTravellingHere = AllResAmounts.empty;
+
+            CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
+
+            resSources = IIndustry.CreateRoutesLists(resources: buildingParams.MaxStoredInput(productionParams: productionParams).resList);
+            resDestins = IIndustry.CreateRoutesLists(resources: buildingParams.GetProducedResources(productionParams: productionParams));
+            RoutePanel = IIndustry.CreateRoutePanel
+            (
+                industry: this,
+                resSources: resSources,
+                resDestins: resDestins
+            );
+            industryUI = new();
+        }
+
+        public bool IsSourceOf(IResource resource)
+            => resDestins.ContainsKey(resource);
+
+        public bool IsDestinOf(IResource resource)
+            => resSources.ContainsKey(resource);
+
+        public IEnumerable<IResource> GetConsumedRes()
+            => resSources.Keys;
+
+        public IEnumerable<IResource> GetProducedRes()
+            => resDestins.Keys;
+
+        public EfficientReadOnlyHashSet<IIndustry> GetSources(IResource resource)
+            => new(set: resSources[resource]);
+
+        public EfficientReadOnlyHashSet<IIndustry> GetDestins(IResource resource)
+            => new(set: resDestins[resource]);
+
+        public AllResAmounts GetSupply()
+            => outputStorage.Amount;
+
+        public AllResAmounts GetDemand()
+            => (TProductionCycleState.IsRepeatable || !Busy) switch
             {
-                true => null,
-                false => lightCatchingDisk
+                true => buildingParams.MaxStoredInput(productionParams: productionParams) - inputStorage.Amount - resTravellingHere,
+                false => AllResAmounts.empty
             };
 
-        public abstract bool PeopleWorkOnTop { get; }
-
-        /// <summary>
-        /// Null if no building
-        /// </summary>
-        public virtual Propor? SurfaceReflectance
-            => building?.Cost.Reflectance();
-
-        /// <summary>
-        /// Null if no building
-        /// </summary>
-        public virtual Propor? SurfaceEmissivity
-            => building?.Cost.Emissivity();
-
-        public abstract RealPeopleStats Stats { get; }
-
-        public IHUDElement UIElement
-            => UIPanel;
-
-        protected abstract UDouble Height { get; }
-
-        protected readonly CombinedEnergyConsumer combinedEnergyConsumer;
-        protected readonly UIRectPanel<IHUDElement> UIPanel;
-
-        private readonly Building? building;
-        private bool isDeleted;
-        private readonly Event<IDeletedListener> deleted;
-        private readonly LightCatchingDisk lightCatchingDisk;
-        private readonly TextBox textBox;
-        private readonly Params parameters;
-
-        protected Industry(Params parameters, Building? building)
-        {
-            this.parameters = parameters;
-            this.building = building;
-
-            combinedEnergyConsumer = new
+        public void TransportResTo(IIndustry destinIndustry, ResAmount<IResource> resAmount)
+            => buildingParams.NodeState.TransportRes
             (
-                nodeID: parameters.state.NodeID,
-                energyDistributor: CurWorldManager.EnergyDistributor
+                source: outputStorage,
+                destination: destinIndustry.NodeID,
+                amount: new(resAmount: resAmount)
             );
-            isDeleted = false;
-            deleted = new();
 
-            lightCatchingDisk = new(parameters: new LightCatchingDiskParams(Industry: this));
+        public void WaitForResFrom(IIndustry sourceIndustry, ResAmount<IResource> resAmount)
+            => resTravellingHere += new AllResAmounts(resAmount: resAmount);
 
-            textBox = new();
-            UIPanel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPos.Left);
-            UIPanel.AddChild(child: textBox);
-            Button deleteButton = new
+        public void Arrive(ResPile arrivingResPile)
+        {
+            resTravellingHere -= arrivingResPile.Amount;
+            inputStorage.TransferAllFrom(source: arrivingResPile);
+        }
+
+        public void ToggleSource(IResource resource, IIndustry sourceIndustry)
+            => IIndustry.ToggleElement(set: resSources[resource], element: sourceIndustry);
+
+        public void ToggleDestin(IResource resource, IIndustry destinIndustry)
+            => IIndustry.ToggleElement(set: resDestins[resource], element: destinIndustry);
+
+        public void FrameStart()
+        {
+            stateOrReasonForNotStartingProduction = stateOrReasonForNotStartingProduction.SwitchExpression
             (
-                shape: new MyRectangle
+                ok: state => state.ShouldRestart ? CreateProductionCycleState() : new(ok: state),
+                error: _ => CreateProductionCycleState()
+            );
+            stateOrReasonForNotStartingProduction.PerformAction
+            (
+                action: state => state.FrameStart()
+            );
+
+            Result<TProductionCycleState, TextErrors> CreateProductionCycleState()
+                => TProductionCycleState.Create
                 (
-                    width: 60,
-                    height: 30
-                ),
-                tooltip: new ImmutableTextTooltip(text: "Delete this industry"),
-                text: "delete",
-                color: colorConfig.deleteButtonColor
+                    productionParams: productionParams,
+                    buildingParams: buildingParams,
+                    persistentState: persistentState,
+                    inputStorage: inputStorage,
+                    storedOutputArea: outputStorage.Amount.Area()
+                );
+        }
+
+        public IIndustry? Update()
+        {
+#warning Complete this
+            industryUI.Text = $"""
+                Industry UI Panel
+                stored inputs {inputStorage.Amount}
+                stored outputs {outputStorage.Amount}
+                demand {GetDemand()}
+                """;
+            var childIndustry = stateOrReasonForNotStartingProduction.SwitchExpression
+            (
+                ok: state => state.Update(outputStorage: outputStorage),
+                error: _ => null
             );
-            deleteButton.clicked.Add(listener: new DeleteButtonClickedListener(Industry: this));
-            UIPanel.AddChild(child: deleteButton);
-        }
 
-        public void UpdatePeople()
-        {
-            UpdatePeopleInternal();
-            textBox.Text = GetInfo();
-        }
-
-        protected abstract void UpdatePeopleInternal();
-
-        public abstract ResAmounts TargetStoredResAmounts();
-
-        public Industry? Update()
-        {
-            if (isDeleted)
+            if (childIndustry is not null)
             {
-                PlayerDelete();
-                return null;
+                stateOrReasonForNotStartingProduction = new(errors: new("construction is done"));
+                Delete();
+                return childIndustry;
             }
-            if (MyMathHelper.AreClose(CurWorldManager.Elapsed, TimeSpan.Zero))
-                return this;
-
-            return InternalUpdate();
+            return this;
         }
 
-        protected abstract Industry InternalUpdate();
-
-        protected virtual void PlayerDelete()
-            => Delete();
-
-        protected virtual void Delete()
+        private void Delete()
         {
-            building?.Delete(resDestin: parameters.state.StoredResPile);
-            combinedEnergyConsumer.Delete();
+            if (!resTravellingHere.IsEmpty)
+                throw new NotImplementedException("Need to wait for all resources travelling here to arrive");
+            IIndustry.DeleteSourcesAndDestins
+            (
+                industry: this,
+                resSources: resSources,
+                resDestins: resDestins
+            );
+#warning Implement a proper industry deletion strategy
+            // For now, all building materials, unused input, production, and output materials are dumped inside the planet 
+            outputStorage.TransferAllFrom(source: inputStorage);
+            TProductionCycleState.DeletePersistentState(persistentState: persistentState, outputStorage: outputStorage);
+            stateOrReasonForNotStartingProduction.PerformAction(action: state => state.Delete(outputStorage: outputStorage));
+            IIndustry.DumpAllResIntoCosmicBody(nodeState: buildingParams.NodeState, resPile: outputStorage);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
 
-        public abstract string GetInfo();
+        public string GetInfo()
+            => throw new NotImplementedException();
 
-        public virtual void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)
-        {
-            if (LightBlockingObject is not null)
-                lightCatchingDisk.Draw(baseColor: parameters.color, otherColor: otherColor, otherColorPropor: otherColorPropor);
-        }
+        EnergyPriority IEnergyConsumer.EnergyPriority
+            => buildingParams.EnergyPriority;
 
-        public virtual void DrawAfterPlanet()
-        { }
+        ElectricalEnergy IEnergyConsumer.ReqEnergy()
+            => stateOrReasonForNotStartingProduction.SwitchExpression
+            (
+                ok: state => state.ReqEnergy,
+                error: _ => ElectricalEnergy.zero
+            );
+
+        void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
+            => stateOrReasonForNotStartingProduction.SwitchStatement
+            (
+                ok: state => state.ConsumeElectricalEnergy(source: source, electricalEnergy: electricalEnergy),
+                error: _ => Debug.Assert(electricalEnergy.IsZero)
+            );
     }
 }

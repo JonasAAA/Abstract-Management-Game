@@ -1,23 +1,20 @@
 ﻿using System.Numerics;
-using static Game1.WorldManager;
 
 namespace Game1.PrimitiveTypeWrappers
 {
-    /// <summary>
-    /// The higher, the more important
-    /// 0 - least important, 100 - most important
-    /// </summary>
     [Serializable]
     public readonly record struct EnergyPriority : IEquatable<EnergyPriority>, IComparable<EnergyPriority>, IPrimitiveTypeWrapper, IComparisonOperators<EnergyPriority, EnergyPriority, bool>, IMinMaxValue<EnergyPriority>, IMax<EnergyPriority>
     {
+        // These values must be here so that the EnergyPriority constructor doesn't have to reference CurWorldConfig
+        // (as that would mean runtime error)
         /// <summary>
         /// 0
         /// </summary>
-        public static readonly EnergyPriority leastImportant;
+        public static readonly EnergyPriority leastImportant = new(value: leastImportantEnergyPrior);
         /// <summary>
         /// 100
         /// </summary>
-        public static readonly EnergyPriority mostImportant;
+        public static readonly EnergyPriority mostImportant = new(value: mostImportantEnergyPrior);
 
         static EnergyPriority IMinMaxValue<EnergyPriority>.MinValue
             => leastImportant;
@@ -27,19 +24,15 @@ namespace Game1.PrimitiveTypeWrappers
 
         private const ulong leastImportantEnergyPrior = 0, mostImportantEnergyPrior = 100;
 
-        static EnergyPriority()
-        {
-            // These values must be here so that the EnergyPriority constructor doesn't have to reference CurWorldConfig
-            // (as that would mean runtime error)
-            leastImportant = new(value: leastImportantEnergyPrior);
-            mostImportant = new(value: mostImportantEnergyPrior);
-        }
-
         private readonly ulong value;
 
+        /// <summary>
+        /// The higher, the more important.
+        /// 0 - least important, 100 - most important
+        /// </summary>
         public EnergyPriority(ulong value)
         {
-            if (value < leastImportantEnergyPrior || value > mostImportantEnergyPrior)
+            if (value is < leastImportantEnergyPrior or > mostImportantEnergyPrior)
                 throw new ArgumentException();
             this.value = value;
         }

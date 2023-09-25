@@ -1,4 +1,5 @@
-﻿using Game1.Delegates;
+﻿using Game1.Collections;
+using Game1.Delegates;
 
 namespace Game1
 {
@@ -8,7 +9,7 @@ namespace Game1
     [Serializable]
     public sealed class CombinedEnergyConsumer : IEnergyConsumer, IEnergyDistributor, IDeletedListener, IDeletable
     {
-        private readonly MySet<IEnergyConsumer> energyConsumers;
+        private readonly ThrowingSet<IEnergyConsumer> energyConsumers;
 
         EnergyPriority IEnergyConsumer.EnergyPriority
             => energyConsumers.MaxOrDefault(selector: energyConsumer => energyConsumer.EnergyPriority);

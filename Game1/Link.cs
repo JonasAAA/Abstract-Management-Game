@@ -3,6 +3,8 @@ using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
+using Game1.Collections;
+using Game1.Delegates;
 
 namespace Game1
 {
@@ -12,16 +14,11 @@ namespace Game1
     /// Travellers going to the same direction mix their heat
     /// </summary>
     [Serializable]
-    public sealed class Link : WorldUIElement, IWithRealPeopleStats
+    public sealed class Link : WorldUIElement, IWithSpecialPositions, IWithRealPeopleStats
     {
         [Serializable]
         private sealed class DirLink : IEnergyConsumer, IWithRealPeopleStats
         {
-            private static readonly Texture2D diskTexture;
-
-            static DirLink()
-                => diskTexture = C.LoadTexture(name: "big disk");
-
             public RealPeopleStats Stats { get; private set; }
 
             public readonly ILinkFacingCosmicBody startNode, endNode;
@@ -79,17 +76,11 @@ namespace Game1
             public void TransferFrom(RealPeople realPersonSource, RealPerson realPerson)
                 => waitingPeople.TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
 
-            public ulong GetTravellingAmount()
+            public AllResAmounts GetTravellingResAmounts()
             {
-                Debug.Assert(locationCounters.GetCount<ResAmounts>().Mass() == waitingResAmountsPackets.Mass + waitingPeople.Stats.totalMass + timedPacketQueue.Mass);
+                Debug.Assert(locationCounters.GetCount<AllResAmounts>().Mass() == waitingResAmountsPackets.Mass + waitingPeople.Stats.totalMass + timedPacketQueue.Mass);
                 Debug.Assert(locationCounters.GetCount<NumPeople>() == waitingPeople.NumPeople + timedPacketQueue.NumPeople);
-                return CurWorldManager.Overlay.SwitchExpression
-                (
-                    singleResCase: resInd => timedPacketQueue.TotalResAmounts[resInd],
-                    allResCase: () => timedPacketQueue.Mass.valueInKg,
-                    peopleCase: () => locationCounters.GetCount<NumPeople>().value,
-                    powerCase: () => throw new InvalidOperationException()
-                );
+                return timedPacketQueue.TotalResAmounts;
             }
 
             public void Update(TimeSpan travelTime, UDouble reqJoulesPerKg, UDouble linkLength)
@@ -124,36 +115,12 @@ namespace Game1
 
             public void DrawTravelingRes()
             {
-                // temporary
-                CurWorldManager.Overlay.SwitchStatement
-                (
-                    singleResCase: resInd =>
-                    {
-                        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmounts[resInd]);
-                    },
-                    allResCase: () =>
-                    {
-                        foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: resAmounts.Mass().valueInKg);
-                    },
-                    powerCase: () => { },
-                    peopleCase: () =>
-                    {
-                        foreach (var (complProp, _, numPeople) in timedPacketQueue.GetData())
-                            DrawDisk(complProp: complProp, size: numPeople.value);
-                    }
-                );
-
-                void DrawDisk(Propor complProp, UDouble size)
-                    => C.Draw
+                foreach (var (complProp, resAmounts, _) in timedPacketQueue.GetData())
+                    DiskAlgos.Draw
                     (
-                        texture: diskTexture,
-                        position: startNode.Position + (double)complProp * (endNode.Position - startNode.Position),
-                        color: colorConfig.linkTravellerColor,
-                        rotation: 0,
-                        origin: new MyVector2(diskTexture.Width * .5, diskTexture.Height * .5),
-                        scale: MyMathHelper.Sqrt(size) * 2 / (UDouble)diskTexture.Width
+                        center: startNode.Position + (double)complProp * (endNode.Position - startNode.Position),
+                        radius: DiskAlgos.RadiusFromArea(area: resAmounts.Area().ToDouble()),
+                        color: colorConfig.linkTravellerColor
                     );
             }
 
@@ -204,6 +171,15 @@ namespace Game1
         public TimeSpan TravelTime { get; private set; }
         public RealPeopleStats Stats { get; private set; }
 
+        protected sealed override EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups { get; }
+        protected sealed override Color Color
+            => Color.Lerp
+            (
+                value1: colorConfig.cheapLinkColor,
+                value2: colorConfig.costlyLinkColor,
+                amount: (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
+            );
+
         private readonly DirLink link1To2, link2To1;
         private readonly TextBox infoTextBox;
 
@@ -213,11 +189,7 @@ namespace Game1
                 shape: new LineSegment
                 (
                     parameters: new ShapeParams(Node1: node1, Node2: node2)
-                ),
-                activeColor: Color.White,
-                inactiveColor: ActiveUIManager.colorConfig.linkColor,
-                popupHorizPos: HorizPos.Right,
-                popupVertPos: VertPos.Top
+                )
             )
         {
             if (node1 == node2)
@@ -229,9 +201,26 @@ namespace Game1
             link1To2 = new(startNode: node1, endNode: node2, minSafeDist: minSafeDist);
             link2To1 = new(startNode: node2, endNode: node1, minSafeDist: minSafeDist);
 
-            infoTextBox = new(backgroundColor: Color.White);
-            SetPopup(HUDElement: infoTextBox, overlays: IOverlay.all);
+            infoTextBox = new(backgroundColor: colorConfig.UIBackgroundColor);
+            Popups = new List<(IHUDElement popup, IAction popupHUDPosUpdater)>()
+            {
+                (
+                    popup: infoTextBox,
+                    popupHUDPosUpdater: new HUDElementPosUpdater
+                    (
+                        HUDElement: infoTextBox,
+                        baseWorldObject: this,
+                        HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Middle),
+                        anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
+                    )
+                )
+            }.ToEfficientReadOnlyCollection();
+
+            RecalculateValuesAndGetLinkLength();
         }
+
+        MyVector2 IWithSpecialPositions.GetSpecPos(PosEnums origin)
+            => (node1.Position + node2.Position) / 2;
 
         public ILinkFacingCosmicBody OtherNode(ILinkFacingCosmicBody node)
         {
@@ -261,7 +250,7 @@ namespace Game1
         public void TransferFrom(ILinkFacingCosmicBody start, RealPeople realPersonSource, RealPerson realPerson)
             => GetDirLink(start: start).TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
 
-        public void Update()
+        private UDouble RecalculateValuesAndGetLinkLength()
         {
             UDouble linkLength = MyVector2.Distance(value1: node1.Position, value2: node2.Position);
 
@@ -273,46 +262,29 @@ namespace Game1
                 linkLength: linkLength
             );
 
-            link1To2.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
-            link2To1.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
-
-            //inactiveColor = ActiveUIManager.colorConfig.linkColor;
-            // TODO(color): turn activeColor and inactiveColor into abstract properties
-            //inactiveColor = Color.Lerp
-            //(
-            //    value1: Color.White,
-            //    value2: Color.Green,
-            //    amount: CurWorldManager.Overlay switch
-            //    {
-            //        IPeopleOverlay => (float)(TravelTime / CurWorldManager.MaxLinkTravelTime),
-            //        _ => (float)(JoulesPerKg / CurWorldManager.MaxLinkJoulesPerKg)
-            //    }
-            //);
+            return linkLength;
         }
 
-        public void UpdatePeople()
+        public void StartUpdate()
+        {
+            var linkLength = RecalculateValuesAndGetLinkLength();
+
+            link1To2.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
+            link2To1.Update(travelTime: TravelTime, reqJoulesPerKg: JoulesPerKg, linkLength: linkLength);
+        }
+
+        public void EndUpdate()
         {
             link1To2.UpdatePeople();
             link2To1.UpdatePeople();
             Stats = link1To2.Stats.CombineWith(other: link2To1.Stats);
 
-            if (CurWorldManager.Overlay is IPowerOverlay)
-                return;
+            var travellingResAmounts = link1To2.GetTravellingResAmounts() + link2To1.GetTravellingResAmounts();
 
-            // TODO: It may be more appropriate for link1To2.GetTravellingAmount() to return a dictionary from Overlay cases to amounts
-            // in order to not have two switch statements mirroring each other
-            ulong travellingAmount = link1To2.GetTravellingAmount() + link2To1.GetTravellingAmount();
-
-            infoTextBox.Text = $"Travel cost is {JoulesPerKg:0.000} J/Kg\n" + CurWorldManager.Overlay.SwitchExpression
-            (
-                singleResCase: resInd => $"{travellingAmount} of {CurWorldManager.Overlay} is travelling",
-                allResCase: () => $"{travellingAmount} kg of resources are travelling",
-                peopleCase: () => $"travelling people stats:\n{Stats}",
-                powerCase: () => ""
-            );
+            infoTextBox.Text = $"Travel cost is {JoulesPerKg:0.000} J/Kg\nTravelling resources {travellingResAmounts}";
         }
 
-        protected override void DrawChildren()
+        protected sealed override void DrawChildren()
         {
             base.DrawChildren();
 
@@ -323,7 +295,7 @@ namespace Game1
         // this is commented out, otherwise the object construction fails as
         // tries to put object into HashSet before assigning node1 and node2
 
-        //public override int GetHashCode()
+        //public sealed override int GetHashCode()
         //    => node1.GetHashCode() ^ node2.GetHashCode();
 
         //public static bool operator ==(Link link1, Link link2)
@@ -333,7 +305,7 @@ namespace Game1
         //public static bool operator !=(Link link1, Link link2)
         //    => !(link1 == link2);
 
-        //public override bool Equals(object obj)
+        //public sealed override bool Equals(object obj)
         //{
         //    if (obj is Link other)
         //        return this == other;

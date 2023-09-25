@@ -1,4 +1,5 @@
-﻿using Game1.Industries;
+﻿using Game1.Collections;
+using Game1.Industries;
 using static Game1.WorldManager;
 
 namespace Game1.Inhabitants
@@ -10,10 +11,7 @@ namespace Game1.Inhabitants
     [Serializable]
     public readonly struct RealPeopleStats
     {
-        public static readonly RealPeopleStats empty = default;
-
-        static RealPeopleStats()
-            => empty = new
+        public static readonly RealPeopleStats empty = new
             (
                 totalMass: Mass.zero,
                 totalNumPeople: NumPeople.zero,
@@ -56,7 +54,7 @@ namespace Game1.Inhabitants
         /// <summary>
         /// How much of REQUESTED energy is given. So if request 0, get 0, the proportion is full
         /// </summary>
-        public readonly Propor AllocEnergyPropor { get; init; }
+        public Propor AllocEnergyPropor { get; init; }
 
         public readonly Mass totalMass;
         public readonly NumPeople totalNumPeople;
@@ -102,7 +100,7 @@ namespace Game1.Inhabitants
             this.totalReqWatts = totalReqWatts;
             this.timeCoefficient = timeCoefficient;
             this.age = age;
-            this.AllocEnergyPropor = allocEnergyPropor;
+            AllocEnergyPropor = allocEnergyPropor;
             this.happiness = happiness;
             this.momentaryHappiness = momentaryHappiness;
             this.enjoyments = enjoyments;

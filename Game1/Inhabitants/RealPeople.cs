@@ -4,7 +4,7 @@ using static Game1.WorldManager;
 namespace Game1.Inhabitants
 {
     [Serializable]
-    public class RealPeople : IEnergyConsumer, IDeletable, IWithRealPeopleStats
+    public sealed class RealPeople : IEnergyConsumer, IDeletable, IWithRealPeopleStats
     {
         public static RealPeople CreateEmpty(ThermalBody thermalBody, IEnergyDistributor energyDistributor, NodeID electricalEnergySourceNodeID, NodeID closestNodeID, bool isInActivityCenter)
             => new
@@ -77,7 +77,7 @@ namespace Game1.Inhabitants
                 personalAction(person);
         }
 
-        /// <param name="updatePersonSkillsParams">if null, will use default update</param>
+        /// <param Name="updatePersonSkillsParams">if null, will use default update</param>
         public void Update(UpdatePersonSkillsParams? updatePersonSkillsParams)
         {
             thermalBody.TransformAllEnergyToHeatAndTransferFrom(source: allocElectricalEnergy);

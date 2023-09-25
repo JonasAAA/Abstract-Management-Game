@@ -8,11 +8,15 @@
             Res0Color,
             Res1Color,
             cosmosBackgroundColor,
-            //starColor,
-            linkColor,
+            cheapLinkColor,
+            costlyLinkColor,
             houseIndustryColor,
             linkTravellerColor,
-            selectedWorldUIElementColor,
+            mapCreationSelectedWorldUIElementColor,
+            // industry colors
+            miningBuildingColor,
+            manufacturingBuildingColor,
+            materialSplittingBuildingColor,
             
             // UI colors
             mouseOnColor,
@@ -20,6 +24,7 @@
             textColor,
             almostWhiteColor,
             buttonColor,
+            buttonTextColor,
             selectedButtonColor,
             deselectedButtonColor,
             tooltipBackgroundColor,
@@ -32,18 +37,23 @@
             Res0Color = C.ColorFromRGB(rgb: 0x00754D);
             Res1Color = C.ColorFromRGB(rgb: 0x00632D);
             cosmosBackgroundColor = C.ColorFromRGB(rgb: 0x000E24);
-            //starColor = C.ColorFromRGB(rgb: 0xB0FF00);
-            linkColor = C.ColorFromRGB(rgb: 0x003654);
+            cheapLinkColor = Color.DarkBlue;
+            costlyLinkColor = C.ColorFromRGB(rgb: 0x003654);
             houseIndustryColor = Color.Yellow;
             linkTravellerColor = Color.Black;
-            selectedWorldUIElementColor = Color.White;
+            mapCreationSelectedWorldUIElementColor = Color.White;
+            // industry colors
+            miningBuildingColor = Color.Brown;
+            manufacturingBuildingColor = Color.DarkGray;
+            materialSplittingBuildingColor = Color.LightGray;
 
             // UI colors
             mouseOnColor = Color.Yellow;
             UIBackgroundColor = C.ColorFromRGB(rgb: 0x124A5E);
             textColor = C.ColorFromRGB(rgb: 0xADE38F);
             almostWhiteColor = Color.Aqua;
-            buttonColor = Color.Aqua;
+            buttonColor = Color.DarkBlue;
+            buttonTextColor = textColor;
             selectedButtonColor = C.ColorFromRGB(rgb: 0x03645);
             deselectedButtonColor = UIBackgroundColor;
             tooltipBackgroundColor = Color.LightPink;

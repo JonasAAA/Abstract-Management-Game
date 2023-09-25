@@ -2,7 +2,7 @@
 
 namespace Game1.Delegates
 {
-    public interface IActiveChangedListener : IListener
+    public interface IActiveChangedListener
     {
         public void ActiveChangedResponse(WorldUIElement worldUIElement);
     }

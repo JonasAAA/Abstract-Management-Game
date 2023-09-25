@@ -3,7 +3,7 @@
     [Serializable]
     public readonly struct FullValidCosmicBodyInfo
     {
-        public static Result<FullValidCosmicBodyInfo, IEnumerable<string>> Create(ValidCosmicBodyInfo cosmicBodyInfo)
+        public static Result<FullValidCosmicBodyInfo, TextErrors> Create(ValidCosmicBodyInfo cosmicBodyInfo)
             => new
             (
                 ok: new

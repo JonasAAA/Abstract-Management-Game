@@ -18,9 +18,11 @@ namespace Game1.ContentHelpers
         }
 
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+#pragma warning disable CA1819 // Properties should not return arrays. The array here is needed for this to correspond to Json arrays
         [JsonPropertyOrder(0)] public bool NotReadyToUse { get; init; }
         [JsonPropertyOrder(1)] public required CosmicBodyInfo[] CosmicBodies { get; init; }
         [JsonPropertyOrder(2)] public required LinkInfo[] Links { get; init; }
         [JsonPropertyOrder(3)] public required StartingInfo StartingInfo { get; init; }
+#pragma warning restore CA1819 // Properties should not return arrays
     }
 }

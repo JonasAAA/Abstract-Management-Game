@@ -2,27 +2,18 @@
 
 namespace Game1.Industries
 {
-    public interface IIndustryFacingNodeState
+    public interface IIndustryFacingNodeState : INodeShapeParams
     {
-        public NodeID NodeID { get; }
-        public UDouble Radius { get; }
-        public ulong ApproxSurfaceLength { get; }
-        public ulong MaxAvailableResAmount { get; }
-        public MyVector2 Position { get; }
-        public ulong MaxBatchDemResStored { get; }
-        public ResPile StoredResPile { get; }
         public EnergyPile<RadiantEnergy> RadiantEnergyPile { get; }
         public RealPeople WaitingPeople { get; }
-        public BasicResInd ConsistsOfResInd { get; }
-        public BasicRes ConsistsOfRes { get; }
-        public bool TooManyResStored { get; }
+        public RawMatAmounts Composition { get; }
         public LocationCounters LocationCounters { get; }
         public ThermalBody ThermalBody { get; }
 
-        public bool CanRemove(ulong resAmount);
+        public Result<ResPile, TextErrors> Mine(AreaInt targetArea, RawMatAllocator rawMatAllocator);
 
-        public void MineTo(ResPile destin, ulong resAmount);
+        public void EnlargeFrom(ResPile source, RawMatAmounts amount);
 
-        public void EnlargeFrom(ResPile source, ulong resAmount);
+        public void TransportRes(ResPile source, NodeID destination, AllResAmounts amount);
     }
 }

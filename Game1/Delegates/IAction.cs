@@ -4,4 +4,9 @@
     {
         public void Invoke();
     }
+
+    public interface IAction<T>
+    {
+        public void Invoke(T value);
+    }
 }

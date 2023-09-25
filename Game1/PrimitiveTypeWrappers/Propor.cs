@@ -3,7 +3,7 @@
 namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly struct Propor : IClose<Propor>, IMin<Propor>, IExponentiable<UDouble, Propor>, IComparisonOperators<Propor, Propor, bool>,
+    public readonly record struct Propor : IClose<Propor>, IMin<Propor>, IExponentiable<UDouble, Propor>, IComparisonOperators<Propor, Propor, bool>,
         IMultiplyOperators<Propor, Propor, Propor>, IMultiplicativeIdentity<Propor, Propor>,
         IMultiplyOperators<Propor, double, double>,
         IMultiplyOperators<Propor, UDouble, UDouble>,
@@ -19,10 +19,16 @@ namespace Game1.PrimitiveTypeWrappers
             => Create(value: part / whole);
 
         public static Propor? Create(UDouble part, UDouble whole)
-            => Create(value: part / whole);
+        {
+            if (whole == 0)
+                return null;
+            return Create(value: part / whole);
+        }
 
         public static Propor? Create(double value)
         {
+            if (double.IsNaN(value))
+                return null;
             if (value < 0 && MyMathHelper.AreClose(value, 0))
                 value = 0;
             if (value > 1 && MyMathHelper.AreClose(value, 1))
@@ -31,6 +37,15 @@ namespace Game1.PrimitiveTypeWrappers
                 return new(value: value);
             return null;
         }
+
+        public static Propor CreateByClamp(UDouble value)
+            => new(value: MyMathHelper.Min((double)value, 1));
+
+        public bool IsFull
+            => this == full;
+
+        public bool IsEmpty
+            => this == empty;
 
         private readonly UDouble value;
 
@@ -89,6 +104,18 @@ namespace Game1.PrimitiveTypeWrappers
         public static TimeSpan operator *(TimeSpan timeSpan, Propor propor)
             => propor * timeSpan;
 
+        public static Color operator *(Propor propor, Color value)
+            => (float)propor * value;
+
+        public static Color operator *(Color value, Propor propor)
+            => propor * value;
+
+        public static AreaDouble operator *(Propor propor, AreaDouble value)
+            => AreaDouble.CreateFromMetSq(valueInMetSq: propor * value.valueInMetSq);
+
+        public static AreaDouble operator *(AreaDouble value, Propor propor)
+            => propor * value;
+
         public static bool operator >(Propor left, Propor right)
             => left.value > right.value;
 
@@ -101,20 +128,8 @@ namespace Game1.PrimitiveTypeWrappers
         public static bool operator <=(Propor left, Propor right)
             => left.value <= right.value;
 
-        public static bool operator ==(Propor left, Propor right)
-            => left.value == right.value;
-
-        public static bool operator !=(Propor left, Propor right)
-            => left.value == right.value;
-
         public override string ToString()
             => $"{value:0.00}";
-
-        public override bool Equals(object? obj)
-            => obj is Propor propor && value == propor.value;
-
-        public override int GetHashCode()
-            => value.GetHashCode();
 
         static Propor IMin<Propor>.Min(Propor left, Propor right)
             => left < right ? left : right;

@@ -1,0 +1,84 @@
+﻿using Game1.Collections;
+using static Game1.WorldManager;
+
+namespace Game1
+{
+    public static class ResAndIndustryHelpers
+    {
+        public static Color Color(this RawMatAmounts rawMatAmounts)
+        {
+            Vector3 colorSum = Vector3.Zero;
+            foreach (var (rawMaterial, amount) in rawMatAmounts)
+                colorSum += rawMaterial.Area.valueInMetSq * amount * rawMaterial.Color.ToVector3();
+            float weightSum = rawMatAmounts.Area().valueInMetSq;
+            return new Color(colorSum / weightSum);
+        }
+
+        public static AreaDouble ToDouble(this AreaInt area)
+            => AreaDouble.CreateFromMetSq(valueInMetSq: area.valueInMetSq);
+
+        public static AreaInt RoundDown(this AreaDouble area)
+            => AreaInt.CreateFromMetSq(valueInMetSq: (ulong)area.valueInMetSq);
+
+        public static bool DictEquals<TKey, TValue>(this EfficientReadOnlyDictionary<TKey, TValue> dict, EfficientReadOnlyDictionary<TKey, TValue> otherDict)
+            where TKey : notnull
+            where TValue : class
+        {
+            if (dict.Count != otherDict.Count)
+                return false;
+            foreach (var (key, value) in dict)
+                if (!otherDict.TryGetValue(key, out var otherValue) || value != otherValue)
+                    return false;
+            return true;
+        }
+
+        public static TEnergy CurEnergy<TEnergy>(this HistoricRounder energyHistoricRounder, UDouble watts, Propor proporUtilized, TimeSpan elapsed)
+            where TEnergy : struct, IUnconstrainedEnergy<TEnergy>
+            => IUnconstrainedEnergy<TEnergy>.CreateFromJoules
+            (
+                valueInJ: energyHistoricRounder.Round
+                (
+                    value: (decimal)watts * (decimal)proporUtilized * (decimal)elapsed.TotalSeconds,
+                    curTime: CurWorldManager.CurTime
+                )
+            );
+
+        public static Propor WorkingPropor(Propor proporUtilized, ElectricalEnergy allocatedEnergy, ElectricalEnergy reqEnergy)
+            => proporUtilized * Propor.Create(part: allocatedEnergy.ValueInJ, whole: reqEnergy.ValueInJ)!.Value;
+
+        public static Propor UpdateDonePropor(this Propor donePropor, Propor workingPropor, UDouble producedAreaPerSec, TimeSpan elapsed, AreaInt areaInProduction)
+        {
+            UDouble areaProduced = workingPropor * (UDouble)elapsed.TotalSeconds * producedAreaPerSec;
+            return Propor.CreateByClamp((UDouble)donePropor + areaProduced / areaInProduction.valueInMetSq);
+        }
+
+        /// <summary>
+        /// The only difference from CurNeededBuildingComponents is rounding down instead of up
+        /// </summary>
+        public static AllResAmounts MaxBuildingComponentsInArea(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
+            => new
+            (
+                buildingComponentsToAmountPUBA.Select
+                (
+                    prodAndAmountPUBA => new ResAmount<IResource>
+                    (
+                        res: prodAndAmountPUBA.prod,
+                        amount: (ulong)(prodAndAmountPUBA.amountPUBA * curBuildingArea.valueInMetSq)
+                    )
+                )
+            );
+
+        public static AllResAmounts CurNeededBuildingComponents(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
+            => new
+            (
+                buildingComponentsToAmountPUBA.Select
+                (
+                    prodAndAmountPUBA => new ResAmount<IResource>
+                    (
+                        res: prodAndAmountPUBA.prod,
+                        amount: MyMathHelper.Ceiling(prodAndAmountPUBA.amountPUBA * curBuildingArea.valueInMetSq)
+                    )
+                )
+            );
+    }
+}

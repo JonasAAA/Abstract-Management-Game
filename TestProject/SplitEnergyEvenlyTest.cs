@@ -13,8 +13,7 @@ namespace TestProject
 
         [TestMethod, TestCategory(splitEnergy)]
         public void TooMuchAvailableEnergyFillsAndHasUnused()
-        {
-            AssertEquality
+            => AssertEquality
             (
                 expected:
                 (
@@ -35,12 +34,10 @@ namespace TestProject
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 20)
                 )
             );
-        }
 
         [TestMethod, TestCategory(splitExtraEnergy)]
         public void ExtraTooMuchAvailableEnergyFillsAndHasUnused()
-        {
-            AssertEquality
+            => AssertEquality
             (
                 expected:
                 (
@@ -61,12 +58,10 @@ namespace TestProject
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 18)
                 )
             );
-        }
 
         [TestMethod, TestCategory(splitEnergy)]
         public void WhenPossibleSplitsExactlyEvenly()
-        {
-            AssertEquality
+            => AssertEquality
             (
                 expected:
                 (
@@ -89,12 +84,10 @@ namespace TestProject
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 18)
                 )
             );
-        }
 
         [TestMethod, TestCategory(splitEnergy)]
         public void MaximizesMinimumAllocatedRatio()
-        {
-            AssertEquality
+            => AssertEquality
             (
                 expected:
                 (
@@ -117,12 +110,10 @@ namespace TestProject
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 18)
                 )
             );
-        }
 
         [TestMethod, TestCategory(splitExtraEnergy)]
         public void ExtraMaximizesMinimumAllocatedRatio()
-        {
-            AssertEquality
+            => AssertEquality
             (
                 expected:
                 (
@@ -147,12 +138,10 @@ namespace TestProject
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 15)
                 )
             );
-        }
 
         [TestMethod, TestCategory(splitEnergy)]
         public void DealWithZeroReqEnergy()
-        {
-            AssertEquality
+            => AssertEquality
             (
                 expected:
                 (
@@ -177,12 +166,10 @@ namespace TestProject
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 18)
                 )
             );
-        }
 
         [TestMethod, TestCategory(splitExtraEnergy)]
         public void ExtraDealWithZeroReqEnergy()
-        {
-            AssertEquality
+            => AssertEquality
             (
                 expected:
                 (
@@ -207,7 +194,6 @@ namespace TestProject
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 15)
                 )
             );
-        }
 
         private static void AssertEquality<T>((List<T> allocatedEnergies, T unusedEnergy) expected, (List<T> allocatedEnergies, T unusedEnergy) actual)
         {

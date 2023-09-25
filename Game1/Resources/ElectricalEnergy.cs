@@ -5,13 +5,10 @@ namespace Game1.Resources
     [Serializable]
     public readonly record struct ElectricalEnergy : IUnconstrainedEnergy<ElectricalEnergy>, IComparisonOperators<ElectricalEnergy, ElectricalEnergy, bool>
     {
-        public static readonly ElectricalEnergy zero;
+        public static readonly ElectricalEnergy zero = new(energy: Energy.zero);
 
         static ElectricalEnergy IAdditiveIdentity<ElectricalEnergy, ElectricalEnergy>.AdditiveIdentity
             => zero;
-
-        static ElectricalEnergy()
-            => zero = new(energy: Energy.zero);
 
         static ElectricalEnergy IUnconstrainedEnergy<ElectricalEnergy>.CreateFromEnergy(Energy energy)
             => new(energy: energy);

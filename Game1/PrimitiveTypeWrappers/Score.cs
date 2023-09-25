@@ -1,10 +1,11 @@
-﻿using Game1.Industries;
+﻿using Game1.Collections;
+using Game1.Industries;
 using System.Numerics;
 
 namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly struct Score : IClose<Score>, IComparable<Score>, IComparisonOperators<Score, Score, bool>, IPrimitiveTypeWrapper
+    public readonly record struct Score : IClose<Score>, IComparable<Score>, IComparisonOperators<Score, Score, bool>, IPrimitiveTypeWrapper
     {
         [Serializable]
         public readonly struct ParamsOfChange
@@ -173,25 +174,10 @@ namespace Game1.PrimitiveTypeWrappers
         public static bool operator <=(Score left, Score right)
             => left.value <= right.value;
 
-        public static bool operator ==(Score left, Score right)
-            => left.value == right.value;
-
-        public static bool operator !=(Score left, Score right)
-            => left.value != right.value;
-
         int IComparable<Score>.CompareTo(Score other)
             => ((double)this).CompareTo((double)other);
 
         public string ToString(string? format, IFormatProvider? formatProvider)
             => value.ToString(format, formatProvider);
-
-        public override bool Equals(object? obj)
-            => obj is Score score && value == score.value;
-
-        public override int GetHashCode()
-            => value.GetHashCode();
-
-        //public string ToString(string? format, IFormatProvider? formatProvider)
-        //    => $"score {value.ToString(format, formatProvider)}";
     }
 }

@@ -26,7 +26,7 @@ namespace Game1.UI
                         posChoice.On = true;
                         return;
                     }
-                throw new Exception("enabled choice doesn't exist");
+                throw new ArgumentException("enabled choice doesn't exist");
             }
 
             void IOnChangedListener.OnChangedResponse()
@@ -54,7 +54,7 @@ namespace Game1.UI
             }
         }
 
-        protected override Color Color
+        protected sealed override Color Color
             => colorConfig.UIBackgroundColor;
 
         private readonly UIRectPanel<SelectButton> choicePanel;
@@ -70,11 +70,11 @@ namespace Game1.UI
             {
                 true => new UIRectHorizPanel<SelectButton>
                 (
-                    childVertPos: VertPos.Top
+                    childVertPos: VertPosEnum.Top
                 ),
                 false => new UIRectVertPanel<SelectButton>
                 (
-                    childHorizPos: HorizPos.Left
+                    childHorizPos: HorizPosEnum.Left
                 )
             };
 
@@ -93,7 +93,7 @@ namespace Game1.UI
             AddChild(child: choicePanel);
         }
 
-        protected override void PartOfRecalcSizeAndPos()
+        protected sealed override void PartOfRecalcSizeAndPos()
         {
             base.PartOfRecalcSizeAndPos();
 
@@ -116,7 +116,7 @@ namespace Game1.UI
                 ),
                 on: choicePanel.Count is 0,
                 tooltip: choiceTooltip,
-                text: choiceLabel.ToString() ?? throw new Exception("The label text must be not null")
+                text: choiceLabel.ToString() ?? throw new ArgumentException("The label text must be not null")
             );
 
             ChoiceEventListener choiceEventListener = new

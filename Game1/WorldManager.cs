@@ -1,4 +1,5 @@
-﻿using Game1.ContentHelpers;
+﻿using Game1.Collections;
+using Game1.ContentHelpers;
 using Game1.Delegates;
 using Game1.Industries;
 using Game1.Inhabitants;
@@ -16,12 +17,12 @@ using static Game1.UI.ActiveUIManager;
 namespace Game1
 {
     [Serializable]
-    public sealed class WorldManager : IClickedNowhereListener
+    public sealed class WorldManager
     {
         [Serializable]
         private sealed class PauseButtonTooltip : TextTooltipBase
         {
-            protected override string Text
+            protected sealed override string Text
                 => onOffButton?.On switch
                 {
                     true => "Press to resume the game",
@@ -35,25 +36,264 @@ namespace Game1
                 => this.onOffButton = onOffButton;
         }
 
+        // Build helpers
+        [Serializable]
+        private sealed record BuildIndustryButtonClickedListener(Construction.GeneralParams ConstrGeneralParams) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+                => BuildingConfigPanelManager.StartBuildingConfig(constrGeneralParams: ConstrGeneralParams);
+        }
+
+        [Serializable]
+        private sealed class BuildingConfigPanelManager : IItemChoiceSetter<MaterialPalette>, IItemChoiceSetter<ProductionChoice>
+        {
+            public static void StartBuildingConfig(Construction.GeneralParams constrGeneralParams)
+            {
+                CurWorldManager.activeUIManager.DisableAllUIElements();
+                BuildingConfigPanelManager buildingConfigPanelManager = new(constrGeneralParams: constrGeneralParams);
+                CurWorldManager.AddHUDElement
+                (
+                    HUDElement: buildingConfigPanelManager.buildingConfigPanel,
+                    position: new(HorizPosEnum.Right, VertPosEnum.Top)
+                );
+                foreach (var cosmicBodyBuildPanelManager in buildingConfigPanelManager.cosmicBodyBuildPanelManagers)
+                    CurWorldManager.AddWorldHUDElement
+                    (
+                        worldHUDElement: cosmicBodyBuildPanelManager.CosmicBodyBuildPanel,
+                        updateHUDPos: cosmicBodyBuildPanelManager.CosmicBodyPanelHUDPosUpdate
+                    );
+            }
+
+            public ProductionChoice? ProductionChoice { get; private set; }
+
+            private readonly Construction.GeneralParams constrGeneralParams;
+            private readonly UIRectVertPanel<IHUDElement> buildingConfigPanel;
+            private readonly List<CosmicBodyBuildPanelManager> cosmicBodyBuildPanelManagers;
+            private readonly Dictionary<IProductClass, MaterialPalette> mutableBuildingMatPaletteChoices;
+            private readonly Button cancelButton;
+
+            private BuildingConfigPanelManager(Construction.GeneralParams constrGeneralParams)
+            {
+                this.constrGeneralParams = constrGeneralParams;
+                mutableBuildingMatPaletteChoices = new();
+                ProductionChoice = null;
+                buildingConfigPanel = new(childHorizPos: HorizPosEnum.Left);
+                buildingConfigPanel.AddChild(child: new TextBox() { Text = "Material Choices" });
+                cancelButton = new
+                (
+                    shape: new MyRectangle(width: 100, height: 30),
+                    tooltip: new ImmutableTextTooltip(text: UIAlgorithms.CancelBuilding),
+                    text: "Cancel",
+                    color: colorConfig.deleteButtonColor
+                );
+                // Need to initialize all references so that when this gets copied, the fields are already initialized
+                cosmicBodyBuildPanelManagers = new();
+
+                EfficientReadOnlyHashSet<IProductClass> neededProductClasses = constrGeneralParams.neededProductClasses;
+                Debug.Assert(neededProductClasses.Count is not 0);
+                foreach (var productClass in neededProductClasses)
+                {
+                    UIRectHorizPanel<IHUDElement> matPaletteChoiceLine = new(childVertPos: VertPosEnum.Middle);
+                    buildingConfigPanel.AddChild(child: matPaletteChoiceLine);
+                    matPaletteChoiceLine.AddChild(child: new TextBox() { Text = $"{productClass} " });
+                    Button startMatPaletteChoice = IndustryUIAlgos.CreateMatPaletteChoiceDropdown(matPaletteChoiceSetter: this, productClass: productClass);
+                    matPaletteChoiceLine.AddChild(child: startMatPaletteChoice);
+                }
+
+                buildingConfigPanel.AddChild(child: new TextBox() { Text = "Production config" });
+
+                var productionChoicePanel = constrGeneralParams.CreateProductionChoicePanel(productionChoiceSetter: this);
+                if (productionChoicePanel is null)
+                {
+                    buildingConfigPanel.AddChild(child: new TextBox() { Text = UIAlgorithms.NothingToConfigure });
+                    SetProductionChoice(productionChoice: new ProductionChoice(Choice: new UnitType()));
+                }
+                else
+                    buildingConfigPanel.AddChild(child: productionChoicePanel);
+
+                buildingConfigPanel.AddChild(child: cancelButton);
+                cancelButton.clicked.Add(listener: new CancelBuildingButtonListener(BuildingConfigPanelManager: this));
+                
+                cosmicBodyBuildPanelManagers.AddRange
+                (
+                    collection: CurWorldManager.CurGraph.Nodes.Where
+                    (
+                        cosmicBody => !cosmicBody.HasIndustry
+                    ).Select
+                    (
+                        cosmicBody =>
+                        {
+                            UIRectVertPanel<IHUDElement> cosmicBodyBuildPanel = new(childHorizPos: HorizPosEnum.Left);
+                            cosmicBodyBuildPanel.AddChild(new TextBox() { Text = "Building Stats" });
+                            Button buildButton = new
+                            (
+                                shape: new MyRectangle(width: 100, height: 30),
+                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.BuildHereTooltip),
+                                text: "Build here"
+                            );
+                            cosmicBodyBuildPanel.AddChild(child: buildButton);
+                            buildButton.PersonallyEnabled = false;
+                            buildButton.clicked.Add
+                            (
+                                listener: new BuildOnCosmicBodyButtonListener
+                                (
+                                    BuildingConfigPanelManager: this,
+                                    CosmicBody: cosmicBody,
+                                    ConstrGeneralParams: constrGeneralParams,
+                                    NeededBuildingMatPaletteChoices: this.GetBuildingMatPaletteChoices()
+                                )
+                            );
+                            return new CosmicBodyBuildPanelManager
+                            (
+                                CosmicBody: cosmicBody,
+                                CosmicBodyBuildPanel: cosmicBodyBuildPanel,
+                                CosmicBodyPanelHUDPosUpdate: new HUDElementPosUpdater
+                                (
+                                    HUDElement: cosmicBodyBuildPanel,
+                                    baseWorldObject: cosmicBody,
+                                    HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Middle),
+                                    anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
+                                ),
+                                BuildButton: buildButton
+                            );
+                        }
+                    )
+                );
+            }
+
+            private MaterialPaletteChoices GetBuildingMatPaletteChoices()
+                => MaterialPaletteChoices.CreateOrThrow
+                (
+                    choices: new(dict: mutableBuildingMatPaletteChoices)
+                );
+
+            void IItemChoiceSetter<ProductionChoice>.SetChoice(ProductionChoice item)
+                => SetProductionChoice(productionChoice: item);
+
+            private void SetProductionChoice(ProductionChoice productionChoice)
+            {
+                ProductionChoice = productionChoice;
+                EnableOrDisableBuildButtons();
+            }
+
+            void IItemChoiceSetter<MaterialPalette>.SetChoice(MaterialPalette item)
+                => SetMatPaletteChoice(materialPalette: item);
+
+            private void SetMatPaletteChoice(MaterialPalette materialPalette)
+            {
+                mutableBuildingMatPaletteChoices[materialPalette.productClass] = materialPalette;
+#warning Complete this. In case all material choices are made, show player the stats of the to-be-constructed building
+                EnableOrDisableBuildButtons();
+            }
+
+            private void EnableOrDisableBuildButtons()
+            {
+                bool enableBuildButtons = ProductionChoice is not null && constrGeneralParams.SufficientBuildingMatPalettes(curBuildingMatPaletteChoices: GetBuildingMatPaletteChoices());
+                foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers)
+                    cosmicBodyPanelManager.BuildButton.PersonallyEnabled = enableBuildButtons;
+            }
+
+            public void StopBuildingConfig()
+            {
+                CurWorldManager.RemoveHUDElement(HUDElement: buildingConfigPanel);
+                foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers)
+                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyPanelManager.CosmicBodyBuildPanel);
+                CurWorldManager.activeUIManager.EnableAllUIElements();
+            }
+        }
+
+        [Serializable]
+        private sealed record CancelBuildingButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+                => BuildingConfigPanelManager.StopBuildingConfig();
+        }
+
+        [Serializable]
+        private readonly record struct CosmicBodyBuildPanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyBuildPanel, IAction CosmicBodyPanelHUDPosUpdate, Button BuildButton);
+
+        [Serializable]
+        private sealed record BuildOnCosmicBodyButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager, CosmicBody CosmicBody, Construction.GeneralParams ConstrGeneralParams, MaterialPaletteChoices NeededBuildingMatPaletteChoices) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+            {
+                CosmicBody.StartConstruction
+                (
+                    constrConcreteParams: ConstrGeneralParams.CreateConcrete
+                    (
+                        nodeState: CosmicBody.NodeState,
+                        neededBuildingMatPaletteChoices: NeededBuildingMatPaletteChoices,
+                        productionChoice: BuildingConfigPanelManager.ProductionChoice ?? throw new InvalidOperationException()
+                    )
+                );
+                BuildingConfigPanelManager.StopBuildingConfig();
+            }
+        }
+
         public static WorldManager CurWorldManager
             => Initialized ? curWorldManager : throw new InvalidOperationException($"must initialize {nameof(WorldManager)} first by calling {nameof(CreateWorldManager)} or {nameof(LoadWorldManager)}");
-
-        public static IEvent<IChoiceChangedListener<IOverlay>> CurOverlayChanged
-            => CurWorldManager.overlayChoicePanel.choiceChanged;
 
         [MemberNotNullWhen(returnValue: true, member: nameof(curWorldManager))]
         public static bool Initialized
             => curWorldManager is not null;
 
-        public static WorldConfig CurWorldConfig { get; private set; }
+        public static WorldConfig CurWorldConfig { get; private set; } = null!;
 
-        public static ResConfig CurResConfig { get; private set; }
+        public static ResConfig CurResConfig { get; private set; } = null!;
 
         public static IndustryConfig CurIndustryConfig
             => CurWorldManager.industryConfig;
 
         private static WorldManager? curWorldManager;
-        private static readonly Type[] knownTypes;
+        private static readonly EfficientReadOnlyCollection<Type> knownTypes = ComputeKnownTypes();
+
+        private static EfficientReadOnlyCollection<Type> ComputeKnownTypes()
+        {
+            var nonSerializableTypes = GameMain.NonSerializableTypes();
+
+            // TODO: move to a more appropriate class?
+            HashSet<Type> knownTypesSet = new()
+            {
+                typeof(Dictionary<IndustryType, Score>),
+                typeof(EfficientReadOnlyDictionary<NodeID, CosmicBody>),
+                typeof(UIHorizTabPanel<IHUDElement>),
+                typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
+                typeof(MultipleChoicePanel<string>),
+                typeof(MultipleChoicePanel<string>.ChoiceEventListener),
+                typeof(UIRectHorizPanel<IHUDElement>),
+                typeof(UIRectHorizPanel<SelectButton>),
+                typeof(UIRectVertPanel<IHUDElement>),
+                //typeof(Counter<NumPeople>),
+                typeof(EnergyCounter<HeatEnergy>),
+                typeof(EnergyCounter<RadiantEnergy>),
+                typeof(EnergyCounter<ElectricalEnergy>),
+                //typeof(EnergyCounter<ResAmounts>),
+            };
+            knownTypesSet.UnionWith(Construction.GetKnownTypes());
+            knownTypesSet.UnionWith(Manufacturing.GetKnownTypes());
+            knownTypesSet.UnionWith(PowerPlant.GetKnownTypes());
+            knownTypesSet.UnionWith(Mining.GetKnownTypes());
+            knownTypesSet.UnionWith(Landfill.GetKnownTypes());
+            knownTypesSet.UnionWith(MaterialProduction.GetKnownTypes());
+            knownTypesSet.UnionWith(Storage.GetKnownTypes());
+            List<Type> unserializedTypeList = new();
+            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
+            {
+                if (Attribute.GetCustomAttribute(type, typeof(CompilerGeneratedAttribute)) is not null)
+                    continue;
+
+                if (Attribute.GetCustomAttribute(type, typeof(DataContractAttribute)) is not null
+                    || Attribute.GetCustomAttribute(type, typeof(SerializableAttribute)) is not null
+                    || type.IsEnum)
+                    knownTypesSet.Add(type);
+                else
+                    if (!nonSerializableTypes.Contains(type) && !(type.IsAbstract && type.IsSealed) && !type.IsInterface)
+                    unserializedTypeList.Add(type);
+            }
+            if (unserializedTypeList.Count > 0)
+                throw new InvalidStateException($"Every non-static, non-interface, non-enum type (except for types returned from NonSerializableTypes method(s)) must have attribute Serializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
+            return knownTypesSet.ToEfficientReadOnlyCollection();
+        }
 
         public static void CreateWorldManager(FullValidMapInfo mapInfo)
         {
@@ -65,7 +305,13 @@ namespace Game1
                 screenBoundWidthForMapMoving: 1
             );
             curWorldManager = new();
-            CurWorldManager.graph = Graph.CreateFromInfo(mapInfo: mapInfo, mapInfoCamera: mapInfoCamera);
+            CurWorldManager.graph = Graph.CreateFromInfo
+            (
+                mapInfo: mapInfo,
+                mapInfoCamera: mapInfoCamera,
+                resConfig: curWorldManager.resConfig,
+                industryConfig: curWorldManager.industryConfig
+            );
             AddUIElements();
             CurWorldManager.Initialize();
 
@@ -77,21 +323,30 @@ namespace Game1
                 CurWorldManager.AddHUDElement
                 (
                     HUDElement: CurWorldManager.globalTextBox,
-                    horizPos: HorizPos.Left,
-                    vertPos: VertPos.Top
-                );
-                CurWorldManager.AddHUDElement
-                (
-                    HUDElement: CurWorldManager.overlayChoicePanel,
-                    horizPos: HorizPos.Middle,
-                    vertPos: VertPos.Top
+                    position: new(HorizPosEnum.Left, VertPosEnum.Top)
                 );
                 CurWorldManager.AddHUDElement
                 (
                     HUDElement: CurWorldManager.pauseButton,
-                    horizPos: HorizPos.Right,
-                    vertPos: VertPos.Bottom
+                    position: new(HorizPosEnum.Right, VertPosEnum.Bottom)
                 );
+
+                UIRectVertPanel<IHUDElement> buildPanel = new(childHorizPos: HorizPosEnum.Middle);
+
+                foreach (var constrGeneralParams in CurIndustryConfig.constrGeneralParamsList)
+                {
+                    Button buildIndustryButton = new
+                    (
+                        shape: new MyRectangle(width: 200, height: 30),
+                        tooltip: constrGeneralParams.toopltip,
+                        text: constrGeneralParams.buildButtonName
+                    );
+                    buildIndustryButton.clicked.Add(listener: new BuildIndustryButtonClickedListener(ConstrGeneralParams: constrGeneralParams));
+#warning Complete this by adding how the button reacts to being pressed
+                    buildPanel.AddChild(child: buildIndustryButton);
+                }
+
+                CurWorldManager.AddHUDElement(HUDElement: buildPanel, position: new(HorizPosEnum.Right, VertPosEnum.Top));
             }
         }
 
@@ -112,7 +367,7 @@ namespace Game1
                 using FileStream fileStream = new(path: saveFilePath, FileMode.Open, FileAccess.Read);
                 DataContractSerializer serializer = GetDataContractSerializer();
 
-                using XmlDictionaryReader reader = XmlDictionaryReader.CreateBinaryReader
+                using var reader = XmlDictionaryReader.CreateBinaryReader
                 (
                     stream: fileStream,
                     quotas: new XmlDictionaryReaderQuotas()
@@ -136,55 +391,6 @@ namespace Game1
                 }
             );
 
-        static WorldManager()
-        {
-            // TODO: move to a more appropriate class?
-            HashSet<Type> knownTypesSet = new()
-            {
-                typeof(Dictionary<IndustryType, Score>),
-                typeof(Dictionary<IOverlay, IHUDElement>),
-                typeof(ReadOnlyDictionary<NodeID, CosmicBody>),
-                typeof(UIHorizTabPanel<IHUDElement>),
-                typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
-                typeof(MultipleChoicePanel<string>),
-                typeof(MultipleChoicePanel<string>.ChoiceEventListener),
-                typeof(MultipleChoicePanel<IOverlay>),
-                typeof(MultipleChoicePanel<IOverlay>.ChoiceEventListener),
-                typeof(UIRectHorizPanel<IHUDElement>),
-                typeof(UIRectHorizPanel<SelectButton>),
-                typeof(UIRectVertPanel<IHUDElement>),
-                typeof(UITransparentPanel<ResDestinArrow>),
-                //typeof(Counter<NumPeople>),
-                typeof(EnergyCounter<HeatEnergy>),
-                typeof(EnergyCounter<RadiantEnergy>),
-                typeof(EnergyCounter<ElectricalEnergy>),
-                //typeof(EnergyCounter<ResAmounts>),
-            };
-            List<Type> unserializedTypeList = new();
-            foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
-            {
-                if (Attribute.GetCustomAttribute(type, typeof(CompilerGeneratedAttribute)) is not null)
-                    continue;
-
-                if (Attribute.GetCustomAttribute(type, typeof(DataContractAttribute)) is not null
-                    || Attribute.GetCustomAttribute(type, typeof(SerializableAttribute)) is not null
-                    || type.IsEnum)
-                    knownTypesSet.Add(type);
-                else
-                    if (type != typeof(Game1) && !(type.IsAbstract && type.IsSealed) && !type.IsInterface)
-                    unserializedTypeList.Add(type);
-            }
-            if (unserializedTypeList.Count > 0)
-                throw new Exception($"Every non-static, non-interface, non-enum type (except for Game1) must have attribute Serializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
-            knownTypes = knownTypesSet.ToArray();
-
-            CurWorldConfig = null!;
-            CurResConfig = null!;
-        }
-
-        public IOverlay Overlay
-            => overlayChoicePanel.SelectedChoiceLabel;
-
         public TimeSpan StartTime { get; }
 
         public TimeSpan CurTime { get; private set; }
@@ -200,34 +406,6 @@ namespace Game1
         public UDouble MaxLinkJoulesPerKg
             => CurGraph.MaxLinkJoulesPerKg;
 
-        public bool ArrowDrawingModeOn
-        {
-            get => arrowDrawingModeOn;
-            set
-            {
-                if (arrowDrawingModeOn == value)
-                    return;
-
-                arrowDrawingModeOn = value;
-                if (arrowDrawingModeOn)
-                {
-                    if (CurWorldManager.Overlay is not ResInd)
-                        throw new Exception();
-                    activeUIManager.DisableAllUIElements();
-                    if (CurGraph.ActiveWorldElement is CosmicBody activeNode)
-                    {
-                        foreach (var node in CurGraph.Nodes)
-                            if (activeNode.CanHaveDestin(destinationId: node.NodeID))
-                                node.HasDisabledAncestor = false;
-                    }
-                    else
-                        throw new Exception();
-                }
-                else
-                    activeUIManager.EnableAllUIElements();
-            }
-        }
-
         private readonly WorldConfig worldConfig;
         private readonly ResConfig resConfig;
         private readonly IndustryConfig industryConfig;
@@ -240,13 +418,11 @@ namespace Game1
         private readonly ActiveUIManager activeUIManager;
         private readonly TextBox globalTextBox;
         private readonly ToggleButton pauseButton;
-        private readonly MultipleChoicePanel<IOverlay> overlayChoicePanel;
         private readonly WorldCamera worldCamera;
 
         private Graph CurGraph
             => graph ?? throw new InvalidOperationException($"must initialize {nameof(graph)} first");
         private Graph? graph;
-        private bool arrowDrawingModeOn;
 
         private WorldManager()
         {
@@ -254,9 +430,8 @@ namespace Game1
             CurTime = TimeSpan.Zero;
             worldConfig = new();
             CurWorldConfig = worldConfig;
-            resConfig = new();
-            CurResConfig = resConfig;
-            resConfig.Initialize();
+            CurResConfig = resConfig = new();
+            CurResConfig.Initialize();
             industryConfig = new();
             people = new();
 
@@ -274,35 +449,10 @@ namespace Game1
             );
 
             activeUIManager = new(worldCamera: worldCamera);
-            activeUIManager.clickedNowhere.Add(listener: this);
 
             globalTextBox = new(backgroundColor: colorConfig.UIBackgroundColor);
             // TODO: move these constants to a contants file
             globalTextBox.Shape.MinWidth = 300;
-
-            // TODO: move these constants to a contants file
-            overlayChoicePanel = new
-            (
-                horizontal: true,
-                choiceWidth: 100,
-                choiceHeight: 30,
-                choiceLabelsAndTooltips:
-                    from overlay in IOverlay.all
-                    select
-                    (
-                        label: overlay,
-                        tooltip: new ImmutableTextTooltip
-                        (
-                            text: overlay.SwitchExpression
-                            (
-                                singleResCase: resInd => $"Display information about resource {resInd}",
-                                allResCase: () => "Display information about all resources",
-                                powerCase: () => "Display information about power (production and consumption)",
-                                peopleCase: () => "Display information about people"
-                            )
-                        ) as ITooltip
-                    )
-            );
 
             PauseButtonTooltip pauseButtonTooltip = new();
             pauseButton = new
@@ -317,14 +467,18 @@ namespace Game1
                 text: "Toggle\nPause"
             );
             pauseButtonTooltip.Initialize(onOffButton: pauseButton);
-
-            arrowDrawingModeOn = false;
         }
 
         private void Initialize()
         {
             graph!.Initialize();
             lightManager.Initialize();
+        }
+
+        public void PublishMessage(IMessage message)
+        {
+#warning Implement this
+            // If exact same message already exists, don't add it a second time
         }
 
         public UDouble PersonDist(NodeID nodeID1, NodeID nodeID2)
@@ -336,11 +490,11 @@ namespace Game1
         public MyVector2 NodePosition(NodeID nodeID)
             => CurGraph.NodePosition(nodeID: nodeID);
 
-        public void AddResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
-            => CurGraph.AddResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
+        public IEnumerable<IIndustry> SourcesOf(IResource resource)
+            => CurGraph.SourcesOf(resource: resource);
 
-        public void RemoveResDestinArrow(ResInd resInd, ResDestinArrow resDestinArrow)
-            => CurGraph.RemoveResDestinArrow(resInd: resInd, resDestinArrow: resDestinArrow);
+        public IEnumerable<IIndustry> DestinsOf(IResource resource)
+            => throw new NotImplementedException();
 
         public MyVector2 ScreenPosToWorldPos(MyVector2 screenPos)
             => worldCamera.ScreenPosToWorldPos(screenPos: screenPos);
@@ -360,17 +514,32 @@ namespace Game1
         //        screenLength: HUDLengthToScreenLength(HUDLength: HUDLength)
         //    );
 
-        public void AddHUDElement(IHUDElement? HUDElement, HorizPos horizPos, VertPos vertPos)
-            => activeUIManager.AddHUDElement(HUDElement: HUDElement, horizPos: horizPos, vertPos: vertPos);
+        public void AddHUDElement(IHUDElement? HUDElement, PosEnums position)
+            => activeUIManager.AddHUDElement(HUDElement: HUDElement, position: position);
 
-        public void AddWorldHUDElement(IHUDElement worldHUDElement)
-            => activeUIManager.AddWorldHUDElement(worldHUDElement: worldHUDElement);
+        public void SetHUDPopup(IHUDElement HUDElement, MyVector2 HUDPos, PosEnums origin)
+            => activeUIManager.SetHUDPopup(HUDElement: HUDElement, HUDPos: HUDPos, origin: origin);
+
+        public void AddWorldHUDElement(IHUDElement worldHUDElement, IAction updateHUDPos)
+            => activeUIManager.AddWorldHUDElement(worldHUDElement: worldHUDElement, updateHUDPos: updateHUDPos);
+
+        public void RemoveWorldHUDElement(IHUDElement worldHUDElement)
+            => activeUIManager.RemoveWorldHUDElement(worldHUDElement: worldHUDElement);
 
         public void RemoveHUDElement(IHUDElement? HUDElement)
             => activeUIManager.RemoveHUDElement(HUDElement: HUDElement);
 
+        public void EnableAllUIElements()
+            => activeUIManager.EnableAllUIElements();
+
+        public void DisableAllUIElements()
+            => activeUIManager.DisableAllUIElements();
+
         public void AddEnergyProducer(IEnergyProducer energyProducer)
             => energyManager.AddEnergyProducer(energyProducer: energyProducer);
+
+        public void RemoveEnergyProducer(IEnergyProducer energyProducer)
+            => energyManager.RemoveEnergyProducer(energyProducer: energyProducer);
 
         public IEnergyDistributor EnergyDistributor
             => energyManager;
@@ -391,8 +560,9 @@ namespace Game1
         {
             if (elapsedGameTime < TimeSpan.Zero)
                 throw new ArgumentException();
-
-            Elapsed = pauseButton.On ? TimeSpan.Zero : elapsedGameTime * CurWorldConfig.worldSecondsInGameSecond;
+#warning Complete this. Do this speedup properly - have an initial simulation stage of the game (similar to Dwarf Fortress) when the speedup happens
+            double speedup = (Mouse.GetState().MiddleButton == ButtonState.Pressed) ? 100 : 1;
+            Elapsed = pauseButton.On ? TimeSpan.Zero : elapsedGameTime * CurWorldConfig.worldSecondsInGameSecond * speedup;
             CurTime += Elapsed;
 
             worldCamera.Update(elapsed: elapsedGameTime, canScroll: CurGraph.MouseOn);
@@ -400,6 +570,8 @@ namespace Game1
             if (Elapsed > TimeSpan.Zero)
             {
                 lightManager.Update();
+
+                CurGraph.PreEnergyDistribUpdate();
 
                 energyManager.DistributeEnergy
                 (
@@ -413,10 +585,8 @@ namespace Game1
                 activityManager.ManageActivities(people: people);
 
                 Debug.Assert(people.Count == CurGraph.Stats.totalNumPeople);
-                globalTextBox.Text = (energyManager.Summary() + CurGraph.Stats.ToString()).Trim();
+                globalTextBox.Text = energyManager.Summary().Trim();
             }
-            else
-                CurGraph.UpdateHUDPos();
             activeUIManager.Update(elapsed: elapsedGameTime);
 
             // THIS is a huge performance penalty
@@ -446,11 +616,8 @@ namespace Game1
             using FileStream fileStream = new(path: saveFilePath, FileMode.Create);
             DataContractSerializer serializer = GetDataContractSerializer();
 
-            using XmlDictionaryWriter writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);
+            using var writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);
             serializer.WriteObject(writer, this);
         }
-
-        void IClickedNowhereListener.ClickedNowhereResponse()
-            => ArrowDrawingModeOn = false;
     }
 }

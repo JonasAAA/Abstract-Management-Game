@@ -1,11 +1,18 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
     [Serializable]
     public abstract class BaseButton : HUDElement, IWithTooltip
     {
+        public string? Text
+        {
+            get => textBox.Text;
+            set => textBox.Text = value;
+        }
+
         public ITooltip Tooltip { get; }
 
         public readonly Event<IClickedListener> clicked;
@@ -19,7 +26,7 @@ namespace Game1.UI
             : base(shape: shape)
         {
             clicked = new();
-            textBox = new()
+            textBox = new(textColor: colorConfig.buttonTextColor)
             {
                 Text = text
             };

@@ -11,6 +11,7 @@
 
         public Dictionary<TKey, ulong> Split(ulong amount, Dictionary<TKey, UDouble> importances)
         {
+#warning Implement this without HistoricProporSplitter (there must be a much simpler way), and then delete HistoricProporSplitter
             foreach (var key in internalProporSplitter.Keys)
                 if (!importances.ContainsKey(key))
                     internalProporSplitter.RemoveKey(key: key);

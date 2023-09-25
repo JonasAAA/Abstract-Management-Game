@@ -1,6 +1,6 @@
 ﻿namespace Game1.Delegates
 {
-    public interface IEnabledChangedListener : IListener
+    public interface IEnabledChangedListener
     {
         public void EnabledChangedResponse();
     }

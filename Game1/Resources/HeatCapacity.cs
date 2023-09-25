@@ -6,18 +6,15 @@ namespace Game1.Resources
     /// The amount of energy needed to increase the temperature by one degree
     /// </summary>
     [Serializable]
-    public readonly record struct HeatCapacity : IAdditionOperators<HeatCapacity, HeatCapacity, HeatCapacity>, IAdditiveIdentity<HeatCapacity, HeatCapacity>, IMultiplyOperators<HeatCapacity, ulong, HeatCapacity>, IMultiplicativeIdentity<HeatCapacity, ulong>
+    public readonly record struct HeatCapacity : IOrderedVector<HeatCapacity, ulong>
     {
-        public static readonly HeatCapacity zero;
+        public static readonly HeatCapacity zero = new(valueInJPerK: 0);
 
         static HeatCapacity IAdditiveIdentity<HeatCapacity, HeatCapacity>.AdditiveIdentity
             => zero;
 
         static ulong IMultiplicativeIdentity<HeatCapacity, ulong>.MultiplicativeIdentity
             => 1;
-
-        static HeatCapacity()
-            => zero = new(valueInJPerK: 0);
 
         public static HeatCapacity CreateFromJPerK(ulong valueInJPerK)
             => new(valueInJPerK: valueInJPerK);
@@ -50,16 +47,16 @@ namespace Game1.Resources
         public static HeatCapacity operator *(ulong left, HeatCapacity right)
             => right * left;
 
-        public static bool operator >(HeatCapacity left, HeatCapacity right)
-            => left.valueInJPerK > right.valueInJPerK;
-
         public static bool operator >=(HeatCapacity left, HeatCapacity right)
             => left.valueInJPerK >= right.valueInJPerK;
 
-        public static bool operator <(HeatCapacity left, HeatCapacity right)
-            => left.valueInJPerK < right.valueInJPerK;
-
         public static bool operator <=(HeatCapacity left, HeatCapacity right)
             => left.valueInJPerK <= right.valueInJPerK;
+
+        public static bool operator >(HeatCapacity left, HeatCapacity right)
+            => left.valueInJPerK > right.valueInJPerK;
+
+        public static bool operator <(HeatCapacity left, HeatCapacity right)
+            => left.valueInJPerK < right.valueInJPerK;
     }
 }

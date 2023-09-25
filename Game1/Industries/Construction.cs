@@ -1,209 +1,216 @@
-﻿using Game1.Shapes;
+﻿using Game1.Collections;
+using Game1.Delegates;
 using Game1.UI;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
-    [Serializable]
-    public sealed class Construction : ProductiveIndustry
+    public static class Construction
     {
         [Serializable]
-        public new sealed class Factory : ProductiveIndustry.Factory, IBuildableFactory
+        public sealed class GeneralParams
         {
-            public readonly UDouble reqWattsPerUnitSurface;
-            public readonly IFactoryForIndustryWithBuilding industryFactory;
-            public readonly TimeSpan duration;
+            public readonly string name;
+            public readonly IGeneralBuildingConstructionParams buildingGeneralParams;
+            public readonly EnergyPriority energyPriority;
+            public readonly string buildButtonName;
+            public readonly ITooltip toopltip;
+            public readonly EfficientReadOnlyHashSet<IProductClass> neededProductClasses;
 
-            public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, IFactoryForIndustryWithBuilding industryFactory, TimeSpan duration)
-                : base
+            public GeneralParams(IGeneralBuildingConstructionParams buildingGeneralParams, EnergyPriority energyPriority)
+            {
+                name = UIAlgorithms.ConstructionName(childIndustryName: buildingGeneralParams.Name);
+                this.buildingGeneralParams = buildingGeneralParams;
+                this.energyPriority = energyPriority;
+                buildButtonName = buildingGeneralParams.Name;
+                toopltip = new ImmutableTextTooltip(text: UIAlgorithms.ConstructionTooltip(constrGeneralParams: this));
+                neededProductClasses = buildingGeneralParams.BuildingCostPropors.neededProductClasses;
+            }
+
+            /// <summary>
+            /// Return null if no production choice is needed
+            /// </summary>
+            public IHUDElement? CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
+                => buildingGeneralParams.CreateProductionChoicePanel(productionChoiceSetter: productionChoiceSetter);
+
+            public bool SufficientBuildingMatPalettes(MaterialPaletteChoices curBuildingMatPaletteChoices)
+                => neededProductClasses.IsSubsetOf(other: curBuildingMatPaletteChoices.choices.Keys);
+
+            public ConcreteParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
+                => new
                 (
-                    industryType: IndustryType.Construction,
-                    name: name,
-                    color: industryFactory.Color,
-                    energyPriority: energyPriority,
-                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
-                )
-            {
-                if (MyMathHelper.IsTiny(value: reqWattsPerUnitSurface))
-                    throw new ArgumentOutOfRangeException();
-                this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
-                this.industryFactory = industryFactory;
-                if (duration < TimeSpan.Zero || duration == TimeSpan.MaxValue)
-                    throw new ArgumentException();
-                this.duration = duration;
-            }
-
-            public override Params CreateParams(IIndustryFacingNodeState state)
-                => new(state: state, factory: this);
-
-            string IBuildableFactory.ButtonName
-                => $"build {industryFactory.Name}";
-
-            ITooltip IBuildableFactory.CreateTooltip(IIndustryFacingNodeState state)
-                => Tooltip(state: state);
-
-            Industry IBuildableFactory.CreateIndustry(IIndustryFacingNodeState state)
-                => new Construction(parameters: CreateParams(state: state));
+                    nodeState: nodeState,
+                    generalParams: this,
+                    concreteBuildingParams: buildingGeneralParams.CreateConcrete
+                    (
+                        nodeState: nodeState,
+                        neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices,
+                        productionChoice: productionChoice
+                    )
+                );
         }
 
         [Serializable]
-        public new sealed class Params : ProductiveIndustry.Params
+        public readonly struct ConcreteParams : Industry.IConcreteBuildingParams<UnitType>
         {
-            public UDouble ReqWatts
-                => state.ApproxSurfaceLength * factory.reqWattsPerUnitSurface;
-            public readonly IFactoryForIndustryWithBuilding industryFactory;
-            public readonly TimeSpan duration;
-            public ResAmounts Cost
-                => industryFactory.BuildingCost(state: state);
+            public string Name { get; }
+            public IIndustryFacingNodeState NodeState { get; }
+            public EnergyPriority EnergyPriority { get; }
+            public readonly AllResAmounts buildingCost;
+            public readonly AreaInt buildingComponentsArea;
 
-            public override string TooltipText
-                => $"""
-                {base.TooltipText}
-                Construction parameters:
-                {nameof(ReqWatts)}: {ReqWatts}
-                {nameof(duration)}: {duration}
-                {nameof(Cost)}: {Cost}
+            private readonly IConcreteBuildingConstructionParams concreteBuildingParams;
 
-                Building parameters:
-                {industryFactory.CreateParams(state: state).TooltipText}
-                """;
-
-            private readonly Factory factory;
-
-            public Params(IIndustryFacingNodeState state, Factory factory)
-                : base(state: state, factory: factory)
+            public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, IConcreteBuildingConstructionParams concreteBuildingParams)
             {
-                this.factory = factory;
+                Name = generalParams.name;
+                NodeState = nodeState;
+                EnergyPriority = generalParams.energyPriority;
+                buildingCost = concreteBuildingParams.BuildingCost;
+                buildingComponentsArea = buildingCost.Area();
 
-                industryFactory = factory.industryFactory;
-                duration = factory.duration;
+                this.concreteBuildingParams = concreteBuildingParams;
             }
+
+            public IBuildingImage IncompleteBuildingImage(Propor donePropor)
+                => concreteBuildingParams.IncompleteBuildingImage(donePropor: donePropor);
+
+            public IIndustry CreateIndustry()
+                => new Industry<UnitType, ConcreteParams, UnitType, ConstructionState>
+                (
+                    productionParams: new(),
+                    buildingParams: this,
+                    persistentState: new()
+                );
+
+            public IIndustry CreateChildIndustry(ResPile buildingResPile)
+                => concreteBuildingParams.CreateIndustry(buildingResPile: buildingResPile);
+
+            public CurProdStats CurConstrStats()
+                => ResAndIndustryAlgos.CurConstrStats
+                (
+                    buildingCost: buildingCost,
+                    gravity: NodeState.SurfaceGravity,
+                    temperature: NodeState.Temperature,
+                    worldSecondsInGameSecond: CurWorldConfig.worldSecondsInGameSecond
+                );
+
+            IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
+                => IncompleteBuildingImage(donePropor: Propor.empty);
+
+            MaterialPalette? Industry.IConcreteBuildingParams<UnitType>.SurfaceMatPalette(bool productionInProgress)
+                => productionInProgress switch
+                {
+                    true => concreteBuildingParams.SurfaceMatPalette,
+                    false => null
+                };
+            
+            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
+                => EfficientReadOnlyCollection<IResource>.empty;
+            
+            AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
+                => buildingCost;
         }
 
         [Serializable]
-        public readonly record struct IndustryOutlineParams(Params Parameters) : Disk.IParams
+        private sealed class ConstructionState : Industry.IProductionCycleState<UnitType, ConcreteParams, UnitType, ConstructionState>
         {
-            public MyVector2 Center
-                => Parameters.state.Position;
+            public static bool IsRepeatable
+                => false;
 
-            public UDouble Radius
-                => Parameters.state.Radius + CurWorldConfig.defaultIndustryHeight;
-        }
-
-        public override bool PeopleWorkOnTop
-            => true;
-
-        public override Propor? SurfaceReflectance
-            => donePropor == Propor.empty ? null : parameters.Cost.Reflectance();
-
-        public override Propor? SurfaceEmissivity
-            => donePropor == Propor.empty ? null : parameters.Cost.Emissivity();
-
-        protected override UDouble Height
-            => CurWorldConfig.defaultIndustryHeight * donePropor;
-
-        private readonly Params parameters;
-        private readonly Disk industryOutline;
-        private TimeSpan constrTimeLeft;
-        private Propor donePropor;
-        private Building? buildingBeingConstructed;
-
-        private Construction(Params parameters)
-            : base(parameters: parameters, building: null)
-        {
-            this.parameters = parameters;
-            industryOutline = new(new IndustryOutlineParams(Parameters: parameters));
-            constrTimeLeft = TimeSpan.MaxValue;
-            donePropor = Propor.empty;
-        }
-
-        public override ResAmounts TargetStoredResAmounts()
-            => IsBusy().SwitchExpression
-            (
-                trueCase: () => ResAmounts.Empty,
-                falseCase: () => parameters.Cost
-            );
-
-        protected override BoolWithExplanationIfFalse CalculateIsBusy()
-            => base.CalculateIsBusy() & BoolWithExplanationIfFalse.Create
-            (
-                value: StartedConstruction,
-                explanationIfFalse: """
-                    not enough resources
-                    to start construction
-                    """
-            );
-
-        private bool StartedConstruction
-            => constrTimeLeft < TimeSpan.MaxValue;
-
-        protected override Industry InternalUpdate(Propor workingPropor)
-        {
-            try
+            public static Result<ConstructionState, TextErrors> Create(UnitType productionParams, ConcreteParams parameters, UnitType persistentState,
+                ResPile inputStorage, AreaInt storedOutputArea)
             {
-                if (!StartedConstruction)
-                {
-                    var reservedBuildingCost = ResPile.CreateIfHaveEnough
-                    (
-                        source: parameters.state.StoredResPile,
-                        amount: parameters.Cost
-                    );
-                    if (reservedBuildingCost is not null)
-                    {
-                        buildingBeingConstructed = new(resSource: reservedBuildingCost);
-                        constrTimeLeft = parameters.duration;
-                    }
-                    return this;
-                }
-
-                constrTimeLeft -= workingPropor * CurWorldManager.Elapsed;
-
-                if (constrTimeLeft <= TimeSpan.Zero)
-                {
-                    constrTimeLeft = TimeSpan.Zero;
-                    Debug.Assert(buildingBeingConstructed is not null);
-                    Industry newIndustry = parameters.industryFactory.CreateIndustry
-                    (
-                        state: parameters.state,
-                        building: buildingBeingConstructed
-                    );
-                    buildingBeingConstructed = null;
-                    Delete();
-                    return newIndustry;
-                }
-                return this;
+                var buildingResPile = ResPile.CreateIfHaveEnough
+                (
+                    source: inputStorage,
+                    amount: parameters.buildingCost
+                );
+                if (buildingResPile is null)
+                    return new(errors: new("not enough resources to start construction"));
+                return new(ok: new ConstructionState(buildingResPile: buildingResPile, parameters: parameters));
             }
-            finally
+
+            public ElectricalEnergy ReqEnergy { get; private set; }
+            public bool ShouldRestart
+                => false;
+
+            private readonly ConcreteParams parameters;
+            private readonly ResPile buildingResPile;
+            private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
+            private readonly HistoricRounder reqEnergyHistoricRounder;
+            private CurProdStats curConstrStats;
+            private Propor donePropor, workingPropor;
+
+            private ConstructionState(ResPile buildingResPile, ConcreteParams parameters)
             {
-                donePropor = StartedConstruction ? C.DonePropor(timeLeft: constrTimeLeft, duration: parameters.duration) : Propor.empty;
+                this.buildingResPile = buildingResPile;
+                this.parameters = parameters;
+                donePropor = Propor.empty;
+                electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: parameters.NodeState.LocationCounters);
+                reqEnergyHistoricRounder = new();
             }
+
+            public IBuildingImage BusyBuildingImage()
+                => parameters.IncompleteBuildingImage(donePropor: donePropor);
+
+            public void FrameStart()
+            {
+                curConstrStats = parameters.CurConstrStats();
+                ReqEnergy = reqEnergyHistoricRounder.CurEnergy<ElectricalEnergy>(watts: curConstrStats.ReqWatts, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed);
+            }
+
+            public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
+            {
+                electricalEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
+                workingPropor = ResAndIndustryHelpers.WorkingPropor(proporUtilized: Propor.full, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
+            }
+
+            /// <summary>
+            /// Returns child industry if finished construction, null otherwise
+            /// </summary>
+            public IIndustry? Update(ResPile outputStorage)
+            {
+                parameters.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
+
+                donePropor = donePropor.UpdateDonePropor
+                (
+                    workingPropor: workingPropor,
+                    producedAreaPerSec: curConstrStats.ProducedAreaPerSec,
+                    elapsed: CurWorldManager.Elapsed,
+                    areaInProduction: parameters.buildingComponentsArea
+                );
+
+                if (donePropor.IsFull)
+                {
+                    var childIndustry = parameters.CreateChildIndustry(buildingResPile: buildingResPile);
+                    CurWorldManager.PublishMessage
+                    (
+                        message: new BasicMessage
+                        (
+                            nodeID: parameters.NodeState.NodeID,
+                            message: UIAlgorithms.ConstructionComplete(buildingName: childIndustry.Name)
+                        )
+                    );
+                    return childIndustry;
+                }
+                return null;
+            }
+
+            public void Delete(ResPile outputStorage)
+            {
+                parameters.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
+                outputStorage.TransferAllFrom(source: buildingResPile);
+            }
+
+            public static void DeletePersistentState(UnitType persistentState, ResPile outputStorage)
+            { }
         }
 
-        protected override void PlayerDelete()
-        {
-            buildingBeingConstructed?.Delete(resDestin: parameters.state.StoredResPile);
-
-            base.PlayerDelete();
-        }
-
-        protected override string GetBusyInfo()
-            => $"constructing {donePropor * 100.0: 0.}%\n";
-
-        protected override UDouble ReqWatts()
-            // this is correct as if more important people get full energy, this works
-            // and if they don't, then the industry will get 0 energy anyway
-            => IsBusy().SwitchExpression
-            (
-                trueCase: () => parameters.ReqWatts * CurSkillPropor,
-                falseCase: () => UDouble.zero
-            );
-
-        public override void DrawBeforePlanet(Color otherColor, Propor otherColorPropor)
-        {
-            Propor transparency = (Propor).25;
-            industryOutline.Draw(baseColor: parameters.industryFactory.Color * (float)transparency, otherColor: otherColor * (float)transparency, otherColorPropor: otherColorPropor * transparency);
-
-            base.DrawBeforePlanet(otherColor, otherColorPropor);
-        }
+        public static HashSet<Type> GetKnownTypes()
+            => new()
+            {
+                typeof(Industry<UnitType, ConcreteParams, UnitType, ConstructionState>)
+            };
     }
 }

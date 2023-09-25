@@ -17,7 +17,7 @@
         }
 
         // ResAmounts is not Counter, otherwise it would be impossible to implement void TransferAllFrom(ResAmountsPacket sourcePacket)
-        public ResAmounts ResAmounts { get; private set; }
+        public AllResAmounts ResAmounts { get; private set; }
         public Mass Mass { get; private set; }
         public bool Empty
             => Mass.IsZero;
@@ -30,7 +30,7 @@
             this.thermalBody = thermalBody;
             resAmountsPacketsByDestin = new();
 
-            ResAmounts = ResAmounts.Empty;
+            ResAmounts = AllResAmounts.empty;
             Mass = Mass.zero;
         }
 
@@ -50,15 +50,18 @@
             resAmountsPacketsByDestin[sourcePacket.destination].resPile.TransferAllFrom(source: sourcePacket.resPile);
         }
 
-        public void TransferAllFrom(ResPile source, NodeID destination)
+        public void TransferFrom(ResPile source, NodeID destination, AllResAmounts amount)
         {
-            ResAmounts += source.Amount;
-            Mass += source.Amount.Mass();
+            ResAmounts += amount;
+            Mass += amount.Mass();
 
             if (!resAmountsPacketsByDestin.ContainsKey(destination))
                 resAmountsPacketsByDestin[destination] = new(destination: destination, thermalBody: thermalBody);
-            resAmountsPacketsByDestin[destination].resPile.TransferAllFrom(source: source);
+            resAmountsPacketsByDestin[destination].resPile.TransferFrom(source: source, amount: amount);
         }
+
+        public void TransferAllFrom(ResPile source, NodeID destination)
+            => TransferFrom(source: source, destination: destination, amount: source.Amount);
 
         public ResPile ReturnAndRemove(NodeID destination)
         {
@@ -72,18 +75,18 @@
             return resAmountsPacket.resPile;
         }
 
-        public ResAmounts ResToDestinAmounts(NodeID destination)
+        public AllResAmounts ResToDestinAmounts(NodeID destination)
             => resAmountsPacketsByDestin.ContainsKey(destination) switch
             {
                 true => resAmountsPacketsByDestin[destination].resPile.Amount,
-                false => ResAmounts.Empty
+                false => AllResAmounts.empty
             };
 
         public IEnumerable<ResAmountsPacket> DeconstructAndClear()
         {
             var result = resAmountsPacketsByDestin.Values;
             resAmountsPacketsByDestin = new();
-            ResAmounts = ResAmounts.Empty;
+            ResAmounts = AllResAmounts.empty;
             Mass = Mass.zero;
             return result;
         }

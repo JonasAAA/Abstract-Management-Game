@@ -1,152 +1,327 @@
-﻿using Game1.Shapes;
+﻿using Game1.Collections;
+using Game1.Delegates;
+using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
-    [Serializable]
-    public sealed class Mining : ProductiveIndustry
+    /// <summary>
+    /// Responds properly to planet shrinking, but NOT to planet widening
+    /// </summary>
+    public static class Mining
     {
         [Serializable]
-        public new sealed class Factory : ProductiveIndustry.Factory, IBuildableFactory
+        public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
-            public readonly UDouble reqWattsPerUnitSurface;
-            public readonly UDouble minedResPerUnitSurfacePerSec;
+            public string Name { get; }
+            public BuildingCostPropors BuildingCostPropors { get; }
 
-            public Factory(string name, EnergyPriority energyPriority, UDouble reqSkillPerUnitSurface, UDouble reqWattsPerUnitSurface, UDouble minedResPerUnitSurfacePerSec)
-                : base
+            public readonly DiskBuildingImage.Params buildingImageParams;
+            public readonly EnergyPriority energyPriority;
+
+            private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
+
+            public GeneralBuildingParams(string name, EnergyPriority energyPriority, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
+            {
+                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.miningBuildingColor);
+                Name = name;
+                BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
+
+                if (energyPriority == EnergyPriority.mostImportant)
+                    throw new ArgumentException("Only power plants can have highest energy priority");
+                this.energyPriority = energyPriority;
+                this.buildingComponentPropors = buildingComponentPropors;
+            }
+
+            IHUDElement? IGeneralBuildingConstructionParams.CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
+                => null;
+
+            public IConcreteBuildingConstructionParams CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
+                => new ConcreteBuildingParams
                 (
-                    industryType: IndustryType.Mining,
-                    name: name,
-                    color: Color.Pink,
-                    energyPriority: energyPriority,
-                    reqSkillPerUnitSurface: reqSkillPerUnitSurface
-                )
-            {
-                this.reqWattsPerUnitSurface = reqWattsPerUnitSurface;
-                this.minedResPerUnitSurfacePerSec = minedResPerUnitSurfacePerSec;
-            }
-
-            public override Params CreateParams(IIndustryFacingNodeState state)
-                => new(state: state, factory: this);
-
-            string IBuildableFactory.ButtonName
-                => Name;
-
-            ITooltip IBuildableFactory.CreateTooltip(IIndustryFacingNodeState state)
-                => Tooltip(state: state);
-
-            Industry IBuildableFactory.CreateIndustry(IIndustryFacingNodeState state)
-                => new Mining(parameters: CreateParams(state: state));
+                    nodeState: nodeState,
+                    generalParams: this,
+                    buildingImage: buildingImageParams.CreateImage(nodeShapeParams: nodeState),
+                    buildingComponentsToAmountPUBA: ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
+                    (
+                        buildingComponentPropors: buildingComponentPropors,
+                        buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
+                        buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
+                    ),
+                    buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
+                    surfaceMatPalette: neededBuildingMatPaletteChoices[IProductClass.roof]
+                );
         }
 
         [Serializable]
-        public new sealed class Params : ProductiveIndustry.Params
+        public readonly struct ConcreteBuildingParams : Industry.IConcreteBuildingParams<UnitType>, IConcreteBuildingConstructionParams
         {
-            public UDouble ReqWatts
-                => state.ApproxSurfaceLength * factory.reqWattsPerUnitSurface;
-            public UDouble MinedResPerSec
-                => state.ApproxSurfaceLength * factory.minedResPerUnitSurfacePerSec;
+            public string Name { get; }
+            public IIndustryFacingNodeState NodeState { get; }
+            public EnergyPriority EnergyPriority { get; }
+            public MaterialPalette SurfaceMatPalette { get; }
+            public readonly DiskBuildingImage buildingImage;
+            public readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
 
-            public override string TooltipText
-                => $"""
-                {base.TooltipText}
-                {nameof(ReqWatts)}: {ReqWatts}
-                {nameof(MinedResPerSec)}: {MinedResPerSec}
-                """;
+            /// <summary>
+            /// Things depend on this rather than on building components target area as can say that if planet underneath building shrinks,
+            /// building gets not enough space to operate at maximum efficiency
+            /// </summary>
+            public AreaDouble CurBuildingArea
+                => buildingImage.Area;
 
-            private readonly Factory factory;
+            private readonly GeneralBuildingParams generalParams;
+            private readonly MaterialPaletteChoices buildingMatPaletteChoices;
+            private readonly EfficientReadOnlyCollection<IResource> producedResources;
+            private readonly AllResAmounts startingBuildingCost;
 
-            public Params(IIndustryFacingNodeState state, Factory factory)
-                : base(state: state, factory: factory)
+            public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
+                EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
+                MaterialPaletteChoices buildingMatPaletteChoices, MaterialPalette surfaceMatPalette)
             {
-                this.factory = factory;
+                Name = generalParams.Name;
+                NodeState = nodeState;
+                this.buildingImage = buildingImage;
+                SurfaceMatPalette = surfaceMatPalette;
+                EnergyPriority = generalParams.energyPriority;
+
+                this.generalParams = generalParams;
+                this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
+                this.buildingMatPaletteChoices = buildingMatPaletteChoices;
+                startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
+                producedResources = (nodeState.Composition.ToAll() + startingBuildingCost).resList;
+            }
+
+            public static AreaInt HypotheticOutputStorageArea(AreaDouble hypotheticBuildingArea)
+                => (hypotheticBuildingArea * CurWorldConfig.outputStorageProporOfBuildingArea).RoundDown();
+
+            public AreaDouble AreaToMine()
+                => CurBuildingArea * CurWorldConfig.productionProporOfBuildingArea;
+
+            /// <param Name="miningMass">Mass of materials curretly being mined</param>
+            public CurProdStats CurMiningStats(Mass miningMass)
+                => ResAndIndustryAlgos.CurMechProdStats
+                (
+                    buildingCostPropors: generalParams.BuildingCostPropors,
+                    buildingMatPaletteChoices: buildingMatPaletteChoices,
+                    gravity: NodeState.SurfaceGravity,
+                    temperature: NodeState.Temperature,
+                    buildingArea: CurBuildingArea,
+                    productionMass: miningMass
+                );
+
+            public void RemoveUnneededBuildingComponents(ResPile buildingResPile, ResPile outputStorage)
+            {
+                var buildingComponentsToRemove = buildingResPile.Amount - ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA, CurBuildingArea);
+                if (buildingComponentsToRemove.Area() >= CurWorldConfig.minUsefulBuildingComponentAreaToRemove)
+                {
+                    outputStorage.TransferFrom
+                    (
+                        source: buildingResPile,
+                        amount: buildingComponentsToRemove
+                    );
+                }
+            }
+            
+            AllResAmounts IConcreteBuildingConstructionParams.BuildingCost
+                => startingBuildingCost;
+
+            IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
+                => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
+
+            IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
+                => new Industry<UnitType, ConcreteBuildingParams, PersistentState, MiningCycleState>(productionParams: new(), buildingParams: this, persistentState: new(buildingResPile: buildingResPile));
+
+            IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
+                => buildingImage;
+
+            MaterialPalette? Industry.IConcreteBuildingParams<UnitType>.SurfaceMatPalette(bool productionInProgress)
+                => SurfaceMatPalette;
+
+            // This assumes that planet composition never changes while mining is happening
+            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
+                => producedResources;
+
+            AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
+                => AllResAmounts.empty;
+        }
+
+        [Serializable]
+        public class PersistentState
+        {
+            public readonly ResPile buildingResPile;
+            public readonly RawMatAllocator minedResAllocator;
+            public HistoricCorrector<double> minedAreaHistoricCorrector;
+
+            public PersistentState(ResPile buildingResPile)
+            {
+                this.buildingResPile = buildingResPile;
+                minedResAllocator = new();
+                minedAreaHistoricCorrector = new();
             }
         }
 
         [Serializable]
-        private readonly record struct FutureShapeOutlineParams(Params Parameters) : Ring.IParamsWithOuterRadius
+        private sealed class MiningCycleState : Industry.IProductionCycleState<UnitType, ConcreteBuildingParams, PersistentState, MiningCycleState>
         {
-            public MyVector2 Center
-                => Parameters.state.Position;
+            public static bool IsRepeatable
+                => true;
 
-            public UDouble OuterRadius
-                => Parameters.state.Radius + 1;
-        }
-
-        public override bool PeopleWorkOnTop
-            => true;
-
-        protected override UDouble Height
-            => 0;
-
-        private readonly Params parameters;
-        /// <summary>
-        /// Since each frame a non-integer amount will be mined, and resources can only be moved in integer amounts,
-        /// this represents the amount that is mined, but not counted yet. Must be between 0 and 1.
-        /// </summary>
-        private UDouble silentlyMinedBits;
-        private UDouble minedResPerSec;
-        private readonly OuterRing futureShapeOutline;
-
-        private Mining(Params parameters)
-            : base(parameters: parameters, building: null)
-        {
-            this.parameters = parameters;
-            silentlyMinedBits = 0;
-            minedResPerSec = 0;
-            futureShapeOutline = new(parameters: new FutureShapeOutlineParams(Parameters: parameters));
-        }
-
-        protected override BoolWithExplanationIfFalse CalculateIsBusy()
-            => base.CalculateIsBusy() & BoolWithExplanationIfFalse.Create
-            (
-                value: parameters.state.MaxAvailableResAmount > 0,
-                explanationIfFalse: "the planet is fully mined out\n"
-            );
-
-        public override ResAmounts TargetStoredResAmounts()
-            => ResAmounts.Empty;
-
-        protected override Mining InternalUpdate(Propor workingPropor)
-        {
-            UDouble targetMinedRes = workingPropor * parameters.MinedResPerSec * (UDouble)CurWorldManager.Elapsed.TotalSeconds,
-                resToMine = targetMinedRes + silentlyMinedBits;
-            ulong minedRes = (ulong)resToMine;
-            silentlyMinedBits = (UDouble)(resToMine - minedRes);
-            Debug.Assert(0 <= silentlyMinedBits && silentlyMinedBits <= 1);
-
-            ulong maxMinedRes = parameters.state.MaxAvailableResAmount;
-            if (minedRes > maxMinedRes)
+            public static Result<MiningCycleState, TextErrors> Create(UnitType productionParams, ConcreteBuildingParams parameters, PersistentState persistentState,
+                ResPile inputStorage, AreaInt storedOutputArea)
             {
-                minedRes = maxMinedRes;
-                silentlyMinedBits = 0;
+                ulong maxPossibleAreaToMine = Algorithms.FindMaxOkValue
+                (
+                    minValue: 0,
+                    maxValue: MyMathHelper.Min
+                    (
+                        parameters.NodeState.Area,
+                        ConcreteBuildingParams.HypotheticOutputStorageArea(hypotheticBuildingArea: parameters.CurBuildingArea) - storedOutputArea
+                    ).valueInMetSq,
+                    isValueOk: tryMaxAreaToMineInMetSq =>
+                    {
+                        var tryMaxAreaToMine = AreaInt.CreateFromMetSq(valueInMetSq: tryMaxAreaToMineInMetSq);
+                        var newPlanetArea = parameters.NodeState.Area - tryMaxAreaToMine;
+                        var newBuildingArea = parameters.buildingImage.HypotheticalArea(hypotheticPlanetArea: newPlanetArea);
+                        var newBuildingComponents = ResAndIndustryHelpers.CurNeededBuildingComponents
+                        (
+                            buildingComponentsToAmountPUBA: parameters.buildingComponentsToAmountPUBA,
+                            curBuildingArea: newBuildingArea
+                        );
+                        AllResAmounts newNoLongerNeededBuildingComponents = persistentState.buildingResPile.Amount - newBuildingComponents;
+                        return storedOutputArea + tryMaxAreaToMine + newNoLongerNeededBuildingComponents.Area() <= ConcreteBuildingParams.HypotheticOutputStorageArea(hypotheticBuildingArea: newBuildingArea);
+                    }
+                );
+
+                var minedAreaCorrectorWithTarget = persistentState.minedAreaHistoricCorrector.WithTarget(target: parameters.AreaToMine().valueInMetSq);
+
+                // Since will never mine more than requested, suggestion will never be smaller than parameters.AreaToSplit(), thus will always be >= 0.
+                var maxAreaToMine = MyMathHelper.Min((ulong)minedAreaCorrectorWithTarget.suggestion, maxPossibleAreaToMine);
+                bool isCapped = minedAreaCorrectorWithTarget.suggestion >= maxPossibleAreaToMine;
+                return parameters.NodeState.Mine
+                (
+                    targetArea: AreaInt.CreateFromMetSq(valueInMetSq: maxAreaToMine),
+                    rawMatAllocator: persistentState.minedResAllocator
+                ).SwitchExpression<Result<MiningCycleState, TextErrors>>
+                (
+                    ok: miningRes =>
+                    {
+                        // Filter and RawMatComposition does the same thing here as planet contains only raw materials
+                        AreaInt miningArea = miningRes.Amount.Filter<RawMaterial>().Area();
+                        persistentState.minedAreaHistoricCorrector = isCapped ? new() : minedAreaCorrectorWithTarget.WithValue(value: miningArea.valueInMetSq);
+                        return miningArea.IsZero switch
+                        {
+                            true => new(errors: new(UIAlgorithms.OutputStorageFullSoNoProduction)),
+                            false => new
+                            (
+                                ok: new MiningCycleState
+                                (
+                                    buildingParams: parameters,
+                                    buildingResPile: persistentState.buildingResPile,
+                                    miningRes: miningRes,
+                                    miningArea: miningArea
+                                )
+                            )
+                        };
+                    },
+                    error: errors =>
+                    {
+                        persistentState.minedAreaHistoricCorrector = new();
+                        return new(errors: errors);
+                    }
+                );
             }
 
-            minedResPerSec = MyMathHelper.Min(targetMinedRes, maxMinedRes) / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
-            parameters.state.MineTo(destin: parameters.state.StoredResPile, resAmount: minedRes);
+            public ElectricalEnergy ReqEnergy { get; private set; }
 
-            return this;
+            public bool ShouldRestart
+                => donePropor.IsFull;
+
+            private readonly ConcreteBuildingParams buildingParams;
+            private readonly ResPile buildingResPile, miningRes;
+            /// <summary>
+            /// Mass in process of mining
+            /// </summary>
+            private readonly Mass miningMass;
+            /// <summary>
+            /// Area in process of mining
+            /// </summary>
+            private readonly AreaInt miningArea;
+            private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
+            private readonly HistoricRounder reqEnergyHistoricRounder;
+
+            private CurProdStats curMiningStats;
+            private Propor donePropor, workingPropor;
+
+            private MiningCycleState(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ResPile miningRes, AreaInt miningArea)
+            {
+                this.buildingParams = buildingParams;
+                this.buildingResPile = buildingResPile;
+                this.miningRes = miningRes;
+                miningMass = miningRes.Amount.Mass();
+                this.miningArea = miningArea;
+                electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
+                reqEnergyHistoricRounder = new();
+                donePropor = Propor.empty;
+            }
+
+            public IBuildingImage BusyBuildingImage()
+                => buildingParams.buildingImage;
+
+            public void FrameStart()
+            {
+                curMiningStats = buildingParams.CurMiningStats(miningMass: miningMass);
+                ReqEnergy = reqEnergyHistoricRounder.CurEnergy<ElectricalEnergy>(watts: curMiningStats.ReqWatts, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed);
+            }
+
+            public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
+            {
+                electricalEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
+                workingPropor = ResAndIndustryHelpers.WorkingPropor(proporUtilized: Propor.full, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
+            }
+
+            /// <summary>
+            /// This will not remove no longer needed building components until mining cycle is done since fix current mining volume
+            /// and some other mining stats at the start of the mining cycle. 
+            /// </summary>
+            public IIndustry? Update(ResPile outputStorage)
+            {
+                buildingParams.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
+
+                // If mine less than could, probably shouldn't increase mining speed because of that
+                // On the other hand that would be a very niche circumstance anyway - basically only when mining last resources of the planet
+                donePropor = donePropor.UpdateDonePropor
+                (
+                    workingPropor: workingPropor,
+                    producedAreaPerSec: curMiningStats.ProducedAreaPerSec,
+                    elapsed: CurWorldManager.Elapsed,
+                    areaInProduction: miningArea
+                );
+
+                if (donePropor.IsFull)
+                {
+                    outputStorage.TransferAllFrom(source: miningRes);
+                    buildingParams.RemoveUnneededBuildingComponents(buildingResPile: buildingResPile, outputStorage: outputStorage);
+                }
+                return null;
+            }
+
+            public void Delete(ResPile outputStorage)
+            {
+                buildingParams.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
+                buildingParams.NodeState.EnlargeFrom(source: miningRes, amount: miningRes.Amount.Filter<RawMaterial>());
+                Debug.Assert(miningRes.IsEmpty);
+            }
+
+            public static void DeletePersistentState(PersistentState persistentState, ResPile outputStorage)
+                => outputStorage.TransferAllFrom(source: persistentState.buildingResPile);
         }
 
-        protected override string GetBusyInfo()
-            => $"Mining {minedResPerSec:0.##} {parameters.state.ConsistsOfResInd} per second\n";
-
-        // TODO: get rid of the duplication of this method code
-        protected override UDouble ReqWatts()
-            // this is correct as if more important people get full energy, this works
-            // and if they don't, then the industry will get 0 energy anyway
-            => IsBusy().SwitchExpression
-            (
-                trueCase: () => parameters.ReqWatts * CurSkillPropor,
-                falseCase: () => UDouble.zero
-            );
-
-        public override void DrawAfterPlanet()
-        {
-            base.DrawAfterPlanet();
-
-            futureShapeOutline.Draw(color: Color.Black);
-        }
+        public static HashSet<Type> GetKnownTypes()
+            => new()
+            {
+                typeof(Industry<UnitType, ConcreteBuildingParams, PersistentState, MiningCycleState>)
+            };
     }
 }

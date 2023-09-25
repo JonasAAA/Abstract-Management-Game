@@ -1,21 +1,34 @@
-﻿using Game1.ContentHelpers;
+﻿using Game1.Collections;
+using Game1.ContentHelpers;
 using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
 using System.Collections.Immutable;
+using System.Text.RegularExpressions;
 
 namespace Game1.GameStates
 {
     [Serializable]
     public sealed class MapCreationState : GameState
     {
+        [Serializable]
+        private sealed record BuildingCosmicBodyTextBoxHUDPosUpdater(MapCreationState MapCreationState, StartingBuilding StartingBuilding) : IAction
+        {
+            void IAction.Invoke()
+            {
+                if (MapCreationState.CurMapInfo.StartingInfo.StartingBuildingToCosmicBodyId[StartingBuilding] is CosmicBodyId startingBuildingCosmicBodyId)
+                    MapCreationState.startingBuildingToTextBox[StartingBuilding].Shape.Center = MapCreationState.CurCosmicBodyHUDPos(cosmicBodyId: startingBuildingCosmicBodyId);
+            }
+        }
+
         private interface IWorldUIElementId
         { }
 
+        // This is not struct as it's often used as IWorldUIElementId, which would result in a lot of boxing and unboxing
         [Serializable]
-        private readonly record struct CosmicBodyId : IWorldUIElementId
+        private sealed record CosmicBodyId : IWorldUIElementId, IComparable<CosmicBodyId>
         {
-            static uint nextId = 0;
+            private static uint nextId = 0;
 
             private readonly uint id;
 
@@ -27,12 +40,16 @@ namespace Game1.GameStates
 
             public override string ToString()
                 => id.ToString();
+            
+            int IComparable<CosmicBodyId>.CompareTo(CosmicBodyId? other)
+                // Convention of what to do when comparing to null https://stackoverflow.com/a/23787253
+                => other is null ? 1 : id.CompareTo(other.id);
         }
 
         [Serializable]
-        private class LinkId : IWorldUIElementId
+        private sealed record LinkId : IWorldUIElementId, IComparable<LinkId>
         {
-            static uint nextId = 0;
+            private static uint nextId = 0;
 
             private readonly uint id;
 
@@ -44,6 +61,9 @@ namespace Game1.GameStates
 
             public override string ToString()
                 => id.ToString();
+
+            int IComparable<LinkId>.CompareTo(LinkId? other)
+                => other is null ? 1 : id.CompareTo(other.id);
         }
 
         [Serializable]
@@ -91,7 +111,7 @@ namespace Game1.GameStates
         }
 
         [Serializable]
-        private readonly record struct StartingInfoInternal(CosmicBodyId? HouseCosmicBodyId, CosmicBodyId? PowerPlantCosmicBodyId, MyVector2 WorldCenter, UDouble CameraViewHeight);
+        private readonly record struct StartingInfoInternal(MyVector2 WorldCenter, UDouble CameraViewHeight, EnumDict<StartingBuilding, CosmicBodyId?> StartingBuildingToCosmicBodyId);
 
         [Serializable]
         private record struct MapInfoInternal(ImmutableDictionary<CosmicBodyId, CosmicBodyInfoInternal> CosmicBodies, ImmutableDictionary<LinkId, LinkInfoInternal> Links, StartingInfoInternal StartingInfo)
@@ -103,16 +123,15 @@ namespace Game1.GameStates
                     Links: ImmutableDictionary<LinkId, LinkInfoInternal>.Empty,
                     StartingInfo: new
                     (
-                        HouseCosmicBodyId: null,
-                        PowerPlantCosmicBodyId: null,
                         WorldCenter: MyVector2.zero,
-                        CameraViewHeight: ActiveUIManager.curUIConfig.standardScreenHeight
+                        CameraViewHeight: ActiveUIManager.curUIConfig.standardScreenHeight,
+                        StartingBuildingToCosmicBodyId: new(startingBuilding => null)
                     )
                 );
 
             public static MapInfoInternal Create(ValidMapInfo mapInfo)
             {
-                List<CosmicBodyInfoInternal> cosmicBodies = mapInfo.CosmicBodies.Select
+                var cosmicBodies = mapInfo.CosmicBodies.Select
                 (
                     cosmicBodyInfo => new CosmicBodyInfoInternal
                     (
@@ -122,7 +141,7 @@ namespace Game1.GameStates
                         Radius: cosmicBodyInfo.Radius
                     )
                 ).ToList();
-                ImmutableDictionary<string, CosmicBodyId> cosmicBodyNameToId = cosmicBodies.ToImmutableDictionary
+                var cosmicBodyNameToId = cosmicBodies.ToImmutableDictionary
                 (
                     keySelector: cosmicBody => cosmicBody.Name,
                     elementSelector: cosmicBody => cosmicBody.Id
@@ -141,10 +160,16 @@ namespace Game1.GameStates
                     ).ToImmutableDictionary(keySelector: link => link.Id),
                     StartingInfo: new
                     (
-                        HouseCosmicBodyId: mapInfo.StartingInfo.HouseCosmicBody is null ? null : cosmicBodyNameToId[mapInfo.StartingInfo.HouseCosmicBody],
-                        PowerPlantCosmicBodyId: mapInfo.StartingInfo.PowerPlantCosmicBody is null ? null : cosmicBodyNameToId[mapInfo.StartingInfo.PowerPlantCosmicBody],
                         WorldCenter: mapInfo.StartingInfo.WorldCenter,
-                        CameraViewHeight: mapInfo.StartingInfo.CameraViewHeight
+                        CameraViewHeight: mapInfo.StartingInfo.CameraViewHeight,
+                        StartingBuildingToCosmicBodyId: mapInfo.StartingInfo.StartingBuildingToCosmicBody.SelectValues<CosmicBodyId?>
+                        (
+                            cosmicBodyOrNull => cosmicBodyOrNull switch
+                            {
+                                string cosmicBody => cosmicBodyNameToId[cosmicBody],
+                                null => null
+                            }
+                        )
                     )
                 );
             }
@@ -153,10 +178,12 @@ namespace Game1.GameStates
             {
                 // needed to make code compile
                 var cosmicBodiesCopy = CosmicBodies;
+                var startingInfoCopy = StartingInfo;
                 return ValidMapInfo.CreateOrThrow
                 (
                     notReadyToUse: true,
-                    cosmicBodies: CosmicBodies.Values.Select
+                    // The "to sorted dictionary" part is imporant - that ensures the same ordering of cosmic bodies and links in output json as in input json
+                    cosmicBodies: CosmicBodies.ToImmutableSortedDictionary().Values.Select
                     (
                         cosmicBody => ValidCosmicBodyInfo.CreateOrThrow
                         (
@@ -164,28 +191,34 @@ namespace Game1.GameStates
                             position: cosmicBody.Position,
                             radius: cosmicBody.Radius
                         )
-                    ).ToArray(),
-                    links: Links.Values.Select
+                    ).ToEfficientReadOnlyCollection(),
+                    links: Links.ToImmutableSortedDictionary().Values.Select
                     (
                         link => ValidLinkInfo.CreateOrThrow
                         (
                             from: cosmicBodiesCopy[link.From].Name,
                             to: cosmicBodiesCopy[link.To].Name
                         )
-                    ).ToArray(),
+                    ).ToEfficientReadOnlyCollection(),
                     startingInfo: ValidStartingInfo.CreateOrThrow
                     (
-                        houseCosmicBodyName: StartingInfo.HouseCosmicBodyId is null ? null : cosmicBodiesCopy[StartingInfo.HouseCosmicBodyId.Value].Name,
-                        powerPlantCosmicBodyName: StartingInfo.PowerPlantCosmicBodyId is null ? null : cosmicBodiesCopy[StartingInfo.PowerPlantCosmicBodyId.Value].Name,
                         worldCenter: StartingInfo.WorldCenter,
-                        cameraViewHeight: StartingInfo.CameraViewHeight
+                        cameraViewHeight: StartingInfo.CameraViewHeight,
+                        startingBuildingToCosmicBody: startingInfoCopy.StartingBuildingToCosmicBodyId.SelectValues
+                        (
+                            cosmicBodyIdOrNull => cosmicBodyIdOrNull switch
+                            {
+                                CosmicBodyId cosmicBodyId => cosmicBodiesCopy[cosmicBodyId].Name,
+                                null => null
+                            }
+                        )
                     )
                 );
             }
         }
 
         [Serializable]
-        private class ChangeHistory
+        private sealed class ChangeHistory
         {
             public MapInfoInternal CurMapInfo
                 => changeHistory[historyCurInd].mapInfo;
@@ -258,7 +291,10 @@ namespace Game1.GameStates
         private bool expandControlDescr;
         private IWorldUIElementId? selectedUIElement;
         private readonly KeyButton switchToPauseMenuButton;
-        private readonly TextBox globalTextBox, houseTextBox, powerPlantTextBox;
+        private readonly TextBox globalTextBox;
+        private readonly EnumDict<StartingBuilding, (Keys key, string explanation)> startingBuildingToKeyAndExplanation;
+        private readonly EnumDict<StartingBuilding, string> startingBuildingToName;
+        private readonly EnumDict<StartingBuilding, TextBox> startingBuildingToTextBox;
         private readonly string controlDescrContr, controlDescrExp;
 
         private MapCreationState(IAction switchToPauseMenu, MapInfoInternal mapInfo, string mapName)
@@ -287,24 +323,68 @@ namespace Game1.GameStates
                 action: switchToPauseMenu
             );
             globalTextBox = new(backgroundColor: ActiveUIManager.colorConfig.UIBackgroundColor);
-            activeUIManager.AddHUDElement(HUDElement: globalTextBox, horizPos: HorizPos.Left, vertPos: VertPos.Top);
-            houseTextBox = new();
-            activeUIManager.AddWorldHUDElement(worldHUDElement: houseTextBox);
-            powerPlantTextBox = new();
-            activeUIManager.AddWorldHUDElement(worldHUDElement: powerPlantTextBox);
+            activeUIManager.AddHUDElement(HUDElement: globalTextBox, position: new(HorizPosEnum.Left, VertPosEnum.Top));
+            startingBuildingToName = new
+            (
+                startingBuilding => startingBuilding switch
+                {
+                    StartingBuilding.PowerPlant => "Power\nplant",
+                    StartingBuilding.GearStorage => "Gear\nstorage",
+                    StartingBuilding.WireStorage => "Wire\nstorage",
+                    StartingBuilding.RoofTileStorage => "Roof tile\nstorage"
+                }
+            );
+            startingBuildingToKeyAndExplanation = startingBuildingToName.SelectValues
+            (
+                (startingBuilding, buildingName) =>
+                {
+                    char keyLetter = startingBuilding switch
+                    {
+                        StartingBuilding.PowerPlant => 'P',
+                        StartingBuilding.GearStorage => 'G',
+                        StartingBuilding.WireStorage => 'W',
+                        StartingBuilding.RoofTileStorage => 'F'
+                    };
+                    var keyLetterString = keyLetter.ToString();
+                    Regex emphasizeRegex = new(keyLetterString, RegexOptions.IgnoreCase);
+                    var emphasizedName = emphasizeRegex.Replace
+                    (
+                        input: buildingName.ToLower().Replace('\n', ' '),
+                        replacement: $"[{char.ToLower(keyLetter)}]",
+                        count: 1
+                    );
+                    return
+                    (
+                        key: Enum.Parse<Keys>(value: keyLetterString, ignoreCase: true),
+                        explanation: $"select body + {keyLetter} - Select starting {emphasizedName} location"
+                    );
+                }
+            );
+            startingBuildingToTextBox = new
+            (
+                startingBuilding =>
+                {
+                    TextBox textBox = new();
+                    activeUIManager.AddWorldHUDElement
+                    (
+                        worldHUDElement: textBox,
+                        updateHUDPos: new BuildingCosmicBodyTextBoxHUDPosUpdater(MapCreationState: this, StartingBuilding: startingBuilding)
+                    );
+                    return textBox;
+                }
+            );
 
             controlDescrContr = """
                 Esc - Go to pause menu
                 T - [T]oggle control info
                 """;
-            controlDescrExp = """
+            controlDescrExp = $"""
                 Esc - Go to pause menu
                 T - [T]oggle control info
                 left click on body/link - Select cosmic body/link
                 N + left click - [N]ew cosmic body
                 select body + D - [D]elete cosmic body
-                select body + H - Select starting [h]ouse location
-                select body + P - Select starting [p]ower plant location
+                {string.Join('\n', startingBuildingToKeyAndExplanation.Values.Select(keyAndExplanation => keyAndExplanation.explanation))}
                 select body + R + left click - Change cosmic body [r]adius
                 select body + M + left click - [M]ove cosmic body
                 select body + L + left click other body - Add [l]ink bewteen the two cosmic bodies
@@ -320,50 +400,34 @@ namespace Game1.GameStates
 
         // Can't use $"Cosmic body {Id}" straight up, as when loading initial map from the file, that mapName may be already taken
         private string GetNewCosmicBodyName()
-        {
-            HashSet<string> curCosmicBodyNames = new(CurMapInfo.CosmicBodies.Values.Select(cosmicBody => cosmicBody.Name));
-            for (int i = 0; ; i++)
-            {
-                string newName = $"Cosmic body {i}";
-                if (!curCosmicBodyNames.Contains(newName))
-                    return newName;
-            }
-        }
+            => Algorithms.GanerateNewName
+            (
+                prefix: "Cosmic body",
+                usedNames: CurMapInfo.CosmicBodies.Values.Select(cosmicBody => cosmicBody.Name).ToEfficientReadOnlyHashSet()
+            );
 
-        public override void Update(TimeSpan elapsed)
+        public sealed override void Update(TimeSpan elapsed)
         {
             worldCamera.Update(elapsed: elapsed, canScroll: true);
-            
+            activeUIManager.Update(elapsed: elapsed);
+
             var newMapInfo = HandleUserInput();
             if (newMapInfo is not null)
                 changeHistory.LogNewChange(newMapInfo: newMapInfo.Value);
-            
+
             globalTextBox.Text = expandControlDescr ? controlDescrExp : controlDescrContr + "\n\n" + changeHistory.CurInfoForUser;
-            if (CurMapInfo.StartingInfo.HouseCosmicBodyId is CosmicBodyId houseCosmicBodyId)
-            {
-                houseTextBox.Text = "House";
-                houseTextBox.Shape.Center = CurCosmicBodyHUDPos(cosmicBodyId: houseCosmicBodyId);
-            }
-            else
-                houseTextBox.Text = null;
-
-            if (CurMapInfo.StartingInfo.PowerPlantCosmicBodyId is CosmicBodyId powerPlantCosmicBodyId)
-            {
-                powerPlantTextBox.Text = "Power\nplant";
-                powerPlantTextBox.Shape.Center = CurCosmicBodyHUDPos(cosmicBodyId: powerPlantCosmicBodyId);
-            }
-            else
-                powerPlantTextBox.Text = null;
-
-            MyVector2 CurCosmicBodyHUDPos(CosmicBodyId cosmicBodyId)
-                => ActiveUIManager.ScreenPosToHUDPos
-                (
-                    screenPos: worldCamera.WorldPosToScreenPos
-                    (
-                        worldPos: CurMapInfo.CosmicBodies[cosmicBodyId].Position
-                    )
-                );
+            foreach (var startingBuilding in Enum.GetValues<StartingBuilding>())
+                startingBuildingToTextBox[startingBuilding].Text = CurMapInfo.StartingInfo.StartingBuildingToCosmicBodyId[startingBuilding] is null ? null : startingBuildingToName[startingBuilding];
         }
+
+        private MyVector2 CurCosmicBodyHUDPos(CosmicBodyId cosmicBodyId)
+            => ActiveUIManager.ScreenPosToHUDPos
+            (
+                screenPos: worldCamera.WorldPosToScreenPos
+                (
+                    worldPos: CurMapInfo.CosmicBodies[cosmicBodyId].Position
+                )
+            );
 
         private MapInfoInternal? HandleUserInput()
         {
@@ -426,32 +490,31 @@ namespace Game1.GameStates
                         ),
                         StartingInfo = CurMapInfo.StartingInfo with
                         {
-                            HouseCosmicBodyId = CurMapInfo.StartingInfo.HouseCosmicBodyId == selectedCosmicBodyId ? null : CurMapInfo.StartingInfo.HouseCosmicBodyId,
-                            PowerPlantCosmicBodyId = CurMapInfo.StartingInfo.PowerPlantCosmicBodyId == selectedCosmicBodyId ? null : CurMapInfo.StartingInfo.PowerPlantCosmicBodyId
+                            StartingBuildingToCosmicBodyId = RemoveBuildingFromSelectedCosmicBody()
                         }
                     };
                 }
-                // Starting house location select
-                if (keyboardState.IsKeyDown(Keys.H))
-                    return CurMapInfo with
-                    {
-                        StartingInfo = CurMapInfo.StartingInfo with
+                // Starting building location selection
+                foreach (var (startingBuilding, (key, _)) in startingBuildingToKeyAndExplanation)
+                    if (keyboardState.IsKeyDown(key))
+                        return CurMapInfo with
                         {
-                            HouseCosmicBodyId = selectedCosmicBodyId,
-                            PowerPlantCosmicBodyId = CurMapInfo.StartingInfo.PowerPlantCosmicBodyId == selectedCosmicBodyId ? null : CurMapInfo.StartingInfo.PowerPlantCosmicBodyId
-                        }
-                    };
-                // Starting power plant location selection
-                if (keyboardState.IsKeyDown(Keys.P))
-                    return CurMapInfo with
-                    {
-                        StartingInfo = CurMapInfo.StartingInfo with
-                        {
-                            HouseCosmicBodyId = CurMapInfo.StartingInfo.HouseCosmicBodyId == selectedCosmicBodyId ? null : CurMapInfo.StartingInfo.HouseCosmicBodyId,
-                            PowerPlantCosmicBodyId = selectedCosmicBodyId
-                        }
-                    };
-                // Radius change
+                            StartingInfo = CurMapInfo.StartingInfo with
+                            {
+                                StartingBuildingToCosmicBodyId = RemoveBuildingFromSelectedCosmicBody().Update
+                                (
+                                    key: startingBuilding,
+                                    newValue: selectedCosmicBodyId
+                                )
+                            }
+                        };
+
+                EnumDict<StartingBuilding, CosmicBodyId?> RemoveBuildingFromSelectedCosmicBody()
+                    => CurMapInfo.StartingInfo.StartingBuildingToCosmicBodyId.SelectValues
+                    (
+                        buildingCosmicBodyId => buildingCosmicBodyId == selectedCosmicBodyId ? null : buildingCosmicBodyId
+                    );
+                // radius change
                 if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.R))
                     return CurMapInfo with
                     {
@@ -566,7 +629,7 @@ namespace Game1.GameStates
                     id: id,
                     shape: cosmicBody.GetShape(),
                     color: (selectedUIElement is CosmicBodyId selectedCosmicBody && selectedCosmicBody == id)
-                        ? ActiveUIManager.colorConfig.selectedWorldUIElementColor
+                        ? ActiveUIManager.colorConfig.mapCreationSelectedWorldUIElementColor
                         : ActiveUIManager.colorConfig.Res0Color
                 );
             foreach (var (id, link) in CurMapInfo.Links)
@@ -575,12 +638,12 @@ namespace Game1.GameStates
                     id: id,
                     shape: link.GetShape(curMapInfo: CurMapInfo),
                     color: (selectedUIElement is LinkId selectedLink && selectedLink == id)
-                        ? ActiveUIManager.colorConfig.selectedWorldUIElementColor
-                        : ActiveUIManager.colorConfig.linkColor
+                        ? ActiveUIManager.colorConfig.mapCreationSelectedWorldUIElementColor
+                        : ActiveUIManager.colorConfig.costlyLinkColor
                 );
         }
 
-        public override void Draw()
+        public sealed override void Draw()
         {
             C.GraphicsDevice.Clear(C.ColorFromRGB(rgb: 0x00035b));
 

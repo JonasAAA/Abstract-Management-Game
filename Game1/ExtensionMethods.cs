@@ -1,4 +1,5 @@
-﻿using Game1.Inhabitants;
+﻿using Game1.Collections;
+using Game1.Inhabitants;
 using System.Numerics;
 using System.Text;
 
@@ -6,6 +7,15 @@ namespace Game1
 {
     public static class ExtensionMethods
     {
+        public static TValue GetOrCreate<TKey, TValue>(this Dictionary<TKey, TValue> dict, TKey key)
+            where TKey : notnull
+            where TValue : class, new()
+            => dict.TryGetValue(key, out var value) switch
+            {
+                true => value,
+                false => dict[key] = new()
+            };
+
         public static ulong ValueInJ<T>(this T formOfEnergy)
             where T : IFormOfEnergy<T>
             => ((Energy)formOfEnergy).valueInJ;
@@ -92,10 +102,35 @@ namespace Game1
                 return sum / count;
         }
 
+        public static UDouble WeightedAverage<TSource>(this IEnumerable<TSource> source, Func<TSource, (UDouble weight, UDouble value)> selector)
+        {
+            UDouble weightSum = 0, valueSum = 0;
+            foreach (var item in source)
+            {
+                var (weight, value) = selector(item);
+                weightSum += weight;
+                valueSum += weight * value;
+            }
+            return valueSum / weightSum;
+        }
+
+        public static Propor WeightedAverage<TSource>(this IEnumerable<TSource> source, Func<TSource, (UDouble weight, Propor value)> selector)
+        {
+            UDouble weightSum = 0, valueSum = 0;
+            foreach (var item in source)
+            {
+                var (weight, value) = selector(item);
+                weightSum += weight;
+                valueSum += weight * (UDouble)value;
+            }
+            return Propor.Create(part: valueSum, whole: weightSum)!.Value;
+        }
+
         public static IEnumerable<T> Clone<T>(this IEnumerable<T> source)
             => source.ToArray();
 
-        public static TValue? GetValueOrDefault<TKey, TValue>(this IReadOnlyDictionary<TKey, TValue> dictionary, TKey key)
+        public static TValue? GetValueOrDefault<TDict, TKey, TValue>(this TDict dictionary, TKey key)
+            where TDict : IReadOnlyDictionary<TKey, TValue>
             => dictionary.TryGetValue(key: key, out var value) ? value : default;
 
         public static TSource? ArgMaxOrDefault<TSource, TKey>(this IEnumerable<TSource> source, Func<TSource, TKey> selector)
@@ -113,21 +148,42 @@ namespace Game1
             return result;
         }
 
-        public static Dictionary<TKey, TValue> ToDictionary<TKey, TValue>(this IEnumerable<TKey> keys, Func<TKey, TValue> elementSelector)
+        public static EfficientReadOnlyCollection<TSource> ToEfficientReadOnlyCollection<TSource>(this IEnumerable<TSource> source)
+            => new(list: source.ToList());
+
+        public static EfficientReadOnlyCollection<TSource> ToEfficientReadOnlyCollection<TSource>(this List<TSource> source)
+            => new(list: source);
+
+        public static EfficientReadOnlyHashSet<TSource> ToEfficientReadOnlyHashSet<TSource>(this IEnumerable<TSource> source)
+            => new(set: source.ToHashSet());
+
+        public static EfficientReadOnlyDictionary<TKey, TValue> ToEfficientReadOnlyDict<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector)
             where TKey : notnull
+            => new(source.ToDictionary(keySelector: keySelector, elementSelector: elementSelector));
+
+        public static EfficientReadOnlyDictionary<TSource, TValue> ToEfficientReadOnlyDict<TSource, TValue>(this IEnumerable<TValue> elements, Func<TValue, TSource> keySelector)
+            where TSource : notnull
+            => new(elements.ToDictionary(keySelector: keySelector));
+
+        public static EfficientReadOnlyDictionary<TSource, TValue> ToEfficientReadOnlyDict<TSource, TValue>(this IEnumerable<TSource> keys, Func<TSource, TValue> elementSelector)
+            where TSource : notnull
+            => new(keys.ToDictionary(elementSelector: elementSelector));
+
+        public static Dictionary<TSource, TValue> ToDictionary<TSource, TValue>(this IEnumerable<TSource> keys, Func<TSource, TValue> elementSelector)
+            where TSource : notnull
             => keys.ToDictionary(keySelector: key => key, elementSelector: elementSelector);
 
-        public static Dictionary<TKey, double> ClampValues<TKey>(this IReadOnlyDictionary<TKey, double> dictionary, double min, double max)
-            where TKey : notnull
+        public static Dictionary<TSource, double> ClampValues<TSource>(this IReadOnlyDictionary<TSource, double> dictionary, double min, double max)
+            where TSource : notnull
             => dictionary.ToDictionary
             (
                 keySelector: a => a.Key,
                 elementSelector: a => MyMathHelper.Clamp(a.Value, min, max)
             );
 
-        public static MySet<T> ToMyHashSet<T>(this IEnumerable<T> source)
+        public static ThrowingSet<T> ToMyHashSet<T>(this IEnumerable<T> source)
         {
-            MySet<T> result = new();
+            ThrowingSet<T> result = new();
             foreach (var item in source)
                 result.Add(item);
             return result;

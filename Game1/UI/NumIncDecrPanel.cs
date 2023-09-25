@@ -41,7 +41,7 @@ namespace Game1.UI
 
         public Event<INumberChangedListener> numberChanged;
 
-        protected override Color Color
+        protected sealed override Color Color
             => colorConfig.UIBackgroundColor;
 
         private int number;
@@ -58,7 +58,7 @@ namespace Game1.UI
                 throw new ArgumentException();
             this.minNum = minNum;
 
-            panel = new(childHorizPos: HorizPos.Middle);
+            panel = new(childHorizPos: HorizPosEnum.Middle);
             textBox = new();
             //textBox.Text = number.ToString();
             UDouble width = (UDouble)textBox.MeasureText(text: "00").X;
@@ -102,7 +102,7 @@ namespace Game1.UI
             SetNumber(newNumber: number);
         }
 
-        protected override void PartOfRecalcSizeAndPos()
+        protected sealed override void PartOfRecalcSizeAndPos()
         {
             base.PartOfRecalcSizeAndPos();
 

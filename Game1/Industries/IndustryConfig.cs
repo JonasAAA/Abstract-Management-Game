@@ -1,164 +1,120 @@
-﻿using static Game1.WorldManager;
+﻿using Game1.Collections;
+using Game1.UI;
 
 namespace Game1.Industries
 {
     [Serializable]
     public sealed class IndustryConfig
     {
-        public readonly ReadOnlyCollection<IBuildableFactory> constrBuildingParams;
-        public readonly House.Factory basicHouseFactory;
-        public readonly PowerPlant.Factory basicPowerPlantFactory;
+        public readonly EfficientReadOnlyCollection<Construction.GeneralParams> constrGeneralParamsList;
+        public readonly PowerPlant.GeneralBuildingParams startingPowerPlantParams;
+        public readonly Storage.GeneralBuildingParams startingStorageParams;
 
         public IndustryConfig()
         {
-            basicHouseFactory = new House.Factory
+            EnergyPriority constrEnergyPriority = new(value: 50),
+                averageEnergyPriority = new(value: 20);
+            startingPowerPlantParams = new PowerPlant.GeneralBuildingParams
             (
-                name: "house",
-                floorSpacePerUnitSurface: 1,
-                buildingCostPerUnitSurface: new()
+                name: "Basic Power Plant",
+                buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                 {
-                    [(ResInd)0] = 1
-                }
+                    (prodParams: Product.productParamsDict["Wire"], amount: 4),
+                    (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                }.ToEfficientReadOnlyCollection()
             );
 
-            basicPowerPlantFactory = new PowerPlant.Factory
+            startingStorageParams = new Storage.GeneralBuildingParams
             (
-                name: "power_plant_lvl1",
-                reqSkillPerUnitSurface: (UDouble).2,
-                conversionPropor: (Propor).5,
-                buildingCostPerUnitSurface: new()
+                name: "Basic Storage",
+                buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                 {
-                    [(ResInd)0] = 1
-                }
+                    (prodParams: Product.productParamsDict["Gear"], amount: 4),
+                    (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                }.ToEfficientReadOnlyCollection()
             );
 
-            constrBuildingParams = new(list: new IBuildableFactory[]
+            List<Construction.GeneralParams> constrGeneralParamsIncompleteList = new()
             {
-                new Construction.Factory
+                new
                 (
-                    name: "house construction",
-                    energyPriority: CurWorldConfig.industryOperationEnergyPrior,
-                    reqSkillPerUnitSurface: (UDouble).1,
-                    reqWattsPerUnitSurface: 10,
-                    industryFactory: basicHouseFactory,
-                    duration: TimeSpan.FromSeconds(5)
+                    buildingGeneralParams: startingStorageParams,
+                    energyPriority: constrEnergyPriority
                 ),
-                new Mining.Factory
+                new
                 (
-                    name: "mine_lvl1",
-                    energyPriority: CurWorldConfig.industryOperationEnergyPrior,
-                    reqSkillPerUnitSurface: (UDouble).1,
-                    reqWattsPerUnitSurface: 1,
-                    minedResPerUnitSurfacePerSec: (UDouble)1
+                    buildingGeneralParams: startingPowerPlantParams,
+                    energyPriority: constrEnergyPriority
                 ),
-                new PlanetEnlargement.Factory
+                new
                 (
-                    name: "planet_enlargement_lvl1",
-                    energyPriority: CurWorldConfig.industryOperationEnergyPrior,
-                    reqSkillPerUnitSurface: (UDouble).2,
-                    reqWattsPerUnitSurface: 5,
-                    addedResPerUnitSurfacePerSec: (UDouble)2
-                ),
-                new Construction.Factory
-                (
-                    name: "factory costruction",
-                    energyPriority: CurWorldConfig.industryConstructionEnergyPrior,
-                    reqSkillPerUnitSurface: (UDouble).1,
-                    reqWattsPerUnitSurface: 100,
-                    industryFactory: new Manufacturing.Factory
+                    buildingGeneralParams: new Mining.GeneralBuildingParams
                     (
-                        name: "factory2_lvl1",
-                        baseResRecipe: CurResConfig.resources[(NonBasicResInd)2].Recipe,
-                        prodResPerUnitSurface: 1,
-                        energyPriority: CurWorldConfig.industryOperationEnergyPrior,
-                        reqSkillPerUnitSurface: (UDouble).1,
-                        reqWattsPerUnitSurface: 10,
-                        prodDuration: TimeSpan.FromSeconds(value: 2),
-                        buildingCostPerUnitSurface: new()
+                        name: "Basic Mining",
+                        energyPriority: averageEnergyPriority,
+                        buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                         {
-                            [(ResInd)0] = 2,
-                            [(ResInd)1] = 2
-                        }
+                            (prodParams: Product.productParamsDict["Gear"], amount: 4),
+                            (prodParams: Product.productParamsDict["Wire"], amount: 1),
+                            (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                        }.ToEfficientReadOnlyCollection()
                     ),
-                    duration: TimeSpan.FromSeconds(5)
+                    energyPriority: constrEnergyPriority
                 ),
-                new Construction.Factory
+                new
                 (
-                    name: "factory costruction",
-                    energyPriority: CurWorldConfig.industryConstructionEnergyPrior,
-                    reqSkillPerUnitSurface: (UDouble).1,
-                    reqWattsPerUnitSurface: 100,
-                    industryFactory: new Manufacturing.Factory
+                    buildingGeneralParams: new Landfill.GeneralBuildingParams
                     (
-                        name: "factory3_lvl1",
-                        baseResRecipe: CurResConfig.resources[(NonBasicResInd)3].Recipe,
-                        prodResPerUnitSurface: 1,
-                        energyPriority: CurWorldConfig.industryOperationEnergyPrior,
-                        reqSkillPerUnitSurface: (UDouble).1,
-                        reqWattsPerUnitSurface: 10,
-                        prodDuration: TimeSpan.FromSeconds(value: 2),
-                        buildingCostPerUnitSurface: new()
+                        name: "Basic landfill",
+                        energyPriority: averageEnergyPriority,
+                        buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                         {
-                            [(ResInd)0] = 2,
-                            [(ResInd)1] = 2
-                        }
+                            (prodParams: Product.productParamsDict["Gear"], amount: 4),
+                            (prodParams: Product.productParamsDict["Wire"], amount: 2),
+                            (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                        }.ToEfficientReadOnlyCollection()
                     ),
-                    duration: TimeSpan.FromSeconds(5)
+                    energyPriority: constrEnergyPriority
                 ),
-                new Construction.Factory
+                new
                 (
-                    name: "factory costruction",
-                    energyPriority: CurWorldConfig.industryConstructionEnergyPrior,
-                    reqSkillPerUnitSurface: (UDouble).1,
-                    reqWattsPerUnitSurface: 100,
-                    industryFactory: new Manufacturing.Factory
+                    buildingGeneralParams: new MaterialProduction.GeneralBuildingParams
                     (
-                        name: "factory4_lvl1",
-                        baseResRecipe: CurResConfig.resources[(NonBasicResInd)4].Recipe,
-                        prodResPerUnitSurface: 1,
-                        energyPriority: CurWorldConfig.industryOperationEnergyPrior,
-                        reqSkillPerUnitSurface: (UDouble).1,
-                        reqWattsPerUnitSurface: 10,
-                        prodDuration: TimeSpan.FromSeconds(value: 2),
-                        buildingCostPerUnitSurface: new()
+                        name: "Basic material production",
+                        energyPriority: averageEnergyPriority,
+                        buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                         {
-                            [(ResInd)0] = 2,
-                            [(ResInd)1] = 2
-                        }
+                            (prodParams: Product.productParamsDict["Gear"], amount: 5),
+                            (prodParams: Product.productParamsDict["Wire"], amount: 2),
+                            (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                        }.ToEfficientReadOnlyCollection()
                     ),
-                    duration: TimeSpan.FromSeconds(5)
-                ),
-                new Construction.Factory
+                    energyPriority: constrEnergyPriority
+                )
+            };
+            constrGeneralParamsList = constrGeneralParamsIncompleteList.Concat
+            (
+                Product.productParamsDict.Select
                 (
-                    name: "power plant costruction",
-                    energyPriority: CurWorldConfig.industryConstructionEnergyPrior,
-                    reqSkillPerUnitSurface: (UDouble).3,
-                    reqWattsPerUnitSurface: (UDouble).05,
-                    industryFactory: basicPowerPlantFactory,
-                    duration: TimeSpan.FromSeconds(5)
-                ),
-                new Construction.Factory
-                (
-                    name: "reprod. ind. constr.",
-                    energyPriority: CurWorldConfig.industryConstructionEnergyPrior,
-                    reqSkillPerUnitSurface: (UDouble).05,
-                    reqWattsPerUnitSurface: 10,
-                    industryFactory: new ReprodIndustry.Factory
+                    prodNameAndParams => new Construction.GeneralParams
                     (
-                        name: "reprod. ind.",
-                        energyPriority: CurWorldConfig.reprodIndustryOperationEnergyPrior,
-                        reqSkillPerUnitSurface: (UDouble).1,
-                        reqWattsPerChild: 100,
-                        maxCouplesPerUnitSurface: (UDouble).1,
-                        birthDuration: TimeSpan.FromSeconds(1),
-                        buildingCostPerUnitSurface: new()
-                        {
-                            [(ResInd)0] = 1
-                        }
-                    ),
-                    duration: TimeSpan.FromSeconds(20)
-                ),
-            });
+                        buildingGeneralParams: new Manufacturing.GeneralBuildingParams
+                        (
+                            name: UIAlgorithms.ManufacturingBasicName(prodParamsName: prodNameAndParams.Key),
+                            energyPriority: averageEnergyPriority,
+                            buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                            {
+                                (prodParams: Product.productParamsDict["Gear"], amount: 3),
+                                (prodParams: Product.productParamsDict["Wire"], amount: 2),
+                                (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                            }.ToEfficientReadOnlyCollection(),
+                            productParams: prodNameAndParams.Value
+                        ),
+                        energyPriority: constrEnergyPriority
+                    )
+                )
+            ).ToEfficientReadOnlyCollection();
+#warning Complete this by making it configurable, if possible
         }
     }
 }

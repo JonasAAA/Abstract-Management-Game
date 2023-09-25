@@ -1,4 +1,6 @@
-﻿namespace Game1.UI
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Game1.UI
 {
     [Serializable]
     public sealed class HUDCamera : Camera
@@ -7,7 +9,7 @@
 
         public HUDCamera()
         {
-            HUDToScreen = Matrix.CreateScale(scale: (float)ScreenScale);
+            HUDToScreen = Matrix.CreateScale(scale: (float)screenScale);
             screenToHUD = Matrix.Invert(HUDToScreen);
         }
 
@@ -17,10 +19,11 @@
         public MyVector2 HUDPosToScreenPos(MyVector2 HUDPos)
             => MyVector2.Transform(position: HUDPos, matrix: HUDToScreen);
 
+        [SuppressMessage("Performance", "CA1822:Mark members as static", Justification = "This is so that the player doesn't need to care about internal implementation details")]
         public UDouble HUDLengthToScreenLength(UDouble HUDLength)
-            => HUDLength * ScreenScale;
+            => HUDLength * screenScale;
 
-        public override Matrix GetToScreenTransform()
+        public sealed override Matrix GetToScreenTransform()
             => HUDToScreen;
     }
 }

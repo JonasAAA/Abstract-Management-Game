@@ -1,4 +1,6 @@
-﻿namespace Game1.ContentHelpers
+﻿using Game1.Collections;
+
+namespace Game1.ContentHelpers
 {
     [Serializable]
     public readonly struct ValidStartingInfo
@@ -6,51 +8,58 @@
         public static ValidStartingInfo CreateOrThrow(StartingInfo startingInfo)
             => CreateOrThrow
             (
-                houseCosmicBodyName: startingInfo.HouseCosmicBody,
-                powerPlantCosmicBodyName: startingInfo.PowerPlantCosmicBody,
                 worldCenter: new(x: startingInfo.WorldCenter.X, y: startingInfo.WorldCenter.Y),
-                cameraViewHeight: (UDouble)startingInfo.CameraViewHeight
+                cameraViewHeight: (UDouble)startingInfo.CameraViewHeight,
+                startingBuildingToCosmicBody: new
+                (
+                    startingBuilding =>
+                    {
+                        if (startingInfo.StartingBuildingLocations.TryGetValue(startingBuilding, out var cosmicBody))
+                            return cosmicBody;
+                        throw new ArgumentException($"All starting building locations must be set. That's not the case for {cosmicBody}");
+                    }
+                )
             );
 
-        public static ValidStartingInfo CreateOrThrow(string? houseCosmicBodyName, string? powerPlantCosmicBodyName, MyVector2 worldCenter, UDouble cameraViewHeight)
+        public static ValidStartingInfo CreateOrThrow(MyVector2 worldCenter, UDouble cameraViewHeight, EnumDict<StartingBuilding, string?> startingBuildingToCosmicBody)
         {
             if (cameraViewHeight <= 0)
                 throw new ContentException("Starting camera view height must be positive");
-            if (houseCosmicBodyName is not null && houseCosmicBodyName == powerPlantCosmicBodyName)
-                throw new ContentException($"Starting house cosmic body name must differ from starting power plant cosmic body name. Currently they are both \"{houseCosmicBodyName}\"");
+            var notNullImportantCosmicBodyNames =
+                startingBuildingToCosmicBody.Values
+                .Where(cosmicBodyName => cosmicBodyName is not null)
+                .ToEfficientReadOnlyCollection();
+            if (notNullImportantCosmicBodyNames.ToEfficientReadOnlyHashSet().Count != notNullImportantCosmicBodyNames.Count)
+                throw new ArgumentException($"{string.Join(", ", Enum.GetValues<StartingBuilding>())} must be distinct");
             return new
             (
-                houseCosmicBodyName: houseCosmicBodyName,
-                powerPlantCosmicBodyName: powerPlantCosmicBodyName,
                 worldCenter: worldCenter,
-                cameraViewHeight: cameraViewHeight
+                cameraViewHeight: cameraViewHeight,
+                startingBuildingToCosmicBody: startingBuildingToCosmicBody
             );
         }
 
-        public string? HouseCosmicBody { get; }
-        public string? PowerPlantCosmicBody { get; }
         public MyVector2 WorldCenter { get; }
         public UDouble CameraViewHeight { get; }
+        public EnumDict<StartingBuilding, string?> StartingBuildingToCosmicBody { get; }
 
-        private ValidStartingInfo(string? houseCosmicBodyName, string? powerPlantCosmicBodyName, MyVector2 worldCenter, UDouble cameraViewHeight)
+        private ValidStartingInfo(MyVector2 worldCenter, UDouble cameraViewHeight, EnumDict<StartingBuilding, string?> startingBuildingToCosmicBody)
         {
-            HouseCosmicBody = houseCosmicBodyName;
-            PowerPlantCosmicBody = powerPlantCosmicBodyName;
             WorldCenter = worldCenter;
             CameraViewHeight = cameraViewHeight;
+            StartingBuildingToCosmicBody = startingBuildingToCosmicBody;
         }
 
         public StartingInfo ToJsonable()
             => new()
             {
-                HouseCosmicBody = HouseCosmicBody,
-                PowerPlantCosmicBody = PowerPlantCosmicBody,
                 WorldCenter = new()
                 {
                     X = WorldCenter.X,
                     Y = WorldCenter.Y
                 },
-                CameraViewHeight = CameraViewHeight
+                CameraViewHeight = CameraViewHeight,
+                StartingBuildingLocations = StartingBuildingToCosmicBody.ToSortedDictionary()
             };
     }
 }

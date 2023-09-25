@@ -22,10 +22,7 @@ namespace Game1
         private static GraphicsDevice? graphicsDevice;
         private static SpriteBatch? spriteBatch;
         private static Texture2D? pixelTexture;
-        private static readonly Random random;
-
-        static C()
-            => random = new();
+        private static readonly Random random = new();
 
         public static void Initialize(ContentManager contentManager, GraphicsDevice graphicsDevice)
         {
@@ -139,7 +136,7 @@ namespace Game1
                 throw new ArgumentOutOfRangeException();
 
             Texture2D texture = new(GraphicsDevice, width, height);
-            Color[] colorData = new Color[width * height];
+            var colorData = new Color[width * height];
             MyVector2 textureCenter = .5 * new MyVector2(x: width, y: height);
             for (int y = 0; y < height; y++)
                 for (int x = 0; x < width; x++)

@@ -8,10 +8,10 @@ namespace Game1.UI
     {
         public ITooltip Tooltip { get; }
 
-        public override bool CanBeClicked
+        public sealed override bool CanBeClicked
             => true;
 
-        protected override Color Color
+        protected sealed override Color Color
             => colorConfig.buttonColor;
 
         private readonly Action action;
@@ -21,7 +21,7 @@ namespace Game1.UI
             : base(shape: shape)
         {
             this.action = action;
-            textBox = new()
+            textBox = new(textColor: colorConfig.buttonTextColor)
             {
                 Text = text
             };
@@ -29,13 +29,13 @@ namespace Game1.UI
             AddChild(child: textBox);
         }
 
-        protected override void PartOfRecalcSizeAndPos()
+        protected sealed override void PartOfRecalcSizeAndPos()
         {
             base.PartOfRecalcSizeAndPos();
             textBox.Shape.Center = Shape.Center;
         }
 
-        public override void OnClick()
+        public sealed override void OnClick()
         {
             base.OnClick();
             action();

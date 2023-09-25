@@ -10,7 +10,7 @@ namespace Game1.UI
         public int Count
             => children.Count;
 
-        protected override Color Color
+        protected sealed override Color Color
             => Color.Transparent;
 
         private readonly List<TChild> children;

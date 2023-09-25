@@ -3,14 +3,14 @@
     [Serializable]
     public sealed class LineSegment : VectorShape
     {
-        protected override Texture2D Texture
+        protected sealed override Texture2D Texture
             => C.PixelTexture;
 
         public LineSegment(IParams parameters)
             : base(parameters: parameters)
         { }
 
-        protected override bool Contains(Propor dirPropor, Propor orthDirPropor)
+        protected sealed override bool Contains(Propor dirPropor, Propor orthDirPropor)
             => true;
     }
 }

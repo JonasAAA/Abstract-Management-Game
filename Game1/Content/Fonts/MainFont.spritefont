@@ -11,7 +11,7 @@ with.
     <!--
     Modify this string to change the font that will be imported.
     -->
-    <FontName>Red_Hat_Text/static/RedHatText-Regular.ttf</FontName>
+    <FontName>Red_Hat_Mono/static/RedHatMono-Regular.ttf</FontName>
 
     <!--
     Size is a float value, measured in points. Modify this value to change

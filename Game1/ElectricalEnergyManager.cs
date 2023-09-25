@@ -1,5 +1,5 @@
-﻿using Game1.Delegates;
-using System.Numerics;
+﻿using Game1.Collections;
+using Game1.Delegates;
 using static Game1.WorldManager;
 
 namespace Game1
@@ -7,8 +7,8 @@ namespace Game1
     [Serializable]
     public sealed class ElectricalEnergyManager : IDeletedListener, IEnergyDistributor
     {
-        private readonly MySet<IEnergyProducer> energyProducers;
-        private readonly MySet<IEnergyConsumer> energyConsumers;
+        private readonly ThrowingSet<IEnergyProducer> energyProducers;
+        private readonly ThrowingSet<IEnergyConsumer> energyConsumers;
         
         private ElectricalEnergy totReqEnergy, totProdEnergy, totUsedLocalEnergy, totUsedPowerPlantEnergy;
         private readonly EnergyPile<ElectricalEnergy> energyPile;
@@ -28,7 +28,14 @@ namespace Game1
         {
             energyProducers.Add(energyProducer);
 
-            energyProducer.Deleted.Add(listener: this);
+            (energyProducer as IDeletable)?.Deleted.Add(listener: this);
+        }
+
+        public void RemoveEnergyProducer(IEnergyProducer energyProducer)
+        {
+            if (energyProducer is IDeletable)
+                throw new ArgumentException("Will be removed anyway, no need to do so manually");
+            energyProducers.Remove(energyProducer);
         }
 
         public void AddEnergyConsumer(IEnergyConsumer energyConsumer)
@@ -39,7 +46,7 @@ namespace Game1
         }
 
         [Serializable]
-        private class EnhancedEnergyConsumer
+        private sealed class EnhancedEnergyConsumer
         {
             public ElectricalEnergy OwnedEnergy
                 => ownedEnergyPile.Amount;
@@ -78,7 +85,7 @@ namespace Game1
         {
             // TODO(performace): could probably improve performance by separating those requiring no electricity at the start
             // Then only those requiring non-zero electricity would be involved in more costly calculations
-            List<EnhancedEnergyConsumer> enhancedConsumers =
+            var enhancedConsumers =
                (from energyConsumer in energyConsumers
                 select new EnhancedEnergyConsumer
                 (
@@ -93,7 +100,7 @@ namespace Game1
             totUsedLocalEnergy = ElectricalEnergy.zero;
             totUsedPowerPlantEnergy = ElectricalEnergy.zero;
 
-            Dictionary<NodeID, MySet<EnhancedEnergyConsumer>> enhancedConsumersByNode = new();
+            Dictionary<NodeID, ThrowingSet<EnhancedEnergyConsumer>> enhancedConsumersByNode = new();
             foreach (var nodeID in nodeIDs)
                 enhancedConsumersByNode[nodeID] = new();
             foreach (var enhancedConsumer in enhancedConsumers)
@@ -126,7 +133,7 @@ namespace Game1
             {
                 Debug.Assert(enhancedConsumer.OwnedEnergy <= enhancedConsumer.reqEnergy);
                 if (enhancedConsumer.energyPriority == EnergyPriority.mostImportant && enhancedConsumer.OwnedEnergy < enhancedConsumer.reqEnergy)
-                    throw new Exception();
+                    throw new InvalidStateException();
                 enhancedConsumer.ConsumeEnergy();
             }
 
@@ -162,10 +169,10 @@ namespace Game1
 
         public string Summary()
             => $"""
-            required energy: {totReqEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W
-            produced energy: {totProdEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W
-            used local energy {totUsedLocalEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W
-            used power plant energy {totUsedPowerPlantEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:0.##} W
+            required energy: {totReqEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:#,0.} W
+            produced energy: {totProdEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:#,0.} W
+            used local energy: {totUsedLocalEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:#,0.} W
+            used power plant energy: {totUsedPowerPlantEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:#,0.} W
 
             """;
 

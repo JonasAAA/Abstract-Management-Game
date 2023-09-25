@@ -1,40 +1,37 @@
-﻿namespace Game1.ContentHelpers
+﻿using Game1.Collections;
+
+namespace Game1.ContentHelpers
 {
     [Serializable]
     public readonly struct FullValidStartingInfo
     {
-        public static Result<FullValidStartingInfo, IEnumerable<string>> Create(ValidStartingInfo startingInfo)
-        {
-            List<string> errorMessages = new();
-            if (startingInfo.HouseCosmicBody is null)
-                errorMessages.Add($"Starting {nameof(StartingInfo.HouseCosmicBody)} must be set");
-            if (startingInfo.PowerPlantCosmicBody is null)
-                errorMessages.Add($"Starting {nameof(StartingInfo.PowerPlantCosmicBody)} must be set");
-            if (errorMessages.Count is 0)
-                return new
+        public static Result<FullValidStartingInfo, TextErrors> Create(ValidStartingInfo startingInfo)
+            => startingInfo.StartingBuildingToCosmicBody.SelectValues<Result<string, TextErrors>>
+            (
+                (startingBuilding, cosmicBodyNameOrNull) => cosmicBodyNameOrNull switch
+                {
+                    string cosmicBodyName => new(ok: cosmicBodyName),
+                    null => new(errors: new(value: $"{startingBuilding} must be not null"))
+                }
+            ).AccumulateErrors().Select
+            (
+                startingBuildingToCosmicBody => new FullValidStartingInfo
                 (
-                    ok: new
-                    (
-                        houseCosmicBody: startingInfo.HouseCosmicBody!,
-                        powerPlantCosmicBody: startingInfo.PowerPlantCosmicBody!,
-                        worldCenter: startingInfo.WorldCenter,
-                        cameraViewHeight: startingInfo.CameraViewHeight
-                    )
-                );
-            return new(errors: errorMessages); 
-        }
+                    worldCenter: startingInfo.WorldCenter,
+                    cameraViewHeight: startingInfo.CameraViewHeight,
+                    startingBuildingToCosmicBody: startingBuildingToCosmicBody
+                )
+            );
 
-        public string HouseCosmicBody { get; }
-        public string PowerPlantCosmicBody { get; }
         public MyVector2 WorldCenter { get; }
         public UDouble CameraViewHeight { get; }
+        public EnumDict<StartingBuilding, string> StartingBuildingToCosmicBody { get; }
 
-        private FullValidStartingInfo(string houseCosmicBody, string powerPlantCosmicBody, MyVector2 worldCenter, UDouble cameraViewHeight)
+        private FullValidStartingInfo(MyVector2 worldCenter, UDouble cameraViewHeight, EnumDict<StartingBuilding, string> startingBuildingToCosmicBody)
         {
-            HouseCosmicBody = houseCosmicBody;
-            PowerPlantCosmicBody = powerPlantCosmicBody;
             WorldCenter = worldCenter;
             CameraViewHeight = cameraViewHeight;
+            StartingBuildingToCosmicBody = startingBuildingToCosmicBody;
         }
     }
 }

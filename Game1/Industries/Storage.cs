@@ -298,9 +298,6 @@ namespace Game1.Industries
             IIndustry.DumpAllResIntoCosmicBody(nodeState: buildingParams.NodeState, resPile: storage);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
-
-        public string GetInfo()
-            => throw new NotImplementedException();
 #pragma warning restore IDE0001
     }
 }

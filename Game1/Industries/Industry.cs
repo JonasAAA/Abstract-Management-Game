@@ -197,6 +197,7 @@ namespace Game1.Industries
                 Industry UI Panel
                 stored inputs {inputStorage.Amount}
                 stored outputs {outputStorage.Amount}
+                res travelling here {resTravellingHere}
                 demand {GetDemand()}
                 """;
             var childIndustry = stateOrReasonForNotStartingProduction.SwitchExpression
@@ -232,9 +233,6 @@ namespace Game1.Industries
             IIndustry.DumpAllResIntoCosmicBody(nodeState: buildingParams.NodeState, resPile: outputStorage);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
         }
-
-        public string GetInfo()
-            => throw new NotImplementedException();
 
         EnergyPriority IEnergyConsumer.EnergyPriority
             => buildingParams.EnergyPriority;

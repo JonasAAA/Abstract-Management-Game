@@ -102,7 +102,7 @@ namespace Game1.Industries
                 => ResAndIndustryHelpers.MaxBuildingComponentsInArea
                 (
                     buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
-                    curBuildingArea: BuildingArea * CurWorldConfig.inputStorageProporOfBuildingArea * CurWorldConfig.buildingComponentStorageProporOfInputStorageArea
+                    area: BuildingArea * CurWorldConfig.inputStorageProporOfBuildingArea * CurWorldConfig.buildingComponentStorageProporOfInputStorageArea
                 );
 
             /// <param Name="landfillingMassIfFull">Mass of stuff being dumped if landfill was fully operational</param>
@@ -213,8 +213,7 @@ namespace Game1.Industries
 
             public static Result<LandfillCycleState, TextErrors> Create(ConcreteProductionParams productionParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile,
                 ResPile inputStorage, AreaInt storedOutputArea)
-            {
-                return productionParams.CurResource.SelectMany
+                => productionParams.CurResource.SelectMany
                 (
                     resource =>
                     {
@@ -267,7 +266,6 @@ namespace Game1.Industries
                         }
                     }
                 );
-            }
 
             public ElectricalEnergy ReqEnergy { get; private set; }
 

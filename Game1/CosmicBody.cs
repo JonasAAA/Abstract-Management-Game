@@ -48,10 +48,12 @@ namespace Game1
                 if (industry == value)
                     return;
 
+                var oldPopups = Popups;
                 infoPanel.RemoveChild(child: industry?.UIElement);
                 industry = value;
                 if (industry is not null)
                     infoPanel.AddChild(child: industry.UIElement);
+                RefreshPopups(oldPopups: oldPopups, newPopups: Popups);
             }
         }
 

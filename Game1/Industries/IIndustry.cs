@@ -25,8 +25,6 @@ namespace Game1.Industries
 
         public IIndustry? Update();
 
-        public string GetInfo();
-
         MyVector2 IWithSpecialPositions.GetSpecPos(PosEnums origin)
             => BuildingImage.GetPosition(origin: origin);
 

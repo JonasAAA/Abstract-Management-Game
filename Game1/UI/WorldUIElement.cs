@@ -27,22 +27,9 @@ namespace Game1.UI
 
                 active = value;
                 if (active)
-                {
-                    foreach (var (popup, HUDPosUpdater) in Popups)
-                        CurWorldManager.AddWorldHUDElement
-                        (
-                            worldHUDElement: popup,
-                            updateHUDPos: HUDPosUpdater
-                        );
-                }
+                    ShowPopups(popups: Popups);
                 else
-                {
-                    foreach (var (popup, _) in Popups)
-                        CurWorldManager.RemoveWorldHUDElement
-                        (
-                            worldHUDElement: popup
-                        );
-                }
+                    HidePopups(popups: Popups);
                 activeChanged.Raise(action: listener => listener.ActiveChangedResponse(worldUIElement: this));
             }
         }
@@ -60,6 +47,34 @@ namespace Game1.UI
         {
             activeChanged = new();
             active = false;
+        }
+
+        protected void RefreshPopups(EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> oldPopups, EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> newPopups)
+        {
+            if (active)
+            {
+                HidePopups(popups: oldPopups);
+                ShowPopups(popups: newPopups);
+            }
+        }
+
+        private static void ShowPopups(EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> popups)
+        {
+            foreach (var (popup, HUDPosUpdater) in popups)
+                CurWorldManager.AddWorldHUDElement
+                (
+                    worldHUDElement: popup,
+                    updateHUDPos: HUDPosUpdater
+                );
+        }
+
+        private static void HidePopups(EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> popups)
+        {
+            foreach (var (popup, _) in popups)
+                CurWorldManager.RemoveWorldHUDElement
+                (
+                    worldHUDElement: popup
+                );
         }
 
         public sealed override void OnClick()

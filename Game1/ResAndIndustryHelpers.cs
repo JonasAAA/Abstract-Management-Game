@@ -55,7 +55,7 @@ namespace Game1
         /// <summary>
         /// The only difference from CurNeededBuildingComponents is rounding down instead of up
         /// </summary>
-        public static AllResAmounts MaxBuildingComponentsInArea(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
+        public static AllResAmounts MaxBuildingComponentsInArea(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble area)
             => new
             (
                 buildingComponentsToAmountPUBA.Select
@@ -63,7 +63,7 @@ namespace Game1
                     prodAndAmountPUBA => new ResAmount<IResource>
                     (
                         res: prodAndAmountPUBA.prod,
-                        amount: (ulong)(prodAndAmountPUBA.amountPUBA * curBuildingArea.valueInMetSq)
+                        amount: (ulong)(prodAndAmountPUBA.amountPUBA * area.valueInMetSq)
                     )
                 )
             );

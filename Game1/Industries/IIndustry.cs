@@ -23,7 +23,34 @@ namespace Game1.Industries
 
         public void FrameStart();
 
-        public IIndustry? Update();
+        public sealed IIndustry? Update()
+        {
+            var newIndustry = UpdateImpl();
+            if (newIndustry == this || newIndustry is null)
+                return newIndustry;
+
+            // Do this before deleting the old industry so that GetConsumedRes, GetSource, etc. return thruthful results rather than empty things
+            foreach (var res in newIndustry.GetConsumedRes())
+                if (IsDestinOf(resource: res))
+                    foreach (var source in GetSources(resource: res))
+                        ToggleSourceAndDestin(resource: res, source: source, destin: newIndustry);
+
+            foreach (var res in newIndustry.GetProducedRes())
+                if (IsSourceOf(resource: res))
+                    foreach (var destin in GetDestins(resource: res))
+                        ToggleSourceAndDestin(resource: res, source: newIndustry, destin: destin);
+
+            Delete();
+            return newIndustry;
+        }
+
+        public IIndustry? UpdateImpl();
+
+        /// <summary>
+        /// Returns false if was deleted already
+        /// </summary>
+        /// <returns></returns>
+        protected bool Delete();
 
         MyVector2 IWithSpecialPositions.GetSpecPos(PosEnums origin)
             => BuildingImage.GetPosition(origin: origin);
@@ -52,13 +79,22 @@ namespace Game1.Industries
 
         /// <summary>
         /// If <paramref name="sourceIndustry"/> is already a source of <paramref name="resource"/>, delete it. If not, add it.
+        /// DON'T CALL this directly - use ToggleSourceAndDestin instead
         /// </summary>
-        public void ToggleSource(IResource resource, IIndustry sourceIndustry);
+        protected void ToggleSource(IResource resource, IIndustry sourceIndustry);
 
         /// <summary>
         /// If <paramref name="destinIndustry"/> is already a destination of <paramref name="resource"/>, delete it. If not, add it.
+        /// DON'T CALL this directly - use ToggleSourceAndDestin instead
         /// </summary>
-        public void ToggleDestin(IResource resource, IIndustry destinIndustry);
+        protected void ToggleDestin(IResource resource, IIndustry destinIndustry);
+
+        private static void ToggleSourceAndDestin(IResource resource, IIndustry source, IIndustry destin)
+        {
+            source.ToggleDestin(resource: resource, destinIndustry: destin);
+            destin.ToggleSource(resource: resource, sourceIndustry: source);
+            Debug.Assert(source.GetDestins(resource: resource).Contains(destin) == destin.GetSources(resource: resource).Contains(source));
+        }
 
         protected static void ToggleElement<T>(HashSet<T> set, T element)
         {
@@ -81,20 +117,16 @@ namespace Game1.Industries
         protected static EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> CreateRoutesLists(SortedResSet<IResource> resources)
             => resources.ToEfficientReadOnlyDict(elementSelector: _ => new HashSet<IIndustry>());
 
-        protected static void DeleteSourcesAndDestins(IIndustry industry, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resDestins)
+        // It's static so that it's actually protected. Otherwise couldn't call it
+        protected static void DeleteSourcesAndDestins(IIndustry industry)
         {
-            foreach (var (res, sources) in resSources)
-                foreach (var source in sources)
-                {
-                    source.ToggleDestin(resource: res, destinIndustry: industry);
-                    Debug.Assert(!source.GetDestins(resource: res).Contains(industry));
-                }
-            foreach (var (res, destins) in resDestins)
-                foreach (var destin in destins)
-                {
-                    destin.ToggleSource(resource: res, sourceIndustry: industry);
-                    Debug.Assert(!destin.GetSources(resource: res).Contains(industry));
-                }
+            foreach (var res in industry.GetConsumedRes())
+                foreach (var source in industry.GetSources(resource: res))
+                    ToggleSourceAndDestin(resource: res, source: source, destin: industry);
+
+            foreach (var res in industry.GetProducedRes())
+                foreach (var destin in industry.GetDestins(resource: res))
+                    ToggleSourceAndDestin(resource: res, source: industry, destin: destin);
         }
 
         protected static IHUDElement CreateRoutePanel(IIndustry industry, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources,
@@ -217,8 +249,7 @@ namespace Game1.Industries
         {
             void IClickedListener.ClickedResponse()
             {
-                SourceIndustry.ToggleDestin(resource: Resource, destinIndustry: DestinIndustry);
-                DestinIndustry.ToggleSource(resource: Resource, sourceIndustry: SourceIndustry);
+                ToggleSourceAndDestin(resource: Resource, source: SourceIndustry, destin: DestinIndustry);
 
                 foreach (var (toggleSourcePanel, _, _) in ToggleSourcePanelManagers)
                     CurWorldManager.RemoveWorldHUDElement(worldHUDElement: toggleSourcePanel);

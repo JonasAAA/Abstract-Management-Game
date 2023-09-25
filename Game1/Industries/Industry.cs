@@ -90,6 +90,7 @@ namespace Game1.Industries
         private readonly TPersistentState persistentState;
         private Result<TProductionCycleState, TextErrors> stateOrReasonForNotStartingProduction;
         private readonly Event<IDeletedListener> deleted;
+        private bool isDeleted;
         private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
         private readonly ResPile inputStorage, outputStorage;
         private AllResAmounts resTravellingHere;
@@ -102,6 +103,7 @@ namespace Game1.Industries
             this.persistentState = persistentState;
             stateOrReasonForNotStartingProduction = new(errors: new("Not yet initialized"));
             deleted = new();
+            isDeleted = false;
             inputStorage = ResPile.CreateEmpty(thermalBody: buildingParams.NodeState.ThermalBody);
             outputStorage = ResPile.CreateEmpty(thermalBody: buildingParams.NodeState.ThermalBody);
             resTravellingHere = AllResAmounts.empty;
@@ -193,7 +195,7 @@ namespace Game1.Industries
                 );
         }
 
-        public IIndustry? Update()
+        public IIndustry? UpdateImpl()
         {
 #warning Complete this
             industryUI.Text = $"""
@@ -212,22 +214,18 @@ namespace Game1.Industries
             if (childIndustry is not null)
             {
                 stateOrReasonForNotStartingProduction = new(errors: new("construction is done"));
-                Delete();
                 return childIndustry;
             }
             return this;
         }
 
-        private void Delete()
+        public bool Delete()
         {
+            if (isDeleted)
+                return false;
             if (!resTravellingHere.IsEmpty)
                 throw new NotImplementedException("Need to wait for all resources travelling here to arrive");
-            IIndustry.DeleteSourcesAndDestins
-            (
-                industry: this,
-                resSources: resSources,
-                resDestins: resDestins
-            );
+            IIndustry.DeleteSourcesAndDestins(industry: this);
 #warning Implement a proper industry deletion strategy
             // For now, all building materials, unused input, production, and output materials are dumped inside the planet 
             outputStorage.TransferAllFrom(source: inputStorage);
@@ -235,6 +233,9 @@ namespace Game1.Industries
             stateOrReasonForNotStartingProduction.PerformAction(action: state => state.Delete(outputStorage: outputStorage));
             IIndustry.DumpAllResIntoCosmicBody(nodeState: buildingParams.NodeState, resPile: outputStorage);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
+
+            isDeleted = true;
+            return true;
         }
 
         EnergyPriority IEnergyConsumer.EnergyPriority

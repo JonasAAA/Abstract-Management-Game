@@ -395,9 +395,6 @@ namespace Game1
         [Serializable]
         public readonly record struct ResPacket<T>(T Source, T Destin, ulong Amount);
 
-        [Serializable]
-        private readonly record struct InternalResPacket<T>(T VertexA, T VertexB, bool IsASource, ulong Amount);
-
         // Dictionary is from Vertex<T> rather than T directly, as the same Industry may be a source and a destination of the same resource, e.g. storage.
         public static EfficientReadOnlyCollection<ResPacket<T>> DistributeRes<T>(EfficientReadOnlyDictionary<Vertex<T>, VertexInfo<T>> graph)
         {

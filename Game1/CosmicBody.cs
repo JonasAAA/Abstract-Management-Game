@@ -293,10 +293,10 @@ namespace Game1
 
             textBox.Text = "";
 
-            textBox.Text += $"Gravity = {state.SurfaceGravity:#,0.}\nT = {state.Temperature}\nM to E per real world second =\n{massConvertedToEnergy.valueInKg / (CurWorldManager.Elapsed.TotalSeconds / CurWorldConfig.worldSecondsInGameSecond):#,0.}\n";
+            textBox.Text += $"T = {state.Temperature}";
             textBox.Text = textBox.Text.Trim();
 
-            infoTextBox.Text += textBox.Text;
+            infoTextBox.Text += $"Gravity = {state.SurfaceGravity:#,0.}\nT = {state.Temperature}\nM to E per real world second =\n{massConvertedToEnergy.valueInKg / (CurWorldManager.Elapsed.TotalSeconds / CurWorldConfig.worldSecondsInGameSecond):#,0.}\n";
             infoTextBox.Text = infoTextBox.Text.Trim();
         }
 

@@ -1,0 +1,275 @@
+{
+  "CosmicBodies": [
+    {
+      "Name": "Cosmic body 0",
+      "Position": {
+        "X": 740,
+        "Y": 10
+      },
+      "Radius": 504.7335930963977
+    },
+    {
+      "Name": "Cosmic body 1",
+      "Position": {
+        "X": -799,
+        "Y": 410
+      },
+      "Radius": 100
+    },
+    {
+      "Name": "Cosmic body 2",
+      "Position": {
+        "X": -800,
+        "Y": 26
+      },
+      "Radius": 100
+    },
+    {
+      "Name": "Cosmic body 3",
+      "Position": {
+        "X": -786,
+        "Y": -363
+      },
+      "Radius": 100
+    },
+    {
+      "Name": "Cosmic body 4",
+      "Position": {
+        "X": 32.0137939453125,
+        "Y": -359.86590576171875
+      },
+      "Radius": 30.55406154478103
+    },
+    {
+      "Name": "Cosmic body 5",
+      "Position": {
+        "X": 27.3603515625,
+        "Y": -138.05206298828125
+      },
+      "Radius": 10.405413497347348
+    },
+    {
+      "Name": "Cosmic body 6",
+      "Position": {
+        "X": 25.8092041015625,
+        "Y": 68.2503662109375
+      },
+      "Radius": 28.517455936139022
+    },
+    {
+      "Name": "Cosmic body 7",
+      "Position": {
+        "X": 24.258056640625,
+        "Y": 254.387939453125
+      },
+      "Radius": 27.963708531079657
+    },
+    {
+      "Name": "Cosmic body 8",
+      "Position": {
+        "X": 22.70703125,
+        "Y": 442.0765380859375
+      },
+      "Radius": 21.097769772429537
+    },
+    {
+      "Name": "Cosmic body 9",
+      "Position": {
+        "X": -278,
+        "Y": 366
+      },
+      "Radius": 29.83691714741916
+    },
+    {
+      "Name": "Cosmic body 10",
+      "Position": {
+        "X": -213,
+        "Y": 257
+      },
+      "Radius": 27.089625798443954
+    },
+    {
+      "Name": "Cosmic body 11",
+      "Position": {
+        "X": -225,
+        "Y": 67
+      },
+      "Radius": 12.505750635696982
+    },
+    {
+      "Name": "Cosmic body 12",
+      "Position": {
+        "X": -223,
+        "Y": -178
+      },
+      "Radius": 16.194454932705856
+    },
+    {
+      "Name": "Cosmic body 13",
+      "Position": {
+        "X": -244.090087890625,
+        "Y": -358.31475830078125
+      },
+      "Radius": 25.67594854392344
+    },
+    {
+      "Name": "Cosmic body 14",
+      "Position": {
+        "X": -453.494873046875,
+        "Y": -369.17279052734375
+      },
+      "Radius": 18.089332453075986
+    },
+    {
+      "Name": "Cosmic body 15",
+      "Position": {
+        "X": -468,
+        "Y": -213
+      },
+      "Radius": 10.968225724204052
+    },
+    {
+      "Name": "Cosmic body 16",
+      "Position": {
+        "X": -467,
+        "Y": 64
+      },
+      "Radius": 18.678288856532433
+    },
+    {
+      "Name": "Cosmic body 17",
+      "Position": {
+        "X": -473.6597900390625,
+        "Y": 279.206298828125
+      },
+      "Radius": 37.86833550027543
+    },
+    {
+      "Name": "Cosmic body 18",
+      "Position": {
+        "X": -472.108642578125,
+        "Y": 463.7926025390625
+      },
+      "Radius": 17.342355828912247
+    }
+  ],
+  "Links": [
+    {
+      "From": "Cosmic body 0",
+      "To": "Cosmic body 4"
+    },
+    {
+      "From": "Cosmic body 4",
+      "To": "Cosmic body 5"
+    },
+    {
+      "From": "Cosmic body 4",
+      "To": "Cosmic body 13"
+    },
+    {
+      "From": "Cosmic body 6",
+      "To": "Cosmic body 5"
+    },
+    {
+      "From": "Cosmic body 6",
+      "To": "Cosmic body 11"
+    },
+    {
+      "From": "Cosmic body 6",
+      "To": "Cosmic body 7"
+    },
+    {
+      "From": "Cosmic body 5",
+      "To": "Cosmic body 12"
+    },
+    {
+      "From": "Cosmic body 7",
+      "To": "Cosmic body 8"
+    },
+    {
+      "From": "Cosmic body 7",
+      "To": "Cosmic body 10"
+    },
+    {
+      "From": "Cosmic body 8",
+      "To": "Cosmic body 9"
+    },
+    {
+      "From": "Cosmic body 9",
+      "To": "Cosmic body 10"
+    },
+    {
+      "From": "Cosmic body 9",
+      "To": "Cosmic body 18"
+    },
+    {
+      "From": "Cosmic body 17",
+      "To": "Cosmic body 18"
+    },
+    {
+      "From": "Cosmic body 17",
+      "To": "Cosmic body 10"
+    },
+    {
+      "From": "Cosmic body 17",
+      "To": "Cosmic body 1"
+    },
+    {
+      "From": "Cosmic body 16",
+      "To": "Cosmic body 11"
+    },
+    {
+      "From": "Cosmic body 16",
+      "To": "Cosmic body 17"
+    },
+    {
+      "From": "Cosmic body 16",
+      "To": "Cosmic body 15"
+    },
+    {
+      "From": "Cosmic body 16",
+      "To": "Cosmic body 2"
+    },
+    {
+      "From": "Cosmic body 12",
+      "To": "Cosmic body 15"
+    },
+    {
+      "From": "Cosmic body 12",
+      "To": "Cosmic body 11"
+    },
+    {
+      "From": "Cosmic body 12",
+      "To": "Cosmic body 13"
+    },
+    {
+      "From": "Cosmic body 11",
+      "To": "Cosmic body 10"
+    },
+    {
+      "From": "Cosmic body 14",
+      "To": "Cosmic body 13"
+    },
+    {
+      "From": "Cosmic body 14",
+      "To": "Cosmic body 15"
+    },
+    {
+      "From": "Cosmic body 14",
+      "To": "Cosmic body 3"
+    }
+  ],
+  "StartingInfo": {
+    "WorldCenter": {
+      "X": 0,
+      "Y": 0
+    },
+    "CameraViewHeight": 1080,
+    "StartingBuildingLocations": {
+      "PowerPlant": "Cosmic body 6",
+      "GearStorage": "Cosmic body 3",
+      "WireStorage": "Cosmic body 2",
+      "RoofTileStorage": "Cosmic body 1"
+    }
+  }
+}

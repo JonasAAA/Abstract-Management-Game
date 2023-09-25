@@ -12,7 +12,7 @@ namespace Game1.Industries
     {
 #pragma warning disable IDE0001 // Otherwise it says to use ManufacturingProductionChoice instead of MaterialPalette everywhere
         [Serializable]
-        public sealed class GeneralParams : IGeneralBuildingConstructionParams
+        public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
             public string Name { get; }
             public BuildingCostPropors BuildingCostPropors { get; }
@@ -22,7 +22,7 @@ namespace Game1.Industries
 
             private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
 
-            public GeneralParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority)
+            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority)
             {
                 Name = name;
                 BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
@@ -69,12 +69,12 @@ namespace Game1.Industries
             private AreaDouble BuildingArea
                 => buildingImage.Area;
             
-            private readonly GeneralParams generalParams;
+            private readonly GeneralBuildingParams generalParams;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly LandfillResourceChoice landfillResourceChoice;
             private readonly AllResAmounts buildingCost;
 
-            public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage,
+            public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
                 MaterialPaletteChoices buildingMatPaletteChoices, LandfillResourceChoice landfillResourceChoice, MaterialPalette surfaceMatPalette)
             {

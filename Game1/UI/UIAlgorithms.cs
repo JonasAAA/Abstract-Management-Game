@@ -8,6 +8,9 @@ namespace Game1.UI
         public static string ProductName(string prodParamsName, string paletteName)
             => $"{prodParamsName}\n{paletteName}";
 
+        public static string ManufacturingBasicName(string prodParamsName)
+            => $"Basic {prodParamsName} manufaturing";
+
         public static string NoMaterialPaletteChosen
             => "no material palette chosen";
 
@@ -71,7 +74,7 @@ namespace Game1.UI
 
         public static string ConstructionTooltip(Construction.GeneralParams constrGeneralParams)
 #warning Complete this by adding info from constrGeneralParams.buildingGeneralParams
-            => $"{constrGeneralParams.buildingGeneralParams.Name}\nEnergy priority {constrGeneralParams.energyPriority}\n";
+            => $"{constrGeneralParams.buildingGeneralParams.Name}\n{constrGeneralParams.energyPriority}\n";
 
         public static string StartMatPaletteChoiceForProductClassTooltip(IProductClass productClass)
             => $"Choose {productClass} material palette";

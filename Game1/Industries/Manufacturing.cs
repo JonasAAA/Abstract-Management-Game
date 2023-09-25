@@ -12,7 +12,7 @@ namespace Game1.Industries
     {
 #pragma warning disable IDE0001 // Otherwise it says to use ManufacturingProductionChoice instead of MaterialPalette everywhere
         [Serializable]
-        public sealed class GeneralParams : IGeneralBuildingConstructionParams
+        public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
             public string Name { get; }
             public BuildingCostPropors BuildingCostPropors { get; }
@@ -23,7 +23,7 @@ namespace Game1.Industries
 
             private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
 
-            public GeneralParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority, Product.Params productParams)
+            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority, Product.Params productParams)
             {
                 Name = name;
                 BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
@@ -75,13 +75,13 @@ namespace Game1.Industries
             public readonly AreaInt maxStoredOutputArea;
 
             private readonly AreaDouble buildingArea;
-            private readonly GeneralParams generalParams;
+            private readonly GeneralBuildingParams generalParams;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly ManufacturingProductionChoice manufacturingProductionChoice;
             private readonly AllResAmounts buildingCost;
             private readonly ulong maxInputAmountStored;
 
-            public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, DiskBuildingImage buildingImage,
+            public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
                 MaterialPaletteChoices buildingMatPaletteChoices, ManufacturingProductionChoice manufacturingProductionChoice, MaterialPalette surfaceMatPalette)
             {

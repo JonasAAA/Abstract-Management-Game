@@ -331,7 +331,7 @@ namespace Game1
                     position: new(HorizPosEnum.Right, VertPosEnum.Bottom)
                 );
 
-                UIRectHorizPanel<IHUDElement> buildPanel = new(childVertPos: VertPosEnum.Middle);
+                UIRectVertPanel<IHUDElement> buildPanel = new(childHorizPos: HorizPosEnum.Middle);
 
                 foreach (var constrGeneralParams in CurIndustryConfig.constrGeneralParamsList)
                 {
@@ -346,7 +346,7 @@ namespace Game1
                     buildPanel.AddChild(child: buildIndustryButton);
                 }
 
-                CurWorldManager.AddHUDElement(HUDElement: buildPanel, position: new(HorizPosEnum.Middle, VertPosEnum.Bottom));
+                CurWorldManager.AddHUDElement(HUDElement: buildPanel, position: new(HorizPosEnum.Right, VertPosEnum.Top));
             }
         }
 

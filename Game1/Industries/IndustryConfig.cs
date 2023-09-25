@@ -1,4 +1,5 @@
 ﻿using Game1.Collections;
+using Game1.UI;
 
 namespace Game1.Industries
 {
@@ -11,6 +12,8 @@ namespace Game1.Industries
 
         public IndustryConfig()
         {
+            EnergyPriority constrEnergyPriority = new(value: 50),
+                averageEnergyPriority = new(value: 20);
             startingPowerPlantParams = new PowerPlant.GeneralBuildingParams
             (
                 name: "Basic Power Plant",
@@ -31,24 +34,24 @@ namespace Game1.Industries
                 }.ToEfficientReadOnlyCollection()
             );
 
-            constrGeneralParamsList = new List<Construction.GeneralParams>()
+            List<Construction.GeneralParams> constrGeneralParamsIncompleteList = new()
             {
                 new
                 (
                     buildingGeneralParams: startingStorageParams,
-                    energyPriority: new(value: 50)
+                    energyPriority: constrEnergyPriority
                 ),
                 new
                 (
                     buildingGeneralParams: startingPowerPlantParams,
-                    energyPriority: new(value: 50)
+                    energyPriority: constrEnergyPriority
                 ),
                 new
                 (
                     buildingGeneralParams: new Mining.GeneralBuildingParams
                     (
                         name: "Basic Mining",
-                        energyPriority: new(value: 20),
+                        energyPriority: averageEnergyPriority,
                         buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                         {
                             (prodParams: Product.productParamsDict["Gear"], amount: 4),
@@ -56,9 +59,61 @@ namespace Game1.Industries
                             (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
                         }.ToEfficientReadOnlyCollection()
                     ),
-                    energyPriority: new(value: 50)
+                    energyPriority: constrEnergyPriority
                 ),
-            }.ToEfficientReadOnlyCollection();
+                new
+                (
+                    buildingGeneralParams: new Landfill.GeneralBuildingParams
+                    (
+                        name: "Basic landfill",
+                        energyPriority: averageEnergyPriority,
+                        buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                        {
+                            (prodParams: Product.productParamsDict["Gear"], amount: 4),
+                            (prodParams: Product.productParamsDict["Wire"], amount: 2),
+                            (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                        }.ToEfficientReadOnlyCollection()
+                    ),
+                    energyPriority: constrEnergyPriority
+                ),
+                new
+                (
+                    buildingGeneralParams: new MaterialProduction.GeneralBuildingParams
+                    (
+                        name: "Basic material production",
+                        energyPriority: averageEnergyPriority,
+                        buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                        {
+                            (prodParams: Product.productParamsDict["Gear"], amount: 5),
+                            (prodParams: Product.productParamsDict["Wire"], amount: 2),
+                            (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                        }.ToEfficientReadOnlyCollection()
+                    ),
+                    energyPriority: constrEnergyPriority
+                )
+            };
+            constrGeneralParamsList = constrGeneralParamsIncompleteList.Concat
+            (
+                Product.productParamsDict.Select
+                (
+                    prodNameAndParams => new Construction.GeneralParams
+                    (
+                        buildingGeneralParams: new Manufacturing.GeneralBuildingParams
+                        (
+                            name: UIAlgorithms.ManufacturingBasicName(prodParamsName: prodNameAndParams.Key),
+                            energyPriority: averageEnergyPriority,
+                            buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                            {
+                                (prodParams: Product.productParamsDict["Gear"], amount: 3),
+                                (prodParams: Product.productParamsDict["Wire"], amount: 2),
+                                (prodParams: Product.productParamsDict["Roof Tile"], amount: 1)
+                            }.ToEfficientReadOnlyCollection(),
+                            productParams: prodNameAndParams.Value
+                        ),
+                        energyPriority: constrEnergyPriority
+                    )
+                )
+            ).ToEfficientReadOnlyCollection();
 #warning Complete this by making it configurable, if possible
         }
     }

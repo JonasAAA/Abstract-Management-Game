@@ -30,8 +30,11 @@ namespace Game1.Collections
         bool IFormOfEnergy<ResAmounts<TRes>>.IsZero
             => IsEmpty;
 
+        public SortedResSet<TRes> ResSet
+            => SortedResSet<TRes>.FromSortedUniqueResListUnsafe(sortedUniqueResList: resList);
+
         // Is reused between multiple instances of Dict to generate very slightly less garbage, e.g. in operator *
-        public readonly EfficientReadOnlyCollection<TRes> resList;
+        private readonly EfficientReadOnlyCollection<TRes> resList;
         private readonly EfficientReadOnlyCollection<ulong> amounts;
 
         /// <summary>
@@ -198,7 +201,7 @@ namespace Game1.Collections
             {
                 (TRes? thisRes, ulong thisAmount) = GetResAndAmount(someResAmounts: this, ind: thisInd);
                 (TRes? otherRes, ulong otherAmount) = GetResAndAmount(someResAmounts: other, ind: rightInd);
-                int compare = CompareRes(thisRes, otherRes);
+                int compare = CurResConfig.CompareNullableRes(thisRes, otherRes);
                 if (compare < 0)
                 {
                     // this means this has some, while other has none of this resource
@@ -251,7 +254,7 @@ namespace Game1.Collections
             {
                 (TRes? leftRes, ulong leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
                 (TRes? rightRes, ulong rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
-                int compare = CompareRes(leftRes, rightRes);
+                int compare = CurResConfig.CompareNullableRes(leftRes, rightRes);
                 if (compare < 0)
                 {
                     // this means minAmount would be 0, so no need to add it to results
@@ -285,15 +288,6 @@ namespace Game1.Collections
                 false => (res: null, amount: 0)
             };
 
-        private static int CompareRes(TRes? left, TRes? right)
-            => (left, right) switch
-            {
-                (not null, not null) => CurResConfig.CompareRes(left: left, right: right),
-                (not null, null) => -1,
-                (null, not null) => 1,
-                (null, null) => 0
-            };
-
         public static ResAmounts<TRes> operator +(ResAmounts<TRes> left, ResAmounts<TRes> right)
         {
             List<TRes> sumResList = new(capacity: left.Count + right.Count);
@@ -303,7 +297,7 @@ namespace Game1.Collections
             {
                 (TRes? leftRes, ulong leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
                 (TRes? rightRes, ulong rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
-                int compare = CompareRes(leftRes, rightRes);
+                int compare = CurResConfig.CompareNullableRes(leftRes, rightRes);
                 TRes? newRes = null;
                 ulong newAmount = 0;
                 if (compare <= 0)
@@ -371,7 +365,7 @@ namespace Game1.Collections
             {
                 (TRes? leftRes, ulong leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
                 (TRes? rightRes, ulong rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
-                int compare = CompareRes(leftRes, rightRes);
+                int compare = CurResConfig.CompareNullableRes(leftRes, rightRes);
                 TRes? newRes = null;
                 ulong newAmount = 0;
                 if (compare <= 0)
@@ -449,7 +443,7 @@ namespace Game1.Collections
             {
                 (TRes? leftRes, ulong leftAmount) = GetResAndAmount(someResAmounts: left, ind: leftInd);
                 (TRes? rightRes, ulong rightAmount) = GetResAndAmount(someResAmounts: right, ind: rightInd);
-                int compare = CompareRes(leftRes, rightRes);
+                int compare = CurResConfig.CompareNullableRes(leftRes, rightRes);
                 if (leftRes is null && rightRes is null)
                     break;
                 leftInd++;

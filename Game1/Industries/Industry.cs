@@ -15,7 +15,10 @@ namespace Game1.Industries
             public IBuildingImage IdleBuildingImage { get; }
 
             public MaterialPalette? SurfaceMatPalette(bool productionInProgress);
-            public EfficientReadOnlyCollection<IResource> GetProducedResources(TConcreteProductionParams productionParams);
+            public SortedResSet<IResource> GetProducedResources(TConcreteProductionParams productionParams);
+            // Consumed resources are not computed from MaxStoredInput directly as in ladfill you may need extra building components later on,
+            // but at the beginning the building doesn't have enough area to store any non-zero amount of them
+            public SortedResSet<IResource> GetConsumedResources(TConcreteProductionParams productionParams);
             public AllResAmounts MaxStoredInput(TConcreteProductionParams productionParams);
         }
 
@@ -105,7 +108,7 @@ namespace Game1.Industries
 
             CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
 
-            resSources = IIndustry.CreateRoutesLists(resources: buildingParams.MaxStoredInput(productionParams: productionParams).resList);
+            resSources = IIndustry.CreateRoutesLists(resources: buildingParams.GetConsumedResources(productionParams: productionParams));
             resDestins = IIndustry.CreateRoutesLists(resources: buildingParams.GetProducedResources(productionParams: productionParams));
             RoutePanel = IIndustry.CreateRoutePanel
             (

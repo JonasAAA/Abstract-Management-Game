@@ -78,7 +78,7 @@ namespace Game1.Industries
             nodeState.EnlargeFrom(source: resPile, amount: resPile.Amount.RawMatComposition());
         }
 
-        protected static EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> CreateRoutesLists(EfficientReadOnlyCollection<IResource> resources)
+        protected static EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> CreateRoutesLists(SortedResSet<IResource> resources)
             => resources.ToEfficientReadOnlyDict(elementSelector: _ => new HashSet<IIndustry>());
 
         protected static void DeleteSourcesAndDestins(IIndustry industry, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resDestins)

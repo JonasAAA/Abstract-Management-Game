@@ -149,29 +149,6 @@ namespace Game1
         public static UDouble Resistivity(this Material material, Temperature temperature)
             => throw new NotImplementedException();
 
-        /// <exception cref="ArgumentException">if buildingMatPaletteChoices doesn't contain all required product classes</exception>
-        public static EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> BuildingComponentsToAmountPUBA(
-            EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors,
-            MaterialPaletteChoices buildingMatPaletteChoices, Propor buildingComponentsProporOfBuildingArea)
-        {
-            AreaInt buildingComponentProporsTotalArea = buildingComponentPropors.Sum
-            (
-                prodParamsAndAmount => prodParamsAndAmount.prodParams.area * prodParamsAndAmount.amount
-            );
-            return buildingComponentPropors.Select
-            (
-                prodParamsAndAmount =>
-                (
-                    prod: prodParamsAndAmount.prodParams.GetProduct
-                    (
-                        materialPalette: buildingMatPaletteChoices[prodParamsAndAmount.prodParams.productClass]
-                    ),
-                    // This is productAreaPUBA / prodAmount. prodAmount cancelled out.
-                    amountPUBA: buildingComponentsProporOfBuildingArea * prodParamsAndAmount.amount / buildingComponentProporsTotalArea.valueInMetSq
-                )
-            ).ToEfficientReadOnlyCollection();
-        }
-
         public static CurProdStats CurConstrStats(AllResAmounts buildingCost, UDouble gravity, Temperature temperature, ulong worldSecondsInGameSecond)
         {
             var buildingComponentsArea = buildingCost.Area();

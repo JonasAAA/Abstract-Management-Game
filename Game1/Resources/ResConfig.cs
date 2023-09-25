@@ -8,8 +8,8 @@ namespace Game1.Resources
     {
         public MaterialPaletteChoices StartingMaterialPaletteChoices { get; private set; }
 
-        public EfficientReadOnlyCollection<IResource> AllCurRes
-            => new(list: resources);
+        public IEnumerable<IResource> AllCurRes
+            => resources;
 
         private readonly Dictionary<ulong, RawMaterial> indToRawMat;
         private readonly List<IResource> resources;
@@ -122,6 +122,16 @@ namespace Game1.Resources
 
         public int CompareRes(IResource left, IResource right)
             => resToOrder[left].CompareTo(resToOrder[right]);
+
+        public int CompareNullableRes<TRes>(TRes? left, TRes? right)
+            where TRes : class, IResource
+            => (left, right) switch
+            {
+                (not null, not null) => CompareRes(left: left, right: right),
+                (not null, null) => -1,
+                (null, not null) => 1,
+                (null, null) => 0
+            };
 
         /// <summary>
         /// Returns error string if material palette with such name already exists

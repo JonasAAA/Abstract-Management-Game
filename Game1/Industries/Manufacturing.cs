@@ -50,7 +50,7 @@ namespace Game1.Industries
                     nodeState: nodeState,
                     generalParams: this,
                     buildingImage: buildingImageParams.CreateImage(nodeState),
-                    buildingComponentsToAmountPUBA: ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
+                    buildingComponentsToAmountPUBA: ResAndIndustryHelpers.BuildingComponentsToAmountPUBA
                     (
                         buildingComponentPropors: buildingComponentPropors,
                         buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
@@ -149,8 +149,11 @@ namespace Game1.Industries
             MaterialPalette? Industry.IConcreteBuildingParams<ConcreteProductionParams>.SurfaceMatPalette(bool productionInProgress)
                 => SurfaceMatPalette;
 
-            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.GetProducedResources(ConcreteProductionParams productionParams)
+            SortedResSet<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.GetProducedResources(ConcreteProductionParams productionParams)
                 => productionParams.ProducedResources;
+
+            SortedResSet<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.GetConsumedResources(ConcreteProductionParams productionParams)
+                => productionParams.ConsumedResources;
 
             AllResAmounts Industry.IConcreteBuildingParams<ConcreteProductionParams>.MaxStoredInput(ConcreteProductionParams productionParams)
             {
@@ -166,8 +169,9 @@ namespace Game1.Industries
         [Serializable]
         public sealed class ConcreteProductionParams
         {
-            public EfficientReadOnlyCollection<IResource> ProducedResources { get; private set; }
-            
+            public SortedResSet<IResource> ProducedResources { get; private set; }
+            public SortedResSet<IResource> ConsumedResources { get; private set; }
+
             /// <summary>
             /// In case of error, returns the needed but not yet set material purposes
             /// </summary>
@@ -177,10 +181,10 @@ namespace Game1.Industries
                 private set
                 {
                     curProduct = value;
-                    ProducedResources = value.SwitchExpression
+                    (ProducedResources, ConsumedResources) = value.SwitchExpression
                     (
-                        ok: product => new List<IResource>() { product }.ToEfficientReadOnlyCollection(),
-                        error: errors => EfficientReadOnlyCollection<IResource>.empty
+                        ok: product => (ProducedResources: new SortedResSet<IResource>(res: product), ConsumedResources: product.Recipe.ingredients.ResSet),
+                        error: errors => (ProducedResources: SortedResSet<IResource>.empty, ConsumedResources: SortedResSet<IResource>.empty)
                     );
                 }
             }

@@ -44,7 +44,7 @@ namespace Game1.Industries
                     nodeState: nodeState,
                     generalParams: this,
                     buildingImage: buildingImageParams.CreateImage(nodeState),
-                    buildingComponentsToAmountPUBA: ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
+                    buildingComponentsToAmountPUBA: ResAndIndustryHelpers.BuildingComponentsToAmountPUBA
                     (
                         buildingComponentPropors: buildingComponentPropors,
                         buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
@@ -131,7 +131,7 @@ namespace Game1.Industries
         [Serializable]
         public sealed class StorageParams
         {
-            public EfficientReadOnlyCollection<IResource> StoredResources { get; private set; }
+            public SortedResSet<IResource> StoredResources { get; private set; }
 
             /// <summary>
             /// Eiher material, or error saying no material was chosen
@@ -144,8 +144,8 @@ namespace Game1.Industries
                     curStoredRes = value;
                     StoredResources = value.SwitchExpression
                     (
-                        ok: material => new List<IResource>() { material }.ToEfficientReadOnlyCollection(),
-                        error: errors => EfficientReadOnlyCollection<IResource>.empty
+                        ok: material => new SortedResSet<IResource>(res: material),
+                        error: errors => SortedResSet<IResource>.empty
                     );
                 }
             }

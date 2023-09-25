@@ -45,7 +45,7 @@ namespace Game1.Industries
                     nodeState: nodeState,
                     generalParams: this,
                     buildingImage: buildingImageParams.CreateImage(nodeShapeParams: nodeState),
-                    buildingComponentsToAmountPUBA: ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
+                    buildingComponentsToAmountPUBA: ResAndIndustryHelpers.BuildingComponentsToAmountPUBA
                     (
                         buildingComponentPropors: buildingComponentPropors,
                         buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
@@ -121,8 +121,11 @@ namespace Game1.Industries
             MaterialPalette? Industry.IConcreteBuildingParams<UnitType>.SurfaceMatPalette(bool productionInProgress)
                 => SurfaceMatPalette;
 
-            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
-                => EfficientReadOnlyCollection<IResource>.empty;
+            SortedResSet<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
+                => SortedResSet<IResource>.empty;
+
+            SortedResSet<IResource> Industry.IConcreteBuildingParams<UnitType>.GetConsumedResources(UnitType productionParams)
+                => SortedResSet<IResource>.empty;
 
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => AllResAmounts.empty;

@@ -44,7 +44,7 @@ namespace Game1.Industries
                     nodeState: nodeState,
                     generalParams: this,
                     buildingImage: buildingImageParams.CreateImage(nodeState),
-                    buildingComponentsToAmountPUBA: ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
+                    buildingComponentsToAmountPUBA: ResAndIndustryHelpers.BuildingComponentsToAmountPUBA
                     (
                         buildingComponentPropors: buildingComponentPropors,
                         buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
@@ -102,7 +102,8 @@ namespace Game1.Industries
                 => ResAndIndustryHelpers.MaxBuildingComponentsInArea
                 (
                     buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
-                    area: BuildingArea * CurWorldConfig.inputStorageProporOfBuildingArea * CurWorldConfig.buildingComponentStorageProporOfInputStorageArea
+                    area: BuildingArea * CurWorldConfig.inputStorageProporOfBuildingArea * CurWorldConfig.buildingComponentStorageProporOfInputStorageArea,
+                    buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
                 );
 
             /// <param Name="landfillingMassIfFull">Mass of stuff being dumped if landfill was fully operational</param>
@@ -137,8 +138,11 @@ namespace Game1.Industries
             MaterialPalette? Industry.IConcreteBuildingParams<ConcreteProductionParams>.SurfaceMatPalette(bool productionInProgress)
                 => SurfaceMatPalette;
 
-            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.GetProducedResources(ConcreteProductionParams productionParams)
+            SortedResSet<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.GetProducedResources(ConcreteProductionParams productionParams)
                 => productionParams.ProducedResources;
+
+            SortedResSet<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.GetConsumedResources(ConcreteProductionParams productionParams)
+                => productionParams.ConsumedResources.UnionWith(otherResSet: buildingCost.ResSet);
 
             AllResAmounts Industry.IConcreteBuildingParams<ConcreteProductionParams>.MaxStoredInput(ConcreteProductionParams productionParams)
             {
@@ -162,7 +166,8 @@ namespace Game1.Industries
         [Serializable]
         public sealed class ConcreteProductionParams
         {
-            public EfficientReadOnlyCollection<IResource> ProducedResources { get; private set; }
+            public SortedResSet<IResource> ProducedResources { get; private set; }
+            public SortedResSet<IResource> ConsumedResources { get; private set; }
 
             /// <summary>
             /// In case of error, returns the needed but not yet set material purposes
@@ -173,10 +178,10 @@ namespace Game1.Industries
                 private set
                 {
                     curResource = value;
-                    ProducedResources = value.SwitchExpression
+                    (ProducedResources, ConsumedResources) = value.SwitchExpression
                     (
-                        ok: product => new List<IResource>() { product }.ToEfficientReadOnlyCollection(),
-                        error: errors => EfficientReadOnlyCollection<IResource>.empty
+                        ok: res => (ProducedResources: new SortedResSet<IResource>(res: res), ConsumedResources: new SortedResSet<IResource>(res: res)),
+                        error: res => (ProducedResources: SortedResSet<IResource>.empty, ConsumedResources: SortedResSet<IResource>.empty)
                     );
                 }
             }
@@ -225,10 +230,12 @@ namespace Game1.Industries
                         // Ensure that only the resource chosen for dumping is being dumped
                         Debug.Assert(resForDumpingAll == new AllResAmounts(resForDumping));
 
+                        ulong overallMaxResToDump = buildingParams.OverallMaxResAmount(resource: resource);
+
                         ulong resToDump = Algorithms.FindMaxOkValue
                         (
                             minValue: 0,
-                            maxValue: resForDumping.amount,
+                            maxValue: MyMathHelper.Min(resForDumping.amount, overallMaxResToDump),
                             isValueOk: tryResToDump => BuildingComponentsToAdd(resToDump: tryResToDump) <= resForBuildingExpansion
                         );
                         var buildingComponentsToAdd = BuildingComponentsToAdd(resToDump: resToDump);
@@ -249,7 +256,7 @@ namespace Game1.Industries
                                         amount: new AllResAmounts(res: resource, amount: resToDump)
                                     )!,
                                     productionAmount: resToDump,
-                                    overallMaxProductionAmount: buildingParams.OverallMaxResAmount(resource: resource)
+                                    overallMaxProductionAmount: overallMaxResToDump
                                 )
                             ),
                             0 => new(errors: new(UIAlgorithms.NotEnoughResourcesToStartProduction))

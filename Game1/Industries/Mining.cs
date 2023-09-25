@@ -43,7 +43,7 @@ namespace Game1.Industries
                     nodeState: nodeState,
                     generalParams: this,
                     buildingImage: buildingImageParams.CreateImage(nodeShapeParams: nodeState),
-                    buildingComponentsToAmountPUBA: ResAndIndustryAlgos.BuildingComponentsToAmountPUBA
+                    buildingComponentsToAmountPUBA: ResAndIndustryHelpers.BuildingComponentsToAmountPUBA
                     (
                         buildingComponentPropors: buildingComponentPropors,
                         buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
@@ -73,7 +73,7 @@ namespace Game1.Industries
 
             private readonly GeneralBuildingParams generalParams;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
-            private readonly EfficientReadOnlyCollection<IResource> producedResources;
+            private readonly SortedResSet<IResource> producedResources;
             private readonly AllResAmounts startingBuildingCost;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
@@ -90,7 +90,7 @@ namespace Game1.Industries
                 this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
                 startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
-                producedResources = (nodeState.Composition.ToAll() + startingBuildingCost).resList;
+                producedResources = nodeState.Composition.ResSet.ToAll().UnionWith(otherResSet: startingBuildingCost.ResSet);
             }
 
             public static AreaInt HypotheticOutputStorageArea(AreaDouble hypotheticBuildingArea)
@@ -140,8 +140,11 @@ namespace Game1.Industries
                 => SurfaceMatPalette;
 
             // This assumes that planet composition never changes while mining is happening
-            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
+            SortedResSet<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
                 => producedResources;
+
+            SortedResSet<IResource> Industry.IConcreteBuildingParams<UnitType>.GetConsumedResources(UnitType productionParams)
+                => SortedResSet<IResource>.empty;
 
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => AllResAmounts.empty;

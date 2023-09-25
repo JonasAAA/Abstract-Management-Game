@@ -105,9 +105,12 @@ namespace Game1.Industries
                     false => null
                 };
             
-            EfficientReadOnlyCollection<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
-                => EfficientReadOnlyCollection<IResource>.empty;
-            
+            SortedResSet<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
+                => SortedResSet<IResource>.empty;
+
+            SortedResSet<IResource> Industry.IConcreteBuildingParams<UnitType>.GetConsumedResources(UnitType productionParams)
+                => buildingCost.ResSet;
+
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => buildingCost;
         }

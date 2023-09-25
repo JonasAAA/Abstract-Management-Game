@@ -52,19 +52,47 @@ namespace Game1
             return Propor.CreateByClamp((UDouble)donePropor + areaProduced / areaInProduction.valueInMetSq);
         }
 
+        /// <exception cref="ArgumentException">if buildingMatPaletteChoices doesn't contain all required product classes</exception>
+        public static EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> BuildingComponentsToAmountPUBA(
+            EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors,
+            MaterialPaletteChoices buildingMatPaletteChoices, Propor buildingComponentsProporOfBuildingArea)
+        {
+            AreaInt buildingComponentProporsTotalArea = buildingComponentPropors.Sum
+            (
+                prodParamsAndAmount => prodParamsAndAmount.prodParams.area * prodParamsAndAmount.amount
+            );
+            return buildingComponentPropors.Select
+            (
+                prodParamsAndAmount =>
+                (
+                    prod: prodParamsAndAmount.prodParams.GetProduct
+                    (
+                        materialPalette: buildingMatPaletteChoices[prodParamsAndAmount.prodParams.productClass]
+                    ),
+                    // This is productAreaPUBA / prodAmount. prodAmount cancelled out.
+                    amountPUBA: buildingComponentsProporOfBuildingArea * prodParamsAndAmount.amount / buildingComponentProporsTotalArea.valueInMetSq
+                )
+            ).ToEfficientReadOnlyCollection();
+        }
+
         /// <summary>
         /// The only difference from CurNeededBuildingComponents is rounding down instead of up
         /// </summary>
-        public static AllResAmounts MaxBuildingComponentsInArea(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble area)
+        public static AllResAmounts MaxBuildingComponentsInArea(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble area, Propor buildingComponentsProporOfBuildingArea)
             => new
             (
                 buildingComponentsToAmountPUBA.Select
                 (
-                    prodAndAmountPUBA => new ResAmount<IResource>
-                    (
-                        res: prodAndAmountPUBA.prod,
-                        amount: (ulong)(prodAndAmountPUBA.amountPUBA * area.valueInMetSq)
-                    )
+                    prodAndAmountPUBA =>
+                    {
+                        var bla = new ResAmount<IResource>
+                        (
+                            res: prodAndAmountPUBA.prod,
+                            // 1 is in here as otherwise tiny landfills may be unable to store any building component, and thus be unable to do landfilling
+                            amount: MyMathHelper.Max(1, (ulong)(prodAndAmountPUBA.amountPUBA * area.valueInMetSq / (UDouble)buildingComponentsProporOfBuildingArea))
+                        );
+                        return bla;
+                    }
                 )
             );
 

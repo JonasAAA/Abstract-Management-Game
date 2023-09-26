@@ -69,5 +69,9 @@ namespace Game1.Industries
                     )
                 )
             );
+
+        public static IEnumerable<Type> GetKnownTypes()
+            => from typeArgument in Dropdown.GetKnownTypeArgs()
+               select typeof(ItemChoiceSetter<>).MakeGenericType(typeArgument);
     }
 }

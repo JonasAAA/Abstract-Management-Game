@@ -74,5 +74,20 @@ namespace Game1.UI
 
             return startItemChoice;
         }
+
+        public static List<Type> GetKnownTypeArgs()
+            => new()
+            {
+                typeof(IResource),
+                typeof(RawMaterial),
+                typeof(Material),
+                typeof(Product),
+                typeof(MaterialPalette)
+            };
+
+        public static IEnumerable<Type> GetKnownTypes()
+            => from genericType in new List<Type>() { typeof(ItemChoiceListener<>), typeof(StartDropdownListener<>) }
+               from typeArgument in GetKnownTypeArgs()
+               select genericType.MakeGenericType(typeArgument);
     }
 }

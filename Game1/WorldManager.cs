@@ -276,6 +276,8 @@ namespace Game1
             knownTypesSet.UnionWith(Landfill.GetKnownTypes());
             knownTypesSet.UnionWith(MaterialProduction.GetKnownTypes());
             knownTypesSet.UnionWith(Storage.GetKnownTypes());
+            knownTypesSet.UnionWith(Dropdown.GetKnownTypes());
+            knownTypesSet.UnionWith(IndustryUIAlgos.GetKnownTypes());
             List<Type> unserializedTypeList = new();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {

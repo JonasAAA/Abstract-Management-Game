@@ -24,27 +24,33 @@ namespace Game1.Shapes
                 => new(parameters: this, nodeShapeParams: nodeShapeParams);
         }
 
+        public static AreaDouble ComputeBuildingArea(AreaInt planetArea, UDouble buildingHeight)
+            => DiskAlgos.Area(radius: ComputeRadius(planetArea: planetArea, buildingHeight: buildingHeight)) - planetArea.ToDouble();
+
+        private static UDouble ComputeRadius(AreaInt planetArea, UDouble buildingHeight)
+            => DiskAlgos.RadiusFromArea(area: planetArea.ToDouble()) + buildingHeight;
+
         // Note that this is building area, not disk area
         public AreaDouble Area
-            => AreaImpl(planetArea: nodeShapeParams.Area);
+            => ComputeBuildingArea(planetArea: nodeShapeParams.Area, buildingHeight: buildingHeight);
 
         public AreaDouble HypotheticalArea(AreaInt hypotheticPlanetArea)
-            => AreaImpl(planetArea: hypotheticPlanetArea);
+            => ComputeBuildingArea(planetArea: hypotheticPlanetArea, buildingHeight: buildingHeight);
 
-        private AreaDouble AreaImpl(AreaInt planetArea)
-            => DiskAlgos.Area(radius: RadiusImpl(planetArea: planetArea)) - planetArea.ToDouble();
-
+        
         private UDouble FinishedBuildingRadius
             => nodeShapeParams.Radius + parameters.finishedBuildingHeight;
         private UDouble CurRadius
-            => RadiusImpl(planetArea: nodeShapeParams.Area);
-        private UDouble RadiusImpl(AreaInt planetArea)
         {
-            // The algorithm to calculate hypothetical building area in case planet size changes relies on planet radius to be
-            // exactly what you would get from the planet area assuming that the planet is disk.
-            Debug.Assert(DiskAlgos.RadiusFromArea(area: nodeShapeParams.Area.ToDouble()).IsCloseTo(nodeShapeParams.Radius));
-            return DiskAlgos.RadiusFromArea(area: planetArea.ToDouble()) + buildingHeight;
+            get
+            {
+                // The algorithm to calculate hypothetical building area in case planet size changes relies on planet radius to be
+                // exactly what you would get from the planet area assuming that the planet is disk.
+                Debug.Assert(DiskAlgos.RadiusFromArea(area: nodeShapeParams.Area.ToDouble()).IsCloseTo(nodeShapeParams.Radius));
+                return ComputeRadius(planetArea: nodeShapeParams.Area, buildingHeight: buildingHeight);
+            }
         }
+
 
         private readonly Params parameters;
         private readonly INodeShapeParams nodeShapeParams;

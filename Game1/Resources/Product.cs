@@ -48,7 +48,7 @@ namespace Game1.Resources
             public readonly IProductClass productClass;
             public readonly ulong materialPaletteAmount, indInClass;
             public readonly EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts;
-            public readonly AreaInt area;
+            public readonly AreaInt area, recipeArea;
             public readonly MechComplexity complexity;
 
             //private readonly HashSet<IMaterialPurpose> neededPurposes;
@@ -56,11 +56,12 @@ namespace Game1.Resources
 
             private Params(string name, IProductClass productClass, ulong materialPaletteAmount, ulong indInClass, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
             {
+                ulong ingredientAmount = productClass.MatPurposeToAmount.Values.Sum() * materialPaletteAmount + ingredProdToAmounts.Sum(prodParamsAndAmount => prodParamsAndAmount.amount);
                 Debug.Assert
                 (
                     ResAndIndustryAlgos.productRecipeInputAmountMultiple
                     // ingredient amount
-                    % productClass.MatPurposeToAmount.Values.Sum() * materialPaletteAmount + ingredProdToAmounts.Sum(prodParamsAndAmount => prodParamsAndAmount.amount)
+                    % ingredientAmount
                     is 0
                 );
                 // Product will still need to know what product class it is, so probably need to take such parameter here as well.
@@ -73,6 +74,7 @@ namespace Game1.Resources
                 Debug.Assert(ingredProdToAmounts.All(prodParamsAndAmounts => prodParamsAndAmounts.prodParams.productClass == productClass));
                 Debug.Assert(ingredProdToAmounts.All(prodParamsAndAmounts => prodParamsAndAmounts.prodParams.indInClass < indInClass));
                 area = ResAndIndustryAlgos.blockArea;
+                recipeArea = area * ingredientAmount;
                 complexity = ResAndIndustryAlgos.ProductMechComplexity
                 (
                     productClass: productClass,

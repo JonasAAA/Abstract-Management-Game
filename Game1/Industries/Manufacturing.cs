@@ -100,12 +100,12 @@ namespace Game1.Industries
                 maxInputAmountStored = ResAndIndustryAlgos.MaxAmount
                 (
                     availableArea: buildingArea * CurWorldConfig.inputStorageProporOfBuildingArea,
-                    itemArea: productParams.area
+                    itemArea: productParams.recipeArea
                 );
                 overallMaxProductAmount = ResAndIndustryAlgos.MaxAmount
                 (
                     availableArea: buildingArea * CurWorldConfig.productionProporOfBuildingArea,
-                    itemArea: productParams.area
+                    itemArea: productParams.recipeArea
                 );
                 buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
@@ -114,7 +114,8 @@ namespace Game1.Industries
                 => ResAndIndustryAlgos.MaxAmount
                 (
                     availableArea: MyMathHelper.Min(buildingArea * CurWorldConfig.productionProporOfBuildingArea, maxOutputArea.ToDouble()),
-                    itemArea: productParams.area
+                    // item area should be the recipe area
+                    itemArea: productParams.recipeArea
                 );
 
             /// <param Name="productionMassIfFull">Mass of stuff in production if industry was fully operational</param>
@@ -229,11 +230,14 @@ namespace Game1.Industries
                 (
                     product =>
                     {
+                        ulong maxCount = buildingParams.CurMaxProductAmount(maxOutputArea: buildingParams.maxStoredOutputArea - storedOutputArea);
+                        if (maxCount is 0)
+                            return new(errors: new(UIAlgorithms.OutputStorageFullSoNoProduction));
                         var resInUseAndCount = ResPile.CreateMultipleIfHaveEnough
                         (
                             source: inputStorage,
                             amount: product.Recipe.ingredients,
-                            maxCount: buildingParams.CurMaxProductAmount(maxOutputArea: buildingParams.maxStoredOutputArea - storedOutputArea)
+                            maxCount: maxCount
                         );
                         return resInUseAndCount switch
                         {
@@ -279,7 +283,7 @@ namespace Game1.Industries
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
                 reqEnergyHistoricRounder = new();
                 proporUtilized = Propor.Create(part: productionAmount, whole: overallMaxProductionAmount)!.Value;
-                areaInProduction = buildingParams.productParams.area * productionAmount;
+                areaInProduction = buildingParams.productParams.recipeArea * productionAmount;
                 donePropor = Propor.empty;
             }
 
@@ -315,7 +319,10 @@ namespace Game1.Industries
                 );
 
                 if (donePropor.IsFull)
+                {
                     outputStorage.TransformFrom(source: resInUse, recipe: recipe);
+                    Debug.Assert(outputStorage.Amount.Area() <= buildingParams.maxStoredOutputArea);
+                }
                 return null;
             }
 

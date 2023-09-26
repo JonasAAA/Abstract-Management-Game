@@ -207,11 +207,14 @@ namespace Game1.Industries
                 (
                     material =>
                     {
+                        var maxCount = buildingParams.CurMaxProductionAmount(materialArea: material.Area, maxOutputArea: buildingParams.maxStoredOutputArea - storedOutputArea);
+                        if (maxCount is 0)
+                            return new(errors: new(UIAlgorithms.OutputStorageFullSoNoProduction));
                         var resInUseAndCount = ResPile.CreateMultipleIfHaveEnough
                         (
                             source: inputStorage,
                             amount: material.Recipe.ingredients,
-                            maxCount: buildingParams.CurMaxProductionAmount(materialArea: material.Area, maxOutputArea: buildingParams.maxStoredOutputArea - storedOutputArea)
+                            maxCount: maxCount
                         );
                         return resInUseAndCount switch
                         {

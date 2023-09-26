@@ -11,7 +11,16 @@ namespace Game1
     public sealed class NodeState : IIndustryFacingNodeState
     {
         public static RawMatAmounts CalculateComposition(RawMatAmounts rawMatRatios, UDouble approxRadius)
-            => rawMatRatios * Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / rawMatRatios.Area().valueInMetSq);
+            // This whole Max thing is so that the planet is not smaller than the minimal allowed area
+            => rawMatRatios * MyMathHelper.Max
+            (
+                MyMathHelper.DivideThenTakeCeiling
+                (
+                    dividend: CurWorldConfig.minPlanetArea.valueInMetSq,
+                    divisor: rawMatRatios.Area().valueInMetSq
+                ),
+                Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / rawMatRatios.Area().valueInMetSq)
+            );
 
         public NodeID NodeID { get; }
         public Mass PlanetMass
@@ -78,6 +87,8 @@ namespace Game1
                 isInActivityCenter: false
             );
             UpdateTemperature();
+            if (Area <= CurWorldConfig.minPlanetArea)
+                throw new ArgumentException();
         }
 
         public void UpdateTemperature()

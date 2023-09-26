@@ -52,7 +52,7 @@ namespace Game1
         public readonly UDouble
             brightStarTextureBrigthness = (UDouble)1.2,
             dimStarTextureBrightness = (UDouble).6,
-            metersPerStartingPixel = 100000,
+            metersPerStartingPixel = 200000,
             screenBoundWidthForMapMoving = 10,
             scrollSpeed = 60,
             minSafeDist = 10;
@@ -136,6 +136,17 @@ namespace Game1
             diskBuildingHeight = metersPerStartingPixel * 10;
             // Since [minPlanetArea] ~ m^2
             minPlanetArea = (metersPerStartingPixel * metersPerStartingPixel * DiskAlgos.Area(radius: 10)).RoundDown();
+            // Even the smallest planets should be able to produce products.
+            // Thus they must be able to hold all needed inputs in production.
+            // *2 part is just to be sure that things like rounding errors will not make the number too small
+            Debug.Assert
+            (
+                (DiskBuildingImage.ComputeBuildingArea
+                (
+                    planetArea: minPlanetArea,
+                    buildingHeight: diskBuildingHeight
+                ) * productionProporOfBuildingArea).RoundDown() >= 2 * ResAndIndustryAlgos.blockArea * ResAndIndustryAlgos.productRecipeInputAmountMultiple
+            );
 
             // Since [gravitConst] ~ m^(1+gravitExponent)/kg
             gravitConst = MyMathHelper.Pow(@base: metersPerStartingPixel, exponent: (double)gravitExponent - 1);

@@ -1,4 +1,5 @@
-﻿using System.Runtime.InteropServices.JavaScript;
+﻿using Game1.Shapes;
+using System.Runtime.InteropServices.JavaScript;
 
 namespace Game1
 {
@@ -63,7 +64,7 @@ namespace Game1
         public readonly Propor
             desperationMemoryPropor = (Propor).9;
         public readonly AreaInt
-            minPlanetArea = AreaInt.CreateFromMetSq(valueInMetSq: 100);
+            minPlanetArea;
         public readonly ulong
             startingPersonNumInHouseCosmicBody = 15,
             startingPersonNumInPowerPlantCosmicBody = 5;
@@ -133,6 +134,8 @@ namespace Game1
             linkWidth = metersPerStartingPixel * 10;
             // Since [diskBuildingHeight] ~ m
             diskBuildingHeight = metersPerStartingPixel * 10;
+            // Since [minPlanetArea] ~ m^2
+            minPlanetArea = (metersPerStartingPixel * metersPerStartingPixel * DiskAlgos.Area(radius: 10)).RoundDown();
 
             // Since [gravitConst] ~ m^(1+gravitExponent)/kg
             gravitConst = MyMathHelper.Pow(@base: metersPerStartingPixel, exponent: (double)gravitExponent - 1);

@@ -8,21 +8,36 @@ namespace Game1.Resources
     {
         public MaterialPaletteChoices StartingMaterialPaletteChoices { get; private set; }
 
-        public IEnumerable<IResource> AllCurRes
-            => resources;
+        public SortedResSet<IResource> AllCurRes
+            => SortedResSet<IResource>.FromSortedUniqueResListUnsafe(sortedUniqueResList: resources.ToEfficientReadOnlyCollection());
 
         private readonly Dictionary<ulong, RawMaterial> indToRawMat;
         private readonly List<IResource> resources;
         private readonly Dictionary<IResource, ulong> resToOrder;
-        private ulong nextOrder;
+        private ulong nextMaterialInd, nextMatPaletteInd;
         private readonly EfficientReadOnlyDictionary<IProductClass, List<MaterialPalette>> materialPalettes;
+        private readonly Dictionary<MaterialPalette, ulong> matPaletteToInd;
+        private readonly EfficientReadOnlyDictionary<IProductClass, ulong> prodClassToInd;
+        private const ulong
+            rawMatOrderOffset = 0,
+            materialOrderOffset = 1_000_000,
+            productOrderOffset = 2_000_000,
+            maxMaterialPaletteCount = 1_000_000,
+            maxProdInClassCount = ResAndIndustryAlgos.maxProductIndInClass + 1;
 
         public ResConfig()
         {
             resources = new();
             indToRawMat = new();
             resToOrder = new();
-            nextOrder = 0;
+            matPaletteToInd = new();
+            prodClassToInd = IProductClass.all.Select((prodClass, ind) => (prodClass, ind)).ToEfficientReadOnlyDict
+            (
+                keySelector: prodClassAndInd => prodClassAndInd.prodClass,
+                elementSelector: prodClassAndInd => (ulong)prodClassAndInd.ind
+            );
+            nextMaterialInd = 0;
+            nextMatPaletteInd = 0;
             materialPalettes = IProductClass.all.ToEfficientReadOnlyDict(elementSelector: _ => new List<MaterialPalette>());
         }
 
@@ -65,7 +80,7 @@ namespace Game1.Resources
                 {
                     MaterialPalette.CreateAndAddToResConfig
                     (
-                        name: "default mechanical",
+                        name: "def. mech.",
                         productClass: IProductClass.mechanical,
                         materialChoices: new()
                         {
@@ -74,7 +89,7 @@ namespace Game1.Resources
                     ).UnwrapOrThrow(),
                     MaterialPalette.CreateAndAddToResConfig
                     (
-                        name: "default electronics",
+                        name: "def. elec.",
                         productClass: IProductClass.electronics,
                         materialChoices: new()
                         {
@@ -84,7 +99,7 @@ namespace Game1.Resources
                     ).UnwrapOrThrow(),
                     MaterialPalette.CreateAndAddToResConfig
                     (
-                        name: "default roof",
+                        name: "def. roof",
                         productClass: IProductClass.roof,
                         materialChoices: new()
                         {
@@ -111,15 +126,42 @@ namespace Game1.Resources
         public void AddRes(IResource resource)
         {
             resources.Add(resource);
-            resToOrder.Add(key: resource, value: nextOrder);
-            nextOrder++;
+            resToOrder.Add(key: resource, value: GetOrder(resource: resource));
+            resources.Sort();
             if (resource is RawMaterial rawMaterial)
             {
                 Debug.Assert(!indToRawMat.ContainsKey(rawMaterial.Ind));
                 indToRawMat[rawMaterial.Ind] = rawMaterial;
             }
+
+            ulong GetOrder(IResource resource)
+                => resource switch
+                {
+                    RawMaterial rawMaterial => rawMatOrderOffset + rawMaterial.Ind,
+                    Material => materialOrderOffset + nextMaterialInd++,
+                    Product product => productOrderOffset + product.IndInClass + maxProdInClassCount * (matPaletteToInd[product.MaterialPalette] + maxMaterialPaletteCount * prodClassToInd[product.ProductClass]),
+                    _ => throw new ArgumentException()
+                };
         }
 
+        /// <summary>
+        /// Want the order to be:
+        /// * Raw materials (0, 1, ...)
+        /// * Materials (by order of creation)
+        ///   Alphabetic order is difficult to implement as player may rename some material, and would be difficult to reflect that
+        ///   change in all resAmounts.
+        ///   Maybe could store internally in any order and only when showing to the player, order nicely, e.g. alphabetically
+        /// * Products (material palettes sorted by order of creation):
+        ///   * Product class 0 + Material palette 0
+        ///     * Prod params 0
+        ///     * Prod params 1
+        ///   * Product class 0 + Material palette 1
+        ///   * Product class 1 + Material palette 0
+        ///   * Product class 1 + Material palette 1
+        /// </summary>
+        /// <param name="left"></param>
+        /// <param name="right"></param>
+        /// <returns></returns>
         public int CompareRes(IResource left, IResource right)
             => resToOrder[left].CompareTo(resToOrder[right]);
 
@@ -148,6 +190,7 @@ namespace Game1.Resources
                     return possibleErrors;
             }
             relevantMatPalettes.Add(materialPalette);
+            matPaletteToInd[materialPalette] = nextMatPaletteInd++;
             return new(ok: new());
         }
 

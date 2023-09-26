@@ -161,7 +161,7 @@ namespace Game1.Industries
                     {
                         Button addOrRemoveResSourceButton = new
                         (
-                            shape: new MyRectangle(width: 200, height: 60),
+                            shape: new MyRectangle(width: 200, height: 30),
                             tooltip: new ImmutableTextTooltip(text: UIAlgorithms.AddOrRemoveResSourceTooltip(res: res)),
                             text: res.ToString()
                         );

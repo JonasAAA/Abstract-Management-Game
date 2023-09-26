@@ -6,7 +6,7 @@ namespace Game1.UI
     public static class UIAlgorithms
     {
         public static string ProductName(string prodParamsName, string paletteName)
-            => $"{prodParamsName}\n{paletteName}";
+            => $"{prodParamsName} ({paletteName})";
 
         public static string ManufacturingBasicName(string prodParamsName)
             => $"Basic {prodParamsName} manufaturing";

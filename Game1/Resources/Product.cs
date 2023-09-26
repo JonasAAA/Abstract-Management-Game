@@ -92,7 +92,7 @@ namespace Game1.Resources
                 // This is needed for when this is called to get the needed material purposes prior to CurResConfig initialization
                 if (CurResConfig is not null)
                     foreach (var otherProd in CurResConfig.GetCurRes<Product>())
-                        if (otherProd.parameters == this && otherProd.materialPalette == materialPalette)
+                        if (otherProd.parameters == this && otherProd.MaterialPalette == materialPalette)
                             return otherProd;
                 return new Product
                 (
@@ -152,16 +152,20 @@ namespace Game1.Resources
         public AreaInt Area { get; }
         public RawMatAmounts RawMatComposition { get; }
         public ResRecipe Recipe { get; }
+        public MaterialPalette MaterialPalette { get; }
+        public ulong IndInClass { get; }
+        public IProductClass ProductClass { get; }
 
         private readonly string name;
         private readonly Params parameters;
-        private readonly MaterialPalette materialPalette;
 
         private Product(string name, Params parameters, MaterialPalette materialPalette, ResAmounts<Product> productIngredients, ResAmounts<Material> materialIngredients)
         {
             this.name = name;
             this.parameters = parameters;
-            this.materialPalette = materialPalette;
+            MaterialPalette = materialPalette;
+            IndInClass = parameters.indInClass;
+            ProductClass = parameters.productClass;
             var ingredients = productIngredients.ToAll() + materialIngredients.ToAll();
             var ingredAmount = ingredients.Sum(resAmount => resAmount.amount);
             RawMatComposition = new

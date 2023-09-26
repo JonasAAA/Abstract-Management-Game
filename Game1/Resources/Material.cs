@@ -10,7 +10,7 @@ namespace Game1.Resources
             => new
             (
                 name: name,
-                composition: ResAndIndustryAlgos.CreateRawMatCompositionFromRawMatPropors(rawMatPropors: rawMatAreaPropors)
+                composition: ResAndIndustryAlgos.CreateMatCompositionFromRawMatPropors(rawMatPropors: rawMatAreaPropors)
             );
 
         public Mass Mass { get; }

@@ -214,7 +214,7 @@ namespace Game1
         {
 #warning Test this
             ulong weightSum = weights.Sum(ownerAndWeight => ownerAndWeight.Value);
-            List<(TOwner owner, ulong amount)> ownersToAmounts = weights.Select
+            var ownersToAmounts = weights.Select
             (
                 ownerAndWeight =>
                 (

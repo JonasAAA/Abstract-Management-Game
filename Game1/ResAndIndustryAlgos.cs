@@ -49,7 +49,7 @@ namespace Game1
         public static HeatEnergy HeatEnergyFromTemperature(Temperature temperature, HeatCapacity heatCapacity)
             => HeatEnergy.CreateFromJoules(valueInJ: MyMathHelper.Round(heatCapacity.valueInJPerK * temperature.valueInK / temperatureScaling));
 
-        public static RawMatAmounts CreateRawMatCompositionFromRawMatPropors(RawMatAmounts rawMatPropors)
+        public static RawMatAmounts CreateMatCompositionFromRawMatPropors(RawMatAmounts rawMatPropors)
         {
             ulong totalWeights = rawMatPropors.Sum(resAmount => resAmount.amount);
             if (totalWeights is 0)
@@ -59,18 +59,17 @@ namespace Game1
             ulong smallCompositionsInBlock = materialCompositionDivisor;
             Debug.Assert(blockArea.valueInMetSq % (smallCompositionsInBlock * rawMaterialArea.valueInMetSq) is 0);
             ulong rawMatTotalAmountInSmallComposition = blockArea.valueInMetSq / (smallCompositionsInBlock * rawMaterialArea.valueInMetSq);
-            
+
             RawMatAmounts smallComposition = new
             (
-                resAmounts: Algorithms.Split
+                resAmounts: rawMatPropors.Select
                 (
-                    weights: rawMatPropors.ToEfficientReadOnlyDict
+                    rawMatAmount => new ResAmount<RawMaterial>
                     (
-                        keySelector: rawMatAmount => rawMatAmount.res,
-                        elementSelector: rawMatAmount => rawMatAmount.amount
-                    ),
-                    totalAmount: rawMatTotalAmountInSmallComposition
-                ).Select(resAndAmount => new ResAmount<RawMaterial>(res: resAndAmount.owner, resAndAmount.amount))
+                        res: rawMatAmount.res,
+                        amount: rawMatAmount.amount * rawMatTotalAmountInSmallComposition / totalWeights
+                    )
+                )
             );
             RawMatAmounts composition = smallComposition * smallCompositionsInBlock;
             Debug.Assert(composition.Area() == blockArea);

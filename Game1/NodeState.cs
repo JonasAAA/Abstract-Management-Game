@@ -93,7 +93,7 @@ namespace Game1
             SurfaceGravity = WorldFunctions.SurfaceGravity(mass: allResComposition.Mass(), resArea: allResComposition.Area());
         }
 
-        public Result<ResPile, TextErrors> Mine(AreaInt targetArea, RawMatAllocator rawMatAllocator)
+        public Result<ResPile, TextErrors> Mine(AreaInt targetArea)
         {
             Debug.Assert(Composition == consistsOfResPile.Amount.Filter<RawMaterial>());
             (AreaInt finalMaxArea, bool minedOut) = (Area <= CurWorldConfig.minPlanetArea + targetArea) switch
@@ -101,11 +101,22 @@ namespace Game1
                 true => (finalMaxArea: Area - CurWorldConfig.minPlanetArea, minedOut: true),
                 false => (finalMaxArea: targetArea, minedOut: false),
             };
-            var rawMatsAmountsToMine = rawMatAllocator.TakeAtMostFrom
+            RawMatAmounts rawMatsAmountsToMine = new
             (
-                source: Composition,
-                maxArea: finalMaxArea
+                resAmounts: Algorithms.Split
+                (
+                    weights: Composition.ToEfficientReadOnlyDict(),
+                    totalAmount: finalMaxArea.valueInMetSq / ResAndIndustryAlgos.rawMaterialArea.valueInMetSq
+                ).Select
+                (
+                    rawMatAndAmount => new ResAmount<RawMaterial>
+                    (
+                        res: rawMatAndAmount.owner,
+                        amount: rawMatAndAmount.amount
+                    )
+                )
             );
+            Debug.Assert(rawMatsAmountsToMine.Area() <= targetArea);
             if (rawMatsAmountsToMine.IsEmpty && minedOut)
                 return new(errors: new(UIAlgorithms.CosmicBodyIsMinedOut));
 

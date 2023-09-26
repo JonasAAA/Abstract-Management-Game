@@ -193,6 +193,13 @@ namespace Game1.Collections
             return new(resList: newResList.ToEfficientReadOnlyCollection(), amounts: amounts);
         }
 
+        public EfficientReadOnlyDictionary<TRes, ulong> ToEfficientReadOnlyDict()
+            => this.ToEfficientReadOnlyDict
+            (
+                keySelector: resAmount => resAmount.res,
+                elementSelector: resAmount => resAmount.amount
+            );
+
         public ulong NumberOfTimesLargerThan(ResAmounts<TRes> other)
         {
             ulong numberOfTimesLarger = ulong.MaxValue;

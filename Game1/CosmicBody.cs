@@ -100,7 +100,6 @@ namespace Game1
         private IIndustry? industry;
         private readonly new LightBlockingDisk shape;
         private ElectricalEnergy locallyProducedEnergy, usedLocalEnergy;
-        private readonly SimpleHistoricProporSplitter<IRadiantEnergyConsumer> radiantEnergySplitter;
         private readonly Dictionary<RawMaterial, HistoricRounder> reactionNumberRounders;
         private readonly HistoricRounder energyToDissipateRounder, heatEnergyToDissipateRounder, reflectedRadiantEnergyRounder, capturedForUseRadiantEnergyRounder;
         private readonly EnergyPile<RadiantEnergy> radiantEnergyToDissipatePile;
@@ -124,7 +123,6 @@ namespace Game1
 
             usedLocalEnergy = ElectricalEnergy.zero;
             reactionNumberRounders = new();
-            radiantEnergySplitter = new();
             energyToDissipateRounder = new();
             heatEnergyToDissipateRounder = new();
             reflectedRadiantEnergyRounder = new();
@@ -576,10 +574,14 @@ namespace Game1
 
                 Debug.Assert(arcsForObjects.Values.Sum().IsCloseTo(other: 2 * MyMathHelper.pi));
 
-                Dictionary<IRadiantEnergyConsumer, ulong> splitAmounts = radiantEnergySplitter.Split
+                var splitAmounts = Algorithms.Split
                 (
-                    amount: producedRadiantEnergy.ValueInJ,
-                    importances: arcsForObjects
+                    weights: arcsForObjects.ToEfficientReadOnlyDict
+                    (
+                        keySelector: energyConsumerAndArc => energyConsumerAndArc.Key,
+                        elementSelector: energyConsumerAndArc => MyMathHelper.Round(energyConsumerAndArc.Value * (1 << 20))
+                    ),
+                    totalAmount: producedRadiantEnergy.ValueInJ
                 );
 
                 foreach (var (radiantEnergyConsumer, allocAmount) in splitAmounts)

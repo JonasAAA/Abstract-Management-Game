@@ -29,17 +29,19 @@ namespace Game1.PrimitiveTypeWrappers
         {
             if (double.IsNaN(value))
                 return null;
-            if (value < 0 && MyMathHelper.AreClose(value, 0))
-                value = 0;
             if (value > 1 && MyMathHelper.AreClose(value, 1))
                 value = 1;
-            if (value is >= 0 and <= 1)
-                return new(value: value);
+            if (value <= 1)
+                return UDouble.Create(value: value) switch
+                {
+                    UDouble unsignedValue => new(value: unsignedValue),
+                    null => null
+                };
             return null;
         }
 
         public static Propor CreateByClamp(UDouble value)
-            => new(value: MyMathHelper.Min((double)value, 1));
+            => new(value: MyMathHelper.Min(value, 1u));
 
         public bool IsFull
             => this == full;
@@ -49,10 +51,10 @@ namespace Game1.PrimitiveTypeWrappers
 
         private readonly UDouble value;
 
-        private Propor(double value)
+        private Propor(UDouble value)
         {
-            Debug.Assert(value is >= 0 and <= 1);
-            this.value = (UDouble)value;
+            Debug.Assert(value <= 1);
+            this.value = value;
         }
 
         public Propor Opposite()

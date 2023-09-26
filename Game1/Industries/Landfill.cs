@@ -313,7 +313,12 @@ namespace Game1.Industries
 #warning Currenlty, landfill adding new building components and mining removing building components doesn't cost any energy. Should probably change that 
                 curLandfillingStats = buildingParams.CurLandfillingStats(landfillingMassIfFull: landfillingMassIfFull);
 #warning if production will be done this frame, could request just enough energy to complete it rather than the usual amount
-                ReqEnergy = reqEnergyHistoricRounder.CurEnergy<ElectricalEnergy>(watts: curLandfillingStats.ReqWatts, proporUtilized: proporUtilized, elapsed: CurWorldManager.Elapsed);
+                ReqEnergy = reqEnergyHistoricRounder.CurEnergy<ElectricalEnergy>
+                (
+                    watts: curLandfillingStats.ReqWatts,
+                    proporUtilized: proporUtilized,
+                    elapsed: CurWorldManager.Elapsed
+                );
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)

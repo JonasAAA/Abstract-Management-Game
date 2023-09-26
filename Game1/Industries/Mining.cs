@@ -154,13 +154,11 @@ namespace Game1.Industries
         public class PersistentState
         {
             public readonly ResPile buildingResPile;
-            public readonly RawMatAllocator minedResAllocator;
             public HistoricCorrector<double> minedAreaHistoricCorrector;
 
             public PersistentState(ResPile buildingResPile)
             {
                 this.buildingResPile = buildingResPile;
-                minedResAllocator = new();
                 minedAreaHistoricCorrector = new();
             }
         }
@@ -204,8 +202,7 @@ namespace Game1.Industries
                 bool isCapped = minedAreaCorrectorWithTarget.suggestion >= maxPossibleAreaToMine;
                 return parameters.NodeState.Mine
                 (
-                    targetArea: AreaInt.CreateFromMetSq(valueInMetSq: maxAreaToMine),
-                    rawMatAllocator: persistentState.minedResAllocator
+                    targetArea: AreaInt.CreateFromMetSq(valueInMetSq: maxAreaToMine)
                 ).SwitchExpression<Result<MiningCycleState, TextErrors>>
                 (
                     ok: miningRes =>

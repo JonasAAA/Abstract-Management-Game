@@ -54,8 +54,8 @@
             almostWhiteColor = Color.Aqua;
             buttonColor = Color.DarkBlue;
             buttonTextColor = textColor;
-            selectedButtonColor = C.ColorFromRGB(rgb: 0x03645);
-            deselectedButtonColor = UIBackgroundColor;
+            selectedButtonColor = buttonColor;
+            deselectedButtonColor = buttonColor;
             tooltipBackgroundColor = Color.LightPink;
             deleteButtonColor = Color.Red;
         }

@@ -70,6 +70,24 @@ namespace Game1
 
         [NonSerialized] private Task<PersonAndResShortestPaths> shortestPathsTask;
 
+        private WorldUIElement? ActiveWorldElement
+        {
+            get => activeWorldElement;
+            set
+            {
+                if (activeWorldElement == value)
+                    return;
+                if (activeWorldElement is not null)
+                    activeWorldElement.Active = false;
+                activeWorldElement = value;
+                if (activeWorldElement is not null)
+                    activeWorldElement.Active = true;
+            }
+        }
+
+        /// <summary>
+        /// NEVER use this directly. Use the associated property instead
+        /// </summary>
         private WorldUIElement? activeWorldElement;
 
         public static Graph CreateFromInfo(FullValidMapInfo mapInfo, WorldCamera mapInfoCamera, ResConfig resConfig, IndustryConfig industryConfig)
@@ -230,7 +248,7 @@ namespace Game1
             foreach (var worldUIElement in WorldUIElements)
                 worldUIElement.activeChanged.Add(listener: this);
 
-            activeWorldElement = null;
+            DeactivateWorldElements();
         }
 
         public void Initialize()
@@ -244,6 +262,9 @@ namespace Game1
             MaxLinkTravelTime = links.MaxOrDefault(link => link.TravelTime);
             MaxLinkJoulesPerKg = links.MaxOrDefault(link => link.JoulesPerKg);
         }
+
+        public void DeactivateWorldElements()
+            => ActiveWorldElement = null;
 
         [MemberNotNull(nameof(personDists), nameof(personFirstLinks), nameof(resDists), nameof(resFirstLinks))]
         private void SetPersonAndResShortestPaths(PersonAndResShortestPaths personAndResShortestPaths)
@@ -359,11 +380,7 @@ namespace Game1
         {
             base.OnClick();
 
-            if (activeWorldElement is not null)
-            {
-                activeWorldElement.Active = false;
-                activeWorldElement = null;
-            }
+            DeactivateWorldElements();
         }
 
         public void PreEnergyDistribUpdate()
@@ -454,15 +471,11 @@ namespace Game1
         void IActiveChangedListener.ActiveChangedResponse(WorldUIElement worldUIElement)
         {
             if (worldUIElement.Active)
-            {
-                if (activeWorldElement is not null)
-                    activeWorldElement.Active = false;
-                activeWorldElement = worldUIElement;
-            }
+                ActiveWorldElement = worldUIElement;
             else
             {
-                if (activeWorldElement == worldUIElement)
-                    activeWorldElement = null;
+                Debug.Assert(ActiveWorldElement == worldUIElement);
+                DeactivateWorldElements();
             }
         }
     }

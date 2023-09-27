@@ -49,6 +49,7 @@ namespace Game1
         {
             public static void StartBuildingConfig(Construction.GeneralParams constrGeneralParams)
             {
+                CurWorldManager.DeactivateWorldElements();
                 CurWorldManager.activeUIManager.DisableAllUIElements();
                 BuildingConfigPanelManager buildingConfigPanelManager = new(constrGeneralParams: constrGeneralParams);
                 CurWorldManager.AddHUDElement
@@ -491,6 +492,15 @@ namespace Game1
 
         public MyVector2 NodePosition(NodeID nodeID)
             => CurGraph.NodePosition(nodeID: nodeID);
+
+        public bool IsCosmicBodyActive(NodeID nodeID)
+            => CurGraph.nodeIDToNode[nodeID].Active;
+
+        public void SetIsCosmicBodyActive(NodeID nodeID, bool active)
+            => CurGraph.nodeIDToNode[nodeID].Active = active;
+
+        public void DeactivateWorldElements()
+            => CurGraph.DeactivateWorldElements();
 
         public IEnumerable<IIndustry> SourcesOf(IResource resource)
             => CurGraph.SourcesOf(resource: resource);

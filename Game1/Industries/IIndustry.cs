@@ -214,7 +214,7 @@ namespace Game1.Industries
                                     ToggleSourcePanelManagers: toggleSourcePanelManagers.ToEfficientReadOnlyCollection(),
                                     Resource: Resource,
                                     SourceIndustry: sourceIndustry,
-                                    DestinIndustry: Industry
+                                    Industry: Industry
                                 )
                             );
 
@@ -235,6 +235,9 @@ namespace Game1.Industries
                 );
 #warning Pause the game here. Also, when click anywhere else, cancel this action
                 // PROBABLY want to pause the game here so that sources don't appear and disappear before the player's eyes
+
+                Debug.Assert(CurWorldManager.IsCosmicBodyActive(nodeID: Industry.NodeID));
+                CurWorldManager.SetIsCosmicBodyActive(nodeID: Industry.NodeID, active: false);
                 CurWorldManager.DisableAllUIElements();
 
                 foreach (var (toggleSourcePanel, _, panelHUDPosUpdater) in toggleSourcePanelManagers)
@@ -245,15 +248,17 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        private sealed record ToggleRouteListener(EfficientReadOnlyCollection<ToggleSourcePanelManager> ToggleSourcePanelManagers, IResource Resource, IIndustry SourceIndustry, IIndustry DestinIndustry) : IClickedListener
+        private sealed record ToggleRouteListener(EfficientReadOnlyCollection<ToggleSourcePanelManager> ToggleSourcePanelManagers, IResource Resource, IIndustry SourceIndustry, IIndustry Industry) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
             {
-                ToggleSourceAndDestin(resource: Resource, source: SourceIndustry, destin: DestinIndustry);
+                ToggleSourceAndDestin(resource: Resource, source: SourceIndustry, destin: Industry);
 
                 foreach (var (toggleSourcePanel, _, _) in ToggleSourcePanelManagers)
                     CurWorldManager.RemoveWorldHUDElement(worldHUDElement: toggleSourcePanel);
                 CurWorldManager.EnableAllUIElements();
+                Debug.Assert(!CurWorldManager.IsCosmicBodyActive(nodeID: Industry.NodeID));
+                //CurWorldManager.SetIsCosmicBodyActive(nodeID: Industry.NodeID, active: true);
             }
         }
 

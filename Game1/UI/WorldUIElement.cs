@@ -6,10 +6,10 @@ using static Game1.WorldManager;
 
 namespace Game1.UI
 {
-    [Serializable]
     // TChild is WorldUIElement to disallow text and similar UI elements which would should not scale when player zooms in/out
     // The correct approach here would be to have TChild IWorldUIElement (that being new interface) but I'm not sure if that'll work
-    // with the save system (as UIElement<IUIElement> and UIElement<IWorldUIElement> would be indistinguishable types for the save system
+    // with the save system (as UIElement<IUIElement> and UIElement<IWorldUIElement> would be indistinguishable types for the save system)
+    [Serializable]
     public abstract class WorldUIElement : UIElement<WorldUIElement>
     {
         public readonly Event<IActiveChangedListener> activeChanged;
@@ -51,7 +51,7 @@ namespace Game1.UI
 
         protected void RefreshPopups(EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> oldPopups, EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> newPopups)
         {
-            if (active)
+            if (Active)
             {
                 HidePopups(popups: oldPopups);
                 ShowPopups(popups: newPopups);

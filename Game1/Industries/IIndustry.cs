@@ -226,7 +226,7 @@ namespace Game1.Industries
                                 (
                                     HUDElement: toggleSourceButton,
                                     baseWorldObject: sourceIndustry,
-                                    HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Middle),
+                                    HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Top),
                                     anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
                                 )
                             );

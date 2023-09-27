@@ -140,7 +140,7 @@ namespace Game1
                                     BuildingConfigPanelManager: this,
                                     CosmicBody: cosmicBody,
                                     ConstrGeneralParams: constrGeneralParams,
-                                    NeededBuildingMatPaletteChoices: this.GetBuildingMatPaletteChoices()
+                                    NeededBuildingMatPaletteChoices: GetBuildingMatPaletteChoices()
                                 )
                             );
                             return new CosmicBodyBuildPanelManager
@@ -151,7 +151,7 @@ namespace Game1
                                 (
                                     HUDElement: cosmicBodyBuildPanel,
                                     baseWorldObject: cosmicBody,
-                                    HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Middle),
+                                    HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Top),
                                     anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
                                 ),
                                 BuildButton: buildButton

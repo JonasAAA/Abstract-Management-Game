@@ -92,7 +92,7 @@ namespace Game1
         }
 
         public void UpdateTemperature()
-            => Temperature = ResAndIndustryAlgos.Temperature(heatEnergy: ThermalBody.HeatEnergy, heatCapacity: ThermalBody.HeatCapacity);
+            => Temperature = ResAndIndustryAlgos.CalculateTemperature(heatEnergy: ThermalBody.HeatEnergy, heatCapacity: ThermalBody.HeatCapacity);
 
         public void RecalculateValues()
         {

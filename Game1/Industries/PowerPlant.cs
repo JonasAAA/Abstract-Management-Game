@@ -79,7 +79,7 @@ namespace Game1.Industries
             private readonly AllResAmounts buildingCost;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
-                EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
+                BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA,
                 MaterialPaletteChoices buildingMatPaletteChoices, MaterialPalette surfaceMatPalette)
             {
                 Name = generalParams.Name;

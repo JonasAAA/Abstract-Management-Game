@@ -41,6 +41,9 @@ namespace Game1.PrimitiveTypeWrappers
             return value >= 0 ? new(value: value) : null;
         }
 
+        public static UDouble CreateByCuttingOffNegative(double value)
+            => new(value: MyMathHelper.Max(value, 0));
+
         private readonly double value;
 
         private UDouble(double value)

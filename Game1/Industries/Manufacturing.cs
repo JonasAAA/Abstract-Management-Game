@@ -76,14 +76,15 @@ namespace Game1.Industries
 
             private readonly AreaDouble buildingArea;
             private readonly GeneralBuildingParams generalParams;
+            private readonly BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly ManufacturingProductionChoice manufacturingProductionChoice;
             private readonly AllResAmounts buildingCost;
             private readonly ulong maxInputAmountStored;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
-                EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
-                MaterialPaletteChoices buildingMatPaletteChoices, ManufacturingProductionChoice manufacturingProductionChoice, MaterialPalette surfaceMatPalette)
+                BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, MaterialPaletteChoices buildingMatPaletteChoices,
+                ManufacturingProductionChoice manufacturingProductionChoice, MaterialPalette surfaceMatPalette)
             {
                 Name = generalParams.Name;
                 NodeState = nodeState;
@@ -93,6 +94,7 @@ namespace Game1.Industries
                 productParams = generalParams.productParams;
                 buildingArea = buildingImage.Area;
                 this.generalParams = generalParams;
+                this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
                 this.manufacturingProductionChoice = manufacturingProductionChoice;
                 maxStoredOutputArea = (buildingArea * CurWorldConfig.outputStorageProporOfBuildingArea).RoundDown();
@@ -122,6 +124,7 @@ namespace Game1.Industries
             public CurProdStats CurProdStats(Mass productionMassIfFull)
                 => ResAndIndustryAlgos.CurMechProdStats
                 (
+                    buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
                     buildingCostPropors: generalParams.BuildingCostPropors,
                     buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: NodeState.SurfaceGravity,

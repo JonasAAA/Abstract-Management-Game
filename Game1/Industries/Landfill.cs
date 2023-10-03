@@ -64,7 +64,7 @@ namespace Game1.Industries
             public EnergyPriority EnergyPriority { get; }
             public MaterialPalette SurfaceMatPalette { get; }
             public readonly DiskBuildingImage buildingImage;
-            public readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
+            public readonly BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA;
 
             private AreaDouble BuildingArea
                 => buildingImage.Area;
@@ -75,7 +75,7 @@ namespace Game1.Industries
             private readonly AllResAmounts buildingCost;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
-                EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
+                BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA,
                 MaterialPaletteChoices buildingMatPaletteChoices, LandfillResourceChoice landfillResourceChoice, MaterialPalette surfaceMatPalette)
             {
                 Name = generalParams.Name;
@@ -110,6 +110,7 @@ namespace Game1.Industries
             public CurProdStats CurLandfillingStats(Mass landfillingMassIfFull)
                 => ResAndIndustryAlgos.CurMechProdStats
                 (
+                    buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
                     buildingCostPropors: generalParams.BuildingCostPropors,
                     buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: NodeState.SurfaceGravity,

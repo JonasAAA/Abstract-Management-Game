@@ -62,7 +62,7 @@ namespace Game1.Industries
             public EnergyPriority EnergyPriority { get; }
             public MaterialPalette SurfaceMatPalette { get; }
             public readonly DiskBuildingImage buildingImage;
-            public readonly EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA;
+            public readonly BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA;
 
             /// <summary>
             /// Things depend on this rather than on building components target area as can say that if planet underneath building shrinks,
@@ -77,7 +77,7 @@ namespace Game1.Industries
             private readonly AllResAmounts startingBuildingCost;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
-                EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
+                BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA,
                 MaterialPaletteChoices buildingMatPaletteChoices, MaterialPalette surfaceMatPalette)
             {
                 Name = generalParams.Name;
@@ -103,6 +103,7 @@ namespace Game1.Industries
             public CurProdStats CurMiningStats(Mass miningMass)
                 => ResAndIndustryAlgos.CurMechProdStats
                 (
+                    buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
                     buildingCostPropors: generalParams.BuildingCostPropors,
                     buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: NodeState.SurfaceGravity,

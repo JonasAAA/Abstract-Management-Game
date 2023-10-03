@@ -14,6 +14,7 @@ global using AreaInt = Game1.Resources.Area<ulong>;
 global using AreaDouble = Game1.Resources.Area<Game1.PrimitiveTypeWrappers.UDouble>;
 global using RawMatAmounts = Game1.Collections.ResAmounts<Game1.Resources.RawMaterial>;
 global using AllResAmounts = Game1.Collections.ResAmounts<Game1.Resources.IResource>;
+global using BuildingComponentsToAmountPUBA = Game1.Collections.EfficientReadOnlyCollection<(Game1.Resources.Product prod, Game1.PrimitiveTypeWrappers.UDouble amountPUBA)>;
 
 namespace Game1
 {

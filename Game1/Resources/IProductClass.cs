@@ -7,6 +7,9 @@ namespace Game1.Resources
         [Serializable]
         private sealed class Mechanical : IProductClass
         {
+            public Propor ProportionOfMassMovingWithMechanicalProduction
+                => (Propor).8;
+
             public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToAmount
                 => new()
                 {
@@ -20,6 +23,9 @@ namespace Game1.Resources
         [Serializable]
         private sealed class Electronics : IProductClass
         {
+            public Propor ProportionOfMassMovingWithMechanicalProduction
+                => (Propor).5;
+
             public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToAmount
                 => new()
                 {
@@ -34,6 +40,9 @@ namespace Game1.Resources
         [Serializable]
         private sealed class Roof : IProductClass
         {
+            public Propor ProportionOfMassMovingWithMechanicalProduction
+                => (Propor)0;
+
             public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToAmount
                 => new()
                 {
@@ -51,6 +60,8 @@ namespace Game1.Resources
         // DON'T forget to put all material purposes in this list.
         // There is a test to check that
         public static readonly EfficientReadOnlyCollection<IProductClass> all = new List<IProductClass>() { mechanical, electronics, roof }.ToEfficientReadOnlyCollection();
+
+        public Propor ProportionOfMassMovingWithMechanicalProduction { get; }
 
         public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToAmount { get; }
 

@@ -481,5 +481,8 @@ namespace Game1
             Debug.Assert(minValue + 1 > maxValue || !isValueOk(value + 1));
             return value;
         }
+
+        public static UDouble WeightedAverage((UDouble weight, UDouble value) a, (UDouble weight, UDouble value) b)
+            => (a.weight * a.value + b.weight * b.value) / (a.weight + b.weight);
     }
 }

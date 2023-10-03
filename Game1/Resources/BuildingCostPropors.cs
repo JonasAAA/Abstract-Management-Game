@@ -8,7 +8,6 @@ namespace Game1.Resources
         public readonly EfficientReadOnlyHashSet<IProductClass> neededProductClasses;
         public readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts;
         public readonly AreaInt area;
-        public readonly MechComplexity complexity;
         public readonly EfficientReadOnlyDictionary<IProductClass, Propor> productClassPropors;
 
         public BuildingCostPropors(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts)
@@ -28,7 +27,6 @@ namespace Game1.Resources
 
             neededProductClasses = productClassAmounts.Keys.ToEfficientReadOnlyHashSet();
 
-            complexity = ResAndIndustryAlgos.IndustryMechComplexity(ingredProdToAmounts: ingredProdToAmounts, productClassPropors: productClassPropors);
             // Needed to satisfy compiler
             AreaInt areaCopy = area;
             productClassPropors = productClassAmounts.ToEfficientReadOnlyDict

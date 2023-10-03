@@ -57,7 +57,7 @@ namespace Game1
         }
 
         /// <exception cref="ArgumentException">if buildingMatPaletteChoices doesn't contain all required product classes</exception>
-        public static EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> BuildingComponentsToAmountPUBA(
+        public static BuildingComponentsToAmountPUBA BuildingComponentsToAmountPUBA(
             EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors,
             MaterialPaletteChoices buildingMatPaletteChoices, Propor buildingComponentsProporOfBuildingArea)
         {
@@ -82,7 +82,7 @@ namespace Game1
         /// <summary>
         /// The only difference from CurNeededBuildingComponents is rounding down instead of up
         /// </summary>
-        public static AllResAmounts MaxBuildingComponentsInArea(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble area, Propor buildingComponentsProporOfBuildingArea)
+        public static AllResAmounts MaxBuildingComponentsInArea(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, AreaDouble area, Propor buildingComponentsProporOfBuildingArea)
             => new
             (
                 buildingComponentsToAmountPUBA.Select
@@ -100,7 +100,7 @@ namespace Game1
                 )
             );
 
-        public static AllResAmounts CurNeededBuildingComponents(EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
+        public static AllResAmounts CurNeededBuildingComponents(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, AreaDouble curBuildingArea)
             => new
             (
                 buildingComponentsToAmountPUBA.Select

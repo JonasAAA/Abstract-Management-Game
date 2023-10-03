@@ -77,7 +77,7 @@ namespace Game1.Industries
             private readonly StorageChoice storageChoice;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
-                EfficientReadOnlyCollection<(Product prod, UDouble amountPUBA)> buildingComponentsToAmountPUBA,
+                BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA,
                 MaterialPaletteChoices buildingMatPaletteChoices, StorageChoice storageChoice, MaterialPalette surfaceMatPalette)
             {
                 Name = generalParams.Name;

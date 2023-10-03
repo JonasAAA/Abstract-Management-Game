@@ -81,5 +81,34 @@ namespace TestProject
                 expected: (UDouble)0,
                 actual: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ResAndIndustryAlgos.maxRawMatInd)
             );
+
+        [TestMethod]
+        public void RawMatResistivityMinThenMidThenMax()
+        {
+            for (uint ind = 0; ind <= ResAndIndustryAlgos.maxRawMatInd; ind++)
+            {
+                Assert.IsTrue(ResAndIndustryAlgos.RawMatResistivityMin(ind: ind).resistivity <= ResAndIndustryAlgos.RawMatResistivityMid(ind: ind));
+                Assert.IsTrue(ResAndIndustryAlgos.RawMatResistivityMid(ind: ind) <= ResAndIndustryAlgos.RawMatResistivityMax(ind: ind).resistivity);
+            }
+        }
+
+        [TestMethod]
+        public void RawMatMinMidMaxBetweenZeroAndOne()
+        {
+            for (uint ind = 0; ind <= ResAndIndustryAlgos.maxRawMatInd; ind++)
+            {
+                Assert.IsTrue((double)ResAndIndustryAlgos.RawMatResistivityMin(ind: ind).resistivity is >= 0 and <= 1);
+                Assert.IsTrue((double)ResAndIndustryAlgos.RawMatResistivityMid(ind: ind) is >= 0 and <= 1);
+                Assert.IsTrue((double)ResAndIndustryAlgos.RawMatResistivityMax(ind: ind).resistivity is >= 0 and <= 1);
+            }
+        }
+
+        [TestMethod]
+        public void RawMatResistivityBetweenZeroAndOne()
+            => throw new NotImplementedException();
+
+        [TestMethod]
+        public void RawMatStrengthBetweenZeroAndOne()
+            => throw new NotImplementedException();
     }
 }

@@ -17,7 +17,7 @@ namespace TestProject
                 expected: heatEnergy,
                 actual: ResAndIndustryAlgos.HeatEnergyFromTemperature
                 (
-                    temperature: ResAndIndustryAlgos.Temperature(heatEnergy: heatEnergy, heatCapacity: heatCapacity),
+                    temperature: ResAndIndustryAlgos.CalculateTemperature(heatEnergy: heatEnergy, heatCapacity: heatCapacity),
                     heatCapacity: heatCapacity
                 )
             );

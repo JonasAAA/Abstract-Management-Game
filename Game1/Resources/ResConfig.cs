@@ -93,8 +93,8 @@ namespace Game1.Resources
                         productClass: IProductClass.electronics,
                         materialChoices: new()
                         {
-                            [IMaterialPurpose.electricalConductor] = material1,
-                            [IMaterialPurpose.electricalInsulator] = material0
+                            [IMaterialPurpose.electricalConductor] = material0,
+                            [IMaterialPurpose.electricalInsulator] = material1
                         }
                     ).UnwrapOrThrow(),
                     MaterialPalette.CreateAndAddToResConfig

@@ -65,21 +65,23 @@ namespace Game1
                     );
             }
 
-            public ProductionChoice? ProductionChoice { get; private set; }
+            public CompleteBuildingConfig? CompleteBuildingConfigOrNull { get; private set; }
 
             private readonly Construction.GeneralParams constrGeneralParams;
             private readonly UIRectVertPanel<IHUDElement> buildingConfigPanel;
             private readonly List<CosmicBodyBuildPanelManager> cosmicBodyBuildPanelManagers;
             private readonly Dictionary<IProductClass, MaterialPalette> mutableBuildingMatPaletteChoices;
             private readonly Button cancelButton;
+            private ProductionChoice? ProductionChoice;
 
             private BuildingConfigPanelManager(Construction.GeneralParams constrGeneralParams)
             {
                 this.constrGeneralParams = constrGeneralParams;
                 mutableBuildingMatPaletteChoices = new();
                 ProductionChoice = null;
+                CompleteBuildingConfigOrNull = null;
                 buildingConfigPanel = new(childHorizPos: HorizPosEnum.Left);
-                buildingConfigPanel.AddChild(child: new TextBox() { Text = "Material Choices" });
+                buildingConfigPanel.AddChild(child: new TextBox(text: "Material Choices"));
                 cancelButton = new
                 (
                     shape: new MyRectangle(width: 100, height: 30),
@@ -96,17 +98,17 @@ namespace Game1
                 {
                     UIRectHorizPanel<IHUDElement> matPaletteChoiceLine = new(childVertPos: VertPosEnum.Middle);
                     buildingConfigPanel.AddChild(child: matPaletteChoiceLine);
-                    matPaletteChoiceLine.AddChild(child: new TextBox() { Text = $"{productClass} " });
+                    matPaletteChoiceLine.AddChild(child: new TextBox(text: $"{productClass} "));
                     Button startMatPaletteChoice = IndustryUIAlgos.CreateMatPaletteChoiceDropdown(matPaletteChoiceSetter: this, productClass: productClass);
                     matPaletteChoiceLine.AddChild(child: startMatPaletteChoice);
                 }
 
-                buildingConfigPanel.AddChild(child: new TextBox() { Text = "Production config" });
+                buildingConfigPanel.AddChild(child: new TextBox(text: "Production config"));
 
                 var productionChoicePanel = constrGeneralParams.CreateProductionChoicePanel(productionChoiceSetter: this);
                 if (productionChoicePanel is null)
                 {
-                    buildingConfigPanel.AddChild(child: new TextBox() { Text = UIAlgorithms.NothingToConfigure });
+                    buildingConfigPanel.AddChild(child: new TextBox(text: UIAlgorithms.NothingToConfigure));
                     SetProductionChoice(productionChoice: new ProductionChoice(Choice: new UnitType()));
                 }
                 else
@@ -125,7 +127,17 @@ namespace Game1
                         cosmicBody =>
                         {
                             UIRectVertPanel<IHUDElement> cosmicBodyBuildPanel = new(childHorizPos: HorizPosEnum.Left);
-                            cosmicBodyBuildPanel.AddChild(new TextBox() { Text = "Building Stats" });
+                            cosmicBodyBuildPanel.AddChild
+                            (
+                                new LazyTextBox
+                                (
+                                    lazyText: new CosmicBodyBuildStats
+                                    (
+                                        BuildingConfigPanelManager: this,
+                                        CosmicBody: cosmicBody
+                                    )
+                                )
+                            );
                             Button buildButton = new
                             (
                                 shape: new MyRectangle(width: 100, height: 30),
@@ -139,9 +151,7 @@ namespace Game1
                                 listener: new BuildOnCosmicBodyButtonListener
                                 (
                                     BuildingConfigPanelManager: this,
-                                    CosmicBody: cosmicBody,
-                                    ConstrGeneralParams: constrGeneralParams,
-                                    NeededBuildingMatPaletteChoices: GetBuildingMatPaletteChoices()
+                                    CosmicBody: cosmicBody
                                 )
                             );
                             return new CosmicBodyBuildPanelManager
@@ -162,19 +172,13 @@ namespace Game1
                 );
             }
 
-            private MaterialPaletteChoices GetBuildingMatPaletteChoices()
-                => MaterialPaletteChoices.CreateOrThrow
-                (
-                    choices: new(dict: mutableBuildingMatPaletteChoices)
-                );
-
             void IItemChoiceSetter<ProductionChoice>.SetChoice(ProductionChoice item)
                 => SetProductionChoice(productionChoice: item);
 
             private void SetProductionChoice(ProductionChoice productionChoice)
             {
                 ProductionChoice = productionChoice;
-                EnableOrDisableBuildButtons();
+                UpdateCompleteBuildingConfigOrNull();
             }
 
             void IItemChoiceSetter<MaterialPalette>.SetChoice(MaterialPalette item)
@@ -184,14 +188,22 @@ namespace Game1
             {
                 mutableBuildingMatPaletteChoices[materialPalette.productClass] = materialPalette;
 #warning Complete this. In case all material choices are made, show player the stats of the to-be-constructed building
-                EnableOrDisableBuildButtons();
+                UpdateCompleteBuildingConfigOrNull();
             }
 
-            private void EnableOrDisableBuildButtons()
+            private void UpdateCompleteBuildingConfigOrNull()
             {
-                bool enableBuildButtons = ProductionChoice is not null && constrGeneralParams.SufficientBuildingMatPalettes(curBuildingMatPaletteChoices: GetBuildingMatPaletteChoices());
+                CompleteBuildingConfigOrNull = CompleteBuildingConfig.Create
+                (
+                    constrGeneralParams: constrGeneralParams,
+                    buildingMatPaletteChoices: MaterialPaletteChoices.CreateOrThrow
+                    (
+                        choices: new(dict: mutableBuildingMatPaletteChoices)
+                    ),
+                    ProductionChoice: ProductionChoice
+                );
                 foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers)
-                    cosmicBodyPanelManager.BuildButton.PersonallyEnabled = enableBuildButtons;
+                    cosmicBodyPanelManager.BuildButton.PersonallyEnabled = CompleteBuildingConfigOrNull is not null;
             }
 
             public void StopBuildingConfig()
@@ -214,18 +226,55 @@ namespace Game1
         private readonly record struct CosmicBodyBuildPanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyBuildPanel, IAction CosmicBodyPanelHUDPosUpdate, Button BuildButton);
 
         [Serializable]
-        private sealed record BuildOnCosmicBodyButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager, CosmicBody CosmicBody, Construction.GeneralParams ConstrGeneralParams, MaterialPaletteChoices NeededBuildingMatPaletteChoices) : IClickedListener
+        private readonly record struct CompleteBuildingConfig
+        {
+            public static CompleteBuildingConfig? Create(Construction.GeneralParams constrGeneralParams, MaterialPaletteChoices buildingMatPaletteChoices, ProductionChoice? ProductionChoice)
+                => (ProductionChoice, constrGeneralParams.SufficientBuildingMatPalettes(curBuildingMatPaletteChoices: buildingMatPaletteChoices)) switch
+                {
+                    (ProductionChoice productionChoice, true) => new CompleteBuildingConfig
+                    (
+                        constrGeneralParams: constrGeneralParams,
+                        neededBuildingMatPaletteChoices: buildingMatPaletteChoices,
+                        productionChoice: productionChoice
+                    ),
+                    _ => null
+                };
+
+            private readonly Construction.GeneralParams constrGeneralParams;
+            private readonly MaterialPaletteChoices neededBuildingMatPaletteChoices;
+            private readonly ProductionChoice productionChoice;
+
+            private CompleteBuildingConfig(Construction.GeneralParams constrGeneralParams, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
+            {
+                this.constrGeneralParams = constrGeneralParams;
+                this.neededBuildingMatPaletteChoices = neededBuildingMatPaletteChoices;
+                this.productionChoice = productionChoice;
+            }
+
+            public Construction.ConcreteParams CreateConcreteConstrParams(CosmicBody cosmicBody)
+                => constrGeneralParams.CreateConcrete
+                (
+                    nodeState: cosmicBody.NodeState,
+                    neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices,
+                    productionChoice: productionChoice
+                );
+        }
+
+        [Serializable]
+        private sealed record CosmicBodyBuildStats(BuildingConfigPanelManager BuildingConfigPanelManager, CosmicBody CosmicBody) : ILazyText
+        {
+            string ILazyText.GetText()
+                => "Building Stats\n" + (BuildingConfigPanelManager.CompleteBuildingConfigOrNull?.CreateConcreteConstrParams(cosmicBody: CosmicBody).GetBuildingStats() ?? "Complete building config\nto see the stats");
+        }
+
+        [Serializable]
+        private sealed record BuildOnCosmicBodyButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager, CosmicBody CosmicBody) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
             {
                 CosmicBody.StartConstruction
                 (
-                    constrConcreteParams: ConstrGeneralParams.CreateConcrete
-                    (
-                        nodeState: CosmicBody.NodeState,
-                        neededBuildingMatPaletteChoices: NeededBuildingMatPaletteChoices,
-                        productionChoice: BuildingConfigPanelManager.ProductionChoice ?? throw new InvalidOperationException()
-                    )
+                    constrConcreteParams: BuildingConfigPanelManager.CompleteBuildingConfigOrNull!.Value.CreateConcreteConstrParams(cosmicBody: CosmicBody)
                 );
                 BuildingConfigPanelManager.StopBuildingConfig();
             }

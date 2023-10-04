@@ -130,6 +130,7 @@ namespace Game1
                 temperature: temperature,
                 rawMatProperty: static (rawMat, temperature) =>
                 {
+                    return (Propor).5;
                     // To look at the graph, paste formula into the link https://www.desmos.com/calculator \frac{1+\tanh\left(\frac{z+1}{5}\right)\ \cdot\sin\left(\left(z+1\right)\left(\frac{x}{500}+1\right)\right)}{2}
                     double wave = MyMathHelper.Sin((rawMat.Ind + 1) * (temperature.valueInK / 500 + 1));
                     Propor scale = MyMathHelper.Tanh((rawMat.Ind + 1) / 5);
@@ -150,6 +151,7 @@ namespace Game1
                 temperature: temperature,
                 rawMatProperty: static (rawMat, temperature) =>
                 {
+                    return (Propor).5;
                     // The difference from Reflectivity is + 2 part in sin
                     double wave = MyMathHelper.Sin((rawMat.Ind + 1) * (temperature.valueInK / 500 + 2));
                     Propor scale = MyMathHelper.Tanh((rawMat.Ind + 1) / 5);
@@ -168,11 +170,11 @@ namespace Game1
         private static UDouble RawMatStartingStrength(ulong ind)
             => (UDouble)ind / maxRawMatInd;
 
-        "TUNE the numbers of industry production stats so that they are at least somewhat reasonable
+
         private static (Temperature temperature, UDouble strength) RawMatMaxStrength(ulong ind)
             => 
             (
-                temperature: Temperature.CreateFromK(valueInK: 100 + ind * 100),
+                temperature: Temperature.CreateFromK(valueInK: 1000 + ind * 100),
                 strength: 1
             );
 
@@ -233,7 +235,8 @@ namespace Game1
             // This is maximum of restriction from gravity and restriction from mechanical strength compared to total weigtht of things
             => MyMathHelper.Min
             (
-                (double)mechanicalProporInBuilding * MaxBaseMechThroughput(mechanicalMatPalette: mechanicalMatPalette, temperature: temperature) - 0.1 * gravity * relevantMassPUBA,
+#warning include the gravity in this calculation
+                (double)mechanicalProporInBuilding * MaxBaseMechThroughput(mechanicalMatPalette: mechanicalMatPalette, temperature: temperature),// - 0.1 * gravity * relevantMassPUBA,
                 0.1 * gravity
             );
 

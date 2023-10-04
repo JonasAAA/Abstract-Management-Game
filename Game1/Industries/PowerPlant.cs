@@ -112,6 +112,9 @@ namespace Game1.Industries
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
+            string IConcreteBuildingConstructionParams.GetBuildingStats()
+                => "Power plant stats TODO";
+
             IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
                 => new Industry<UnitType, ConcreteBuildingParams, ResPile, PowerProductionState>(productionParams: new(), buildingParams: this, persistentState: buildingResPile);
 

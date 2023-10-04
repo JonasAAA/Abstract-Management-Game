@@ -22,7 +22,6 @@
             mouseOnColor,
             UIBackgroundColor,
             textColor,
-            almostWhiteColor,
             buttonColor,
             buttonTextColor,
             selectedButtonColor,
@@ -51,7 +50,6 @@
             mouseOnColor = Color.Yellow;
             UIBackgroundColor = C.ColorFromRGB(rgb: 0x124A5E);
             textColor = C.ColorFromRGB(rgb: 0xADE38F);
-            almostWhiteColor = Color.Aqua;
             buttonColor = Color.DarkBlue;
             buttonTextColor = textColor;
             selectedButtonColor = buttonColor;

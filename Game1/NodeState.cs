@@ -100,8 +100,10 @@ namespace Game1
             Area = Composition.Area();
             Radius = DiskAlgos.RadiusFromArea(area: Area.ToDouble());
             SurfaceLength = DiskAlgos.Length(radius: Radius);
-            var allResComposition = LocationCounters.GetCount<AllResAmounts>().RawMatComposition();
-            SurfaceGravity = WorldFunctions.SurfaceGravity(mass: allResComposition.Mass(), resArea: allResComposition.Area());
+            //var allResComposition = LocationCounters.GetCount<AllResAmounts>().RawMatComposition();
+            //SurfaceGravity = WorldFunctions.SurfaceGravity(mass: allResComposition.Mass(), resArea: allResComposition.Area());
+#warning Remove this simplification
+            SurfaceGravity = WorldFunctions.SurfaceGravity(mass: Composition.Mass(), resArea: Composition.Area());
         }
 
         public Result<ResPile, TextErrors> Mine(AreaInt targetArea)

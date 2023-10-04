@@ -75,6 +75,9 @@ namespace Game1.Industries
             public IBuildingImage IncompleteBuildingImage(Propor donePropor)
                 => concreteBuildingParams.IncompleteBuildingImage(donePropor: donePropor);
 
+            public string GetBuildingStats()
+                => concreteBuildingParams.GetBuildingStats();
+
             public IIndustry CreateIndustry()
                 => new Industry<UnitType, ConcreteParams, UnitType, ConstructionState>
                 (

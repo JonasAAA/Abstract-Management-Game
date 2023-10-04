@@ -131,6 +131,14 @@ namespace Game1.Industries
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
+            string IConcreteBuildingConstructionParams.GetBuildingStats()
+            {
+#warning don't use 0 mining mass - estimate the actual number based on planet composition
+                //throw new NotImplementedException();
+                var curMiningStats = CurMiningStats(miningMass: Mass.zero);
+                return $"req watts PUBA {curMiningStats.ReqWatts / CurBuildingArea.valueInMetSq:0.000}\nthroughput PUBA {curMiningStats.ProducedAreaPerSec / CurBuildingArea.valueInMetSq:0.000}";
+            }
+
             IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
                 => new Industry<UnitType, ConcreteBuildingParams, PersistentState, MiningCycleState>(productionParams: new(), buildingParams: this, persistentState: new(buildingResPile: buildingResPile));
 

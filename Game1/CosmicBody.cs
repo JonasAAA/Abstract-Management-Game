@@ -14,7 +14,7 @@ namespace Game1
     public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, ILightCatchingObject, IWithSpecialPositions, IWithRealPeopleStats
     {
         [Serializable]
-        private readonly record struct ShapeParams(NodeState State) : Disk.IParams
+        private sealed record ShapeParams(NodeState State) : Disk.IParams
         {
             public MyVector2 Center
                 => State.Position;
@@ -28,6 +28,30 @@ namespace Game1
         {
             void IAction.Invoke()
                 => CosmicBody.textBox.Shape.Center = CurWorldManager.WorldPosToHUDPos(worldPos: CosmicBody.Position);
+        }
+
+        [Serializable]
+        private sealed record BriefInfoText(CosmicBody CosmicBody) : ILazyText
+        {
+            string ILazyText.GetText()
+                => $"T = {CosmicBody.state.Temperature}";
+        }
+
+        [Serializable]
+        private sealed record MainInfoText(CosmicBody CosmicBody) : ILazyText
+        {
+            string ILazyText.GetText()
+#warning Complete this
+                => $"""
+                consists of {CosmicBody.state.Composition}
+                Mass of everything {CosmicBody.state.LocationCounters.GetCount<AllResAmounts>().Mass()}
+                Mass of planet {CosmicBody.state.PlanetMass}
+                
+                Gravity = {CosmicBody.state.SurfaceGravity:#,0.}
+                T = {CosmicBody.state.Temperature}
+                M to E per real world second =
+                {CosmicBody.massConvertedToEnergy.valueInKg / (CurWorldManager.Elapsed.TotalSeconds / CurWorldConfig.worldSecondsInGameSecond):#,0.}
+                """;
         }
 
         public NodeID NodeID
@@ -106,11 +130,10 @@ namespace Game1
         private RadiantEnergy radiantEnergyToDissipate;
         private Mass massConvertedToEnergy;
 
-        private readonly TextBox textBox;
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
         private readonly IAction UITabPanelHUDPosUpdater;
         private readonly UIRectPanel<IHUDElement> infoPanel;
-        private readonly TextBox infoTextBox;
+        private readonly LazyTextBox textBox, infoTextBox;
 
         public CosmicBody(NodeState state, Func<IIndustryFacingNodeState, IIndustry?> createIndustry)
             : base(shape: new LightBlockingDisk(parameters: new ShapeParams(State: state)))
@@ -131,7 +154,7 @@ namespace Game1
             radiantEnergyToDissipate = RadiantEnergy.zero;
             massConvertedToEnergy = Mass.zero;
 
-            textBox = new(textColor: colorConfig.almostWhiteColor);
+            textBox = new(lazyText: new BriefInfoText(CosmicBody: this));
             textBox.Shape.MinWidth = 100;
             CurWorldManager.AddWorldHUDElement
             (
@@ -148,7 +171,7 @@ namespace Game1
                 tabTooltip: new ImmutableTextTooltip(text: "Info about the planet and the industry/building on it (if such exists)"),
                 tab: infoPanel
             ));
-            infoTextBox = new();
+            infoTextBox = new(lazyText: new MainInfoText(CosmicBody: this));
             infoPanel.AddChild(child: infoTextBox);
 
             UITabPanel = new
@@ -282,22 +305,6 @@ namespace Game1
 
                 resFirstLinks[(NodeID, destinationId)]!.TransferAllFrom(start: this, resAmountsPacket: resAmountsPacket);
             }
-
-#warning Complete this
-            infoTextBox.Text = $"""
-                consists of {state.Composition}
-                Mass of everything {state.LocationCounters.GetCount<AllResAmounts>().Mass()}
-                Mass of planet {state.PlanetMass}
-                
-                """;
-
-            textBox.Text = "";
-
-            textBox.Text += $"T = {state.Temperature}";
-            textBox.Text = textBox.Text.Trim();
-
-            infoTextBox.Text += $"Gravity = {state.SurfaceGravity:#,0.}\nT = {state.Temperature}\nM to E per real world second =\n{massConvertedToEnergy.valueInKg / (CurWorldManager.Elapsed.TotalSeconds / CurWorldConfig.worldSecondsInGameSecond):#,0.}\n";
-            infoTextBox.Text = infoTextBox.Text.Trim();
         }
 
         //public void UpdatePeople()

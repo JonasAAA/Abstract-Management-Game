@@ -150,10 +150,10 @@ namespace Game1.Industries
 
                 UIRectVertPanel<IHUDElement> resSourcePanel = new(childHorizPos: childHorizPos);
                 routePanel.AddChild(child: resSourcePanel);
-                resSourcePanel.AddChild(new TextBox() { Text = UIAlgorithms.ChangeResSources });
+                resSourcePanel.AddChild(new TextBox(text: UIAlgorithms.ChangeResSources));
                 if (resSources.Count is 0)
                 {
-                    resSourcePanel.AddChild(child: new TextBox() { Text = UIAlgorithms.NoResourcesProduced });
+                    resSourcePanel.AddChild(child: new TextBox(text: UIAlgorithms.NoResourcesProduced));
                 }
                 else
                 {
@@ -180,7 +180,7 @@ namespace Game1.Industries
 
                 UIRectVertPanel<IHUDElement> resDestinPanel = new(childHorizPos: childHorizPos);
                 routePanel.AddChild(resDestinPanel);
-                resDestinPanel.AddChild(new TextBox() { Text = UIAlgorithms.ProducedResourcesDestinations });
+                resDestinPanel.AddChild(new TextBox(text: UIAlgorithms.ProducedResourcesDestinations));
             }
         }
 

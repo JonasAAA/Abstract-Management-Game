@@ -21,10 +21,7 @@ namespace Game1.UI
             : base(shape: shape)
         {
             this.action = action;
-            textBox = new(textColor: colorConfig.buttonTextColor)
-            {
-                Text = text
-            };
+            textBox = new(text: text, textColor: colorConfig.buttonTextColor);
             Tooltip = tooltip;
             AddChild(child: textBox);
         }

@@ -301,10 +301,10 @@ namespace Game1
                                     (
                                         getHUDElements: () => new List<IHUDElement>()
                                         {
-                                            new TextBox()
-                                            {
-                                                Text = $"The save loading failed giving the following error:\n{errors}\nIf this save file is from an older game version, it can only be opened in that older game version.\nOtherwise contact the developer about this bug."
-                                            },
+                                            new TextBox
+                                            (
+                                                text: $"The save loading failed giving the following error:\n{errors}\nIf this save file is from an older game version, it can only be opened in that older game version.\nOtherwise contact the developer about this bug."
+                                            ),
                                             CreateActionButton
                                             (
                                                 text: "Back to menu",
@@ -410,10 +410,7 @@ namespace Game1
             (
                 getHUDElements: () => new List<IHUDElement>
                 {
-                    new TextBox()
-                    {
-                        Text = "Are you sure?"
-                    },
+                    new TextBox(text: "Are you sure?"),
                     CreateActionButton
                     (
                         text: "Exit without saving",
@@ -444,10 +441,10 @@ namespace Game1
                 (
                     getHUDElements: () => new List<IHUDElement>()
                     {
-                        new TextBox()
-                        {
-                            Text = $"The map is invalid for the following reasons:\n{string.Join("\n", errors)}\n\nChoose another map or open file \"{mapFullPath}\" and fix these problems."
-                        },
+                        new TextBox
+                        (
+                            text: $"The map is invalid for the following reasons:\n{string.Join("\n", errors)}\n\nChoose another map or open file \"{mapFullPath}\" and fix these problems."
+                        ),
                         CreateActionButton
                         (
                             text: "Back to menu",

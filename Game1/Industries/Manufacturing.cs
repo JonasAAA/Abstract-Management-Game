@@ -139,6 +139,14 @@ namespace Game1.Industries
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
+            string IConcreteBuildingConstructionParams.GetBuildingStats()
+            {
+                // estimate production mass based on production choice
+                throw new NotImplementedException();
+                CurProdStats curProdStats = CurProdStats(productionMassIfFull: Mass.zero);
+                return $"req watts PUBA {curProdStats.ReqWatts / buildingArea.valueInMetSq}\nthroughput PUBA {curProdStats.ProducedAreaPerSec / buildingArea.valueInMetSq}";
+            }
+
             IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
                 => new Industry<ConcreteProductionParams, ConcreteBuildingParams, ResPile, ManufacturingCycleState>
                 (

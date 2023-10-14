@@ -36,7 +36,7 @@ namespace Game1
                 => this.onOffButton = onOffButton;
         }
 
-        // Build helpers
+        #region Build helpers
         [Serializable]
         private sealed record BuildIndustryButtonClickedListener(Construction.GeneralParams ConstrGeneralParams) : IClickedListener
         {
@@ -73,6 +73,7 @@ namespace Game1
             private readonly Dictionary<IProductClass, MaterialPalette> mutableBuildingMatPaletteChoices;
             private readonly Button cancelButton;
             private ProductionChoice? ProductionChoice;
+            private readonly FunctionGraph<Temperature, Propor> overallThroughputGraph;
 
             private BuildingConfigPanelManager(Construction.GeneralParams constrGeneralParams)
             {
@@ -80,43 +81,86 @@ namespace Game1
                 mutableBuildingMatPaletteChoices = new();
                 ProductionChoice = null;
                 CompleteBuildingConfigOrNull = null;
-                buildingConfigPanel = new(childHorizPos: HorizPosEnum.Left);
-                buildingConfigPanel.AddChild(child: new TextBox(text: "Material Choices"));
+                
                 cancelButton = new
                 (
-                    shape: new MyRectangle(width: 100, height: 30),
+                    shape: new MyRectangle(width: curUIConfig.standardUIElementWidth, height: curUIConfig.UILineHeight),
                     tooltip: new ImmutableTextTooltip(text: UIAlgorithms.CancelBuilding),
                     text: "Cancel",
                     color: colorConfig.deleteButtonColor
                 );
+
                 // Need to initialize all references so that when this gets copied, the fields are already initialized
+                buildingConfigPanel = new
+                (
+                    childHorizPos: HorizPosEnum.Right,
+                    children: Enumerable.Empty<IHUDElement>()
+                );
                 cosmicBodyBuildPanelManagers = new();
+                cancelButton.clicked.Add(listener: new CancelBuildingButtonListener(BuildingConfigPanelManager: this));
 
-                EfficientReadOnlyHashSet<IProductClass> neededProductClasses = constrGeneralParams.neededProductClasses;
-                Debug.Assert(neededProductClasses.Count is not 0);
-                foreach (var productClass in neededProductClasses)
-                {
-                    UIRectHorizPanel<IHUDElement> matPaletteChoiceLine = new(childVertPos: VertPosEnum.Middle);
-                    buildingConfigPanel.AddChild(child: matPaletteChoiceLine);
-                    matPaletteChoiceLine.AddChild(child: new TextBox(text: $"{productClass} "));
-                    Button startMatPaletteChoice = IndustryUIAlgos.CreateMatPaletteChoiceDropdown(matPaletteChoiceSetter: this, productClass: productClass);
-                    matPaletteChoiceLine.AddChild(child: startMatPaletteChoice);
-                }
-
-                buildingConfigPanel.AddChild(child: new TextBox(text: "Production config"));
+                overallThroughputGraph = IndustryUIAlgos.CreateTemperatureFunctionGraph(func: null);
 
                 var productionChoicePanel = constrGeneralParams.CreateProductionChoicePanel(productionChoiceSetter: this);
                 if (productionChoicePanel is null)
-                {
-                    buildingConfigPanel.AddChild(child: new TextBox(text: UIAlgorithms.NothingToConfigure));
                     SetProductionChoice(productionChoice: new ProductionChoice(Choice: new UnitType()));
-                }
-                else
-                    buildingConfigPanel.AddChild(child: productionChoicePanel);
 
-                buildingConfigPanel.AddChild(child: cancelButton);
-                cancelButton.clicked.Add(listener: new CancelBuildingButtonListener(BuildingConfigPanelManager: this));
-                
+                buildingConfigPanel.Reinitialize
+                (
+                    newChildren: new List<IHUDElement>
+                    {
+                        new TextBox(text: "Material Choices")
+                    }.Concat
+                    (
+                        constrGeneralParams.neededProductClassPropors.Select
+                        (
+                            args =>
+                            {
+                                var (productClass, propor) = args;
+                                return new UIRectHorizPanel<IHUDElement>
+                                (
+                                    childVertPos: VertPosEnum.Middle,
+                                    children: new List<IHUDElement>()
+                                    {
+                                        new TextBox(text: $"{productClass} "),
+                                        IndustryUIAlgos.CreateMatPaletteChoiceDropdown
+                                        (
+                                            matPaletteChoiceSetter: this,
+                                            productClass: productClass,
+                                            additionalInfos:
+                                            (
+                                                empty: MaterialPalette.CreateEmptyProdStatsInfluenceVisual(),
+                                                item: static matPalette => matPalette.CreateProdStatsInfluenceVisual()
+                                            )
+                                        ),
+                                        IndustryUIAlgos.CreateStandardVertProporBar(propor: propor)
+                }
+                                );
+                            }
+                        )
+                    ).Append
+                    (
+                        new UIRectHorizPanel<IHUDElement>
+                        (
+                            childVertPos: VertPosEnum.Middle,
+                            children: new List<IHUDElement>()
+                            {
+                                new TextBox(text: "throughput"),
+                                overallThroughputGraph,
+                                IndustryUIAlgos.CreateStandardVertProporBar(propor: Propor.full)
+                            }
+                        )
+                    ).Concat
+                    (
+                        new List<IHUDElement>()
+                        {
+                            new TextBox(text: "Production config"),
+                            productionChoicePanel ?? new TextBox(text: UIAlgorithms.NothingToConfigure),
+                            cancelButton
+                        }
+                    )
+                );
+
                 cosmicBodyBuildPanelManagers.AddRange
                 (
                     collection: CurWorldManager.CurGraph.Nodes.Where
@@ -126,33 +170,38 @@ namespace Game1
                     (
                         cosmicBody =>
                         {
-                            UIRectVertPanel<IHUDElement> cosmicBodyBuildPanel = new(childHorizPos: HorizPosEnum.Left);
-                            cosmicBodyBuildPanel.AddChild
+                            Button buildButton = new
                             (
-                                new LazyTextBox
+                                shape: new MyRectangle(width: curUIConfig.standardUIElementWidth, height: curUIConfig.UILineHeight),
+                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.BuildHereTooltip),
+                                text: "Build here"
+                            )
+                            {
+                                PersonallyEnabled = false
+                            };
+                            buildButton.clicked.Add
                                 (
-                                    lazyText: new CosmicBodyBuildStats
+                                listener: new BuildOnCosmicBodyButtonListener
                                     (
                                         BuildingConfigPanelManager: this,
                                         CosmicBody: cosmicBody
                                     )
-                                )
                             );
-                            Button buildButton = new
+                            UIRectVertPanel<IHUDElement> cosmicBodyBuildPanel = new
                             (
-                                shape: new MyRectangle(width: 100, height: 30),
-                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.BuildHereTooltip),
-                                text: "Build here"
-                            );
-                            cosmicBodyBuildPanel.AddChild(child: buildButton);
-                            buildButton.PersonallyEnabled = false;
-                            buildButton.clicked.Add
+                                childHorizPos: HorizPosEnum.Left,
+                                children: new List<IHUDElement>()
+                                {
+                                    new LazyTextBox
                             (
-                                listener: new BuildOnCosmicBodyButtonListener
+                                        lazyText: new CosmicBodyBuildStats
                                 (
                                     BuildingConfigPanelManager: this,
                                     CosmicBody: cosmicBody
                                 )
+                                    ),
+                                    buildButton
+                                }
                             );
                             return new CosmicBodyBuildPanelManager
                             (
@@ -202,6 +251,22 @@ namespace Game1
                     ),
                     ProductionChoice: ProductionChoice
                 );
+
+                overallThroughputGraph.SetFunction
+                (
+                    func: mutableBuildingMatPaletteChoices.Count switch
+                    {
+                        0 => null,
+                        not 0 => temperature => ResAndIndustryAlgos.TentativeThroughput
+                        (
+                            temperature: temperature,
+                            chosenTotalPropor: (Propor)mutableBuildingMatPaletteChoices.Keys.Sum(prodClass => (UDouble)constrGeneralParams.neededProductClassPropors[prodClass]),
+                            matPaletteChoices: new EfficientReadOnlyDictionary<IProductClass, MaterialPalette>(dict: mutableBuildingMatPaletteChoices),
+                            buildingProdClassPropors: constrGeneralParams.neededProductClassPropors
+                        )
+                    }
+                );
+
                 foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers)
                     cosmicBodyPanelManager.BuildButton.PersonallyEnabled = CompleteBuildingConfigOrNull is not null;
             }
@@ -279,6 +344,7 @@ namespace Game1
                 BuildingConfigPanelManager.StopBuildingConfig();
             }
         }
+        #endregion Build helpers
 
         public static WorldManager CurWorldManager
             => Initialized ? curWorldManager : throw new InvalidOperationException($"must initialize {nameof(WorldManager)} first by calling {nameof(CreateWorldManager)} or {nameof(LoadWorldManager)}");
@@ -328,6 +394,8 @@ namespace Game1
             knownTypesSet.UnionWith(Storage.GetKnownTypes());
             knownTypesSet.UnionWith(Dropdown.GetKnownTypes());
             knownTypesSet.UnionWith(IndustryUIAlgos.GetKnownTypes());
+            knownTypesSet.UnionWith(FunctionGraph.GetKnownTypes());
+
             List<Type> unserializedTypeList = new();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
@@ -383,20 +451,25 @@ namespace Game1
                     position: new(HorizPosEnum.Right, VertPosEnum.Bottom)
                 );
 
-                UIRectVertPanel<IHUDElement> buildPanel = new(childHorizPos: HorizPosEnum.Middle);
-
-                foreach (var constrGeneralParams in CurIndustryConfig.constrGeneralParamsList)
+                UIRectVertPanel<IHUDElement> buildPanel = new
+                (
+                    childHorizPos: HorizPosEnum.Middle,
+                    children: CurIndustryConfig.constrGeneralParamsList.Select
+                    (
+                        constrGeneralParams =>
                 {
                     Button buildIndustryButton = new
                     (
-                        shape: new MyRectangle(width: 200, height: 30),
+                                shape: new MyRectangle(width: curUIConfig.wideUIElementWidth, height: curUIConfig.UILineHeight),
                         tooltip: constrGeneralParams.toopltip,
                         text: constrGeneralParams.buildButtonName
                     );
                     buildIndustryButton.clicked.Add(listener: new BuildIndustryButtonClickedListener(ConstrGeneralParams: constrGeneralParams));
 #warning Complete this by adding how the button reacts to being pressed
-                    buildPanel.AddChild(child: buildIndustryButton);
+                            return buildIndustryButton;
                 }
+                    )
+                );
 
                 CurWorldManager.AddHUDElement(HUDElement: buildPanel, position: new(HorizPosEnum.Right, VertPosEnum.Top));
             }
@@ -511,8 +584,8 @@ namespace Game1
             (
                 shape: new MyRectangle
                 (
-                    width: 60,
-                    height: 60
+                    width: 2 * curUIConfig.UILineHeight,
+                    height: 2 * curUIConfig.UILineHeight
                 ),
                 tooltip: pauseButtonTooltip,
                 on: false,

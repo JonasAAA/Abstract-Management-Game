@@ -58,10 +58,10 @@ namespace Game1.UI
                 throw new ArgumentException();
             this.minNum = minNum;
 
-            panel = new(childHorizPos: HorizPosEnum.Middle);
+            
             textBox = new();
             //textBox.Text = number.ToString();
-            UDouble width = (UDouble)textBox.MeasureText(text: "00").X;
+            var width = (UDouble)textBox.MeasureText(text: "00").X;
             textBox.Shape.MinWidth = width;
 
             Button numIncrButton = new
@@ -76,9 +76,6 @@ namespace Game1.UI
                 color: incrDecrButtonColor
             );
             numIncrButton.clicked.Add(listener: new NumIncrButtonClickedListener(NumIncDecrPanel: this));
-            panel.AddChild(child: numIncrButton);
-
-            panel.AddChild(child: textBox);
 
             numDecrButton = new
             (
@@ -92,7 +89,17 @@ namespace Game1.UI
                 color: incrDecrButtonColor
             );
             numDecrButton.clicked.Add(listener: new NumDecrButtonClickedListener(NumIncDecrPanel: this));
-            panel.AddChild(child: numDecrButton);
+
+            panel = new
+            (
+                childHorizPos: HorizPosEnum.Middle,
+                children: new List<IHUDElement>()
+                {
+                    numIncrButton,
+                    textBox,
+                    numDecrButton
+                }
+            );
 
             Shape.Width = panel.Shape.Width;
             Shape.Height = panel.Shape.Height;

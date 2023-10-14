@@ -15,6 +15,8 @@ namespace Game1.UI
             => HUDCamera.ScreenPosToHUDPos(screenPos: (MyVector2)Mouse.GetState().Position);
         public static UDouble RectOutlineWidth
             => curUIConfig.rectOutlineWidth;
+        public static UDouble DefaultGapBetweenUIElements
+            => curUIConfig.defaultGapBetweenUIElements;
 
         private static readonly HUDCamera HUDCamera = new();
 

@@ -32,11 +32,11 @@ namespace Game1.Industries
             }
 
             public IHUDElement? CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
-                => IndustryUIAlgos.CreateRresourceChoiceDropdown(resChoiceSetter: productionChoiceSetter.Convert<StorageChoice>());
+                => IndustryUIAlgos.CreateResourceChoiceDropdown(resChoiceSetter: productionChoiceSetter.Convert<StorageChoice>());
 
             public ConcreteBuildingParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, StorageChoice storageChoice)
             {
-                if (!BuildingCostPropors.neededProductClasses.SetEquals(neededBuildingMatPaletteChoices.choices.Keys))
+                if (!BuildingCostPropors.neededProductClasses.SetEquals(neededBuildingMatPaletteChoices.Choices.Keys))
                     throw new ArgumentException();
 
                 return new

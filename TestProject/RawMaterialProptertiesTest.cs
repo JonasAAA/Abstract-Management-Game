@@ -102,13 +102,5 @@ namespace TestProject
                 Assert.IsTrue((double)ResAndIndustryAlgos.RawMatResistivityMax(ind: ind).resistivity is >= 0 and <= 1);
             }
         }
-
-        [TestMethod]
-        public void RawMatResistivityBetweenZeroAndOne()
-            => throw new NotImplementedException();
-
-        [TestMethod]
-        public void RawMatStrengthBetweenZeroAndOne()
-            => throw new NotImplementedException();
     }
 }

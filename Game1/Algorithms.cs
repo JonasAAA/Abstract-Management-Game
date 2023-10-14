@@ -1,5 +1,4 @@
 ﻿using Game1.Collections;
-using Game1.Delegates;
 using Priority_Queue;
 using System.IO;
 using System.Numerics;
@@ -484,5 +483,75 @@ namespace Game1
 
         public static UDouble WeightedAverage((UDouble weight, UDouble value) a, (UDouble weight, UDouble value) b)
             => (a.weight * a.value + b.weight * b.value) / (a.weight + b.weight);
+
+        public static double WeightedAverage((double weight, double value) a, (double weight, double value) b)
+            => (a.weight * a.value + b.weight * b.value) / (a.weight + b.weight);
+
+        public static T Interpolate<T>(Propor normalized, T start, T stop)
+            where T : struct, IScalar<T>
+            => T.Interpolate(normalized: normalized, start: start, stop: stop);
+
+        public static Propor Normalize<T>(T value, T start, T stop)
+            where T : struct, IScalar<T>
+            => T.Normalize(value: value, start: start, stop: stop);
+
+        public static double Interpolate(Propor normalized, double start, double stop)
+            => start + (stop - start) * normalized;
+
+        public static Propor Normalize(double value, double start, double stop)
+            => (Propor)((value - start) / (stop - start));
+
+        //public static UDouble PowerMean(ReadOnlySpan<(UDouble weight, UDouble value)> args, double exponent)
+        //{
+        //    UDouble totalWeight = args.Sum(weightAndFunc => weightAndFunc.weight);
+        //    return exponent switch
+        //    {
+        //        double.NegativeInfinity => args.Min(args => args.value),
+        //        // geometric mean
+        //        0 => MyMathHelper.Exp(args.Sum(args => args.weight / totalWeight * MyMathHelper.Log(args.value))),
+        //        double.PositiveInfinity => args.Max(args => args.value),
+        //        double pow => MyMathHelper.Pow
+        //        (
+        //            @base: args.Sum(args => args.weight / totalWeight * MyMathHelper.Pow(@base: args.value, exponent: pow)),
+        //            exponent: 1 / pow
+        //        )
+        //    };
+        //}
+
+
+        // TODO: could replace this with ReadOnlySpan to do this without allocations
+        /// <summary>
+        /// Weights must sum to 1
+        /// </summary>
+        public static UDouble PowerMean(IEnumerable<(Propor weight, UDouble value)> args, double exponent)
+            => exponent switch
+            {
+                double.NegativeInfinity => args.Min(args => args.value),
+                // geometric mean
+                0 => MyMathHelper.Exp(args.Sum(args => args.weight * MyMathHelper.Log(args.value))),
+                double.PositiveInfinity => args.Max(args => args.value),
+                double pow => MyMathHelper.Pow
+                (
+                    @base: args.Sum(args => args.weight * MyMathHelper.Pow(@base: args.value, exponent: pow)),
+                    exponent: 1 / pow
+                )
+            };
+
+        //public static Func<T, UDouble> PowerMean<T>(List<(UDouble weight, Func<T, UDouble> func)> args, double exponent)
+        //{
+        //    UDouble totalWeight = args.Sum(weightAndFunc => weightAndFunc.weight);
+        //    return exponent switch
+        //    {
+        //        double.NegativeInfinity => value => args.Min(args => args.func(value)),
+        //        // geometric mean
+        //        0 => value => MyMathHelper.Exp(args.Sum(args => args.weight / totalWeight * MyMathHelper.Log(args.func(value)))),
+        //        double.PositiveInfinity => value => args.Max(args => args.func(value)),
+        //        double pow => value => MyMathHelper.Pow
+        //        (
+        //            @base: args.Sum(args => args.weight / totalWeight * MyMathHelper.Pow(@base: args.func(value), exponent: pow)),
+        //            exponent: 1 / pow
+        //        )
+        //    };
+        //}
     }
 }

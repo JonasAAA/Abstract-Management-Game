@@ -7,9 +7,6 @@ namespace Game1.Resources
         [Serializable]
         private sealed class Mechanical : IProductClass
         {
-            public Propor ProportionOfMassMovingWithMechanicalProduction
-                => (Propor).8;
-
             public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToAmount
                 => new()
                 {
@@ -23,9 +20,6 @@ namespace Game1.Resources
         [Serializable]
         private sealed class Electronics : IProductClass
         {
-            public Propor ProportionOfMassMovingWithMechanicalProduction
-                => (Propor).5;
-
             public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToAmount
                 => new()
                 {
@@ -40,9 +34,6 @@ namespace Game1.Resources
         [Serializable]
         private sealed class Roof : IProductClass
         {
-            public Propor ProportionOfMassMovingWithMechanicalProduction
-                => (Propor)0;
-
             public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToAmount
                 => new()
                 {
@@ -61,11 +52,18 @@ namespace Game1.Resources
         // There is a test to check that
         public static readonly EfficientReadOnlyCollection<IProductClass> all = new List<IProductClass>() { mechanical, electronics, roof }.ToEfficientReadOnlyCollection();
 
-        public Propor ProportionOfMassMovingWithMechanicalProduction { get; }
-
         public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToAmount { get; }
 
         public sealed void ThrowIfWrongIMatPurposeSet(EfficientReadOnlyDictionary<IMaterialPurpose, Material> materialChoices)
             => MatPurposeToAmount.Keys.ToHashSet().SetEquals(materialChoices.Keys);
+
+        public sealed T SwitchExpression<T>(Func<T> mechanical, Func<T> electronics, Func<T> roof)
+            => this switch
+            {
+                Mechanical => mechanical(),
+                Electronics => electronics(),
+                Roof => roof(),
+                _ => throw new InvalidStateException()
+            };
     }
 }

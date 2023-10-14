@@ -9,6 +9,7 @@ using System.IO;
 using System.Runtime;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1
 {
@@ -160,9 +161,6 @@ namespace Game1
                 contentManager: Content,
                 graphicsDevice: GraphicsDevice
             );
-
-            // TODO: consider moving this to a constants class or similar
-            UDouble buttonWidth = 200, buttonHeight = 30;
 
             MenuState mapCreationStatePauseMenu = new();
             MenuState mapCreationStateDoubleCheckIfExitWithoutSaving = new();
@@ -461,8 +459,8 @@ namespace Game1
                 (
                     shape: new MyRectangle
                     (
-                        width: buttonWidth,
-                        height: buttonHeight
+                        width: curUIConfig.wideUIElementWidth,
+                        height: curUIConfig.UILineHeight
                     ),
                     action: action,
                     tooltip: new ImmutableTextTooltip(text: tooltipText),

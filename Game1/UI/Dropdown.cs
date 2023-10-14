@@ -1,78 +1,131 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
 using static Game1.WorldManager;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
     public static class Dropdown
     {
         [Serializable]
-        private sealed record ItemChoiceListener<TItem>(IItemChoiceSetter<TItem> ItemChoiceSetter, Button StartItemChoice, TItem Item) : IClickedListener
+        private sealed record ItemChoiceListener<TItem>(IItemChoiceSetter<TItem> ItemChoiceSetter, UIRectHorizPanel<IHUDElement> StartItemChoiceLine, Button StartItemChoice, TItem Item, IHUDElement? AdditionalInfo) : IClickedListener
             where TItem : notnull
         {
             void IClickedListener.ClickedResponse()
             {
-                StartItemChoice.Text = Item.ToString();
+                SetStartItemChoiceLineChildren(startItemChoiceLine: StartItemChoiceLine, startItemChoice: StartItemChoice, item: Item, additionalInfo: AdditionalInfo);
                 ItemChoiceSetter.SetChoice(item: Item);
             }
         }
 
+        private const VertPosEnum childVertPos = VertPosEnum.Middle;
+
+        /// <summary>
+        /// <paramref name="item"/> null means that nothing is chosen yet
+        /// </summary>
+        private static void SetStartItemChoiceLineChildren<TItem>(UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button startItemChoice, TItem? item, IHUDElement? additionalInfo)
+        {
+            startItemChoice.Text = GetButtonText(item: item);
+            startItemChoiceLine.Reinitialize
+            (
+                newChildren: new List<IHUDElement?>()
+                {
+                    startItemChoice,
+                    additionalInfo
+                }
+            );
+        }
+
+        private static string GetButtonText<TItem>(TItem? item)
+            => item?.ToString() ?? "+";
+
         [Serializable]
-        private sealed record StartDropdownListener<TItem>(IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, ITooltip tooltip)> ItemsWithTooltips, Button StartItemChoice) : IClickedListener
+        private sealed record StartDropdownListener<TItem>(IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, IHUDElement? additionalInfo, ITooltip tooltip)> ItemsWithTooltips, UIRectHorizPanel<IHUDElement> StartItemChoiceLine, Button StartItemChoice) : IClickedListener
             where TItem : notnull
         {
             void IClickedListener.ClickedResponse()
             {
-                UIRectVertPanel<IHUDElement> matPaletteChoicePopup = new(childHorizPos: HorizPosEnum.Middle);
-                PosEnums popupOrigin = new(HorizPosEnum.Middle, VertPosEnum.Middle);
+                UIRectVertPanel<IHUDElement> choicePopup = new
+                (
+                    childHorizPos: HorizPosEnum.Middle,
+                    children: ItemsWithTooltips.Select
+                    (
+                        args =>
+                        {
+                            var (item, additionalInfo, tooltip) = args;
+                            
+                            Button chooseItemButton = new
+                            (
+                                shape: new MyRectangle(width: curUIConfig.wideUIElementWidth, height: curUIConfig.UILineHeight),
+                                tooltip: tooltip,
+                                text: GetButtonText(item: item)
+                            );
+                            chooseItemButton.clicked.Add
+                            (
+                                listener: new ItemChoiceListener<TItem>
+                                (
+                                    ItemChoiceSetter: ItemChoiceSetter,
+                                    StartItemChoiceLine: StartItemChoiceLine,
+                                    StartItemChoice: StartItemChoice,
+                                    Item: item,
+                                    AdditionalInfo: additionalInfo
+                                )
+                            );
+                            return new UIRectHorizPanel<IHUDElement>
+                            (
+                                childVertPos: childVertPos,
+                                children: new List<IHUDElement?>() { chooseItemButton, additionalInfo }
+                            );
+                        }
+                    )
+                );
+                PosEnums popupOrigin = new(HorizPosEnum.Left, VertPosEnum.Middle);
                 CurWorldManager.SetHUDPopup
                 (
-                    HUDElement: matPaletteChoicePopup,
+                    HUDElement: choicePopup,
                     HUDPos: StartItemChoice.Shape.GetSpecPos(origin: popupOrigin),
                     origin: popupOrigin
                 );
-                foreach (var (item, tooltip) in ItemsWithTooltips)
-                {
-                    Button chooseItemButton = new
-                    (
-                        shape: new MyRectangle(width: 200, height: 30),
-                        tooltip: tooltip,
-                        text: item.ToString()
-                    );
-                    matPaletteChoicePopup.AddChild(child: chooseItemButton);
-                    chooseItemButton.clicked.Add
-                    (
-                        listener: new ItemChoiceListener<TItem>
-                        (
-                            ItemChoiceSetter: ItemChoiceSetter,
-                            StartItemChoice: StartItemChoice,
-                            Item: item
-                        )
-                    );
-                }
             }
         }
 
-        public static Button CreateDropdown<TItem>(ITooltip dropdownButtonTooltip, IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, ITooltip tooltip)> ItemsWithTooltips)
-            where TItem : notnull
+        public static IHUDElement CreateDropdown<TItem>(ITooltip dropdownButtonTooltip, IItemChoiceSetter<TItem> itemChoiceSetter,
+            IEnumerable<(TItem item, ITooltip tooltip)> itemsWithTooltips, (IHUDElement empty, Func<TItem, IHUDElement> item)? additionalInfos)
+            where TItem : class
         {
+            UIRectHorizPanel<IHUDElement> startItemChoiceLine = new(childVertPos: childVertPos, children: Enumerable.Empty<IHUDElement>());
             Button startItemChoice = new
             (
-                shape: new MyRectangle(width: 200, height: 30),
-                tooltip: dropdownButtonTooltip,
-                text: "+"
+                shape: new MyRectangle(width: curUIConfig.wideUIElementWidth, height: curUIConfig.UILineHeight),
+                tooltip: dropdownButtonTooltip
+            );
+            SetStartItemChoiceLineChildren<TItem>
+            (
+                startItemChoiceLine: startItemChoiceLine,
+                startItemChoice: startItemChoice,
+                item: null,
+                additionalInfo: additionalInfos?.empty
             );
             startItemChoice.clicked.Add
             (
                 listener: new StartDropdownListener<TItem>
                 (
-                    ItemChoiceSetter: ItemChoiceSetter,
-                    ItemsWithTooltips: ItemsWithTooltips,
+                    ItemChoiceSetter: itemChoiceSetter,
+                    ItemsWithTooltips: itemsWithTooltips.Select
+                    (
+                        args =>
+                        (
+                            item: args.item,
+                            additionalInfo: additionalInfos?.item(args.item),
+                            tooltip: args.tooltip
+                        )
+                    ),
+                    StartItemChoiceLine: startItemChoiceLine,
                     StartItemChoice: startItemChoice
                 )
             );
 
-            return startItemChoice;
+            return startItemChoiceLine;
         }
 
         public static List<Type> GetKnownTypeArgs()

@@ -121,6 +121,9 @@ namespace Game1
 
         public readonly ulong magicUnlimitedStartingMaterialCount = ulong.MaxValue / 100;
 
+        public readonly Temperature maxTemperatureShownInGraphs = Temperature.CreateFromK(valueInK: 3000);
+        public readonly UDouble maxGravityShownInGraphs = 1000000000000;
+
         public WorldConfig()
         {
             // Below idea works as basically the scaling metersPerStartingPixel by factor 10 means rewriting eveything

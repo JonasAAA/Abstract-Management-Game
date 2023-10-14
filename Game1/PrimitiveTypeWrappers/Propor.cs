@@ -3,7 +3,7 @@
 namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly record struct Propor : IClose<Propor>, IMin<Propor>, IExponentiable<UDouble, Propor>, IComparisonOperators<Propor, Propor, bool>,
+    public readonly record struct Propor : IScalar<Propor>, IClose<Propor>, IMin<Propor>, IExponentiable<UDouble, Propor>, IComparisonOperators<Propor, Propor, bool>,
         IMultiplyOperators<Propor, Propor, Propor>, IMultiplicativeIdentity<Propor, Propor>,
         IMultiplyOperators<Propor, double, double>,
         IMultiplyOperators<Propor, UDouble, UDouble>,
@@ -42,6 +42,9 @@ namespace Game1.PrimitiveTypeWrappers
 
         public static Propor CreateByClamp(UDouble value)
             => new(value: MyMathHelper.Min(value, 1u));
+
+        public static Propor CreateByClamp(double value)
+            => CreateByClamp(value: UDouble.CreateByClamp(value: value));
 
         public bool IsFull
             => this == full;
@@ -135,5 +138,27 @@ namespace Game1.PrimitiveTypeWrappers
 
         static Propor IMin<Propor>.Min(Propor left, Propor right)
             => left < right ? left : right;
+
+        public static Propor Normalize(Propor value, Propor start, Propor stop)
+            => Algorithms.Normalize(value: value.value, start: start.value, stop: stop.value);
+
+        public static Propor Interpolate(Propor normalized, Propor start, Propor stop)
+            => new(value: UDouble.Interpolate(normalized: normalized, start: start.value, stop: stop.value));
+
+        /// <summary>
+        /// Weights must sum up to to 1
+        /// </summary>
+        public static Propor PowerMean(IEnumerable<(Propor weight, Propor value)> args, double exponent)
+            => new
+            (
+                value: Algorithms.PowerMean
+                (
+                    args: args.Select
+                    (
+                        arg => (weight: arg.weight, value: (UDouble)arg.value)
+                    ),
+                    exponent: exponent
+                )
+            );
     }
 }

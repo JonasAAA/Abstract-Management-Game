@@ -167,15 +167,15 @@ namespace Game1
                 temperature:temperature
             );
 
-        private static UDouble RawMatStartingStrength(ulong ind)
-            => (UDouble)ind / maxRawMatInd;
+        private static Propor RawMatStartingStrength(ulong ind)
+            => (Propor)((UDouble)ind / maxRawMatInd);
 
 
-        private static (Temperature temperature, UDouble strength) RawMatMaxStrength(ulong ind)
+        private static (Temperature temperature, Propor strength) RawMatMaxStrength(ulong ind)
             => 
             (
                 temperature: Temperature.CreateFromK(valueInK: 1000 + ind * 100),
-                strength: 1
+                strength: Propor.full
             );
 
         /// <summary>
@@ -187,29 +187,28 @@ namespace Game1
         /// <summary>
         /// Currently piecewise linear
         /// </summary>
-        private static UDouble RawMatStrength(ulong ind, Temperature temperature)
+        private static Propor RawMatStrength(ulong ind, Temperature temperature)
         {
             var (maxStrengthTemper, maxStrength) = RawMatMaxStrength(ind: ind);
             if (temperature <= maxStrengthTemper)
-                return Algorithms.WeightedAverage
+                return Algorithms.Interpolate
                 (
-                    a: (weight: temperature.valueInK, value: RawMatStartingStrength(ind: ind)),
-                    b: (weight: maxStrengthTemper.valueInK - temperature.valueInK, value: maxStrength)
+                    normalized: Algorithms.Normalize(value: temperature.valueInK, start: 0, stop: maxStrengthTemper.valueInK),
+                    start: RawMatStartingStrength(ind: ind),
+                    stop: maxStrength
                 );
             var meltingPoint = RawMatMeltingPoint(ind: ind);
             if (temperature <= meltingPoint)
-                return Algorithms.WeightedAverage
+                return Algorithms.Interpolate
                 (
-                    a: (weight: temperature.valueInK - maxStrengthTemper.valueInK, value: maxStrength),
-                    b: (weight: meltingPoint.valueInK - temperature.valueInK, value: 0)
+                    normalized: Algorithms.Normalize(value: temperature.valueInK, start: maxStrengthTemper.valueInK, stop: meltingPoint.valueInK),
+                    start: maxStrength,
+                    stop: Propor.empty
                 );
-            return 0;
+            return Propor.empty;
         }
 
-        /// <summary>
-        /// Must be from 0 to 1
-        /// </summary>
-        private static UDouble Strength(Material material, Temperature temperature)
+        private static Propor Strength(Material material, Temperature temperature)
             => CombineRawMatProperties
             (
                 rawMatAmounts: material.RawMatComposition,
@@ -217,90 +216,60 @@ namespace Game1
                 rawMatProperty: static (rawMat, temperature) => RawMatStrength(ind: rawMat.Ind, temperature: temperature)
             );
 
-        private static UDouble RelevantMassPUBA(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, UDouble productionMassPUBA)
-            => productionMassPUBA + buildingComponentsToAmountPUBA.Sum
-            (
-                prodAndAmountPUBA => prodAndAmountPUBA.amountPUBA * prodAndAmountPUBA.prod.ProductClass.ProportionOfMassMovingWithMechanicalProduction * prodAndAmountPUBA.prod.Mass.valueInKg
-            );
-
-        private static UDouble MaxBaseMechThroughput(MaterialPalette mechanicalMatPalette, Temperature temperature)
-            => (UDouble)0.1 * Strength(material: mechanicalMatPalette.materialChoices[IMaterialPurpose.mechanical], temperature: temperature);
-
-        /// <summary>
-        /// Throughput is the input/output area of building per unit time
-        /// </summary>
-        /// <param Name="relevantMassPUBA">Mass which needs to be moved/rotated. Until structural material purpose is in use, this is all the splittingMass of matAmounts and products</param>
-        private static double MaxMechThroughputPUBA(Propor mechanicalProporInBuilding, MaterialPalette mechanicalMatPalette, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
-            // SHOULD PROBABLY also take into account the complexity of the production, i.e. product complexity, some fixed complexity for mining and such
-            // This is maximum of restriction from gravity and restriction from mechanical strength compared to total weigtht of things
-            => MyMathHelper.Min
-            (
-#warning include the gravity in this calculation
-                (double)mechanicalProporInBuilding * MaxBaseMechThroughput(mechanicalMatPalette: mechanicalMatPalette, temperature: temperature),// - 0.1 * gravity * relevantMassPUBA,
-                0.1 * gravity
-            );
-
         // Only public to be testable
-        public static (Temperature temperature, UDouble resistivity) RawMatResistivityMin(ulong ind)
+        public static (Temperature temperature, Propor resistivity) RawMatResistivityMin(ulong ind)
             =>
             (
                 temperature: Temperature.CreateFromK(valueInK: 200 + ind * 100),
                 // basically further raw materials will have more extreme minimums
-                resistivity: (RawMatResistivityMid(ind: ind) * (maxRawMatInd - ind) + 0 * ind) / maxRawMatInd
+                resistivity: Algorithms.Interpolate
+                (
+                    normalized: Algorithms.Normalize(value: ind, start: 0, stop: maxRawMatInd),
+                    start: RawMatResistivityMid(ind: ind),
+                    stop: Propor.empty
+                )
             );
 
         // Only public to be testable
-        public static UDouble RawMatResistivityMid(ulong ind)
-            => (UDouble)(2 + (ind % 2)) / 5;
+        public static Propor RawMatResistivityMid(ulong ind)
+            => (Propor)((2.0 + (ind % 2)) / 5);
 
         // Only public to be testable
-        public static (Temperature temperature, UDouble resistivity) RawMatResistivityMax(ulong ind)
+        public static (Temperature temperature, Propor resistivity) RawMatResistivityMax(ulong ind)
             =>
             (
                 temperature: Temperature.CreateFromK(valueInK: 50 + ind * 100),
                 // basically further raw materials will have more extreme maximums
-                resistivity: (RawMatResistivityMid(ind: ind) * (maxRawMatInd - ind) + 1 * ind) / maxRawMatInd
+                resistivity: Algorithms.Interpolate
+                (
+                    normalized: Algorithms.Normalize(value: ind, start: 0, stop: maxRawMatInd),
+                    start: RawMatResistivityMid(ind: ind),
+                    stop: Propor.full
+                )
             );
 
-        public static UDouble RawMatResistivity(ulong ind, Temperature temperature)
+        public static Propor RawMatResistivity(ulong ind, Temperature temperature)
         {
-            double midResistivity = RawMatResistivityMid(ind: ind);
-            return (UDouble)(midResistivity + Bump(RawMatResistivityMin(ind: ind)) + Bump(RawMatResistivityMax(ind: ind)));
+            var midResistivity = RawMatResistivityMid(ind: ind);
+            return (Propor)((double)midResistivity + Bump(RawMatResistivityMin(ind: ind)) + Bump(RawMatResistivityMax(ind: ind)));
 
-            double Bump((Temperature temperature, UDouble resistivity) resistPoint)
+            double Bump((Temperature temperature, Propor resistivity) resistPoint)
             {
                 double scaledTemperDiff = ((double)temperature.valueInK - resistPoint.temperature.valueInK) / 50;
-                return ((double)resistPoint.resistivity - midResistivity) / (1 + scaledTemperDiff * scaledTemperDiff);
+                return ((double)resistPoint.resistivity - (double)midResistivity) / (1 + scaledTemperDiff * scaledTemperDiff);
             }
         }
 
         /// <summary>
         /// Must be from 0 to 1
         /// </summary>
-        private static UDouble Resistivity(Material material, Temperature temperature)
+        private static Propor Resistivity(Material material, Temperature temperature)
             => CombineRawMatProperties
             (
                 rawMatAmounts: material.RawMatComposition,
                 temperature: temperature,
                 rawMatProperty: static (rawMat, temperature) => RawMatResistivity(ind: rawMat.Ind, temperature: temperature)
             );
-
-        public static UDouble MaxElectricalPower(MaterialPalette electronicsMatPalette, Temperature temperature)
-            => (UDouble)0.1 * UDouble.CreateByCuttingOffNegative
-            (
-                value: (double)Resistivity
-                (
-                    material: electronicsMatPalette.materialChoices[IMaterialPurpose.electricalInsulator],
-                    temperature: temperature
-                ) - (double)Resistivity
-                (
-                    material: electronicsMatPalette.materialChoices[IMaterialPurpose.electricalConductor],
-                    temperature: temperature
-                )
-            );
-
-        private static UDouble MaxElectricalPowerPUBA(Propor electronicsProporInBuilding, MaterialPalette electronicsMatPalette, Temperature temperature)
-            => electronicsProporInBuilding * MaxElectricalPower(electronicsMatPalette: electronicsMatPalette, temperature: temperature);
 
         private static UDouble BaseElectricalEnergyPerUnitAreaPhys(MaterialPalette electronicsMatPalette, Temperature temperature)
             => (UDouble)0.1 * Resistivity
@@ -331,64 +300,117 @@ namespace Game1
             );
         }
 
+        //        /// <summary>
+        //        /// Mechanical production stats
+        //        /// </summary>
+        //        public static CurProdStats CurMechProdStats(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
+        //            MaterialPaletteChoices buildingMatPaletteChoices, UDouble gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
+        //#warning Either this or the one that uses it should probably take into account worldSecondsInGameSecond. Probably would like to have separate configurable physics and gameplay speed multipliers
+        //        {
+        //#warning Implement this properly
+        //            //return new
+        //            //(
+        //            //    ReqWatts: buildingArea.valueInMetSq / 1000000000,
+        //            //    ProducedAreaPerSec: buildingArea.valueInMetSq * WorldManager.CurWorldConfig.productionProporOfBuildingArea / (WorldManager.CurWorldConfig.worldSecondsInGameSecond * 4)
+        //            //);
+        //            UDouble relevantMassPUBA = RelevantMassPUBA
+        //            (
+        //                buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
+        //                productionMassPUBA: productionMass.valueInKg / buildingArea.valueInMetSq
+        //            );
+
+        //            // TODO: could diplay the reason that no production is happening to the player
+        //            var maxMechThroughputPUBA = UDouble.CreateByCuttingOffNegative
+        //            (
+        //                value: MaxMechThroughputPUBA
+        //                (
+        //                    mechanicalProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.mechanical],
+        //                    mechanicalMatPalette: buildingMatPaletteChoices[IProductClass.mechanical],
+        //                    gravity: gravity,
+        //                    temperature: temperature,
+        //                    relevantMassPUBA: relevantMassPUBA
+        //                )
+        //            );
+
+        //            UDouble maxElectricalPowerPUBA = MaxElectricalPowerPUBA
+        //            (
+        //                electronicsProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.electronics],
+        //                electronicsMatPalette: buildingMatPaletteChoices[IProductClass.electronics],
+        //                temperature: temperature
+        //            );
+
+        //            UDouble electricalEnergyPerUnitArea = ElectricalEnergyPerUnitAreaPhys
+        //            (
+        //                electronicsProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.electronics],
+        //                electronicsMatPalette: buildingMatPaletteChoices[IProductClass.electronics],
+        //                gravity: gravity,
+        //                temperature: temperature,
+        //                relevantMassPUBA: relevantMassPUBA
+        //            );
+
+        //            UDouble
+        //                reqWattsPUBA = MyMathHelper.Min(maxElectricalPowerPUBA, maxMechThroughputPUBA * electricalEnergyPerUnitArea),
+        //                reqWatts = reqWattsPUBA * buildingArea.valueInMetSq,
+        //                producedAreaPerSec = reqWatts / electricalEnergyPerUnitArea;
+
+        //            return new
+        //            (
+        //                ReqWatts: reqWatts,
+        //                ProducedAreaPerSec: producedAreaPerSec
+        //            );
+        //        }
+
+        /// <summary>
+        /// Throughput is the input/output area of building per unit time
+        /// </summary>
+        public static Propor Throughput(MaterialPalette materialPalette, Temperature temperature)
+            => materialPalette.productClass.SwitchExpression
+            (
+                mechanical: () => Strength(material: materialPalette.materialChoices[IMaterialPurpose.mechanical], temperature: temperature),
+                electronics: () => Propor.CreateByClamp
+                (
+                    value: (double)Resistivity
+                    (
+                        material: materialPalette.materialChoices[IMaterialPurpose.electricalInsulator],
+                        temperature: temperature
+                    ) - (double)Resistivity
+                    (
+                        material: materialPalette.materialChoices[IMaterialPurpose.electricalConductor],
+                        temperature: temperature
+                    )
+                ),
+                roof: () => (Propor).5
+            );
+
+        private const double throughputPowerMeanExponent = 0;
+
+        /// <summary>
+        /// Throughput from possibly not all mat palette choices
+        /// </summary>
+        public static Propor TentativeThroughput(Temperature temperature, Propor chosenTotalPropor, EfficientReadOnlyDictionary<IProductClass, MaterialPalette> matPaletteChoices, EfficientReadOnlyDictionary<IProductClass, Propor> buildingProdClassPropors)
+        {
+            Debug.Assert(MyMathHelper.AreClose((UDouble)chosenTotalPropor, matPaletteChoices.Keys.Sum(prodClass => (UDouble)buildingProdClassPropors[prodClass])));
+            return Propor.PowerMean
+            (
+                args: matPaletteChoices.Select
+                (
+                    matPaletteChoice =>
+                    (
+                        weight: (Propor)((UDouble)buildingProdClassPropors[matPaletteChoice.Key] / (UDouble)chosenTotalPropor),
+                        value: Throughput(materialPalette: matPaletteChoice.Value, temperature: temperature)
+                    )
+                ),
+                exponent: throughputPowerMeanExponent
+            );
+        }
+
         /// <summary>
         /// Mechanical production stats
         /// </summary>
         public static CurProdStats CurMechProdStats(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
             MaterialPaletteChoices buildingMatPaletteChoices, UDouble gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
-#warning Either this or the one that uses it should probably take into account worldSecondsInGameSecond. Probably would like to have separate configurable physics and gameplay speed multipliers
         {
-#warning Implement this properly
-            //return new
-            //(
-            //    ReqWatts: buildingArea.valueInMetSq / 1000000000,
-            //    ProducedAreaPerSec: buildingArea.valueInMetSq * WorldManager.CurWorldConfig.productionProporOfBuildingArea / (WorldManager.CurWorldConfig.worldSecondsInGameSecond * 4)
-            //);
-            UDouble relevantMassPUBA = RelevantMassPUBA
-            (
-                buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
-                productionMassPUBA: productionMass.valueInKg / buildingArea.valueInMetSq
-            );
-
-            // TODO: could diplay the reason that no production is happening to the player
-            var maxMechThroughputPUBA = UDouble.CreateByCuttingOffNegative
-            (
-                value: MaxMechThroughputPUBA
-                (
-                    mechanicalProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.mechanical],
-                    mechanicalMatPalette: buildingMatPaletteChoices[IProductClass.mechanical],
-                    gravity: gravity,
-                    temperature: temperature,
-                    relevantMassPUBA: relevantMassPUBA
-                )
-            );
-
-            UDouble maxElectricalPowerPUBA = MaxElectricalPowerPUBA
-            (
-                electronicsProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.electronics],
-                electronicsMatPalette: buildingMatPaletteChoices[IProductClass.electronics],
-                temperature: temperature
-            );
-
-            UDouble electricalEnergyPerUnitArea = ElectricalEnergyPerUnitAreaPhys
-            (
-                electronicsProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.electronics],
-                electronicsMatPalette: buildingMatPaletteChoices[IProductClass.electronics],
-                gravity: gravity,
-                temperature: temperature,
-                relevantMassPUBA: relevantMassPUBA
-            );
-
-            UDouble
-                reqWattsPUBA = MyMathHelper.Min(maxElectricalPowerPUBA, maxMechThroughputPUBA * electricalEnergyPerUnitArea),
-                reqWatts = reqWattsPUBA * buildingArea.valueInMetSq,
-                producedAreaPerSec = reqWatts / electricalEnergyPerUnitArea;
-
-            return new
-            (
-                ReqWatts: reqWatts,
-                ProducedAreaPerSec: producedAreaPerSec
-            );
+            throw new NotImplementedException();
         }
 
         /// <summary>

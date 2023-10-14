@@ -20,6 +20,12 @@ namespace Game1.UI
             : base(shape: new MyRectangle())
             => children = new();
 
+        protected void AddChildren(IEnumerable<TChild?> newChildren)
+        {
+            foreach (var child in newChildren)
+                AddChild(child: child);
+        }
+
         public void AddChild(TChild? child)
         {
             if (child is null)
@@ -36,6 +42,15 @@ namespace Game1.UI
 
             children.Remove(child);
             base.RemoveChild(child: child);
+        }
+
+        public void Reinitialize(IEnumerable<TChild?> newChildren)
+        {
+            // Clone is needed so that don't modify the collection that am currently iterating over
+            foreach (var child in children.Clone())
+                RemoveChild(child: child);
+            foreach (var child in newChildren)
+                AddChild(child: child);
         }
 
         public IEnumerator<TChild> GetEnumerator()

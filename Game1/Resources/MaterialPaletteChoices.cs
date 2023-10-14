@@ -15,18 +15,18 @@ namespace Game1.Resources
             return new MaterialPaletteChoices(choices: choices);
         }
 
-        public EfficientReadOnlyDictionary<IProductClass, MaterialPalette> choices { get; }
+        public EfficientReadOnlyDictionary<IProductClass, MaterialPalette> Choices { get; }
 
         private MaterialPaletteChoices(EfficientReadOnlyDictionary<IProductClass, MaterialPalette> choices)
-            => this.choices = choices;
+            => Choices = choices;
 
         public MaterialPalette this[IProductClass productClass]
-            => choices[productClass];
+            => Choices[productClass];
 
         public MaterialPaletteChoices FilterOutUnneededMatPalettes(EfficientReadOnlyHashSet<IProductClass> neededProductClasses)
             => new
             (
-                choices: choices.Where(matChoice => neededProductClasses.Contains(matChoice.Key)).ToEfficientReadOnlyDict
+                choices: Choices.Where(matChoice => neededProductClasses.Contains(matChoice.Key)).ToEfficientReadOnlyDict
                 (
                     keySelector: matChoice => matChoice.Key,
                     elementSelector: matChoice => matChoice.Value

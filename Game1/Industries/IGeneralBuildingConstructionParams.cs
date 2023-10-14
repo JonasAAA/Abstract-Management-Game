@@ -15,7 +15,7 @@ namespace Game1.Industries
 
         public sealed IConcreteBuildingConstructionParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
         {
-            if (!BuildingCostPropors.neededProductClasses.SetEquals(neededBuildingMatPaletteChoices.choices.Keys))
+            if (!BuildingCostPropors.neededProductClasses.SetEquals(neededBuildingMatPaletteChoices.Choices.Keys))
                 throw new ArgumentException();
             return CreateConcreteImpl(nodeState: nodeState, neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices, productionChoice: productionChoice);
         }

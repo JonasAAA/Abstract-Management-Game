@@ -1,7 +1,6 @@
 ﻿using Game1;
 using Game1.Resources;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace TestProject
@@ -11,11 +10,25 @@ namespace TestProject
     {
         [TestMethod]
         public void AllProductClassesPresent()
-            => CollectionAssert.AreEquivalent
+        {
+            var allProductClasses = TestHelpers.GetAllPublicStaticFieldValuesInType<IProductClass>(type: typeof(IProductClass));
+
+            CollectionAssert.AreEquivalent
             (
-                expected: TestHelpers.GetAllPublicStaticFieldValuesInType<IProductClass>(type: typeof(IProductClass)),
+                expected: allProductClasses.Select(arg => arg.value).ToList(),
                 actual: IProductClass.all.ToList()
             );
+
+            CollectionAssert.AreEquivalent
+            (
+                expected: allProductClasses.Select(arg => arg.name).ToList(),
+                actual: typeof(IProductClass)
+                    .GetMethod(name: nameof(IProductClass.SwitchExpression))
+                    !.GetParameters()
+                    .Select(paramInfo => paramInfo.Name)
+                    .ToList()
+            );
+        }
 
         [TestMethod]
         public void AllProductClassesDistinct()

@@ -3,6 +3,7 @@ using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.Industries
 {
@@ -146,41 +147,49 @@ namespace Game1.Industries
                 this.resDestins = resDestins;
 
                 const HorizPosEnum childHorizPos = HorizPosEnum.Left;
-                routePanel = new(childHorizPos: childHorizPos);
-
-                UIRectVertPanel<IHUDElement> resSourcePanel = new(childHorizPos: childHorizPos);
-                routePanel.AddChild(child: resSourcePanel);
-                resSourcePanel.AddChild(new TextBox(text: UIAlgorithms.ChangeResSources));
-                if (resSources.Count is 0)
-                {
-                    resSourcePanel.AddChild(child: new TextBox(text: UIAlgorithms.NoResourcesProduced));
-                }
-                else
-                {
-                    foreach (var (res, sources) in resSources)
-                    {
-                        Button addOrRemoveResSourceButton = new
-                        (
-                            shape: new MyRectangle(width: 200, height: 30),
-                            tooltip: new ImmutableTextTooltip(text: UIAlgorithms.AddOrRemoveResSourceTooltip(res: res)),
-                            text: res.ToString()
-                        );
-                        resSourcePanel.AddChild(child: addOrRemoveResSourceButton);
-                        addOrRemoveResSourceButton.clicked.Add
-                        (
-                            listener: new ChangeResSourcesButtonListener
+                
+                UIRectVertPanel<IHUDElement> resSourcePanel = new
+                (
+                    childHorizPos: childHorizPos,
+                    children: new List<IHUDElement>() { new TextBox(text: UIAlgorithms.ChangeResSources) }.Concat
+                    (
+                        resSources.Count switch
+                        {
+                            0 => new List<IHUDElement>() { new TextBox(text: UIAlgorithms.NoResourcesProduced) },
+                            not 0 => resSources.Select
                             (
-                                Industry: industry,
-                                Resource: res,
-                                Sources: sources
+                                resSource =>
+                                {
+                                    var (res, sources) = resSource;
+                                    Button addOrRemoveResSourceButton = new
+                                    (
+                                        shape: new MyRectangle(width: curUIConfig.wideUIElementWidth, height: curUIConfig.UILineHeight),
+                                        tooltip: new ImmutableTextTooltip(text: UIAlgorithms.AddOrRemoveResSourceTooltip(res: res)),
+                                        text: res.ToString()
+                                    );
+                                    addOrRemoveResSourceButton.clicked.Add
+                                    (
+                                        listener: new ChangeResSourcesButtonListener
+                                        (
+                                            Industry: industry,
+                                            Resource: res,
+                                            Sources: sources
+                                        )
+                                    );
+                                    return addOrRemoveResSourceButton;
+                                }
                             )
-                        );
-                    }
-                }
+                        }
+                    )
+                );
 
-                UIRectVertPanel<IHUDElement> resDestinPanel = new(childHorizPos: childHorizPos);
-                routePanel.AddChild(resDestinPanel);
-                resDestinPanel.AddChild(new TextBox(text: UIAlgorithms.ProducedResourcesDestinations));
+                UIRectVertPanel<IHUDElement> resDestinPanel = new
+                (
+                    childHorizPos: childHorizPos,
+                    children: new List<IHUDElement>() { new TextBox(text: UIAlgorithms.ProducedResourcesDestinations) }
+                );
+
+                routePanel = new(childHorizPos: childHorizPos, children: new List<IHUDElement>() { resSourcePanel, resDestinPanel });
             }
         }
 
@@ -202,7 +211,7 @@ namespace Game1.Industries
                             bool add = !Industry.GetSources(resource: Resource).Contains(sourceIndustry);
                             Button toggleSourceButton = new
                             (
-                                shape: new MyRectangle(width: 100, height: 60),
+                                shape: new MyRectangle(width: curUIConfig.standardUIElementWidth, height: 2 * curUIConfig.UILineHeight),
                                 tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleSourceTooltip(res: Resource, add: add)),
                                 text: UIAlgorithms.ToggleSourceButtonName(add: add)
                             );

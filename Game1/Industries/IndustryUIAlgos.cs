@@ -1,6 +1,7 @@
 ﻿using Game1.Delegates;
 using Game1.UI;
 using static Game1.WorldManager;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.Industries
 {
@@ -18,12 +19,12 @@ namespace Game1.Industries
             where TItem : notnull
             => new ItemChoiceSetter<TItem>(ProductionChoiceSetter: productionChoiceSetter);
 
-        public static Button CreateMatPaletteChoiceDropdown(IItemChoiceSetter<MaterialPalette> matPaletteChoiceSetter, IProductClass productClass)
+        public static IHUDElement CreateMatPaletteChoiceDropdown(IItemChoiceSetter<MaterialPalette> matPaletteChoiceSetter, IProductClass productClass, (IHUDElement empty, Func<MaterialPalette, IHUDElement> item)? additionalInfos = null)
             => Dropdown.CreateDropdown
             (
                 dropdownButtonTooltip: new ImmutableTextTooltip(text: UIAlgorithms.StartMatPaletteChoiceForProductClassTooltip(productClass: productClass)),
-                ItemChoiceSetter: matPaletteChoiceSetter,
-                ItemsWithTooltips: CurResConfig.GetMatPalettes(productClass: productClass).Select
+                itemChoiceSetter: matPaletteChoiceSetter,
+                itemsWithTooltips: CurResConfig.GetMatPalettes(productClass: productClass).Select
                 (
                     matPalette =>
                     (
@@ -37,37 +38,69 @@ namespace Game1.Industries
                             )
                         ) as ITooltip
                     )
-                )
+                ),
+                additionalInfos: additionalInfos
             );
 
-        public static Button CreateMaterialChoiceDropdown(IItemChoiceSetter<Material> materialChoiceSetter)
+        public static IHUDElement CreateMaterialChoiceDropdown(IItemChoiceSetter<Material> materialChoiceSetter, (IHUDElement empty, Func<Material, IHUDElement> item)? additionalInfos = null)
             => Dropdown.CreateDropdown
             (
                 dropdownButtonTooltip: new ImmutableTextTooltip(text: UIAlgorithms.StartMaterialChoice),
-                ItemChoiceSetter: materialChoiceSetter,
-                ItemsWithTooltips: CurResConfig.GetCurRes<Material>().Select
+                itemChoiceSetter: materialChoiceSetter,
+                itemsWithTooltips: CurResConfig.GetCurRes<Material>().Select
                 (
                     material =>
                     (
                         item: material,
                         tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ChooseMaterial(material: material)) as ITooltip
                     )
-                )
+                ),
+                additionalInfos: additionalInfos
             );
     
-        public static Button CreateRresourceChoiceDropdown(IItemChoiceSetter<IResource> resChoiceSetter)
+        public static IHUDElement CreateResourceChoiceDropdown(IItemChoiceSetter<IResource> resChoiceSetter, (IHUDElement empty, Func<IResource, IHUDElement> item)? additionalInfos = null)
             => Dropdown.CreateDropdown
             (
                 dropdownButtonTooltip: new ImmutableTextTooltip(text: UIAlgorithms.StartResourceChoiceTooltip),
-                ItemChoiceSetter: resChoiceSetter,
-                ItemsWithTooltips: CurResConfig.AllCurRes.Select
+                itemChoiceSetter: resChoiceSetter,
+                itemsWithTooltips: CurResConfig.AllCurRes.Select
                 (
                     resource =>
                     (
                         item: resource,
                         tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ChooseResource(resource: resource)) as ITooltip
                     )
-                )
+                ),
+                additionalInfos: additionalInfos
+            );
+
+        /// <summary>
+        /// If <paramref name="func"/> is null, the graph will be empty
+        /// </summary>
+        public static FunctionGraph<Temperature, Propor> CreateTemperatureFunctionGraph(Func<Temperature, Propor>? func)
+            => new
+            (
+                width: curUIConfig.standardUIElementWidth,
+                height: curUIConfig.UILineHeight,
+                lineColor: colorConfig.functionGraphLineColor,
+                backgroundColor: colorConfig.functionGraphBackgroundColor,
+                lineWidth: 1,
+                minX: Temperature.zero,
+                maxX: CurWorldConfig.maxTemperatureShownInGraphs,
+                minY: Propor.empty,
+                maxY: Propor.full,
+                numXSamples: 100,
+                func: func
+            );
+
+        public static VertProporBar CreateStandardVertProporBar(Propor propor)
+            => new
+            (
+                width: curUIConfig.standardUIElementWidth / 10,
+                height: curUIConfig.UILineHeight,
+                propor: propor,
+                barColor: colorConfig.barColor,
+                backgroundColor: colorConfig.barBackgroundColor
             );
 
         public static IEnumerable<Type> GetKnownTypes()

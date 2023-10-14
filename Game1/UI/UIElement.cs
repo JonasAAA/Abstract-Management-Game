@@ -102,7 +102,8 @@ namespace Game1.UI
         protected virtual void RemoveChild(TChild child)
         {
             ulong layer = childToLayer[child];
-            if (!layerToChildren[layer].Remove(child) || !childToLayer.Remove(child))
+            // Use | rather than || so that both the remove calls are executed regardless
+            if (!layerToChildren[layer].Remove(child) | !childToLayer.Remove(child))
                 throw new ArgumentException();
             if (layerToChildren[layer].Count is 0)
                 layerToChildren.Remove(layer);

@@ -32,9 +32,11 @@ namespace Game1.GameStates
             base.OnEnter();
 
             activeUIManager.RemoveHUDElement(HUDElement: UIPanel);
-            UIPanel = new(childHorizPos: HorizPosEnum.Middle);
-            foreach (var actionButton in getHUDElements())
-                UIPanel.AddChild(child: actionButton);
+            UIPanel = new
+            (
+                childHorizPos: HorizPosEnum.Middle,
+                children: getHUDElements()
+            );
             activeUIManager.AddHUDElement(HUDElement: UIPanel, position: new(HorizPosEnum.Middle, VertPosEnum.Middle));
         }
 

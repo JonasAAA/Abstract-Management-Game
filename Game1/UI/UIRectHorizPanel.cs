@@ -7,15 +7,24 @@ namespace Game1.UI
         where TChild : IHUDElement
     {
         private readonly VertPosEnum childVertPos;
+        private readonly UDouble gap;
 
-        public UIRectHorizPanel(VertPosEnum childVertPos)
-            => this.childVertPos = childVertPos;
+        /// <summary>
+        /// null gap means default gap
+        /// </summary>
+        public UIRectHorizPanel(VertPosEnum childVertPos, IEnumerable<TChild?> children, UDouble? gap = null)
+        {
+            this.childVertPos = childVertPos;
+            this.gap = gap ?? ActiveUIManager.DefaultGapBetweenUIElements;
+            // This most be done after setting the gap, otherwise, when adding the children, incorrect gap will be used.
+            AddChildren(newChildren: children);
+        }
 
         protected sealed override void PartOfRecalcSizeAndPos()
         {
             base.PartOfRecalcSizeAndPos();
 
-            Shape.Width = 2 * ActiveUIManager.RectOutlineWidth + children.Sum(child => child.Shape.Width);
+            Shape.Width = 2 * ActiveUIManager.RectOutlineWidth + children.Sum(child => child.Shape.Width) + gap * UDouble.CreateByClamp(children.Count - 1);
 
             Shape.Height = 2 * ActiveUIManager.RectOutlineWidth + children.MaxOrDefault(child => child.Shape.Height);
 
@@ -29,7 +38,7 @@ namespace Game1.UI
                         + new MyVector2(ActiveUIManager.RectOutlineWidth + curWidthSum, -(int)childVertPos * ActiveUIManager.RectOutlineWidth),
                     origin: childOrigin
                 );
-                curWidthSum += child.Shape.Width;
+                curWidthSum += child.Shape.Width + gap;
             }
         }
     }

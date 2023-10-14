@@ -101,6 +101,12 @@ namespace Game1.MyMath
             return Pow(@base: @base * @base, exponent: exponent / 2) * Pow(@base: @base, exponent: exponent % 2);
         }
 
+        public static UDouble Exp(double exponent)
+            => (UDouble)Math.Exp(exponent);
+
+        public static double Log(UDouble value)
+            => Math.Log(value);
+
         /// <summary>
         /// Returns equivalent angle between -pi and pi
         /// </summary>

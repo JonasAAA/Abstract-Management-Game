@@ -17,7 +17,7 @@
             miningBuildingColor,
             manufacturingBuildingColor,
             materialSplittingBuildingColor,
-            
+
             // UI colors
             mouseOnColor,
             UIBackgroundColor,
@@ -27,7 +27,12 @@
             selectedButtonColor,
             deselectedButtonColor,
             tooltipBackgroundColor,
-            deleteButtonColor;
+            deleteButtonColor,
+            functionGraphLineColor,
+            functionGraphBackgroundColor,
+            barColor,
+            barBackgroundColor;
+
 
         // colors are assigned in constructor to allow referencing previously defined colors
         public ColorConfig()
@@ -56,6 +61,10 @@
             deselectedButtonColor = buttonColor;
             tooltipBackgroundColor = Color.LightPink;
             deleteButtonColor = Color.Red;
+            functionGraphLineColor = textColor;
+            functionGraphBackgroundColor = Color.Black;
+            barColor = functionGraphLineColor;
+            barBackgroundColor = functionGraphBackgroundColor;
         }
     }
 }

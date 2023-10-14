@@ -155,7 +155,7 @@ namespace Game1
             massConvertedToEnergy = Mass.zero;
 
             textBox = new(lazyText: new BriefInfoText(CosmicBody: this));
-            textBox.Shape.MinWidth = 100;
+            textBox.Shape.MinWidth = curUIConfig.standardUIElementWidth;
             CurWorldManager.AddWorldHUDElement
             (
                 worldHUDElement: textBox,
@@ -164,20 +164,19 @@ namespace Game1
 
             List<(string tabLabelText, ITooltip tabTooltip, IHUDElement tab)> UITabs = new();
 
-            infoPanel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPosEnum.Left);
+            infoTextBox = new(lazyText: new MainInfoText(CosmicBody: this));
+            infoPanel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPosEnum.Left, children: new List<IHUDElement>() { infoTextBox });
             UITabs.Add
             ((
                 tabLabelText: "info",
                 tabTooltip: new ImmutableTextTooltip(text: "Info about the planet and the industry/building on it (if such exists)"),
                 tab: infoPanel
             ));
-            infoTextBox = new(lazyText: new MainInfoText(CosmicBody: this));
-            infoPanel.AddChild(child: infoTextBox);
 
             UITabPanel = new
             (
-                tabLabelWidth: 100,
-                tabLabelHeight: 30,
+                tabLabelWidth: curUIConfig.standardUIElementWidth,
+                tabLabelHeight: curUIConfig.UILineHeight,
                 tabs: UITabs
             );
             UITabPanelHUDPosUpdater = new HUDElementPosUpdater

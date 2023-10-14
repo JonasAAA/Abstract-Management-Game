@@ -127,7 +127,7 @@ namespace Game1
         }
 
         public static IEnumerable<T> Clone<T>(this IEnumerable<T> source)
-            => source.ToArray();
+            => source.ToList();
 
         public static TValue? GetValueOrDefault<TDict, TKey, TValue>(this TDict dictionary, TKey key)
             where TDict : IReadOnlyDictionary<TKey, TValue>

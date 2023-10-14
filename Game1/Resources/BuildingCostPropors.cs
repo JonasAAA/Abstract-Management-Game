@@ -8,7 +8,7 @@ namespace Game1.Resources
         public readonly EfficientReadOnlyHashSet<IProductClass> neededProductClasses;
         public readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts;
         public readonly AreaInt area;
-        public readonly EfficientReadOnlyDictionary<IProductClass, Propor> productClassPropors;
+        public readonly EfficientReadOnlyDictionary<IProductClass, Propor> neededProductClassPropors;
 
         public BuildingCostPropors(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts)
         {
@@ -29,12 +29,12 @@ namespace Game1.Resources
 
             // Needed to satisfy compiler
             AreaInt areaCopy = area;
-            productClassPropors = productClassAmounts.ToEfficientReadOnlyDict
+            neededProductClassPropors = productClassAmounts.ToEfficientReadOnlyDict
             (
                 keySelector: prodClassAndArea => prodClassAndArea.Key,
                 elementSelector: prodClassAndArea => Propor.Create(part: prodClassAndArea.Value.valueInMetSq, areaCopy.valueInMetSq)!.Value
             );
-            if (!productClassPropors.ContainsKey(IProductClass.roof))
+            if (!neededProductClassPropors.ContainsKey(IProductClass.roof))
                 throw new ArgumentException();
         }
     }

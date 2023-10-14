@@ -12,10 +12,13 @@ namespace TestProject
         /// </summary>
         /// <typeparam name="T">Type of field</typeparam>
         /// <param name="type">Type to scan for public static fields</param>
-        public static List<T?> GetAllPublicStaticFieldValuesInType<T>(Type type)
+        public static List<(string name, T? value)> GetAllPublicStaticFieldValuesInType<T>(Type type)
             => type
                 .GetFields(BindingFlags.Public | BindingFlags.Static)
                 .Where(field => field.FieldType == typeof(T))
-                .Select(field => (T?)field.GetValue(null)).ToList();
+                .Select
+                (
+                    field => (name: field.Name, value: (T?)field.GetValue(null))
+                ).ToList();
     }
 }

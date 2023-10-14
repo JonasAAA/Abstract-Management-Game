@@ -4,7 +4,7 @@ namespace Game1.PrimitiveTypeWrappers
 {
     // TODO: could rename to MyUFloat
     [Serializable]
-    public readonly struct UDouble : IClose<UDouble>, IExponentiable<double, UDouble>,
+    public readonly struct UDouble : IScalar<UDouble>, IClose<UDouble>, IExponentiable<double, UDouble>,
         IComparisonOperators<UDouble, UDouble, bool>, IMin<UDouble>, IMax<UDouble>, IComparable<UDouble>, IEquatable<UDouble>, IMinMaxValue<UDouble>,
         IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>,
         ISubtractionOperators<UDouble, UDouble, UDouble>,
@@ -41,7 +41,7 @@ namespace Game1.PrimitiveTypeWrappers
             return value >= 0 ? new(value: value) : null;
         }
 
-        public static UDouble CreateByCuttingOffNegative(double value)
+        public static UDouble CreateByClamp(double value)
             => new(value: MyMathHelper.Max(value, 0));
 
         private readonly double value;
@@ -146,5 +146,11 @@ namespace Game1.PrimitiveTypeWrappers
 
         static UDouble IMax<UDouble>.Max(UDouble left, UDouble right)
             => left > right ? left : right;
+
+        public static Propor Normalize(UDouble value, UDouble start, UDouble stop)
+            => Algorithms.Normalize(value: value.value, start: start, stop: stop);
+
+        public static UDouble Interpolate(Propor normalized, UDouble start, UDouble stop)
+            => new(value: Algorithms.Interpolate(normalized: normalized, start: (double)start, stop: stop));
     }
 }

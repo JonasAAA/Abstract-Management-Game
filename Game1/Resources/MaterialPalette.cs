@@ -1,4 +1,5 @@
 ﻿using Game1.Collections;
+using Game1.Industries;
 using Game1.UI;
 using static Game1.WorldManager;
 
@@ -7,6 +8,11 @@ namespace Game1.Resources
     [Serializable]
     public sealed class MaterialPalette
     {
+        // This is a method so that each of these is independent.
+        // Otherwise, if want to show it on screen twice, both of those would show up in the same position, since they are the same object.
+        public static IHUDElement CreateEmptyProdStatsInfluenceVisual()
+            => IndustryUIAlgos.CreateTemperatureFunctionGraph(func: null);
+
         public static Result<MaterialPalette, TextErrors> CreateAndAddToResConfig(string name, IProductClass productClass, EfficientReadOnlyDictionary<IMaterialPurpose, Material> materialChoices)
         {
             productClass.ThrowIfWrongIMatPurposeSet(materialChoices: materialChoices);
@@ -45,6 +51,11 @@ namespace Game1.Resources
             this.materialChoices = materialChoices;
             this.materialAmounts = materialAmounts;
         }
+
+        // This is a method so that each prod stats is independent.
+        // Otherwise, if want to show it on screen twice, both of those would show up in the same position, since they are the same object.
+        public IHUDElement CreateProdStatsInfluenceVisual()
+            => IndustryUIAlgos.CreateTemperatureFunctionGraph(func: temper => ResAndIndustryAlgos.Throughput(materialPalette: this, temperature: temper));
 
         /// <summary>
         /// Returns text errors if contents are the same

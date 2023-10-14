@@ -11,7 +11,8 @@ namespace TestProject
         public void AllMaterialPurposesPresent()
             => CollectionAssert.AreEquivalent
             (
-                expected: TestHelpers.GetAllPublicStaticFieldValuesInType<IMaterialPurpose>(type: typeof(IMaterialPurpose)),
+                expected: TestHelpers.GetAllPublicStaticFieldValuesInType<IMaterialPurpose>(type: typeof(IMaterialPurpose))
+                    .Select(arg => arg.value).ToList(),
                 actual: IMaterialPurpose.all.ToList()
             );
 

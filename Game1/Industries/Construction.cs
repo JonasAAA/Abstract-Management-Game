@@ -15,7 +15,7 @@ namespace Game1.Industries
             public readonly EnergyPriority energyPriority;
             public readonly string buildButtonName;
             public readonly ITooltip toopltip;
-            public readonly EfficientReadOnlyHashSet<IProductClass> neededProductClasses;
+            public readonly EfficientReadOnlyDictionary<IProductClass, Propor> neededProductClassPropors;
 
             public GeneralParams(IGeneralBuildingConstructionParams buildingGeneralParams, EnergyPriority energyPriority)
             {
@@ -24,7 +24,7 @@ namespace Game1.Industries
                 this.energyPriority = energyPriority;
                 buildButtonName = buildingGeneralParams.Name;
                 toopltip = new ImmutableTextTooltip(text: UIAlgorithms.ConstructionTooltip(constrGeneralParams: this));
-                neededProductClasses = buildingGeneralParams.BuildingCostPropors.neededProductClasses;
+                neededProductClassPropors = buildingGeneralParams.BuildingCostPropors.neededProductClassPropors;
             }
 
             /// <summary>
@@ -34,7 +34,7 @@ namespace Game1.Industries
                 => buildingGeneralParams.CreateProductionChoicePanel(productionChoiceSetter: productionChoiceSetter);
 
             public bool SufficientBuildingMatPalettes(MaterialPaletteChoices curBuildingMatPaletteChoices)
-                => neededProductClasses.IsSubsetOf(other: curBuildingMatPaletteChoices.choices.Keys);
+                => buildingGeneralParams.BuildingCostPropors.neededProductClasses.IsSubsetOf(other: curBuildingMatPaletteChoices.Choices.Keys);
 
             public ConcreteParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
                 => new

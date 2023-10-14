@@ -36,241 +36,7 @@ namespace Game1
                 => this.onOffButton = onOffButton;
         }
 
-        #region Build helpers
-        [Serializable]
-        private sealed record BuildIndustryButtonClickedListener(Construction.GeneralParams ConstrGeneralParams) : IClickedListener
-        {
-            void IClickedListener.ClickedResponse()
-                => BuildingConfigPanelManager.StartBuildingConfig(constrGeneralParams: ConstrGeneralParams);
-        }
-
-        [Serializable]
-        private sealed class BuildingConfigPanelManager : IItemChoiceSetter<MaterialPalette>, IItemChoiceSetter<ProductionChoice>
-        {
-            public static void StartBuildingConfig(Construction.GeneralParams constrGeneralParams)
-            {
-                CurWorldManager.DeactivateWorldElements();
-                CurWorldManager.activeUIManager.DisableAllUIElements();
-                BuildingConfigPanelManager buildingConfigPanelManager = new(constrGeneralParams: constrGeneralParams);
-                CurWorldManager.AddHUDElement
-                (
-                    HUDElement: buildingConfigPanelManager.buildingConfigPanel,
-                    position: new(HorizPosEnum.Right, VertPosEnum.Top)
-                );
-                foreach (var cosmicBodyBuildPanelManager in buildingConfigPanelManager.cosmicBodyBuildPanelManagers)
-                    CurWorldManager.AddWorldHUDElement
-                    (
-                        worldHUDElement: cosmicBodyBuildPanelManager.CosmicBodyBuildPanel,
-                        updateHUDPos: cosmicBodyBuildPanelManager.CosmicBodyPanelHUDPosUpdate
-                    );
-            }
-
-            public CompleteBuildingConfig? CompleteBuildingConfigOrNull { get; private set; }
-
-            private readonly Construction.GeneralParams constrGeneralParams;
-            private readonly UIRectVertPanel<IHUDElement> buildingConfigPanel;
-            private readonly List<CosmicBodyBuildPanelManager> cosmicBodyBuildPanelManagers;
-            private readonly Dictionary<IProductClass, MaterialPalette> mutableBuildingMatPaletteChoices;
-            private readonly Button cancelButton;
-            private ProductionChoice? ProductionChoice;
-            private readonly FunctionGraph<Temperature, Propor> overallThroughputGraph;
-
-            private BuildingConfigPanelManager(Construction.GeneralParams constrGeneralParams)
-            {
-                this.constrGeneralParams = constrGeneralParams;
-                mutableBuildingMatPaletteChoices = new();
-                ProductionChoice = null;
-                CompleteBuildingConfigOrNull = null;
-                
-                cancelButton = new
-                (
-                    shape: new MyRectangle(width: curUIConfig.standardUIElementWidth, height: curUIConfig.UILineHeight),
-                    tooltip: new ImmutableTextTooltip(text: UIAlgorithms.CancelBuilding),
-                    text: "Cancel",
-                    color: colorConfig.deleteButtonColor
-                );
-
-                // Need to initialize all references so that when this gets copied, the fields are already initialized
-                buildingConfigPanel = new
-                (
-                    childHorizPos: HorizPosEnum.Right,
-                    children: Enumerable.Empty<IHUDElement>()
-                );
-                cosmicBodyBuildPanelManagers = new();
-                cancelButton.clicked.Add(listener: new CancelBuildingButtonListener(BuildingConfigPanelManager: this));
-
-                overallThroughputGraph = IndustryUIAlgos.CreateTemperatureFunctionGraph(func: null);
-
-                var productionChoicePanel = constrGeneralParams.CreateProductionChoicePanel(productionChoiceSetter: this);
-                if (productionChoicePanel is null)
-                    SetProductionChoice(productionChoice: new ProductionChoice(Choice: new UnitType()));
-
-                buildingConfigPanel.Reinitialize
-                (
-                    newChildren: new List<IHUDElement>
-                    {
-                        new TextBox(text: "Material Choices")
-                    }.Concat
-                    (
-                        constrGeneralParams.neededProductClassPropors.Select
-                        (
-                            args =>
-                            {
-                                var (productClass, propor) = args;
-                                return new UIRectHorizPanel<IHUDElement>
-                                (
-                                    childVertPos: VertPosEnum.Middle,
-                                    children: new List<IHUDElement>()
-                                    {
-                                        new TextBox(text: $"{productClass} "),
-                                        IndustryUIAlgos.CreateMatPaletteChoiceDropdown
-                                        (
-                                            matPaletteChoiceSetter: this,
-                                            productClass: productClass,
-                                            additionalInfos:
-                                            (
-                                                empty: MaterialPalette.CreateEmptyProdStatsInfluenceVisual(),
-                                                item: static matPalette => matPalette.CreateProdStatsInfluenceVisual()
-                                            )
-                                        ),
-                                        IndustryUIAlgos.CreateStandardVertProporBar(propor: propor)
-                }
-                                );
-                            }
-                        )
-                    ).Append
-                    (
-                        new UIRectHorizPanel<IHUDElement>
-                        (
-                            childVertPos: VertPosEnum.Middle,
-                            children: new List<IHUDElement>()
-                            {
-                                new TextBox(text: "throughput"),
-                                overallThroughputGraph,
-                                IndustryUIAlgos.CreateStandardVertProporBar(propor: Propor.full)
-                            }
-                        )
-                    ).Concat
-                    (
-                        new List<IHUDElement>()
-                        {
-                            new TextBox(text: "Production config"),
-                            productionChoicePanel ?? new TextBox(text: UIAlgorithms.NothingToConfigure),
-                            cancelButton
-                        }
-                    )
-                );
-
-                cosmicBodyBuildPanelManagers.AddRange
-                (
-                    collection: CurWorldManager.CurGraph.Nodes.Where
-                    (
-                        cosmicBody => !cosmicBody.HasIndustry
-                    ).Select
-                    (
-                        cosmicBody =>
-                        {
-                            Button buildButton = new
-                            (
-                                shape: new MyRectangle(width: curUIConfig.standardUIElementWidth, height: curUIConfig.UILineHeight),
-                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.BuildHereTooltip),
-                                text: "Build here"
-                            )
-                            {
-                                PersonallyEnabled = false
-                            };
-                            buildButton.clicked.Add
-                                (
-                                listener: new BuildOnCosmicBodyButtonListener
-                                    (
-                                        BuildingConfigPanelManager: this,
-                                        CosmicBody: cosmicBody
-                                    )
-                            );
-                            UIRectVertPanel<IHUDElement> cosmicBodyBuildPanel = new
-                            (
-                                childHorizPos: HorizPosEnum.Left,
-                                children: new List<IHUDElement>()
-                                {
-                                    new LazyTextBox
-                            (
-                                        lazyText: new CosmicBodyBuildStats
-                                (
-                                    BuildingConfigPanelManager: this,
-                                    CosmicBody: cosmicBody
-                                )
-                                    ),
-                                    buildButton
-                                }
-                            );
-                            return new CosmicBodyBuildPanelManager
-                            (
-                                CosmicBody: cosmicBody,
-                                CosmicBodyBuildPanel: cosmicBodyBuildPanel,
-                                CosmicBodyPanelHUDPosUpdate: new HUDElementPosUpdater
-                                (
-                                    HUDElement: cosmicBodyBuildPanel,
-                                    baseWorldObject: cosmicBody,
-                                    HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Top),
-                                    anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
-                                ),
-                                BuildButton: buildButton
-                            );
-                        }
-                    )
-                );
-            }
-
-            void IItemChoiceSetter<ProductionChoice>.SetChoice(ProductionChoice item)
-                => SetProductionChoice(productionChoice: item);
-
-            private void SetProductionChoice(ProductionChoice productionChoice)
-            {
-                ProductionChoice = productionChoice;
-                UpdateCompleteBuildingConfigOrNull();
-            }
-
-            void IItemChoiceSetter<MaterialPalette>.SetChoice(MaterialPalette item)
-                => SetMatPaletteChoice(materialPalette: item);
-
-            private void SetMatPaletteChoice(MaterialPalette materialPalette)
-            {
-                mutableBuildingMatPaletteChoices[materialPalette.productClass] = materialPalette;
-#warning Complete this. In case all material choices are made, show player the stats of the to-be-constructed building
-                UpdateCompleteBuildingConfigOrNull();
-            }
-
-            private void UpdateCompleteBuildingConfigOrNull()
-            {
-                CompleteBuildingConfigOrNull = CompleteBuildingConfig.Create
-                (
-                    constrGeneralParams: constrGeneralParams,
-                    buildingMatPaletteChoices: MaterialPaletteChoices.CreateOrThrow
-                    (
-                        choices: new(dict: mutableBuildingMatPaletteChoices)
-                    ),
-                    ProductionChoice: ProductionChoice
-                );
-
-                overallThroughputGraph.SetFunction
-                (
-                    func: mutableBuildingMatPaletteChoices.Count switch
-                    {
-                        0 => null,
-                        not 0 => temperature => ResAndIndustryAlgos.TentativeThroughput
-                        (
-                            temperature: temperature,
-                            chosenTotalPropor: (Propor)mutableBuildingMatPaletteChoices.Keys.Sum(prodClass => (UDouble)constrGeneralParams.neededProductClassPropors[prodClass]),
-                            matPaletteChoices: new EfficientReadOnlyDictionary<IProductClass, MaterialPalette>(dict: mutableBuildingMatPaletteChoices),
-                            buildingProdClassPropors: constrGeneralParams.neededProductClassPropors
-                        )
-                    }
-                );
-
-                foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers)
-                    cosmicBodyPanelManager.BuildButton.PersonallyEnabled = CompleteBuildingConfigOrNull is not null;
-            }
-
+        
         public static WorldManager CurWorldManager
             => Initialized ? curWorldManager : throw new InvalidOperationException($"must initialize {nameof(WorldManager)} first by calling {nameof(CreateWorldManager)} or {nameof(LoadWorldManager)}");
 
@@ -370,6 +136,11 @@ namespace Game1
                     HUDElement: CurWorldManager.globalTextBox,
                     position: new(HorizPosEnum.Left, VertPosEnum.Top)
                 );
+                //CurWorldManager.AddHUDElement
+                //(
+                //    HUDElement: CurWorldManager.graphTrials,
+                //    position: new(HorizPosEnum.Middle, VertPosEnum.Middle)
+                //);
                 CurWorldManager.AddHUDElement
                 (
                     HUDElement: CurWorldManager.pauseButton,
@@ -382,13 +153,13 @@ namespace Game1
                     children: CurIndustryConfig.constrGeneralParamsList.Select
                     (
                         constrGeneralParams =>
-                {
-                    Button buildIndustryButton = new
-                    (
+                        {
+                            Button buildIndustryButton = new
+                            (
                                 shape: new MyRectangle(width: curUIConfig.wideUIElementWidth, height: curUIConfig.UILineHeight),
-                        tooltip: constrGeneralParams.toopltip,
-                        text: constrGeneralParams.buildButtonName
-                    );
+                                tooltip: constrGeneralParams.toopltip,
+                                text: constrGeneralParams.buildButtonName
+                            );
                             buildIndustryButton.clicked.Add
                             (
                                 listener: new BuildIndustryButtonClickedListener
@@ -399,7 +170,7 @@ namespace Game1
                             );
 #warning Complete this by adding how the button reacts to being pressed
                             return buildIndustryButton;
-                }
+                        }
                     )
                 );
 
@@ -474,6 +245,7 @@ namespace Game1
 
         private readonly ActiveUIManager activeUIManager;
         private readonly TextBox globalTextBox;
+        private readonly UIRectHorizPanel<IHUDElement> graphTrials;
         private readonly ToggleButton pauseButton;
         private readonly WorldCamera worldCamera;
 
@@ -511,6 +283,24 @@ namespace Game1
             // TODO: move these constants to a contants file
             globalTextBox.Shape.MinWidth = 300;
 
+            graphTrials = new
+            (
+                childVertPos: VertPosEnum.Top,
+                children: new List<IHUDElement>()
+                {
+                    GenerateGraphMeanPanel(exponent: double.NegativeInfinity),
+                    GenerateGraphMeanPanel(exponent: -4),
+                    GenerateGraphMeanPanel(exponent: -1),
+                    GenerateGraphMeanPanel(exponent: 0),
+                    GenerateGraphMeanPanel(exponent: 1),
+                    GenerateGraphMeanPanel(exponent: 4),
+                    GenerateGraphMeanPanel(exponent: double.PositiveInfinity)
+                }
+            );
+            //graphTrials.AddChild(child: GenerateGraphCompositionPanel(modifyRes: (x, cnt) => x / cnt,  operation: (x, y) => x + y, functionName: "sum"));
+            //graphTrials.AddChild(child: GenerateGraphCompositionPanel(modifyRes: (x, cnt) => x, operation: (x, y) => x * y, functionName: "product"));
+            //graphTrials.AddChild(child: GenerateGraphCompositionPanel(modifyRes: (x, cnt) => x, operation: (x, y) => MyMathHelper.Min(x, y), functionName: "minimum"));
+
             PauseButtonTooltip pauseButtonTooltip = new();
             pauseButton = new
             (
@@ -524,6 +314,126 @@ namespace Game1
                 text: "Toggle\nPause"
             );
             pauseButtonTooltip.Initialize(onOffButton: pauseButton);
+
+
+            UIRectVertPanel<IHUDElement> GenerateGraphMeanPanel(double exponent)
+            {
+                const ulong minX = 1, maxX = 10;
+
+                List<(UDouble weight, Func<UDouble, Propor> func)> functions = new()
+                {
+                    (weight: 1, func: x => Algorithms.Normalize(value: MyMathHelper.Sin(x), start: -1, stop: 1)),
+                    (weight: 10, func: x => Algorithms.Normalize(value: x, start: minX, stop: maxX)),
+                    (weight: 3, func: x => Algorithms.Normalize(value: -(double)x * x, start: MyMathHelper.Min(-(double)minX * minX, -(double)maxX * maxX), stop: 0))
+                };
+
+                UDouble totalWeight = functions.Sum(weightAndFunc => weightAndFunc.weight);
+
+                Func<UDouble, Propor> compositionFunc = x => Propor.PowerMean
+                (
+                    args: functions.Select(args => (weight: (Propor)(args.weight / totalWeight), value: args.func(x))),
+                    exponent: exponent
+                );
+
+                string powerStr = exponent switch
+                {
+                    double.NegativeInfinity => "-inf",
+                    double.PositiveInfinity => "+inf",
+                    double pow => pow.ToString(),
+                };
+
+                return new UIRectVertPanel<IHUDElement>
+                (
+                    childHorizPos: HorizPosEnum.Middle,
+                    children: new List<IHUDElement>()
+                    {
+                        new TextBox(text: $"mean of deg {powerStr}")
+                    }.Concat
+                    (
+                        functions.Select(args => CreateFunctionGraph(weight: (Propor)(args.weight / totalWeight), func: args.func))
+                    ).Append
+                    (
+                        new TextBox(text: "=")
+                    ).Append
+                    (
+                        CreateFunctionGraph(weight: (Propor)1, func: compositionFunc)
+                    )
+                );
+
+                IHUDElement CreateFunctionGraph(Propor weight, Func<UDouble, Propor> func)
+                    => new UIRectHorizPanel<IHUDElement>
+                    (
+                        childVertPos: VertPosEnum.Bottom,
+                        children: new List<IHUDElement>()
+                        {
+                            new VertProporBar
+                            (
+                                width: 10,
+                                height: curUIConfig.UILineHeight,
+                                propor: weight,
+                                barColor: Color.Green,
+                                backgroundColor: colorConfig.UIBackgroundColor
+                            ),
+                            new FunctionGraph<UDouble, Propor>
+                            (
+                                width: curUIConfig.standardUIElementWidth,
+                                height: curUIConfig.UILineHeight,
+                                backgroundColor: Color.Yellow,
+                                lineColor: Color.Red,
+                                lineWidth: 1,
+                                minX: minX,
+                                maxX: maxX,
+                                minY: Propor.empty,
+                                maxY: Propor.full,
+                                numXSamples: 1000,
+                                func: func
+                            )
+                        }
+                    );
+            }
+
+            //UIRectVertPanel<IHUDElement> GenerateGraphCompositionPanel(Func<double, int, double> modifyRes, Func<double, double, double> operation, string functionName)
+            //{
+            //    const double minX = -10, maxX = 10;
+
+            //    List<Func<double, double>> functions = new()
+            //    {
+            //        x => (double)Algorithms.Normalize(value: MyMathHelper.Sin(x), start: -1, stop: 1),
+            //        x => (double)Algorithms.Normalize(value: x, start: minX, stop: maxX),
+            //        x => (double)Algorithms.Normalize(value: -x * x, start: MyMathHelper.Min(-minX * minX, -maxX * maxX), stop: 0)
+            //    };
+
+            //    var modifiedFuncs = functions.Select<Func<double, double>, Func<double, double>>
+            //    (
+            //        func => x => modifyRes(func(x), functions.Count)
+            //    ).ToList();
+
+            //    Func<double, double> compositionFunc = value => modifiedFuncs.Select(func => func(value)).Aggregate(operation);
+
+            //    UIRectVertPanel<IHUDElement> graphCompositionPanel = new(childHorizPos: HorizPosEnum.Middle);
+            //    graphCompositionPanel.AddChild(child: new TextBox(text: functionName));
+            //    foreach (var func in modifiedFuncs)
+            //        graphCompositionPanel.AddChild(child: CreateFunctionGraph(func));
+            //    graphCompositionPanel.AddChild(child: new TextBox(text: "="));
+            //    graphCompositionPanel.AddChild(child: CreateFunctionGraph(func: compositionFunc));
+            //    return graphCompositionPanel;
+
+            //    FunctionGraph CreateFunctionGraph(Func<double, double> func)
+            //        => new
+            //        (
+            //            width: curUIConfig.standardUIElementWidth,
+            //            height: curUIConfig.UILineHeight,
+            //            backgroundColor: Color.Yellow,
+            //            lineColor: Color.Red,
+            //            lineWidth: 1,
+            //            minX: minX,
+            //            maxX: maxX,
+            //            minY: 0,
+            //            maxY: 1,
+            //            numXSamples: 1000,
+            //            func: func
+            //        );
+            //}
         }
 
         private void Initialize()

@@ -6,33 +6,82 @@ namespace Game1.UI
     [Serializable]
     public abstract class HUDElement : UIElement<IHUDElement>, IHUDElement, ISizeOrPosChangedListener
     {
+        public abstract class Params : IHUDElement.IParams, ISizeChangedListener
+        {
+            public Event<ISizeChangedListener> SizeChanged
+                => ShapeParams.SizeChanged;
+
+            public NearRectangle.Params ShapeParams { get; }
+
+            protected abstract Color Color { get; }
+
+            private readonly List<IHUDElement.IParams> children;
+            private bool inRecalcSize;
+
+            protected Params(NearRectangle.Params shapeParams)
+            {
+                ShapeParams = shapeParams;
+                SizeChanged.Add(listener: this);
+                children = new();
+                inRecalcSize = false;
+            }
+
+            protected void AddChild(IHUDElement.IParams child)
+            {
+                children.Add(child);
+                child.SizeChanged.Add(listener: this);
+                RecalcSize();
+            }
+
+            protected void RemoveChild(IHUDElement.IParams child)
+            {
+                if (!children.Remove(child))
+                    throw new ArgumentException();
+                child.SizeChanged.Remove(listener: this);
+                RecalcSize();
+            }
+
+            public void RecalcSize()
+            {
+                if (inRecalcSize)
+                    return;
+                inRecalcSize = true;
+
+                PartOfRecalcSize();
+                foreach (var child in children)
+                    child.RecalcSize();
+
+                inRecalcSize = false;
+            }
+
+            protected virtual void PartOfRecalcSize()
+            {
+                if (!inRecalcSize)
+                    throw new InvalidOperationException();
+            }
+
+            void ISizeChangedListener.SizeChangedResponse(Shape.Params shapeParams)
+                => RecalcSize();
+        }
+
         public NearRectangle Shape { get; }
 
         public Event<ISizeOrPosChangedListener> SizeOrPosChanged
             => Shape.SizeOrPosChanged;
 
+        private readonly Params parameters;
+        private readonly List<IHUDElement> children;
         private bool inRecalcSizeAndPos;
 
-        protected HUDElement(NearRectangle shape)
-            : base(shape: shape)
+        protected HUDElement(Params parameters)
+            : base(shape: parameters.ShapeParams.CreateShape())
         {
             Shape = shape;
+            this.parameters = parameters;
+            this.children = ;
             SizeOrPosChanged.Add(listener: this);
+            parameters.SizeChanged.Add(listener: this);
             inRecalcSizeAndPos = false;
-        }
-
-        protected sealed override void AddChild(IHUDElement child, ulong layer = 0)
-        {
-            base.AddChild(child, layer);
-            child.SizeOrPosChanged.Add(listener: this);
-            RecalcSizeAndPos();
-        }
-
-        protected sealed override void RemoveChild(IHUDElement child)
-        {
-            base.RemoveChild(child);
-            child.SizeOrPosChanged.Remove(listener: this);
-            RecalcSizeAndPos();
         }
 
         public void RecalcSizeAndPos()

@@ -5,6 +5,11 @@ namespace Game1.Shapes
     [Serializable]
     public abstract class Shape
     {
+        public abstract class Params
+        {
+            public abstract Shape CreateShape();
+        }
+
         public abstract bool Contains(MyVector2 position);
 
         public abstract void Draw(Color color);

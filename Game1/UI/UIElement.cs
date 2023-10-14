@@ -67,8 +67,8 @@ namespace Game1.UI
 
         private bool personallyEnabled, hasDisabledAncestor, mouseOn;
 
-        private readonly SortedDictionary<ulong, List<TChild>> layerToChildren;
-        private readonly Dictionary<TChild, ulong> childToLayer;
+        //private readonly SortedDictionary<ulong, List<TChild>> layerToChildren;
+        //private readonly Dictionary<TChild, ulong> childToLayer;
 
         protected UIElement(Shape shape)
         {
@@ -81,33 +81,33 @@ namespace Game1.UI
             childToLayer = new();
         }
 
-        protected IEnumerable<TChild> Children(ulong minLayer = 0, ulong maxLayer = ulong.MaxValue)
-            => from childrenLayer in layerToChildren
-               where minLayer <= childrenLayer.Key && childrenLayer.Key <= maxLayer
-               from child in childrenLayer.Value
-               select child;
+        //protected IEnumerable<TChild> Children(ulong minLayer = 0, ulong maxLayer = ulong.MaxValue)
+        //    => from childrenLayer in layerToChildren
+        //       where minLayer <= childrenLayer.Key && childrenLayer.Key <= maxLayer
+        //       from child in childrenLayer.Value
+        //       select child;
 
-        protected virtual void AddChild(TChild child, ulong layer = 0)
-        {
-            if (!layerToChildren.ContainsKey(layer))
-                layerToChildren[layer] = new();
-            layerToChildren[layer].Add(child);
-            childToLayer.Add(child, layer);
-            // TODO
-            //later would probably need to add some reaction to position changes to WorldUIElement
-            //(maybe WorldUIElements use only shapes which have their positions defined by something like IReadOnlyChangingFloat)
-            //child.SizeOrPosChanged.Add(listener: this);
-        }
+        //protected virtual void AddChild(TChild child, ulong layer = 0)
+        //{
+        //    if (!layerToChildren.ContainsKey(layer))
+        //        layerToChildren[layer] = new();
+        //    layerToChildren[layer].Add(child);
+        //    childToLayer.Add(child, layer);
+        //    // TODO
+        //    //later would probably need to add some reaction to position changes to WorldUIElement
+        //    //(maybe WorldUIElements use only shapes which have their positions defined by something like IReadOnlyChangingFloat)
+        //    //child.SizeOrPosChanged.Add(listener: this);
+        //}
 
-        protected virtual void RemoveChild(TChild child)
-        {
-            ulong layer = childToLayer[child];
-            // Use | rather than || so that both the remove calls are executed regardless
-            if (!layerToChildren[layer].Remove(child) | !childToLayer.Remove(child))
-                throw new ArgumentException();
-            if (layerToChildren[layer].Count is 0)
-                layerToChildren.Remove(layer);
-        }
+        //protected virtual void RemoveChild(TChild child)
+        //{
+        //    ulong layer = childToLayer[child];
+        //    // Use | rather than || so that both the remove calls are executed regardless
+        //    if (!layerToChildren[layer].Remove(child) | !childToLayer.Remove(child))
+        //        throw new ArgumentException();
+        //    if (layerToChildren[layer].Count is 0)
+        //        layerToChildren.Remove(layer);
+        //}
 
         public bool Contains(MyVector2 position)
             => shape.Contains(position: position);

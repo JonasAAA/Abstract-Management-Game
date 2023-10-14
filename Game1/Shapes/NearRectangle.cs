@@ -3,13 +3,78 @@
 namespace Game1.Shapes
 {
     [Serializable]
-    public abstract class NearRectangle : Shape, IWithSpecialPositions
+    public abstract class NearRectangle : Shape, IWithSpecialPositions, ISizeChangedListener
     {
-        // can do:
-        //public abstract class GeneralParams
-        //{
-        //    public abstract void Make(double width, double height);
-        //}
+        [Serializable]
+        public abstract new class Params : Shape.Params 
+        {
+            public Event<ISizeChangedListener> SizeChanged { get; }
+            public UDouble Width
+            {
+                get => width;
+                set
+                {
+                    value = MyMathHelper.Max(value, minWidth);
+                    if (!MyMathHelper.AreClose(width, value))
+                    {
+                        width = value;
+                        RaiseSizeOrPosChanged();
+                    }
+                }
+            }
+            public UDouble Height
+            {
+                get => height;
+                set
+                {
+                    value = MyMathHelper.Max(value, minHeight);
+                    if (!MyMathHelper.AreClose(height, value))
+                    {
+                        height = value;
+                        RaiseSizeOrPosChanged();
+                    }
+                }
+            }
+            public UDouble MinWidth
+            {
+                get => minWidth;
+                set
+                {
+                    minWidth = value;
+                    if (Width < minWidth)
+                        Width = minWidth;
+                }
+            }
+            public UDouble MinHeight
+            {
+                get => minHeight;
+                set
+                {
+                    minHeight = value;
+                    if (Height < minHeight)
+                        Height = minHeight;
+                }
+            }
+
+            private UDouble width, height, minWidth, minHeight;
+
+            protected Params(UDouble width, UDouble height)
+            {
+                this.width = width;
+                this.height = height;
+
+                minWidth = 0;
+                minHeight = 0;
+
+                SizeChanged = new();
+            }
+
+            public abstract NearRectangle CreateShape();
+
+            private void RaiseSizeOrPosChanged()
+                => SizeChanged.Raise(action: listener => listener.SizeChangedResponse(shapeParams: this));
+        }
+
         public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; }
 
         public MyVector2 Center
@@ -74,63 +139,21 @@ namespace Game1.Shapes
             );
         }
         public UDouble Width
-        {
-            get => width;
-            set
-            {
-                value = MyMathHelper.Max(value, minWidth);
-                if (!MyMathHelper.AreClose(width, value))
-                {
-                    width = value;
-                    RaiseSizeOrPosChanged();
-                }
-            }
-        }
+            => parameters.Width;
         public UDouble Height
-        {
-            get => height;
-            set
-            {
-                value = MyMathHelper.Max(value, minHeight);
-                if (!MyMathHelper.AreClose(height, value))
-                {
-                    height = value;
-                    RaiseSizeOrPosChanged();
-                }
-            }
-        }
+            => parameters.Height;
         public UDouble MinWidth
-        {
-            get => minWidth;
-            set
-            {
-                minWidth = value;
-                if (Width < minWidth)
-                    Width = minWidth;
-            }
-        }
+            => parameters.MinWidth;
         public UDouble MinHeight
-        {
-            get => minHeight;
-            set
-            {
-                minHeight = value;
-                if (Height < minHeight)
-                    Height = minHeight;
-            }
-        }
+            => parameters.MinHeight;
 
+        private readonly Params parameters;
         private MyVector2 center;
-        private UDouble width, height, minWidth, minHeight;
 
-        protected NearRectangle(UDouble width, UDouble height)
+        protected NearRectangle(Params parameters)
         {
-            this.width = width;
-            this.height = height;
-
-            minWidth = 0;
-            minHeight = 0;
-
+            this.parameters = parameters;
+            parameters.SizeChanged.Add(listener: this);
             SizeOrPosChanged = new();
         }
 
@@ -159,5 +182,8 @@ namespace Game1.Shapes
 
         private void RaiseSizeOrPosChanged()
             => SizeOrPosChanged.Raise(action: listener => listener.SizeOrPosChangedResponse(shape: this));
+
+        void ISizeChangedListener.SizeChangedResponse(Shape.Params shapeParams)
+            => RaiseSizeOrPosChanged();
     }
 }

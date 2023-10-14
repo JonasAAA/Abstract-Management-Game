@@ -21,8 +21,8 @@ namespace Game1
         [Serializable]
         private readonly record struct PersonAndResShortestPaths(ShortestPaths PersonShortestPaths, ShortestPaths ResShortestPaths);
 
-        public IEnumerable<CosmicBody> Nodes
-            => nodes;
+        public EfficientReadOnlyCollection<CosmicBody> Nodes
+            => new(list: nodes);
 
         public readonly EfficientReadOnlyDictionary<NodeID, CosmicBody> nodeIDToNode;
         public TimeSpan MaxLinkTravelTime { get; private set; }

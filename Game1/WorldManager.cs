@@ -271,81 +271,6 @@ namespace Game1
                     cosmicBodyPanelManager.BuildButton.PersonallyEnabled = CompleteBuildingConfigOrNull is not null;
             }
 
-            public void StopBuildingConfig()
-            {
-                CurWorldManager.RemoveHUDElement(HUDElement: buildingConfigPanel);
-                foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers)
-                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyPanelManager.CosmicBodyBuildPanel);
-                CurWorldManager.activeUIManager.EnableAllUIElements();
-            }
-        }
-
-        [Serializable]
-        private sealed record CancelBuildingButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager) : IClickedListener
-        {
-            void IClickedListener.ClickedResponse()
-                => BuildingConfigPanelManager.StopBuildingConfig();
-        }
-
-        [Serializable]
-        private readonly record struct CosmicBodyBuildPanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyBuildPanel, IAction CosmicBodyPanelHUDPosUpdate, Button BuildButton);
-
-        [Serializable]
-        private readonly record struct CompleteBuildingConfig
-        {
-            public static CompleteBuildingConfig? Create(Construction.GeneralParams constrGeneralParams, MaterialPaletteChoices buildingMatPaletteChoices, ProductionChoice? ProductionChoice)
-                => (ProductionChoice, constrGeneralParams.SufficientBuildingMatPalettes(curBuildingMatPaletteChoices: buildingMatPaletteChoices)) switch
-                {
-                    (ProductionChoice productionChoice, true) => new CompleteBuildingConfig
-                    (
-                        constrGeneralParams: constrGeneralParams,
-                        neededBuildingMatPaletteChoices: buildingMatPaletteChoices,
-                        productionChoice: productionChoice
-                    ),
-                    _ => null
-                };
-
-            private readonly Construction.GeneralParams constrGeneralParams;
-            private readonly MaterialPaletteChoices neededBuildingMatPaletteChoices;
-            private readonly ProductionChoice productionChoice;
-
-            private CompleteBuildingConfig(Construction.GeneralParams constrGeneralParams, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
-            {
-                this.constrGeneralParams = constrGeneralParams;
-                this.neededBuildingMatPaletteChoices = neededBuildingMatPaletteChoices;
-                this.productionChoice = productionChoice;
-            }
-
-            public Construction.ConcreteParams CreateConcreteConstrParams(CosmicBody cosmicBody)
-                => constrGeneralParams.CreateConcrete
-                (
-                    nodeState: cosmicBody.NodeState,
-                    neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices,
-                    productionChoice: productionChoice
-                );
-        }
-
-        [Serializable]
-        private sealed record CosmicBodyBuildStats(BuildingConfigPanelManager BuildingConfigPanelManager, CosmicBody CosmicBody) : ILazyText
-        {
-            string ILazyText.GetText()
-                => "Building Stats\n" + (BuildingConfigPanelManager.CompleteBuildingConfigOrNull?.CreateConcreteConstrParams(cosmicBody: CosmicBody).GetBuildingStats() ?? "Complete building config\nto see the stats");
-        }
-
-        [Serializable]
-        private sealed record BuildOnCosmicBodyButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager, CosmicBody CosmicBody) : IClickedListener
-        {
-            void IClickedListener.ClickedResponse()
-            {
-                CosmicBody.StartConstruction
-                (
-                    constrConcreteParams: BuildingConfigPanelManager.CompleteBuildingConfigOrNull!.Value.CreateConcreteConstrParams(cosmicBody: CosmicBody)
-                );
-                BuildingConfigPanelManager.StopBuildingConfig();
-            }
-        }
-        #endregion Build helpers
-
         public static WorldManager CurWorldManager
             => Initialized ? curWorldManager : throw new InvalidOperationException($"must initialize {nameof(WorldManager)} first by calling {nameof(CreateWorldManager)} or {nameof(LoadWorldManager)}");
 
@@ -464,7 +389,14 @@ namespace Game1
                         tooltip: constrGeneralParams.toopltip,
                         text: constrGeneralParams.buildButtonName
                     );
-                    buildIndustryButton.clicked.Add(listener: new BuildIndustryButtonClickedListener(ConstrGeneralParams: constrGeneralParams));
+                            buildIndustryButton.clicked.Add
+                            (
+                                listener: new BuildIndustryButtonClickedListener
+                                (
+                                    CosmicBodies: CurWorldManager.CurGraph.Nodes,
+                                    ConstrGeneralParams: constrGeneralParams
+                                )
+                            );
 #warning Complete this by adding how the button reacts to being pressed
                             return buildIndustryButton;
                 }

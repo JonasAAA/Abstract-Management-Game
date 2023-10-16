@@ -8,10 +8,12 @@ namespace Game1.Resources
     [Serializable]
     public sealed class MaterialPalette
     {
+        private static readonly IImage emptyProdThroughputFunctionGraph = IndustryUIAlgos.CreateTemperatureFunctionGraph(func: null);
+
         // This is a method so that each of these is independent.
         // Otherwise, if want to show it on screen twice, both of those would show up in the same position, since they are the same object.
         public static IHUDElement CreateEmptyProdStatsInfluenceVisual()
-            => IndustryUIAlgos.CreateTemperatureFunctionGraph(func: null);
+            => new ImageHUDElement(image: emptyProdThroughputFunctionGraph);
 
         public static Result<MaterialPalette, TextErrors> CreateAndAddToResConfig(string name, IProductClass productClass, EfficientReadOnlyDictionary<IMaterialPurpose, Material> materialChoices)
         {
@@ -43,6 +45,7 @@ namespace Game1.Resources
         public readonly IProductClass productClass;
         public readonly EfficientReadOnlyDictionary<IMaterialPurpose, Material> materialChoices;
         public readonly ResAmounts<Material> materialAmounts;
+        private readonly IImage prodThroughputFunctionGraph;
 
         public MaterialPalette(string name, IProductClass productClass, EfficientReadOnlyDictionary<IMaterialPurpose, Material> materialChoices, ResAmounts<Material> materialAmounts)
         {
@@ -50,12 +53,16 @@ namespace Game1.Resources
             this.productClass = productClass;
             this.materialChoices = materialChoices;
             this.materialAmounts = materialAmounts;
+            prodThroughputFunctionGraph = IndustryUIAlgos.CreateTemperatureFunctionGraph
+            (
+                func: temper => ResAndIndustryAlgos.Throughput(materialPalette: this, temperature: temper)
+            );
         }
 
         // This is a method so that each prod stats is independent.
         // Otherwise, if want to show it on screen twice, both of those would show up in the same position, since they are the same object.
         public IHUDElement CreateProdStatsInfluenceVisual()
-            => IndustryUIAlgos.CreateTemperatureFunctionGraph(func: temper => ResAndIndustryAlgos.Throughput(materialPalette: this, temperature: temper));
+            => new ImageHUDElement(image: prodThroughputFunctionGraph);
 
         /// <summary>
         /// Returns text errors if contents are the same

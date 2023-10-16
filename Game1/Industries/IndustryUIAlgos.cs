@@ -77,7 +77,7 @@ namespace Game1.Industries
         /// <summary>
         /// If <paramref name="func"/> is null, the graph will be empty
         /// </summary>
-        public static FunctionGraph<Temperature, Propor> CreateTemperatureFunctionGraph(Func<Temperature, Propor>? func)
+        public static FunctionGraphImage<Temperature, Propor> CreateTemperatureFunctionGraph(Func<Temperature, Propor>? func)
             => new
             (
                 width: curUIConfig.standardUIElementWidth,

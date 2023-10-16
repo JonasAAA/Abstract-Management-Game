@@ -498,8 +498,12 @@ namespace Game1
         public static double Interpolate(Propor normalized, double start, double stop)
             => start + (stop - start) * normalized;
 
+        /// <summary>
+        /// This is in order to not crash if value is not between min and max
+        /// Such is needed, e.g. when gravity or temperature is bigger than the graph can represent
+        /// </summary>
         public static Propor Normalize(double value, double start, double stop)
-            => (Propor)((value - start) / (stop - start));
+            => Propor.CreateByClamp(value: (value - start) / (stop - start));
 
         //public static UDouble PowerMean(ReadOnlySpan<(UDouble weight, UDouble value)> args, double exponent)
         //{

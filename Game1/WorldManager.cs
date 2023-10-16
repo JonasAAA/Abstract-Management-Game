@@ -85,7 +85,8 @@ namespace Game1
             knownTypesSet.UnionWith(Storage.GetKnownTypes());
             knownTypesSet.UnionWith(Dropdown.GetKnownTypes());
             knownTypesSet.UnionWith(IndustryUIAlgos.GetKnownTypes());
-            knownTypesSet.UnionWith(FunctionGraph.GetKnownTypes());
+            knownTypesSet.UnionWith(FunctionGraphImage.GetKnownTypes());
+            knownTypesSet.UnionWith(FunctionGraphWithHighlighImage.GetKnownTypes());
 
             List<Type> unserializedTypeList = new();
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
@@ -375,19 +376,22 @@ namespace Game1
                                 barColor: Color.Green,
                                 backgroundColor: colorConfig.UIBackgroundColor
                             ),
-                            new FunctionGraph<UDouble, Propor>
+                            new ImageHUDElement
                             (
-                                width: curUIConfig.standardUIElementWidth,
-                                height: curUIConfig.UILineHeight,
-                                backgroundColor: Color.Yellow,
-                                lineColor: Color.Red,
-                                lineWidth: 1,
-                                minX: minX,
-                                maxX: maxX,
-                                minY: Propor.empty,
-                                maxY: Propor.full,
-                                numXSamples: 1000,
-                                func: func
+                                image: new FunctionGraphImage<UDouble, Propor>
+                                (
+                                    width: curUIConfig.standardUIElementWidth,
+                                    height: curUIConfig.UILineHeight,
+                                    backgroundColor: Color.Yellow,
+                                    lineColor: Color.Red,
+                                    lineWidth: 1,
+                                    minX: minX,
+                                    maxX: maxX,
+                                    minY: Propor.empty,
+                                    maxY: Propor.full,
+                                    numXSamples: 1000,
+                                    func: func
+                                )
                             )
                         }
                     );

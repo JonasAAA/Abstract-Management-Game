@@ -30,6 +30,7 @@
             deleteButtonColor,
             functionGraphLineColor,
             functionGraphBackgroundColor,
+            functionGraphHighlightColor,
             barColor,
             barBackgroundColor;
 
@@ -63,6 +64,7 @@
             deleteButtonColor = Color.Red;
             functionGraphLineColor = textColor;
             functionGraphBackgroundColor = Color.Black;
+            functionGraphHighlightColor = Color.White * .5f;
             barColor = functionGraphLineColor;
             barBackgroundColor = functionGraphBackgroundColor;
         }

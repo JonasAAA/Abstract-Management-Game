@@ -3,13 +3,14 @@
 namespace Game1.UI
 {
     [Serializable]
-    public sealed class FunctionGraph<TX, TY> : HUDElement
+    public sealed class FunctionGraphImage<TX, TY> : IImage
         where TX : struct, IScalar<TX>
         where TY : struct, IScalar<TY>
     {
-        protected sealed override Color Color { get; }
+        public UDouble Width { get; }
+        public UDouble Height { get; }
 
-        private readonly Color lineColor;
+        private readonly Color lineColor, backgroundColor;
         private readonly UDouble lineWidth;
         private readonly TX minX, maxX;
         private readonly TY minY, maxY;
@@ -17,11 +18,12 @@ namespace Game1.UI
         private bool drawPoints;
         private readonly MyVector2[] points;
 
-        public FunctionGraph(UDouble width, UDouble height, Color lineColor, Color backgroundColor, UDouble lineWidth, TX minX, TX maxX, TY minY, TY maxY, ulong numXSamples, Func<TX, TY>? func)
-            : base(shape: new MyRectangle(width: width, height: height))
+        public FunctionGraphImage(UDouble width, UDouble height, Color lineColor, Color backgroundColor, UDouble lineWidth, TX minX, TX maxX, TY minY, TY maxY, ulong numXSamples, Func<TX, TY>? func)
         {
-            Color = backgroundColor;
+            Width = width;
+            Height = height;
             this.lineColor = lineColor;
+            this.backgroundColor = backgroundColor;
             this.lineWidth = lineWidth;
             this.minX = minX;
             this.maxX = maxX;
@@ -50,37 +52,74 @@ namespace Game1.UI
                     var normalizedY = TY.Normalize(value: y, start: minY, stop: maxY);
                     points[ind] = new MyVector2
                     (
-                        x: Algorithms.Interpolate(normalized: normalizedX, start: 0, stop: Shape.Width),
+                        x: ImageXFromNormalized(normalizedX: normalizedX),
                         y: -Algorithms.Interpolate
                         (
                             normalized: normalizedY,
                             start: 0,
-                            stop: Shape.Height
+                            stop: Height
                         )
                     );
                 }
             }
         }
 
-        protected override void DrawChildren()
+        private UDouble ImageXFromNormalized(Propor normalizedX)
+            => Algorithms.Interpolate(normalized: normalizedX, start: 0u, stop: Width);
+
+        public void Draw(MyVector2 center, (TX start, TX stop, Color highlightColor)? highlightInterval)
         {
-            base.DrawChildren();
+            var shape = new MyRectangle(width: Width, height: Height)
+            {
+                Center = center
+            };
+
+            shape.Draw(color: backgroundColor);
+
             if (drawPoints)
                 for (int ind = 0; ind < points.Length - 1; ind++)
                     SegmentAlgos.Draw
                     (
-                        startPos: Shape.BottomLeftCorner + points[ind],
-                        endPos: Shape.BottomLeftCorner + points[ind + 1],
+                        startPos: shape.BottomLeftCorner + points[ind],
+                        endPos: shape.BottomLeftCorner + points[ind + 1],
                         width: lineWidth,
                         color: lineColor
                     );
+            if (highlightInterval is (TX start, TX stop, Color highlightColor))
+            {
+                UDouble funcXToImageX(TX x)
+                    => ImageXFromNormalized
+                    (
+                        normalizedX: TX.Normalize(value: x, start: minX, stop: maxX)
+                    );
+                var imageXStart = funcXToImageX(x: start);
+                var imageXStop = funcXToImageX(x: stop);
+                // This is needed in case start > stop
+                var highlightMin = MyMathHelper.Min(imageXStart, imageXStop);
+                var highlightMax = MyMathHelper.Max(imageXStart, imageXStop);
+                new MyRectangle(width: highlightMax - highlightMin, height: Height)
+                {
+                    BottomLeftCorner = shape.BottomLeftCorner + new MyVector2(x: highlightMin, y: 0)
+                }.Draw(color: highlightColor);
+            }
         }
+
+        void IImage.Draw(MyVector2 center)
+            => Draw(center: center, highlightInterval: null);
     }
 
-    public static class FunctionGraph
+    public static class FunctionGraphImage
     {
+        public static List<Type[]> GetKnownTypeArgs()
+            => new()
+            {
+                new[] { typeof(Temperature), typeof(Propor) },
+                new[] { typeof(UDouble), typeof(Propor)}
+            };
+
         public static IEnumerable<Type> GetKnownTypes()
-            => new List<Type>() { typeof(FunctionGraph<Temperature, Propor>), typeof(FunctionGraph<UDouble, Propor>) };
+            => from typeArgs in GetKnownTypeArgs()
+               select typeof(FunctionGraphImage<,>).MakeGenericType(typeArgs);
     }
 
     //[Serializable]

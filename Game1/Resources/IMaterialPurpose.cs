@@ -1,5 +1,4 @@
 ﻿using Game1.Collections;
-using Game1.UI;
 
 namespace Game1.Resources
 {

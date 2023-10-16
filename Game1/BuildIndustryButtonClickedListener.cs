@@ -2,9 +2,9 @@
 using Game1.Industries;
 using Game1.Shapes;
 using Game1.UI;
+using Game1.Collections;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
-using Game1.Collections;
 
 namespace Game1
 {
@@ -40,7 +40,7 @@ namespace Game1
             private readonly Dictionary<IProductClass, MaterialPalette> mutableBuildingMatPaletteChoices;
             private readonly Button cancelButton;
             private ProductionChoice? ProductionChoice;
-            private readonly FunctionGraph<Temperature, Propor> overallThroughputGraph;
+            private readonly FunctionGraphImage<Temperature, Propor> overallThroughputGraph;
 
             private BuildingConfigPanelManager(EfficientReadOnlyCollection<CosmicBody> cosmicBodies, Construction.GeneralParams constrGeneralParams)
             {
@@ -113,7 +113,7 @@ namespace Game1
                             children: new List<IHUDElement>()
                             {
                                 new TextBox(text: "throughput"),
-                                overallThroughputGraph,
+                                new ImageHUDElement(image: overallThroughputGraph),
                                 IndustryUIAlgos.CreateStandardVertProporBar(propor: Propor.full)
                             }
                         )
@@ -159,7 +159,15 @@ namespace Game1
                                 childHorizPos: HorizPosEnum.Left,
                                 children: new List<IHUDElement>()
                                 {
-                                    //overallThroughputGraph,
+                                    new ImageHUDElement
+                                    (
+                                        image: new FunctionGraphWithHighlighImage<Temperature, Propor>
+                                        (
+                                            functionGraph: overallThroughputGraph,
+                                            highlightInterval: new CosmicBodyTemperatureInterval(CosmicBody: cosmicBody)
+                                        )
+                                    ),
+#warning probably should make this static text box with only title
                                     //new LazyTextBox
                                     //(
                                     //    lazyText: new CosmicBodyBuildStats
@@ -253,6 +261,18 @@ namespace Game1
         {
             void IClickedListener.ClickedResponse()
                 => BuildingConfigPanelManager.StopBuildingConfig();
+        }
+
+        [Serializable]
+        private sealed record CosmicBodyTemperatureInterval(CosmicBody CosmicBody) : FunctionGraphWithHighlighImage<Temperature, Propor>.IHighlightInterval
+        {
+            (Temperature start, Temperature stop, Color highlightColor) FunctionGraphWithHighlighImage<Temperature, Propor>.IHighlightInterval.GetHighlightInterval()
+                =>
+                (
+                    start: Temperature.CreateFromK(valueInK: UDouble.CreateByClamp((double)CosmicBody.NodeState.Temperature.valueInK - 20)),
+                    stop: Temperature.CreateFromK(valueInK: CosmicBody.NodeState.Temperature.valueInK + 20),
+                    highlightColor: colorConfig.functionGraphHighlightColor
+                );
         }
 
         [Serializable]

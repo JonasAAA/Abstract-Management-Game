@@ -235,6 +235,7 @@ namespace Game1
                         0 => null,
                         not 0 => temperature => ResAndIndustryAlgos.TentativeThroughput
                         (
+                            matPurposeOptions: CurWorldManager.matPurposeOptions,
                             temperature: temperature,
                             chosenTotalPropor: (Propor)mutableBuildingMatPaletteChoices.Keys.Sum(prodClass => (UDouble)constrGeneralParams.neededProductClassPropors[prodClass]),
                             matPaletteChoices: new EfficientReadOnlyDictionary<IProductClass, MaterialPalette>(dict: mutableBuildingMatPaletteChoices),

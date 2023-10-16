@@ -226,6 +226,8 @@ namespace Game1
 
         public TimeSpan Elapsed { get; private set; }
 
+        public readonly IMaterialPurpose.Options matPurposeOptions;
+
         public MyVector2 MouseWorldPos
             => worldCamera.ScreenPosToWorldPos(screenPos: (MyVector2)Mouse.GetState().Position);
 
@@ -258,6 +260,7 @@ namespace Game1
         {
             StartTime = TimeSpan.Zero;
             CurTime = TimeSpan.Zero;
+            matPurposeOptions = new();
             worldConfig = new();
             CurWorldConfig = worldConfig;
             CurResConfig = resConfig = new();

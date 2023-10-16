@@ -1,4 +1,5 @@
 ﻿using Game1.Collections;
+using static Game1.WorldManager;
 
 namespace Game1.Resources
 {
@@ -10,7 +11,7 @@ namespace Game1.Resources
             public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToAmount
                 => new()
                 {
-                    [IMaterialPurpose.mechanical] = 1
+                    [CurWorldManager.matPurposeOptions.mechanical] = 1
                 };
 
             public sealed override string ToString()
@@ -23,8 +24,8 @@ namespace Game1.Resources
             public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToAmount
                 => new()
                 {
-                    [IMaterialPurpose.electricalConductor] = 1,
-                    [IMaterialPurpose.electricalInsulator] = 1
+                    [CurWorldManager.matPurposeOptions.electricalConductor] = 1,
+                    [CurWorldManager.matPurposeOptions.electricalInsulator] = 1
                 };
 
             public sealed override string ToString()
@@ -37,7 +38,7 @@ namespace Game1.Resources
             public EfficientReadOnlyDictionary<IMaterialPurpose, ulong> MatPurposeToAmount
                 => new()
                 {
-                    [IMaterialPurpose.roofSurface] = 1
+                    [CurWorldManager.matPurposeOptions.roofSurface] = 1
                 };
 
             public sealed override string ToString()

@@ -43,14 +43,29 @@ namespace Game1.Resources
                 => "Electrical Insulator";
         }
 
-        public static readonly IMaterialPurpose mechanical = new Mechanical();
-        //public static readonly IMaterialPurpose hydraulicFluid = new HydraulicFluid();
-        public static readonly IMaterialPurpose roofSurface = new RoofSurface();
-        public static readonly IMaterialPurpose electricalConductor = new ElectricalConductor();
-        public static readonly IMaterialPurpose electricalInsulator = new ElectricalInsulator();
+        [Serializable]
+        public sealed class Options
+        {
+            public readonly IMaterialPurpose mechanical;
+            //public readonly IMaterialPurpose hydraulicFluid;
+            public readonly IMaterialPurpose roofSurface;
+            public readonly IMaterialPurpose electricalConductor;
+            public readonly IMaterialPurpose electricalInsulator;
 
-        // DON'T forget to put all material purposes in this list.
-        // There is a test to check that
-        public static readonly EfficientReadOnlyCollection<IMaterialPurpose> all = new List<IMaterialPurpose> { mechanical, /* hydraulicFluid, */ roofSurface, electricalConductor, electricalInsulator }.ToEfficientReadOnlyCollection();
+            // DON'T forget to put all material purposes in this list.
+            // There is a test to check that
+            public readonly EfficientReadOnlyCollection<IMaterialPurpose> all;
+        
+            public Options()
+            {
+                mechanical = new Mechanical();
+                //hydraulicFluid = new HydraulicFluid();
+                roofSurface = new RoofSurface();
+                electricalConductor = new ElectricalConductor();
+                electricalInsulator = new ElectricalInsulator();
+
+                all = new List<IMaterialPurpose> { mechanical, /* hydraulicFluid, */ roofSurface, electricalConductor, electricalInsulator }.ToEfficientReadOnlyCollection();
+            }
+        }
     }
 }

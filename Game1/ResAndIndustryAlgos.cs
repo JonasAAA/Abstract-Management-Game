@@ -141,8 +141,8 @@ namespace Game1
 
         // For reflectivity vs reflectance, see https://en.wikipedia.org/wiki/Reflectance#Reflectivity
         // TLDR: reflectivity is the used for thick materials
-        public static Propor Reflectivity(this MaterialPalette roofMatPalette, Temperature temperature)
-            => Reflectivity(rawMatAmounts: roofMatPalette.materialChoices[IMaterialPurpose.roofSurface].RawMatComposition, temperature: temperature);
+        public static Propor Reflectivity(this MaterialPalette roofMatPalette, IMaterialPurpose.Options matPurposeOptions, Temperature temperature)
+            => Reflectivity(rawMatAmounts: roofMatPalette.materialChoices[matPurposeOptions.roofSurface].RawMatComposition, temperature: temperature);
 
         public static Propor Emissivity(this RawMatAmounts rawMatAmounts, Temperature temperature)
             => CombineRawMatProperties
@@ -160,10 +160,10 @@ namespace Game1
                 }
             );
 
-        public static Propor Emissivity(this MaterialPalette roofMatPalette, Temperature temperature)
+        public static Propor Emissivity(this MaterialPalette roofMatPalette, IMaterialPurpose.Options matPurposeOptions, Temperature temperature)
             => Emissivity
             (
-                rawMatAmounts: roofMatPalette.materialChoices[IMaterialPurpose.roofSurface].RawMatComposition,
+                rawMatAmounts: roofMatPalette.materialChoices[matPurposeOptions.roofSurface].RawMatComposition,
                 temperature:temperature
             );
 
@@ -271,10 +271,10 @@ namespace Game1
                 rawMatProperty: static (rawMat, temperature) => RawMatResistivity(ind: rawMat.Ind, temperature: temperature)
             );
 
-        private static UDouble BaseElectricalEnergyPerUnitAreaPhys(MaterialPalette electronicsMatPalette, Temperature temperature)
+        private static UDouble BaseElectricalEnergyPerUnitAreaPhys(IMaterialPurpose.Options matPurposeOptions, MaterialPalette electronicsMatPalette, Temperature temperature)
             => (UDouble)0.1 * Resistivity
             (
-                material: electronicsMatPalette.materialChoices[IMaterialPurpose.electricalConductor],
+                material: electronicsMatPalette.materialChoices[matPurposeOptions.electricalConductor],
                 temperature: temperature
             );
 
@@ -282,10 +282,11 @@ namespace Game1
         /// Electrical energy needed to use/produce unit area of physical result.
         /// relevantMass here is the exact same thing as in MaxMechThroughput function
         /// </summary>
-        private static UDouble ElectricalEnergyPerUnitAreaPhys(Propor electronicsProporInBuilding, MaterialPalette electronicsMatPalette, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
+        private static UDouble ElectricalEnergyPerUnitAreaPhys(IMaterialPurpose.Options matPurposeOptions, Propor electronicsProporInBuilding, MaterialPalette electronicsMatPalette,
+            UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
 #warning make this depend on complexity of production
             => 10 /* amount of useful work. */
-                * (1 + electronicsProporInBuilding * BaseElectricalEnergyPerUnitAreaPhys(electronicsMatPalette: electronicsMatPalette, temperature: temperature))
+                * (1 + electronicsProporInBuilding * BaseElectricalEnergyPerUnitAreaPhys(matPurposeOptions: matPurposeOptions, electronicsMatPalette: electronicsMatPalette, temperature: temperature))
                 * (1 + (UDouble)0.1 * gravity * relevantMassPUBA);
 
         public static CurProdStats CurConstrStats(AllResAmounts buildingCost, UDouble gravity, Temperature temperature, ulong worldSecondsInGameSecond)
@@ -363,19 +364,19 @@ namespace Game1
         /// <summary>
         /// Throughput is the input/output area of building per unit time
         /// </summary>
-        public static Propor Throughput(MaterialPalette materialPalette, Temperature temperature)
+        public static Propor Throughput(IMaterialPurpose.Options matPurposeOptions, MaterialPalette materialPalette, Temperature temperature)
             => materialPalette.productClass.SwitchExpression
             (
-                mechanical: () => Strength(material: materialPalette.materialChoices[IMaterialPurpose.mechanical], temperature: temperature),
+                mechanical: () => Strength(material: materialPalette.materialChoices[matPurposeOptions.mechanical], temperature: temperature),
                 electronics: () => Propor.CreateByClamp
                 (
                     value: (double)Resistivity
                     (
-                        material: materialPalette.materialChoices[IMaterialPurpose.electricalInsulator],
+                        material: materialPalette.materialChoices[matPurposeOptions.electricalInsulator],
                         temperature: temperature
                     ) - (double)Resistivity
                     (
-                        material: materialPalette.materialChoices[IMaterialPurpose.electricalConductor],
+                        material: materialPalette.materialChoices[matPurposeOptions.electricalConductor],
                         temperature: temperature
                     )
                 ),
@@ -387,7 +388,7 @@ namespace Game1
         /// <summary>
         /// Throughput from possibly not all mat palette choices
         /// </summary>
-        public static Propor TentativeThroughput(Temperature temperature, Propor chosenTotalPropor, EfficientReadOnlyDictionary<IProductClass, MaterialPalette> matPaletteChoices, EfficientReadOnlyDictionary<IProductClass, Propor> buildingProdClassPropors)
+        public static Propor TentativeThroughput(IMaterialPurpose.Options matPurposeOptions, Temperature temperature, Propor chosenTotalPropor, EfficientReadOnlyDictionary<IProductClass, MaterialPalette> matPaletteChoices, EfficientReadOnlyDictionary<IProductClass, Propor> buildingProdClassPropors)
         {
             Debug.Assert(MyMathHelper.AreClose((UDouble)chosenTotalPropor, matPaletteChoices.Keys.Sum(prodClass => (UDouble)buildingProdClassPropors[prodClass])));
             return Propor.PowerMean
@@ -397,7 +398,7 @@ namespace Game1
                     matPaletteChoice =>
                     (
                         weight: (Propor)((UDouble)buildingProdClassPropors[matPaletteChoice.Key] / (UDouble)chosenTotalPropor),
-                        value: Throughput(materialPalette: matPaletteChoice.Value, temperature: temperature)
+                        value: Throughput(matPurposeOptions: matPurposeOptions, materialPalette: matPaletteChoice.Value, temperature: temperature)
                     )
                 ),
                 exponent: throughputPowerMeanExponent

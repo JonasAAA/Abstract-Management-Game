@@ -55,7 +55,7 @@ namespace Game1.Resources
             this.materialAmounts = materialAmounts;
             prodThroughputFunctionGraph = IndustryUIAlgos.CreateTemperatureFunctionGraph
             (
-                func: temper => ResAndIndustryAlgos.Throughput(materialPalette: this, temperature: temper)
+                func: temper => ResAndIndustryAlgos.Throughput(matPurposeOptions: CurWorldManager.matPurposeOptions, materialPalette: this, temperature: temper)
             );
         }
 

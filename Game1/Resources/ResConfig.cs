@@ -84,7 +84,7 @@ namespace Game1.Resources
                         productClass: IProductClass.mechanical,
                         materialChoices: new()
                         {
-                            [IMaterialPurpose.mechanical] = material0
+                            [CurWorldManager.matPurposeOptions.mechanical] = material0
                         }
                     ).UnwrapOrThrow(),
                     MaterialPalette.CreateAndAddToResConfig

@@ -52,7 +52,7 @@ namespace Game1.Industries
                     ),
                     buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
                     storageChoice: storageChoice,
-                    surfaceMatPalette: neededBuildingMatPaletteChoices[IProductClass.roof]
+                    surfaceMatPalette: neededBuildingMatPaletteChoices[ProductClass.roof]
                 );
             }
 

@@ -76,10 +76,10 @@ namespace Game1.UI
 #warning Complete this by adding info from constrGeneralParams.buildingGeneralParams
             => $"{constrGeneralParams.buildingGeneralParams.Name}\n{constrGeneralParams.energyPriority}\n";
 
-        public static string StartMatPaletteChoiceForProductClassTooltip(IProductClass productClass)
+        public static string StartMatPaletteChoiceForProductClassTooltip(ProductClass productClass)
             => $"Choose {productClass} material palette";
 
-        public static string ChooseMatPaletteForProductClass(MaterialPalette materialPalette, IProductClass productClass)
+        public static string ChooseMatPaletteForProductClass(MaterialPalette materialPalette, ProductClass productClass)
             => $"Choose {materialPalette} for {productClass}";
 
         public static string StartMaterialChoice
@@ -97,14 +97,14 @@ namespace Game1.UI
         public static string ConstructionComplete(string buildingName)
             => $"Building {buildingName} is complete!";
 
-        public static Result<TOk, TextErrors> ConvertMissingMatPurpsIntoError<TOk>(this Result<TOk, EfficientReadOnlyHashSet<IMaterialPurpose>> result)
+        public static Result<TOk, TextErrors> ConvertMissingMatPurpsIntoError<TOk>(this Result<TOk, EfficientReadOnlyHashSet<MaterialPurpose>> result)
             => result.SwitchExpression<Result<TOk, TextErrors>>
             (
                 ok: okValue => new(ok: okValue),
                 error: missingMatPurposes => new(errors: new(ConvertMissingMatPurpsIntoErrorMessage(missingMatPurposes)))
             );
 
-        public static TOk UnwrapOrThrow<TOk>(this Result<TOk, EfficientReadOnlyHashSet<IMaterialPurpose>> result)
+        public static TOk UnwrapOrThrow<TOk>(this Result<TOk, EfficientReadOnlyHashSet<MaterialPurpose>> result)
             => result.UnwrapOrThrow
             (
                 exception: missingMatPaletteChoices => new ArgumentException(ConvertMissingMatPurpsIntoErrorMessage(missingMatPaletteChoices))
@@ -116,7 +116,7 @@ namespace Game1.UI
                 exception: errors => new ArgumentException($"Error(s) occured:\n{string.Join('\n', errors)}")
             );
 
-        private static string ConvertMissingMatPurpsIntoErrorMessage(EfficientReadOnlyHashSet<IMaterialPurpose> missingMatPurposes)
+        private static string ConvertMissingMatPurpsIntoErrorMessage(EfficientReadOnlyHashSet<MaterialPurpose> missingMatPurposes)
             => $"The following materials need to be chosen:\n{string.Join('\n', missingMatPurposes)}";
 
         public static Color MixColorsAndMakeTransparent(Propor transparency, Color baseColor, Color otherColor, Propor otherColorPropor)

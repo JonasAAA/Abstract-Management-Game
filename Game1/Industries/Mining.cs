@@ -50,7 +50,7 @@ namespace Game1.Industries
                         buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
                     ),
                     buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
-                    surfaceMatPalette: neededBuildingMatPaletteChoices[IProductClass.roof]
+                    surfaceMatPalette: neededBuildingMatPaletteChoices[ProductClass.roof]
                 );
         }
 

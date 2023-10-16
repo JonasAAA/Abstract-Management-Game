@@ -15,7 +15,7 @@ namespace Game1.Industries
             public readonly EnergyPriority energyPriority;
             public readonly string buildButtonName;
             public readonly ITooltip toopltip;
-            public readonly EfficientReadOnlyDictionary<IProductClass, Propor> neededProductClassPropors;
+            public readonly EfficientReadOnlyDictionary<ProductClass, Propor> neededProductClassPropors;
 
             public GeneralParams(IGeneralBuildingConstructionParams buildingGeneralParams, EnergyPriority energyPriority)
             {

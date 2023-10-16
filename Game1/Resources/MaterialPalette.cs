@@ -15,7 +15,7 @@ namespace Game1.Resources
         public static IHUDElement CreateEmptyProdStatsInfluenceVisual()
             => new ImageHUDElement(image: emptyProdThroughputFunctionGraph);
 
-        public static Result<MaterialPalette, TextErrors> CreateAndAddToResConfig(string name, IProductClass productClass, EfficientReadOnlyDictionary<IMaterialPurpose, Material> materialChoices)
+        public static Result<MaterialPalette, TextErrors> CreateAndAddToResConfig(string name, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices)
         {
             productClass.ThrowIfWrongIMatPurposeSet(materialChoices: materialChoices);
             MaterialPalette materialPalette = new
@@ -25,7 +25,7 @@ namespace Game1.Resources
                 materialChoices: materialChoices,
                 materialAmounts: new ResAmounts<Material>
                 (
-                    resAmounts: productClass.MatPurposeToAmount.Select
+                    resAmounts: productClass.matPurposeToAmount.Select
                     (
                         matPurposeAndAmount => new ResAmount<Material>
                         (
@@ -42,12 +42,12 @@ namespace Game1.Resources
         }
 
         public readonly string name;
-        public readonly IProductClass productClass;
-        public readonly EfficientReadOnlyDictionary<IMaterialPurpose, Material> materialChoices;
+        public readonly ProductClass productClass;
+        public readonly EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices;
         public readonly ResAmounts<Material> materialAmounts;
         private readonly IImage prodThroughputFunctionGraph;
 
-        public MaterialPalette(string name, IProductClass productClass, EfficientReadOnlyDictionary<IMaterialPurpose, Material> materialChoices, ResAmounts<Material> materialAmounts)
+        public MaterialPalette(string name, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices, ResAmounts<Material> materialAmounts)
         {
             this.name = name;
             this.productClass = productClass;

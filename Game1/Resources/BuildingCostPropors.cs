@@ -5,16 +5,16 @@ namespace Game1.Resources
     [Serializable]
     public readonly struct BuildingCostPropors
     {
-        public readonly EfficientReadOnlyHashSet<IProductClass> neededProductClasses;
+        public readonly EfficientReadOnlyHashSet<ProductClass> neededProductClasses;
         public readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts;
         public readonly AreaInt area;
-        public readonly EfficientReadOnlyDictionary<IProductClass, Propor> neededProductClassPropors;
+        public readonly EfficientReadOnlyDictionary<ProductClass, Propor> neededProductClassPropors;
 
         public BuildingCostPropors(EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts)
         {
             this.ingredProdToAmounts = ingredProdToAmounts;
 
-            Dictionary<IProductClass, AreaInt> productClassAmounts = new();
+            Dictionary<ProductClass, AreaInt> productClassAmounts = new();
             foreach (var (prodParams, amount) in ingredProdToAmounts)
             {
                 if (amount is 0)
@@ -34,7 +34,7 @@ namespace Game1.Resources
                 keySelector: prodClassAndArea => prodClassAndArea.Key,
                 elementSelector: prodClassAndArea => Propor.Create(part: prodClassAndArea.Value.valueInMetSq, areaCopy.valueInMetSq)!.Value
             );
-            if (!neededProductClassPropors.ContainsKey(IProductClass.roof))
+            if (!neededProductClassPropors.ContainsKey(ProductClass.roof))
                 throw new ArgumentException();
         }
     }

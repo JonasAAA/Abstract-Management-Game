@@ -58,7 +58,7 @@ namespace Game1.Industries
                     ),
                     buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
                     manufacturingProductionChoice: (ManufacturingProductionChoice)productionChoice.Choice,
-                    surfaceMatPalette: neededBuildingMatPaletteChoices[IProductClass.roof]
+                    surfaceMatPalette: neededBuildingMatPaletteChoices[ProductClass.roof]
                 );
         }
 

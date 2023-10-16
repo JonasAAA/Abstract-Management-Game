@@ -37,7 +37,7 @@ namespace Game1
             private readonly Construction.GeneralParams constrGeneralParams;
             private readonly UIRectVertPanel<IHUDElement> buildingConfigPanel;
             private readonly List<CosmicBodyBuildPanelManager> cosmicBodyBuildPanelManagers;
-            private readonly Dictionary<IProductClass, MaterialPalette> mutableBuildingMatPaletteChoices;
+            private readonly Dictionary<ProductClass, MaterialPalette> mutableBuildingMatPaletteChoices;
             private readonly Button cancelButton;
             private ProductionChoice? ProductionChoice;
             private readonly FunctionGraphImage<Temperature, Propor> overallThroughputGraph;
@@ -237,7 +237,7 @@ namespace Game1
                         (
                             temperature: temperature,
                             chosenTotalPropor: (Propor)mutableBuildingMatPaletteChoices.Keys.Sum(prodClass => (UDouble)constrGeneralParams.neededProductClassPropors[prodClass]),
-                            matPaletteChoices: new EfficientReadOnlyDictionary<IProductClass, MaterialPalette>(dict: mutableBuildingMatPaletteChoices),
+                            matPaletteChoices: new EfficientReadOnlyDictionary<ProductClass, MaterialPalette>(dict: mutableBuildingMatPaletteChoices),
                             buildingProdClassPropors: constrGeneralParams.neededProductClassPropors
                         )
                     }

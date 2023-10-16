@@ -11,13 +11,13 @@ namespace TestProject
         public void AllMaterialPurposesPresent()
             => CollectionAssert.AreEquivalent
             (
-                expected: TestHelpers.GetAllPublicStaticFieldValuesInType<IMaterialPurpose>(type: typeof(IMaterialPurpose))
+                expected: TestHelpers.GetAllPublicStaticFieldValuesInType<MaterialPurpose>(type: typeof(MaterialPurpose))
                     .Select(arg => arg.value).ToList(),
-                actual: IMaterialPurpose.all.ToList()
+                actual: MaterialPurpose.all.ToList()
             );
 
         [TestMethod]
         public void AllMaterialPurposesDistinct()
-            => CollectionAssert.AllItemsAreUnique(IMaterialPurpose.all.ToList());
+            => CollectionAssert.AllItemsAreUnique(MaterialPurpose.all.ToList());
     }
 }

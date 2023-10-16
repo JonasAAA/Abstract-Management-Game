@@ -11,9 +11,9 @@ namespace Game1.Resources
         [Serializable]
         public sealed class Params
         {
-            private static readonly Dictionary<IProductClass, ulong> nextInds = IProductClass.all.ToDictionary(elementSelector: prodClass => 0ul);
+            private static readonly Dictionary<ProductClass, ulong> nextInds = ProductClass.all.ToDictionary(elementSelector: prodClass => 0ul);
 
-            private static ulong GetNextInd(IProductClass productClass)
+            private static ulong GetNextInd(ProductClass productClass)
             {
                 var ind = nextInds[productClass];
                 if (ind > ResAndIndustryAlgos.maxRawMatInd)
@@ -22,7 +22,7 @@ namespace Game1.Resources
                 return ind;
             }
 
-            public static Params CreateNextOrThrow(string name, IProductClass productClass, ulong materialPaletteAmount, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
+            public static Params CreateNextOrThrow(string name, ProductClass productClass, ulong materialPaletteAmount, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
             {
                 ulong indInClass = GetNextInd(productClass: productClass);
                 foreach (var (ingredProd, amount) in ingredProdToAmounts)
@@ -45,7 +45,7 @@ namespace Game1.Resources
             }
 
             public readonly string name;
-            public readonly IProductClass productClass;
+            public readonly ProductClass productClass;
             public readonly ulong materialPaletteAmount, indInClass;
             public readonly EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts;
             public readonly AreaInt area, recipeArea;
@@ -54,9 +54,9 @@ namespace Game1.Resources
             //private readonly HashSet<IMaterialPurpose> neededPurposes;
             //private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
 
-            private Params(string name, IProductClass productClass, ulong materialPaletteAmount, ulong indInClass, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
+            private Params(string name, ProductClass productClass, ulong materialPaletteAmount, ulong indInClass, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
             {
-                ulong ingredientAmount = productClass.MatPurposeToAmount.Values.Sum() * materialPaletteAmount + ingredProdToAmounts.Sum(prodParamsAndAmount => prodParamsAndAmount.amount);
+                ulong ingredientAmount = productClass.matPurposeToAmount.Values.Sum() * materialPaletteAmount + ingredProdToAmounts.Sum(prodParamsAndAmount => prodParamsAndAmount.amount);
                 Debug.Assert
                 (
                     ResAndIndustryAlgos.productRecipeInputAmountMultiple
@@ -126,21 +126,21 @@ namespace Game1.Resources
                 Params.CreateNextOrThrow
                 (
                     name: "Gear",
-                    productClass: IProductClass.mechanical,
+                    productClass: ProductClass.mechanical,
                     materialPaletteAmount: 2,
                     ingredProdToAmounts: new()
                 ),
                 Params.CreateNextOrThrow
                 (
                     name: "Roof Tile",
-                    productClass: IProductClass.roof,
+                    productClass: ProductClass.roof,
                     materialPaletteAmount: 1,
                     ingredProdToAmounts: new()
                 ),
                 Params.CreateNextOrThrow
                 (
                     name: "Wire",
-                    productClass: IProductClass.electronics,
+                    productClass: ProductClass.electronics,
                     materialPaletteAmount: 1,
                     ingredProdToAmounts: new()
                 )
@@ -156,7 +156,7 @@ namespace Game1.Resources
         public ResRecipe Recipe { get; }
         public MaterialPalette MaterialPalette { get; }
         public ulong IndInClass { get; }
-        public IProductClass ProductClass { get; }
+        public ProductClass ProductClass { get; }
 
         private readonly string name;
         private readonly Params parameters;

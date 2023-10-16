@@ -15,9 +15,9 @@ namespace Game1.Resources
         private readonly List<IResource> resources;
         private readonly Dictionary<IResource, ulong> resToOrder;
         private ulong nextMaterialInd, nextMatPaletteInd;
-        private readonly EfficientReadOnlyDictionary<IProductClass, List<MaterialPalette>> materialPalettes;
+        private readonly EfficientReadOnlyDictionary<ProductClass, List<MaterialPalette>> materialPalettes;
         private readonly Dictionary<MaterialPalette, ulong> matPaletteToInd;
-        private readonly EfficientReadOnlyDictionary<IProductClass, ulong> prodClassToInd;
+        private readonly EfficientReadOnlyDictionary<ProductClass, ulong> prodClassToInd;
         private const ulong
             rawMatOrderOffset = 0,
             materialOrderOffset = 1_000_000,
@@ -31,14 +31,14 @@ namespace Game1.Resources
             indToRawMat = new();
             resToOrder = new();
             matPaletteToInd = new();
-            prodClassToInd = IProductClass.all.Select((prodClass, ind) => (prodClass, ind)).ToEfficientReadOnlyDict
+            prodClassToInd = ProductClass.all.Select((prodClass, ind) => (prodClass, ind)).ToEfficientReadOnlyDict
             (
                 keySelector: prodClassAndInd => prodClassAndInd.prodClass,
                 elementSelector: prodClassAndInd => (ulong)prodClassAndInd.ind
             );
             nextMaterialInd = 0;
             nextMatPaletteInd = 0;
-            materialPalettes = IProductClass.all.ToEfficientReadOnlyDict(elementSelector: _ => new List<MaterialPalette>());
+            materialPalettes = ProductClass.all.ToEfficientReadOnlyDict(elementSelector: _ => new List<MaterialPalette>());
         }
 
         public void Initialize()
@@ -81,29 +81,29 @@ namespace Game1.Resources
                     MaterialPalette.CreateAndAddToResConfig
                     (
                         name: "def. mech.",
-                        productClass: IProductClass.mechanical,
+                        productClass: ProductClass.mechanical,
                         materialChoices: new()
                         {
-                            [IMaterialPurpose.mechanical] = material0
+                            [MaterialPurpose.mechanical] = material0
                         }
                     ).UnwrapOrThrow(),
                     MaterialPalette.CreateAndAddToResConfig
                     (
                         name: "def. elec.",
-                        productClass: IProductClass.electronics,
+                        productClass: ProductClass.electronics,
                         materialChoices: new()
                         {
-                            [IMaterialPurpose.electricalConductor] = material0,
-                            [IMaterialPurpose.electricalInsulator] = material1
+                            [MaterialPurpose.electricalConductor] = material0,
+                            [MaterialPurpose.electricalInsulator] = material1
                         }
                     ).UnwrapOrThrow(),
                     MaterialPalette.CreateAndAddToResConfig
                     (
                         name: "def. roof",
-                        productClass: IProductClass.roof,
+                        productClass: ProductClass.roof,
                         materialChoices: new()
                         {
-                            [IMaterialPurpose.roofSurface] = material2
+                            [MaterialPurpose.roofSurface] = material2
                         }
                     ).UnwrapOrThrow()
                 }
@@ -194,7 +194,7 @@ namespace Game1.Resources
             return new(ok: new());
         }
 
-        public EfficientReadOnlyCollection<MaterialPalette> GetMatPalettes(IProductClass productClass)
+        public EfficientReadOnlyCollection<MaterialPalette> GetMatPalettes(ProductClass productClass)
             => new(list: materialPalettes[productClass]);
     }
 }

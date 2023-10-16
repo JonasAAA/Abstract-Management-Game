@@ -8,22 +8,22 @@ namespace Game1.Resources
         public static MaterialPaletteChoices Create(List<MaterialPalette> choices)
             => new(choices: choices.ToEfficientReadOnlyDict(keySelector: materialPalette => materialPalette.productClass));
 
-        public static MaterialPaletteChoices CreateOrThrow(EfficientReadOnlyDictionary<IProductClass, MaterialPalette> choices)
+        public static MaterialPaletteChoices CreateOrThrow(EfficientReadOnlyDictionary<ProductClass, MaterialPalette> choices)
         {
             if (choices.Any(prodClassAndMatPalette => prodClassAndMatPalette.Key != prodClassAndMatPalette.Value.productClass))
                 throw new ArgumentException();
             return new MaterialPaletteChoices(choices: choices);
         }
 
-        public EfficientReadOnlyDictionary<IProductClass, MaterialPalette> Choices { get; }
+        public EfficientReadOnlyDictionary<ProductClass, MaterialPalette> Choices { get; }
 
-        private MaterialPaletteChoices(EfficientReadOnlyDictionary<IProductClass, MaterialPalette> choices)
+        private MaterialPaletteChoices(EfficientReadOnlyDictionary<ProductClass, MaterialPalette> choices)
             => Choices = choices;
 
-        public MaterialPalette this[IProductClass productClass]
+        public MaterialPalette this[ProductClass productClass]
             => Choices[productClass];
 
-        public MaterialPaletteChoices FilterOutUnneededMatPalettes(EfficientReadOnlyHashSet<IProductClass> neededProductClasses)
+        public MaterialPaletteChoices FilterOutUnneededMatPalettes(EfficientReadOnlyHashSet<ProductClass> neededProductClasses)
             => new
             (
                 choices: Choices.Where(matChoice => neededProductClasses.Contains(matChoice.Key)).ToEfficientReadOnlyDict

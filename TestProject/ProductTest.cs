@@ -18,7 +18,7 @@ namespace TestProject
         public void ProductClassesContainAtLeastOneProduct()
             => CollectionAssert.AreEquivalent
             (
-                expected: IProductClass.all.ToList(),
+                expected: ProductClass.all.ToList(),
                 actual: Product.productParamsDict.Values.Select(prodParams => prodParams.productClass).ToHashSet().ToList()
             );
     }

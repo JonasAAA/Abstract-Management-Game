@@ -9,17 +9,17 @@ namespace Game1.UI
         [Serializable]
         private readonly struct HUDElementSizeOrPosChangedListener : ISizeOrPosChangedListener
         {
-            private readonly MyVector2 HUDPos;
+            private readonly Vector2Bare HUDPos;
             private readonly PosEnums origin;
 
             public HUDElementSizeOrPosChangedListener(PosEnums position)
             {
-                MyVector2 HUDCenter = new(ActiveUIManager.screenWidth * .5, ActiveUIManager.screenHeight * .5);
+                Vector2Bare HUDCenter = new(ActiveUIManager.screenWidth * .5, ActiveUIManager.screenHeight * .5);
                 HUDPos = position.GetPosInRect(center: HUDCenter, width: ActiveUIManager.screenWidth, height: ActiveUIManager.screenHeight);
                 origin = position;
             }
 
-            public HUDElementSizeOrPosChangedListener(MyVector2 HUDPos, PosEnums origin)
+            public HUDElementSizeOrPosChangedListener(Vector2Bare HUDPos, PosEnums origin)
             {
                 this.HUDPos = HUDPos;
                 this.origin = origin;
@@ -52,7 +52,7 @@ namespace Game1.UI
                 HUDElementSizeOrPosChangedListener: new HUDElementSizeOrPosChangedListener(position: position)
             );
 
-        public void AddHUDElement(IHUDElement HUDElement, MyVector2 HUDPos, PosEnums origin)
+        public void AddHUDElement(IHUDElement HUDElement, Vector2Bare HUDPos, PosEnums origin)
             => AddHUDElement
             (
                 HUDElement: HUDElement,

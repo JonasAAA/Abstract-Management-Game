@@ -6,18 +6,18 @@ namespace Game1.Shapes
     {
         private static readonly Texture2D diskTexture = C.LoadTexture(name: "big disk");
 
-        public static UDouble RadiusFromArea(AreaDouble area)
-            => MyMathHelper.Sqrt(area.valueInMetSq / MyMathHelper.pi);
+        public static Length RadiusFromArea(AreaDouble area)
+            => PrimitiveTypeWrappers.Length.CreateFromM(MyMathHelper.Sqrt(area.valueInMetSq / MyMathHelper.pi));
 
-        public static AreaDouble Area(UDouble radius)
-            => AreaDouble.CreateFromMetSq(valueInMetSq: MyMathHelper.pi * radius * radius);
+        public static AreaDouble Area(Length radius)
+            => AreaDouble.CreateFromMetSq(valueInMetSq: MyMathHelper.pi * radius.valueInM * radius.valueInM);
 
-        public static UDouble Length(UDouble radius)
+        public static Length Length(Length radius)
             => 2 * MyMathHelper.pi * radius;
 
-        public static AngleArc.Params BlockedAngleArcParams(MyVector2 center, UDouble radius, MyVector2 lightPos)
+        public static AngleArc.Params BlockedAngleArcParams(MyVector2 center, Length radius, MyVector2 lightPos)
         {
-            UDouble dist = MyVector2.Distance(lightPos, center);
+            Length dist = MyVector2.Distance(lightPos, center);
             if (dist <= radius)
             {
                 // light source in inside the disk
@@ -53,17 +53,17 @@ namespace Game1.Shapes
             //);
         }
 
-        public static bool Contains(MyVector2 center, UDouble radius, MyVector2 otherPos)
+        public static bool Contains(MyVector2 center, Length radius, MyVector2 otherPos)
             => MyVector2.Distance(otherPos, center) < radius;
 
-        public static void Draw(MyVector2 center, UDouble radius, Color color)
+        public static void Draw(MyVector2 center, Length radius, Color color)
             => C.Draw
             (
                 texture: diskTexture,
                 position: center,
                 color: color,
                 rotation: 0,
-                origin: new MyVector2(diskTexture.Width, diskTexture.Height) * .5,
+                origin: new Vector2Bare(diskTexture.Width, diskTexture.Height) * .5,
                 scale: 2 * radius / (UDouble)diskTexture.Width
             );
     }

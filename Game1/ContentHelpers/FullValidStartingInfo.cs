@@ -24,10 +24,10 @@ namespace Game1.ContentHelpers
             );
 
         public MyVector2 WorldCenter { get; }
-        public UDouble CameraViewHeight { get; }
+        public Length CameraViewHeight { get; }
         public EnumDict<StartingBuilding, string> StartingBuildingToCosmicBody { get; }
 
-        private FullValidStartingInfo(MyVector2 worldCenter, UDouble cameraViewHeight, EnumDict<StartingBuilding, string> startingBuildingToCosmicBody)
+        private FullValidStartingInfo(MyVector2 worldCenter, Length cameraViewHeight, EnumDict<StartingBuilding, string> startingBuildingToCosmicBody)
         {
             WorldCenter = worldCenter;
             CameraViewHeight = cameraViewHeight;

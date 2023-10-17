@@ -57,7 +57,7 @@ namespace Game1.MyMath
         public static TimeSpan Max(TimeSpan left, TimeSpan right)
             => left > right ? left : right;
 
-        public static UDouble Abs(double value)
+        public static UDouble Abs(this double value)
             => (UDouble)Math.Abs(value);
 
         public static decimal Abs(decimal value)
@@ -128,8 +128,11 @@ namespace Game1.MyMath
         public static double Asin(double value)
             => Math.Asin(value);
 
+        public static double Atan2(SignedLength y, SignedLength x)
+            => Atan2(y: y.valueInM, x: x.valueInM);
+
         public static double Atan2(double y, double x)
-            => Math.Atan2(y, x);
+            => Math.Atan2(y: y, x: x);
 
         public static double Tanh(double value)
             => Math.Tanh(value);
@@ -143,20 +146,23 @@ namespace Game1.MyMath
         public static UDouble Atanh(Propor propor)
             => (UDouble)Atanh((double)propor);
 
-        public static MyVector2 Direction(double rotation)
+        public static Vector2Bare Direction(double rotation)
             => new(Cos(rotation), Sin(rotation));
 
+        public static double Rotation(Vector2Bare vector)
+            => Atan2(y: vector.Y, x: vector.X);
+
         public static double Rotation(MyVector2 vector)
-            => Atan2(vector.Y, vector.X);
+            => Atan2(y: vector.Y, x: vector.X);
 
         // Coordinate system is such that Y axis points down
         public static MyVector2 Rotate90DegClockwise(MyVector2 vector)
             => new(vector.Y, -vector.X);
 
-        public static bool IsTiny(double value)
+        public static bool IsTiny(this double value)
             => IsTiny(value: Abs(value));
 
-        public static bool IsTiny(UDouble value)
+        public static bool IsTiny(this UDouble value)
             => value < minPosDouble;
 
         public static bool IsTiny(decimal value)

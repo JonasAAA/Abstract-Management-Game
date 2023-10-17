@@ -10,12 +10,12 @@
             return CreateOrThrow
             (
                 name: cosmicBodyInfo.Name,
-                position: new(x: cosmicBodyInfo.Position.X, y: cosmicBodyInfo.Position.Y),
-                radius: (UDouble)cosmicBodyInfo.Radius
+                position: new(x: SignedLength.CreateFromM(cosmicBodyInfo.Position.X), y: SignedLength.CreateFromM(cosmicBodyInfo.Position.Y)),
+                radius: Length.CreateFromM((UDouble)cosmicBodyInfo.Radius)
             );
         }
 
-        public static ValidCosmicBodyInfo CreateOrThrow(string name, MyVector2 position, UDouble radius)
+        public static ValidCosmicBodyInfo CreateOrThrow(string name, MyVector2 position, Length radius)
         {
             if (name.Length == 0)
                 throw new ContentException(message: $"Cosmic body name can't be empty");
@@ -29,9 +29,9 @@
 
         public string Name { get; }
         public MyVector2 Position { get; }
-        public UDouble Radius { get; }
+        public Length Radius { get; }
 
-        private ValidCosmicBodyInfo(string name, MyVector2 position, UDouble radius)
+        private ValidCosmicBodyInfo(string name, MyVector2 position, Length radius)
         {
             Name = name;
             Position = position;
@@ -44,10 +44,10 @@
                 Name = Name,
                 Position = new()
                 {
-                    X = Position.X,
-                    Y = Position.Y
+                    X = Position.X.valueInM,
+                    Y = Position.Y.valueInM
                 },
-                Radius = Radius
+                Radius = Radius.valueInM
             };
     }
 }

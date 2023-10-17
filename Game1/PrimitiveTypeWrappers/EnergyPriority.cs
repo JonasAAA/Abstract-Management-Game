@@ -3,7 +3,7 @@
 namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly record struct EnergyPriority : IEquatable<EnergyPriority>, IComparable<EnergyPriority>, IPrimitiveTypeWrapper, IComparisonOperators<EnergyPriority, EnergyPriority, bool>, IMinMaxValue<EnergyPriority>, IMax<EnergyPriority>
+    public readonly record struct EnergyPriority : IEquatable<EnergyPriority>, IComparable<EnergyPriority>, IComparisonOperators<EnergyPriority, EnergyPriority, bool>, IMinMaxValue<EnergyPriority>, IMax<EnergyPriority>
     {
         // These values must be here so that the EnergyPriority constructor doesn't have to reference CurWorldConfig
         // (as that would mean runtime error)

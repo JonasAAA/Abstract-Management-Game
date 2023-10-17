@@ -5,47 +5,48 @@ namespace Game1
     [Serializable]
     public sealed class WorldCamera : Camera
     {
-        public static UDouble GetWorldScaleFromCameraViewHeight(UDouble cameraViewHeight)
-            => ActiveUIManager.curUIConfig.standardScreenHeight / cameraViewHeight;
-        public static UDouble CameraViewWidthFromHeight(UDouble cameraViewHeight)
+        public static Length GetWorldMetersPerPixelFromCameraViewHeight(Length cameraViewHeight)
+            => cameraViewHeight / ActiveUIManager.curUIConfig.standardScreenHeight;
+        public static Length CameraViewWidthFromHeight(Length cameraViewHeight)
             => ActiveUIManager.screenWidth / ActiveUIManager.screenHeight * cameraViewHeight;
 
         public MyVector2 WorldCenter { get; private set; }
         
-        public UDouble CameraViewHeight
-            => ActiveUIManager.curUIConfig.standardScreenHeight / scale;
+        public Length CameraViewHeight
+            => ActiveUIManager.curUIConfig.standardScreenHeight * worldMetersPerPixel;
 
         private Matrix worldToScreen, screenToWorld;
-        private UDouble scale;
-        private readonly MyVector2 screenCenter;
-        private readonly UDouble scrollSpeed, screenBoundWidthForMapMoving;
+        private Length worldMetersPerPixel;
+        private readonly Vector2Bare screenCenter;
+        private readonly UDouble scrollSpeed;
+        private readonly UDouble screenBoundWidthForMapMoving;
 
-        public WorldCamera(MyVector2 worldCenter, UDouble startingWorldScale, UDouble scrollSpeed, UDouble screenBoundWidthForMapMoving)
+        public WorldCamera(MyVector2 worldCenter, Length worldMetersPerPixel, UDouble scrollSpeed, UDouble screenBoundWidthForMapMoving)
         {
             WorldCenter = worldCenter;
-            scale = startingWorldScale;
+            this.worldMetersPerPixel = worldMetersPerPixel;
             this.scrollSpeed = scrollSpeed;
             this.screenBoundWidthForMapMoving = screenBoundWidthForMapMoving;
             screenCenter = new(ActiveUIManager.screenWidth * .5, ActiveUIManager.screenHeight * .5);
             Update(elapsed: TimeSpan.Zero, canScroll: false);
         }
 
-        public MyVector2 ScreenPosToWorldPos(MyVector2 screenPos)
-            => MyVector2.Transform(position: screenPos, matrix: screenToWorld);
+        public MyVector2 ScreenPosToWorldPos(Vector2Bare screenPos)
+            => (MyVector2)Vector2.Transform(position: (Vector2)screenPos, matrix: screenToWorld);
 
-        public MyVector2 WorldPosToScreenPos(MyVector2 worldPos)
-            => MyVector2.Transform(position: worldPos, matrix: worldToScreen);
+        public Vector2Bare WorldPosToScreenPos(MyVector2 worldPos)
+            => (Vector2Bare)Vector2.Transform(position: (Vector2)worldPos, matrix: worldToScreen);
 
-        public UDouble WorldLengthToScreenLength(UDouble worldLength)
-            => worldLength * scale * screenScale;
+        public UDouble WorldLengthToScreenLength(Length worldLength)
+            => worldLength * screenScale / worldMetersPerPixel;
 
-        public UDouble ScreenLengthToWorldLength(UDouble screenLength)
-            => screenLength / (scale * screenScale);
+        public Length ScreenLengthToWorldLength(UDouble screenLength)
+            => screenLength * worldMetersPerPixel / screenScale;
 
-        public void MoveTo(MyVector2 worldCenter, UDouble worldScale)
+        public void MoveTo(MyVector2 worldCenter, Length worldMetersPerPixel)
         {
             WorldCenter = worldCenter;
-            scale = worldScale;
+            this.worldMetersPerPixel = worldMetersPerPixel;
             Update(elapsed: TimeSpan.Zero, canScroll: false);
         }
 
@@ -53,7 +54,7 @@ namespace Game1
         {
             if (canScroll)
             {
-                double scrollDist = scrollSpeed * elapsed.TotalSeconds / scale;
+                Length scrollDist = scrollSpeed * (UDouble)elapsed.TotalSeconds * worldMetersPerPixel;
                 if (isCoordNonnegAndSmall(value: ActiveUIManager.MouseHUDPos.X))
                     WorldCenter = WorldCenter with { X = WorldCenter.X - scrollDist };
                 if (isCoordNonnegAndSmall(value: ActiveUIManager.screenWidth - ActiveUIManager.MouseHUDPos.X))
@@ -65,14 +66,13 @@ namespace Game1
             }
 
             // temporary
-            UDouble scaleChange = MyMathHelper.Pow((UDouble).5, elapsed.TotalSeconds);
+            UDouble scaleChange = MyMathHelper.Pow(UDouble.half, elapsed.TotalSeconds);
             if (Keyboard.GetState().IsKeyDown(Keys.O))
-                scale *= scaleChange;
+                worldMetersPerPixel /= scaleChange;
             if (Keyboard.GetState().IsKeyDown(Keys.I))
-                scale /= scaleChange;
-
-            worldToScreen = Matrix.CreateTranslation(-(float)WorldCenter.X, -(float)WorldCenter.Y, 0) *
-                Matrix.CreateScale((float)scale) *
+                worldMetersPerPixel *= scaleChange;
+            worldToScreen = Matrix.CreateTranslation(-(float)WorldCenter.X.valueInM, -(float)WorldCenter.Y.valueInM, 0) *
+                Matrix.CreateScale((float)(1 / worldMetersPerPixel.valueInM)) *
                 Matrix.CreateTranslation((float)screenCenter.X, (float)screenCenter.Y, 0) *
                 Matrix.CreateScale((float)screenScale);
 

@@ -11,8 +11,8 @@ namespace Game1.UI
         public static readonly UDouble
             screenWidth = (UDouble)C.GraphicsDevice.Viewport.Width * curUIConfig.standardScreenHeight / (UDouble)C.GraphicsDevice.Viewport.Height,
             screenHeight = curUIConfig.standardScreenHeight;
-        public static MyVector2 MouseHUDPos
-            => HUDCamera.ScreenPosToHUDPos(screenPos: (MyVector2)Mouse.GetState().Position);
+        public static Vector2Bare MouseHUDPos
+            => HUDCamera.ScreenPosToHUDPos(screenPos: (Vector2Bare)Mouse.GetState().Position);
         public static UDouble RectOutlineWidth
             => curUIConfig.rectOutlineWidth;
         public static UDouble DefaultGapBetweenUIElements
@@ -20,10 +20,10 @@ namespace Game1.UI
 
         private static readonly HUDCamera HUDCamera = new();
 
-        public static MyVector2 ScreenPosToHUDPos(MyVector2 screenPos)
+        public static Vector2Bare ScreenPosToHUDPos(Vector2Bare screenPos)
             => HUDCamera.ScreenPosToHUDPos(screenPos: screenPos);
 
-        public static MyVector2 HUDPosToScreenPos(MyVector2 HUDPos)
+        public static Vector2Bare HUDPosToScreenPos(Vector2Bare HUDPos)
             => HUDCamera.HUDPosToScreenPos(HUDPos: HUDPos);
 
         public static UDouble HUDLengthToScreenLength(UDouble HUDLength)
@@ -98,7 +98,7 @@ namespace Game1.UI
         /// <summary>
         /// The popup will disappear when player presses anywhere.
         /// </summary>
-        public void SetHUDPopup(IHUDElement HUDElement, MyVector2 HUDPos, PosEnums origin)
+        public void SetHUDPopup(IHUDElement HUDElement, Vector2Bare HUDPos, PosEnums origin)
         {
             HUDPopup = HUDElement;
 
@@ -161,13 +161,13 @@ namespace Game1.UI
 
             MouseState mouseState = Mouse.GetState();
             mouseLeftButton.Update(down: mouseState.LeftButton == ButtonState.Pressed);
-            MyVector2 mouseScreenPos = (MyVector2)mouseState.Position,
+            Vector2Bare mouseScreenPos = (Vector2Bare)mouseState.Position,
                 mouseHUDPos = HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos);
 
             contMouse = null;
             foreach (IUIElement UIElement in Enumerable.Reverse(activeUIElements))
             {
-                IUIElement? catchingUIElement = UIElement.CatchUIElement(mousePos: getMousePos());
+                IUIElement? catchingUIElement = UIElement.CatchUIElement(mouseScreenPos: getMousePos());
 
                 if (catchingUIElement is not null)
                 {
@@ -175,12 +175,12 @@ namespace Game1.UI
                     break;
                 }
 
-                MyVector2 getMousePos()
+                Vector2Bare getMousePos()
                 {
                     if (HUDPopup == UIElement || (UIElement is HUDElement HUDElement && (HUDElements.Contains(HUDElement) || worldHUDElementToUpdateHUDPosAction.ContainsKey(HUDElement))))
                         return HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos);
                     if (worldUIElements.Contains(UIElement))
-                        return worldCamera!.ScreenPosToWorldPos(screenPos: mouseScreenPos);
+                        return mouseScreenPos;
                     throw new InvalidStateException();
                 }
             }

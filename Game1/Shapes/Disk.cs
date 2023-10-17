@@ -1,16 +1,16 @@
 ﻿namespace Game1.Shapes
 {
     [Serializable]
-    public class Disk : Shape
+    public class Disk : WorldShape
     {
         public interface IParams
         {
             public MyVector2 Center { get; }
 
-            public UDouble Radius { get; }
+            public Length Radius { get; }
         }
 
-        public UDouble Radius
+        public Length Radius
             => parameters.Radius;
 
         public MyVector2 Center
@@ -18,7 +18,8 @@
 
         protected readonly IParams parameters;
 
-        public Disk(IParams parameters)
+        public Disk(IParams parameters, WorldCamera worldCamera)
+            : base(worldCamera: worldCamera)
             => this.parameters = parameters;
 
         public sealed override bool Contains(MyVector2 position)

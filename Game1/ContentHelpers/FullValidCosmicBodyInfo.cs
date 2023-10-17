@@ -16,9 +16,9 @@
 
         public string Name { get; }
         public MyVector2 Position { get; }
-        public UDouble Radius { get; }
+        public Length Radius { get; }
 
-        private FullValidCosmicBodyInfo(string name, MyVector2 Position, UDouble Radius)
+        private FullValidCosmicBodyInfo(string name, MyVector2 Position, Length Radius)
         {
             Name = name;
             this.Position = Position;

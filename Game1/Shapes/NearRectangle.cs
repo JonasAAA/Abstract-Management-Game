@@ -3,7 +3,7 @@
 namespace Game1.Shapes
 {
     [Serializable]
-    public abstract class NearRectangle : Shape, IWithSpecialPositions
+    public abstract class NearRectangle : Shape
     {
         // can do:
         //public abstract class GeneralParams
@@ -12,12 +12,12 @@ namespace Game1.Shapes
         //}
         public Event<ISizeOrPosChangedListener> SizeOrPosChanged { get; }
 
-        public MyVector2 Center
+        public Vector2Bare Center
         {
             get => center;
             set
             {
-                if (!MyMathHelper.IsTiny(value: MyVector2.Distance(center, value)))
+                if (!Vector2Bare.Distance(center, value).IsTiny())
                 {
                     center = value;
                     RaiseSizeOrPosChanged();
@@ -25,7 +25,7 @@ namespace Game1.Shapes
             }
         }
 
-        public MyVector2 TopLeftCorner
+        public Vector2Bare TopLeftCorner
         {
             get => GetSpecPos
             (
@@ -37,7 +37,7 @@ namespace Game1.Shapes
                 origin: new(HorizPosEnum.Left, VertPosEnum.Top)
             );
         }
-        public MyVector2 TopRightCorner
+        public Vector2Bare TopRightCorner
         {
             get => GetSpecPos
             (
@@ -49,7 +49,7 @@ namespace Game1.Shapes
                 origin: new(HorizPosEnum.Right, VertPosEnum.Top)
             );
         }
-        public MyVector2 BottomLeftCorner
+        public Vector2Bare BottomLeftCorner
         {
             get => GetSpecPos
             (
@@ -61,7 +61,7 @@ namespace Game1.Shapes
                 origin: new(HorizPosEnum.Left, VertPosEnum.Bottom)
             );
         }
-        public MyVector2 BottomRightCorner
+        public Vector2Bare BottomRightCorner
         {
             get => GetSpecPos
             (
@@ -120,7 +120,7 @@ namespace Game1.Shapes
             }
         }
 
-        private MyVector2 center;
+        private Vector2Bare center;
         private UDouble width, height, minWidth, minHeight;
 
         protected NearRectangle(UDouble width, UDouble height)
@@ -128,32 +128,32 @@ namespace Game1.Shapes
             this.width = width;
             this.height = height;
 
-            minWidth = 0;
-            minHeight = 0;
+            minWidth = UDouble.zero;
+            minHeight = UDouble.zero;
 
             SizeOrPosChanged = new();
         }
 
-        public MyVector2 GetSpecPos(PosEnums origin)
+        public Vector2Bare GetSpecPos(PosEnums origin)
             => origin.GetPosInRect(center: Center, width: Width, height: Height);
 
-        public void SetPosition(MyVector2 position, PosEnums origin)
+        public void SetPosition(Vector2Bare position, PosEnums origin)
             => Center = origin.GetRectCenter(position: position, width: Width, height: Height);
 
         public void ClampPosition(double left, double right, double top, double bottom)
-            => Center = new MyVector2
+            => Center = new Vector2Bare
             (
                 x: MyMathHelper.Clamp
                 (
                     value: Center.X,
-                    min: left + Width * .5,
-                    max: right - Width * .5
+                    min: left + Width * UDouble.half,
+                    max: right - Width * UDouble.half
                 ),
                 y: MyMathHelper.Clamp
                 (
                     value: Center.Y,
-                    min: top + Height * .5,
-                    max: bottom - Height * .5
+                    min: top + Height * UDouble.half,
+                    max: bottom - Height * UDouble.half
                 )
             );
 

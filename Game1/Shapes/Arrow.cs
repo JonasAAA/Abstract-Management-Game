@@ -8,8 +8,8 @@
         protected sealed override Texture2D Texture
             => triangleTexture;
 
-        public Arrow(IParams parameters)
-            : base(parameters: parameters)
+        public Arrow(IParams parameters, WorldCamera worldCamera)
+            : base(parameters: parameters, worldCamera: worldCamera)
         { }
 
         protected sealed override bool Contains(Propor dirPropor, Propor orthDirPropor)

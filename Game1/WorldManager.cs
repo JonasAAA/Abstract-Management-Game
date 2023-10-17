@@ -112,7 +112,7 @@ namespace Game1
             WorldCamera mapInfoCamera = new
             (
                 worldCenter: mapInfo.StartingInfo.WorldCenter,
-                startingWorldScale: WorldCamera.GetWorldScaleFromCameraViewHeight(cameraViewHeight: mapInfo.StartingInfo.CameraViewHeight),
+                worldMetersPerPixel: WorldCamera.GetWorldMetersPerPixelFromCameraViewHeight(cameraViewHeight: mapInfo.StartingInfo.CameraViewHeight),
                 scrollSpeed: 1,
                 screenBoundWidthForMapMoving: 1
             );
@@ -227,13 +227,16 @@ namespace Game1
         public TimeSpan Elapsed { get; private set; }
 
         public MyVector2 MouseWorldPos
-            => worldCamera.ScreenPosToWorldPos(screenPos: (MyVector2)Mouse.GetState().Position);
+            => worldCamera.ScreenPosToWorldPos(screenPos: (Vector2Bare)Mouse.GetState().Position);
 
         public TimeSpan MaxLinkTravelTime
             => CurGraph.MaxLinkTravelTime;
 
         public UDouble MaxLinkJoulesPerKg
             => CurGraph.MaxLinkJoulesPerKg;
+
+
+        public readonly WorldCamera worldCamera;
 
         private readonly WorldConfig worldConfig;
         private readonly ResConfig resConfig;
@@ -248,7 +251,6 @@ namespace Game1
         private readonly TextBox globalTextBox;
         private readonly UIRectHorizPanel<IHUDElement> graphTrials;
         private readonly ToggleButton pauseButton;
-        private readonly WorldCamera worldCamera;
 
         private Graph CurGraph
             => graph ?? throw new InvalidOperationException($"must initialize {nameof(graph)} first");
@@ -273,7 +275,7 @@ namespace Game1
             worldCamera = new
             (
                 worldCenter: MyVector2.zero,
-                startingWorldScale: 1 / worldConfig.metersPerStartingPixel,
+                worldMetersPerPixel: worldConfig.metersPerStartingPixel,
                 scrollSpeed: worldConfig.scrollSpeed,
                 screenBoundWidthForMapMoving: worldConfig.screenBoundWidthForMapMoving
             );
@@ -477,13 +479,13 @@ namespace Game1
         public IEnumerable<IIndustry> DestinsOf(IResource resource)
             => throw new NotImplementedException();
 
-        public MyVector2 ScreenPosToWorldPos(MyVector2 screenPos)
+        public MyVector2 ScreenPosToWorldPos(Vector2Bare screenPos)
             => worldCamera.ScreenPosToWorldPos(screenPos: screenPos);
 
-        public UDouble ScreenLengthToWorldLength(UDouble screenLength)
+        public Length ScreenLengthToWorldLength(UDouble screenLength)
             => worldCamera.ScreenLengthToWorldLength(screenLength: screenLength);
 
-        public MyVector2 WorldPosToHUDPos(MyVector2 worldPos)
+        public Vector2Bare WorldPosToHUDPos(MyVector2 worldPos)
             => ScreenPosToHUDPos(screenPos: worldCamera.WorldPosToScreenPos(worldPos: worldPos));
 
         //public MyVector2 HUDPosToWorldPos(MyVector2 HUDPos)
@@ -498,7 +500,7 @@ namespace Game1
         public void AddHUDElement(IHUDElement? HUDElement, PosEnums position)
             => activeUIManager.AddHUDElement(HUDElement: HUDElement, position: position);
 
-        public void SetHUDPopup(IHUDElement HUDElement, MyVector2 HUDPos, PosEnums origin)
+        public void SetHUDPopup(IHUDElement HUDElement, Vector2Bare HUDPos, PosEnums origin)
             => activeUIManager.SetHUDPopup(HUDElement: HUDElement, HUDPos: HUDPos, origin: origin);
 
         public void AddWorldHUDElement(IHUDElement worldHUDElement, IAction updateHUDPos)

@@ -241,7 +241,7 @@ namespace Game1
         }
 
         // Inspired by https://en.wikipedia.org/wiki/Lawson_criterion#Energy_balance
-        public static RawMatAmounts CosmicBodyNewCompositionFromNuclearFusion(ResConfig curResConfig, RawMatAmounts composition, UDouble surfaceGravity, UDouble surfaceGravityExponent,
+        public static RawMatAmounts CosmicBodyNewCompositionFromNuclearFusion(ResConfig curResConfig, RawMatAmounts composition, SurfaceGravity surfaceGravity, UDouble surfaceGravityExponent,
             Temperature temperature, UDouble temperatureExponent, TimeSpan duration, UDouble fusionReactionStrengthCoeff, Func<RawMaterial, decimal, ulong> reactionNumberRounder)
         {
             AreaDouble compositionArea = composition.Area().ToDouble();
@@ -272,7 +272,7 @@ namespace Game1
             return newComposition;
         }
 
-        public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusionSingleRawMat(ulong amount, AreaDouble compositionArea, UDouble surfaceGravity, UDouble surfaceGravityExponent,
+        public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusionSingleRawMat(ulong amount, AreaDouble compositionArea, SurfaceGravity surfaceGravity, UDouble surfaceGravityExponent,
             Temperature temperature, UDouble temperatureExponent, TimeSpan duration, Func<decimal, ulong> reactionNumberRounder, UDouble fusionReactionStrengthCoeff)
         {
             // Somewhat equivalent to https://en.wikipedia.org/wiki/Number_density.
@@ -280,7 +280,7 @@ namespace Game1
             double rawMatProporInComposition = (double)amount / compositionArea.valueInMetSq,
                 reactionStrength = fusionReactionStrengthCoeff
                     * rawMatProporInComposition * rawMatProporInComposition
-                    * MyMathHelper.Pow(@base: surfaceGravity, exponent: surfaceGravityExponent)
+                    * MyMathHelper.Pow(@base: surfaceGravity.valueInMetPerSeqSq, exponent: surfaceGravityExponent)
                     * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent);
             ulong reactingAmount = MyMathHelper.Min
             (
@@ -298,7 +298,7 @@ namespace Game1
         /// Implements Stefan-Boltzmann law https://en.wikipedia.org/wiki/Stefan%E2%80%93Boltzmann_law to calculate how much energy in total to dissipate
         /// The splitting into heat energy and radiant energy algorithm is my creation
         /// </summary>
-        public static (HeatEnergy heatEnergy, RadiantEnergy radiantEnergy) EnergiesToDissipate(HeatEnergy heatEnergy, UDouble surfaceLength, Propor emissivity, Temperature temperature,
+        public static (HeatEnergy heatEnergy, RadiantEnergy radiantEnergy) EnergiesToDissipate(HeatEnergy heatEnergy, Length surfaceLength, Propor emissivity, Temperature temperature,
             TimeSpan duration, Func<decimal, ulong> energyInJToDissipateRoundFunc, UDouble stefanBoltzmannConstant, ulong temperatureExponent, Func<decimal, ulong> heatEnergyInJRoundFunc,
             Temperature allHeatMaxTemper, Temperature halfHeatTemper, UDouble heatEnergyDropoffExponent)
         {
@@ -306,7 +306,7 @@ namespace Game1
             ulong energyInJToDissipate = MyMathHelper.Min
             (
                 heatEnergy.ValueInJ,
-                energyInJToDissipateRoundFunc((decimal)(duration.TotalSeconds * surfaceLength * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent)))
+                energyInJToDissipateRoundFunc((decimal)(duration.TotalSeconds * surfaceLength.valueInM * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent)))
             );
             double heatEnergyPropor = (temperature <= allHeatMaxTemper) switch
             {

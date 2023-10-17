@@ -18,7 +18,7 @@ namespace Game1.UI
             : base(shape: new MyRectangle())
         {
             this.lazyText = lazyText;
-            scale = (UDouble).5;
+            scale = UDouble.half;
             
             Color = backgroundColor ?? Color.Transparent;
             this.textColor = textColor ?? colorConfig.textColor;
@@ -30,7 +30,7 @@ namespace Game1.UI
 #warning This update happens one frame too late
             // Would probably be better to introduce UpdateUI method to IUIElement, and do these text, animation, etc. updates in there
             string text = lazyText.GetText();
-            var textDims = (MyVector2)font.MeasureString(text) * scale;
+            var textDims = (Vector2Bare)font.MeasureString(text) * scale;
             Shape.Width = (UDouble)textDims.X;
             Shape.Height = (UDouble)textDims.Y;
             return text;
@@ -47,7 +47,7 @@ namespace Game1.UI
                     true => textColor,
                     false => textColor * .5f
                 },
-                origin: MyVector2.zero,
+                origin: Vector2Bare.zero,
                 scale: scale
             );
     }

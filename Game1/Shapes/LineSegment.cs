@@ -6,8 +6,8 @@
         protected sealed override Texture2D Texture
             => C.PixelTexture;
 
-        public LineSegment(IParams parameters)
-            : base(parameters: parameters)
+        public LineSegment(IParams parameters, WorldCamera worldCamera)
+            : base(parameters: parameters, worldCamera: worldCamera)
         { }
 
         protected sealed override bool Contains(Propor dirPropor, Propor orthDirPropor)

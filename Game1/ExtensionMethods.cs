@@ -173,14 +173,6 @@ namespace Game1
             where TSource : notnull
             => keys.ToDictionary(keySelector: key => key, elementSelector: elementSelector);
 
-        public static Dictionary<TSource, double> ClampValues<TSource>(this IReadOnlyDictionary<TSource, double> dictionary, double min, double max)
-            where TSource : notnull
-            => dictionary.ToDictionary
-            (
-                keySelector: a => a.Key,
-                elementSelector: a => MyMathHelper.Clamp(a.Value, min, max)
-            );
-
         public static ThrowingSet<T> ToMyHashSet<T>(this IEnumerable<T> source)
         {
             ThrowingSet<T> result = new();

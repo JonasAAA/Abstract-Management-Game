@@ -1,5 +1,4 @@
 ﻿using Game1.Shapes;
-using System.Runtime.InteropServices.JavaScript;
 
 namespace Game1
 {
@@ -18,7 +17,7 @@ namespace Game1
         public readonly Score
             minAcceptablePersonScore = Score.CreateOrThrow(value: .1);
         public readonly UDouble
-            standardStarRadius = 100;
+            standardStarPixelRadius = 100;
         public readonly ulong
             personMinReqWatts = 1,
             personMaxReqWatts = 10;
@@ -52,11 +51,13 @@ namespace Game1
         public readonly UDouble
             brightStarTextureBrigthness = (UDouble)1.2,
             dimStarTextureBrightness = (UDouble).6,
-            metersPerStartingPixel = 200000,
             screenBoundWidthForMapMoving = 10,
-            scrollSpeed = 60,
-            minSafeDist = 10;
-        public readonly UDouble linkWidth, diskBuildingHeight;
+            scrollSpeed = 60;
+        public readonly Length
+            metersPerStartingPixel = Length.CreateFromM(200000);
+        public readonly Length
+            minSafeDist = Length.CreateFromM(10);
+        public readonly Length linkWidth, diskBuildingHeight;
         // So gravitational force between masses M1 and M2 at distance R is gravitConst * M1 * M2 / (R ^ gravitExponent)
         public readonly UDouble
             gravitExponent = 1,
@@ -138,7 +139,7 @@ namespace Game1
             // Since [diskBuildingHeight] ~ m
             diskBuildingHeight = metersPerStartingPixel * 10;
             // Since [minPlanetArea] ~ m^2
-            minPlanetArea = (metersPerStartingPixel * metersPerStartingPixel * DiskAlgos.Area(radius: 10)).RoundDown();
+            minPlanetArea = DiskAlgos.Area(radius: metersPerStartingPixel * 10).RoundDown();
             // Even the smallest planets should be able to produce products.
             // Thus they must be able to hold all needed inputs in production.
             // *2 part is just to be sure that things like rounding errors will not make the number too small
@@ -152,18 +153,18 @@ namespace Game1
             );
 
             // Since [gravitConst] ~ m^(1+gravitExponent)/kg
-            gravitConst = MyMathHelper.Pow(@base: metersPerStartingPixel, exponent: (double)gravitExponent - 1);
+            gravitConst = MyMathHelper.Pow(@base: metersPerStartingPixel.valueInM, exponent: (double)gravitExponent - 1);
             // Since [fusionReactionStrengthCoeff] ~ m^(-fusionReactionSurfaceGravityExponent)
-            fusionReactionStrengthCoeff = MyMathHelper.Pow(@base: metersPerStartingPixel, exponent: -fusionReactionSurfaceGravityExponent);
+            fusionReactionStrengthCoeff = MyMathHelper.Pow(@base: metersPerStartingPixel.valueInM, exponent: -fusionReactionSurfaceGravityExponent);
             // Since [stefanBoltzmannConstant] ~ J/m
-            stefanBoltzmannConstant = metersPerStartingPixel * (UDouble).000000000000000001;
+            stefanBoltzmannConstant = metersPerStartingPixel.valueInM * (UDouble).000000000000000001;
             
             // Since [linkTravelSpeed] ~ m
-            linkTravelSpeed = metersPerStartingPixel * (UDouble)10;
+            linkTravelSpeed = metersPerStartingPixel.valueInM * (UDouble)10;
             // Since [linkJoulesPerNewtonOfGravity] ~ J/m
-            linkJoulesPerUnitGravitAccel = metersPerStartingPixel * (UDouble).00000000000000001;
+            linkJoulesPerUnitGravitAccel = metersPerStartingPixel.valueInM * (UDouble).00000000000000001;
             // Since [linkJoulesPerMeterOfDistance] ~ J/m
-            linkJoulesPerMeterOfDistance = metersPerStartingPixel * (UDouble).0000000000000000001;
+            linkJoulesPerMeterOfDistance = metersPerStartingPixel.valueInM * (UDouble).0000000000000000001;
         }
     }
 }

@@ -10,9 +10,9 @@
         public readonly struct Params
         {
             public readonly double startAngle, endAngle;
-            public readonly UDouble radius;
+            public readonly Length radius;
 
-            public Params(double startAngle, double endAngle, UDouble radius)
+            public Params(double startAngle, double endAngle, Length radius)
             {
                 this.startAngle = MyMathHelper.WrapAngle(angle: startAngle);
                 this.endAngle = MyMathHelper.WrapAngle(angle: endAngle);
@@ -21,14 +21,14 @@
         }
 
         public readonly double startAngle, endAngle;
-        public readonly UDouble radius;
+        public readonly Length radius;
         public readonly ILightCatchingObject lightCatchingObject;
 
         public AngleArc(Params parameters, ILightCatchingObject lightCatchingObject)
             : this(startAngle: parameters.startAngle, endAngle: parameters.endAngle, radius: parameters.radius, lightCatchingObject: lightCatchingObject)
         { }
 
-        public AngleArc(double startAngle, double endAngle, UDouble radius, ILightCatchingObject lightCatchingObject)
+        public AngleArc(double startAngle, double endAngle, Length radius, ILightCatchingObject lightCatchingObject)
         {
             this.startAngle = startAngle;
             this.endAngle = endAngle;

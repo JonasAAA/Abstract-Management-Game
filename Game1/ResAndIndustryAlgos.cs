@@ -282,13 +282,13 @@ namespace Game1
         /// Electrical energy needed to use/produce unit area of physical result.
         /// relevantMass here is the exact same thing as in MaxMechThroughput function
         /// </summary>
-        private static UDouble ElectricalEnergyPerUnitAreaPhys(Propor electronicsProporInBuilding, MaterialPalette electronicsMatPalette, UDouble gravity, Temperature temperature, UDouble relevantMassPUBA)
+        private static UDouble ElectricalEnergyPerUnitAreaPhys(Propor electronicsProporInBuilding, MaterialPalette electronicsMatPalette, SurfaceGravity gravity, Temperature temperature, UDouble relevantMassPUBA)
 #warning make this depend on complexity of production
             => 10 /* amount of useful work. */
                 * (1 + electronicsProporInBuilding * BaseElectricalEnergyPerUnitAreaPhys(electronicsMatPalette: electronicsMatPalette, temperature: temperature))
-                * (1 + (UDouble)0.1 * gravity * relevantMassPUBA);
+                * (1 + (UDouble)0.1 * gravity.valueInMetPerSeqSq * relevantMassPUBA);
 
-        public static CurProdStats CurConstrStats(AllResAmounts buildingCost, UDouble gravity, Temperature temperature, ulong worldSecondsInGameSecond)
+        public static CurProdStats CurConstrStats(AllResAmounts buildingCost, SurfaceGravity gravity, Temperature temperature, ulong worldSecondsInGameSecond)
         {
             var buildingComponentsArea = buildingCost.Area();
 #warning Complete this
@@ -304,7 +304,7 @@ namespace Game1
         //        /// Mechanical production stats
         //        /// </summary>
         //        public static CurProdStats CurMechProdStats(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
-        //            MaterialPaletteChoices buildingMatPaletteChoices, UDouble gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
+        //            MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
         //#warning Either this or the one that uses it should probably take into account worldSecondsInGameSecond. Probably would like to have separate configurable physics and gameplay speed multipliers
         //        {
         //#warning Implement this properly
@@ -408,7 +408,7 @@ namespace Game1
         /// Mechanical production stats
         /// </summary>
         public static CurProdStats CurMechProdStats(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
-            MaterialPaletteChoices buildingMatPaletteChoices, UDouble gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
+            MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
         {
             throw new NotImplementedException();
         }
@@ -417,9 +417,9 @@ namespace Game1
         /// To be called by po
         /// </summary>
         public static UDouble CurProducedWatts(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
-            UDouble gravity, Temperature temperature, AreaDouble buildingArea, UDouble incidentWatts)
+            SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea, UDouble incidentWatts)
 #warning Complete this
-            => incidentWatts * (UDouble).5;
+            => incidentWatts * UDouble.half;
 
         public static ulong MaxAmount(AreaDouble availableArea, AreaInt itemArea)
             => (ulong)availableArea.valueInMetSq / itemArea.valueInMetSq;

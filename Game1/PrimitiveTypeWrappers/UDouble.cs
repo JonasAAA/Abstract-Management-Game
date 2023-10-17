@@ -4,17 +4,18 @@ namespace Game1.PrimitiveTypeWrappers
 {
     // TODO: could rename to MyUFloat
     [Serializable]
-    public readonly struct UDouble : IScalar<UDouble>, IClose<UDouble>, IExponentiable<double, UDouble>,
+    public readonly struct UDouble : IFormattable, IScalar<UDouble>, IClose<UDouble>, IExponentiable<double, UDouble>,
         IComparisonOperators<UDouble, UDouble, bool>, IMin<UDouble>, IMax<UDouble>, IComparable<UDouble>, IEquatable<UDouble>, IMinMaxValue<UDouble>,
         IAdditionOperators<UDouble, UDouble, UDouble>, IAdditiveIdentity<UDouble, UDouble>,
         ISubtractionOperators<UDouble, UDouble, UDouble>,
         IMultiplyOperators<UDouble, UDouble, UDouble>, IMultiplicativeIdentity<UDouble, UDouble>,
-        IMultiplyOperators<UDouble, ulong, UDouble>, IMultiplicativeIdentity<UDouble, ulong>,
-        IPrimitiveTypeWrapper
+        IMultiplyOperators<UDouble, ulong, UDouble>, IMultiplicativeIdentity<UDouble, ulong>
     {
-        public static readonly UDouble positiveInfinity = new(value: double.PositiveInfinity);
-
         public static readonly UDouble zero = 0;
+
+        public static readonly UDouble half = new(value: .5);
+
+        public static readonly UDouble positiveInfinity = new(value: double.PositiveInfinity);
 
         static UDouble IAdditiveIdentity<UDouble, UDouble>.AdditiveIdentity
             => zero;
@@ -51,6 +52,9 @@ namespace Game1.PrimitiveTypeWrappers
             Debug.Assert(value >= 0);
             this.value = value;
         }
+
+        public bool IsTiny()
+            => IsCloseTo(zero);
 
         public bool IsCloseTo(UDouble other)
             => MyMathHelper.AreClose(value, other.value);

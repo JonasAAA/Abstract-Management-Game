@@ -67,27 +67,28 @@ namespace Game1.GameStates
         }
 
         [Serializable]
-        private readonly record struct CosmicBodyInfoInternal(CosmicBodyId Id, string Name, MyVector2 Position, UDouble Radius)
+        private readonly record struct CosmicBodyInfoInternal(WorldCamera WorldCamera, CosmicBodyId Id, string Name, MyVector2 Position, Length Radius)
         {
             [Serializable]
-            private readonly record struct CosmicBodyShapeParams(CosmicBodyInfoInternal CosmicBody) : Disk.IParams
+            private sealed record CosmicBodyShapeParams(CosmicBodyInfoInternal CosmicBody) : Disk.IParams
             {
                 public MyVector2 Center
                     => CosmicBody.Position;
 
-                public UDouble Radius
+                public Length Radius
                     => CosmicBody.Radius;
             }
 
             public Shape GetShape()
                 => new Disk
                 (
-                    parameters: new CosmicBodyShapeParams(CosmicBody: this)
+                    parameters: new CosmicBodyShapeParams(CosmicBody: this),
+                    worldCamera: WorldCamera
                 );
         }
 
         [Serializable]
-        private readonly record struct LinkInfoInternal(LinkId Id, CosmicBodyId From, CosmicBodyId To)
+        private readonly record struct LinkInfoInternal(WorldCamera WorldCamera, LinkId Id, CosmicBodyId From, CosmicBodyId To)
         {
             [Serializable]
             private readonly record struct LinkShapeParams(MapInfoInternal CurMapInfo, LinkInfoInternal Link) : VectorShape.IParams
@@ -98,43 +99,58 @@ namespace Game1.GameStates
                 public MyVector2 EndPos
                     => CurMapInfo.CosmicBodies[Link.To].Position;
 
-                public UDouble Width
+                public Length Width
                     // TODO: put this into some config
-                    => 20;
+                    => Length.CreateFromM(20);
             }
 
             public Shape GetShape(MapInfoInternal curMapInfo)
                 => new LineSegment
                 (
-                    parameters: new LinkShapeParams(CurMapInfo: curMapInfo, Link: this)
+                    parameters: new LinkShapeParams(CurMapInfo: curMapInfo, Link: this),
+                    worldCamera: WorldCamera
                 );
         }
 
         [Serializable]
-        private readonly record struct StartingInfoInternal(MyVector2 WorldCenter, UDouble CameraViewHeight, EnumDict<StartingBuilding, CosmicBodyId?> StartingBuildingToCosmicBodyId);
+        private readonly record struct StartingInfoInternal(MyVector2 WorldCenter, Length CameraViewHeight, EnumDict<StartingBuilding, CosmicBodyId?> StartingBuildingToCosmicBodyId);
 
         [Serializable]
         private record struct MapInfoInternal(ImmutableDictionary<CosmicBodyId, CosmicBodyInfoInternal> CosmicBodies, ImmutableDictionary<LinkId, LinkInfoInternal> Links, StartingInfoInternal StartingInfo)
         {
-            public static MapInfoInternal CreateEmpty()
-                => new
-                (
-                    CosmicBodies: ImmutableDictionary<CosmicBodyId, CosmicBodyInfoInternal>.Empty,
-                    Links: ImmutableDictionary<LinkId, LinkInfoInternal>.Empty,
-                    StartingInfo: new
-                    (
-                        WorldCenter: MyVector2.zero,
-                        CameraViewHeight: ActiveUIManager.curUIConfig.standardScreenHeight,
-                        StartingBuildingToCosmicBodyId: new(startingBuilding => null)
-                    )
-                );
-
-            public static MapInfoInternal Create(ValidMapInfo mapInfo)
+            public static (MapInfoInternal mapInfo, WorldCamera worldCamera) CreateEmpty()
             {
+                var worldCenter = MyVector2.zero;
+                var cameraViewHeight = Length.CreateFromM(ActiveUIManager.curUIConfig.standardScreenHeight);
+                return
+                (
+                    mapInfo: new
+                    (
+                        CosmicBodies: ImmutableDictionary<CosmicBodyId, CosmicBodyInfoInternal>.Empty,
+                        Links: ImmutableDictionary<LinkId, LinkInfoInternal>.Empty,
+                        StartingInfo: new
+                        (
+                            WorldCenter: worldCenter,
+                            CameraViewHeight: cameraViewHeight,
+                            StartingBuildingToCosmicBodyId: new(startingBuilding => null)
+                        )
+                    ),
+                    worldCamera: CreateWorldCamera(worldCenter: worldCenter, cameraViewHeight: cameraViewHeight)
+                );
+            }
+
+            public static (MapInfoInternal mapInfo, WorldCamera worldCamera) Create(ValidMapInfo mapInfo)
+            {
+                WorldCamera worldCamera = CreateWorldCamera
+                (
+                    worldCenter: mapInfo.StartingInfo.WorldCenter,
+                    cameraViewHeight: mapInfo.StartingInfo.CameraViewHeight
+                );
                 var cosmicBodies = mapInfo.CosmicBodies.Select
                 (
                     cosmicBodyInfo => new CosmicBodyInfoInternal
                     (
+                        WorldCamera: worldCamera,
                         Id: new(),
                         Name: cosmicBodyInfo.Name,
                         Position: cosmicBodyInfo.Position,
@@ -146,33 +162,47 @@ namespace Game1.GameStates
                     keySelector: cosmicBody => cosmicBody.Name,
                     elementSelector: cosmicBody => cosmicBody.Id
                 );
-                return new
+                return
                 (
-                    CosmicBodies: cosmicBodies.ToImmutableDictionary(keySelector: cosmicBody => cosmicBody.Id),
-                    Links: mapInfo.Links.Select
+                    mapInfo: new
                     (
-                        HUDLink => new LinkInfoInternal
+                        CosmicBodies: cosmicBodies.ToImmutableDictionary(keySelector: cosmicBody => cosmicBody.Id),
+                        Links: mapInfo.Links.Select
                         (
-                            Id: new(),
-                            From: cosmicBodyNameToId[HUDLink.From],
-                            To: cosmicBodyNameToId[HUDLink.To]
-                        )
-                    ).ToImmutableDictionary(keySelector: link => link.Id),
-                    StartingInfo: new
-                    (
-                        WorldCenter: mapInfo.StartingInfo.WorldCenter,
-                        CameraViewHeight: mapInfo.StartingInfo.CameraViewHeight,
-                        StartingBuildingToCosmicBodyId: mapInfo.StartingInfo.StartingBuildingToCosmicBody.SelectValues<CosmicBodyId?>
+                            HUDLink => new LinkInfoInternal
+                            (
+                                WorldCamera: worldCamera,
+                                Id: new(),
+                                From: cosmicBodyNameToId[HUDLink.From],
+                                To: cosmicBodyNameToId[HUDLink.To]
+                            )
+                        ).ToImmutableDictionary(keySelector: link => link.Id),
+                        StartingInfo: new
                         (
-                            cosmicBodyOrNull => cosmicBodyOrNull switch
-                            {
-                                string cosmicBody => cosmicBodyNameToId[cosmicBody],
-                                null => null
-                            }
+                            WorldCenter: mapInfo.StartingInfo.WorldCenter,
+                            CameraViewHeight: mapInfo.StartingInfo.CameraViewHeight,
+                            StartingBuildingToCosmicBodyId: mapInfo.StartingInfo.StartingBuildingToCosmicBody.SelectValues<CosmicBodyId?>
+                            (
+                                cosmicBodyOrNull => cosmicBodyOrNull switch
+                                {
+                                    string cosmicBody => cosmicBodyNameToId[cosmicBody],
+                                    null => null
+                                }
+                            )
                         )
-                    )
+                    ),
+                    worldCamera: worldCamera
                 );
             }
+
+            private static WorldCamera CreateWorldCamera(MyVector2 worldCenter, Length cameraViewHeight)
+                => new
+                (
+                    worldCenter: worldCenter,
+                    worldMetersPerPixel: WorldCamera.GetWorldMetersPerPixelFromCameraViewHeight(cameraViewHeight: cameraViewHeight),
+                    scrollSpeed: 60,
+                    screenBoundWidthForMapMoving: 10
+                );
 
             public ValidMapInfo ToValidMapInfo()
             {
@@ -274,10 +304,10 @@ namespace Game1.GameStates
         }
 
         public static MapCreationState CreateNewMap(IAction switchToPauseMenu, string mapName)
-            => new(switchToPauseMenu: switchToPauseMenu, mapInfo: MapInfoInternal.CreateEmpty(), mapName: mapName);
+            => new(switchToPauseMenu: switchToPauseMenu, mapWithCamera: MapInfoInternal.CreateEmpty(), mapName: mapName);
 
         public static MapCreationState FromMap(IAction switchToPauseMenu, ValidMapInfo mapInfo, string mapName)
-            => new(switchToPauseMenu: switchToPauseMenu, mapInfo: MapInfoInternal.Create(mapInfo: mapInfo), mapName: mapName);
+            => new(switchToPauseMenu: switchToPauseMenu, mapWithCamera: MapInfoInternal.Create(mapInfo: mapInfo), mapName: mapName);
 
         public readonly string mapName;
 
@@ -297,18 +327,12 @@ namespace Game1.GameStates
         private readonly EnumDict<StartingBuilding, TextBox> startingBuildingToTextBox;
         private readonly string controlDescrContr, controlDescrExp;
 
-        private MapCreationState(IAction switchToPauseMenu, MapInfoInternal mapInfo, string mapName)
+        private MapCreationState(IAction switchToPauseMenu, (MapInfoInternal mapInfo, WorldCamera worldCamera) mapWithCamera, string mapName)
         {
             this.mapName = mapName;
-            changeHistory = new(startingMapInfo: mapInfo);
+            changeHistory = new(startingMapInfo: mapWithCamera.mapInfo);
             // TODO: move the constants to config file
-            worldCamera = new
-            (
-                worldCenter: CurMapInfo.StartingInfo.WorldCenter,
-                startingWorldScale: WorldCamera.GetWorldScaleFromCameraViewHeight(cameraViewHeight: CurMapInfo.StartingInfo.CameraViewHeight),
-                scrollSpeed: 60,
-                screenBoundWidthForMapMoving: 10
-            );
+            worldCamera = mapWithCamera.worldCamera;
             activeUIManager = new(worldCamera: worldCamera);
 
             mouseLeftButton = new();
@@ -420,7 +444,7 @@ namespace Game1.GameStates
                 startingBuildingToTextBox[startingBuilding].Text = CurMapInfo.StartingInfo.StartingBuildingToCosmicBodyId[startingBuilding] is null ? null : startingBuildingToName[startingBuilding];
         }
 
-        private MyVector2 CurCosmicBodyHUDPos(CosmicBodyId cosmicBodyId)
+        private Vector2Bare CurCosmicBodyHUDPos(CosmicBodyId cosmicBodyId)
             => ActiveUIManager.ScreenPosToHUDPos
             (
                 screenPos: worldCamera.WorldPosToScreenPos
@@ -435,18 +459,12 @@ namespace Game1.GameStates
             var mouseState = Mouse.GetState();
             var keyboardState = Keyboard.GetState();
             mouseLeftButton.Update(down: mouseState.LeftButton == ButtonState.Pressed);
-            MyVector2 mouseWorldPos = worldCamera.ScreenPosToWorldPos
-            (
-                screenPos: new
-                (
-                    x: mouseState.Position.X,
-                    y: mouseState.Position.Y
-                )
-            );
+            Vector2Bare mouseScreenPos = (Vector2Bare)mouseState.Position;
+            MyVector2 mouseWorldPos = worldCamera.ScreenPosToWorldPos(screenPos: mouseScreenPos);
 
             IWorldUIElementId? hoverUIElement = null;
             foreach (var (id, shape, _) in GetCurWorldUIElements())
-                if (shape.Contains(mouseWorldPos))
+                if (shape.Contains(mouseScreenPos))
                 {
                     hoverUIElement = id;
                     break;
@@ -466,10 +484,11 @@ namespace Game1.GameStates
                         key: newCosmicBodyId,
                         value: new CosmicBodyInfoInternal
                         (
+                            WorldCamera: worldCamera,
                             Id: newCosmicBodyId,
                             Name: GetNewCosmicBodyName(),
                             Position: mouseWorldPos,
-                            Radius: 100
+                            Radius: Length.CreateFromM(valueInM: 100)
                         )
                     )
                 };
@@ -549,6 +568,7 @@ namespace Game1.GameStates
                 {
                     LinkInfoInternal newLink = new
                     (
+                        WorldCamera: worldCamera,
                         Id: new(),
                         From: selectedCosmicBodyId,
                         To: hoverCosmicBodyId
@@ -607,13 +627,13 @@ namespace Game1.GameStates
             void CenterCameraAfterActionIfNeeded(Action action)
             {
                 MyVector2 prevWorldCenter = CurMapInfo.StartingInfo.WorldCenter;
-                UDouble prevCameraViewHeight = CurMapInfo.StartingInfo.CameraViewHeight;
+                Length prevCameraViewHeight = CurMapInfo.StartingInfo.CameraViewHeight;
                 action();
                 if (prevWorldCenter != CurMapInfo.StartingInfo.WorldCenter || prevCameraViewHeight != CurMapInfo.StartingInfo.CameraViewHeight)
                     worldCamera.MoveTo
                     (
                         worldCenter: CurMapInfo.StartingInfo.WorldCenter,
-                        worldScale: WorldCamera.GetWorldScaleFromCameraViewHeight
+                        worldMetersPerPixel: WorldCamera.GetWorldMetersPerPixelFromCameraViewHeight
                         (
                             cameraViewHeight: CurMapInfo.StartingInfo.CameraViewHeight
                         )
@@ -652,11 +672,11 @@ namespace Game1.GameStates
             // Draw starting camera shape
             new MyRectangle
             (
-                width: WorldCamera.CameraViewWidthFromHeight(cameraViewHeight: CurMapInfo.StartingInfo.CameraViewHeight),
-                height: CurMapInfo.StartingInfo.CameraViewHeight
+                width: WorldCamera.CameraViewWidthFromHeight(cameraViewHeight: CurMapInfo.StartingInfo.CameraViewHeight).valueInM,
+                height: CurMapInfo.StartingInfo.CameraViewHeight.valueInM
             )
             {
-                Center = CurMapInfo.StartingInfo.WorldCenter,
+                Center = new Vector2Bare(x: CurMapInfo.StartingInfo.WorldCenter.X.valueInM, y: CurMapInfo.StartingInfo.WorldCenter.Y.valueInM),
             }.Draw(color: ActiveUIManager.colorConfig.cosmosBackgroundColor);
             
             foreach (var (_, shape, color) in GetCurWorldUIElements().Reverse())

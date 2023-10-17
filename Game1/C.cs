@@ -85,7 +85,7 @@ namespace Game1
         public static SpriteFont LoadFont(string name)
             => ContentManager.Load<SpriteFont>(name);
 
-        public static void Draw(Texture2D texture, MyVector2 position, Color color, double rotation, MyVector2 origin, UDouble scale)
+        public static void Draw(Texture2D texture, Vector2Bare position, Color color, double rotation, Vector2Bare origin, UDouble scale)
             => SpriteBatch.Draw
             (
                 texture: texture,
@@ -99,7 +99,7 @@ namespace Game1
                 layerDepth: 0
             );
 
-        public static void Draw(Texture2D texture, MyVector2 position, Color color, double rotation, MyVector2 origin, UDouble scaleX, UDouble scaleY)
+        public static void Draw(Texture2D texture, Vector2Bare position, Color color, double rotation, Vector2Bare origin, UDouble scaleX, UDouble scaleY)
             => SpriteBatch.Draw
             (
                 texture: texture,
@@ -113,7 +113,35 @@ namespace Game1
                 layerDepth: 0
             );
 
-        public static void DrawString(SpriteFont spriteFont, string text, MyVector2 position, Color color, MyVector2 origin, UDouble scale)
+        public static void Draw(Texture2D texture, MyVector2 position, Color color, double rotation, Vector2Bare origin, Length scale)
+            => SpriteBatch.Draw
+            (
+                texture: texture,
+                position: (Vector2)position,
+                sourceRectangle: null,
+                color: color,
+                rotation: (float)rotation,
+                origin: (Vector2)origin,
+                scale: (float)scale.valueInM,
+                effects: SpriteEffects.None,
+                layerDepth: 0
+            );
+
+        public static void Draw(Texture2D texture, MyVector2 position, Color color, double rotation, Vector2Bare origin, Length scaleX, Length scaleY)
+            => SpriteBatch.Draw
+            (
+                texture: texture,
+                position: (Vector2)position,
+                sourceRectangle: null,
+                color: color,
+                rotation: (float)rotation,
+                origin: (Vector2)origin,
+                scale: new Vector2((float)scaleX.valueInM, (float)scaleY.valueInM),
+                effects: SpriteEffects.None,
+                layerDepth: 0
+            );
+
+        public static void DrawString(SpriteFont spriteFont, string text, Vector2Bare position, Color color, Vector2Bare origin, UDouble scale)
             => SpriteBatch.DrawString
             (
                 spriteFont: spriteFont,
@@ -130,17 +158,17 @@ namespace Game1
         public static bool Equals<T>(T object1, T object2)
             => EqualityComparer<T>.Default.Equals(object1, object2);
 
-        public static Texture2D CreateTexture(int width, int height, Func<MyVector2, Color> colorFromRelToCenterPos)
+        public static Texture2D CreateTexture(int width, int height, Func<Vector2Bare, Color> colorFromRelToCenterPos)
         {
             if (width <= 0 || height <= 0)
                 throw new ArgumentOutOfRangeException();
 
             Texture2D texture = new(GraphicsDevice, width, height);
             var colorData = new Color[width * height];
-            MyVector2 textureCenter = .5 * new MyVector2(x: width, y: height);
+            Vector2Bare textureCenter = .5 * new Vector2Bare(x: width, y: height);
             for (int y = 0; y < height; y++)
                 for (int x = 0; x < width; x++)
-                    colorData[y * width + x] = colorFromRelToCenterPos(new MyVector2(x + .5, y + .5) - textureCenter);
+                    colorData[y * width + x] = colorFromRelToCenterPos(new Vector2Bare(x + .5, y + .5) - textureCenter);
             texture.SetData(colorData);
 
             return texture;

@@ -11,10 +11,10 @@ namespace Game1.Shapes
         [Serializable]
         public readonly struct Params : IBuildingImageParams<DiskBuildingImage>
         {
-            public readonly UDouble finishedBuildingHeight;
+            public readonly Length finishedBuildingHeight;
             public readonly Color color;
             
-            public Params(UDouble finishedBuildingHeight, Color color)
+            public Params(Length finishedBuildingHeight, Color color)
             {
                 this.color = color;
                 this.finishedBuildingHeight = finishedBuildingHeight;
@@ -24,10 +24,10 @@ namespace Game1.Shapes
                 => new(parameters: this, nodeShapeParams: nodeShapeParams);
         }
 
-        public static AreaDouble ComputeBuildingArea(AreaInt planetArea, UDouble buildingHeight)
+        public static AreaDouble ComputeBuildingArea(AreaInt planetArea, Length buildingHeight)
             => DiskAlgos.Area(radius: ComputeRadius(planetArea: planetArea, buildingHeight: buildingHeight)) - planetArea.ToDouble();
 
-        private static UDouble ComputeRadius(AreaInt planetArea, UDouble buildingHeight)
+        private static Length ComputeRadius(AreaInt planetArea, Length buildingHeight)
             => DiskAlgos.RadiusFromArea(area: planetArea.ToDouble()) + buildingHeight;
 
         // Note that this is building area, not disk area
@@ -38,9 +38,9 @@ namespace Game1.Shapes
             => ComputeBuildingArea(planetArea: hypotheticPlanetArea, buildingHeight: buildingHeight);
 
         
-        private UDouble FinishedBuildingRadius
+        private Length FinishedBuildingRadius
             => nodeShapeParams.Radius + parameters.finishedBuildingHeight;
-        private UDouble CurRadius
+        private Length CurRadius
         {
             get
             {
@@ -54,7 +54,7 @@ namespace Game1.Shapes
 
         private readonly Params parameters;
         private readonly INodeShapeParams nodeShapeParams;
-        private UDouble buildingHeight;
+        private Length buildingHeight;
         private DiskBuildingImage? incompleteBuildingImage;
 
         private DiskBuildingImage(Params parameters, INodeShapeParams nodeShapeParams)
@@ -102,7 +102,7 @@ namespace Game1.Shapes
         public IBuildingImage IncompleteBuildingImage(Propor donePropor)
         {
             incompleteBuildingImage ??= parameters.CreateImage(nodeShapeParams: nodeShapeParams);
-            incompleteBuildingImage.buildingHeight = (UDouble)(DiskAlgos.RadiusFromArea(area: nodeShapeParams.Area.ToDouble() + donePropor * Area) - nodeShapeParams.Radius);
+            incompleteBuildingImage.buildingHeight = (Length)((SignedLength)DiskAlgos.RadiusFromArea(area: nodeShapeParams.Area.ToDouble() + donePropor * Area) - nodeShapeParams.Radius);
             return incompleteBuildingImage;
         }
     }

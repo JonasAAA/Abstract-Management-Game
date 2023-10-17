@@ -8,8 +8,8 @@ namespace Game1.ContentHelpers
         public static ValidStartingInfo CreateOrThrow(StartingInfo startingInfo)
             => CreateOrThrow
             (
-                worldCenter: new(x: startingInfo.WorldCenter.X, y: startingInfo.WorldCenter.Y),
-                cameraViewHeight: (UDouble)startingInfo.CameraViewHeight,
+                worldCenter: new(x: SignedLength.CreateFromM(startingInfo.WorldCenter.X), y: SignedLength.CreateFromM(startingInfo.WorldCenter.Y)),
+                cameraViewHeight: Length.CreateFromM((UDouble)startingInfo.CameraViewHeight),
                 startingBuildingToCosmicBody: new
                 (
                     startingBuilding =>
@@ -21,9 +21,9 @@ namespace Game1.ContentHelpers
                 )
             );
 
-        public static ValidStartingInfo CreateOrThrow(MyVector2 worldCenter, UDouble cameraViewHeight, EnumDict<StartingBuilding, string?> startingBuildingToCosmicBody)
+        public static ValidStartingInfo CreateOrThrow(MyVector2 worldCenter, Length cameraViewHeight, EnumDict<StartingBuilding, string?> startingBuildingToCosmicBody)
         {
-            if (cameraViewHeight <= 0)
+            if (cameraViewHeight.IsTiny())
                 throw new ContentException("Starting camera view height must be positive");
             var notNullImportantCosmicBodyNames =
                 startingBuildingToCosmicBody.Values
@@ -40,10 +40,10 @@ namespace Game1.ContentHelpers
         }
 
         public MyVector2 WorldCenter { get; }
-        public UDouble CameraViewHeight { get; }
+        public Length CameraViewHeight { get; }
         public EnumDict<StartingBuilding, string?> StartingBuildingToCosmicBody { get; }
 
-        private ValidStartingInfo(MyVector2 worldCenter, UDouble cameraViewHeight, EnumDict<StartingBuilding, string?> startingBuildingToCosmicBody)
+        private ValidStartingInfo(MyVector2 worldCenter, Length cameraViewHeight, EnumDict<StartingBuilding, string?> startingBuildingToCosmicBody)
         {
             WorldCenter = worldCenter;
             CameraViewHeight = cameraViewHeight;
@@ -55,10 +55,10 @@ namespace Game1.ContentHelpers
             {
                 WorldCenter = new()
                 {
-                    X = WorldCenter.X,
-                    Y = WorldCenter.Y
+                    X = WorldCenter.X.valueInM,
+                    Y = WorldCenter.Y.valueInM
                 },
-                CameraViewHeight = CameraViewHeight,
+                CameraViewHeight = CameraViewHeight.valueInM,
                 StartingBuildingLocations = StartingBuildingToCosmicBody.ToSortedDictionary()
             };
     }

@@ -30,14 +30,14 @@ namespace Game1
             private readonly TimedPacketQueue timedPacketQueue;
             private readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
             private readonly RealPeople waitingPeople;
-            private readonly UDouble minSafeDist;
+            private readonly Length minSafeDist;
             private readonly HistoricRounder reqEnergyHistoricRounder;
             private readonly EnergyPile<ElectricalEnergy> allocEnergyPile;
             private Propor minSafePropor;
             private UDouble reqWattsPerKg;
             private Propor allocEnergyPropor;
 
-            public DirLink(ILinkFacingCosmicBody startNode, ILinkFacingCosmicBody endNode, UDouble minSafeDist)
+            public DirLink(ILinkFacingCosmicBody startNode, ILinkFacingCosmicBody endNode, Length minSafeDist)
             {
                 this.startNode = startNode;
                 this.endNode = endNode;
@@ -83,12 +83,12 @@ namespace Game1
                 return timedPacketQueue.TotalResAmounts;
             }
 
-            public void Update(TimeSpan travelTime, UDouble reqJoulesPerKg, UDouble linkLength)
+            public void Update(TimeSpan travelTime, UDouble reqJoulesPerKg, Length linkLength)
             {
                 if (travelTime <= TimeSpan.Zero)
                     throw new ArgumentException();
                 reqWattsPerKg = reqJoulesPerKg / (UDouble)travelTime.TotalSeconds;
-                minSafePropor = Propor.Create(part: minSafeDist, whole: linkLength) switch
+                minSafePropor = Propor.Create(part: minSafeDist.valueInM, whole: linkLength.valueInM) switch
                 {
                     Propor propor => propor,
                     null => throw new ArgumentException()
@@ -162,7 +162,7 @@ namespace Game1
             public MyVector2 EndPos
                 => Node2.Position;
 
-            public UDouble Width
+            public Length Width
                 => CurWorldConfig.linkWidth;
         }
 
@@ -183,11 +183,12 @@ namespace Game1
         private readonly DirLink link1To2, link2To1;
         private readonly TextBox infoTextBox;
 
-        public Link(ILinkFacingCosmicBody node1, ILinkFacingCosmicBody node2, UDouble minSafeDist)
+        public Link(ILinkFacingCosmicBody node1, ILinkFacingCosmicBody node2, Length minSafeDist)
             : base
             (
                 shape: new LineSegment
                 (
+                    worldCamera: CurWorldManager.worldCamera,
                     parameters: new ShapeParams(Node1: node1, Node2: node2)
                 )
             )
@@ -250,9 +251,9 @@ namespace Game1
         public void TransferFrom(ILinkFacingCosmicBody start, RealPeople realPersonSource, RealPerson realPerson)
             => GetDirLink(start: start).TransferFrom(realPersonSource: realPersonSource, realPerson: realPerson);
 
-        private UDouble RecalculateValuesAndGetLinkLength()
+        private Length RecalculateValuesAndGetLinkLength()
         {
-            UDouble linkLength = MyVector2.Distance(value1: node1.Position, value2: node2.Position);
+            Length linkLength = MyVector2.Distance(value1: node1.Position, value2: node2.Position);
 
             TravelTime = WorldFunctions.LinkTravelTime(linkLength: linkLength);
             JoulesPerKg = WorldFunctions.LinkJoulesPerKg

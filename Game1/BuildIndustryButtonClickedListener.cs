@@ -41,6 +41,7 @@ namespace Game1
             private readonly Button cancelButton;
             private ProductionChoice? ProductionChoice;
             private readonly FunctionGraphImage<Temperature, Propor> overallThroughputGraph;
+            //private readonly FunctionGraphImage<>
 
             private BuildingConfigPanelManager(EfficientReadOnlyCollection<CosmicBody> cosmicBodies, Construction.GeneralParams constrGeneralParams)
             {

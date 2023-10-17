@@ -1,5 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using static Game1.WorldManager;
+﻿using static Game1.WorldManager;
 
 namespace Game1.Lighting
 {
@@ -10,7 +9,7 @@ namespace Game1.Lighting
         private List<MyVector2> vertices;
         private VertexPositionColorTexture[] vertPosTexs;
         private ushort[] inds;
-        private UDouble strength;
+        private Length strength;
 
         private readonly Color color;
 
@@ -23,9 +22,9 @@ namespace Game1.Lighting
         }
 
         /// <param Name="strength">a positive double which determins the HUDRadius of the lit Area</param>
-        public void Update(UDouble strength, MyVector2 center, List<MyVector2> vertices)
+        public void Update(Length strength, MyVector2 center, List<MyVector2> vertices)
         {
-            if (strength.IsCloseTo(other: 0))
+            if (strength.IsTiny())
                 throw new ArgumentOutOfRangeException();
             this.strength = strength;
             this.center = center;
@@ -47,7 +46,7 @@ namespace Game1.Lighting
         {
             if (vertices.Count is 0)
                 return;
-            MyVector2 textureCenter = new(xAndY: .5);
+            Vector2Bare textureCenter = new(xAndY: .5);
             int centerInd = vertices.Count;
             vertPosTexs[centerInd] = new(Transform(pos: center), color, (Vector2)textureCenter);
             for (int i = 0; i < centerInd; i++)
@@ -78,7 +77,7 @@ namespace Game1.Lighting
 
             Vector3 Transform(MyVector2 pos)
             {
-                MyVector2 transPos = MyVector2.Transform(pos, worldToScreenTransform);
+                var transPos = Vector2.Transform((Vector2)pos, worldToScreenTransform);
                 return new Vector3((float)(2 * transPos.X / actualScreenWidth - 1), (float)(1 - 2 * transPos.Y / actualScreenHeight), 0);
             }
         }

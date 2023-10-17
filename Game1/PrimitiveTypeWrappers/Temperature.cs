@@ -30,7 +30,7 @@
             => valueInK.CompareTo(other.valueInK);
 
         public static Propor Normalize(Temperature value, Temperature start, Temperature stop)
-            => Algorithms.Normalize(value: value.valueInK, start: start.valueInK, stop: stop.valueInK);
+            => UDouble.Normalize(value: value.valueInK, start: start.valueInK, stop: stop.valueInK);
 
         public static Temperature Interpolate(Propor normalized, Temperature start, Temperature stop)
             => new(valueInK: UDouble.Interpolate(normalized: normalized, start: start.valueInK, stop: stop.valueInK));

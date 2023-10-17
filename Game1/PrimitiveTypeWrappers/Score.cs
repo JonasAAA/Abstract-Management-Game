@@ -5,7 +5,7 @@ using System.Numerics;
 namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly record struct Score : IClose<Score>, IComparable<Score>, IComparisonOperators<Score, Score, bool>, IPrimitiveTypeWrapper
+    public readonly record struct Score : IClose<Score>, IComparable<Score>, IComparisonOperators<Score, Score, bool>
     {
         [Serializable]
         public readonly struct ParamsOfChange

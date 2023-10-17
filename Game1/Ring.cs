@@ -3,20 +3,20 @@
 namespace Game1
 {
     [Serializable]
-    public abstract class Ring : Shape
+    public abstract class Ring : WorldShape
     {
         public interface IParamsWithInnerRadius
         {
             public MyVector2 Center { get; }
 
-            public UDouble InnerRadius { get; }
+            public Length InnerRadius { get; }
         }
 
         public interface IParamsWithOuterRadius
         {
             public MyVector2 Center { get; }
 
-            public UDouble OuterRadius { get; }
+            public Length OuterRadius { get; }
         }
 
         [Serializable]
@@ -24,16 +24,16 @@ namespace Game1
         {
             public MyVector2 Center
                 => ParamsWithInnerRadius.Center;
-            public UDouble OuterRadius
+            public Length OuterRadius
                 => GetOuterRadius(innerRadius: ParamsWithInnerRadius.InnerRadius);
         }
 
-        private static readonly UDouble ringWidthToInnerRadiusRatio = (UDouble).5;
+        private static readonly UDouble ringWidthToInnerRadiusRatio = UDouble.half;
 
-        protected static UDouble GetInnerRadius(UDouble outerRadius)
+        protected static Length GetInnerRadius(Length outerRadius)
             => outerRadius / (1 + ringWidthToInnerRadiusRatio);
 
-        protected static UDouble GetOuterRadius(UDouble innerRadius)
+        protected static Length GetOuterRadius(Length innerRadius)
             => innerRadius * (1 + ringWidthToInnerRadiusRatio);
 
         protected abstract Texture2D RingTexture { get; }
@@ -41,21 +41,22 @@ namespace Game1
         public MyVector2 Center
             => parameters.Center;
 
-        private UDouble InnerRadius
+        private Length InnerRadius
             => GetInnerRadius(outerRadius: parameters.OuterRadius);
 
         private readonly IParamsWithOuterRadius parameters;
 
-        protected Ring(IParamsWithOuterRadius paramsWithOuterRadius)
+        protected Ring(IParamsWithOuterRadius paramsWithOuterRadius, WorldCamera worldCamera)
+            : base(worldCamera: worldCamera)
             => parameters = paramsWithOuterRadius;
 
-        protected Ring(IParamsWithInnerRadius paramsWithInnerRadius)
-            : this(paramsWithOuterRadius: new ParamsWithOuterRadius(ParamsWithInnerRadius: paramsWithInnerRadius))
+        protected Ring(IParamsWithInnerRadius paramsWithInnerRadius, WorldCamera worldCamera)
+            : this(paramsWithOuterRadius: new ParamsWithOuterRadius(ParamsWithInnerRadius: paramsWithInnerRadius), worldCamera: worldCamera)
         { }
 
         public sealed override bool Contains(MyVector2 position)
         {
-            UDouble distance = MyVector2.Distance(position, Center);
+            Length distance = MyVector2.Distance(position, Center);
             return InnerRadius < distance && distance < parameters.OuterRadius;
         }
 
@@ -66,7 +67,7 @@ namespace Game1
                 position: Center,
                 color: color,
                 rotation: 0,
-                origin: new MyVector2(RingTexture.Width, RingTexture.Height) * .5,
+                origin: new Vector2Bare(RingTexture.Width, RingTexture.Height) * .5,
                 scale: 2 * parameters.OuterRadius / (UDouble)RingTexture.Width
             );
     }

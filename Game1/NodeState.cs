@@ -10,7 +10,7 @@ namespace Game1
     [Serializable]
     public sealed class NodeState : IIndustryFacingNodeState
     {
-        public static RawMatAmounts CalculateComposition(RawMatAmounts rawMatRatios, UDouble approxRadius)
+        public static RawMatAmounts CalculateComposition(RawMatAmounts rawMatRatios, Length approxRadius)
             // This whole Max thing is so that the planet is not smaller than the minimal allowed area
             => rawMatRatios * MyMathHelper.Max
             (
@@ -19,15 +19,15 @@ namespace Game1
                     dividend: CurWorldConfig.minPlanetArea.valueInMetSq,
                     divisor: rawMatRatios.Area().valueInMetSq
                 ),
-                Convert.ToUInt64(MyMathHelper.pi * approxRadius * approxRadius / rawMatRatios.Area().valueInMetSq)
+                Convert.ToUInt64(DiskAlgos.Area(radius: approxRadius).valueInMetSq / rawMatRatios.Area().valueInMetSq)
             );
 
         public NodeID NodeID { get; }
         public Mass PlanetMass
             => consistsOfResPile.Amount.Mass();
         public AreaInt Area { get; private set; }
-        public UDouble Radius { get; private set; }
-        public UDouble SurfaceLength { get; private set; }
+        public Length Radius { get; private set; }
+        public Length SurfaceLength { get; private set; }
         public MyVector2 Position { get; }
         public EnergyPile<RadiantEnergy> RadiantEnergyPile { get; }
         public readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
@@ -36,7 +36,7 @@ namespace Game1
         // TODO: could include linkEndPoints Mass in the Counter<Mass> in this NodeState
         public LocationCounters LocationCounters { get; }
         public ThermalBody ThermalBody { get; }
-        public UDouble SurfaceGravity { get; private set; }
+        public SurfaceGravity SurfaceGravity { get; private set; }
         /// <summary>
         /// This is current temperature to be used until the new value is calculated.
         /// Don't calculate temperature on the fly each time, as that would lead to temperature variations during the frame.

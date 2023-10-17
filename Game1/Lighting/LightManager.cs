@@ -70,7 +70,7 @@ namespace Game1.Lighting
                 };
 
                 UDouble Brightness(UDouble distFromCenter)
-                    => (UDouble)MyMathHelper.Pow(brightness * CurWorldConfig.standardStarRadius / (MyMathHelper.Max(1, (double)distFromCenter - CurWorldConfig.standardStarRadius) + brightness * CurWorldConfig.standardStarRadius), 2);
+                    => (UDouble)MyMathHelper.Pow(brightness * CurWorldConfig.standardStarPixelRadius / (MyMathHelper.Max(1, (double)distFromCenter - CurWorldConfig.standardStarPixelRadius) + brightness * CurWorldConfig.standardStarPixelRadius), 2);
             }
         }
 

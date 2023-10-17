@@ -109,17 +109,17 @@ namespace Game1.UI
                 layerToChildren.Remove(layer);
         }
 
-        public bool Contains(MyVector2 position)
-            => shape.Contains(position: position);
+        public bool Contains(Vector2Bare mouseScreenPos)
+            => shape.Contains(screenPos: mouseScreenPos);
 
-        public virtual IUIElement? CatchUIElement(MyVector2 mousePos)
+        public virtual IUIElement? CatchUIElement(Vector2Bare mouseScreenPos)
         {
-            if (!Contains(position: mousePos))
+            if (!Contains(mouseScreenPos: mouseScreenPos))
                 return null;
 
             foreach (var child in Children().Reverse())
             {
-                var childCatchingUIElement = child.CatchUIElement(mousePos: mousePos);
+                var childCatchingUIElement = child.CatchUIElement(mouseScreenPos: mouseScreenPos);
                 if (childCatchingUIElement is not null)
                     return childCatchingUIElement;
             }

@@ -75,9 +75,9 @@ namespace Game1.UI
                 tab.Shape.MinHeight = tabHeight;
 
             // recalc children positions
-            tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new MyVector2(ActiveUIManager.RectOutlineWidth);
+            tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2Bare(ActiveUIManager.RectOutlineWidth);
             foreach (var tab in tabs.Values)
-                tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new MyVector2(ActiveUIManager.RectOutlineWidth) + new MyVector2(0, tabChoicePanel.Shape.Height);
+                tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2Bare(ActiveUIManager.RectOutlineWidth) + new Vector2Bare(0, tabChoicePanel.Shape.Height);
         }
 
         private void AddTab(string tabLabelText, ITooltip tabTooltip, TTab tab)
@@ -105,11 +105,11 @@ namespace Game1.UI
             AddChild(child: tab);
         }
 
-        public sealed override IUIElement? CatchUIElement(MyVector2 mousePos)
+        public sealed override IUIElement? CatchUIElement(Vector2Bare mouseScreenPos)
         {
-            if (!Shape.Contains(position: mousePos))
+            if (!Shape.Contains(screenPos: mouseScreenPos))
                 return null;
-            var catchingUIElement = tabChoicePanel.CatchUIElement(mousePos: mousePos);
+            var catchingUIElement = tabChoicePanel.CatchUIElement(mouseScreenPos: mouseScreenPos);
             if (catchingUIElement is not null)
                 return catchingUIElement;
 
@@ -119,7 +119,7 @@ namespace Game1.UI
                 return this;
             }
 
-            return ActiveTab.CatchUIElement(mousePos: mousePos) ?? this;
+            return ActiveTab.CatchUIElement(mouseScreenPos: mouseScreenPos) ?? this;
         }
 
         protected sealed override void DrawChildren()

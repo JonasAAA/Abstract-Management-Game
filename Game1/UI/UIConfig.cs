@@ -3,7 +3,7 @@
     [Serializable]
     public sealed class UIConfig
     {
-        public readonly uint standardScreenHeight = 1080;
+        public readonly UDouble standardScreenHeight = 1080;
         public readonly UDouble rectOutlineWidth = 0;
         public readonly UDouble defaultGapBetweenUIElements = 10;
         public readonly UDouble standardUIElementWidth = 100;

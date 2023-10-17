@@ -35,7 +35,7 @@ namespace Game1.UI
                 child.Shape.SetPosition
                 (
                     position: Shape.GetSpecPos(origin: childOrigin)
-                        + new MyVector2(ActiveUIManager.RectOutlineWidth + curWidthSum, -(int)childVertPos * ActiveUIManager.RectOutlineWidth),
+                        + new Vector2Bare(ActiveUIManager.RectOutlineWidth + curWidthSum, -(int)childVertPos * ActiveUIManager.RectOutlineWidth),
                     origin: childOrigin
                 );
                 curWidthSum += child.Shape.Width + gap;

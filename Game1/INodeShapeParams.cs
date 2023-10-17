@@ -4,10 +4,10 @@
     {
         public NodeID NodeID { get; }
         public AreaInt Area { get; }
-        public UDouble Radius { get; }
-        public UDouble SurfaceLength { get; }
+        public Length Radius { get; }
+        public Length SurfaceLength { get; }
         public MyVector2 Position { get; }
-        public UDouble SurfaceGravity { get; }
+        public SurfaceGravity SurfaceGravity { get; }
         public Temperature Temperature { get; }
     }
 }

@@ -64,8 +64,8 @@ namespace Game1.Resources
         public override string ToString()
             => name;
 
-        public bool Equals(ProductClass other)
-            => this == other;
+        public bool Equals(ProductClass? other)
+            => other is not null && this == other;
 
         public override bool Equals(object? obj)
             => obj is ProductClass prodClass && Equals(prodClass);

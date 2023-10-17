@@ -5,7 +5,7 @@ namespace Game1.Shapes
     [Serializable]
     public sealed class InfinitePlane : Shape
     {
-        public sealed override bool Contains(MyVector2 position)
+        public sealed override bool Contains(Vector2Bare screenPos)
             => true;
 
         public sealed override void Draw(Color color)
@@ -14,10 +14,10 @@ namespace Game1.Shapes
                 C.Draw
                 (
                     texture: C.PixelTexture,
-                    position: MyVector2.zero,
+                    position: Vector2Bare.zero,
                     color: color,
                     rotation: 0,
-                    origin: MyVector2.zero,
+                    origin: Vector2Bare.zero,
                     scaleX: ActiveUIManager.screenWidth,
                     scaleY: ActiveUIManager.screenHeight
                 );

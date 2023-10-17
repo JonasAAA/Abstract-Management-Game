@@ -25,7 +25,7 @@
             this.highlightInterval = highlightInterval;
         }
 
-        public void Draw(MyVector2 center)
+        public void Draw(Vector2Bare center)
             => functionGraph.Draw(center: center, highlightInterval: highlightInterval.GetHighlightInterval());
     }
 

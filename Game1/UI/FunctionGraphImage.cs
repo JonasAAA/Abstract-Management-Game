@@ -16,7 +16,7 @@ namespace Game1.UI
         private readonly TY minY, maxY;
         private readonly ulong numXSamples;
         private bool drawPoints;
-        private readonly MyVector2[] points;
+        private readonly Vector2Bare[] points;
 
         public FunctionGraphImage(UDouble width, UDouble height, Color lineColor, Color backgroundColor, UDouble lineWidth, TX minX, TX maxX, TY minY, TY maxY, ulong numXSamples, Func<TX, TY>? func)
         {
@@ -30,7 +30,7 @@ namespace Game1.UI
             this.minY = minY;
             this.maxY = maxY;
             this.numXSamples = numXSamples;
-            points = new MyVector2[numXSamples];
+            points = new Vector2Bare[numXSamples];
             SetFunction(func: func);
         }
 
@@ -50,7 +50,7 @@ namespace Game1.UI
                     var y = func(x);
 
                     var normalizedY = TY.Normalize(value: y, start: minY, stop: maxY);
-                    points[ind] = new MyVector2
+                    points[ind] = new Vector2Bare
                     (
                         x: ImageXFromNormalized(normalizedX: normalizedX),
                         y: -Algorithms.Interpolate
@@ -65,9 +65,9 @@ namespace Game1.UI
         }
 
         private UDouble ImageXFromNormalized(Propor normalizedX)
-            => Algorithms.Interpolate(normalized: normalizedX, start: 0u, stop: Width);
+            => Algorithms.Interpolate(normalized: normalizedX, start: UDouble.zero, stop: Width);
 
-        public void Draw(MyVector2 center, (TX start, TX stop, Color highlightColor)? highlightInterval)
+        public void Draw(Vector2Bare center, (TX start, TX stop, Color highlightColor)? highlightInterval)
         {
             var shape = new MyRectangle(width: Width, height: Height)
             {
@@ -99,12 +99,12 @@ namespace Game1.UI
                 var highlightMax = MyMathHelper.Max(imageXStart, imageXStop);
                 new MyRectangle(width: highlightMax - highlightMin, height: Height)
                 {
-                    BottomLeftCorner = shape.BottomLeftCorner + new MyVector2(x: highlightMin, y: 0)
+                    BottomLeftCorner = shape.BottomLeftCorner + new Vector2Bare(x: highlightMin, y: 0)
                 }.Draw(color: highlightColor);
             }
         }
 
-        void IImage.Draw(MyVector2 center)
+        void IImage.Draw(Vector2Bare center)
             => Draw(center: center, highlightInterval: null);
     }
 
@@ -132,7 +132,7 @@ namespace Game1.UI
     //    private readonly double minX, maxX, minY, maxY;
     //    private readonly ulong numXSamples;
     //    private bool drawPoints;
-    //    private readonly MyVector2[] points;
+    //    private readonly Vector2Bare[] points;
 
     //    public FunctionGraph(UDouble width, UDouble height, Color lineColor, Color backgroundColor, UDouble lineWidth, double minX, double maxX, double minY, double maxY, ulong numXSamples, Func<double, double>? func)
     //        : base(shape: new MyRectangle(width: width, height: height))
@@ -145,7 +145,7 @@ namespace Game1.UI
     //        this.minY = minY;
     //        this.maxY = maxY;
     //        this.numXSamples = numXSamples;
-    //        points = new MyVector2[numXSamples];
+    //        points = new Vector2Bare[numXSamples];
     //        SetFunction(func: func);
     //    }
 
@@ -165,7 +165,7 @@ namespace Game1.UI
     //                double y = func(x);
 
     //                var normalizedY = Algorithms.Normalize(value: y, start: minY, stop: maxY);
-    //                points[ind] = new MyVector2
+    //                points[ind] = new Vector2Bare
     //                (
     //                    x: Algorithms.Interpolate(normalized: normalizedX, start: 0, stop: Shape.Width),
     //                    y: -Algorithms.Interpolate

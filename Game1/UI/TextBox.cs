@@ -16,9 +16,9 @@ namespace Game1.UI
                 if (text != value)
                 {
                     text = value;
-                    MyVector2 textDims = text switch
+                    Vector2Bare textDims = text switch
                     {
-                        null => MyVector2.zero,
+                        null => Vector2Bare.zero,
                         not null => MeasureText(text: text),
                     };
                     Shape.Width = (UDouble)textDims.X;
@@ -36,14 +36,14 @@ namespace Game1.UI
         public TextBox(string? text = null, Color? backgroundColor = null, Color? textColor = null)
             : base(shape: new MyRectangle())
         {
-            scale = (UDouble).5;
+            scale = UDouble.half;
             Color = backgroundColor ?? Color.Transparent;
             this.textColor = textColor ?? colorConfig.textColor;
             Text = text;
         }
 
-        public MyVector2 MeasureText(string text)
-            => (MyVector2)font.MeasureString(text) * scale;
+        public Vector2Bare MeasureText(string text)
+            => (Vector2Bare)font.MeasureString(text) * scale;
 
         protected sealed override void DrawChildren()
         {
@@ -59,7 +59,7 @@ namespace Game1.UI
                     true => textColor,
                     false => textColor * .5f
                 },
-                origin: MyVector2.zero,
+                origin: Vector2Bare.zero,
                 scale: scale
             );
         }

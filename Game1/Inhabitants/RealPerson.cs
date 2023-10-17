@@ -41,7 +41,7 @@ namespace Game1.Inhabitants
 
             ulong childReqWatts = MyMathHelper.Round
             (
-                value: CurWorldConfig.parentContribToChildPropor * (parent1.ReqWatts + parent2.ReqWatts) * (UDouble).5
+                value: CurWorldConfig.parentContribToChildPropor * (parent1.ReqWatts + parent2.ReqWatts) * UDouble.half
                     + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinReqWatts, max: CurWorldConfig.personMaxReqWatts)
             );
             Debug.Assert(CurWorldConfig.personMinReqWatts <= childReqWatts && childReqWatts <= CurWorldConfig.personMaxReqWatts);
@@ -68,7 +68,7 @@ namespace Game1.Inhabitants
                     ),
                     closestNodeID: closestNodeID,
                     seekChangeTime:
-                        CurWorldConfig.parentContribToChildPropor * (parent1.SeekChangeTime + parent2.SeekChangeTime) * (UDouble).5
+                        CurWorldConfig.parentContribToChildPropor * (parent1.SeekChangeTime + parent2.SeekChangeTime) * UDouble.half
                         + CurWorldConfig.parentContribToChildPropor.Opposite() * C.Random(min: CurWorldConfig.personMinSeekChangeTime, max: CurWorldConfig.personMaxSeekChangeTime),
                     resSource: resSource,
                     consistsOfResAmounts: resAmountsPerPerson

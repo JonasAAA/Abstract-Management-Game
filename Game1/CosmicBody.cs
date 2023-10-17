@@ -19,7 +19,7 @@ namespace Game1
             public MyVector2 Center
                 => State.Position;
 
-            public UDouble Radius
+            public Length Radius
                 => State.Radius;
         }
 
@@ -136,7 +136,7 @@ namespace Game1
         private readonly LazyTextBox textBox, infoTextBox;
 
         public CosmicBody(NodeState state, Func<IIndustryFacingNodeState, IIndustry?> createIndustry)
-            : base(shape: new LightBlockingDisk(parameters: new ShapeParams(State: state)))
+            : base(shape: new LightBlockingDisk(parameters: new ShapeParams(State: state), worldCamera: CurWorldManager.worldCamera))
         {
             this.state = state;
             lightPolygon = new(color: state.Composition.Color());
@@ -322,7 +322,7 @@ namespace Game1
             //Industry?.Draw(otherColor: otherColor, otherColorPropor: otherColorPropor);
         }
 
-        UDouble ILinkFacingCosmicBody.SurfaceGravity
+        SurfaceGravity ILinkFacingCosmicBody.SurfaceGravity
             => state.SurfaceGravity;
 
         void ILinkFacingCosmicBody.AddLink(Link link)
@@ -428,7 +428,7 @@ namespace Game1
 
             lightPolygon.Update
             (
-                strength: state.Radius / CurWorldConfig.standardStarRadius,
+                strength: state.Radius / CurWorldConfig.standardStarPixelRadius,
                 center: state.Position,
                 vertices: vertices
             );
@@ -517,7 +517,7 @@ namespace Game1
                 vertices = new();
                 rayCatchingObjects = new();
                 // TODO: consider moving this to constants class
-                UDouble maxDist = 2000 * CurWorldConfig.metersPerStartingPixel;
+                Length maxDist = 2000 * CurWorldConfig.metersPerStartingPixel;
 
                 SortedSet<AngleArc> curAngleArcs = new();
                 int angleInd = 0, angleArcInd = 0;
@@ -536,14 +536,14 @@ namespace Game1
                         angleArcInd++;
                     }
 
-                    MyVector2 rayDir = MyMathHelper.Direction(rotation: curAngle);
+                    Vector2Bare rayDir = MyMathHelper.Direction(rotation: curAngle);
                     rayCatchingObjects.Add(curAngleArcs.Count == 0 ? null : curAngleArcs.Min.lightCatchingObject);
-                    double minDist = rayCatchingObjects[^1] switch
+                    Length minDist = rayCatchingObjects[^1] switch
                     {
                         null => maxDist,
                         // adding 1 looks better, even though it's not needed mathematically
                         // TODO: move the constant 1 to the constants file
-                        _ => 1 + curAngleArcs.Min.radius
+                        _ => Length.CreateFromM(1) + curAngleArcs.Min.radius
                     };
                     vertices.Add(state.Position + minDist * rayDir);
 

@@ -74,6 +74,16 @@ namespace Game1.Resources
                 )
             );
 
+            MaterialPalette.CreateAndAddToResConfig
+            (
+                name: "other mech.",
+                productClass: ProductClass.mechanical,
+                materialChoices: new()
+                {
+                    [MaterialPurpose.mechanical] = material0
+                }
+            ).UnwrapOrThrow();
+
             StartingMaterialPaletteChoices = MaterialPaletteChoices.Create
             (
                 choices: new List<MaterialPalette>()
@@ -84,7 +94,7 @@ namespace Game1.Resources
                         productClass: ProductClass.mechanical,
                         materialChoices: new()
                         {
-                            [MaterialPurpose.mechanical] = material0
+                            [MaterialPurpose.mechanical] = material1
                         }
                     ).UnwrapOrThrow(),
                     MaterialPalette.CreateAndAddToResConfig

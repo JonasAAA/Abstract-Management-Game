@@ -39,8 +39,9 @@ namespace Game1.UI
         private static string GetButtonText<TItem>(TItem? item)
             => item?.ToString() ?? "+";
 
+        // The copy is needed so that the additional info is displayed properly within dropdown AND when a choice is made
         [Serializable]
-        private sealed record StartDropdownListener<TItem>(IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, IHUDElement? additionalInfo, ITooltip tooltip)> ItemsWithTooltips, UIRectHorizPanel<IHUDElement> StartItemChoiceLine, Button StartItemChoice) : IClickedListener
+        private sealed record StartDropdownListener<TItem>(IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, IHUDElement? additionalInfo, IHUDElement? additionalInfoCopy, ITooltip tooltip)> ItemsWithTooltips, UIRectHorizPanel<IHUDElement> StartItemChoiceLine, Button StartItemChoice) : IClickedListener
             where TItem : notnull
         {
             void IClickedListener.ClickedResponse()
@@ -52,7 +53,7 @@ namespace Game1.UI
                     (
                         args =>
                         {
-                            var (item, additionalInfo, tooltip) = args;
+                            var (item, additionalInfo, additionalInfoCopy, tooltip) = args;
                             
                             Button chooseItemButton = new
                             (
@@ -68,7 +69,7 @@ namespace Game1.UI
                                     StartItemChoiceLine: StartItemChoiceLine,
                                     StartItemChoice: StartItemChoice,
                                     Item: item,
-                                    AdditionalInfo: additionalInfo
+                                    AdditionalInfo: additionalInfoCopy
                                 )
                             );
                             return new UIRectHorizPanel<IHUDElement>
@@ -117,6 +118,7 @@ namespace Game1.UI
                         (
                             item: args.item,
                             additionalInfo: additionalInfos?.item(args.item),
+                            additionalInfoCopy: additionalInfos?.item(args.item),
                             tooltip: args.tooltip
                         )
                     ),

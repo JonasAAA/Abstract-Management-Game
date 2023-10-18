@@ -174,7 +174,7 @@ namespace Game1
         private static (Temperature temperature, Propor strength) RawMatMaxStrength(ulong ind)
             => 
             (
-                temperature: Temperature.CreateFromK(valueInK: 1000 + ind * 100),
+                temperature: Temperature.CreateFromK(valueInK: 100 + ind * 400),
                 strength: Propor.full
             );
 

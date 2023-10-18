@@ -1,5 +1,6 @@
 ﻿using Game1.Collections;
 using Game1.Delegates;
+using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
 
@@ -67,8 +68,7 @@ namespace Game1.Industries
         public MaterialPalette? SurfaceMatPalette
             => buildingParams.SurfaceMatPalette(productionInProgress: Busy);
 
-        public IHUDElement UIElement
-            => industryUI;
+        public IHUDElement UIElement { get; }
 
         public IEvent<IDeletedListener> Deleted
             => deleted;
@@ -94,7 +94,7 @@ namespace Game1.Industries
         private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
         private readonly ResPile inputStorage, outputStorage;
         private AllResAmounts resTravellingHere;
-        private readonly TextBox industryUI;
+        private readonly TextBox industryInfo;
         
         public Industry(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState)
         {
@@ -118,7 +118,16 @@ namespace Game1.Industries
                 resSources: resSources,
                 resDestins: resDestins
             );
-            industryUI = new();
+            industryInfo = new();
+            UIElement = new UIRectVertPanel<IHUDElement>
+            (
+                childHorizPos: HorizPosEnum.Left,
+                children: new List<IHUDElement>()
+                {
+                    new TextBox(text: "Industry UI Panel"),
+                    industryInfo
+                }
+            );
         }
 
         public bool IsSourceOf(IResource resource)
@@ -198,8 +207,7 @@ namespace Game1.Industries
         public IIndustry? UpdateImpl()
         {
 #warning Complete this
-            industryUI.Text = $"""
-                Industry UI Panel
+            industryInfo.Text = $"""
                 stored inputs {inputStorage.Amount}
                 stored outputs {outputStorage.Amount}
                 res travelling here {resTravellingHere}

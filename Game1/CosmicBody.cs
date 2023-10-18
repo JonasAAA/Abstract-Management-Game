@@ -517,7 +517,7 @@ namespace Game1
                 vertices = new();
                 rayCatchingObjects = new();
                 // TODO: consider moving this to constants class
-                Length maxDist = 2000 * CurWorldConfig.metersPerStartingPixel;
+                Length maxDist = 2000 * CurWorldConfig.startingPixelLength;
 
                 SortedSet<AngleArc> curAngleArcs = new();
                 int angleInd = 0, angleArcInd = 0;

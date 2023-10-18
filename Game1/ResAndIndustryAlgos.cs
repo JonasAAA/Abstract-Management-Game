@@ -296,7 +296,7 @@ namespace Game1
             (
                 ReqWatts: buildingComponentsArea.valueInMetSq / 1000000000,
                 // Means that the building will complete in 10 real world seconds
-                ProducedAreaPerSec: buildingComponentsArea.valueInMetSq / (worldSecondsInGameSecond * 10)
+                ProducedAreaPerSec: buildingComponentsArea.ToDouble() * ((UDouble)1.0 / (worldSecondsInGameSecond * 10))
             );
         }
 
@@ -382,12 +382,32 @@ namespace Game1
                 roof: () => (Propor).5
             );
 
-        private const double throughputPowerMeanExponent = 0;
+        public static Propor NeededElectricity(MaterialPalette materialPalette, SurfaceGravity gravity)
+            => materialPalette.productClass.SwitchExpression
+            (
+                mechanical: () => (Propor).5,
+                electronics: () => (Propor)1,
+                roof: () => (Propor).2
+            );
+
+        private const double statsPowerMeanExponent = 0;
 
         /// <summary>
         /// Throughput from possibly not all mat palette choices
         /// </summary>
-        public static Propor TentativeThroughput(Temperature temperature, Propor chosenTotalPropor, EfficientReadOnlyDictionary<ProductClass, MaterialPalette> matPaletteChoices, EfficientReadOnlyDictionary<ProductClass, Propor> buildingProdClassPropors)
+        public static Propor TentativeThroughput(Temperature temperature, Propor chosenTotalPropor, EfficientReadOnlyDictionary<ProductClass, MaterialPalette> matPaletteChoices,
+            EfficientReadOnlyDictionary<ProductClass, Propor> buildingProdClassPropors)
+            => TentativeStats(input: temperature, matPaletteStats: Throughput, chosenTotalPropor: chosenTotalPropor, matPaletteChoices: matPaletteChoices, buildingProdClassPropors: buildingProdClassPropors);
+
+        /// <summary>
+        /// Needed electricity from possibly not all mat palette choices
+        /// </summary>
+        public static Propor TentativeNeededElectricity(SurfaceGravity gravity, Propor chosenTotalPropor, EfficientReadOnlyDictionary<ProductClass, MaterialPalette> matPaletteChoices,
+            EfficientReadOnlyDictionary<ProductClass, Propor> buildingProdClassPropors)
+            => TentativeStats(input: gravity, matPaletteStats: NeededElectricity, chosenTotalPropor: chosenTotalPropor, matPaletteChoices: matPaletteChoices, buildingProdClassPropors: buildingProdClassPropors);
+
+        private static Propor TentativeStats<TInput>(TInput input, Func<MaterialPalette, TInput, Propor> matPaletteStats, Propor chosenTotalPropor,
+            EfficientReadOnlyDictionary<ProductClass, MaterialPalette> matPaletteChoices, EfficientReadOnlyDictionary<ProductClass, Propor> buildingProdClassPropors)
         {
             Debug.Assert(MyMathHelper.AreClose((UDouble)chosenTotalPropor, matPaletteChoices.Keys.Sum(prodClass => (UDouble)buildingProdClassPropors[prodClass])));
             return Propor.PowerMean
@@ -397,10 +417,10 @@ namespace Game1
                     matPaletteChoice =>
                     (
                         weight: (Propor)((UDouble)buildingProdClassPropors[matPaletteChoice.Key] / (UDouble)chosenTotalPropor),
-                        value: Throughput(materialPalette: matPaletteChoice.Value, temperature: temperature)
+                        value: matPaletteStats(matPaletteChoice.Value, input)
                     )
                 ),
-                exponent: throughputPowerMeanExponent
+                exponent: statsPowerMeanExponent
             );
         }
 
@@ -409,9 +429,23 @@ namespace Game1
         /// </summary>
         public static CurProdStats CurMechProdStats(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
             MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
-        {
-            throw new NotImplementedException();
-        }
+            => new
+            (
+                ReqWatts: buildingArea.valueInMetSq * TentativeNeededElectricity
+                (
+                    gravity: gravity,
+                    chosenTotalPropor: Propor.full,
+                    matPaletteChoices: buildingMatPaletteChoices.Choices,
+                    buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
+                ) / 1000,
+                ProducedAreaPerSec: buildingArea * TentativeThroughput
+                (
+                    temperature: temperature,
+                    chosenTotalPropor: Propor.full,
+                    matPaletteChoices: buildingMatPaletteChoices.Choices,
+                    buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
+                ) * (UDouble)0.01
+            );
 
         /// <summary>
         /// To be called by po

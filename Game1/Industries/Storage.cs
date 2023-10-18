@@ -119,9 +119,6 @@ namespace Game1.Industries
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
-            string IConcreteBuildingConstructionParams.GetBuildingStats()
-                => "Storage stats TODO";
-
             IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
                 => new Storage
                 (

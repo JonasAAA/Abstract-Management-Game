@@ -1,4 +1,5 @@
 ﻿using Game1.Shapes;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -92,15 +93,23 @@ namespace Game1.UI
                     (
                         normalizedX: TX.Normalize(value: x, start: minX, stop: maxX)
                     );
-                var imageXStart = funcXToImageX(x: start);
-                var imageXStop = funcXToImageX(x: stop);
-                // This is needed in case start > stop
-                var highlightMin = MyMathHelper.Min(imageXStart, imageXStop);
-                var highlightMax = MyMathHelper.Max(imageXStart, imageXStop);
-                new MyRectangle(width: highlightMax - highlightMin, height: Height)
+                double imageXStart = funcXToImageX(x: start);
+                double imageXStop = funcXToImageX(x: stop);
+                var highlight = new MyRectangle
+                (
+                    // The Abs part is needed in case start > stop
+                    width: MyMathHelper.Max(Width * curUIConfig.minFunctionGraphHighlightPropor, MyMathHelper.Abs((double)imageXStop - imageXStart)),
+                    height: Height
+                )
                 {
-                    BottomLeftCorner = shape.BottomLeftCorner + new Vector2Bare(x: highlightMin, y: 0)
-                }.Draw(color: highlightColor);
+                    Center = shape.Center + new Vector2Bare
+                    (
+                        x: (imageXStart + imageXStop) / 2 - Width / 2,
+                        y: 0
+                    )
+                };
+                highlight.ClampX(left: shape.Left, right: shape.Right);
+                highlight.Draw(color: highlightColor);
             }
         }
 
@@ -113,8 +122,9 @@ namespace Game1.UI
         public static List<Type[]> GetKnownTypeArgs()
             => new()
             {
+                new[] { typeof(SurfaceGravity), typeof(Propor) },
                 new[] { typeof(Temperature), typeof(Propor) },
-                new[] { typeof(UDouble), typeof(Propor)}
+                new[] { typeof(UDouble), typeof(Propor) }
             };
 
         public static IEnumerable<Type> GetKnownTypes()

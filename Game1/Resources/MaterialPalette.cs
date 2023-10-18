@@ -8,12 +8,14 @@ namespace Game1.Resources
     [Serializable]
     public sealed class MaterialPalette
     {
-        private static readonly IImage emptyProdThroughputFunctionGraph = IndustryUIAlgos.CreateTemperatureFunctionGraph(func: null);
-
         // This is a method so that each of these is independent.
         // Otherwise, if want to show it on screen twice, both of those would show up in the same position, since they are the same object.
         public static IHUDElement CreateEmptyProdStatsInfluenceVisual()
-            => new ImageHUDElement(image: emptyProdThroughputFunctionGraph);
+            => IndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+            (
+                neededElectricity: IndustryUIAlgos.emptyProdNeededElectricityFunctionGraph,
+                throughput: IndustryUIAlgos.emptyProdThroughputFunctionGraph
+            );
 
         public static Result<MaterialPalette, TextErrors> CreateAndAddToResConfig(string name, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices)
         {
@@ -45,6 +47,7 @@ namespace Game1.Resources
         public readonly ProductClass productClass;
         public readonly EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices;
         public readonly ResAmounts<Material> materialAmounts;
+        private readonly IImage prodNeededElectricityFunctionGraph;
         private readonly IImage prodThroughputFunctionGraph;
 
         public MaterialPalette(string name, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices, ResAmounts<Material> materialAmounts)
@@ -53,6 +56,10 @@ namespace Game1.Resources
             this.productClass = productClass;
             this.materialChoices = materialChoices;
             this.materialAmounts = materialAmounts;
+            prodNeededElectricityFunctionGraph = IndustryUIAlgos.CreateGravityFunctionGraph
+            (
+                func: gravity => ResAndIndustryAlgos.NeededElectricity(materialPalette: this, gravity: gravity)
+            );
             prodThroughputFunctionGraph = IndustryUIAlgos.CreateTemperatureFunctionGraph
             (
                 func: temper => ResAndIndustryAlgos.Throughput(materialPalette: this, temperature: temper)
@@ -62,7 +69,7 @@ namespace Game1.Resources
         // This is a method so that each prod stats is independent.
         // Otherwise, if want to show it on screen twice, both of those would show up in the same position, since they are the same object.
         public IHUDElement CreateProdStatsInfluenceVisual()
-            => new ImageHUDElement(image: prodThroughputFunctionGraph);
+            => IndustryUIAlgos.CreateNeededElectricityAndThroughputPanel(neededElectricity: prodNeededElectricityFunctionGraph, throughput: prodThroughputFunctionGraph);
 
         /// <summary>
         /// Returns text errors if contents are the same

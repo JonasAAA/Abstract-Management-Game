@@ -1,6 +1,4 @@
-﻿using System.Numerics;
-
-namespace Game1.MyMath
+﻿namespace Game1.MyMath
 {
     public static class MyMathHelper
     {
@@ -74,6 +72,18 @@ namespace Game1.MyMath
 
         public static double Clamp(double value, double min, double max)
             => Math.Clamp(value, min, max);
+
+        public static UDouble Clamp(UDouble value, UDouble min, UDouble max)
+        {
+            if (min > max)
+                throw new ArgumentException();
+
+            if (value < min)
+                return min;
+            if (value > max)
+                return max;
+            return value;
+        }
 
         public static UDouble Square(double value)
             => (UDouble)(value * value);

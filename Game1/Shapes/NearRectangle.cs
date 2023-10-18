@@ -140,21 +140,45 @@ namespace Game1.Shapes
         public void SetPosition(Vector2Bare position, PosEnums origin)
             => Center = origin.GetRectCenter(position: position, width: Width, height: Height);
 
+        public double Left
+            => Center.X - Width * UDouble.half;
+
+        public double Right
+            => Center.X + Width * UDouble.half;
+
+        public void ClampX(double left, double right)
+            => Center = Center with
+            {
+                X = GetClampedX(left: left, right: right)
+            };
+
+        public void ClampY(double top, double bottom)
+            => Center = Center with
+            {
+                Y = GetClampedY(top: top, bottom: bottom)
+            };
+
         public void ClampPosition(double left, double right, double top, double bottom)
             => Center = new Vector2Bare
             (
-                x: MyMathHelper.Clamp
-                (
-                    value: Center.X,
-                    min: left + Width * UDouble.half,
-                    max: right - Width * UDouble.half
-                ),
-                y: MyMathHelper.Clamp
-                (
-                    value: Center.Y,
-                    min: top + Height * UDouble.half,
-                    max: bottom - Height * UDouble.half
-                )
+                x: GetClampedX(left: left, right: right),
+                y: GetClampedY(top: top, bottom: bottom)
+            );
+
+        private double GetClampedX(double left, double right)
+            => MyMathHelper.Clamp
+            (
+                value: Center.X,
+                min: left + Width * UDouble.half,
+                max: right - Width * UDouble.half
+            );
+
+        private double GetClampedY(double top, double bottom)
+            => MyMathHelper.Clamp
+            (
+                value: Center.Y,
+                min: top + Height * UDouble.half,
+                max: bottom - Height * UDouble.half
             );
 
         private void RaiseSizeOrPosChanged()

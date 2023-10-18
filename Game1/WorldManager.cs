@@ -275,7 +275,7 @@ namespace Game1
             worldCamera = new
             (
                 worldCenter: MyVector2.zero,
-                worldMetersPerPixel: worldConfig.metersPerStartingPixel,
+                worldMetersPerPixel: worldConfig.startingPixelLength,
                 scrollSpeed: worldConfig.scrollSpeed,
                 screenBoundWidthForMapMoving: worldConfig.screenBoundWidthForMapMoving
             );

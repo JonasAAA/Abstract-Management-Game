@@ -9,5 +9,7 @@
         public readonly UDouble standardUIElementWidth = 100;
         public readonly UDouble wideUIElementWidth = 200;
         public readonly UDouble UILineHeight = 30;
+        public readonly ulong pointNumInSmallFunctionGraphs = 100;
+        public readonly Propor minFunctionGraphHighlightPropor = (Propor).02;
     }
 }

@@ -9,8 +9,6 @@
 
         public MaterialPalette SurfaceMatPalette { get; }
 
-        public string GetBuildingStats();
-
         public IIndustry CreateIndustry(ResPile buildingResPile);
     }
 }

@@ -50,10 +50,10 @@ namespace Game1
             return proporUtilized * Propor.Create(part: allocatedEnergy.ValueInJ, whole: reqEnergy.ValueInJ)!.Value;
         }
 
-        public static Propor UpdateDonePropor(this Propor donePropor, Propor workingPropor, UDouble producedAreaPerSec, TimeSpan elapsed, AreaInt areaInProduction)
+        public static Propor UpdateDonePropor(this Propor donePropor, Propor workingPropor, AreaDouble producedAreaPerSec, TimeSpan elapsed, AreaInt areaInProduction)
         {
-            UDouble areaProduced = workingPropor * (UDouble)elapsed.TotalSeconds * producedAreaPerSec;
-            return Propor.CreateByClamp((UDouble)donePropor + areaProduced / areaInProduction.valueInMetSq);
+            AreaDouble areaProduced = workingPropor * (UDouble)elapsed.TotalSeconds * producedAreaPerSec;
+            return Propor.CreateByClamp((UDouble)donePropor + areaProduced.valueInMetSq / areaInProduction.valueInMetSq);
         }
 
         /// <exception cref="ArgumentException">if buildingMatPaletteChoices doesn't contain all required product classes</exception>

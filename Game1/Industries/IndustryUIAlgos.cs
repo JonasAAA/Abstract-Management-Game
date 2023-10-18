@@ -2,6 +2,7 @@
 using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
+using Game1.Shapes;
 
 namespace Game1.Industries
 {
@@ -89,8 +90,41 @@ namespace Game1.Industries
                 maxX: CurWorldConfig.maxTemperatureShownInGraphs,
                 minY: Propor.empty,
                 maxY: Propor.full,
-                numXSamples: 100,
+                numXSamples: curUIConfig.pointNumInSmallFunctionGraphs,
                 func: func
+            );
+
+        public static readonly IImage emptyProdNeededElectricityFunctionGraph = CreateGravityFunctionGraph(func: null);
+        public static readonly IImage emptyProdThroughputFunctionGraph = CreateTemperatureFunctionGraph(func: null);
+
+        /// <summary>
+        /// If <paramref name="func"/> is null, the graph will be empty
+        /// </summary>
+        public static FunctionGraphImage<SurfaceGravity, Propor> CreateGravityFunctionGraph(Func<SurfaceGravity, Propor>? func)
+            => new
+            (
+                width: curUIConfig.standardUIElementWidth,
+                height: curUIConfig.UILineHeight,
+                lineColor: colorConfig.functionGraphLineColor,
+                backgroundColor: colorConfig.functionGraphBackgroundColor,
+                lineWidth: 1,
+                minX: SurfaceGravity.zero,
+                maxX: CurWorldConfig.maxGravityShownInGraphs,
+                minY: Propor.empty,
+                maxY: Propor.full,
+                numXSamples: curUIConfig.pointNumInSmallFunctionGraphs,
+                func: func
+            );
+
+        public static IHUDElement CreateNeededElectricityAndThroughputPanel(IImage neededElectricity, IImage throughput)
+            => new UIRectHorizPanel<IHUDElement>
+            (
+                childVertPos: VertPosEnum.Top,
+                children: new List<IHUDElement>()
+                {
+                    new ImageHUDElement(image: neededElectricity),
+                    new ImageHUDElement(image: throughput)
+                }
             );
 
         public static VertProporBar CreateStandardVertProporBar(Propor propor)

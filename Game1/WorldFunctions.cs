@@ -15,7 +15,7 @@ namespace Game1
         /// </summary>
         public static SurfaceGravity SurfaceGravity(Mass mass, AreaInt resArea)
             // gravitExponent is divided by 2 as sqrt(resArea) is the width (up to a constant factor)
-            => PrimitiveTypeWrappers.SurfaceGravity.CreateFromMetPerSeqSq
+            => PrimitiveTypeWrappers.SurfaceGravity.CreateFromMetPerSecSq
             (
                 valueInMetPerSeqSq: CurWorldConfig.gravitConst * mass.valueInKg / MyMathHelper.Pow<UDouble, double>(@base: resArea.valueInMetSq, exponent: CurWorldConfig.gravitExponent / 2)
             );

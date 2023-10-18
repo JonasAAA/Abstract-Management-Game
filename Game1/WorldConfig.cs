@@ -54,7 +54,7 @@ namespace Game1
             screenBoundWidthForMapMoving = 10,
             scrollSpeed = 60;
         public readonly Length
-            metersPerStartingPixel = Length.CreateFromM(200000);
+            startingPixelLength = Length.CreateFromM(200000);
         public readonly Length
             minSafeDist = Length.CreateFromM(10);
         public readonly Length linkWidth, diskBuildingHeight;
@@ -123,7 +123,7 @@ namespace Game1
         public readonly ulong magicUnlimitedStartingMaterialCount = ulong.MaxValue / 100;
 
         public readonly Temperature maxTemperatureShownInGraphs = Temperature.CreateFromK(valueInK: 3000);
-        public readonly UDouble maxGravityShownInGraphs = 1000000000000;
+        public readonly SurfaceGravity maxGravityShownInGraphs;
 
         public WorldConfig()
         {
@@ -135,11 +135,11 @@ namespace Game1
             // BE careful not to use real-world units though as my game is 2 dimensional
 
             // Since [linkWidth] ~ m
-            linkWidth = metersPerStartingPixel * 10;
+            linkWidth = startingPixelLength * 10;
             // Since [diskBuildingHeight] ~ m
-            diskBuildingHeight = metersPerStartingPixel * 10;
+            diskBuildingHeight = startingPixelLength * 10;
             // Since [minPlanetArea] ~ m^2
-            minPlanetArea = DiskAlgos.Area(radius: metersPerStartingPixel * 10).RoundDown();
+            minPlanetArea = DiskAlgos.Area(radius: startingPixelLength * 10).RoundDown();
             // Even the smallest planets should be able to produce products.
             // Thus they must be able to hold all needed inputs in production.
             // *2 part is just to be sure that things like rounding errors will not make the number too small
@@ -153,18 +153,21 @@ namespace Game1
             );
 
             // Since [gravitConst] ~ m^(1+gravitExponent)/kg
-            gravitConst = MyMathHelper.Pow(@base: metersPerStartingPixel.valueInM, exponent: (double)gravitExponent - 1);
+            gravitConst = MyMathHelper.Pow(@base: startingPixelLength.valueInM, exponent: (double)gravitExponent - 1);
             // Since [fusionReactionStrengthCoeff] ~ m^(-fusionReactionSurfaceGravityExponent)
-            fusionReactionStrengthCoeff = MyMathHelper.Pow(@base: metersPerStartingPixel.valueInM, exponent: -fusionReactionSurfaceGravityExponent);
+            fusionReactionStrengthCoeff = MyMathHelper.Pow(@base: startingPixelLength.valueInM, exponent: -fusionReactionSurfaceGravityExponent);
             // Since [stefanBoltzmannConstant] ~ J/m
-            stefanBoltzmannConstant = metersPerStartingPixel.valueInM * (UDouble).000000000000000001;
+            stefanBoltzmannConstant = startingPixelLength.valueInM * (UDouble).000000000000000001;
             
             // Since [linkTravelSpeed] ~ m
-            linkTravelSpeed = metersPerStartingPixel.valueInM * (UDouble)10;
+            linkTravelSpeed = startingPixelLength.valueInM * (UDouble)10;
             // Since [linkJoulesPerNewtonOfGravity] ~ J/m
-            linkJoulesPerUnitGravitAccel = metersPerStartingPixel.valueInM * (UDouble).00000000000000001;
+            linkJoulesPerUnitGravitAccel = startingPixelLength.valueInM * (UDouble).00000000000000001;
             // Since [linkJoulesPerMeterOfDistance] ~ J/m
-            linkJoulesPerMeterOfDistance = metersPerStartingPixel.valueInM * (UDouble).0000000000000000001;
+            linkJoulesPerMeterOfDistance = startingPixelLength.valueInM * (UDouble).0000000000000000001;
+
+            // Since [maxGravityShownInGraphs] ~ m
+            maxGravityShownInGraphs = SurfaceGravity.CreateFromMetPerSecSq(startingPixelLength.valueInM * 1500);
         }
     }
 }

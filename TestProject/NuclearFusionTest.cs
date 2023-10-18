@@ -18,7 +18,7 @@ namespace TestProject
                 (
                     amount: 1000,
                     compositionArea: Area<UDouble>.CreateFromMetSq(5415),
-                    surfaceGravity: SurfaceGravity.CreateFromMetPerSeqSq(2),
+                    surfaceGravity: SurfaceGravity.CreateFromMetPerSecSq(2),
                     surfaceGravityExponent: 2,
                     temperature: Temperature.CreateFromK(3),
                     temperatureExponent: 2,

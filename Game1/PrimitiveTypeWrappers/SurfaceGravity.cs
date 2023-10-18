@@ -3,12 +3,12 @@
     [Serializable]
     public readonly struct SurfaceGravity : IComparable<SurfaceGravity>, IScalar<SurfaceGravity>
     {
+        public static readonly SurfaceGravity zero = new(valueInMetPerSeqSq: 0);
+
         /// <summary>
         /// From value in m/s^2
         /// </summary>
-        /// <param name="valueInMetPerSeqSq"></param>
-        /// <returns></returns>
-        public static SurfaceGravity CreateFromMetPerSeqSq(UDouble valueInMetPerSeqSq)
+        public static SurfaceGravity CreateFromMetPerSecSq(UDouble valueInMetPerSeqSq)
             => new(valueInMetPerSeqSq: valueInMetPerSeqSq);
 
         public readonly UDouble valueInMetPerSeqSq;

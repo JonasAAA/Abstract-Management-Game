@@ -40,8 +40,8 @@ namespace Game1
             private readonly Dictionary<ProductClass, MaterialPalette> mutableBuildingMatPaletteChoices;
             private readonly Button cancelButton;
             private ProductionChoice? ProductionChoice;
+            private readonly FunctionGraphImage<SurfaceGravity, Propor> overallNeededElectricityGraph;
             private readonly FunctionGraphImage<Temperature, Propor> overallThroughputGraph;
-            //private readonly FunctionGraphImage<>
 
             private BuildingConfigPanelManager(EfficientReadOnlyCollection<CosmicBody> cosmicBodies, Construction.GeneralParams constrGeneralParams)
             {
@@ -67,6 +67,7 @@ namespace Game1
                 cosmicBodyBuildPanelManagers = new();
                 cancelButton.clicked.Add(listener: new CancelBuildingButtonListener(BuildingConfigPanelManager: this));
 
+                overallNeededElectricityGraph = IndustryUIAlgos.CreateGravityFunctionGraph(func: null);
                 overallThroughputGraph = IndustryUIAlgos.CreateTemperatureFunctionGraph(func: null);
 
                 var productionChoicePanel = constrGeneralParams.CreateProductionChoicePanel(productionChoiceSetter: this);
@@ -77,7 +78,16 @@ namespace Game1
                 (
                     newChildren: new List<IHUDElement>
                     {
-                        new TextBox(text: "Material Choices")
+                        new TextBox(text: "Material Choices"),
+                        new UIRectHorizPanel<IHUDElement>
+                        (
+                            childVertPos: VertPosEnum.Middle,
+                            children: new List<IHUDElement>()
+                            {
+                                new TextBox(text: "needed\nelectricity"),
+                                new TextBox(text: "throughput")
+                            }
+                        )
                     }.Concat
                     (
                         constrGeneralParams.neededProductClassPropors.Select
@@ -113,8 +123,11 @@ namespace Game1
                             childVertPos: VertPosEnum.Middle,
                             children: new List<IHUDElement>()
                             {
-                                new TextBox(text: "throughput"),
-                                new ImageHUDElement(image: overallThroughputGraph),
+                                IndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+                                (
+                                    neededElectricity: overallNeededElectricityGraph,
+                                    throughput: overallThroughputGraph
+                                ),
                                 IndustryUIAlgos.CreateStandardVertProporBar(propor: Propor.full)
                             }
                         )
@@ -138,6 +151,19 @@ namespace Game1
                     (
                         cosmicBody =>
                         {
+                            IHUDElement buildingStatsGraphs = IndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+                            (
+                                neededElectricity: new FunctionGraphWithHighlighImage<SurfaceGravity, Propor>
+                                (
+                                    functionGraph: overallNeededElectricityGraph,
+                                    highlightInterval: new CosmicBodyGravityInterval(CosmicBody: cosmicBody)
+                                ),
+                                throughput: new FunctionGraphWithHighlighImage<Temperature, Propor>
+                                (
+                                    functionGraph: overallThroughputGraph,
+                                    highlightInterval: new CosmicBodyTemperatureInterval(CosmicBody: cosmicBody)
+                                )
+                            );
                             Button buildButton = new
                             (
                                 shape: new MyRectangle(width: curUIConfig.standardUIElementWidth, height: curUIConfig.UILineHeight),
@@ -160,23 +186,7 @@ namespace Game1
                                 childHorizPos: HorizPosEnum.Left,
                                 children: new List<IHUDElement>()
                                 {
-                                    new ImageHUDElement
-                                    (
-                                        image: new FunctionGraphWithHighlighImage<Temperature, Propor>
-                                        (
-                                            functionGraph: overallThroughputGraph,
-                                            highlightInterval: new CosmicBodyTemperatureInterval(CosmicBody: cosmicBody)
-                                        )
-                                    ),
-#warning probably should make this static text box with only title
-                                    //new LazyTextBox
-                                    //(
-                                    //    lazyText: new CosmicBodyBuildStats
-                                    //    (
-                                    //        BuildingConfigPanelManager: this,
-                                    //        CosmicBody: cosmicBody
-                                    //    )
-                                    //),
+                                    buildingStatsGraphs,
                                     buildButton
                                 }
                             );
@@ -229,6 +239,23 @@ namespace Game1
                     ProductionChoice: ProductionChoice
                 );
 
+                var chosenTotalPropor = (Propor)mutableBuildingMatPaletteChoices.Keys.Sum(prodClass => (UDouble)constrGeneralParams.neededProductClassPropors[prodClass]);
+
+                overallNeededElectricityGraph.SetFunction
+                (
+                    func: mutableBuildingMatPaletteChoices.Count switch
+                    {
+                        0 => null,
+                        not 0 => gravity => ResAndIndustryAlgos.TentativeNeededElectricity
+                        (
+                            gravity: gravity,
+                            chosenTotalPropor: chosenTotalPropor,
+                            matPaletteChoices: new(dict: mutableBuildingMatPaletteChoices),
+                            buildingProdClassPropors: constrGeneralParams.neededProductClassPropors
+                        )
+                    }
+                );
+
                 overallThroughputGraph.SetFunction
                 (
                     func: mutableBuildingMatPaletteChoices.Count switch
@@ -237,8 +264,8 @@ namespace Game1
                         not 0 => temperature => ResAndIndustryAlgos.TentativeThroughput
                         (
                             temperature: temperature,
-                            chosenTotalPropor: (Propor)mutableBuildingMatPaletteChoices.Keys.Sum(prodClass => (UDouble)constrGeneralParams.neededProductClassPropors[prodClass]),
-                            matPaletteChoices: new EfficientReadOnlyDictionary<ProductClass, MaterialPalette>(dict: mutableBuildingMatPaletteChoices),
+                            chosenTotalPropor: chosenTotalPropor,
+                            matPaletteChoices: new(dict: mutableBuildingMatPaletteChoices),
                             buildingProdClassPropors: constrGeneralParams.neededProductClassPropors
                         )
                     }
@@ -265,13 +292,25 @@ namespace Game1
         }
 
         [Serializable]
+        private sealed record CosmicBodyGravityInterval(CosmicBody CosmicBody) : FunctionGraphWithHighlighImage<SurfaceGravity, Propor>.IHighlightInterval
+        {
+            (SurfaceGravity start, SurfaceGravity stop, Color highlightColor) FunctionGraphWithHighlighImage<SurfaceGravity, Propor>.IHighlightInterval.GetHighlightInterval()
+                =>
+                (
+                    start: CosmicBody.NodeState.SurfaceGravity,
+                    stop: CosmicBody.NodeState.SurfaceGravity,
+                    highlightColor: colorConfig.functionGraphHighlightColor
+                );
+        }
+
+        [Serializable]
         private sealed record CosmicBodyTemperatureInterval(CosmicBody CosmicBody) : FunctionGraphWithHighlighImage<Temperature, Propor>.IHighlightInterval
         {
             (Temperature start, Temperature stop, Color highlightColor) FunctionGraphWithHighlighImage<Temperature, Propor>.IHighlightInterval.GetHighlightInterval()
                 =>
                 (
-                    start: Temperature.CreateFromK(valueInK: UDouble.CreateByClamp((double)CosmicBody.NodeState.Temperature.valueInK - 20)),
-                    stop: Temperature.CreateFromK(valueInK: CosmicBody.NodeState.Temperature.valueInK + 20),
+                    start: CosmicBody.NodeState.Temperature,
+                    stop: CosmicBody.NodeState.Temperature,
                     highlightColor: colorConfig.functionGraphHighlightColor
                 );
         }
@@ -312,13 +351,6 @@ namespace Game1
                     neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices,
                     productionChoice: productionChoice
                 );
-        }
-
-        [Serializable]
-        private sealed record CosmicBodyBuildStats(BuildingConfigPanelManager BuildingConfigPanelManager, CosmicBody CosmicBody) : ILazyText
-        {
-            string ILazyText.GetText()
-                => "Building Stats\n" + (BuildingConfigPanelManager.CompleteBuildingConfigOrNull?.CreateConcreteConstrParams(cosmicBody: CosmicBody).GetBuildingStats() ?? "Complete building config\nto see the stats");
         }
 
         [Serializable]

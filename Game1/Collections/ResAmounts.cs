@@ -241,9 +241,20 @@ namespace Game1.Collections
         {
             if (IsEmpty)
                 return "None";
-            string result = "\n";
-            foreach (var (res, amount) in this)
-                result += $"{res}: {amount}\n";
+            string result = "";
+            foreach (var resAmount in this)
+                result += $"{resAmount.res}: {(UDouble)resAmount.Area().valueInMetSq / ResAndIndustryAlgos.blockArea.valueInMetSq:0.0}\n";
+            return result;
+        }
+
+        public string ToPercents()
+        {
+            if (IsEmpty)
+                return "None";
+            var totalArea = Area();
+            string result = "";
+            foreach (var resAmount in this)
+                result += $"{resAmount.res}: {Propor.Create(resAmount.Area().valueInMetSq, totalArea.valueInMetSq)!.Value.ToPercents()}\n";
             return result;
         }
 

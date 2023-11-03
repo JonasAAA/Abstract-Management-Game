@@ -43,11 +43,8 @@ namespace Game1
             string ILazyText.GetText()
 #warning Complete this
                 => $"""
-                consists of {CosmicBody.state.Composition}
-                Mass of everything {CosmicBody.state.LocationCounters.GetCount<AllResAmounts>().Mass()}
-                Mass of planet {CosmicBody.state.PlanetMass}
-                
-                Gravity = {CosmicBody.state.SurfaceGravity:#,0.}
+                consists of
+                {CosmicBody.state.Composition.ToPercents()}
                 T = {CosmicBody.state.Temperature}
                 M to E per real world second =
                 {CosmicBody.massConvertedToEnergy.valueInKg / (CurWorldManager.Elapsed.TotalSeconds / CurWorldConfig.worldSecondsInGameSecond):#,0.}

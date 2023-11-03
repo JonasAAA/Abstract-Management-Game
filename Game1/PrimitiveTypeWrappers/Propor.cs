@@ -136,6 +136,9 @@ namespace Game1.PrimitiveTypeWrappers
         public override string ToString()
             => $"{value:0.00}";
 
+        public string ToPercents()
+            => $"{value * 100:0.}%";
+
         static Propor IMin<Propor>.Min(Propor left, Propor right)
             => left < right ? left : right;
 

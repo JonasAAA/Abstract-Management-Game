@@ -24,6 +24,9 @@ namespace Game1.Resources
             amount = this.amount;
         }
 
+        public AreaInt Area()
+            => amount * res.Area;
+
         public static ResAmount<TRes> operator *(ulong left, ResAmount<TRes> right)
             => new(res: right.res, amount: left * right.amount);
 

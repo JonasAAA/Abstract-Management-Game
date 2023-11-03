@@ -11,14 +11,11 @@ namespace Game1.Lighting
         private ushort[] inds;
         private Length strength;
 
-        private readonly Color color;
-
-        public LightPolygon(Color color)
+        public LightPolygon()
         {
             vertices = new List<MyVector2>();
             vertPosTexs = Array.Empty<VertexPositionColorTexture>();
             inds = Array.Empty<ushort>();
-            this.color = color;
         }
 
         /// <param Name="strength">a positive double which determins the HUDRadius of the lit Area</param>
@@ -42,7 +39,7 @@ namespace Game1.Lighting
             }
         }
 
-        public void Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
+        public void Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, Color color, int actualScreenWidth, int actualScreenHeight)
         {
             if (vertices.Count is 0)
                 return;

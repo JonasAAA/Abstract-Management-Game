@@ -110,7 +110,12 @@ namespace Game1
             }
         }
         protected sealed override Color Color
-            => state.Composition.Color();
+            => ColorHelpers.Interpolate
+            (
+                normalized: Propor.Create(part: state.Temperature.valueInK, whole: CurWorldConfig.maxTemperatureShownInGraphs.valueInK)!.Value,
+                colorConfig.minTemperatureColor,
+                colorConfig.maxTemperatureColor
+            );
 
         private readonly NodeState state;
         private readonly LightPolygon lightPolygon;
@@ -134,7 +139,7 @@ namespace Game1
             : base(shape: new LightBlockingDisk(parameters: new ShapeParams(State: state), worldCamera: CurWorldManager.worldCamera))
         {
             this.state = state;
-            lightPolygon = new(color: state.Composition.Color());
+            lightPolygon = new();
             shape = (LightBlockingDisk)base.shape;
 
             links = new();
@@ -580,6 +585,7 @@ namespace Game1
             (
                 worldToScreenTransform: worldToScreenTransform,
                 basicEffect: basicEffect,
+                color: Color,
                 actualScreenWidth: actualScreenWidth,
                 actualScreenHeight: actualScreenHeight
             );

@@ -7,6 +7,8 @@
             // world colors
             Res0Color,
             Res1Color,
+            minTemperatureColor,
+            maxTemperatureColor,
             cosmosBackgroundColor,
             cheapLinkColor,
             costlyLinkColor,
@@ -41,6 +43,8 @@
             // world colors
             Res0Color = C.ColorFromRGB(rgb: 0x00754D);
             Res1Color = C.ColorFromRGB(rgb: 0x00632D);
+            minTemperatureColor = C.ColorFromRGB(rgb: 0x00476B);
+            maxTemperatureColor = C.ColorFromRGB(rgb: 0xFFF07A);
             cosmosBackgroundColor = C.ColorFromRGB(rgb: 0x000E24);
             cheapLinkColor = Color.DarkBlue;
             costlyLinkColor = C.ColorFromRGB(rgb: 0x003654);

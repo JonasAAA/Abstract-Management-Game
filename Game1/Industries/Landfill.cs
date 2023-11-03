@@ -107,7 +107,7 @@ namespace Game1.Industries
                 );
 
             /// <param Name="landfillingMassIfFull">Mass of stuff being dumped if landfill was fully operational</param>
-            public CurProdStats CurLandfillingStats(Mass landfillingMassIfFull)
+            public MechProdStats CurLandfillingStats(Mass landfillingMassIfFull)
                 => ResAndIndustryAlgos.CurMechProdStats
                 (
                     buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
@@ -284,11 +284,10 @@ namespace Game1.Industries
             private readonly ResPile buildingResPile, buildingComponentsToAdd, resToDump;
             private readonly Mass landfillingMassIfFull;
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
-            private readonly HistoricRounder reqEnergyHistoricRounder;
             private readonly Propor proporUtilized;
             private readonly AreaInt areaToDump;
 
-            private CurProdStats curLandfillingStats;
+            private MechProdStats curLandfillingStats;
             private Propor donePropor, workingPropor;
 
             private LandfillCycleState(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ResPile buildingComponentsToAdd, ResPile resToDump, ulong productionAmount, ulong overallMaxProductionAmount)
@@ -300,7 +299,6 @@ namespace Game1.Industries
                 Debug.Assert(resToDump.Amount.Mass().valueInKg % productionAmount is 0);
                 landfillingMassIfFull = Mass.CreateFromKg(valueInKg: resToDump.Amount.Mass().valueInKg / productionAmount * overallMaxProductionAmount);
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
-                reqEnergyHistoricRounder = new();
                 proporUtilized = Propor.Create(part: productionAmount, whole: overallMaxProductionAmount)!.Value;
                 areaToDump = resToDump.Amount.Area();
                 donePropor = Propor.empty;
@@ -314,7 +312,7 @@ namespace Game1.Industries
 #warning Currenlty, landfill adding new building components and mining removing building components doesn't cost any energy. Should probably change that 
                 curLandfillingStats = buildingParams.CurLandfillingStats(landfillingMassIfFull: landfillingMassIfFull);
 #warning if production will be done this frame, could request just enough energy to complete it rather than the usual amount
-                ReqEnergy = reqEnergyHistoricRounder.CurEnergy<ElectricalEnergy>
+                ReqEnergy = ResAndIndustryHelpers.CurEnergy<ElectricalEnergy>
                 (
                     watts: curLandfillingStats.ReqWatts,
                     proporUtilized: proporUtilized,

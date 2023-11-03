@@ -100,7 +100,7 @@ namespace Game1.Industries
                 => CurBuildingArea * CurWorldConfig.productionProporOfBuildingArea;
 
             /// <param Name="miningMass">Mass of materials curretly being mined</param>
-            public CurProdStats CurMiningStats(Mass miningMass)
+            public MechProdStats CurMiningStats(Mass miningMass)
                 => ResAndIndustryAlgos.CurMechProdStats
                 (
                     buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
@@ -250,9 +250,8 @@ namespace Game1.Industries
             /// </summary>
             private readonly AreaInt miningArea;
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
-            private readonly HistoricRounder reqEnergyHistoricRounder;
 
-            private CurProdStats curMiningStats;
+            private MechProdStats curMiningStats;
             private Propor donePropor, workingPropor;
 
             private MiningCycleState(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ResPile miningRes, AreaInt miningArea)
@@ -263,7 +262,6 @@ namespace Game1.Industries
                 miningMass = miningRes.Amount.Mass();
                 this.miningArea = miningArea;
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
-                reqEnergyHistoricRounder = new();
                 donePropor = Propor.empty;
             }
 
@@ -273,7 +271,7 @@ namespace Game1.Industries
             public void FrameStart()
             {
                 curMiningStats = buildingParams.CurMiningStats(miningMass: miningMass);
-                ReqEnergy = reqEnergyHistoricRounder.CurEnergy<ElectricalEnergy>(watts: curMiningStats.ReqWatts, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed);
+                ReqEnergy = ResAndIndustryHelpers.CurEnergy<ElectricalEnergy>(watts: curMiningStats.ReqWatts, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed);
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)

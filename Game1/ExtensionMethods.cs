@@ -198,29 +198,27 @@ namespace Game1
         }
 
         /// <returns>The amount of energy transfered to destin</returns>
-        public static TAmount TransferProporTo<TAmount>(this EnergyPile<TAmount> source, EnergyPile<TAmount> destin, Propor propor, Func<decimal, ulong> amountToTransferRoundFunc)
+        public static TAmount TransferProporTo<TAmount>(this EnergyPile<TAmount> source, EnergyPile<TAmount> destin, Propor propor)
             where TAmount : struct, IUnconstrainedEnergy<TAmount>
         {
             TAmount amountToTransfer = Algorithms.EnergyPropor
             (
                 wholeAmount: source.Amount,
-                propor: propor,
-                roundFunc: amountToTransferRoundFunc
+                propor: propor
             );
             source.TransferTo(destin: destin, amount: amountToTransfer);
             return amountToTransfer;
         }
 
         /// <returns>The amount of energy transfered to destin</returns>
-        public static TDestinAmount TransformProporTo<TSourceAmount, TDestinAmount>(this EnergyPile<TSourceAmount> source, EnergyPile<TDestinAmount> destin, Propor propor, Func<decimal, ulong> amountToTransformRoundFunc)
+        public static TDestinAmount TransformProporTo<TSourceAmount, TDestinAmount>(this EnergyPile<TSourceAmount> source, EnergyPile<TDestinAmount> destin, Propor propor)
             where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
             where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
         {
             TSourceAmount amountToTransform = Algorithms.EnergyPropor
             (
                 wholeAmount: source.Amount,
-                propor: propor,
-                roundFunc: amountToTransformRoundFunc
+                propor: propor
             );
             source.TransformTo(destin: destin, amount: amountToTransform);
             return TDestinAmount.CreateFromEnergy(energy: (Energy)amountToTransform);

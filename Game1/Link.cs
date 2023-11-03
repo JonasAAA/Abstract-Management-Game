@@ -31,7 +31,6 @@ namespace Game1
             private readonly ResAmountsPacketsByDestin waitingResAmountsPackets;
             private readonly RealPeople waitingPeople;
             private readonly Length minSafeDist;
-            private readonly HistoricRounder reqEnergyHistoricRounder;
             private readonly EnergyPile<ElectricalEnergy> allocEnergyPile;
             private Propor minSafePropor;
             private UDouble reqWattsPerKg;
@@ -60,7 +59,6 @@ namespace Game1
                     closestNodeID: endNode.NodeID,
                     isInActivityCenter: false
                 );
-                reqEnergyHistoricRounder = new();
                 allocEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: locationCounters);
                 allocEnergyPropor = Propor.empty;
 
@@ -139,10 +137,9 @@ namespace Game1
             private ElectricalEnergy ReqEnergy()
                 => ElectricalEnergy.CreateFromJoules
                 (
-                    valueInJ: reqEnergyHistoricRounder.Round
+                    valueInJ: MyMathHelper.RoundNonneg
                     (
-                        value: timedPacketQueue.Mass.valueInKg * (decimal)(reqWattsPerKg * CurWorldManager.Elapsed.TotalSeconds),
-                        curTime: CurWorldManager.CurTime
+                        timedPacketQueue.Mass.valueInKg * (decimal)(reqWattsPerKg * CurWorldManager.Elapsed.TotalSeconds)
                     )
                 );
 

@@ -288,7 +288,7 @@ namespace Game1
                 * (1 + electronicsProporInBuilding * BaseElectricalEnergyPerUnitAreaPhys(electronicsMatPalette: electronicsMatPalette, temperature: temperature))
                 * (1 + (UDouble)0.1 * gravity.valueInMetPerSeqSq * relevantMassPUBA);
 
-        public static CurProdStats CurConstrStats(AllResAmounts buildingCost, SurfaceGravity gravity, Temperature temperature, ulong worldSecondsInGameSecond)
+        public static MechProdStats CurConstrStats(AllResAmounts buildingCost, SurfaceGravity gravity, Temperature temperature, ulong worldSecondsInGameSecond)
         {
             var buildingComponentsArea = buildingCost.Area();
 #warning Complete this
@@ -299,66 +299,6 @@ namespace Game1
                 ProducedAreaPerSec: buildingComponentsArea.ToDouble() * ((UDouble)1.0 / (worldSecondsInGameSecond * 10))
             );
         }
-
-        //        /// <summary>
-        //        /// Mechanical production stats
-        //        /// </summary>
-        //        public static CurProdStats CurMechProdStats(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
-        //            MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
-        //#warning Either this or the one that uses it should probably take into account worldSecondsInGameSecond. Probably would like to have separate configurable physics and gameplay speed multipliers
-        //        {
-        //#warning Implement this properly
-        //            //return new
-        //            //(
-        //            //    ReqWatts: buildingArea.valueInMetSq / 1000000000,
-        //            //    ProducedAreaPerSec: buildingArea.valueInMetSq * WorldManager.CurWorldConfig.productionProporOfBuildingArea / (WorldManager.CurWorldConfig.worldSecondsInGameSecond * 4)
-        //            //);
-        //            UDouble relevantMassPUBA = RelevantMassPUBA
-        //            (
-        //                buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
-        //                productionMassPUBA: productionMass.valueInKg / buildingArea.valueInMetSq
-        //            );
-
-        //            // TODO: could diplay the reason that no production is happening to the player
-        //            var maxMechThroughputPUBA = UDouble.CreateByCuttingOffNegative
-        //            (
-        //                value: MaxMechThroughputPUBA
-        //                (
-        //                    mechanicalProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.mechanical],
-        //                    mechanicalMatPalette: buildingMatPaletteChoices[IProductClass.mechanical],
-        //                    gravity: gravity,
-        //                    temperature: temperature,
-        //                    relevantMassPUBA: relevantMassPUBA
-        //                )
-        //            );
-
-        //            UDouble maxElectricalPowerPUBA = MaxElectricalPowerPUBA
-        //            (
-        //                electronicsProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.electronics],
-        //                electronicsMatPalette: buildingMatPaletteChoices[IProductClass.electronics],
-        //                temperature: temperature
-        //            );
-
-        //            UDouble electricalEnergyPerUnitArea = ElectricalEnergyPerUnitAreaPhys
-        //            (
-        //                electronicsProporInBuilding: buildingCostPropors.productClassPropors[IProductClass.electronics],
-        //                electronicsMatPalette: buildingMatPaletteChoices[IProductClass.electronics],
-        //                gravity: gravity,
-        //                temperature: temperature,
-        //                relevantMassPUBA: relevantMassPUBA
-        //            );
-
-        //            UDouble
-        //                reqWattsPUBA = MyMathHelper.Min(maxElectricalPowerPUBA, maxMechThroughputPUBA * electricalEnergyPerUnitArea),
-        //                reqWatts = reqWattsPUBA * buildingArea.valueInMetSq,
-        //                producedAreaPerSec = reqWatts / electricalEnergyPerUnitArea;
-
-        //            return new
-        //            (
-        //                ReqWatts: reqWatts,
-        //                ProducedAreaPerSec: producedAreaPerSec
-        //            );
-        //        }
 
         /// <summary>
         /// Throughput is the input/output area of building per unit time
@@ -424,20 +364,37 @@ namespace Game1
             );
         }
 
+        private static readonly UDouble neededElectricityFactor = (UDouble)0.001;
+
+        /// <summary>
+        /// The number of supplied buildings (assuming that the power plant has throughput of .5, the buildings have neededEnergy .5,
+        /// and power plant and each building have the same building area).
+        /// </summary>
+        private static readonly UDouble powerPlantSuppliedBuildings = 30;
+
+        private static UDouble CurReqWatts(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, AreaDouble buildingArea)
+            => buildingArea.valueInMetSq * TentativeNeededElectricity
+            (
+                gravity: gravity,
+                chosenTotalPropor: Propor.full,
+                matPaletteChoices: buildingMatPaletteChoices.Choices,
+                buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
+            ) * neededElectricityFactor;
+
         /// <summary>
         /// Mechanical production stats
         /// </summary>
-        public static CurProdStats CurMechProdStats(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
+        public static MechProdStats CurMechProdStats(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
             MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
             => new
             (
-                ReqWatts: buildingArea.valueInMetSq * TentativeNeededElectricity
+                ReqWatts: CurReqWatts
                 (
+                    buildingCostPropors: buildingCostPropors,
+                    buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: gravity,
-                    chosenTotalPropor: Propor.full,
-                    matPaletteChoices: buildingMatPaletteChoices.Choices,
-                    buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
-                ) / 1000,
+                    buildingArea: buildingArea
+                ),
                 ProducedAreaPerSec: buildingArea * TentativeThroughput
                 (
                     temperature: temperature,
@@ -448,12 +405,28 @@ namespace Game1
             );
 
         /// <summary>
-        /// To be called by po
+        /// Note that this returns max production params as it doesn't know how much radiant energy is available to be transformed
         /// </summary>
-        public static UDouble CurProducedWatts(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
-            SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea, UDouble incidentWatts)
+        public static PowerPlantProdStats CurPowerPlantProdStats(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
+            SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea)
 #warning Complete this
-            => incidentWatts * UDouble.half;
+            => new
+            (
+                ReqWatts: CurReqWatts
+                (
+                    buildingCostPropors: buildingCostPropors,
+                    buildingMatPaletteChoices: buildingMatPaletteChoices,
+                    gravity: gravity,
+                    buildingArea: buildingArea
+                ),
+                ProdWatts: buildingArea.valueInMetSq * TentativeThroughput
+                (
+                    temperature: temperature,
+                    chosenTotalPropor: Propor.full,
+                    matPaletteChoices: buildingMatPaletteChoices.Choices,
+                    buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
+                ) * (neededElectricityFactor * powerPlantSuppliedBuildings)
+            );
 
         public static ulong MaxAmount(AreaDouble availableArea, AreaInt itemArea)
             => (ulong)availableArea.valueInMetSq / itemArea.valueInMetSq;

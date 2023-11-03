@@ -124,8 +124,6 @@ namespace Game1
         private IIndustry? industry;
         private readonly new LightBlockingDisk shape;
         private ElectricalEnergy locallyProducedEnergy, usedLocalEnergy;
-        private readonly Dictionary<RawMaterial, HistoricRounder> reactionNumberRounders;
-        private readonly HistoricRounder energyToDissipateRounder, heatEnergyToDissipateRounder, reflectedRadiantEnergyRounder, capturedForUseRadiantEnergyRounder;
         private readonly EnergyPile<RadiantEnergy> radiantEnergyToDissipatePile;
         private RadiantEnergy radiantEnergyToDissipate;
         private Mass massConvertedToEnergy;
@@ -145,11 +143,6 @@ namespace Game1
             links = new();
 
             usedLocalEnergy = ElectricalEnergy.zero;
-            reactionNumberRounders = new();
-            energyToDissipateRounder = new();
-            heatEnergyToDissipateRounder = new();
-            reflectedRadiantEnergyRounder = new();
-            capturedForUseRadiantEnergyRounder = new();
             radiantEnergyToDissipatePile = EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: state.LocationCounters);
             radiantEnergyToDissipate = RadiantEnergy.zero;
             massConvertedToEnergy = Mass.zero;
@@ -228,13 +221,7 @@ namespace Game1
                 surfaceGravity: state.SurfaceGravity,
                 surfaceGravityExponent: CurWorldConfig.fusionReactionSurfaceGravityExponent,
                 duration: CurWorldManager.Elapsed,
-                fusionReactionStrengthCoeff: CurWorldConfig.fusionReactionStrengthCoeff,
-                reactionNumberRounder: (RawMaterial rawMaterial, decimal reactionNum) =>
-                {
-                    if (!reactionNumberRounders.ContainsKey(rawMaterial))
-                        reactionNumberRounders[rawMaterial] = new();
-                    return reactionNumberRounders[rawMaterial].Round(value: reactionNum, curTime: CurWorldManager.CurTime);
-                }
+                fusionReactionStrengthCoeff: CurWorldConfig.fusionReactionStrengthCoeff
             );
 
             massConvertedToEnergy = state.consistsOfResPile.Amount.Mass() - cosmicBodyNewComposition.Mass();
@@ -250,10 +237,8 @@ namespace Game1
                 emissivity: Industry?.SurfaceMatPalette?.Emissivity(temperature: state.Temperature) ?? state.Composition.Emissivity(temperature: state.Temperature),
                 temperature: state.Temperature,
                 duration: CurWorldManager.Elapsed,
-                energyInJToDissipateRoundFunc: energyInJ => energyToDissipateRounder.Round(value: energyInJ, curTime: CurWorldManager.CurTime),
                 stefanBoltzmannConstant: CurWorldConfig.stefanBoltzmannConstant,
                 temperatureExponent: CurWorldConfig.temperatureExponentInStefanBoltzmannLaw,
-                heatEnergyInJRoundFunc: heatEnergyInJ => heatEnergyToDissipateRounder.Round(value: heatEnergyInJ, curTime: CurWorldManager.CurTime),
                 allHeatMaxTemper: CurWorldConfig.allHeatMaxTemper,
                 halfHeatTemper: CurWorldConfig.halfHeatTemper,
                 heatEnergyDropoffExponent: CurWorldConfig.heatEnergyDropoffExponent
@@ -358,8 +343,7 @@ namespace Game1
             => locallyProducedEnergy = state.RadiantEnergyPile.TransformProporTo
             (
                 destin: destin,
-                propor: CurWorldConfig.planetTransformRadiantToElectricalEnergyPropor,
-                amountToTransformRoundFunc: amount => capturedForUseRadiantEnergyRounder.Round(value: amount, curTime: CurWorldManager.CurTime)
+                propor: CurWorldConfig.planetTransformRadiantToElectricalEnergyPropor
             );
 
         private ILightBlockingObject CurLightCatchingObject
@@ -378,12 +362,7 @@ namespace Game1
                 amount: Algorithms.EnergyPropor
                 (
                     wholeAmount: state.RadiantEnergyPile.Amount,
-                    propor: Industry?.SurfaceMatPalette?.Reflectivity(temperature: state.Temperature) ?? state.Composition.Reflectivity(temperature: state.Temperature),
-                    roundFunc: amount => reflectedRadiantEnergyRounder.Round
-                    (
-                        value: amount,
-                        curTime: CurWorldManager.CurTime
-                    )
+                    propor: Industry?.SurfaceMatPalette?.Reflectivity(temperature: state.Temperature) ?? state.Composition.Reflectivity(temperature: state.Temperature)
                 )
             );
 

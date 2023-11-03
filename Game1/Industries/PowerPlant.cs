@@ -95,15 +95,14 @@ namespace Game1.Industries
                 buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
 
-            public UDouble WattsToProduce(UDouble incidentWatts)
-                => ResAndIndustryAlgos.CurProducedWatts
+            public PowerPlantProdStats CurProdStats()
+                => ResAndIndustryAlgos.CurPowerPlantProdStats
                 (
                     buildingCostPropors: generalParams.BuildingCostPropors,
                     buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,
-                    buildingArea: buildingArea,
-                    incidentWatts: incidentWatts
+                    buildingArea: buildingArea
                 );
 
             AllResAmounts IConcreteBuildingConstructionParams.BuildingCost
@@ -148,14 +147,12 @@ namespace Game1.Industries
                 => false;
 
             private readonly ConcreteBuildingParams buildingParams;
-            private readonly HistoricRounder prodEnergyHistoricRounder;
 
             private RadiantEnergy energyToTransform;
 
             private PowerProductionState(ConcreteBuildingParams buildingParams)
             {
                 this.buildingParams = buildingParams;
-                prodEnergyHistoricRounder = new();
                 energyToTransform = RadiantEnergy.zero;
 
                 CurWorldManager.AddEnergyProducer(energyProducer: this);
@@ -166,11 +163,24 @@ namespace Game1.Industries
 
             public void FrameStart()
             {
-                UDouble wattsToProduce = buildingParams.WattsToProduce
-                (
-                    incidentWatts: buildingParams.NodeState.RadiantEnergyPile.Amount.ValueInJ / (UDouble)CurWorldManager.Elapsed.TotalSeconds
-                );
-                energyToTransform = MyMathHelper.Min(buildingParams.NodeState.RadiantEnergyPile.Amount, prodEnergyHistoricRounder.CurEnergy<RadiantEnergy>(watts: wattsToProduce, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed));
+                var curProdStats = buildingParams.CurProdStats();
+                var energyProporUsed = Propor.Create(part: curProdStats.ReqWatts, curProdStats.ProdWatts);
+                energyToTransform = energyProporUsed is null
+                    ? RadiantEnergy.zero
+                    : Algorithms.EnergyPropor
+                    (
+                        wholeAmount: MyMathHelper.Min
+                        (
+                            buildingParams.NodeState.RadiantEnergyPile.Amount,
+                            ResAndIndustryHelpers.CurEnergy<RadiantEnergy>
+                            (
+                                watts: curProdStats.ProdWatts,
+                                proporUtilized: Propor.full,
+                                elapsed: CurWorldManager.Elapsed
+                            )
+                        ),
+                        propor: energyProporUsed.Value.Opposite()
+                    );
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)

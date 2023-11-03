@@ -23,7 +23,6 @@ namespace TestProject
                     temperature: Temperature.CreateFromK(3),
                     temperatureExponent: 2,
                     duration: TimeSpan.FromSeconds(0.2),
-                    reactionNumberRounder: reactionNum => (ulong)reactionNum,
                     fusionReactionStrengthCoeff: (UDouble)1 / 7
                 )
             );

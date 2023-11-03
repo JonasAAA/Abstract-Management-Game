@@ -86,7 +86,7 @@ namespace Game1.Industries
             public IIndustry CreateChildIndustry(ResPile buildingResPile)
                 => concreteBuildingParams.CreateIndustry(buildingResPile: buildingResPile);
 
-            public CurProdStats CurConstrStats()
+            public MechProdStats CurConstrStats()
                 => ResAndIndustryAlgos.CurConstrStats
                 (
                     buildingCost: buildingCost,
@@ -141,8 +141,7 @@ namespace Game1.Industries
             private readonly ConcreteParams parameters;
             private readonly ResPile buildingResPile;
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
-            private readonly HistoricRounder reqEnergyHistoricRounder;
-            private CurProdStats curConstrStats;
+            private MechProdStats curConstrStats;
             private Propor donePropor, workingPropor;
 
             private ConstructionState(ResPile buildingResPile, ConcreteParams parameters)
@@ -151,7 +150,6 @@ namespace Game1.Industries
                 this.parameters = parameters;
                 donePropor = Propor.empty;
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: parameters.NodeState.LocationCounters);
-                reqEnergyHistoricRounder = new();
             }
 
             public IBuildingImage BusyBuildingImage()
@@ -160,7 +158,7 @@ namespace Game1.Industries
             public void FrameStart()
             {
                 curConstrStats = parameters.CurConstrStats();
-                ReqEnergy = reqEnergyHistoricRounder.CurEnergy<ElectricalEnergy>(watts: curConstrStats.ReqWatts, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed);
+                ReqEnergy = ResAndIndustryHelpers.CurEnergy<ElectricalEnergy>(watts: curConstrStats.ReqWatts, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed);
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)

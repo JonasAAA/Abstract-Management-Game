@@ -32,15 +32,11 @@ namespace Game1
             return true;
         }
 
-        public static TEnergy CurEnergy<TEnergy>(this HistoricRounder energyHistoricRounder, UDouble watts, Propor proporUtilized, TimeSpan elapsed)
+        public static TEnergy CurEnergy<TEnergy>(UDouble watts, Propor proporUtilized, TimeSpan elapsed)
             where TEnergy : struct, IUnconstrainedEnergy<TEnergy>
             => IUnconstrainedEnergy<TEnergy>.CreateFromJoules
             (
-                valueInJ: energyHistoricRounder.Round
-                (
-                    value: (decimal)watts * (decimal)proporUtilized * (decimal)elapsed.TotalSeconds,
-                    curTime: CurWorldManager.CurTime
-                )
+                valueInJ: MyMathHelper.RoundNonneg((decimal)watts * (decimal)proporUtilized * (decimal)elapsed.TotalSeconds)
             );
 
         public static Propor WorkingPropor(Propor proporUtilized, ElectricalEnergy allocatedEnergy, ElectricalEnergy reqEnergy)

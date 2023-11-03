@@ -242,7 +242,7 @@ namespace Game1
 
         // Inspired by https://en.wikipedia.org/wiki/Lawson_criterion#Energy_balance
         public static RawMatAmounts CosmicBodyNewCompositionFromNuclearFusion(ResConfig curResConfig, RawMatAmounts composition, SurfaceGravity surfaceGravity, UDouble surfaceGravityExponent,
-            Temperature temperature, UDouble temperatureExponent, TimeSpan duration, UDouble fusionReactionStrengthCoeff, Func<RawMaterial, decimal, ulong> reactionNumberRounder)
+            Temperature temperature, UDouble temperatureExponent, TimeSpan duration, UDouble fusionReactionStrengthCoeff)
         {
             AreaDouble compositionArea = composition.Area().ToDouble();
             Dictionary<RawMaterial, ulong> cosmicBodyNextComposition = new(2 * composition.Count);
@@ -257,7 +257,6 @@ namespace Game1
                     temperature: temperature,
                     temperatureExponent: temperatureExponent,
                     duration: duration,
-                    reactionNumberRounder: reactionNum => reactionNumberRounder(rawMaterial, reactionNum),
                     fusionReactionStrengthCoeff: fusionReactionStrengthCoeff * rawMaterial.FusionReactionStrengthCoeff
                 );
                 cosmicBodyNextComposition[rawMaterial] = cosmicBodyNextComposition.GetValueOrDefault(key: rawMaterial) + nonReactingAmount;
@@ -273,7 +272,7 @@ namespace Game1
         }
 
         public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusionSingleRawMat(ulong amount, AreaDouble compositionArea, SurfaceGravity surfaceGravity, UDouble surfaceGravityExponent,
-            Temperature temperature, UDouble temperatureExponent, TimeSpan duration, Func<decimal, ulong> reactionNumberRounder, UDouble fusionReactionStrengthCoeff)
+            Temperature temperature, UDouble temperatureExponent, TimeSpan duration, UDouble fusionReactionStrengthCoeff)
         {
             // Somewhat equivalent to https://en.wikipedia.org/wiki/Number_density.
             // Since all raw mats have the same area, this naming makes sense
@@ -285,7 +284,7 @@ namespace Game1
             ulong reactingAmount = MyMathHelper.Min
             (
                 amount,
-                reactionNumberRounder((decimal)(amount * reactionStrength * duration.TotalSeconds))
+                MyMathHelper.RoundNonneg((decimal)(amount * reactionStrength * duration.TotalSeconds))
             );
             return
             (
@@ -299,14 +298,14 @@ namespace Game1
         /// The splitting into heat energy and radiant energy algorithm is my creation
         /// </summary>
         public static (HeatEnergy heatEnergy, RadiantEnergy radiantEnergy) EnergiesToDissipate(HeatEnergy heatEnergy, Length surfaceLength, Propor emissivity, Temperature temperature,
-            TimeSpan duration, Func<decimal, ulong> energyInJToDissipateRoundFunc, UDouble stefanBoltzmannConstant, ulong temperatureExponent, Func<decimal, ulong> heatEnergyInJRoundFunc,
+            TimeSpan duration, UDouble stefanBoltzmannConstant, ulong temperatureExponent,
             Temperature allHeatMaxTemper, Temperature halfHeatTemper, UDouble heatEnergyDropoffExponent)
         {
 #warning test this
             ulong energyInJToDissipate = MyMathHelper.Min
             (
                 heatEnergy.ValueInJ,
-                energyInJToDissipateRoundFunc((decimal)(duration.TotalSeconds * surfaceLength.valueInM * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent)))
+                MyMathHelper.RoundNonneg((decimal)(duration.TotalSeconds * surfaceLength.valueInM * emissivity * stefanBoltzmannConstant * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent)))
             );
             double heatEnergyPropor = (temperature <= allHeatMaxTemper) switch
             {
@@ -314,7 +313,7 @@ namespace Game1
                 false => 1 / (1 + MyMathHelper.Pow(@base: (temperature.valueInK - allHeatMaxTemper.valueInK) / (halfHeatTemper.valueInK - allHeatMaxTemper.valueInK), exponent: heatEnergyDropoffExponent))
             };
 
-            ulong heatEnergyInJ = heatEnergyInJRoundFunc(energyInJToDissipate * (decimal)heatEnergyPropor);
+            ulong heatEnergyInJ = MyMathHelper.RoundNonneg(energyInJToDissipate * (decimal)heatEnergyPropor);
             return
             (
                 heatEnergy: HeatEnergy.CreateFromJoules(valueInJ: heatEnergyInJ),
@@ -351,11 +350,11 @@ namespace Game1
             return true;
         }
         
-        public static TAmount EnergyPropor<TAmount>(TAmount wholeAmount, Propor propor, Func<decimal, ulong> roundFunc)
+        public static TAmount EnergyPropor<TAmount>(TAmount wholeAmount, Propor propor)
             where TAmount : struct, IUnconstrainedEnergy<TAmount>
             => IUnconstrainedEnergy<TAmount>.CreateFromJoules
             (
-                valueInJ: roundFunc(wholeAmount.ValueInJ() * (decimal)propor)
+                valueInJ: MyMathHelper.RoundNonneg(wholeAmount.ValueInJ() * (decimal)propor)
             );
 
         public static string GanerateNewName(string prefix, EfficientReadOnlyHashSet<string> usedNames)

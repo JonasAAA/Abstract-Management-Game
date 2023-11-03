@@ -110,7 +110,7 @@ namespace Game1.Industries
                 );
 
             /// <param Name="productionMassIfFull">Mass of stuff in production if industry was fully operational</param>
-            public CurProdStats CurProdStats(Mass productionMassIfFull)
+            public MechProdStats CurProdStats(Mass productionMassIfFull)
                 => ResAndIndustryAlgos.CurMechProdStats
                 (
                     buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
@@ -247,11 +247,10 @@ namespace Game1.Industries
             private readonly ResRecipe recipe;
             private readonly Mass prodMassIfFull;
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
-            private readonly HistoricRounder reqEnergyHistoricRounder;
             private readonly Propor proporUtilized;
             private readonly AreaInt areaInProduction;
 
-            private CurProdStats curProdStats;
+            private MechProdStats curProdStats;
             private Propor donePropor, workingPropor;
 
             private ProductionCycleState(ConcreteBuildingParams buildingParams, ResPile resInUse, Material material, ulong productionAmount, ulong overallMaxProductionAmount)
@@ -261,7 +260,6 @@ namespace Game1.Industries
                 recipe = material.Recipe * productionAmount;
                 prodMassIfFull = material.Recipe.ingredients.Mass() * overallMaxProductionAmount;
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
-                reqEnergyHistoricRounder = new();
                 proporUtilized = Propor.Create(part: productionAmount, whole: overallMaxProductionAmount)!.Value;
                 areaInProduction = material.Area * productionAmount;
                 donePropor = Propor.empty;
@@ -274,7 +272,7 @@ namespace Game1.Industries
             {
                 curProdStats = buildingParams.CurProdStats(productionMassIfFull: prodMassIfFull);
 #warning if production will be done this frame, could request just enough energy to complete it rather than the usual amount
-                ReqEnergy = reqEnergyHistoricRounder.CurEnergy<ElectricalEnergy>(watts: curProdStats.ReqWatts, proporUtilized: proporUtilized, elapsed: CurWorldManager.Elapsed);
+                ReqEnergy = ResAndIndustryHelpers.CurEnergy<ElectricalEnergy>(watts: curProdStats.ReqWatts, proporUtilized: proporUtilized, elapsed: CurWorldManager.Elapsed);
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)

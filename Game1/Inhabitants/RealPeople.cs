@@ -43,7 +43,6 @@ namespace Game1.Inhabitants
         private readonly Event<IDeletedListener> deleted;
         private readonly ThermalBody thermalBody;
         private readonly Dictionary<VirtualPerson, RealPerson> virtualToRealPeople;
-        private readonly HistoricRounder reqEnergyHistoricRounder;
         private readonly EnergyPile<ElectricalEnergy> allocElectricalEnergy;
         private readonly NodeID electricalEnergySourceNodeID, closestNodeID;
         private readonly bool isInActivityCenter;
@@ -54,7 +53,6 @@ namespace Game1.Inhabitants
             deleted = new();
             Stats = RealPeopleStats.empty;
             virtualToRealPeople = new();
-            reqEnergyHistoricRounder = new();
             allocElectricalEnergy = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: LocationCounters);
             this.closestNodeID = closestNodeID;
             this.electricalEnergySourceNodeID = electricalEnergySourceNodeID;
@@ -161,10 +159,9 @@ namespace Game1.Inhabitants
         private ElectricalEnergy ReqEnergy()
             => ElectricalEnergy.CreateFromJoules
             (
-                valueInJ: reqEnergyHistoricRounder.Round
+                valueInJ: MyMathHelper.RoundNonneg
                 (
-                    value: isInActivityCenter ? Stats.totalReqWatts * (decimal)CurWorldManager.Elapsed.TotalSeconds : 0,
-                    curTime: CurWorldManager.CurTime
+                    isInActivityCenter ? Stats.totalReqWatts * (decimal)CurWorldManager.Elapsed.TotalSeconds : 0
                 )
             );
 

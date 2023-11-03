@@ -195,11 +195,14 @@
         public static ulong DivideThenTakeCeiling(ulong dividend, ulong divisor)
             => (dividend + divisor - 1) / divisor;
 
+        public static ulong RoundNonneg(decimal value)
+            => Convert.ToUInt64(value);
+
         public static ulong Round(UDouble value)
-            => (ulong)Math.Round(value);
+            => Convert.ToUInt64(value);
 
         public static long Round(double value)
-            => (long)Math.Round(value);
+            => Convert.ToInt64(value);
 
         public static long Ceiling(double value)
             => (long)Math.Ceiling(value);

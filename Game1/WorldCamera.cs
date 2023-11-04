@@ -6,14 +6,14 @@ namespace Game1
     public sealed class WorldCamera : Camera
     {
         public static Length GetWorldMetersPerPixelFromCameraViewHeight(Length cameraViewHeight)
-            => cameraViewHeight / ActiveUIManager.curUIConfig.standardScreenHeight;
+            => cameraViewHeight / ActiveUIManager.standardScreenHeight;
         public static Length CameraViewWidthFromHeight(Length cameraViewHeight)
             => ActiveUIManager.screenWidth / ActiveUIManager.screenHeight * cameraViewHeight;
 
         public MyVector2 WorldCenter { get; private set; }
         
         public Length CameraViewHeight
-            => ActiveUIManager.curUIConfig.standardScreenHeight * worldMetersPerPixel;
+            => ActiveUIManager.standardScreenHeight * worldMetersPerPixel;
 
         private Matrix worldToScreen, screenToWorld;
         private Length worldMetersPerPixel;

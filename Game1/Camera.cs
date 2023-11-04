@@ -6,7 +6,7 @@ namespace Game1
     [Serializable]
     public abstract class Camera
     {
-        protected static readonly UDouble screenScale = (UDouble)C.GraphicsDevice.Viewport.Height / ActiveUIManager.curUIConfig.standardScreenHeight;
+        protected static readonly UDouble screenScale = (UDouble)C.GraphicsDevice.Viewport.Height / ActiveUIManager.standardScreenHeight;
 
         public void BeginDraw()
             => C.SpriteBatch.Begin

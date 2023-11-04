@@ -13,6 +13,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Xml;
 using static Game1.UI.ActiveUIManager;
+using static Game1.GameConfig;
 
 namespace Game1
 {
@@ -157,7 +158,7 @@ namespace Game1
                         {
                             Button buildIndustryButton = new
                             (
-                                shape: new MyRectangle(width: curUIConfig.wideUIElementWidth, height: curUIConfig.UILineHeight),
+                                shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
                                 tooltip: constrGeneralParams.toopltip,
                                 text: constrGeneralParams.buildButtonName
                             );
@@ -235,7 +236,6 @@ namespace Game1
         public UDouble MaxLinkJoulesPerKg
             => CurGraph.MaxLinkJoulesPerKg;
 
-
         public readonly WorldCamera worldCamera;
 
         private readonly WorldConfig worldConfig;
@@ -276,11 +276,11 @@ namespace Game1
             (
                 worldCenter: MyVector2.zero,
                 worldMetersPerPixel: worldConfig.startingPixelLength,
-                scrollSpeed: worldConfig.scrollSpeed,
-                screenBoundWidthForMapMoving: worldConfig.screenBoundWidthForMapMoving
+                scrollSpeed: CurGameConfig.scrollSpeed,
+                screenBoundWidthForMapMoving: CurGameConfig.screenBoundWidthForMapMoving
             );
 
-            activeUIManager = new(worldCamera: worldCamera);
+            activeUIManager = new();
 
             globalTextBox = new(backgroundColor: colorConfig.UIBackgroundColor);
             // TODO: move these constants to a contants file
@@ -310,8 +310,8 @@ namespace Game1
             (
                 shape: new MyRectangle
                 (
-                    width: 2 * curUIConfig.UILineHeight,
-                    height: 2 * curUIConfig.UILineHeight
+                    width: 2 * CurGameConfig.UILineHeight,
+                    height: 2 * CurGameConfig.UILineHeight
                 ),
                 tooltip: pauseButtonTooltip,
                 on: false,
@@ -373,7 +373,7 @@ namespace Game1
                             new VertProporBar
                             (
                                 width: 10,
-                                height: curUIConfig.UILineHeight,
+                                height: CurGameConfig.UILineHeight,
                                 propor: weight,
                                 barColor: Color.Green,
                                 backgroundColor: colorConfig.UIBackgroundColor
@@ -382,8 +382,8 @@ namespace Game1
                             (
                                 image: new FunctionGraphImage<UDouble, Propor>
                                 (
-                                    width: curUIConfig.standardUIElementWidth,
-                                    height: curUIConfig.UILineHeight,
+                                    width: CurGameConfig.standardUIElementWidth,
+                                    height: CurGameConfig.UILineHeight,
                                     backgroundColor: Color.Yellow,
                                     lineColor: Color.Red,
                                     lineWidth: 1,
@@ -548,7 +548,7 @@ namespace Game1
             Elapsed = pauseButton.On ? TimeSpan.Zero : elapsedGameTime * CurWorldConfig.worldSecondsInGameSecond * speedup;
             CurTime += Elapsed;
 
-            worldCamera.Update(elapsed: elapsedGameTime, canScroll: CurGraph.MouseOn);
+            worldCamera.Update(elapsed: elapsedGameTime, canScroll: true);
 
             if (Elapsed > TimeSpan.Zero)
             {

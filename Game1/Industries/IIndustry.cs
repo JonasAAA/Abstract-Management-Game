@@ -3,7 +3,7 @@ using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
-using static Game1.UI.ActiveUIManager;
+using static Game1.GameConfig;
 
 namespace Game1.Industries
 {
@@ -163,7 +163,7 @@ namespace Game1.Industries
                                     var (res, sources) = resSource;
                                     Button addOrRemoveResSourceButton = new
                                     (
-                                        shape: new MyRectangle(width: curUIConfig.wideUIElementWidth, height: curUIConfig.UILineHeight),
+                                        shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
                                         tooltip: new ImmutableTextTooltip(text: UIAlgorithms.AddOrRemoveResSourceTooltip(res: res)),
                                         text: res.ToString()
                                     );
@@ -211,7 +211,7 @@ namespace Game1.Industries
                             bool add = !Industry.GetSources(resource: Resource).Contains(sourceIndustry);
                             Button toggleSourceButton = new
                             (
-                                shape: new MyRectangle(width: curUIConfig.standardUIElementWidth, height: 2 * curUIConfig.UILineHeight),
+                                shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: 2 * CurGameConfig.UILineHeight),
                                 tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleSourceTooltip(res: Resource, add: add)),
                                 text: UIAlgorithms.ToggleSourceButtonName(add: add)
                             );

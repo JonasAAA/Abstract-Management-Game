@@ -5,6 +5,7 @@ using Game1.UI;
 using Game1.Collections;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
+using static Game1.GameConfig;
 
 namespace Game1
 {
@@ -52,7 +53,7 @@ namespace Game1
 
                 cancelButton = new
                 (
-                    shape: new MyRectangle(width: curUIConfig.standardUIElementWidth, height: curUIConfig.UILineHeight),
+                    shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: CurGameConfig.UILineHeight),
                     tooltip: new ImmutableTextTooltip(text: UIAlgorithms.CancelBuilding),
                     text: "Cancel",
                     color: colorConfig.deleteButtonColor
@@ -166,7 +167,7 @@ namespace Game1
                             );
                             Button buildButton = new
                             (
-                                shape: new MyRectangle(width: curUIConfig.standardUIElementWidth, height: curUIConfig.UILineHeight),
+                                shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: CurGameConfig.UILineHeight),
                                 tooltip: new ImmutableTextTooltip(text: UIAlgorithms.BuildHereTooltip),
                                 text: "Build here"
                             )

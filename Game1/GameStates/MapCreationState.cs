@@ -5,6 +5,7 @@ using Game1.Shapes;
 using Game1.UI;
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
+using static Game1.GameConfig;
 
 namespace Game1.GameStates
 {
@@ -100,8 +101,7 @@ namespace Game1.GameStates
                     => CurMapInfo.CosmicBodies[Link.To].Position;
 
                 public Length Width
-                    // TODO: put this into some config
-                    => Length.CreateFromM(20);
+                    => Length.CreateFromM(CurGameConfig.linkPixelWidth);
             }
 
             public Shape GetShape(MapInfoInternal curMapInfo)
@@ -121,7 +121,7 @@ namespace Game1.GameStates
             public static (MapInfoInternal mapInfo, WorldCamera worldCamera) CreateEmpty()
             {
                 var worldCenter = MyVector2.zero;
-                var cameraViewHeight = Length.CreateFromM(ActiveUIManager.curUIConfig.standardScreenHeight);
+                var cameraViewHeight = Length.CreateFromM(ActiveUIManager.standardScreenHeight);
                 return
                 (
                     mapInfo: new
@@ -200,8 +200,8 @@ namespace Game1.GameStates
                 (
                     worldCenter: worldCenter,
                     worldMetersPerPixel: WorldCamera.GetWorldMetersPerPixelFromCameraViewHeight(cameraViewHeight: cameraViewHeight),
-                    scrollSpeed: 60,
-                    screenBoundWidthForMapMoving: 10
+                    scrollSpeed: CurGameConfig.scrollSpeed,
+                    screenBoundWidthForMapMoving: CurGameConfig.screenBoundWidthForMapMoving
                 );
 
             public ValidMapInfo ToValidMapInfo()
@@ -331,9 +331,8 @@ namespace Game1.GameStates
         {
             this.mapName = mapName;
             changeHistory = new(startingMapInfo: mapWithCamera.mapInfo);
-            // TODO: move the constants to config file
             worldCamera = mapWithCamera.worldCamera;
-            activeUIManager = new(worldCamera: worldCamera);
+            activeUIManager = new();
 
             mouseLeftButton = new();
             zKey = new(key: Keys.Z);
@@ -542,10 +541,14 @@ namespace Game1.GameStates
                             key: selectedCosmicBodyId,
                             value: CurMapInfo.CosmicBodies[selectedCosmicBodyId] with
                             {
-                                Radius = MyVector2.Distance
+                                Radius = MyMathHelper.Max
                                 (
-                                    value1: mouseWorldPos,
-                                    value2: CurMapInfo.CosmicBodies[selectedCosmicBodyId].Position
+                                    Length.CreateFromM(valueInM: CurGameConfig.minPlanetPixelRadius),
+                                    MyVector2.Distance
+                                    (
+                                        value1: mouseWorldPos,
+                                        value2: CurMapInfo.CosmicBodies[selectedCosmicBodyId].Position
+                                    )
                                 )
                             }
                         )

@@ -12,7 +12,7 @@ namespace Game1.GameStates
 
         public MenuState()
         {
-            activeUIManager = new(worldCamera: null);
+            activeUIManager = new();
             UIPanel = null;
             getHUDElements = null;
         }

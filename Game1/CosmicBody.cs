@@ -3,10 +3,11 @@ using Game1.Industries;
 using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
-using static Game1.WorldManager;
-using static Game1.UI.ActiveUIManager;
 using Game1.Inhabitants;
 using Game1.Collections;
+using static Game1.WorldManager;
+using static Game1.UI.ActiveUIManager;
+using static Game1.GameConfig;
 
 namespace Game1
 {
@@ -152,7 +153,7 @@ namespace Game1
             massConvertedToEnergy = Mass.zero;
 
             textBox = new(lazyText: new BriefInfoText(CosmicBody: this));
-            textBox.Shape.MinWidth = curUIConfig.standardUIElementWidth;
+            textBox.Shape.MinWidth = CurGameConfig.standardUIElementWidth;
             CurWorldManager.AddWorldHUDElement
             (
                 worldHUDElement: textBox,
@@ -172,8 +173,8 @@ namespace Game1
 
             UITabPanel = new
             (
-                tabLabelWidth: curUIConfig.standardUIElementWidth,
-                tabLabelHeight: curUIConfig.UILineHeight,
+                tabLabelWidth: CurGameConfig.standardUIElementWidth,
+                tabLabelHeight: CurGameConfig.UILineHeight,
                 tabs: UITabs
             );
             UITabPanelHUDPosUpdater = new HUDElementPosUpdater

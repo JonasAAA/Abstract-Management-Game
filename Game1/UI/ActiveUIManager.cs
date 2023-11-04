@@ -6,17 +6,13 @@ namespace Game1.UI
     [Serializable]
     public sealed class ActiveUIManager
     {
-        public static readonly UIConfig curUIConfig = new();
+        public static readonly UDouble standardScreenHeight = 1080;
         public static readonly ColorConfig colorConfig = new();
         public static readonly UDouble
-            screenWidth = (UDouble)C.GraphicsDevice.Viewport.Width * curUIConfig.standardScreenHeight / (UDouble)C.GraphicsDevice.Viewport.Height,
-            screenHeight = curUIConfig.standardScreenHeight;
+            screenWidth = (UDouble)C.GraphicsDevice.Viewport.Width * standardScreenHeight / (UDouble)C.GraphicsDevice.Viewport.Height,
+            screenHeight = standardScreenHeight;
         public static Vector2Bare MouseHUDPos
             => HUDCamera.ScreenPosToHUDPos(screenPos: (Vector2Bare)Mouse.GetState().Position);
-        public static UDouble RectOutlineWidth
-            => curUIConfig.rectOutlineWidth;
-        public static UDouble DefaultGapBetweenUIElements
-            => curUIConfig.defaultGapBetweenUIElements;
 
         private static readonly HUDCamera HUDCamera = new();
 
@@ -41,12 +37,10 @@ namespace Game1.UI
         private TimeSpan hoverDuration;
         private ITooltip? tooltip;
         private readonly HUDPosSetter HUDPosSetter;
-        private readonly WorldCamera? worldCamera;
         private IHUDElement? HUDPopup;
 
-        public ActiveUIManager(WorldCamera? worldCamera)
+        public ActiveUIManager()
         {
-            this.worldCamera = worldCamera;
             //clickedNowhere = new();
 
             activeUIElements = new();

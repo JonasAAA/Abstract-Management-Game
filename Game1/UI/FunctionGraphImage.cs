@@ -1,5 +1,5 @@
 ﻿using Game1.Shapes;
-using static Game1.UI.ActiveUIManager;
+using static Game1.GameConfig;
 
 namespace Game1.UI
 {
@@ -98,7 +98,7 @@ namespace Game1.UI
                 var highlight = new MyRectangle
                 (
                     // The Abs part is needed in case start > stop
-                    width: MyMathHelper.Max(Width * curUIConfig.minFunctionGraphHighlightPropor, MyMathHelper.Abs((double)imageXStop - imageXStart)),
+                    width: MyMathHelper.Max(Width * CurGameConfig.minFunctionGraphHighlightPropor, MyMathHelper.Abs((double)imageXStop - imageXStart)),
                     height: Height
                 )
                 {

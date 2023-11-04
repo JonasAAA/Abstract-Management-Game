@@ -9,7 +9,7 @@ using System.IO;
 using System.Runtime;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using static Game1.UI.ActiveUIManager;
+using static Game1.GameConfig;
 
 namespace Game1
 {
@@ -459,8 +459,8 @@ namespace Game1
                 (
                     shape: new MyRectangle
                     (
-                        width: curUIConfig.wideUIElementWidth,
-                        height: curUIConfig.UILineHeight
+                        width: CurGameConfig.wideUIElementWidth,
+                        height: CurGameConfig.UILineHeight
                     ),
                     action: action,
                     tooltip: new ImmutableTextTooltip(text: tooltipText),

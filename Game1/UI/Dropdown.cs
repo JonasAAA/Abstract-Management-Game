@@ -1,7 +1,7 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
 using static Game1.WorldManager;
-using static Game1.UI.ActiveUIManager;
+using static Game1.GameConfig;
 
 namespace Game1.UI
 {
@@ -57,7 +57,7 @@ namespace Game1.UI
                             
                             Button chooseItemButton = new
                             (
-                                shape: new MyRectangle(width: curUIConfig.wideUIElementWidth, height: curUIConfig.UILineHeight),
+                                shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
                                 tooltip: tooltip,
                                 text: GetButtonText(item: item)
                             );
@@ -97,7 +97,7 @@ namespace Game1.UI
             UIRectHorizPanel<IHUDElement> startItemChoiceLine = new(childVertPos: childVertPos, children: Enumerable.Empty<IHUDElement>());
             Button startItemChoice = new
             (
-                shape: new MyRectangle(width: curUIConfig.wideUIElementWidth, height: curUIConfig.UILineHeight),
+                shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
                 tooltip: dropdownButtonTooltip
             );
             SetStartItemChoiceLineChildren<TItem>

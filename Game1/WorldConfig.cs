@@ -1,4 +1,5 @@
 ﻿using Game1.Shapes;
+using static Game1.GameConfig;
 
 namespace Game1
 {
@@ -46,11 +47,6 @@ namespace Game1
             lightLayer = 5,
             nodeLayer = 10,
             linkLayer = 0;
-        public readonly UDouble
-            brightStarTextureBrigthness = (UDouble)1.2,
-            dimStarTextureBrightness = (UDouble).6,
-            screenBoundWidthForMapMoving = 10,
-            scrollSpeed = 60;
         public readonly Length
             startingPixelLength = Length.CreateFromM(200000);
         public readonly Length
@@ -133,11 +129,11 @@ namespace Game1
             // BE careful not to use real-world units though as my game is 2 dimensional
 
             // Since [linkWidth] ~ m
-            linkWidth = startingPixelLength * 10;
+            linkWidth = startingPixelLength * CurGameConfig.linkPixelWidth;
             // Since [diskBuildingHeight] ~ m
-            diskBuildingHeight = startingPixelLength * 10;
+            diskBuildingHeight = startingPixelLength * CurGameConfig.linkPixelWidth;
             // Since [minPlanetArea] ~ m^2
-            minPlanetArea = DiskAlgos.Area(radius: startingPixelLength * 10).RoundDown();
+            minPlanetArea = DiskAlgos.Area(radius: startingPixelLength * CurGameConfig.minPlanetPixelRadius).RoundDown();
             // Even the smallest planets should be able to produce products.
             // Thus they must be able to hold all needed inputs in production.
             // *2 part is just to be sure that things like rounding errors will not make the number too small

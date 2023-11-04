@@ -1,8 +1,9 @@
 ﻿using Game1.Delegates;
 using Game1.UI;
+using Game1.Shapes;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
-using Game1.Shapes;
+using static Game1.GameConfig;
 
 namespace Game1.Industries
 {
@@ -81,8 +82,8 @@ namespace Game1.Industries
         public static FunctionGraphImage<Temperature, Propor> CreateTemperatureFunctionGraph(Func<Temperature, Propor>? func)
             => new
             (
-                width: curUIConfig.standardUIElementWidth,
-                height: curUIConfig.UILineHeight,
+                width: CurGameConfig.standardUIElementWidth,
+                height: CurGameConfig.UILineHeight,
                 lineColor: colorConfig.functionGraphLineColor,
                 backgroundColor: colorConfig.functionGraphBackgroundColor,
                 lineWidth: 1,
@@ -90,7 +91,7 @@ namespace Game1.Industries
                 maxX: CurWorldConfig.maxTemperatureShownInGraphs,
                 minY: Propor.empty,
                 maxY: Propor.full,
-                numXSamples: curUIConfig.pointNumInSmallFunctionGraphs,
+                numXSamples: CurGameConfig.pointNumInSmallFunctionGraphs,
                 func: func
             );
 
@@ -103,8 +104,8 @@ namespace Game1.Industries
         public static FunctionGraphImage<SurfaceGravity, Propor> CreateGravityFunctionGraph(Func<SurfaceGravity, Propor>? func)
             => new
             (
-                width: curUIConfig.standardUIElementWidth,
-                height: curUIConfig.UILineHeight,
+                width: CurGameConfig.standardUIElementWidth,
+                height: CurGameConfig.UILineHeight,
                 lineColor: colorConfig.functionGraphLineColor,
                 backgroundColor: colorConfig.functionGraphBackgroundColor,
                 lineWidth: 1,
@@ -112,7 +113,7 @@ namespace Game1.Industries
                 maxX: CurWorldConfig.maxGravityShownInGraphs,
                 minY: Propor.empty,
                 maxY: Propor.full,
-                numXSamples: curUIConfig.pointNumInSmallFunctionGraphs,
+                numXSamples: CurGameConfig.pointNumInSmallFunctionGraphs,
                 func: func
             );
 
@@ -130,8 +131,8 @@ namespace Game1.Industries
         public static VertProporBar CreateStandardVertProporBar(Propor propor)
             => new
             (
-                width: curUIConfig.standardUIElementWidth / 10,
-                height: curUIConfig.UILineHeight,
+                width: CurGameConfig.standardUIElementWidth / 10,
+                height: CurGameConfig.UILineHeight,
                 propor: propor,
                 barColor: colorConfig.barColor,
                 backgroundColor: colorConfig.barBackgroundColor

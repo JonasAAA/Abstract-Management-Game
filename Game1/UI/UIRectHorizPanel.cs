@@ -1,4 +1,5 @@
 ﻿using Game1.Shapes;
+using static Game1.GameConfig;
 
 namespace Game1.UI
 {
@@ -15,7 +16,7 @@ namespace Game1.UI
         public UIRectHorizPanel(VertPosEnum childVertPos, IEnumerable<TChild?> children, UDouble? gap = null)
         {
             this.childVertPos = childVertPos;
-            this.gap = gap ?? ActiveUIManager.DefaultGapBetweenUIElements;
+            this.gap = gap ?? CurGameConfig.defaultGapBetweenUIElements;
             // This most be done after setting the gap, otherwise, when adding the children, incorrect gap will be used.
             AddChildren(newChildren: children);
         }
@@ -24,9 +25,9 @@ namespace Game1.UI
         {
             base.PartOfRecalcSizeAndPos();
 
-            Shape.Width = 2 * ActiveUIManager.RectOutlineWidth + children.Sum(child => child.Shape.Width) + gap * UDouble.CreateByClamp(children.Count - 1);
+            Shape.Width = 2 * CurGameConfig.rectOutlineWidth + children.Sum(child => child.Shape.Width) + gap * UDouble.CreateByClamp(children.Count - 1);
 
-            Shape.Height = 2 * ActiveUIManager.RectOutlineWidth + children.MaxOrDefault(child => child.Shape.Height);
+            Shape.Height = 2 * CurGameConfig.rectOutlineWidth + children.MaxOrDefault(child => child.Shape.Height);
 
             UDouble curWidthSum = 0;
             PosEnums childOrigin = new(HorizPosEnum.Left, childVertPos);
@@ -35,7 +36,7 @@ namespace Game1.UI
                 child.Shape.SetPosition
                 (
                     position: Shape.GetSpecPos(origin: childOrigin)
-                        + new Vector2Bare(ActiveUIManager.RectOutlineWidth + curWidthSum, -(int)childVertPos * ActiveUIManager.RectOutlineWidth),
+                        + new Vector2Bare(CurGameConfig.rectOutlineWidth + curWidthSum, -(int)childVertPos * CurGameConfig.rectOutlineWidth),
                     origin: childOrigin
                 );
                 curWidthSum += child.Shape.Width + gap;

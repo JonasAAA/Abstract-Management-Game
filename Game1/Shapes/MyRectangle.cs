@@ -1,4 +1,4 @@
-﻿using Game1.UI;
+﻿using static Game1.GameConfig;
 
 namespace Game1.Shapes
 {
@@ -6,14 +6,14 @@ namespace Game1.Shapes
     public sealed class MyRectangle : NearRectangle
     {
         public MyRectangle()
-            : this(width: 2 * ActiveUIManager.RectOutlineWidth, height: 2 * ActiveUIManager.RectOutlineWidth)
+            : this(width: 2 * CurGameConfig.rectOutlineWidth, height: 2 * CurGameConfig.rectOutlineWidth)
         { }
 
         public MyRectangle(UDouble width, UDouble height)
             : base(width: width, height: height)
         {
-            MinWidth = 2 * ActiveUIManager.RectOutlineWidth;
-            MinHeight = 2 * ActiveUIManager.RectOutlineWidth;
+            MinWidth = 2 * CurGameConfig.rectOutlineWidth;
+            MinHeight = 2 * CurGameConfig.rectOutlineWidth;
         }
 
         public sealed override bool Contains(Vector2Bare screenPos)
@@ -86,7 +86,7 @@ namespace Game1.Shapes
                 rotation: MyMathHelper.Rotation(vector: direction),
                 origin: origin,
                 scaleX: Vector2Bare.Distance(Start, End),
-                scaleY: ActiveUIManager.RectOutlineWidth
+                scaleY: CurGameConfig.rectOutlineWidth
             );
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
 using static Game1.UI.ActiveUIManager;
+using static Game1.GameConfig;
 
 namespace Game1.UI
 {
@@ -64,8 +65,8 @@ namespace Game1.UI
             );
             UDouble tabHeight = tabs.Values.MaxOrDefault(tab => tab.Shape.Height);
 
-            Shape.Width = 2 * ActiveUIManager.RectOutlineWidth + innerWidth;
-            Shape.Height = 2 * ActiveUIManager.RectOutlineWidth + tabChoicePanel.Shape.Height + tabHeight;
+            Shape.Width = 2 * CurGameConfig.rectOutlineWidth + innerWidth;
+            Shape.Height = 2 * CurGameConfig.rectOutlineWidth + tabChoicePanel.Shape.Height + tabHeight;
 
             tabChoicePanel.Shape.MinWidth = innerWidth;
             foreach (var tab in tabs.Values)
@@ -75,9 +76,9 @@ namespace Game1.UI
                 tab.Shape.MinHeight = tabHeight;
 
             // recalc children positions
-            tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2Bare(ActiveUIManager.RectOutlineWidth);
+            tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2Bare(CurGameConfig.rectOutlineWidth);
             foreach (var tab in tabs.Values)
-                tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2Bare(ActiveUIManager.RectOutlineWidth) + new Vector2Bare(0, tabChoicePanel.Shape.Height);
+                tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2Bare(CurGameConfig.rectOutlineWidth) + new Vector2Bare(0, tabChoicePanel.Shape.Height);
         }
 
         private void AddTab(string tabLabelText, ITooltip tabTooltip, TTab tab)

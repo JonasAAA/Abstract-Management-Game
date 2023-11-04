@@ -45,7 +45,7 @@ namespace Game1.Lighting
                 return;
             Vector2Bare textureCenter = new(xAndY: .5);
             int centerInd = vertices.Count;
-            vertPosTexs[centerInd] = new(Transform(pos: center), color);
+            vertPosTexs[centerInd] = new(Transform(center), color);
             for (int i = 0; i < centerInd; i++)
                 vertPosTexs[i] = new(Transform(vertices[i]), color);
             if (vertPosTexs.Length == 0)
@@ -62,7 +62,12 @@ namespace Game1.Lighting
 
             var effect = C.ContentManager.Load<Effect>("StarLight");
             effect.CurrentTechnique = effect.Techniques["BasicColorDrawing"];
-            effect.Parameters["WorldViewProjection"].SetValue(Matrix.Identity);
+            effect.Parameters["WorldViewProjection"].SetValue
+            (
+                worldToScreenTransform
+                    * Matrix.CreateScale(new Vector3(2f / actualScreenWidth, -2f / actualScreenHeight, 1))
+                    * Matrix.CreateTranslation(new Vector3(-1f, 1f, 0))
+            );
             effect.Parameters["Center"].SetValue(Transform(center));
             
             foreach (var effectPass in effect.CurrentTechnique.Passes)
@@ -79,8 +84,8 @@ namespace Game1.Lighting
 
             Vector3 Transform(MyVector2 pos)
             {
-                var transPos = Vector2.Transform((Vector2)pos, worldToScreenTransform);
-                return new Vector3((float)(2 * transPos.X / actualScreenWidth - 1), (float)(1 - 2 * transPos.Y / actualScreenHeight), 0);
+                var posFloat = (Vector2)pos;
+                return new Vector3(posFloat.X, posFloat.Y, 0);
             }
         }
 

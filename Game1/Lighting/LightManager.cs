@@ -1,6 +1,5 @@
 ﻿using Game1.Collections;
 using Game1.Delegates;
-using static Game1.WorldManager;
 
 namespace Game1.Lighting
 {
@@ -31,14 +30,10 @@ namespace Game1.Lighting
 
         private RenderTarget2D RenderTarget
             => renderTarget ?? throw new InvalidOperationException(mustInitializeMessage);
-        private BasicEffect BrightEffect
-            => brightEffect ?? throw new InvalidOperationException(mustInitializeMessage);
-        private BasicEffect DimEffect
-            => dimEffect ?? throw new InvalidOperationException(mustInitializeMessage);
+        
         private readonly VacuumAsRadiantEnergyConsumer vacuumAsRadiantEnergyConsumer;
         private const string mustInitializeMessage = $"must initialize {nameof(LightManager)} first by calling {nameof(Initialize)}";
         [NonSerialized] private RenderTarget2D? renderTarget;
-        [NonSerialized] private BasicEffect? brightEffect, dimEffect;
 
         public LightManager(EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
@@ -48,31 +43,7 @@ namespace Game1.Lighting
         }
 
         public void Initialize()
-        {
-            renderTarget = new(C.GraphicsDevice, actualScreenWidth, actualScreenHeight);
-            brightEffect = GetBasicEffect(brightness: CurWorldConfig.brightStarTextureBrigthness);
-            dimEffect = GetBasicEffect(brightness: CurWorldConfig.dimStarTextureBrightness);
-
-            return;
-
-            static BasicEffect GetBasicEffect(UDouble brightness)
-            {
-                return new(C.GraphicsDevice)
-                {
-                    TextureEnabled = true,
-                    VertexColorEnabled = true,
-                    Texture = C.CreateTexture
-                    (
-                        width: CurWorldConfig.lightTextureWidthAndHeight,
-                        height: CurWorldConfig.lightTextureWidthAndHeight,
-                        colorFromRelToCenterPos: relToCenterPos => Color.White * (float)Brightness(distFromCenter: relToCenterPos.Length())
-                    )
-                };
-
-                UDouble Brightness(UDouble distFromCenter)
-                    => (UDouble)MyMathHelper.Pow(brightness * CurWorldConfig.standardStarPixelRadius / (MyMathHelper.Max(1, (double)distFromCenter - CurWorldConfig.standardStarPixelRadius) + brightness * CurWorldConfig.standardStarPixelRadius), 2);
-            }
-        }
+            => renderTarget = new(C.GraphicsDevice, actualScreenWidth, actualScreenHeight);
 
         public void AddLightCatchingObject(ILightCatchingObject lightCatchingObject)
         {
@@ -132,7 +103,6 @@ namespace Game1.Lighting
                 lightSource.Draw
                 (
                     worldToScreenTransform: worldToScreenTransform,
-                    basicEffect: DimEffect,
                     actualScreenWidth: actualScreenWidth,
                     actualScreenHeight: actualScreenHeight
                 );

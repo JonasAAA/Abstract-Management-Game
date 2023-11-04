@@ -127,6 +127,7 @@ namespace Game1
         private readonly new LightBlockingDisk shape;
         private ElectricalEnergy locallyProducedEnergy, usedLocalEnergy;
         private readonly EnergyPile<RadiantEnergy> radiantEnergyToDissipatePile;
+        private UDouble radiantEnergyDissipationPerSec;
         private RadiantEnergy radiantEnergyToDissipate;
         private Mass massConvertedToEnergy;
 
@@ -146,6 +147,7 @@ namespace Game1
 
             usedLocalEnergy = ElectricalEnergy.zero;
             radiantEnergyToDissipatePile = EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: state.LocationCounters);
+            radiantEnergyDissipationPerSec = 0;
             radiantEnergyToDissipate = RadiantEnergy.zero;
             massConvertedToEnergy = Mass.zero;
 
@@ -257,6 +259,7 @@ namespace Game1
                 destin: radiantEnergyToDissipatePile,
                 amount: radiantEnergyToDissipate
             );
+            radiantEnergyDissipationPerSec = radiantEnergyToDissipatePile.Amount.ValueInJ / (UDouble)CurWorldManager.Elapsed.TotalSeconds;
 
             state.UpdateTemperature();
 
@@ -409,8 +412,13 @@ namespace Game1
 
             lightPolygon.Update
             (
-                strength: state.Radius / CurWorldConfig.standardStarPixelRadius,
-                center: state.Position,
+                lightSourceInfo: new
+                (
+                    Center: state.Position,
+                    Radius: state.Radius,
+                    // Division by startingPixelLength is necessary to make startlight visuals independent of startingPixelLength
+                    LightAmount: radiantEnergyDissipationPerSec / CurWorldConfig.startingPixelLength.valueInM
+                ),
                 vertices: vertices
             );
 
@@ -498,7 +506,7 @@ namespace Game1
                 vertices = new();
                 rayCatchingObjects = new();
                 // TODO: consider moving this to constants class
-                Length maxDist = 2000 * CurWorldConfig.startingPixelLength;
+                Length maxDist = 100000 * CurWorldConfig.startingPixelLength;
 
                 SortedSet<AngleArc> curAngleArcs = new();
                 int angleInd = 0, angleArcInd = 0;
@@ -577,14 +585,13 @@ namespace Game1
             }
         }
 
-        void ILightSource.Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight)
+        void ILightSource.Draw(Matrix worldToScreenTransform, int actualScreenWidth, int actualScreenHeight)
         {
             if (radiantEnergyToDissipate.IsZero)
                 return;
             lightPolygon.Draw
             (
                 worldToScreenTransform: worldToScreenTransform,
-                basicEffect: basicEffect,
                 color: Color,
                 actualScreenWidth: actualScreenWidth,
                 actualScreenHeight: actualScreenHeight

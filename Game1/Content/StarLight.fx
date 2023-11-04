@@ -9,6 +9,8 @@
 
 matrix WorldViewProjection;
 float4 Center;
+float Radius;
+float LightAmount;
 
 struct VertexShaderInput
 {
@@ -34,13 +36,12 @@ VertexShaderOutput MainVS(in VertexShaderInput input)
 	return output;
 }
 
-// (UDouble)MyMathHelper.Pow(brightness * CurWorldConfig.standardStarPixelRadius / (MyMathHelper.Max(1, (double)distFromCenter - CurWorldConfig.standardStarPixelRadius) + brightness * CurWorldConfig.standardStarPixelRadius), 2);
 float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float2 relPosSquared = input.RelWorldPos * input.RelWorldPos;
-    float distSquared = relPosSquared.x + relPosSquared.y;
-    float factor = 1 / max(1, distSquared);
-    return input.Color; //* (factor * factor);
+    float dist = sqrt(relPosSquared.x + relPosSquared.y);
+    float factor = 1 / (1 + max(0, dist - Radius) / (LightAmount * 10000));
+    return input.Color * factor;
 }
 
 technique BasicColorDrawing

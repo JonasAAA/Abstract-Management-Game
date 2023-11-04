@@ -40,7 +40,9 @@ float4 MainPS(VertexShaderOutput input) : COLOR
 {
     float2 relPosSquared = input.RelWorldPos * input.RelWorldPos;
     float dist = sqrt(relPosSquared.x + relPosSquared.y);
-    float factor = 1 / (1 + max(0, dist - Radius) / (LightAmount * 10000));
+	// TODO(performance): this line could be calculated once per frame instead of for each pixel. Compiler maybe optimized that already though.
+    float scaledLightAmount = LightAmount * 10000;
+    float factor = scaledLightAmount / (scaledLightAmount + max(0, dist - Radius));
     return input.Color * factor;
 }
 

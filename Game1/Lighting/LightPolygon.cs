@@ -3,6 +3,8 @@
     [Serializable]
     public sealed class LightPolygon
     {
+        private static readonly Effect starLightEffect = C.ContentManager.Load<Effect>("StarLight");
+
         [Serializable]
         public readonly record struct LightSourceInfo(MyVector2 Center, Length Radius, UDouble LightAmount);
 
@@ -46,6 +48,7 @@
             if (vertPosTexs.Length == 0)
                 return;
 
+            // TODO(performance): these are allocated every frame. Look into reusing them to not generate as much garbage for GC
             using VertexBuffer vertexBuffer = new(C.GraphicsDevice, typeof(VertexPositionColor), vertPosTexs.Length, BufferUsage.WriteOnly);
             IndexBuffer indexBuffer = new(C.GraphicsDevice, typeof(ushort), inds.Length, BufferUsage.WriteOnly);
 
@@ -55,19 +58,18 @@
             C.GraphicsDevice.SetVertexBuffer(vertexBuffer);
             C.GraphicsDevice.Indices = indexBuffer;
 
-            var effect = C.ContentManager.Load<Effect>("StarLight");
-            effect.CurrentTechnique = effect.Techniques["BasicColorDrawing"];
-            effect.Parameters["WorldViewProjection"].SetValue
+            starLightEffect.CurrentTechnique = starLightEffect.Techniques["BasicColorDrawing"];
+            starLightEffect.Parameters["WorldViewProjection"].SetValue
             (
                 worldToScreenTransform
                     * Matrix.CreateScale(new Vector3(2f / actualScreenWidth, -2f / actualScreenHeight, 1))
                     * Matrix.CreateTranslation(new Vector3(-1f, 1f, 0))
             );
-            effect.Parameters["Center"].SetValue(Transform(lightSourceInfo.Center));
-            effect.Parameters["Radius"].SetValue((float)lightSourceInfo.Radius.valueInM);
-            effect.Parameters["LightAmount"].SetValue((float)lightSourceInfo.LightAmount);
+            starLightEffect.Parameters["Center"].SetValue(Transform(lightSourceInfo.Center));
+            starLightEffect.Parameters["Radius"].SetValue((float)lightSourceInfo.Radius.valueInM);
+            starLightEffect.Parameters["LightAmount"].SetValue((float)lightSourceInfo.LightAmount);
 
-            foreach (var effectPass in effect.CurrentTechnique.Passes)
+            foreach (var effectPass in starLightEffect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
                 C.GraphicsDevice.DrawIndexedPrimitives

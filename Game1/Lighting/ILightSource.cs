@@ -4,6 +4,6 @@
     {
         public void ProduceAndDistributeRadiantEnergy(List<ILightCatchingObject> lightCatchingObjects, IRadiantEnergyConsumer vacuumAsRadiantEnergyConsumer);
 
-        public void Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, int actualScreenWidth, int actualScreenHeight);
+        public void Draw(Matrix worldToScreenTransform, int actualScreenWidth, int actualScreenHeight);
     }
 }

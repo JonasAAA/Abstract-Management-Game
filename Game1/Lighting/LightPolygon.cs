@@ -1,33 +1,29 @@
-﻿using static Game1.WorldManager;
-
-namespace Game1.Lighting
+﻿namespace Game1.Lighting
 {
     [Serializable]
     public sealed class LightPolygon
     {
-        private MyVector2 center;
+        [Serializable]
+        public readonly record struct LightSourceInfo(MyVector2 Center, Length Radius, UDouble LightAmount);
+
+        private LightSourceInfo lightSourceInfo;
         private List<MyVector2> vertices;
-        private VertexPositionColorTexture[] vertPosTexs;
+        private VertexPositionColor[] vertPosTexs;
         private ushort[] inds;
-        private Length strength;
 
         public LightPolygon()
         {
             vertices = new List<MyVector2>();
-            vertPosTexs = Array.Empty<VertexPositionColorTexture>();
+            vertPosTexs = Array.Empty<VertexPositionColor>();
             inds = Array.Empty<ushort>();
         }
 
-        /// <param Name="strength">a positive double which determins the HUDRadius of the lit Area</param>
-        public void Update(Length strength, MyVector2 center, List<MyVector2> vertices)
+        public void Update(LightSourceInfo lightSourceInfo, List<MyVector2> vertices)
         {
-            if (strength.IsTiny())
-                throw new ArgumentOutOfRangeException();
-            this.strength = strength;
-            this.center = center;
+            this.lightSourceInfo = lightSourceInfo;
             this.vertices = vertices;
             ushort centerInd = (ushort)vertices.Count;
-            vertPosTexs = new VertexPositionColorTexture[centerInd + 1];
+            vertPosTexs = new VertexPositionColor[centerInd + 1];
 
             inds = new ushort[vertices.Count * 3];
             for (ushort i = 0; i < vertices.Count; i++)
@@ -39,19 +35,18 @@ namespace Game1.Lighting
             }
         }
 
-        public void Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, Color color, int actualScreenWidth, int actualScreenHeight)
+        public void Draw(Matrix worldToScreenTransform, Color color, int actualScreenWidth, int actualScreenHeight)
         {
             if (vertices.Count is 0)
                 return;
-            Vector2Bare textureCenter = new(xAndY: .5);
             int centerInd = vertices.Count;
-            vertPosTexs[centerInd] = new(Transform(pos: center), color, (Vector2)textureCenter);
+            vertPosTexs[centerInd] = new(Transform(lightSourceInfo.Center), color);
             for (int i = 0; i < centerInd; i++)
-                vertPosTexs[i] = new(Transform(vertices[i]), color, (Vector2)(textureCenter + (vertices[i] - center) / CurWorldConfig.lightTextureWidthAndHeight / strength));
+                vertPosTexs[i] = new(Transform(vertices[i]), color);
             if (vertPosTexs.Length == 0)
                 return;
 
-            VertexBuffer vertexBuffer = new(C.GraphicsDevice, typeof(VertexPositionColorTexture), vertPosTexs.Length, BufferUsage.WriteOnly);
+            using VertexBuffer vertexBuffer = new(C.GraphicsDevice, typeof(VertexPositionColor), vertPosTexs.Length, BufferUsage.WriteOnly);
             IndexBuffer indexBuffer = new(C.GraphicsDevice, typeof(ushort), inds.Length, BufferUsage.WriteOnly);
 
             vertexBuffer.SetData(vertPosTexs);
@@ -60,7 +55,19 @@ namespace Game1.Lighting
             C.GraphicsDevice.SetVertexBuffer(vertexBuffer);
             C.GraphicsDevice.Indices = indexBuffer;
 
-            foreach (var effectPass in basicEffect.CurrentTechnique.Passes)
+            var effect = C.ContentManager.Load<Effect>("StarLight");
+            effect.CurrentTechnique = effect.Techniques["BasicColorDrawing"];
+            effect.Parameters["WorldViewProjection"].SetValue
+            (
+                worldToScreenTransform
+                    * Matrix.CreateScale(new Vector3(2f / actualScreenWidth, -2f / actualScreenHeight, 1))
+                    * Matrix.CreateTranslation(new Vector3(-1f, 1f, 0))
+            );
+            effect.Parameters["Center"].SetValue(Transform(lightSourceInfo.Center));
+            effect.Parameters["Radius"].SetValue((float)lightSourceInfo.Radius.valueInM);
+            effect.Parameters["LightAmount"].SetValue((float)lightSourceInfo.LightAmount);
+
+            foreach (var effectPass in effect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
                 C.GraphicsDevice.DrawIndexedPrimitives
@@ -72,10 +79,10 @@ namespace Game1.Lighting
                 );
             }
 
-            Vector3 Transform(MyVector2 pos)
+            static Vector3 Transform(MyVector2 pos)
             {
-                var transPos = Vector2.Transform((Vector2)pos, worldToScreenTransform);
-                return new Vector3((float)(2 * transPos.X / actualScreenWidth - 1), (float)(1 - 2 * transPos.Y / actualScreenHeight), 0);
+                var posFloat = (Vector2)pos;
+                return new Vector3(posFloat.X, posFloat.Y, 0);
             }
         }
     }

@@ -16,8 +16,6 @@ namespace Game1
             jobVacDespValueConsideredAverage = 10;
         public readonly Score
             minAcceptablePersonScore = Score.CreateOrThrow(value: .1);
-        public readonly UDouble
-            standardStarPixelRadius = 100;
         public readonly ulong
             personMinReqWatts = 1,
             personMaxReqWatts = 10;

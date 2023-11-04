@@ -7,14 +7,14 @@ namespace Game1.Lighting
     {
         private MyVector2 center;
         private List<MyVector2> vertices;
-        private VertexPositionColorTexture[] vertPosTexs;
+        private VertexPositionColor[] vertPosTexs;
         private ushort[] inds;
         private Length strength;
 
         public LightPolygon()
         {
             vertices = new List<MyVector2>();
-            vertPosTexs = Array.Empty<VertexPositionColorTexture>();
+            vertPosTexs = Array.Empty<VertexPositionColor>();
             inds = Array.Empty<ushort>();
         }
 
@@ -27,7 +27,7 @@ namespace Game1.Lighting
             this.center = center;
             this.vertices = vertices;
             ushort centerInd = (ushort)vertices.Count;
-            vertPosTexs = new VertexPositionColorTexture[centerInd + 1];
+            vertPosTexs = new VertexPositionColor[centerInd + 1];
 
             inds = new ushort[vertices.Count * 3];
             for (ushort i = 0; i < vertices.Count; i++)
@@ -45,13 +45,13 @@ namespace Game1.Lighting
                 return;
             Vector2Bare textureCenter = new(xAndY: .5);
             int centerInd = vertices.Count;
-            vertPosTexs[centerInd] = new(Transform(pos: center), color, (Vector2)textureCenter);
+            vertPosTexs[centerInd] = new(Transform(pos: center), color);
             for (int i = 0; i < centerInd; i++)
-                vertPosTexs[i] = new(Transform(vertices[i]), color, (Vector2)(textureCenter + (vertices[i] - center) / CurWorldConfig.lightTextureWidthAndHeight / strength));
+                vertPosTexs[i] = new(Transform(vertices[i]), color);
             if (vertPosTexs.Length == 0)
                 return;
 
-            VertexBuffer vertexBuffer = new(C.GraphicsDevice, typeof(VertexPositionColorTexture), vertPosTexs.Length, BufferUsage.WriteOnly);
+            using VertexBuffer vertexBuffer = new(C.GraphicsDevice, typeof(VertexPositionColor), vertPosTexs.Length, BufferUsage.WriteOnly);
             IndexBuffer indexBuffer = new(C.GraphicsDevice, typeof(ushort), inds.Length, BufferUsage.WriteOnly);
 
             vertexBuffer.SetData(vertPosTexs);
@@ -60,7 +60,12 @@ namespace Game1.Lighting
             C.GraphicsDevice.SetVertexBuffer(vertexBuffer);
             C.GraphicsDevice.Indices = indexBuffer;
 
-            foreach (var effectPass in basicEffect.CurrentTechnique.Passes)
+            var effect = C.ContentManager.Load<Effect>("StarLight");
+            effect.CurrentTechnique = effect.Techniques["BasicColorDrawing"];
+            effect.Parameters["WorldViewProjection"].SetValue(Matrix.Identity);
+            effect.Parameters["Center"].SetValue(Transform(center));
+            
+            foreach (var effectPass in effect.CurrentTechnique.Passes)
             {
                 effectPass.Apply();
                 C.GraphicsDevice.DrawIndexedPrimitives
@@ -78,5 +83,45 @@ namespace Game1.Lighting
                 return new Vector3((float)(2 * transPos.X / actualScreenWidth - 1), (float)(1 - 2 * transPos.Y / actualScreenHeight), 0);
             }
         }
+
+        //public void Draw(Matrix worldToScreenTransform, BasicEffect basicEffect, Color color, int actualScreenWidth, int actualScreenHeight)
+        //{
+        //    if (vertices.Count is 0)
+        //        return;
+        //    Vector2Bare textureCenter = new(xAndY: .5);
+        //    int centerInd = vertices.Count;
+        //    vertPosTexs[centerInd] = new(Transform(pos: center), color, (Vector2)textureCenter);
+        //    for (int i = 0; i < centerInd; i++)
+        //        vertPosTexs[i] = new(Transform(vertices[i]), color, (Vector2)(textureCenter + (vertices[i] - center) / CurWorldConfig.lightTextureWidthAndHeight / strength));
+        //    if (vertPosTexs.Length == 0)
+        //        return;
+
+        //    using VertexBuffer vertexBuffer = new(C.GraphicsDevice, typeof(VertexPositionColorTexture), vertPosTexs.Length, BufferUsage.WriteOnly);
+        //    IndexBuffer indexBuffer = new(C.GraphicsDevice, typeof(ushort), inds.Length, BufferUsage.WriteOnly);
+
+        //    vertexBuffer.SetData(vertPosTexs);
+        //    indexBuffer.SetData(inds);
+
+        //    C.GraphicsDevice.SetVertexBuffer(vertexBuffer);
+        //    C.GraphicsDevice.Indices = indexBuffer;
+
+        //    foreach (var effectPass in basicEffect.CurrentTechnique.Passes)
+        //    {
+        //        effectPass.Apply();
+        //        C.GraphicsDevice.DrawIndexedPrimitives
+        //        (
+        //            primitiveType: PrimitiveType.TriangleList,
+        //            baseVertex: 0,
+        //            startIndex: 0,
+        //            primitiveCount: inds.Length / 3
+        //        );
+        //    }
+
+        //    Vector3 Transform(MyVector2 pos)
+        //    {
+        //        var transPos = Vector2.Transform((Vector2)pos, worldToScreenTransform);
+        //        return new Vector3((float)(2 * transPos.X / actualScreenWidth - 1), (float)(1 - 2 * transPos.Y / actualScreenHeight), 0);
+        //    }
+        //}
     }
 }

@@ -17,11 +17,11 @@ namespace Game1
         public static Mass RawMaterialMass(ulong ind)
             => Mass.CreateFromKg(valueInKg: 1 + maxRawMatInd - ind);
 
-        // As ind increases, the raw materials require less energy to change temperature by one degree
+        // The same area of stuff will always have thse same heat capacity
         // As said in https://en.wikipedia.org/wiki/Specific_heat_capacity#Monatomic_gases
         // heat capacity per mole is the same for all monatomic gases
         // That's because the atoms have nowhere else to store energy, other than in kinetic energy (and hence temperature)
-        public static HeatCapacity RawMaterialHeatCapacityPerArea(ulong ind)
+        public static HeatCapacity RawMaterialHeatCapacity(ulong ind)
 #warning Make this more interesting?
             => HeatCapacity.CreateFromJPerK(valueInJPerK: 1);
 

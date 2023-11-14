@@ -49,6 +49,7 @@
                 return;
 
             // TODO(performance): these are allocated every frame. Look into reusing them to not generate as much garbage for GC
+            // In fact, could possibly draw all light polygons in one go (similar what SpriteBatch does with sprites)
             using VertexBuffer vertexBuffer = new(C.GraphicsDevice, typeof(VertexPositionColor), vertPosTexs.Length, BufferUsage.WriteOnly);
             IndexBuffer indexBuffer = new(C.GraphicsDevice, typeof(ushort), inds.Length, BufferUsage.WriteOnly);
 

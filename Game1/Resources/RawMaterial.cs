@@ -15,7 +15,7 @@
                 ind: ind,
                 name: ResAndIndustryAlgos.RawMaterialName(ind: ind),
                 mass: ResAndIndustryAlgos.RawMaterialMass(ind: ind),
-                heatCapacity: ResAndIndustryAlgos.RawMaterialHeatCapacityPerArea(ind: ind),
+                heatCapacity: ResAndIndustryAlgos.RawMaterialHeatCapacity(ind: ind),
                 color: ResAndIndustryAlgos.RawMaterialColor(ind: ind),
                 fusionReactionStrengthCoeff: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ind)
             );

@@ -5,7 +5,6 @@ using Game1.GameStates;
 using Game1.Shapes;
 using Game1.UI;
 using System.Globalization;
-using System.IO;
 using System.Runtime;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -29,7 +28,7 @@ namespace Game1
         private PlayState? playState;
         private MapCreationState? mapCreationState;
         private GameState gameState;
-
+        
         public GameMain()
         {
             // Since all the spelling and such will use US conventions, want numbers, dates, and so on to use that as well.
@@ -81,13 +80,8 @@ namespace Game1
                 => Game.SetGameState(newGameState: PauseMenu);
         }
 
-        // TODO: make this work not only on my machine
-        private static string GetMapsFolderPath()
-            => @"C:\Users\Jonas\Desktop\Serious\Game Projects\Abstract Management Game\Game1\Content\Maps";
-
-        // TODO: make this work not only on my machine
-        private static string GetGameSaveFilePath
-            => @"C:\Users\Jonas\Desktop\Serious\Game Projects\Abstract Management Game\save.bin";
+        private static FilePath GetGameSaveFilePath()
+            => new(directoryPath: DirectoryPath.gameSavesPath, fileNameWithExtension: "save.bin");
 
         private static JsonSerializerOptions JsonSerializerOptions
             => new()
@@ -100,15 +94,15 @@ namespace Game1
                 }
             };
 
-        private static IEnumerable<string> GetMapFullPaths()
-            => Directory.GetFiles(path: GetMapsFolderPath());
+        private static IEnumerable<FilePath> GetMapPaths(bool editable = true)
+            => DirectoryPath.GetMapsPath(editable: editable).GetFilePaths();
 
         // required means that the property must be in json, as said here https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/required-properties
         // TODO: could create a json schema for the file and use it to validate file while someone is writing it
         // TODO: could use https://docs.microsoft.com/en-us/dotnet/api/system.text.json.serialization.jsonextensiondataattribute?view=net-7.0
         // to check for fields provided in json but deserialised
         // STARTING with .NET 8, could use https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/missing-members
-        private static Result<ValidMapInfo, TextErrors> LoadMap(string fullMapPath)
+        private static Result<ValidMapInfo, TextErrors> LoadMap(FilePath mapPath)
         {
             try
             {
@@ -118,7 +112,7 @@ namespace Game1
                     (
                         mapInfo: JsonSerializer.Deserialize<MapInfo>
                         (
-                            json: File.ReadAllText(fullMapPath),
+                            json: mapPath.ReadAllText(),
                             options: JsonSerializerOptions
                         )
                     )
@@ -130,13 +124,12 @@ namespace Game1
             }
         }
 
-        private static Result<FullValidMapInfo, TextErrors> LoadFullMap(string fullMapPath)
-            => LoadMap(fullMapPath: fullMapPath).SelectMany(func: FullValidMapInfo.Create);
+        private static Result<FullValidMapInfo, TextErrors> LoadFullMap(FilePath fullMapPath)
+            => LoadMap(mapPath: fullMapPath).SelectMany(func: FullValidMapInfo.Create);
 
-        private static void SaveMap(string fullMapPath, ValidMapInfo mapInfo, bool readyToUse)
-            => File.WriteAllText
+        private static void SaveMap(FilePath mapPath, ValidMapInfo mapInfo, bool readyToUse)
+            => mapPath.WriteAllText
             (
-                path: fullMapPath,
                 contents: JsonSerializer.Serialize<MapInfo>
                 (
                     value: mapInfo.ToJsonable(readyToUse: readyToUse),
@@ -144,14 +137,17 @@ namespace Game1
                 )
             );
 
-        private static string GenerateMapName()
-            => Algorithms.GanerateNewName
+        private static FilePath GenerateMapPath()
+            => new
             (
-                prefix: "Map",
-                usedNames: GetMapFullPaths().Select
-                (
-                    fullMapPath => Path.GetFileNameWithoutExtension(path: fullMapPath)
-                ).ToEfficientReadOnlyHashSet()
+                directoryPath: DirectoryPath.editableMapsPath,
+                fileNameWithExtension: Algorithms.GanerateNewName
+                    (
+                        prefix: "Map",
+                        usedNames: GetMapPaths()
+                            .Select(mapPath => mapPath.fileNameNoExtension)
+                            .ToEfficientReadOnlyHashSet()
+                    ) + ".json"
             );
 
         protected sealed override void LoadContent()
@@ -160,7 +156,14 @@ namespace Game1
             (
                 contentManager: Content,
                 graphicsDevice: GraphicsDevice
-            );
+            );            
+
+            if (!DirectoryPath.editableMapsPath.Exists())
+            {
+                DirectoryPath.editableMapsPath.CreateDirectory();
+                foreach (var mapPath in GetMapPaths(editable: false))
+                    mapPath.CopyFileToDirectory(directoryPath: DirectoryPath.editableMapsPath);
+            }
 
             MenuState mapCreationStatePauseMenu = new();
             MenuState mapCreationStateDoubleCheckIfExitWithoutSaving = new();
@@ -181,7 +184,7 @@ namespace Game1
                             mapCreationState = MapCreationState.CreateNewMap
                             (
                                 switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: mapCreationStatePauseMenu),
-                                mapName: GenerateMapName()
+                                mapPath: GenerateMapPath()
                             );
                             SetGameState(newGameState: mapCreationState);
                         },
@@ -189,15 +192,14 @@ namespace Game1
                     )
                 }.Concat
                 (
-                    GetMapFullPaths().Select
+                    GetMapPaths().Select
                     (
-                        mapFullPath =>
+                        mapPath =>
                         {
-                            string mapName = Path.GetFileNameWithoutExtension(path: mapFullPath);
                             return CreateActionButton
                             (
-                                text: mapName,
-                                action: () => LoadMap(fullMapPath: mapFullPath).SwitchStatement
+                                text: mapPath.fileNameNoExtension,
+                                action: () => LoadMap(mapPath: mapPath).SwitchStatement
                                 (
                                     ok: mapInfo =>
                                     {
@@ -205,18 +207,18 @@ namespace Game1
                                         (
                                             switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: mapCreationStatePauseMenu),
                                             mapInfo: mapInfo,
-                                            mapName: mapName
+                                            mapPath: mapPath
                                         );
                                         SetGameState(newGameState: mapCreationState);
                                     },
                                     error: errors => SwitchToInvalidMapState
                                     (
-                                        mapFullPath: mapFullPath,
+                                        mapFullPath: mapPath,
                                         errors: errors,
                                         goBackMenuState: mapEditorMenu
                                     )
                                 ),
-                                tooltipText: $"""Edit map named "{mapName}" """
+                                tooltipText: $"""Edit map named "{mapPath.fileNameNoExtension}" """
                             );
                         }
                     )
@@ -234,12 +236,12 @@ namespace Game1
             
             chooseMapMenu.Initialize
             (
-                getHUDElements: () => GetMapFullPaths().Select
+                getHUDElements: () => GetMapPaths().Select
                 (
-                    mapFullPath => CreateActionButton
+                    mapPath => CreateActionButton
                     (
-                        text: Path.GetFileNameWithoutExtension(path: mapFullPath),
-                        action: () => LoadFullMap(fullMapPath: mapFullPath).SwitchStatement
+                        text: mapPath.fileNameNoExtension,
+                        action: () => LoadFullMap(fullMapPath: mapPath).SwitchStatement
                         (
                             ok: mapInfo =>
                             {
@@ -252,13 +254,13 @@ namespace Game1
                             },
                             error: errors => SwitchToInvalidMapState
                             (
-                                mapFullPath: mapFullPath,
+                                mapFullPath: mapPath,
                                 errors: errors,
                                 goBackMenuState: chooseMapMenu
                             )
                         ),
-                        tooltipText: $"""Start game in map named "{Path.GetFileNameWithoutExtension(path: mapFullPath)}" """,
-                        enabled: MapInfo.IsFileReady(mapFullPath: mapFullPath)
+                        tooltipText: $"""Start game in map named "{mapPath.fileNameNoExtension}" """,
+                        enabled: MapInfo.IsFileReady(mapFullPath: mapPath)
                     )
                 ).Append
                 (
@@ -284,7 +286,7 @@ namespace Game1
                             newGameState: playState ?? PlayState.ContinueFromSave
                             (
                                 switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: playStatePauseMenu),
-                                saveFilePath: GetGameSaveFilePath
+                                saveFilePath: GetGameSaveFilePath()
                             ).SwitchExpression
                             (
                                 ok: newPlayState =>
@@ -316,7 +318,7 @@ namespace Game1
                             )
                         ),
                         tooltipText: "Continue from last save",
-                        enabled: playState is not null || File.Exists(GetGameSaveFilePath)
+                        enabled: playState is not null || GetGameSaveFilePath().Exists()
                     ),
                     CreateActionButton
                     (
@@ -351,7 +353,7 @@ namespace Game1
                     ),
                     CreateActionButton
                     (
-                        action: () => playState!.SaveGame(saveFilePath: GetGameSaveFilePath),
+                        action: () => playState!.SaveGame(saveFilePath: GetGameSaveFilePath()),
                         text: "Save",
                         tooltipText: "Save the game. Will override the last save"
                     ),
@@ -359,7 +361,7 @@ namespace Game1
                     (
                         action: () =>
                         {
-                            playState!.SaveGame(saveFilePath: GetGameSaveFilePath);
+                            playState!.SaveGame(saveFilePath: GetGameSaveFilePath());
                             SetGameState(newGameState: mainMenu);
                         },
                         text: "Save and exit",
@@ -432,7 +434,7 @@ namespace Game1
 
             return;
 
-            void SwitchToInvalidMapState(string mapFullPath, IEnumerable<string> errors, MenuState goBackMenuState)
+            void SwitchToInvalidMapState(FilePath mapFullPath, IEnumerable<string> errors, MenuState goBackMenuState)
             {
                 MenuState invalidMapMenu = new();
                 invalidMapMenu.Initialize
@@ -484,7 +486,7 @@ namespace Game1
                 }
                 SaveMap
                 (
-                    fullMapPath: Path.Combine(GetMapsFolderPath(), mapCreationState!.mapName + ".json"),
+                    mapPath: mapCreationState!.mapPath,
                     mapInfo: mapInfo,
                     readyToUse: readyToUse
                 );

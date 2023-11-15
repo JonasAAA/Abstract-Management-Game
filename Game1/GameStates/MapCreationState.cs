@@ -303,13 +303,13 @@ namespace Game1.GameStates
                 => historyCurInd = MyMathHelper.Min(changeHistory.Count - 1, historyCurInd + 1);
         }
 
-        public static MapCreationState CreateNewMap(IAction switchToPauseMenu, string mapName)
-            => new(switchToPauseMenu: switchToPauseMenu, mapWithCamera: MapInfoInternal.CreateEmpty(), mapName: mapName);
+        public static MapCreationState CreateNewMap(IAction switchToPauseMenu, FilePath mapPath)
+            => new(switchToPauseMenu: switchToPauseMenu, mapWithCamera: MapInfoInternal.CreateEmpty(), mapPath: mapPath);
 
-        public static MapCreationState FromMap(IAction switchToPauseMenu, ValidMapInfo mapInfo, string mapName)
-            => new(switchToPauseMenu: switchToPauseMenu, mapWithCamera: MapInfoInternal.Create(mapInfo: mapInfo), mapName: mapName);
+        public static MapCreationState FromMap(IAction switchToPauseMenu, ValidMapInfo mapInfo, FilePath mapPath)
+            => new(switchToPauseMenu: switchToPauseMenu, mapWithCamera: MapInfoInternal.Create(mapInfo: mapInfo), mapPath: mapPath);
 
-        public readonly string mapName;
+        public readonly FilePath mapPath;
 
         private MapInfoInternal CurMapInfo
             => changeHistory.CurMapInfo;
@@ -327,9 +327,9 @@ namespace Game1.GameStates
         private readonly EnumDict<StartingBuilding, TextBox> startingBuildingToTextBox;
         private readonly string controlDescrContr, controlDescrExp;
 
-        private MapCreationState(IAction switchToPauseMenu, (MapInfoInternal mapInfo, WorldCamera worldCamera) mapWithCamera, string mapName)
+        private MapCreationState(IAction switchToPauseMenu, (MapInfoInternal mapInfo, WorldCamera worldCamera) mapWithCamera, FilePath mapPath)
         {
-            this.mapName = mapName;
+            this.mapPath = mapPath;
             changeHistory = new(startingMapInfo: mapWithCamera.mapInfo);
             worldCamera = mapWithCamera.worldCamera;
             activeUIManager = new();

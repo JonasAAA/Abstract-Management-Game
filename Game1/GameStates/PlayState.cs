@@ -15,7 +15,7 @@ namespace Game1.GameStates
             return new(switchToPauseMenu: switchToPauseMenu);
         }
 
-        public static Result<PlayState, string> ContinueFromSave(IAction switchToPauseMenu, string saveFilePath)
+        public static Result<PlayState, string> ContinueFromSave(IAction switchToPauseMenu, FilePath saveFilePath)
         {
             try
             {
@@ -43,7 +43,7 @@ namespace Game1.GameStates
             switchToPauseMenuButton.Update();
         }
 
-        public void SaveGame(string saveFilePath)
+        public void SaveGame(FilePath saveFilePath)
             => WorldManager.CurWorldManager.Save(saveFilePath: saveFilePath);
 
         public sealed override void Draw()

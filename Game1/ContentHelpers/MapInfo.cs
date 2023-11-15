@@ -11,9 +11,9 @@ namespace Game1.ContentHelpers
     {
         private static readonly string[] fileNotReadyTokens = { "{", $"\"{nameof(NotReadyToUse)}\"", ":", "true" };
 
-        public static bool IsFileReady(string mapFullPath)
+        public static bool IsFileReady(FilePath mapFullPath)
         {
-            using StreamReader streamReader = new(mapFullPath);
+            using StreamReader streamReader = new(mapFullPath.CreateFileStream(FilePath.FileAccess.Read));
             return !Algorithms.StreamStartsWith(streamReader: streamReader, tokens: fileNotReadyTokens);
         }
 

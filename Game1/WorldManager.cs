@@ -180,7 +180,7 @@ namespace Game1
             }
         }
 
-        public static ActiveUIManager LoadWorldManager(string saveFilePath)
+        public static ActiveUIManager LoadWorldManager(FilePath saveFilePath)
         {
             if (curWorldManager is not null)
                 throw new InvalidOperationException();
@@ -194,7 +194,7 @@ namespace Game1
 
             WorldManager Deserialize()
             {
-                using FileStream fileStream = new(path: saveFilePath, FileMode.Open, FileAccess.Read);
+                using FileStream fileStream = saveFilePath.CreateFileStream(FilePath.FileAccess.Read);
                 DataContractSerializer serializer = GetDataContractSerializer();
 
                 using var reader = XmlDictionaryReader.CreateBinaryReader
@@ -594,9 +594,9 @@ namespace Game1
             activeUIManager.DrawHUD();
         }
 
-        public void Save(string saveFilePath)
+        public void Save(FilePath saveFilePath)
         {
-            using FileStream fileStream = new(path: saveFilePath, FileMode.Create);
+            using FileStream fileStream = saveFilePath.CreateFileStream(FilePath.FileAccess.Write);
             DataContractSerializer serializer = GetDataContractSerializer();
 
             using var writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);

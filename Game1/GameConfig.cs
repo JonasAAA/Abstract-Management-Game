@@ -3,6 +3,8 @@
     [Serializable]
     public class GameConfig
     {
+        public const string gameName = "Abstract Management Game";
+
         public static readonly GameConfig CurGameConfig = new();
 
         public readonly UDouble

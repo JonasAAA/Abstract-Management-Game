@@ -4,11 +4,8 @@
     /// Mechanical complexity. Operating costs increase and throughput decreases with complex a product/industry
     /// </summary>
     [Serializable]
-    public readonly struct MechComplexity
+    public readonly struct MechComplexity(ulong complexity)
     {
-        private readonly ulong complexity;
-
-        public MechComplexity(ulong complexity)
-            => this.complexity = complexity;
+        private readonly ulong complexity = complexity;
     }
 }

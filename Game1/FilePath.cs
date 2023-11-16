@@ -3,7 +3,7 @@
 namespace Game1
 {
     [Serializable]
-    public readonly struct FilePath
+    public readonly struct FilePath(DirectoryPath directoryPath, string fileNameWithExtension)
     {
         public enum FileAccess
         {
@@ -11,19 +11,9 @@ namespace Game1
             Write
         }
 
-        public readonly string fileNameNoExtension;
+        public readonly string fileNameNoExtension = Path.GetFileNameWithoutExtension(fileNameWithExtension);
 
-        private readonly string fileNameWithExtension;
-        private readonly DirectoryPath directoryPath;
-        private readonly string filePath;
-
-        public FilePath(DirectoryPath directoryPath, string fileNameWithExtension)
-        {
-            filePath = Path.Combine(directoryPath.directoryPath, fileNameWithExtension);
-            fileNameNoExtension = Path.GetFileNameWithoutExtension(fileNameWithExtension);
-            this.fileNameWithExtension = fileNameWithExtension;
-            this.directoryPath = directoryPath;
-        }
+        private readonly string filePath = Path.Combine(directoryPath.directoryPath, fileNameWithExtension);
 
         public bool Exists()
             => File.Exists(filePath);

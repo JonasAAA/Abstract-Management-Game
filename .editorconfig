@@ -109,6 +109,7 @@ dotnet_diagnostic.CA1043.severity = none
 
 # CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
 dotnet_diagnostic.CS8524.severity = none
+csharp_style_prefer_primary_constructors = false
 
 [*.{cs,vb}]
 #### Naming styles ####
@@ -231,3 +232,4 @@ dotnet_diagnostic.CA2201.severity = suggestion
 
 # IDE0046: Convert to conditional expression
 dotnet_diagnostic.IDE0046.severity = none
+dotnet_style_prefer_collection_expression = false

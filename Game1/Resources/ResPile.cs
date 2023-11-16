@@ -50,9 +50,7 @@ namespace Game1.Resources
 
             private ResPileInternal(LocationCounters locationCounters, ResCounter counter)
                 : base(locationCounters: locationCounters, counter: counter)
-            {
-                Counter = counter;
-            }
+                => Counter = counter;
 
             public void TransformFrom(ResPileInternal source, ResRecipe recipe)
             {

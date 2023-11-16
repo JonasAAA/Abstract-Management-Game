@@ -9,9 +9,9 @@
             : base(width: width, height: height)
         { }
 
-        public sealed override bool Contains(Vector2Bare position)
+        public sealed override bool Contains(Vector2Bare screenPos)
         {
-            Vector2Bare relPos = position - Center;
+            Vector2Bare relPos = screenPos - Center;
             double propX = 2 * relPos.X / Width,
                 propY = 2 * relPos.Y / Height;
             return propX * propX + propY * propY < 1;

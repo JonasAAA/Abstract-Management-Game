@@ -88,7 +88,7 @@ namespace TestProject
             );
         }
 
-        private static Stream StreamFromString(string value)
-            => new MemoryStream(Encoding.UTF8.GetBytes(value));
+        private static MemoryStream StreamFromString(string value)
+            => new(Encoding.UTF8.GetBytes(value));
     }
 }

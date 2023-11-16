@@ -48,7 +48,7 @@ namespace Game1.Resources
         ~Counter()
         {
             if (!createdByMagic && Count != TAmount.AdditiveIdentity)
-                throw new Exception();
+                throw new InvalidStateException();
         }
 #endif
     }

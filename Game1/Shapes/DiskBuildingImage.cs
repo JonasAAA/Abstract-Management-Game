@@ -9,16 +9,10 @@ namespace Game1.Shapes
     public sealed class DiskBuildingImage : IBuildingImage, IIncompleteBuildingImage
     {
         [Serializable]
-        public readonly struct Params : IBuildingImageParams<DiskBuildingImage>
+        public readonly struct Params(Length finishedBuildingHeight, Color color) : IBuildingImageParams<DiskBuildingImage>
         {
-            public readonly Length finishedBuildingHeight;
-            public readonly Color color;
-            
-            public Params(Length finishedBuildingHeight, Color color)
-            {
-                this.color = color;
-                this.finishedBuildingHeight = finishedBuildingHeight;
-            }
+            public readonly Length finishedBuildingHeight = finishedBuildingHeight;
+            public readonly Color color = color;
 
             public DiskBuildingImage CreateImage(INodeShapeParams nodeShapeParams)
                 => new(parameters: this, nodeShapeParams: nodeShapeParams);

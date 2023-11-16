@@ -18,7 +18,7 @@ namespace Game1.UI
 
         protected UIRectPanel()
             : base(shape: new MyRectangle())
-            => children = new();
+            => children = [];
 
         protected void AddChildren(IEnumerable<TChild?> newChildren)
         {

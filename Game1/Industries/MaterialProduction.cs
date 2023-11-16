@@ -13,7 +13,6 @@ namespace Game1.Industries
     /// </summary>
     public static class MaterialProduction
     {
-#pragma warning disable IDE0001 // Otherwise it says to use MaterialProductionChoice instead of Material everywhere
         [Serializable]
         public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
@@ -317,6 +316,5 @@ namespace Game1.Industries
             {
                 typeof(Industry<ConcreteProductionParams, ConcreteBuildingParams, ResPile, ProductionCycleState>)
             };
-#pragma warning restore IDE0001
     }
 }

@@ -152,7 +152,7 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        public class PersistentState
+        public sealed class PersistentState
         {
             public readonly ResPile buildingResPile;
             public HistoricCorrector<double> minedAreaHistoricCorrector;

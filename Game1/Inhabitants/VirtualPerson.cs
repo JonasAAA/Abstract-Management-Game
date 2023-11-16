@@ -4,7 +4,7 @@ using Game1.Industries;
 namespace Game1.Inhabitants
 {
     [Serializable]
-    public class VirtualPerson
+    public sealed class VirtualPerson
     {
         public EnumDict<IndustryType, Score> Enjoyments
             => realPerson.Stats.enjoyments;

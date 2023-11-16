@@ -192,33 +192,30 @@ namespace Game1
                 (
                     GetMapPaths().Select
                     (
-                        mapPath =>
-                        {
-                            return CreateActionButton
+                        mapPath => CreateActionButton
+                        (
+                            text: mapPath.fileNameNoExtension,
+                            action: () => LoadMap(mapPath: mapPath).SwitchStatement
                             (
-                                text: mapPath.fileNameNoExtension,
-                                action: () => LoadMap(mapPath: mapPath).SwitchStatement
-                                (
-                                    ok: mapInfo =>
-                                    {
-                                        mapCreationState = MapCreationState.FromMap
-                                        (
-                                            switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: mapCreationStatePauseMenu),
-                                            mapInfo: mapInfo,
-                                            mapPath: mapPath
-                                        );
-                                        SetGameState(newGameState: mapCreationState);
-                                    },
-                                    error: errors => SwitchToInvalidMapState
+                                ok: mapInfo =>
+                                {
+                                    mapCreationState = MapCreationState.FromMap
                                     (
-                                        mapFullPath: mapPath,
-                                        errors: errors,
-                                        goBackMenuState: mapEditorMenu
-                                    )
-                                ),
-                                tooltipText: $"""Edit map named "{mapPath.fileNameNoExtension}" """
-                            );
-                        }
+                                        switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: mapCreationStatePauseMenu),
+                                        mapInfo: mapInfo,
+                                        mapPath: mapPath
+                                    );
+                                    SetGameState(newGameState: mapCreationState);
+                                },
+                                error: errors => SwitchToInvalidMapState
+                                (
+                                    mapFullPath: mapPath,
+                                    errors: errors,
+                                    goBackMenuState: mapEditorMenu
+                                )
+                            ),
+                            tooltipText: $"""Edit map named "{mapPath.fileNameNoExtension}" """
+                        )
                     )
                 ).Append
                 (

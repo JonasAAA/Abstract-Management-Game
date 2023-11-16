@@ -3,20 +3,14 @@
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly struct ResAmount<TRes> : IMultiplyOperators<ResAmount<TRes>, ulong, ResAmount<TRes>>, IMultiplicativeIdentity<ResAmount<TRes>, ulong>
+    public readonly struct ResAmount<TRes>(TRes res, ulong amount) : IMultiplyOperators<ResAmount<TRes>, ulong, ResAmount<TRes>>, IMultiplicativeIdentity<ResAmount<TRes>, ulong>
         where TRes : class, IResource
     {
         static ulong IMultiplicativeIdentity<ResAmount<TRes>, ulong>.MultiplicativeIdentity
             => 1;
 
-        public readonly TRes res;
-        public readonly ulong amount;
-
-        public ResAmount(TRes res, ulong amount)
-        {
-            this.res = res;
-            this.amount = amount;
-        }
+        public readonly TRes res = res;
+        public readonly ulong amount = amount;
 
         public void Deconstruct(out TRes res, out ulong amount)
         {

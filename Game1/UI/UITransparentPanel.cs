@@ -17,7 +17,7 @@ namespace Game1.UI
 
         public UITransparentPanel()
             : base(shape: new InfinitePlane())
-            => children = new();
+            => children = [];
 
         public void AddChild(TChild child, ulong layer = 0)
         {

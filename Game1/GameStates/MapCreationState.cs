@@ -116,7 +116,7 @@ namespace Game1.GameStates
         private readonly record struct StartingInfoInternal(MyVector2 WorldCenter, Length CameraViewHeight, EnumDict<StartingBuilding, CosmicBodyId?> StartingBuildingToCosmicBodyId);
 
         [Serializable]
-        private record struct MapInfoInternal(ImmutableDictionary<CosmicBodyId, CosmicBodyInfoInternal> CosmicBodies, ImmutableDictionary<LinkId, LinkInfoInternal> Links, StartingInfoInternal StartingInfo)
+        private readonly record struct MapInfoInternal(ImmutableDictionary<CosmicBodyId, CosmicBodyInfoInternal> CosmicBodies, ImmutableDictionary<LinkId, LinkInfoInternal> Links, StartingInfoInternal StartingInfo)
         {
             public static (MapInfoInternal mapInfo, WorldCamera worldCamera) CreateEmpty()
             {
@@ -458,7 +458,7 @@ namespace Game1.GameStates
             var mouseState = Mouse.GetState();
             var keyboardState = Keyboard.GetState();
             mouseLeftButton.Update(down: mouseState.LeftButton == ButtonState.Pressed);
-            Vector2Bare mouseScreenPos = (Vector2Bare)mouseState.Position;
+            var mouseScreenPos = (Vector2Bare)mouseState.Position;
             MyVector2 mouseWorldPos = worldCamera.ScreenPosToWorldPos(screenPos: mouseScreenPos);
 
             IWorldUIElementId? hoverUIElement = null;

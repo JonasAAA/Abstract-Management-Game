@@ -65,7 +65,7 @@ namespace Game1
                 );
 
             Debug.Assert(!totalReqEnergy.IsZero);
-            EfficientReadOnlyCollection<ConsumerWithEnergy<T>> consumersWithEnergy = reqEnergies.Select
+            var consumersWithEnergy = reqEnergies.Select
             (
                 (reqEnergy, index) => new ConsumerWithEnergy<T>
                 (

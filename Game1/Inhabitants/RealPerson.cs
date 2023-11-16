@@ -262,7 +262,7 @@ namespace Game1.Inhabitants
 #pragma warning disable CA1821 // Remove empty Finalizers
         ~RealPerson()
 #pragma warning restore CA1821 // Remove empty Finalizers
-            => throw new();
+            => throw new InvalidStateException();
 #endif
     }
 }

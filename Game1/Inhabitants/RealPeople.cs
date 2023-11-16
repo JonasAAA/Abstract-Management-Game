@@ -181,7 +181,7 @@ namespace Game1.Inhabitants
         ~RealPeople()
         {
             if (virtualToRealPeople.Count > 0)
-                throw new();
+                throw new InvalidStateException();
         }
 #endif
     }

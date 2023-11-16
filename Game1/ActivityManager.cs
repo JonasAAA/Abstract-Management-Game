@@ -9,7 +9,7 @@ namespace Game1
         private readonly HashSet<IActivityCenter> activityCenters;
 
         public ActivityManager()
-            => activityCenters = new();
+            => activityCenters = [];
 
         public void AddActivityCenter(IActivityCenter activityCenter)
         {

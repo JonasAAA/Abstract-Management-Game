@@ -37,8 +37,8 @@ namespace Game1.Lighting
 
         public LightManager(EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
-            lightCatchingObjects = new();
-            lightSources = new();
+            lightCatchingObjects = [];
+            lightSources = [];
             vacuumAsRadiantEnergyConsumer = new(vacuumHeatEnergyPile: vacuumHeatEnergyPile);
         }
 

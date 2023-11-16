@@ -17,47 +17,44 @@ namespace TestProject
             {
                 Random random = new(Seed: 125);
 
-                return new[]
+                return new object[][]
                 {
-                    new object[]
-                    {
+                    [
                         new EfficientReadOnlyDictionary<Algorithms.Vertex<int>, Algorithms.VertexInfo<int>>()
                         {
                             [new(ResOwner: 0, IsSource: true)] = new
                             (
-                                directedNeighbours: new List<int>() { 2, 3, 4 },
+                                directedNeighbours: [2, 3, 4],
                                 amount: 10
                             ),
                             [new(ResOwner: 1, IsSource: true)] = new
                             (
-                                directedNeighbours: new List<int>() { 2, 4 },
+                                directedNeighbours: [2, 4],
                                 amount: 5
                             ),
                             [new(ResOwner: 2, IsSource: false)] = new
                             (
-                                directedNeighbours: new List<int>() { 0, 1 },
+                                directedNeighbours: [0, 1],
                                 amount: 20
                             ),
                             [new(ResOwner: 3, IsSource: false)] = new
                             (
-                                directedNeighbours: new List<int>() { 0 },
+                                directedNeighbours: [0],
                                 amount: 30
                             ),
                             [new(ResOwner: 4, IsSource: false)] = new
                             (
-                                directedNeighbours: new List<int>() { 0, 1 },
+                                directedNeighbours: [0, 1],
                                 amount: 10
                             ),
                         },
-                    },
-                    new object[]
-                    {
+                    ],
+                    [
                         GenerateRandomGraph(vertCount: 100, edgeCount: 1000, maxAmountInVert: 100000)
-                    },
-                    new object[]
-                    {
+                    ],
+                    [
                         GenerateRandomGraph(vertCount: 100, edgeCount: 5000, maxAmountInVert: 30)
-                    }
+                    ]
                 };
 
                 EfficientReadOnlyDictionary<Algorithms.Vertex<int>, Algorithms.VertexInfo<int>> GenerateRandomGraph(int vertCount, int edgeCount, int maxAmountInVert)
@@ -65,16 +62,16 @@ namespace TestProject
                     var simpleGraph =
                        (from _ in Enumerable.Range(0, edgeCount)
                         select (source: random.Next(maxValue: vertCount), destin: random.Next(maxValue: vertCount))).ToList();
-                    Dictionary<Algorithms.Vertex<int>, Algorithms.VertexInfo<int>> graph = new();
+                    Dictionary<Algorithms.Vertex<int>, Algorithms.VertexInfo<int>> graph = [];
                     foreach (var (source, destin) in simpleGraph)
                     {
                         Algorithms.Vertex<int> sourceVert = new(ResOwner: source, IsSource: true);
                         if (!graph.ContainsKey(sourceVert))
-                            graph.Add(key: sourceVert, value: new(directedNeighbours: new(), amount: 0));
+                            graph.Add(key: sourceVert, value: new(directedNeighbours: [], amount: 0));
 
                         Algorithms.Vertex<int> destinVert = new(ResOwner: destin, IsSource: false);
                         if (!graph.ContainsKey(destinVert))
-                            graph.Add(key: destinVert, value: new(directedNeighbours: new(), amount: 0));
+                            graph.Add(key: destinVert, value: new(directedNeighbours: [], amount: 0));
                         Debug.Assert(graph[sourceVert].directedNeighbours.Contains(destin) == graph[destinVert].directedNeighbours.Contains(source));
                         if (!graph[sourceVert].directedNeighbours.Contains(destin))
                         {

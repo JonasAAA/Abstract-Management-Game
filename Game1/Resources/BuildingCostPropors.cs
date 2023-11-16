@@ -14,7 +14,7 @@ namespace Game1.Resources
         {
             this.ingredProdToAmounts = ingredProdToAmounts;
 
-            Dictionary<ProductClass, AreaInt> productClassAmounts = new();
+            Dictionary<ProductClass, AreaInt> productClassAmounts = [];
             foreach (var (prodParams, amount) in ingredProdToAmounts)
             {
                 if (amount is 0)

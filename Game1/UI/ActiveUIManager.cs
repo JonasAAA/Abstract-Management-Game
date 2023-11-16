@@ -43,8 +43,8 @@ namespace Game1.UI
         {
             //clickedNowhere = new();
 
-            activeUIElements = new();
-            HUDElements = new();
+            activeUIElements = [];
+            HUDElements = [];
             mouseLeftButton = new();
             halfClicked = null;
             contMouse = null;
@@ -52,8 +52,8 @@ namespace Game1.UI
             hoverDuration = TimeSpan.Zero;
 
             HUDPosSetter = new();
-            worldUIElements = new();
-            worldHUDElementToUpdateHUDPosAction = new();
+            worldUIElements = [];
+            worldHUDElementToUpdateHUDPosAction = [];
 
             tooltip = null;
             HUDPopup = null;

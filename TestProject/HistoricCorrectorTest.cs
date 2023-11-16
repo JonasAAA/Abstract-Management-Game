@@ -13,10 +13,10 @@ namespace TestProject
             get
             {
                 Random random = new(Seed: 125);
-                return new[]
+                return new object[][]
                 {
-                    new object[] { (Func<int, int>)(x => x - 1), new int[] { 1, -5, 3, 7, 2 } },
-                    new object[] { (Func<int, int>)(x => random.Next() % 100), new int[] { 1, -5, 3, 7, 2 } },
+                    [(Func<int, int>)(x => x - 1), new int[] { 1, -5, 3, 7, 2 }],
+                    [(Func<int, int>)(x => random.Next() % 100), new int[] { 1, -5, 3, 7, 2 }],
                 };
             }
         }

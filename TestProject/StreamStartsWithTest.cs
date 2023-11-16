@@ -18,7 +18,7 @@ namespace TestProject
                 actual: Algorithms.StreamStartsWith
                 (
                     streamReader: streamReader,
-                    tokens: new string[] { "foo", "bar" }
+                    tokens: ["foo", "bar"]
                 )
             );
         }
@@ -33,7 +33,7 @@ namespace TestProject
                 actual: Algorithms.StreamStartsWith
                 (
                     streamReader: streamReader,
-                    tokens: new string[] { "foo", "bar", "baz" }
+                    tokens: ["foo", "bar", "baz"]
                 )
             );
         }
@@ -48,7 +48,7 @@ namespace TestProject
                 actual: Algorithms.StreamStartsWith
                 (
                     streamReader: streamReader,
-                    tokens: new string[] { "foo", "bar", "baz" }
+                    tokens: ["foo", "bar", "baz"]
                 )
             );
         }
@@ -63,7 +63,7 @@ namespace TestProject
                 actual: Algorithms.StreamStartsWith
                 (
                     streamReader: streamReader,
-                    tokens: new string[] { "\"foo\"", "\'bar\'", "\\baz\\" }
+                    tokens: ["\"foo\"", "\'bar\'", "\\baz\\"]
                 )
             );
         }
@@ -78,7 +78,7 @@ namespace TestProject
                 actual: Algorithms.StreamStartsWith
                 (
                     streamReader: streamReader,
-                    tokens: new string[] { "foo", "bar", "baz" }
+                    tokens: ["foo", "bar", "baz"]
                 )
             );
             Assert.AreEqual

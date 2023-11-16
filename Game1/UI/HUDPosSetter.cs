@@ -43,7 +43,7 @@ namespace Game1.UI
         private readonly Dictionary<IHUDElement, HUDElementSizeOrPosChangedListener> sizeOrPosChangedListeners;
 
         public HUDPosSetter()
-            => sizeOrPosChangedListeners = new();
+            => sizeOrPosChangedListeners = [];
 
         public void AddHUDElement(IHUDElement HUDElement, PosEnums position)
             => AddHUDElement

@@ -5,7 +5,7 @@ namespace Game1.Collections
     [Serializable]
     public readonly struct EfficientReadOnlyHashSet<T> : IReadOnlySet<T>
     {
-        public static readonly EfficientReadOnlyHashSet<T> empty = new(set: new());
+        public static readonly EfficientReadOnlyHashSet<T> empty = new(set: []);
 
         public int Count
             => set.Count;
@@ -16,7 +16,7 @@ namespace Game1.Collections
             => set = empty.set;
 
         public EfficientReadOnlyHashSet(T value)
-            : this(set: new() { value })
+            : this(set: [value])
         { }
 
         public EfficientReadOnlyHashSet(HashSet<T> set)
@@ -28,7 +28,7 @@ namespace Game1.Collections
                 return other;
             if (other.Count is 0)
                 return this;
-            HashSet<T> set = new();
+            HashSet<T> set = [];
             set.UnionWith(this);
             set.UnionWith(other);
             return new(set);

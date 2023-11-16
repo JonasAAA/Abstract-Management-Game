@@ -14,8 +14,7 @@ namespace BenchmarkProject
 
             BenchmarkRunner.Run
             (
-                new[]
-                {
+                [
                     BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<UInt32Generator, uint>), config),
 
                     BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<UInt64Generator, ulong>), config),
@@ -30,7 +29,7 @@ namespace BenchmarkProject
                     BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<UInt256DivideByUInt64Generator, MyUInt256>), config),
                     BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<UInt256DivideByUInt128Generator, MyUInt256>), config),
                     BenchmarkConverter.TypeToBenchmarks(typeof(DivisionBenchmark<UInt256Generator, MyUInt256>), config)
-                }
+                ]
             );
         }
     }

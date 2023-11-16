@@ -52,7 +52,7 @@ namespace Game1.Inhabitants
             this.thermalBody = thermalBody;
             deleted = new();
             Stats = RealPeopleStats.empty;
-            virtualToRealPeople = new();
+            virtualToRealPeople = [];
             allocElectricalEnergy = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: LocationCounters);
             this.closestNodeID = closestNodeID;
             this.electricalEnergySourceNodeID = electricalEnergySourceNodeID;

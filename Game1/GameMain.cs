@@ -17,11 +17,11 @@ namespace Game1
         public static EfficientReadOnlyHashSet<Type> NonSerializableTypes()
             => new
             (
-                set: new()
-                {
+                set:
+                [
                     typeof(GameMain),
                     typeof(SetGameStateToPause)
-                }
+                ]
             );
 
         private readonly GraphicsDeviceManager graphics;

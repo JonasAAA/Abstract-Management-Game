@@ -19,7 +19,7 @@ namespace Game1.ContentHelpers
 
         public static ValidMapInfo CreateOrThrow(bool notReadyToUse, EfficientReadOnlyCollection<ValidCosmicBodyInfo> cosmicBodies, EfficientReadOnlyCollection<ValidLinkInfo> links, ValidStartingInfo startingInfo)
         {
-            HashSet<string> cosmicBodyNames = new();
+            HashSet<string> cosmicBodyNames = [];
             foreach (var cosmicBodyInfo in cosmicBodies)
                 if (!cosmicBodyNames.Add(cosmicBodyInfo.Name))
                     throw new ContentException($"""Cosmic body names must be unique. "{cosmicBodyInfo.Name}" is used multiple times.""");

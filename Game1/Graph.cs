@@ -341,8 +341,8 @@ namespace Game1
                             Debug.Assert(firstLinksArray[i, j] is not null);
                         }
 
-            Dictionary<(NodeID, NodeID), UDouble> distsDict = new();
-            Dictionary<(NodeID, NodeID), Link?> firstLinksDict = new();
+            Dictionary<(NodeID, NodeID), UDouble> distsDict = [];
+            Dictionary<(NodeID, NodeID), Link?> firstLinksDict = [];
             for (int i = 0; i < nodes.Count; i++)
                 for (int j = 0; j < nodes.Count; j++)
                 {
@@ -413,7 +413,7 @@ namespace Game1
 
         public void DistributeRes()
         {
-            Dictionary<IResource, Dictionary<Algorithms.Vertex<IIndustry>, Algorithms.VertexInfo<IIndustry>>> resToRouteGraphs = new();
+            Dictionary<IResource, Dictionary<Algorithms.Vertex<IIndustry>, Algorithms.VertexInfo<IIndustry>>> resToRouteGraphs = [];
             foreach (var industry in Industries)
             {
                 AllResAmounts demand = industry.GetDemand(), supply = industry.GetSupply();

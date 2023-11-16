@@ -259,7 +259,7 @@ namespace Game1.GameStates
 
             public ChangeHistory(MapInfoInternal startingMapInfo)
             {
-                changeHistory = new();
+                changeHistory = [];
                 historyCurInd = -1;
                 LogNewChange(newMapInfo: startingMapInfo);
             }

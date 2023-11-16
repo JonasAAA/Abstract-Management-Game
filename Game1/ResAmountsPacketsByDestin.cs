@@ -28,7 +28,7 @@
         private ResAmountsPacketsByDestin(ThermalBody thermalBody)
         {
             this.thermalBody = thermalBody;
-            resAmountsPacketsByDestin = new();
+            resAmountsPacketsByDestin = [];
 
             ResAmounts = AllResAmounts.empty;
             Mass = Mass.zero;
@@ -85,7 +85,7 @@
         public IEnumerable<ResAmountsPacket> DeconstructAndClear()
         {
             var result = resAmountsPacketsByDestin.Values;
-            resAmountsPacketsByDestin = new();
+            resAmountsPacketsByDestin = [];
             ResAmounts = AllResAmounts.empty;
             Mass = Mass.zero;
             return result;

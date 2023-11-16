@@ -60,8 +60,8 @@ namespace Game1
             var nonSerializableTypes = GameMain.NonSerializableTypes();
 
             // TODO: move to a more appropriate class?
-            HashSet<Type> knownTypesSet = new()
-            {
+            HashSet<Type> knownTypesSet =
+            [
                 typeof(Dictionary<IndustryType, Score>),
                 typeof(EfficientReadOnlyDictionary<NodeID, CosmicBody>),
                 typeof(UIHorizTabPanel<IHUDElement>),
@@ -76,7 +76,7 @@ namespace Game1
                 typeof(EnergyCounter<RadiantEnergy>),
                 typeof(EnergyCounter<ElectricalEnergy>),
                 //typeof(EnergyCounter<ResAmounts>),
-            };
+            ];
             knownTypesSet.UnionWith(Construction.GetKnownTypes());
             knownTypesSet.UnionWith(Manufacturing.GetKnownTypes());
             knownTypesSet.UnionWith(PowerPlant.GetKnownTypes());
@@ -89,7 +89,7 @@ namespace Game1
             knownTypesSet.UnionWith(FunctionGraphImage.GetKnownTypes());
             knownTypesSet.UnionWith(FunctionGraphWithHighlighImage.GetKnownTypes());
 
-            List<Type> unserializedTypeList = new();
+            List<Type> unserializedTypeList = [];
             foreach (var type in Assembly.GetExecutingAssembly().GetTypes())
             {
                 if (Attribute.GetCustomAttribute(type, typeof(CompilerGeneratedAttribute)) is not null)
@@ -265,7 +265,7 @@ namespace Game1
             CurResConfig = resConfig = new();
             CurResConfig.Initialize();
             industryConfig = new();
-            people = new();
+            people = [];
 
             activityManager = new();
             energyManager = new();
@@ -324,12 +324,12 @@ namespace Game1
             {
                 const ulong minX = 1, maxX = 10;
 
-                List<(UDouble weight, Func<UDouble, Propor> func)> functions = new()
-                {
+                List<(UDouble weight, Func<UDouble, Propor> func)> functions =
+                [
                     (weight: 1, func: x => Algorithms.Normalize(value: MyMathHelper.Sin(x), start: -1, stop: 1)),
                     (weight: 10, func: x => Algorithms.Normalize(value: x, start: minX, stop: maxX)),
                     (weight: 3, func: x => Algorithms.Normalize(value: -(double)x * x, start: MyMathHelper.Min(-(double)minX * minX, -(double)maxX * maxX), stop: 0))
-                };
+                ];
 
                 UDouble totalWeight = functions.Sum(weightAndFunc => weightAndFunc.weight);
 

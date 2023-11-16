@@ -29,7 +29,7 @@ namespace Game1
         public CombinedEnergyConsumer(NodeID nodeID, IEnergyDistributor energyDistributor)
         {
             this.nodeID = nodeID;
-            energyConsumers = new();
+            energyConsumers = [];
             deleted = new();
 
             energyDistributor.AddEnergyConsumer(this);

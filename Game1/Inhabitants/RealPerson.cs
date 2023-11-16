@@ -166,7 +166,7 @@ namespace Game1.Inhabitants
             var elapsed = timeCoeff * CurWorldManager.Elapsed;
             var momentaryHappiness = CalculateMomentaryHappiness();
 #warning implement update for unused skills
-            updateSkillsParams ??= new UpdatePersonSkillsParams();
+            updateSkillsParams ??= [];
             Stats = new
             (
                 totalMass: consistsOfResPile.Amount.Mass(),

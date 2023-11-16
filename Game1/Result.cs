@@ -107,8 +107,8 @@ namespace Game1
         /// </summary>
         public static Result<IEnumerable<TResultItem>, EfficientReadOnlyHashSet<TError>> SelectMany<TItem, TOk, TError, TResultItem>(this IEnumerable<TItem> items, Func<TItem, Result<TOk, EfficientReadOnlyHashSet<TError>>> collectionSelector, Func<TItem, TOk, TResultItem> resultSelector)
         {
-            List<TResultItem> results = new();
-            HashSet<TError> errors = new();
+            List<TResultItem> results = [];
+            HashSet<TError> errors = [];
             foreach (var item in items)
                 collectionSelector(item).SwitchStatement
                 (
@@ -123,8 +123,8 @@ namespace Game1
 
         public static Result<IEnumerable<TOk>, EfficientReadOnlyHashSet<TError>> SelectMany<TItem, TOk, TError>(this IEnumerable<TItem> items, Func<TItem, Result<TOk, EfficientReadOnlyHashSet<TError>>> func)
         {
-            List<TOk> results = new();
-            HashSet<TError> errors = new();
+            List<TOk> results = [];
+            HashSet<TError> errors = [];
             foreach (var item in items)
                 func(item).SwitchStatement
                 (
@@ -141,7 +141,7 @@ namespace Game1
         public static Result<TResult, EfficientReadOnlyHashSet<TError>> Lift<T1, T2, TResult, TError>(this Func<T1, T2, TResult> func, Result<T1, EfficientReadOnlyHashSet<TError>> arg1,
             Result<T2, EfficientReadOnlyHashSet<TError>> arg2)
         {
-            HashSet<TError> errors = new();
+            HashSet<TError> errors = [];
 
             T1? arg1NoErr = Unpack(arg1);
             T2? arg2NoErr = Unpack(arg2);
@@ -166,7 +166,7 @@ namespace Game1
         public static Result<TResult, EfficientReadOnlyHashSet<TError>> Lift<T1, T2, T3, TResult, TError>(this Func<T1, T2, T3, TResult> func, Result<T1, EfficientReadOnlyHashSet<TError>> arg1,
             Result<T2, EfficientReadOnlyHashSet<TError>> arg2, Result<T3, EfficientReadOnlyHashSet<TError>> arg3)
         {
-            HashSet<TError> errors = new();
+            HashSet<TError> errors = [];
 
             T1? arg1NoErr = Unpack(arg1);
             T2? arg2NoErr = Unpack(arg2);
@@ -192,7 +192,7 @@ namespace Game1
         public static Result<TResult, EfficientReadOnlyHashSet<TError>> Lift<T1, T2, T3, T4, TResult, TError>(this Func<T1, T2, T3, T4, TResult> func, Result<T1, EfficientReadOnlyHashSet<TError>> arg1,
             Result<T2, EfficientReadOnlyHashSet<TError>> arg2, Result<T3, EfficientReadOnlyHashSet<TError>> arg3, Result<T4, EfficientReadOnlyHashSet<TError>> arg4)
         {
-            HashSet<TError> errors = new();
+            HashSet<TError> errors = [];
 
             T1? arg1NoErr = Unpack(arg1);
             T2? arg2NoErr = Unpack(arg2);

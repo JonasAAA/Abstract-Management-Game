@@ -400,7 +400,7 @@ namespace Game1
             foreach (var (vertex, vertexInfo) in graph)
                 EnqueueVertexIfNeeded(vertex: vertex, vertexInfo: vertexInfo);
             
-            List<ResPacket<T>> resPackets = new();
+            List<ResPacket<T>> resPackets = [];
             while (vertsByPriority.Count > 0)
             {
                 var (resOwnerA, isASource) = vertsByPriority.Dequeue();

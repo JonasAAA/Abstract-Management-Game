@@ -47,7 +47,7 @@ namespace Game1
             private BuildingConfigPanelManager(EfficientReadOnlyCollection<CosmicBody> cosmicBodies, Construction.GeneralParams constrGeneralParams)
             {
                 this.constrGeneralParams = constrGeneralParams;
-                mutableBuildingMatPaletteChoices = new();
+                mutableBuildingMatPaletteChoices = [];
                 ProductionChoice = null;
                 CompleteBuildingConfigOrNull = null;
 
@@ -65,7 +65,7 @@ namespace Game1
                     childHorizPos: HorizPosEnum.Right,
                     children: Enumerable.Empty<IHUDElement>()
                 );
-                cosmicBodyBuildPanelManagers = new();
+                cosmicBodyBuildPanelManagers = [];
                 cancelButton.clicked.Add(listener: new CancelBuildingButtonListener(BuildingConfigPanelManager: this));
 
                 overallNeededElectricityGraph = IndustryUIAlgos.CreateGravityFunctionGraph(func: null);

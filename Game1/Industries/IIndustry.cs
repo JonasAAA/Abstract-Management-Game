@@ -199,7 +199,7 @@ namespace Game1.Industries
             void IClickedListener.ClickedResponse()
             {
                 // Needed so that can pass toggleSourcePanelManagers when creating ChooseSourceButton clicked response
-                List<ToggleSourcePanelManager> toggleSourcePanelManagers = new();
+                List<ToggleSourcePanelManager> toggleSourcePanelManagers = [];
                 toggleSourcePanelManagers.AddRange
                 (
                     CurWorldManager.SourcesOf(resource: Resource)

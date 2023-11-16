@@ -86,7 +86,7 @@ namespace Game1.UI
             var choiceLabelsAndTooltipsArray = choiceLabelsAndTooltips.ToArray();
             if (choiceLabelsAndTooltipsArray.Length is 0)
                 throw new ArgumentException($"must provide at least one choice to start with");
-            choices = new();
+            choices = [];
             foreach (var (choiceLabel, choiceTooltip) in choiceLabelsAndTooltipsArray)
                 AddChoice(choiceLabel: choiceLabel, choiceTooltip: choiceTooltip);
 

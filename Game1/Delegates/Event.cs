@@ -8,7 +8,7 @@ namespace Game1.Delegates
         private readonly ThrowingSet<T> listeners;
 
         public Event()
-            => listeners = new();
+            => listeners = [];
 
         public bool Contains(T listener)
             => listeners.Contains(listener);

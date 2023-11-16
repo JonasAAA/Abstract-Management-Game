@@ -77,8 +77,8 @@ namespace Game1.UI
             personallyEnabled = true;
             MouseOn = false;
             hasDisabledAncestor = false;
-            layerToChildren = new();
-            childToLayer = new();
+            layerToChildren = [];
+            childToLayer = [];
         }
 
         protected IEnumerable<TChild> Children(ulong minLayer = 0, ulong maxLayer = ulong.MaxValue)
@@ -90,7 +90,7 @@ namespace Game1.UI
         protected virtual void AddChild(TChild child, ulong layer = 0)
         {
             if (!layerToChildren.ContainsKey(layer))
-                layerToChildren[layer] = new();
+                layerToChildren[layer] = [];
             layerToChildren[layer].Add(child);
             childToLayer.Add(child, layer);
             // TODO

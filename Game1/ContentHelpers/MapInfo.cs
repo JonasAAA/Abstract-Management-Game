@@ -9,7 +9,7 @@ namespace Game1.ContentHelpers
     [Serializable]
     public readonly struct MapInfo
     {
-        private static readonly string[] fileNotReadyTokens = { "{", $"\"{nameof(NotReadyToUse)}\"", ":", "true" };
+        private static readonly string[] fileNotReadyTokens = ["{", $"\"{nameof(NotReadyToUse)}\"", ":", "true"];
 
         public static bool IsFileReady(FilePath mapFullPath)
         {

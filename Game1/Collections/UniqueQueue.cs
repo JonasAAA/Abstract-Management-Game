@@ -18,8 +18,8 @@
 
         public UniqueQueue()
         {
-            priorityToElement = new();
-            elementToPriority = new();
+            priorityToElement = [];
+            elementToPriority = [];
             nextPriority = 0;
         }
 

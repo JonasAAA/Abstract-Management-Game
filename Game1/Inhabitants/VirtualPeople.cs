@@ -12,7 +12,7 @@ namespace Game1.Inhabitants
         private readonly ThrowingSet<VirtualPerson> people;
 
         public VirtualPeople()
-            => people = new();
+            => people = [];
 
         public void Add(VirtualPerson person)
             => people.Add(person);

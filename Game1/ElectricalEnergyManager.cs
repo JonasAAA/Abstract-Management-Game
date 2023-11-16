@@ -15,8 +15,8 @@ namespace Game1
 
         public ElectricalEnergyManager()
         {
-            energyProducers = new();
-            energyConsumers = new();
+            energyProducers = [];
+            energyConsumers = [];
             totReqEnergy = ElectricalEnergy.zero;
             totProdEnergy = ElectricalEnergy.zero;
             totUsedLocalEnergy = ElectricalEnergy.zero;
@@ -100,9 +100,9 @@ namespace Game1
             totUsedLocalEnergy = ElectricalEnergy.zero;
             totUsedPowerPlantEnergy = ElectricalEnergy.zero;
 
-            Dictionary<NodeID, ThrowingSet<EnhancedEnergyConsumer>> enhancedConsumersByNode = new();
+            Dictionary<NodeID, ThrowingSet<EnhancedEnergyConsumer>> enhancedConsumersByNode = [];
             foreach (var nodeID in nodeIDs)
-                enhancedConsumersByNode[nodeID] = new();
+                enhancedConsumersByNode[nodeID] = [];
             foreach (var enhancedConsumer in enhancedConsumers)
                 enhancedConsumersByNode[enhancedConsumer.nodeID].Add(enhancedConsumer);
 
@@ -142,11 +142,11 @@ namespace Game1
             // remaining energy is left in energySource
             static void DistributePartOfEnergy(IEnumerable<EnhancedEnergyConsumer> enhancedConsumers, Pile<ElectricalEnergy> energySource)
             {
-                SortedDictionary<EnergyPriority, List<EnhancedEnergyConsumer>> enhancedConsumersByPriority = new();
+                SortedDictionary<EnergyPriority, List<EnhancedEnergyConsumer>> enhancedConsumersByPriority = [];
                 foreach (var enhancedConsumer in enhancedConsumers)
                 {
                     EnergyPriority priority = enhancedConsumer.energyPriority;
-                    enhancedConsumersByPriority.TryAdd(key: priority, value: new List<EnhancedEnergyConsumer>());
+                    enhancedConsumersByPriority.TryAdd(key: priority, value: []);
                     enhancedConsumersByPriority[priority].Add(enhancedConsumer);
                 }
 

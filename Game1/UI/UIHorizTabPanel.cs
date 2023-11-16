@@ -32,9 +32,9 @@ namespace Game1.UI
         public UIHorizTabPanel(UDouble tabLabelWidth, UDouble tabLabelHeight, IEnumerable<(string tabLabelText, ITooltip tabTooltip, TTab tab)> tabs)
             : base(shape: new MyRectangle())
         {
-            this.tabs = new();
+            this.tabs = [];
             var tabArray = tabs.ToArray();
-            tabEnabledChangedListeners = new();
+            tabEnabledChangedListeners = [];
             foreach (var (tabLabelText, tabTooltip, tab) in tabArray)
                 AddTab(tabLabelText: tabLabelText, tabTooltip: tabTooltip, tab: tab);
 

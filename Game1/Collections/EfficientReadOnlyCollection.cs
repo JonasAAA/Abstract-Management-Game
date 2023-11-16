@@ -8,7 +8,7 @@ namespace Game1.Collections
     [Serializable]
     public readonly struct EfficientReadOnlyCollection<T> : IReadOnlyCollection<T>
     {
-        public static readonly EfficientReadOnlyCollection<T> empty = new(list: new());
+        public static readonly EfficientReadOnlyCollection<T> empty = new(list: []);
 
         private readonly List<T> list;
 

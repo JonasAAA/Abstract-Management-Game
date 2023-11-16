@@ -27,10 +27,10 @@ namespace Game1.Resources
 
         public ResConfig()
         {
-            resources = new();
-            indToRawMat = new();
-            resToOrder = new();
-            matPaletteToInd = new();
+            resources = [];
+            indToRawMat = [];
+            resToOrder = [];
+            matPaletteToInd = [];
             prodClassToInd = ProductClass.all.Select((prodClass, ind) => (prodClass, ind)).ToEfficientReadOnlyDict
             (
                 keySelector: prodClassAndInd => prodClassAndInd.prodClass,
@@ -86,8 +86,8 @@ namespace Game1.Resources
 
             StartingMaterialPaletteChoices = MaterialPaletteChoices.Create
             (
-                choices: new List<MaterialPalette>()
-                {
+                choices:
+                [
                     MaterialPalette.CreateAndAddToResConfig
                     (
                         name: "def. mech.",
@@ -116,7 +116,7 @@ namespace Game1.Resources
                             [MaterialPurpose.roofSurface] = material2
                         }
                     ).UnwrapOrThrow()
-                }
+                ]
             );
             foreach (var prodParams in Product.productParamsDict.Values)
                 prodParams.GetProduct(materialPalette: StartingMaterialPaletteChoices[prodParams.productClass]);

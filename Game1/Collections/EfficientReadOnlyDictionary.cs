@@ -10,7 +10,7 @@ namespace Game1.Collections
     public readonly struct EfficientReadOnlyDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, TValue>
         where TKey : notnull
     {
-        public static readonly EfficientReadOnlyDictionary<TKey, TValue> empty = new(dict: new());
+        public static readonly EfficientReadOnlyDictionary<TKey, TValue> empty = new(dict: []);
 
         public IEnumerable<TKey> Keys
             => dict.Keys;
@@ -25,7 +25,7 @@ namespace Game1.Collections
 
         public EfficientReadOnlyDictionary()
             // Can't use empty.dict here because it can be modified in init indexer
-            => dict = new();
+            => dict = [];
 
         public EfficientReadOnlyDictionary(Dictionary<TKey, TValue> dict)
             => this.dict = dict;

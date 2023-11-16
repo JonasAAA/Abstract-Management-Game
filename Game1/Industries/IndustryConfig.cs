@@ -34,8 +34,8 @@ namespace Game1.Industries
                 }.ToEfficientReadOnlyCollection()
             );
 
-            List<Construction.GeneralParams> constrGeneralParamsIncompleteList = new()
-            {
+            List<Construction.GeneralParams> constrGeneralParamsIncompleteList =
+            [
                 new
                 (
                     buildingGeneralParams: startingStorageParams,
@@ -91,7 +91,7 @@ namespace Game1.Industries
                     ),
                     energyPriority: constrEnergyPriority
                 )
-            };
+            ];
             constrGeneralParamsList = constrGeneralParamsIncompleteList.Concat
             (
                 Product.productParamsDict.Select

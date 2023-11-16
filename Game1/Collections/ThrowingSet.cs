@@ -15,7 +15,7 @@ namespace Game1.Collections
         private readonly HashSet<T> set;
 
         public ThrowingSet()
-            => set = new();
+            => set = [];
 
         public ThrowingSet(IEnumerable<T> collection)
             : this()

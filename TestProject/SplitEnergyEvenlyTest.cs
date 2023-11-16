@@ -17,20 +17,20 @@ namespace TestProject
             (
                 expected:
                 (
-                    allocatedEnergies: new()
-                    {
+                    allocatedEnergies:
+                    [
                         ElectricalEnergy.CreateFromJoules(valueInJ: 10),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 9)
-                    },
+                    ],
                     unusedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 1)
                 ),
                 actual: Algorithms.SplitEnergyEvenly
                 (
-                    reqEnergies: new()
-                    {
+                    reqEnergies:
+                    [
                         ElectricalEnergy.CreateFromJoules(valueInJ: 10),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 9)
-                    },
+                    ],
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 20)
                 )
             );
@@ -41,20 +41,20 @@ namespace TestProject
             (
                 expected:
                 (
-                    allocatedEnergies: new()
-                    {
+                    allocatedEnergies:
+                    [
                         ElectricalEnergy.CreateFromJoules(valueInJ: 9),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 8)
-                    },
+                    ],
                     unusedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 1)
                 ),
                 actual: Algorithms.SplitExtraEnergyEvenly
                 (
-                    energies: new()
-                    {
+                    energies:
+                    [
                         (ownedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 1), reqEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 10)),
                         (ownedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 1), reqEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 9))
-                    },
+                    ],
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 18)
                 )
             );
@@ -65,22 +65,22 @@ namespace TestProject
             (
                 expected:
                 (
-                    allocatedEnergies: new()
-                    {
+                    allocatedEnergies:
+                    [
                         ElectricalEnergy.CreateFromJoules(valueInJ: 4),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 8),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 6)
-                    },
+                    ],
                     unusedEnergy: ElectricalEnergy.zero
                 ),
                 actual: Algorithms.SplitEnergyEvenly
                 (
-                    reqEnergies: new()
-                    {
+                    reqEnergies:
+                    [
                         ElectricalEnergy.CreateFromJoules(valueInJ: 6),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 12),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 9)
-                    },
+                    ],
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 18)
                 )
             );
@@ -91,22 +91,22 @@ namespace TestProject
             (
                 expected:
                 (
-                    allocatedEnergies: new()
-                    {
+                    allocatedEnergies:
+                    [
                         ElectricalEnergy.CreateFromJoules(valueInJ: 4),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 9),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 5)
-                    },
+                    ],
                     unusedEnergy: ElectricalEnergy.zero
                 ),
                 actual: Algorithms.SplitEnergyEvenly
                 (
-                    reqEnergies: new()
-                    {
+                    reqEnergies:
+                    [
                         ElectricalEnergy.CreateFromJoules(valueInJ: 6),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 13),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 8)
-                    },
+                    ],
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 18)
                 )
             );
@@ -117,24 +117,24 @@ namespace TestProject
             (
                 expected:
                 (
-                    allocatedEnergies: new()
-                    {
+                    allocatedEnergies:
+                    [
                         ElectricalEnergy.CreateFromJoules(valueInJ: 0),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 4),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 7),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 4)
-                    },
+                    ],
                     unusedEnergy: ElectricalEnergy.zero
                 ),
                 actual: Algorithms.SplitExtraEnergyEvenly
                 (
-                    energies: new()
-                    {
+                    energies:
+                    [
                         (ownedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 10), reqEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 12)),
                         (ownedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 0), reqEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 6)),
                         (ownedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 2), reqEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 13)),
                         (ownedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 1), reqEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 8))
-                    },
+                    ],
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 15)
                 )
             );
@@ -145,24 +145,24 @@ namespace TestProject
             (
                 expected:
                 (
-                    allocatedEnergies: new()
-                    {
+                    allocatedEnergies:
+                    [
                         ElectricalEnergy.CreateFromJoules(valueInJ: 0),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 4),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 9),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 5)
-                    },
+                    ],
                     unusedEnergy: ElectricalEnergy.zero
                 ),
                 actual: Algorithms.SplitEnergyEvenly
                 (
-                    reqEnergies: new()
-                    {
+                    reqEnergies:
+                    [
                         ElectricalEnergy.CreateFromJoules(valueInJ: 0),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 6),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 13),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 8)
-                    },
+                    ],
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 18)
                 )
             );
@@ -173,24 +173,24 @@ namespace TestProject
             (
                 expected:
                 (
-                    allocatedEnergies: new()
-                    {
+                    allocatedEnergies:
+                    [
                         ElectricalEnergy.CreateFromJoules(valueInJ: 0),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 4),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 7),
                         ElectricalEnergy.CreateFromJoules(valueInJ: 4)
-                    },
+                    ],
                     unusedEnergy: ElectricalEnergy.zero
                 ),
                 actual: Algorithms.SplitExtraEnergyEvenly
                 (
-                    energies: new()
-                    {
+                    energies:
+                    [
                         (ownedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 0), reqEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 0)),
                         (ownedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 0), reqEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 6)),
                         (ownedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 2), reqEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 13)),
                         (ownedEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 1), reqEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 8))
-                    },
+                    ],
                     availableEnergy: ElectricalEnergy.CreateFromJoules(valueInJ: 15)
                 )
             );

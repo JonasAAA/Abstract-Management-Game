@@ -144,7 +144,7 @@ namespace Game1
             lightPolygon = new();
             shape = (LightBlockingDisk)base.shape;
 
-            links = new();
+            links = [];
 
             usedLocalEnergy = ElectricalEnergy.zero;
             radiantEnergyToDissipatePile = EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: state.LocationCounters);
@@ -160,7 +160,7 @@ namespace Game1
                 updateHUDPos: new TextBoxHUDPosUpdater(CosmicBody: this)
             );
 
-            List<(string tabLabelText, ITooltip tabTooltip, IHUDElement tab)> UITabs = new();
+            List<(string tabLabelText, ITooltip tabTooltip, IHUDElement tab)> UITabs = [];
 
             infoTextBox = new(lazyText: new MainInfoText(CosmicBody: this));
             infoPanel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPosEnum.Left, children: new List<IHUDElement>() { infoTextBox });
@@ -435,8 +435,8 @@ namespace Game1
 
             void GetAnglesAndBlockedAngleArcs(out List<double> angles, out List<(bool start, AngleArc angleArc)> blockedAngleArcs)
             {
-                angles = new();
-                blockedAngleArcs = new();
+                angles = [];
+                blockedAngleArcs = [];
                 foreach (var lightCatchingObject in lightCatchingObjects)
                 {
                     var blockedAngleArc = lightCatchingObject.BlockedAngleArc(lightPos: state.Position);
@@ -504,12 +504,12 @@ namespace Game1
 
             void CalculateLightPolygonAndRayCatchingObjects(out List<MyVector2> vertices, out List<ILightCatchingObject?> rayCatchingObjects)
             {
-                vertices = new();
-                rayCatchingObjects = new();
+                vertices = [];
+                rayCatchingObjects = [];
                 // TODO: consider moving this to constants class
                 Length maxDist = 100000 * CurWorldConfig.startingPixelLength;
 
-                SortedSet<AngleArc> curAngleArcs = new();
+                SortedSet<AngleArc> curAngleArcs = [];
                 int angleInd = 0, angleArcInd = 0;
                 while (angleInd < angles.Count)
                 {

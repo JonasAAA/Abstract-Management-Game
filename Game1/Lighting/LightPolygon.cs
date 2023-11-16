@@ -15,9 +15,9 @@
 
         public LightPolygon()
         {
-            vertices = new List<MyVector2>();
-            vertPosTexs = Array.Empty<VertexPositionColor>();
-            inds = Array.Empty<ushort>();
+            vertices = [];
+            vertPosTexs = [];
+            inds = [];
         }
 
         public void Update(LightSourceInfo lightSourceInfo, List<MyVector2> vertices)

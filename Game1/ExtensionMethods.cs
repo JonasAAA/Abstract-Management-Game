@@ -173,13 +173,8 @@ namespace Game1
             where TSource : notnull
             => keys.ToDictionary(keySelector: key => key, elementSelector: elementSelector);
 
-        public static ThrowingSet<T> ToMyHashSet<T>(this IEnumerable<T> source)
-        {
-            ThrowingSet<T> result = new();
-            foreach (var item in source)
-                result.Add(item);
-            return result;
-        }
+        public static ThrowingSet<T> ToThrowingSet<T>(this IEnumerable<T> source)
+            => [.. source];
 
         public static bool Transparent(this Color color)
             => color.A is 0;

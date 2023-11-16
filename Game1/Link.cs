@@ -151,13 +151,13 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct ShapeParams(ILinkFacingCosmicBody Node1, ILinkFacingCosmicBody Node2) : VectorShape.IParams
+        private sealed class ShapeParams(ILinkFacingCosmicBody node1, ILinkFacingCosmicBody node2) : VectorShape.IParams
         {
             public MyVector2 StartPos
-                => Node1.Position;
+                => node1.Position;
 
             public MyVector2 EndPos
-                => Node2.Position;
+                => node2.Position;
 
             public Length Width
                 => CurWorldConfig.linkWidth;
@@ -186,7 +186,7 @@ namespace Game1
                 shape: new LineSegment
                 (
                     worldCamera: CurWorldManager.worldCamera,
-                    parameters: new ShapeParams(Node1: node1, Node2: node2)
+                    parameters: new ShapeParams(node1: node1, node2: node2)
                 )
             )
         {

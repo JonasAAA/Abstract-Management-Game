@@ -10,13 +10,13 @@ namespace Game1.UI
         where TTab : class, IHUDElement
     {
         [Serializable]
-        public readonly record struct TabEnabledChangedListener(UIHorizTabPanel<TTab> UIHorizTabPanel, string TabLabelText) : IEnabledChangedListener
+        public sealed class TabEnabledChangedListener(UIHorizTabPanel<TTab> UIHorizTabPanel, string tabLabelText) : IEnabledChangedListener
         {
-            public void EnabledChangedResponse()
+            void IEnabledChangedListener.EnabledChangedResponse()
                 => UIHorizTabPanel.tabChoicePanel.SetChoicePersonallyEnabled
                 (
-                    choiceLabel: TabLabelText,
-                    newPersonallyEnabled: UIHorizTabPanel.tabs[TabLabelText].Enabled
+                    choiceLabel: tabLabelText,
+                    newPersonallyEnabled: UIHorizTabPanel.tabs[tabLabelText].Enabled
                 );
         }
 
@@ -85,7 +85,7 @@ namespace Game1.UI
         {
             tabs.Add(tabLabelText, tab);
 
-            tabEnabledChangedListeners[tabLabelText] = new TabEnabledChangedListener(UIHorizTabPanel: this, TabLabelText: tabLabelText);
+            tabEnabledChangedListeners[tabLabelText] = new TabEnabledChangedListener(UIHorizTabPanel: this, tabLabelText: tabLabelText);
 
             tab.EnabledChanged.Add(listener: tabEnabledChangedListeners[tabLabelText]);
 

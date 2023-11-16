@@ -171,9 +171,8 @@ namespace Game1.Industries
                                     (
                                         listener: new ChangeResSourcesButtonListener
                                         (
-                                            Industry: industry,
-                                            Resource: res,
-                                            Sources: sources
+                                            industry: industry,
+                                            resource: res
                                         )
                                     );
                                     return addOrRemoveResSourceButton;
@@ -194,7 +193,7 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        private sealed record ChangeResSourcesButtonListener(IIndustry Industry, IResource Resource, HashSet<IIndustry> Sources) : IClickedListener
+        private sealed class ChangeResSourcesButtonListener(IIndustry industry, IResource resource) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
             {
@@ -202,17 +201,17 @@ namespace Game1.Industries
                 List<ToggleSourcePanelManager> toggleSourcePanelManagers = [];
                 toggleSourcePanelManagers.AddRange
                 (
-                    CurWorldManager.SourcesOf(resource: Resource)
-                        .Where(sourceIndustry => sourceIndustry != Industry)
+                    CurWorldManager.SourcesOf(resource: resource)
+                        .Where(sourceIndustry => sourceIndustry != industry)
                         .Select
                     (
                         sourceIndustry =>
                         {
-                            bool add = !Industry.GetSources(resource: Resource).Contains(sourceIndustry);
+                            bool add = !industry.GetSources(resource: resource).Contains(sourceIndustry);
                             Button toggleSourceButton = new
                             (
                                 shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: 2 * CurGameConfig.UILineHeight),
-                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleSourceTooltip(res: Resource, add: add)),
+                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleSourceTooltip(res: resource, add: add)),
                                 text: UIAlgorithms.ToggleSourceButtonName(add: add)
                             );
 
@@ -220,10 +219,10 @@ namespace Game1.Industries
                             (
                                 listener: new ToggleRouteListener
                                 (
-                                    ToggleSourcePanelManagers: toggleSourcePanelManagers.ToEfficientReadOnlyCollection(),
-                                    Resource: Resource,
-                                    SourceIndustry: sourceIndustry,
-                                    Industry: Industry
+                                    toggleSourcePanelManagers: toggleSourcePanelManagers.ToEfficientReadOnlyCollection(),
+                                    resource: resource,
+                                    sourceIndustry: sourceIndustry,
+                                    industry: industry
                                 )
                             );
 
@@ -245,8 +244,8 @@ namespace Game1.Industries
 #warning Pause the game here. Also, when click anywhere else, cancel this action
                 // PROBABLY want to pause the game here so that sources don't appear and disappear before the player's eyes
 
-                Debug.Assert(CurWorldManager.IsCosmicBodyActive(nodeID: Industry.NodeID));
-                CurWorldManager.SetIsCosmicBodyActive(nodeID: Industry.NodeID, active: false);
+                Debug.Assert(CurWorldManager.IsCosmicBodyActive(nodeID: industry.NodeID));
+                CurWorldManager.SetIsCosmicBodyActive(nodeID: industry.NodeID, active: false);
                 CurWorldManager.DisableAllUIElements();
 
                 foreach (var (toggleSourcePanel, _, panelHUDPosUpdater) in toggleSourcePanelManagers)
@@ -257,16 +256,16 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        private sealed record ToggleRouteListener(EfficientReadOnlyCollection<ToggleSourcePanelManager> ToggleSourcePanelManagers, IResource Resource, IIndustry SourceIndustry, IIndustry Industry) : IClickedListener
+        private sealed class ToggleRouteListener(EfficientReadOnlyCollection<ToggleSourcePanelManager> toggleSourcePanelManagers, IResource resource, IIndustry sourceIndustry, IIndustry industry) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
             {
-                ToggleSourceAndDestin(resource: Resource, source: SourceIndustry, destin: Industry);
+                ToggleSourceAndDestin(resource: resource, source: sourceIndustry, destin: industry);
 
-                foreach (var (toggleSourcePanel, _, _) in ToggleSourcePanelManagers)
+                foreach (var (toggleSourcePanel, _, _) in toggleSourcePanelManagers)
                     CurWorldManager.RemoveWorldHUDElement(worldHUDElement: toggleSourcePanel);
                 CurWorldManager.EnableAllUIElements();
-                Debug.Assert(!CurWorldManager.IsCosmicBodyActive(nodeID: Industry.NodeID));
+                Debug.Assert(!CurWorldManager.IsCosmicBodyActive(nodeID: industry.NodeID));
                 //CurWorldManager.SetIsCosmicBodyActive(nodeID: Industry.NodeID, active: true);
             }
         }

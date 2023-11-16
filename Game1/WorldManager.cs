@@ -166,8 +166,8 @@ namespace Game1
                             (
                                 listener: new BuildIndustryButtonClickedListener
                                 (
-                                    CosmicBodies: CurWorldManager.CurGraph.Nodes,
-                                    ConstrGeneralParams: constrGeneralParams
+                                    cosmicBodies: CurWorldManager.CurGraph.Nodes,
+                                    constrGeneralParams: constrGeneralParams
                                 )
                             );
 #warning Complete this by adding how the button reacts to being pressed

@@ -8,13 +8,13 @@ namespace Game1.UI
     public static class Dropdown
     {
         [Serializable]
-        private sealed record ItemChoiceListener<TItem>(IItemChoiceSetter<TItem> ItemChoiceSetter, UIRectHorizPanel<IHUDElement> StartItemChoiceLine, Button StartItemChoice, TItem Item, IHUDElement? AdditionalInfo) : IClickedListener
+        private sealed class ItemChoiceListener<TItem>(IItemChoiceSetter<TItem> itemChoiceSetter, UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button startItemChoice, TItem item, IHUDElement? additionalInfo) : IClickedListener
             where TItem : notnull
         {
             void IClickedListener.ClickedResponse()
             {
-                SetStartItemChoiceLineChildren(startItemChoiceLine: StartItemChoiceLine, startItemChoice: StartItemChoice, item: Item, additionalInfo: AdditionalInfo);
-                ItemChoiceSetter.SetChoice(item: Item);
+                SetStartItemChoiceLineChildren(startItemChoiceLine: startItemChoiceLine, startItemChoice: startItemChoice, item: item, additionalInfo: additionalInfo);
+                itemChoiceSetter.SetChoice(item: item);
             }
         }
 
@@ -41,7 +41,7 @@ namespace Game1.UI
 
         // The copy is needed so that the additional info is displayed properly within dropdown AND when a choice is made
         [Serializable]
-        private sealed record StartDropdownListener<TItem>(IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, IHUDElement? additionalInfo, IHUDElement? additionalInfoCopy, ITooltip tooltip)> ItemsWithTooltips, UIRectHorizPanel<IHUDElement> StartItemChoiceLine, Button StartItemChoice) : IClickedListener
+        private sealed class StartDropdownListener<TItem>(IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, IHUDElement? additionalInfo, IHUDElement? additionalInfoCopy, ITooltip tooltip)> itemsWithTooltips, UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button startItemChoice) : IClickedListener
             where TItem : notnull
         {
             void IClickedListener.ClickedResponse()
@@ -49,7 +49,7 @@ namespace Game1.UI
                 UIRectVertPanel<IHUDElement> choicePopup = new
                 (
                     childHorizPos: HorizPosEnum.Middle,
-                    children: ItemsWithTooltips.Select
+                    children: itemsWithTooltips.Select
                     (
                         args =>
                         {
@@ -65,11 +65,11 @@ namespace Game1.UI
                             (
                                 listener: new ItemChoiceListener<TItem>
                                 (
-                                    ItemChoiceSetter: ItemChoiceSetter,
-                                    StartItemChoiceLine: StartItemChoiceLine,
-                                    StartItemChoice: StartItemChoice,
-                                    Item: item,
-                                    AdditionalInfo: additionalInfoCopy
+                                    itemChoiceSetter: ItemChoiceSetter,
+                                    startItemChoiceLine: startItemChoiceLine,
+                                    startItemChoice: startItemChoice,
+                                    item: item,
+                                    additionalInfo: additionalInfoCopy
                                 )
                             );
                             return new UIRectHorizPanel<IHUDElement>
@@ -84,7 +84,7 @@ namespace Game1.UI
                 CurWorldManager.SetHUDPopup
                 (
                     HUDElement: choicePopup,
-                    HUDPos: StartItemChoice.Shape.GetSpecPos(origin: popupOrigin),
+                    HUDPos: startItemChoice.Shape.GetSpecPos(origin: popupOrigin),
                     origin: popupOrigin
                 );
             }
@@ -112,7 +112,7 @@ namespace Game1.UI
                 listener: new StartDropdownListener<TItem>
                 (
                     ItemChoiceSetter: itemChoiceSetter,
-                    ItemsWithTooltips: itemsWithTooltips.Select
+                    itemsWithTooltips: itemsWithTooltips.Select
                     (
                         args =>
                         (
@@ -122,8 +122,8 @@ namespace Game1.UI
                             tooltip: args.tooltip
                         )
                     ),
-                    StartItemChoiceLine: startItemChoiceLine,
-                    StartItemChoice: startItemChoice
+                    startItemChoiceLine: startItemChoiceLine,
+                    startItemChoice: startItemChoice
                 )
             );
 

@@ -10,7 +10,7 @@ using static Game1.GameConfig;
 namespace Game1
 {
     [Serializable]
-    public sealed record BuildIndustryButtonClickedListener(EfficientReadOnlyCollection<CosmicBody> CosmicBodies, Construction.GeneralParams ConstrGeneralParams) : IClickedListener
+    public sealed class BuildIndustryButtonClickedListener(EfficientReadOnlyCollection<CosmicBody> cosmicBodies, Construction.GeneralParams constrGeneralParams) : IClickedListener
     {
         [Serializable]
         private sealed class BuildingConfigPanelManager : IItemChoiceSetter<MaterialPalette>, IItemChoiceSetter<ProductionChoice>
@@ -66,7 +66,7 @@ namespace Game1
                     children: Enumerable.Empty<IHUDElement>()
                 );
                 cosmicBodyBuildPanelManagers = [];
-                cancelButton.clicked.Add(listener: new CancelBuildingButtonListener(BuildingConfigPanelManager: this));
+                cancelButton.clicked.Add(listener: new CancelBuildingButtonListener(buildingConfigPanelManager: this));
 
                 overallNeededElectricityGraph = IndustryUIAlgos.CreateGravityFunctionGraph(func: null);
                 overallThroughputGraph = IndustryUIAlgos.CreateTemperatureFunctionGraph(func: null);
@@ -157,12 +157,12 @@ namespace Game1
                                 neededElectricity: new FunctionGraphWithHighlighImage<SurfaceGravity, Propor>
                                 (
                                     functionGraph: overallNeededElectricityGraph,
-                                    highlightInterval: new CosmicBodyGravityInterval(CosmicBody: cosmicBody)
+                                    highlightInterval: new CosmicBodyGravityInterval(cosmicBody: cosmicBody)
                                 ),
                                 throughput: new FunctionGraphWithHighlighImage<Temperature, Propor>
                                 (
                                     functionGraph: overallThroughputGraph,
-                                    highlightInterval: new CosmicBodyTemperatureInterval(CosmicBody: cosmicBody)
+                                    highlightInterval: new CosmicBodyTemperatureInterval(cosmicBody: cosmicBody)
                                 )
                             );
                             Button buildButton = new
@@ -178,8 +178,8 @@ namespace Game1
                             (
                                 listener: new BuildOnCosmicBodyButtonListener
                                 (
-                                    BuildingConfigPanelManager: this,
-                                    CosmicBody: cosmicBody
+                                    buildingConfigPanelManager: this,
+                                    cosmicBody: cosmicBody
                                 )
                             );
                             UIRectVertPanel<IHUDElement> cosmicBodyBuildPanel = new
@@ -286,32 +286,32 @@ namespace Game1
         }
 
         [Serializable]
-        private sealed record CancelBuildingButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager) : IClickedListener
+        private sealed class CancelBuildingButtonListener(BuildingConfigPanelManager buildingConfigPanelManager) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
-                => BuildingConfigPanelManager.StopBuildingConfig();
+                => buildingConfigPanelManager.StopBuildingConfig();
         }
 
         [Serializable]
-        private sealed record CosmicBodyGravityInterval(CosmicBody CosmicBody) : FunctionGraphWithHighlighImage<SurfaceGravity, Propor>.IHighlightInterval
+        private sealed class CosmicBodyGravityInterval(CosmicBody cosmicBody) : FunctionGraphWithHighlighImage<SurfaceGravity, Propor>.IHighlightInterval
         {
             (SurfaceGravity start, SurfaceGravity stop, Color highlightColor) FunctionGraphWithHighlighImage<SurfaceGravity, Propor>.IHighlightInterval.GetHighlightInterval()
                 =>
                 (
-                    start: CosmicBody.NodeState.SurfaceGravity,
-                    stop: CosmicBody.NodeState.SurfaceGravity,
+                    start: cosmicBody.NodeState.SurfaceGravity,
+                    stop: cosmicBody.NodeState.SurfaceGravity,
                     highlightColor: colorConfig.functionGraphHighlightColor
                 );
         }
 
         [Serializable]
-        private sealed record CosmicBodyTemperatureInterval(CosmicBody CosmicBody) : FunctionGraphWithHighlighImage<Temperature, Propor>.IHighlightInterval
+        private sealed class CosmicBodyTemperatureInterval(CosmicBody cosmicBody) : FunctionGraphWithHighlighImage<Temperature, Propor>.IHighlightInterval
         {
             (Temperature start, Temperature stop, Color highlightColor) FunctionGraphWithHighlighImage<Temperature, Propor>.IHighlightInterval.GetHighlightInterval()
                 =>
                 (
-                    start: CosmicBody.NodeState.Temperature,
-                    stop: CosmicBody.NodeState.Temperature,
+                    start: cosmicBody.NodeState.Temperature,
+                    stop: cosmicBody.NodeState.Temperature,
                     highlightColor: colorConfig.functionGraphHighlightColor
                 );
         }
@@ -355,19 +355,19 @@ namespace Game1
         }
 
         [Serializable]
-        private sealed record BuildOnCosmicBodyButtonListener(BuildingConfigPanelManager BuildingConfigPanelManager, CosmicBody CosmicBody) : IClickedListener
+        private sealed class BuildOnCosmicBodyButtonListener(BuildingConfigPanelManager buildingConfigPanelManager, CosmicBody cosmicBody) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
             {
-                CosmicBody.StartConstruction
+                cosmicBody.StartConstruction
                 (
-                    constrConcreteParams: BuildingConfigPanelManager.CompleteBuildingConfigOrNull!.Value.CreateConcreteConstrParams(cosmicBody: CosmicBody)
+                    constrConcreteParams: buildingConfigPanelManager.CompleteBuildingConfigOrNull!.Value.CreateConcreteConstrParams(cosmicBody: cosmicBody)
                 );
-                BuildingConfigPanelManager.StopBuildingConfig();
+                buildingConfigPanelManager.StopBuildingConfig();
             }
         }
 
         void IClickedListener.ClickedResponse()
-            => BuildingConfigPanelManager.StartBuildingConfig(cosmicBodies: CosmicBodies, constrGeneralParams: ConstrGeneralParams);
+            => BuildingConfigPanelManager.StartBuildingConfig(cosmicBodies: cosmicBodies, constrGeneralParams: constrGeneralParams);
     }   
 }

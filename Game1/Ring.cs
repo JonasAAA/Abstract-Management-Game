@@ -20,12 +20,12 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct ParamsWithOuterRadius(IParamsWithInnerRadius ParamsWithInnerRadius) : IParamsWithOuterRadius
+        private sealed class ParamsWithOuterRadius(IParamsWithInnerRadius paramsWithInnerRadius) : IParamsWithOuterRadius
         {
             public MyVector2 Center
-                => ParamsWithInnerRadius.Center;
+                => paramsWithInnerRadius.Center;
             public Length OuterRadius
-                => GetOuterRadius(innerRadius: ParamsWithInnerRadius.InnerRadius);
+                => GetOuterRadius(innerRadius: paramsWithInnerRadius.InnerRadius);
         }
 
         private static readonly UDouble ringWidthToInnerRadiusRatio = UDouble.half;
@@ -51,7 +51,7 @@ namespace Game1
             => parameters = paramsWithOuterRadius;
 
         protected Ring(IParamsWithInnerRadius paramsWithInnerRadius, WorldCamera worldCamera)
-            : this(paramsWithOuterRadius: new ParamsWithOuterRadius(ParamsWithInnerRadius: paramsWithInnerRadius), worldCamera: worldCamera)
+            : this(paramsWithOuterRadius: new ParamsWithOuterRadius(paramsWithInnerRadius: paramsWithInnerRadius), worldCamera: worldCamera)
         { }
 
         public sealed override bool Contains(MyVector2 position)

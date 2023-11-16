@@ -15,40 +15,40 @@ namespace Game1
     public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, ILightCatchingObject, IWithSpecialPositions, IWithRealPeopleStats
     {
         [Serializable]
-        private sealed record ShapeParams(NodeState State) : Disk.IParams
+        private sealed class ShapeParams(NodeState state) : Disk.IParams
         {
             public MyVector2 Center
-                => State.Position;
+                => state.Position;
 
             public Length Radius
-                => State.Radius;
+                => state.Radius;
         }
 
         [Serializable]
-        private sealed record TextBoxHUDPosUpdater(CosmicBody CosmicBody) : IAction
+        private sealed class TextBoxHUDPosUpdater(CosmicBody cosmicBody) : IAction
         {
             void IAction.Invoke()
-                => CosmicBody.textBox.Shape.Center = CurWorldManager.WorldPosToHUDPos(worldPos: CosmicBody.Position);
+                => cosmicBody.textBox.Shape.Center = CurWorldManager.WorldPosToHUDPos(worldPos: cosmicBody.Position);
         }
 
         [Serializable]
-        private sealed record BriefInfoText(CosmicBody CosmicBody) : ILazyText
+        private sealed class BriefInfoText(CosmicBody cosmicBody) : ILazyText
         {
             string ILazyText.GetText()
-                => $"T = {CosmicBody.state.Temperature}";
+                => $"T = {cosmicBody.state.Temperature}";
         }
 
         [Serializable]
-        private sealed record MainInfoText(CosmicBody CosmicBody) : ILazyText
+        private sealed class MainInfoText(CosmicBody cosmicBody) : ILazyText
         {
             string ILazyText.GetText()
 #warning Complete this
                 => $"""
                 consists of
-                {CosmicBody.state.Composition.ToPercents()}
-                T = {CosmicBody.state.Temperature}
+                {cosmicBody.state.Composition.ToPercents()}
+                T = {cosmicBody.state.Temperature}
                 M to E per real world second =
-                {CosmicBody.massConvertedToEnergy.valueInKg / (CurWorldManager.Elapsed.TotalSeconds / CurWorldConfig.worldSecondsInGameSecond):#,0.}
+                {cosmicBody.massConvertedToEnergy.valueInKg / (CurWorldManager.Elapsed.TotalSeconds / CurWorldConfig.worldSecondsInGameSecond):#,0.}
                 """;
         }
 
@@ -138,7 +138,7 @@ namespace Game1
         private readonly LazyTextBox textBox, infoTextBox;
 
         public CosmicBody(NodeState state, Func<IIndustryFacingNodeState, IIndustry?> createIndustry)
-            : base(shape: new LightBlockingDisk(parameters: new ShapeParams(State: state), worldCamera: CurWorldManager.worldCamera))
+            : base(shape: new LightBlockingDisk(parameters: new ShapeParams(state: state), worldCamera: CurWorldManager.worldCamera))
         {
             this.state = state;
             lightPolygon = new();
@@ -152,17 +152,17 @@ namespace Game1
             radiantEnergyToDissipate = RadiantEnergy.zero;
             massConvertedToEnergy = Mass.zero;
 
-            textBox = new(lazyText: new BriefInfoText(CosmicBody: this));
+            textBox = new(lazyText: new BriefInfoText(cosmicBody: this));
             textBox.Shape.MinWidth = CurGameConfig.standardUIElementWidth;
             CurWorldManager.AddWorldHUDElement
             (
                 worldHUDElement: textBox,
-                updateHUDPos: new TextBoxHUDPosUpdater(CosmicBody: this)
+                updateHUDPos: new TextBoxHUDPosUpdater(cosmicBody: this)
             );
 
             List<(string tabLabelText, ITooltip tabTooltip, IHUDElement tab)> UITabs = [];
 
-            infoTextBox = new(lazyText: new MainInfoText(CosmicBody: this));
+            infoTextBox = new(lazyText: new MainInfoText(cosmicBody: this));
             infoPanel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPosEnum.Left, children: new List<IHUDElement>() { infoTextBox });
             UITabs.Add
             ((

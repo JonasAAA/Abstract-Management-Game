@@ -74,10 +74,10 @@ namespace Game1
             base.Initialize();
         }
 
-        private readonly record struct SetGameStateToPause(GameMain Game, GameState PauseMenu) : IAction
+        private sealed class SetGameStateToPause(GameMain game, GameState pauseMenu) : IAction
         {
             public void Invoke()
-                => Game.SetGameState(newGameState: PauseMenu);
+                => game.SetGameState(newGameState: pauseMenu);
         }
 
         private static FilePath GetGameSaveFilePath()
@@ -181,7 +181,7 @@ namespace Game1
                         {
                             mapCreationState = MapCreationState.CreateNewMap
                             (
-                                switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: mapCreationStatePauseMenu),
+                                switchToPauseMenu: new SetGameStateToPause(game: this, pauseMenu: mapCreationStatePauseMenu),
                                 mapPath: GenerateMapPath()
                             );
                             SetGameState(newGameState: mapCreationState);
@@ -201,7 +201,7 @@ namespace Game1
                                 {
                                     mapCreationState = MapCreationState.FromMap
                                     (
-                                        switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: mapCreationStatePauseMenu),
+                                        switchToPauseMenu: new SetGameStateToPause(game: this, pauseMenu: mapCreationStatePauseMenu),
                                         mapInfo: mapInfo,
                                         mapPath: mapPath
                                     );
@@ -242,7 +242,7 @@ namespace Game1
                             {
                                 playState = PlayState.StartGame
                                 (
-                                    switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: playStatePauseMenu),
+                                    switchToPauseMenu: new SetGameStateToPause(game: this, pauseMenu: playStatePauseMenu),
                                     mapInfo: mapInfo
                                 );
                                 SetGameState(newGameState: playState);
@@ -280,7 +280,7 @@ namespace Game1
                         (
                             newGameState: playState ?? PlayState.ContinueFromSave
                             (
-                                switchToPauseMenu: new SetGameStateToPause(Game: this, PauseMenu: playStatePauseMenu),
+                                switchToPauseMenu: new SetGameStateToPause(game: this, pauseMenu: playStatePauseMenu),
                                 saveFilePath: GetGameSaveFilePath()
                             ).SwitchExpression
                             (

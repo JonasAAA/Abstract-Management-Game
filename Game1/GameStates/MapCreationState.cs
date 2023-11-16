@@ -13,12 +13,12 @@ namespace Game1.GameStates
     public sealed class MapCreationState : GameState
     {
         [Serializable]
-        private sealed record BuildingCosmicBodyTextBoxHUDPosUpdater(MapCreationState MapCreationState, StartingBuilding StartingBuilding) : IAction
+        private sealed class BuildingCosmicBodyTextBoxHUDPosUpdater(MapCreationState mapCreationState, StartingBuilding startingBuilding) : IAction
         {
             void IAction.Invoke()
             {
-                if (MapCreationState.CurMapInfo.StartingInfo.StartingBuildingToCosmicBodyId[StartingBuilding] is CosmicBodyId startingBuildingCosmicBodyId)
-                    MapCreationState.startingBuildingToTextBox[StartingBuilding].Shape.Center = MapCreationState.CurCosmicBodyHUDPos(cosmicBodyId: startingBuildingCosmicBodyId);
+                if (mapCreationState.CurMapInfo.StartingInfo.StartingBuildingToCosmicBodyId[startingBuilding] is CosmicBodyId startingBuildingCosmicBodyId)
+                    mapCreationState.startingBuildingToTextBox[startingBuilding].Shape.Center = mapCreationState.CurCosmicBodyHUDPos(cosmicBodyId: startingBuildingCosmicBodyId);
             }
         }
 
@@ -71,19 +71,19 @@ namespace Game1.GameStates
         private readonly record struct CosmicBodyInfoInternal(WorldCamera WorldCamera, CosmicBodyId Id, string Name, MyVector2 Position, Length Radius)
         {
             [Serializable]
-            private sealed record CosmicBodyShapeParams(CosmicBodyInfoInternal CosmicBody) : Disk.IParams
+            private sealed class CosmicBodyShapeParams(CosmicBodyInfoInternal cosmicBody) : Disk.IParams
             {
                 public MyVector2 Center
-                    => CosmicBody.Position;
+                    => cosmicBody.Position;
 
                 public Length Radius
-                    => CosmicBody.Radius;
+                    => cosmicBody.Radius;
             }
 
             public Shape GetShape()
                 => new Disk
                 (
-                    parameters: new CosmicBodyShapeParams(CosmicBody: this),
+                    parameters: new CosmicBodyShapeParams(cosmicBody: this),
                     worldCamera: WorldCamera
                 );
         }
@@ -92,13 +92,13 @@ namespace Game1.GameStates
         private readonly record struct LinkInfoInternal(WorldCamera WorldCamera, LinkId Id, CosmicBodyId From, CosmicBodyId To)
         {
             [Serializable]
-            private readonly record struct LinkShapeParams(MapInfoInternal CurMapInfo, LinkInfoInternal Link) : VectorShape.IParams
+            private sealed class LinkShapeParams(MapInfoInternal curMapInfo, LinkInfoInternal link) : VectorShape.IParams
             {
                 public MyVector2 StartPos
-                    => CurMapInfo.CosmicBodies[Link.From].Position;
+                    => curMapInfo.CosmicBodies[link.From].Position;
 
                 public MyVector2 EndPos
-                    => CurMapInfo.CosmicBodies[Link.To].Position;
+                    => curMapInfo.CosmicBodies[link.To].Position;
 
                 public Length Width
                     => Length.CreateFromM(CurGameConfig.linkPixelWidth);
@@ -107,7 +107,7 @@ namespace Game1.GameStates
             public Shape GetShape(MapInfoInternal curMapInfo)
                 => new LineSegment
                 (
-                    parameters: new LinkShapeParams(CurMapInfo: curMapInfo, Link: this),
+                    parameters: new LinkShapeParams(curMapInfo: curMapInfo, link: this),
                     worldCamera: WorldCamera
                 );
         }
@@ -391,7 +391,7 @@ namespace Game1.GameStates
                     activeUIManager.AddWorldHUDElement
                     (
                         worldHUDElement: textBox,
-                        updateHUDPos: new BuildingCosmicBodyTextBoxHUDPosUpdater(MapCreationState: this, StartingBuilding: startingBuilding)
+                        updateHUDPos: new BuildingCosmicBodyTextBoxHUDPosUpdater(mapCreationState: this, startingBuilding: startingBuilding)
                     );
                     return textBox;
                 }

@@ -10,16 +10,16 @@ namespace Game1.Industries
     public static class IndustryUIAlgos
     {
         [Serializable]
-        private sealed record ItemChoiceSetter<TItem>(IItemChoiceSetter<ProductionChoice> ProductionChoiceSetter) : IItemChoiceSetter<TItem>
+        private sealed class ItemChoiceSetter<TItem>(IItemChoiceSetter<ProductionChoice> productionChoiceSetter) : IItemChoiceSetter<TItem>
             where TItem : notnull
         {
             void IItemChoiceSetter<TItem>.SetChoice(TItem item)
-                => ProductionChoiceSetter.SetChoice(item: new ProductionChoice(Choice: item));
+                => productionChoiceSetter.SetChoice(item: new ProductionChoice(Choice: item));
         }
 
         public static IItemChoiceSetter<TItem> Convert<TItem>(this IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
             where TItem : notnull
-            => new ItemChoiceSetter<TItem>(ProductionChoiceSetter: productionChoiceSetter);
+            => new ItemChoiceSetter<TItem>(productionChoiceSetter: productionChoiceSetter);
 
         public static IHUDElement CreateMatPaletteChoiceDropdown(IItemChoiceSetter<MaterialPalette> matPaletteChoiceSetter, ProductClass productClass, (IHUDElement empty, Func<MaterialPalette, IHUDElement> item)? additionalInfos = null)
             => Dropdown.CreateDropdown

@@ -11,16 +11,16 @@ namespace Game1.UI
     {
         // it is public to easily add it to knownTypes
         [Serializable]
-        public readonly record struct ChoiceEventListener(MultipleChoicePanel<TChoiceLabel> MultipleChoicePanel, TChoiceLabel ChoiceLabel) : IOnChangedListener, IEnabledChangedListener
+        public sealed class ChoiceEventListener(MultipleChoicePanel<TChoiceLabel> multipleChoicePanel, TChoiceLabel choiceLabel) : IOnChangedListener, IEnabledChangedListener
         {
             void IEnabledChangedListener.EnabledChangedResponse()
             {
-                var choice = MultipleChoicePanel.choices[ChoiceLabel];
+                var choice = multipleChoicePanel.choices[choiceLabel];
 
                 if (choice.PersonallyEnabled || !choice.On)
                     return;
 
-                foreach (var posChoice in MultipleChoicePanel.choicePanel)
+                foreach (var posChoice in multipleChoicePanel.choicePanel)
                     if (posChoice.PersonallyEnabled)
                     {
                         posChoice.On = true;
@@ -31,11 +31,11 @@ namespace Game1.UI
 
             void IOnChangedListener.OnChangedResponse()
             {
-                if (!MultipleChoicePanel.choices[ChoiceLabel].On)
+                if (!multipleChoicePanel.choices[choiceLabel].On)
                     return;
 
-                MultipleChoicePanel.choices[MultipleChoicePanel.SelectedChoiceLabel].On = false;
-                MultipleChoicePanel.SelectedChoiceLabel = ChoiceLabel;
+                multipleChoicePanel.choices[multipleChoicePanel.SelectedChoiceLabel].On = false;
+                multipleChoicePanel.SelectedChoiceLabel = choiceLabel;
             }
         }
 
@@ -123,8 +123,8 @@ namespace Game1.UI
 
             ChoiceEventListener choiceEventListener = new
             (
-                MultipleChoicePanel: this,
-                ChoiceLabel: choiceLabel
+                multipleChoicePanel: this,
+                choiceLabel: choiceLabel
             );
             choice.onChanged.Add(listener: choiceEventListener);
             choice.EnabledChanged.Add(listener: choiceEventListener);

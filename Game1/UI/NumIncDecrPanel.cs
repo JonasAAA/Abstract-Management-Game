@@ -8,19 +8,19 @@ namespace Game1.UI
     public sealed class NumIncDecrPanel : HUDElement
     {
         [Serializable]
-        private readonly record struct NumIncrButtonClickedListener(NumIncDecrPanel NumIncDecrPanel) : IClickedListener
+        private sealed class NumIncrButtonClickedListener(NumIncDecrPanel numIncDecrPanel) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
-                => NumIncDecrPanel.Number++;
+                => numIncDecrPanel.Number++;
         }
 
         [Serializable]
-        private readonly record struct NumDecrButtonClickedListener(NumIncDecrPanel NumIncDecrPanel) : IClickedListener
+        private sealed class NumDecrButtonClickedListener(NumIncDecrPanel numIncDecrPanel) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
             {
-                if (NumIncDecrPanel.Number > NumIncDecrPanel.minNum)
-                    NumIncDecrPanel.Number--;
+                if (numIncDecrPanel.Number > numIncDecrPanel.minNum)
+                    numIncDecrPanel.Number--;
             }
         }
 
@@ -75,7 +75,7 @@ namespace Game1.UI
                 tooltip: incrButtonTooltip,
                 color: incrDecrButtonColor
             );
-            numIncrButton.clicked.Add(listener: new NumIncrButtonClickedListener(NumIncDecrPanel: this));
+            numIncrButton.clicked.Add(listener: new NumIncrButtonClickedListener(numIncDecrPanel: this));
 
             numDecrButton = new
             (
@@ -88,7 +88,7 @@ namespace Game1.UI
                 tooltip: decrButtonTooltip,
                 color: incrDecrButtonColor
             );
-            numDecrButton.clicked.Add(listener: new NumDecrButtonClickedListener(NumIncDecrPanel: this));
+            numDecrButton.clicked.Add(listener: new NumDecrButtonClickedListener(numIncDecrPanel: this));
 
             panel = new
             (

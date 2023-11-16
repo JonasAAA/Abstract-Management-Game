@@ -88,6 +88,7 @@ namespace Game1
             {
                 AllowTrailingCommas = true,
                 WriteIndented = true,
+                UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow,
                 Converters =
                 {
                     new JsonStringEnumConverter()
@@ -99,9 +100,6 @@ namespace Game1
 
         // required means that the property must be in json, as said here https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/required-properties
         // TODO: could create a json schema for the file and use it to validate file while someone is writing it
-        // TODO: could use https://docs.microsoft.com/en-us/dotnet/api/system.text.json.serialization.jsonextensiondataattribute?view=net-7.0
-        // to check for fields provided in json but deserialised
-        // STARTING with .NET 8, could use https://learn.microsoft.com/en-us/dotnet/standard/serialization/system-text-json/missing-members
         private static Result<ValidMapInfo, TextErrors> LoadMap(FilePath mapPath)
         {
             try

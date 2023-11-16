@@ -6,9 +6,9 @@ namespace Game1.UI
     {
         public bool Enabled { get; }
 
-        public bool PersonallyEnabled { set; }
+        public bool PersonallyEnabled { get; set; }
 
-        public bool HasDisabledAncestor { set; }
+        public bool HasDisabledAncestor { get; set; }
 
         public bool MouseOn { get; set; }
 

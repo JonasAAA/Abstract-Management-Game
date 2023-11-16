@@ -80,8 +80,8 @@ namespace Game1.GameStates
                     => cosmicBody.Radius;
             }
 
-            public Shape GetShape()
-                => new Disk
+            public Disk GetShape()
+                => new
                 (
                     parameters: new CosmicBodyShapeParams(cosmicBody: this),
                     worldCamera: WorldCamera
@@ -104,8 +104,8 @@ namespace Game1.GameStates
                     => Length.CreateFromM(CurGameConfig.linkPixelWidth);
             }
 
-            public Shape GetShape(MapInfoInternal curMapInfo)
-                => new LineSegment
+            public LineSegment GetShape(MapInfoInternal curMapInfo)
+                => new
                 (
                     parameters: new LinkShapeParams(curMapInfo: curMapInfo, link: this),
                     worldCamera: WorldCamera

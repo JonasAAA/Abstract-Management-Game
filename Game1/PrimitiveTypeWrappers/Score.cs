@@ -17,12 +17,10 @@ namespace Game1.PrimitiveTypeWrappers
             {
                 this.target = target;
 
-                if (elapsed < TimeSpan.Zero)
-                    throw new ArgumentOutOfRangeException();
+                ArgumentOutOfRangeException.ThrowIfLessThan(elapsed, TimeSpan.Zero);
                 this.elapsed = elapsed;
 
-                if (halvingDifferenceDuration <= TimeSpan.Zero)
-                    throw new ArgumentOutOfRangeException();
+                ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(halvingDifferenceDuration, TimeSpan.Zero);
                 this.halvingDifferenceDuration = halvingDifferenceDuration;
             }
         }

@@ -22,7 +22,7 @@ csharp_style_expression_bodied_local_functions = true:suggestion
 csharp_style_throw_expression = true:suggestion
 csharp_style_prefer_null_check_over_type_check = true:suggestion
 csharp_prefer_simple_default_expression = true:suggestion
-csharp_style_prefer_local_over_anonymous_function = true:suggestion
+csharp_style_prefer_local_over_anonymous_function = true:none
 csharp_style_prefer_index_operator = true:suggestion
 csharp_style_prefer_range_operator = true:suggestion
 csharp_style_implicit_object_creation_when_type_is_apparent = true:suggestion
@@ -110,6 +110,15 @@ dotnet_diagnostic.CA1043.severity = none
 # CS8524: The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
 dotnet_diagnostic.CS8524.severity = none
 csharp_style_prefer_primary_constructors = false
+
+# CA1304: Specify CultureInfo
+dotnet_diagnostic.CA1304.severity = none
+
+# CA1311: Specify a culture or use an invariant version
+dotnet_diagnostic.CA1311.severity = none
+
+# IDE0039: Use local function
+dotnet_diagnostic.IDE0039.severity = none
 
 [*.{cs,vb}]
 #### Naming styles ####

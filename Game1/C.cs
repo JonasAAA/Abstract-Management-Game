@@ -70,8 +70,7 @@ namespace Game1
 
         public static Propor DonePropor(TimeSpan timeLeft, TimeSpan duration)
         {
-            if (duration <= TimeSpan.Zero)
-                throw new ArgumentOutOfRangeException();
+            ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(duration, TimeSpan.Zero);
             return Propor.Create(1 - timeLeft / duration) switch
             {
                 Propor donePropor => donePropor,

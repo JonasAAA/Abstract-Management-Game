@@ -99,9 +99,7 @@ namespace Game1.Industries
 
         protected static void ToggleElement<T>(HashSet<T> set, T element)
         {
-            if (set.Contains(element))
-                set.Remove(element);
-            else
+            if (!set.Remove(element))
                 set.Add(element);
         }
 

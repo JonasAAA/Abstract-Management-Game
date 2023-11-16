@@ -11,7 +11,6 @@ namespace Game1.Industries
     [Serializable]
     public sealed class Storage : IIndustry
     {
-#pragma warning disable IDE0001 // Otherwise it says to use StorageProductionChoice instead of IResource everywhere
         [Serializable]
         public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
@@ -299,6 +298,5 @@ namespace Game1.Industries
             isDeleted = true;
             return true;
         }
-#pragma warning restore IDE0001
     }
 }

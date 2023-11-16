@@ -65,10 +65,9 @@
 
         public ResPile ReturnAndRemove(NodeID destination)
         {
-            if (!resAmountsPacketsByDestin.ContainsKey(destination))
+            if (!resAmountsPacketsByDestin.TryGetValue(destination, out ResAmountsPacket? resAmountsPacket))
                 return ResPile.CreateEmpty(thermalBody: thermalBody);
 
-            var resAmountsPacket = resAmountsPacketsByDestin[destination];
             resAmountsPacketsByDestin.Remove(destination);
             ResAmounts -= resAmountsPacket.resPile.Amount;
             Mass -= resAmountsPacket.Mass;

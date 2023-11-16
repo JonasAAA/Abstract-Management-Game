@@ -20,7 +20,9 @@ namespace Game1
                 set:
                 [
                     typeof(GameMain),
-                    typeof(SetGameStateToPause)
+                    typeof(SetGameStateToPause),
+                    typeof(ContentException),
+                    typeof(InvalidStateException)
                 ]
             );
 
@@ -509,6 +511,14 @@ namespace Game1
             gameState.Draw();
 
             base.Draw(gameTime);
+        }
+
+        // Implemented according to https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1001#example
+        protected override void Dispose(bool disposing)
+        {
+            base.Dispose(disposing);
+            if (disposing)
+                graphics?.Dispose();
         }
     }
 }

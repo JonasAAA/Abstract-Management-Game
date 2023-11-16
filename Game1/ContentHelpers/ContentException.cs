@@ -1,6 +1,4 @@
-﻿using System.Runtime.Serialization;
-
-namespace Game1.ContentHelpers
+﻿namespace Game1.ContentHelpers
 {
     [Serializable]
     public sealed class ContentException : Exception
@@ -15,11 +13,6 @@ namespace Game1.ContentHelpers
 
         public ContentException(string message, Exception innerException)
             : base(message, innerException)
-        { }
-
-        // Needed since Exception implements ISerializable
-        private ContentException(SerializationInfo serializationInfo, StreamingContext streamingContext)
-            : base(serializationInfo, streamingContext)
         { }
     }
 }

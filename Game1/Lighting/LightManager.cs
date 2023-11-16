@@ -1,10 +1,11 @@
 ﻿using Game1.Collections;
 using Game1.Delegates;
+using Microsoft.Xna.Framework.Graphics;
 
 namespace Game1.Lighting
 {
     [Serializable]
-    public sealed class LightManager : IDeletedListener
+    public sealed class LightManager : IDeletedListener, IDisposable
     {
         [Serializable]
         private sealed class VacuumAsRadiantEnergyConsumer : IRadiantEnergyConsumer
@@ -30,10 +31,13 @@ namespace Game1.Lighting
 
         private RenderTarget2D RenderTarget
             => renderTarget ?? throw new InvalidOperationException(mustInitializeMessage);
+        private BlendState BlendState
+            => blendState ?? throw new InvalidOperationException(mustInitializeMessage);
         
         private readonly VacuumAsRadiantEnergyConsumer vacuumAsRadiantEnergyConsumer;
         private const string mustInitializeMessage = $"must initialize {nameof(LightManager)} first by calling {nameof(Initialize)}";
         [NonSerialized] private RenderTarget2D? renderTarget;
+        [NonSerialized] private BlendState? blendState;
 
         public LightManager(EnergyPile<HeatEnergy> vacuumHeatEnergyPile)
         {
@@ -43,7 +47,19 @@ namespace Game1.Lighting
         }
 
         public void Initialize()
-            => renderTarget = new(C.GraphicsDevice, actualScreenWidth, actualScreenHeight);
+        {
+            renderTarget = new(C.GraphicsDevice, actualScreenWidth, actualScreenHeight);
+            // invert the image, i.e.each Color channel transforms x -> 1 - x, same with alpha channel
+            blendState = new()
+            {
+                ColorSourceBlend = Blend.InverseDestinationColor,
+                AlphaSourceBlend = Blend.InverseDestinationColor,
+                ColorDestinationBlend = Blend.Zero,
+                AlphaDestinationBlend = Blend.Zero,
+                ColorBlendFunction = BlendFunction.Add,
+                AlphaBlendFunction = BlendFunction.Add,
+            };
+        }
 
         public void AddLightCatchingObject(ILightCatchingObject lightCatchingObject)
         {
@@ -107,19 +123,7 @@ namespace Game1.Lighting
                     actualScreenHeight: actualScreenHeight
                 );
 
-            // invert the image, i.e.each Color channel transforms x -> 1 - x, same with alpha channel
-            C.SpriteBatch.Begin
-            (
-                blendState: new()
-                {
-                    ColorSourceBlend = Blend.InverseDestinationColor,
-                    AlphaSourceBlend = Blend.InverseDestinationColor,
-                    ColorDestinationBlend = Blend.Zero,
-                    AlphaDestinationBlend = Blend.Zero,
-                    ColorBlendFunction = BlendFunction.Add,
-                    AlphaBlendFunction = BlendFunction.Add,
-                }
-            );
+            C.SpriteBatch.Begin(blendState: BlendState);
             C.SpriteBatch.Draw(C.PixelTexture, destinationRectangle: new Rectangle(0, 0, actualScreenWidth, actualScreenHeight), Color.White);
             C.SpriteBatch.End();
 
@@ -143,6 +147,23 @@ namespace Game1.Lighting
                 default:
                     throw new ArgumentException();
             }
+        }
+
+        // Implemented according to https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1001#example
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                renderTarget?.Dispose();
+                blendState?.Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

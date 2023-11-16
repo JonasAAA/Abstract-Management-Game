@@ -18,7 +18,7 @@ using static Game1.GameConfig;
 namespace Game1
 {
     [Serializable]
-    public sealed class WorldManager
+    public sealed class WorldManager : IDisposable
     {
         [Serializable]
         private sealed class PauseButtonTooltip : TextTooltipBase
@@ -39,11 +39,7 @@ namespace Game1
 
         
         public static WorldManager CurWorldManager
-            => Initialized ? curWorldManager : throw new InvalidOperationException($"must initialize {nameof(WorldManager)} first by calling {nameof(CreateWorldManager)} or {nameof(LoadWorldManager)}");
-
-        [MemberNotNullWhen(returnValue: true, member: nameof(curWorldManager))]
-        public static bool Initialized
-            => curWorldManager is not null;
+            => curWorldManager ?? throw new InvalidOperationException($"must initialize {nameof(WorldManager)} first by calling {nameof(CreateWorldManager)} or {nameof(LoadWorldManager)}");
 
         public static WorldConfig CurWorldConfig { get; private set; } = null!;
 
@@ -117,6 +113,8 @@ namespace Game1
                 scrollSpeed: 1,
                 screenBoundWidthForMapMoving: 1
             );
+            // If a game was played already, need to free graphics resources from there as will not reuse them
+            curWorldManager?.Dispose();
             curWorldManager = new();
             CurWorldManager.graph = Graph.CreateFromInfo
             (
@@ -601,6 +599,20 @@ namespace Game1
 
             using var writer = XmlDictionaryWriter.CreateBinaryWriter(fileStream);
             serializer.WriteObject(writer, this);
+        }
+
+        // Implemented according to https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/quality-rules/ca1001#example
+        private void Dispose(bool disposing)
+        {
+            if (disposing)
+                lightManager?.Dispose();
+        }
+
+        public void Dispose()
+        {
+            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
         }
     }
 }

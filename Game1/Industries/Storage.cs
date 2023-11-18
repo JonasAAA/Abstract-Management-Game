@@ -31,7 +31,7 @@ namespace Game1.Industries
             }
 
             public IHUDElement? CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
-                => IndustryUIAlgos.CreateResourceChoiceDropdown(resChoiceSetter: productionChoiceSetter.Convert<StorageChoice>());
+                => ResAndIndustryUIAlgos.CreateResourceChoiceDropdown(resChoiceSetter: productionChoiceSetter.Convert<StorageChoice>());
 
             public ConcreteBuildingParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, StorageChoice storageChoice)
             {

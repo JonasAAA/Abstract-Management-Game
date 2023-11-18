@@ -653,7 +653,7 @@ namespace Game1.GameStates
                     shape: cosmicBody.GetShape(),
                     color: (selectedUIElement is CosmicBodyId selectedCosmicBody && selectedCosmicBody == id)
                         ? ActiveUIManager.colorConfig.mapCreationSelectedWorldUIElementColor
-                        : ActiveUIManager.colorConfig.Res0Color
+                        : ActiveUIManager.colorConfig.mapCreationCosmicBodyColor
                 );
             foreach (var (id, link) in CurMapInfo.Links)
                 yield return

@@ -81,7 +81,7 @@ namespace Game1
             knownTypesSet.UnionWith(MaterialProduction.GetKnownTypes());
             knownTypesSet.UnionWith(Storage.GetKnownTypes());
             knownTypesSet.UnionWith(Dropdown.GetKnownTypes());
-            knownTypesSet.UnionWith(IndustryUIAlgos.GetKnownTypes());
+            knownTypesSet.UnionWith(ResAndIndustryUIAlgos.GetKnownTypes());
             knownTypesSet.UnionWith(FunctionGraphImage.GetKnownTypes());
             knownTypesSet.UnionWith(FunctionGraphWithHighlighImage.GetKnownTypes());
 

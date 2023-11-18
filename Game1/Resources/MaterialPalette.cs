@@ -11,10 +11,10 @@ namespace Game1.Resources
         // This is a method so that each of these is independent.
         // Otherwise, if want to show it on screen twice, both of those would show up in the same position, since they are the same object.
         public static IHUDElement CreateEmptyProdStatsInfluenceVisual()
-            => IndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+            => ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
             (
-                neededElectricity: IndustryUIAlgos.emptyProdNeededElectricityFunctionGraph,
-                throughput: IndustryUIAlgos.emptyProdThroughputFunctionGraph
+                neededElectricity: ResAndIndustryUIAlgos.emptyProdNeededElectricityFunctionGraph,
+                throughput: ResAndIndustryUIAlgos.emptyProdThroughputFunctionGraph
             );
 
         public static Result<MaterialPalette, TextErrors> CreateAndAddToResConfig(string name, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices)
@@ -56,11 +56,11 @@ namespace Game1.Resources
             this.productClass = productClass;
             this.materialChoices = materialChoices;
             this.materialAmounts = materialAmounts;
-            prodNeededElectricityFunctionGraph = IndustryUIAlgos.CreateGravityFunctionGraph
+            prodNeededElectricityFunctionGraph = ResAndIndustryUIAlgos.CreateGravityFunctionGraph
             (
                 func: gravity => ResAndIndustryAlgos.NeededElectricity(materialPalette: this, gravity: gravity)
             );
-            prodThroughputFunctionGraph = IndustryUIAlgos.CreateTemperatureFunctionGraph
+            prodThroughputFunctionGraph = ResAndIndustryUIAlgos.CreateTemperatureFunctionGraph
             (
                 func: temper => ResAndIndustryAlgos.Throughput(materialPalette: this, temperature: temper)
             );
@@ -69,7 +69,7 @@ namespace Game1.Resources
         // This is a method so that each prod stats is independent.
         // Otherwise, if want to show it on screen twice, both of those would show up in the same position, since they are the same object.
         public IHUDElement CreateProdStatsInfluenceVisual()
-            => IndustryUIAlgos.CreateNeededElectricityAndThroughputPanel(neededElectricity: prodNeededElectricityFunctionGraph, throughput: prodThroughputFunctionGraph);
+            => ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel(neededElectricity: prodNeededElectricityFunctionGraph, throughput: prodThroughputFunctionGraph);
 
         /// <summary>
         /// Returns text errors if contents are the same

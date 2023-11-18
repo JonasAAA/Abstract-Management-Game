@@ -5,8 +5,7 @@
     {
         public readonly Color
             // world colors
-            Res0Color,
-            Res1Color,
+            mapCreationCosmicBodyColor,
             minTemperatureColor,
             maxTemperatureColor,
             cosmosBackgroundColor,
@@ -41,8 +40,7 @@
         public ColorConfig()
         {
             // world colors
-            Res0Color = C.ColorFromRGB(rgb: 0x00754D);
-            Res1Color = C.ColorFromRGB(rgb: 0x00632D);
+            mapCreationCosmicBodyColor = C.ColorFromRGB(rgb: 0x00754D);
             minTemperatureColor = C.ColorFromRGB(rgb: 0x00476B);
             maxTemperatureColor = C.ColorFromRGB(rgb: 0xFFF07A);
             cosmosBackgroundColor = C.ColorFromRGB(rgb: 0x000E24);

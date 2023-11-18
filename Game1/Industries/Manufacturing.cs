@@ -37,7 +37,7 @@ namespace Game1.Industries
             }
 
             public IHUDElement? CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
-                => IndustryUIAlgos.CreateMatPaletteChoiceDropdown
+                => ResAndIndustryUIAlgos.CreateMatPaletteChoiceDropdown
                 (
                     matPaletteChoiceSetter: productionChoiceSetter.Convert<ManufacturingProductionChoice>(),
                     productClass: productParams.productClass

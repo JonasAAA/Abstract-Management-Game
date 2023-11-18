@@ -68,8 +68,8 @@ namespace Game1
                 cosmicBodyBuildPanelManagers = [];
                 cancelButton.clicked.Add(listener: new CancelBuildingButtonListener(buildingConfigPanelManager: this));
 
-                overallNeededElectricityGraph = IndustryUIAlgos.CreateGravityFunctionGraph(func: null);
-                overallThroughputGraph = IndustryUIAlgos.CreateTemperatureFunctionGraph(func: null);
+                overallNeededElectricityGraph = ResAndIndustryUIAlgos.CreateGravityFunctionGraph(func: null);
+                overallThroughputGraph = ResAndIndustryUIAlgos.CreateTemperatureFunctionGraph(func: null);
 
                 var productionChoicePanel = constrGeneralParams.CreateProductionChoicePanel(productionChoiceSetter: this);
                 if (productionChoicePanel is null)
@@ -102,7 +102,7 @@ namespace Game1
                                     children: new List<IHUDElement>()
                                     {
                                         new TextBox(text: $"{productClass} "),
-                                        IndustryUIAlgos.CreateMatPaletteChoiceDropdown
+                                        ResAndIndustryUIAlgos.CreateMatPaletteChoiceDropdown
                                         (
                                             matPaletteChoiceSetter: this,
                                             productClass: productClass,
@@ -112,7 +112,7 @@ namespace Game1
                                                 item: static matPalette => matPalette.CreateProdStatsInfluenceVisual()
                                             )
                                         ),
-                                        IndustryUIAlgos.CreateStandardVertProporBar(propor: propor)
+                                        ResAndIndustryUIAlgos.CreateStandardVertProporBar(propor: propor)
                                     }
                                 );
                             }
@@ -124,12 +124,12 @@ namespace Game1
                             childVertPos: VertPosEnum.Middle,
                             children: new List<IHUDElement>()
                             {
-                                IndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+                                ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
                                 (
                                     neededElectricity: overallNeededElectricityGraph,
                                     throughput: overallThroughputGraph
                                 ),
-                                IndustryUIAlgos.CreateStandardVertProporBar(propor: Propor.full)
+                                ResAndIndustryUIAlgos.CreateStandardVertProporBar(propor: Propor.full)
                             }
                         )
                     ).Concat
@@ -152,7 +152,7 @@ namespace Game1
                     (
                         cosmicBody =>
                         {
-                            IHUDElement buildingStatsGraphs = IndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+                            IHUDElement buildingStatsGraphs = ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
                             (
                                 neededElectricity: new FunctionGraphWithHighlighImage<SurfaceGravity, Propor>
                                 (

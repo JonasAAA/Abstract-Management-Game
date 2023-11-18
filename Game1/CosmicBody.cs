@@ -35,7 +35,8 @@ namespace Game1
         private sealed class BriefInfoText(CosmicBody cosmicBody) : ILazyText
         {
             string ILazyText.GetText()
-                => $"T = {cosmicBody.state.Temperature}";
+                => "";
+            //=> $"T = {cosmicBody.state.Temperature}";
         }
 
         [Serializable]
@@ -110,6 +111,7 @@ namespace Game1
                 return popups.ToEfficientReadOnlyCollection();
             }
         }
+
         protected sealed override Color Color
             => ColorHelpers.Interpolate
             (
@@ -135,6 +137,7 @@ namespace Game1
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
         private readonly IAction UITabPanelHUDPosUpdater;
         private readonly UIRectPanel<IHUDElement> infoPanel;
+#warning Remove textBox as it does nothing now
         private readonly LazyTextBox textBox, infoTextBox;
 
         public CosmicBody(NodeState state, Func<IIndustryFacingNodeState, IIndustry?> createIndustry)

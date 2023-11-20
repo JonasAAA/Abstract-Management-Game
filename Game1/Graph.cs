@@ -98,7 +98,7 @@ namespace Game1
                 (
                     rawMatAmount => new ResAmount<RawMaterial>
                     (
-                        res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: CurResConfig, ind: rawMatAmount.rawMatInd),
+                        res: CurResConfig.GetRawMatFromInd(ind: rawMatAmount.rawMatInd),
                         amount: rawMatAmount.amount
                     )
                 )

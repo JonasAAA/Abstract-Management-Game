@@ -140,28 +140,28 @@ namespace Game1
                 backgroundColor: colorConfig.barBackgroundColor
             );
 
-        //public static IHUDElement ResAmountsHUDElement<TRes>(ResAmounts<TRes> resAmounts)
-        //    where TRes : class, IResource
-        //{
-        //    if (resAmounts.IsEmpty)
-        //        return new TextBox(text: "None");
-        //    return new UIRectVertPanel<IHUDElement>
-        //    (
-        //        childHorizPos: HorizPosEnum.Left,
-        //        children: resAmounts.Select
-        //        (
-        //            resAmount => new UIRectHorizPanel<IHUDElement>
-        //            (
-        //                childVertPos: VertPosEnum.Middle,
-        //                children:
-        //                [
-        //                    new ImageHUDElement(image: resAmount.res.Icon),
-        //                    new TextBox(text: $"{resAmount.BlockAmount():0.0}")
-        //                ]
-        //            )
-        //        )
-        //    );
-        //}
+        public static IHUDElement ResAmountsHUDElement<TRes>(ResAmounts<TRes> resAmounts)
+            where TRes : class, IResource
+        {
+            if (resAmounts.IsEmpty)
+                return new TextBox(text: "None");
+            return new UIRectVertPanel<IHUDElement>
+            (
+                childHorizPos: HorizPosEnum.Left,
+                children: resAmounts.Select
+                (
+                    resAmount => new UIRectHorizPanel<IHUDElement>
+                    (
+                        childVertPos: VertPosEnum.Middle,
+                        children:
+                        [
+                            new ImageHUDElement(image: resAmount.res.Icon),
+                            new TextBox(text: $"{resAmount.BlockAmount():0.0}")
+                        ]
+                    )
+                )
+            );
+        }
 
         public static IEnumerable<Type> GetKnownTypes()
             => from typeArgument in Dropdown.GetKnownTypeArgs()

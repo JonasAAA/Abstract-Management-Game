@@ -2,7 +2,8 @@
 
 namespace Game1
 {
-    [Serializable]
+    // IMPORTANT - take care to not save system- or user-specific paths
+    [NonSerializable]
     public readonly struct FilePath(DirectoryPath directoryPath, string fileNameWithExtension)
     {
         public enum FileAccess

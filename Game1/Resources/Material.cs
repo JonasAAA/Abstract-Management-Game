@@ -1,18 +1,21 @@
-﻿using static Game1.WorldManager;
+﻿using Game1.UI;
+using static Game1.WorldManager;
 
 namespace Game1.Resources
 {
     [Serializable]
     public sealed class Material : IResource
     {
-        public static Material CreateAndAddToCurResConfig(string name, RawMatAmounts rawMatAreaPropors)
+        public static Material CreateAndAddToCurResConfig(string name, Icon icon, RawMatAmounts rawMatAreaPropors)
             // Material consrutor adds itself to CurResConfig
             => new
             (
                 name: name,
+                icon: icon,
                 composition: ResAndIndustryAlgos.CreateMatCompositionFromRawMatPropors(rawMatPropors: rawMatAreaPropors)
             );
 
+        public IImage Icon { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
@@ -21,9 +24,10 @@ namespace Game1.Resources
 
         private readonly string name;
 
-        private Material(string name, RawMatAmounts composition)
+        private Material(string name, Icon icon, RawMatAmounts composition)
         {
             this.name = name;
+            Icon = icon;
             Mass = composition.Mass();
             HeatCapacity = composition.HeatCapacity();
             Area = ResAndIndustryAlgos.blockArea;

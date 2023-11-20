@@ -182,9 +182,10 @@ namespace Game1.UI
             if (contMouse == prevContMouse)
             {
                 hoverDuration += elapsed;
-                if (contMouse?.Enabled is true && hoverDuration >= minDurationToGetTooltip && tooltip is null && contMouse is IWithTooltip UIElementWithTooltip)
+                if (contMouse?.Enabled is true && hoverDuration >= minDurationToGetTooltip && tooltip is null
+                    && contMouse is IMaybeWithTooltip UIElementWithTooltip && UIElementWithTooltip.Tooltip is ITooltip notNullTooltip)
                 {
-                    tooltip = UIElementWithTooltip.Tooltip;
+                    tooltip = notNullTooltip;
                     tooltip.Update();
                     tooltip.Shape.TopLeftCorner = mouseHUDPos;
                 }

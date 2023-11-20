@@ -14,6 +14,11 @@
             houseIndustryColor,
             linkTravellerColor,
             mapCreationSelectedWorldUIElementColor,
+            // material palette colors
+            otherMechMatPaletteColor,
+            defMechMatPaletteColor,
+            defElecMatPaletteColor,
+            defRoofMatPaletteColor,
             // industry colors
             miningBuildingColor,
             manufacturingBuildingColor,
@@ -49,6 +54,11 @@
             houseIndustryColor = Color.Yellow;
             linkTravellerColor = Color.Black;
             mapCreationSelectedWorldUIElementColor = Color.White;
+            // material palette colors taken from https://tailwindcss.com/docs/customizing-colors
+            otherMechMatPaletteColor = C.ColorFromRGB(rgb: 0xfb923c); // Orange-400
+            defMechMatPaletteColor = C.ColorFromRGB(rgb: 0xfed7aa); // Orange-200
+            defElecMatPaletteColor = C.ColorFromRGB(rgb: 0xd9f99d); // Lime-200
+            defRoofMatPaletteColor = C.ColorFromRGB(rgb: 0x99f6e4); // Teal-200
             // industry colors
             miningBuildingColor = Color.Brown;
             manufacturingBuildingColor = Color.DarkGray;

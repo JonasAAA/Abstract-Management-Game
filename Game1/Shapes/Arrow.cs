@@ -1,9 +1,11 @@
-﻿namespace Game1.Shapes
+﻿using Game1.ContentNames;
+
+namespace Game1.Shapes
 {
     [Serializable]
     public sealed class Arrow : VectorShape
     {
-        private static readonly Texture2D triangleTexture = C.LoadTexture(name: "triangle");
+        private static readonly Texture2D triangleTexture = C.LoadTexture(name: TextureName.triangle);
 
         protected sealed override Texture2D Texture
             => triangleTexture;

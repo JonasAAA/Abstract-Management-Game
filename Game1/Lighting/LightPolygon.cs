@@ -1,9 +1,11 @@
-﻿namespace Game1.Lighting
+﻿using Game1.ContentNames;
+
+namespace Game1.Lighting
 {
     [Serializable]
     public sealed class LightPolygon
     {
-        private static readonly Effect starLightEffect = C.ContentManager.Load<Effect>("StarLight");
+        private static readonly Effect starLightEffect = C.LoadShader(ShaderName.starLight);
 
         [Serializable]
         public readonly record struct LightSourceInfo(MyVector2 Center, Length Radius, UDouble LightAmount);

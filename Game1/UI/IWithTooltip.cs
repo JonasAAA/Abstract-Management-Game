@@ -1,7 +1,10 @@
 ﻿namespace Game1.UI
 {
-    public interface IWithTooltip
+    public interface IWithTooltip : IMaybeWithTooltip
     {
-        public ITooltip Tooltip { get; }
+        public new ITooltip Tooltip { get; }
+
+        ITooltip? IMaybeWithTooltip.Tooltip
+            => Tooltip;
     }
 }

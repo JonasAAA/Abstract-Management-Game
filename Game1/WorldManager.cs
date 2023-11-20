@@ -6,7 +6,6 @@ using Game1.Inhabitants;
 using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -53,8 +52,6 @@ namespace Game1
 
         private static EfficientReadOnlyCollection<Type> ComputeKnownTypes()
         {
-            var nonSerializableTypes = GameMain.NonSerializableTypes();
-
             // TODO: move to a more appropriate class?
             HashSet<Type> knownTypesSet =
             [
@@ -96,11 +93,11 @@ namespace Game1
                     || type.IsEnum)
                     knownTypesSet.Add(type);
                 else
-                    if (!nonSerializableTypes.Contains(type) && !(type.IsAbstract && type.IsSealed) && !type.IsInterface)
-                    unserializedTypeList.Add(type);
+                    if (type.GetCustomAttribute<CompilerGeneratedAttribute>() != null && type.GetCustomAttribute<NonSerializableAttribute>() is null && !(type.IsAbstract && type.IsSealed) && !type.IsInterface)
+                        unserializedTypeList.Add(type);
             }
             if (unserializedTypeList.Count > 0)
-                throw new InvalidStateException($"Every non-static, non-interface, non-enum type (except for types returned from NonSerializableTypes method(s)) must have attribute Serializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
+                throw new InvalidStateException($"Every non-static, non-interface, non-enum type must have attribute Serializable or NonSerializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
             return knownTypesSet.ToEfficientReadOnlyCollection();
         }
 

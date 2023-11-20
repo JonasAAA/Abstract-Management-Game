@@ -1,19 +1,9 @@
 ﻿using Game1.Collections;
-using static Game1.WorldManager;
 
 namespace Game1
 {
     public static class ResAndIndustryHelpers
     {
-        public static Color Color(this RawMatAmounts rawMatAmounts)
-        {
-            Vector3 colorSum = Vector3.Zero;
-            foreach (var (rawMaterial, amount) in rawMatAmounts)
-                colorSum += rawMaterial.Area.valueInMetSq * amount * rawMaterial.Color.ToVector3();
-            float weightSum = rawMatAmounts.Area().valueInMetSq;
-            return new Color(colorSum / weightSum);
-        }
-
         public static AreaDouble ToDouble(this AreaInt area)
             => AreaDouble.CreateFromMetSq(valueInMetSq: area.valueInMetSq);
 

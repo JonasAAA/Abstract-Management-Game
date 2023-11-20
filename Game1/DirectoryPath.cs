@@ -3,7 +3,8 @@ using System.Runtime.InteropServices;
 
 namespace Game1
 {
-    [Serializable]
+    // IMPORTANT - take care to not save system- or user-specific paths
+    [NonSerializable]
     public readonly struct DirectoryPath
     {
         /// <summary>
@@ -23,7 +24,7 @@ namespace Game1
                 )
             );
         public static readonly DirectoryPath editableMapsPath = savePath.Combine(mapFolderName);
-        public static readonly DirectoryPath nonEditableMapsPath = new DirectoryPath(C.ContentManager.RootDirectory).Combine(mapFolderName);
+        public static readonly DirectoryPath nonEditableMapsPath = new DirectoryPath(C.ContentRootDirectory).Combine(mapFolderName);
         public static readonly DirectoryPath gameSavesPath = savePath.Combine("Saves");
 
         public static DirectoryPath GetMapsPath(bool editable)

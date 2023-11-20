@@ -1,4 +1,5 @@
 ﻿using Game1.Collections;
+using Game1.ContentNames;
 using Game1.UI;
 
 namespace Game1.Resources
@@ -12,6 +13,7 @@ namespace Game1.Resources
             => SortedResSet<IResource>.FromSortedUniqueResListUnsafe(sortedUniqueResList: resources.ToEfficientReadOnlyCollection());
 
         private readonly Dictionary<ulong, RawMaterial> indToRawMat;
+        private readonly Dictionary<RawMaterial, Material> rawMatToPrimitiveMat;
         private readonly List<IResource> resources;
         private readonly Dictionary<IResource, ulong> resToOrder;
         private ulong nextMaterialInd, nextMatPaletteInd;
@@ -29,6 +31,7 @@ namespace Game1.Resources
         {
             resources = [];
             indToRawMat = [];
+            rawMatToPrimitiveMat = [];
             resToOrder = [];
             matPaletteToInd = [];
             prodClassToInd = ProductClass.all.Select((prodClass, ind) => (prodClass, ind)).ToEfficientReadOnlyDict
@@ -43,44 +46,27 @@ namespace Game1.Resources
 
         public void Initialize()
         {
-            var material0 = Material.CreateAndAddToCurResConfig
-            (
-                name: "Material 0",
-                rawMatAreaPropors: new
-                (
-                    res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: this, ind: 0),
-                    amount: 1
-                )
-            );
-            var material1 = Material.CreateAndAddToCurResConfig
-            (
-                name: "Material 1",
-                rawMatAreaPropors: new
-                (
-                    res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: this, ind: 1),
-                    amount: 1
-                )
-            );
-            var material2 = Material.CreateAndAddToCurResConfig
-            (
-                name: "Material 0 and 1 mix",
-                rawMatAreaPropors: new
-                (
-                    resAmounts: new List<ResAmount<RawMaterial>>()
-                    {
-                        new(res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: this, ind: 0), amount: 1),
-                        new(res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: this, ind: 1), amount: 1)
-                    }
-                )
-            );
+            // Can't be done in constructor due to AddRes calling Compare which refers to this which is not yet defined
+            foreach (var rawMat in RawMaterial.GetInitialRawMats())
+                AddRes(rawMat);
 
+            foreach (var rawMat in indToRawMat.Values)
+                Material.CreateAndAddToCurResConfig
+                (
+                    name: ResAndIndustryAlgos.PrimitiveMaterialName(rawMatInd: rawMat.Ind),
+                    icon: new Icon(name: TextureName.PrimitiveMaterialIconName(rawMatInd: rawMat.Ind)),
+                    rawMatAreaPropors: new(res: rawMat, amount: 1)
+                );
+            var primitiveMat0 = rawMatToPrimitiveMat[indToRawMat[0]];
+            var primitiveMat1 = rawMatToPrimitiveMat[indToRawMat[1]];
             MaterialPalette.CreateAndAddToResConfig
             (
                 name: "other mech.",
+                image: ColorRect.CreateIconSized(ActiveUIManager.colorConfig.otherMechMatPaletteColor),
                 productClass: ProductClass.mechanical,
                 materialChoices: new()
                 {
-                    [MaterialPurpose.mechanical] = material0
+                    [MaterialPurpose.mechanical] = rawMatToPrimitiveMat[indToRawMat[0]]
                 }
             ).UnwrapOrThrow();
 
@@ -91,29 +77,32 @@ namespace Game1.Resources
                     MaterialPalette.CreateAndAddToResConfig
                     (
                         name: "def. mech.",
+                        image: ColorRect.CreateIconSized(ActiveUIManager.colorConfig.defMechMatPaletteColor),
                         productClass: ProductClass.mechanical,
                         materialChoices: new()
                         {
-                            [MaterialPurpose.mechanical] = material1
+                            [MaterialPurpose.mechanical] = primitiveMat1
                         }
                     ).UnwrapOrThrow(),
                     MaterialPalette.CreateAndAddToResConfig
                     (
                         name: "def. elec.",
+                        image: ColorRect.CreateIconSized(ActiveUIManager.colorConfig.defElecMatPaletteColor),
                         productClass: ProductClass.electronics,
                         materialChoices: new()
                         {
-                            [MaterialPurpose.electricalConductor] = material0,
-                            [MaterialPurpose.electricalInsulator] = material1
+                            [MaterialPurpose.electricalConductor] = primitiveMat0,
+                            [MaterialPurpose.electricalInsulator] = primitiveMat1
                         }
                     ).UnwrapOrThrow(),
                     MaterialPalette.CreateAndAddToResConfig
                     (
                         name: "def. roof",
+                        image: ColorRect.CreateIconSized(ActiveUIManager.colorConfig.defRoofMatPaletteColor),
                         productClass: ProductClass.roof,
                         materialChoices: new()
                         {
-                            [MaterialPurpose.roofSurface] = material2
+                            [MaterialPurpose.roofSurface] = primitiveMat0
                         }
                     ).UnwrapOrThrow()
                 ]
@@ -122,8 +111,8 @@ namespace Game1.Resources
                 prodParams.GetProduct(materialPalette: StartingMaterialPaletteChoices[prodParams.productClass]);
         }
 
-        public RawMaterial? GetRawMatFromInd(ulong ind)
-            => indToRawMat.GetValueOrDefault(key: ind);
+        public RawMaterial GetRawMatFromInd(ulong ind)
+            => indToRawMat[ind];
 
         public IEnumerable<TRes> GetCurRes<TRes>()
             where TRes : class, IResource
@@ -139,10 +128,9 @@ namespace Game1.Resources
             resToOrder.Add(key: resource, value: GetOrder(resource: resource));
             resources.Sort();
             if (resource is RawMaterial rawMaterial)
-            {
-                Debug.Assert(!indToRawMat.ContainsKey(rawMaterial.Ind));
-                indToRawMat[rawMaterial.Ind] = rawMaterial;
-            }
+                indToRawMat.Add(key: rawMaterial.Ind, value: rawMaterial);
+            if (resource is Material material && material.RawMatComposition.Count is 1)
+                rawMatToPrimitiveMat.Add(key: material.RawMatComposition.First().res, material);
 
             ulong GetOrder(IResource resource)
                 => resource switch

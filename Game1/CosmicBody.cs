@@ -115,7 +115,7 @@ namespace Game1
         protected sealed override Color Color
             => ColorHelpers.Interpolate
             (
-                normalized: Propor.Create(part: state.Temperature.valueInK, whole: CurWorldConfig.maxTemperatureShownInGraphs.valueInK)!.Value,
+                normalized: Propor.CreateByClamp(state.Temperature.valueInK / CurWorldConfig.maxTemperatureShownInGraphs.valueInK),
                 colorConfig.minTemperatureColor,
                 colorConfig.maxTemperatureColor
             );

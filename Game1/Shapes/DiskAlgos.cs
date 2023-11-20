@@ -1,10 +1,11 @@
-﻿using Game1.Lighting;
+﻿using Game1.ContentNames;
+using Game1.Lighting;
 
 namespace Game1.Shapes
 {
     public static class DiskAlgos
     {
-        private static readonly Texture2D diskTexture = C.LoadTexture(name: "big disk");
+        private static readonly Texture2D diskTexture = C.LoadTexture(name: TextureName.disk);
 
         public static Length RadiusFromArea(AreaDouble area)
             => PrimitiveTypeWrappers.Length.CreateFromM(MyMathHelper.Sqrt(area.valueInMetSq / MyMathHelper.pi));

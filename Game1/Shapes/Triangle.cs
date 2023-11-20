@@ -1,4 +1,6 @@
-﻿namespace Game1.Shapes
+﻿using Game1.ContentNames;
+
+namespace Game1.Shapes
 {
     [Serializable]
     public sealed class Triangle : NearRectangle
@@ -11,7 +13,7 @@
             Right = 0
         }
 
-        private static readonly Texture2D triangleTexture = C.LoadTexture(name: "triangle");
+        private static readonly Texture2D triangleTexture = C.LoadTexture(name: TextureName.triangle);
 
         private Vector2Bare BasePos
             => Center - dirVector * MainAltitudeLength * .5;

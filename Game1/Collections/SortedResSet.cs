@@ -4,7 +4,7 @@ using static Game1.WorldManager;
 namespace Game1.Collections
 {
     [Serializable]
-    public readonly struct SortedResSet<TRes> : IEnumerable<TRes>
+    public readonly struct SortedResSet<TRes> : IReadOnlyCollection<TRes>
         where TRes : class, IResource
     {
         public static readonly SortedResSet<TRes> empty = new(resSet: new());
@@ -15,7 +15,7 @@ namespace Game1.Collections
         public static SortedResSet<TRes> FromSortedUniqueResListUnsafe(EfficientReadOnlyCollection<TRes> sortedUniqueResList)
             => new(resSet: sortedUniqueResList);
 
-        public readonly int count;
+        public int Count { get; }
 
         private readonly EfficientReadOnlyCollection<TRes> resSet;
 
@@ -26,7 +26,7 @@ namespace Game1.Collections
         private SortedResSet(EfficientReadOnlyCollection<TRes> resSet)
         {
             this.resSet = resSet;
-            count = resSet.Count;
+            Count = resSet.Count;
             Validate();
         }
 
@@ -40,18 +40,18 @@ namespace Game1.Collections
 
         public SortedResSet<IResource> ToAll()
         {
-            List<IResource> newResSet = new(count);
-            for (int ind = 0; ind < count; ind++)
+            List<IResource> newResSet = new(Count);
+            for (int ind = 0; ind < Count; ind++)
                 newResSet.Add(resSet[ind]);
             return new(newResSet.ToEfficientReadOnlyCollection());
         }
 
         private static TRes? GetRes(SortedResSet<TRes> resSet, int ind)
-            => ind < resSet.count ? resSet.resSet[ind] : null;
+            => ind < resSet.Count ? resSet.resSet[ind] : null;
 
         public SortedResSet<TRes> UnionWith(SortedResSet<TRes> otherResSet)
         {
-            List<TRes> unionResSet = new(capacity: count + otherResSet.count);
+            List<TRes> unionResSet = new(capacity: Count + otherResSet.Count);
             int thisInd = 0, otherInd = 0;
             while (true)
             {

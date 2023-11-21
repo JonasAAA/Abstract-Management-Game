@@ -7,10 +7,10 @@ namespace Game1.Collections
     /// </summary>
     //[CollectionDataContract]
     [Serializable]
-    public sealed class ThrowingSet<T> : IEnumerable<T>
+    public sealed class ThrowingSet<T> : IReadOnlyCollection<T>
     {
-        public ulong Count
-            => (ulong)set.Count;
+        public int Count
+            => set.Count;
 
         private readonly HashSet<T> set;
 

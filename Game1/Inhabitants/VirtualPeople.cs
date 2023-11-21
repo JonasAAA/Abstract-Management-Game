@@ -4,10 +4,13 @@ using Game1.Collections;
 namespace Game1.Inhabitants
 {
     [Serializable]
-    public sealed class VirtualPeople : IEnumerable<VirtualPerson>
+    public sealed class VirtualPeople : IReadOnlyCollection<VirtualPerson>
     {
         public NumPeople Count
-            => new(people.Count);
+            => new((ulong)people.Count);
+
+        int IReadOnlyCollection<VirtualPerson>.Count
+            => people.Count;
 
         private readonly ThrowingSet<VirtualPerson> people;
 

@@ -9,7 +9,7 @@ namespace Game1.Collections
     /// Dictionary with efficient internal storage and O(log N) lookup
     /// </summary>
     [Serializable]
-    public readonly struct ResAmounts<TRes> : IResAmounts<ResAmounts<TRes>>, IEnumerable<ResAmount<TRes>>
+    public readonly struct ResAmounts<TRes> : IResAmounts<ResAmounts<TRes>>, IReadOnlyCollection<ResAmount<TRes>>
         where TRes : class, IResource
     {
         public static readonly ResAmounts<TRes> empty = new();

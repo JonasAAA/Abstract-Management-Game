@@ -8,10 +8,13 @@ namespace Game1.Collections
     /// </summary>
     /// <typeparam Name="TKey">must be integer-backed enum</typeparam>
     [Serializable]
-    public readonly struct EnumDict<TKey, TValue> : IEnumerable<KeyValuePair<TKey, TValue>>
+    public readonly struct EnumDict<TKey, TValue> : IReadOnlyCollection<KeyValuePair<TKey, TValue>>
         where TKey : unmanaged, Enum
     {
-        public IEnumerable<TValue> Values
+        int IReadOnlyCollection<KeyValuePair<TKey, TValue>>.Count
+            => values.Length;
+
+        public IReadOnlyCollection<TValue> Values
             => values;
 
         private readonly TValue[] values;

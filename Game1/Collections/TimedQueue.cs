@@ -4,7 +4,7 @@ using static Game1.WorldManager;
 namespace Game1.Collections
 {
     [Serializable]
-    public class TimedQueue<T> : IEnumerable<T>
+    public class TimedQueue<T> : IReadOnlyCollection<T>
     {
         private static readonly TimeSpan normalizedDuration = TimeSpan.FromSeconds(1);
 

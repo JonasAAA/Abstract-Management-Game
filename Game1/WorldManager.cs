@@ -483,9 +483,6 @@ namespace Game1
         public IEnumerable<IIndustry> IndustriesWithPossibleNeighbourhood(NeighborDir neighborDir, IResource resource)
             => CurGraph.IndustriesWithPossibleNeighbourhood(neighborDir: neighborDir, resource: resource);
 
-        public IEnumerable<IIndustry> DestinsOf(IResource resource)
-            => throw new NotImplementedException();
-
         public MyVector2 ScreenPosToWorldPos(Vector2Bare screenPos)
             => worldCamera.ScreenPosToWorldPos(screenPos: screenPos);
 

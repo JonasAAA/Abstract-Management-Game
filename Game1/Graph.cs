@@ -445,27 +445,6 @@ namespace Game1
                             )
                         );
                 }
-                //AllResAmounts demand = industry.GetDemand(), supply = industry.GetSupply();
-                //foreach (var res in industry.GetProducedRes())
-                //    resToRouteGraphs.GetOrCreate(key: res).Add
-                //    (
-                //        key: new(ResOwner: industry, IsSource: true),
-                //        value: new
-                //        (
-                //            directedNeighbours: industry.GetDestins(resource: res).ToList(),
-                //            amount: supply[res]
-                //        )
-                //    );
-                //foreach (var res in industry.GetResWithNonEmptyNeighborhood())
-                //    resToRouteGraphs.GetOrCreate(key: res).Add
-                //    (
-                //        key: new(ResOwner: industry, IsSource: false),
-                //        value: new
-                //        (
-                //            directedNeighbours: industry.GetResNeighbors(resource: res).ToList(),
-                //            amount: demand[res]
-                //        )
-                //    );
             }
 
             foreach (var (res, routeGraph) in resToRouteGraphs)

@@ -446,11 +446,12 @@ namespace Game1
         {
             graph!.Initialize();
             lightManager.Initialize();
+            var maxAverageTemperature = Temperature.zero;
             while (true)
             {
-                var prevTemperature = graph.AverageTemperature;
+                maxAverageTemperature = MyMathHelper.Max(maxAverageTemperature, graph.AverageTemperature);
                 Update(elapsedGameTime: TimeSpan.FromSeconds(10));
-                if (prevTemperature >= graph.AverageTemperature)
+                if (graph.AverageTemperature.valueInK <= 0.9 * maxAverageTemperature.valueInK)
                     break;
             }
         }

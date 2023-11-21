@@ -1,7 +1,7 @@
 ﻿namespace Game1.PrimitiveTypeWrappers
 {
     [Serializable]
-    public readonly record struct Temperature : IComparable<Temperature>, IScalar<Temperature>
+    public readonly record struct Temperature : IComparable<Temperature>, IScalar<Temperature>, IMin<Temperature>, IMax<Temperature>
     {
         public static readonly Temperature zero = new(valueInK: 0);
 
@@ -40,5 +40,11 @@
 
         public static Temperature Interpolate(Propor normalized, Temperature start, Temperature stop)
             => new(valueInK: UDouble.Interpolate(normalized: normalized, start: start.valueInK, stop: stop.valueInK));
+
+        static Temperature IMin<Temperature>.Min(Temperature left, Temperature right)
+            => left.valueInK < right.valueInK ? left : right;
+
+        static Temperature IMax<Temperature>.Max(Temperature left, Temperature right)
+            => left.valueInK > right.valueInK ? left : right;
     }
 }

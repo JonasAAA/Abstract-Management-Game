@@ -379,11 +379,8 @@ namespace Game1
         public UDouble ResDist(NodeID nodeID1, NodeID nodeID2)
             => resDists[(nodeID1, nodeID2)];
 
-        public IEnumerable<IIndustry> SourcesOf(IResource resource)
-            => Industries.Where(industry => industry.IsSourceOf(resource: resource));
-
-        public IEnumerable<IIndustry> DestinsOf(IResource resource)
-            => Industries.Where(industry => industry.IsDestinOf(resource: resource));
+        public IEnumerable<IIndustry> IndustriesWithPossibleNeighbourhood(NeighborDir neighborDir, IResource resource)
+            => Industries.Where(industry => industry.IsNeighborhoodPossible(neighborDir: neighborDir, resource: resource));
 
         public MyVector2 NodePosition(NodeID nodeID)
             => nodeIDToNode[nodeID].Position;
@@ -434,27 +431,41 @@ namespace Game1
             Dictionary<IResource, Dictionary<Algorithms.Vertex<IIndustry>, Algorithms.VertexInfo<IIndustry>>> resToRouteGraphs = [];
             foreach (var industry in Industries)
             {
-                AllResAmounts demand = industry.GetDemand(), supply = industry.GetSupply();
-                foreach (var res in industry.GetProducedRes())
-                    resToRouteGraphs.GetOrCreate(key: res).Add
-                    (
-                        key: new(ResOwner: industry, IsSource: true),
-                        value: new
+                foreach (var neighborDir in Enum.GetValues<NeighborDir>())
+                {
+                    AllResAmounts requestedResAmounts = industry.GetResAmountsRequestToNeighbors(neighborDir: neighborDir);
+                    foreach (var res in industry.GetResWithPotentialNeighborhood(neighborDir: neighborDir))
+                        resToRouteGraphs.GetOrCreate(key: res).Add
                         (
-                            directedNeighbours: industry.GetDestins(resource: res).ToList(),
-                            amount: supply[res]
-                        )
-                    );
-                foreach (var res in industry.GetConsumedRes())
-                    resToRouteGraphs.GetOrCreate(key: res).Add
-                    (
-                        key: new(ResOwner: industry, IsSource: false),
-                        value: new
-                        (
-                            directedNeighbours: industry.GetSources(resource: res).ToList(),
-                            amount: demand[res]
-                        )
-                    );
+                            key: new(ResOwner: industry, IsSource: neighborDir == NeighborDir.Out),
+                            value: new
+                            (
+                                directedNeighbours: industry.GetResNeighbors(neighborDir: neighborDir, resource: res).ToList(),
+                                amount: requestedResAmounts[res]
+                            )
+                        );
+                }
+                //AllResAmounts demand = industry.GetDemand(), supply = industry.GetSupply();
+                //foreach (var res in industry.GetProducedRes())
+                //    resToRouteGraphs.GetOrCreate(key: res).Add
+                //    (
+                //        key: new(ResOwner: industry, IsSource: true),
+                //        value: new
+                //        (
+                //            directedNeighbours: industry.GetDestins(resource: res).ToList(),
+                //            amount: supply[res]
+                //        )
+                //    );
+                //foreach (var res in industry.GetResWithNonEmptyNeighborhood())
+                //    resToRouteGraphs.GetOrCreate(key: res).Add
+                //    (
+                //        key: new(ResOwner: industry, IsSource: false),
+                //        value: new
+                //        (
+                //            directedNeighbours: industry.GetResNeighbors(resource: res).ToList(),
+                //            amount: demand[res]
+                //        )
+                //    );
             }
 
             foreach (var (res, routeGraph) in resToRouteGraphs)

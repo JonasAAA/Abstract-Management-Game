@@ -480,8 +480,8 @@ namespace Game1
         public void DeactivateWorldElements()
             => CurGraph.DeactivateWorldElements();
 
-        public IEnumerable<IIndustry> SourcesOf(IResource resource)
-            => CurGraph.SourcesOf(resource: resource);
+        public IEnumerable<IIndustry> IndustriesWithPossibleNeighbourhood(NeighborDir neighborDir, IResource resource)
+            => CurGraph.IndustriesWithPossibleNeighbourhood(neighborDir: neighborDir, resource: resource);
 
         public IEnumerable<IIndustry> DestinsOf(IResource resource)
             => throw new NotImplementedException();

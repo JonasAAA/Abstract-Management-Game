@@ -36,20 +36,20 @@ namespace Game1.UI
         public static string NoResourceIsChosen
             => "no resource is chosen";
 
-        public static string ChangeResSources
-            => "Change sources of\nconsumed resources";
+        public static string ChangeResNeighbors(NeighborDir neighborDir)
+            => $"Change {(neighborDir is NeighborDir.In ? "sources of\nconsumed" : "destinations of\nproduced")} resources";
 
         public static string ProducedResourcesDestinations
             => "Produced resources\ndestinations";
 
-        public static string AddOrRemoveResSourceTooltip(IResource res)
-            => $"Add or remove source of {res}";
+        public static string ToggleResNeighborTooltip(NeighborDir neighborDir, IResource res)
+            => $"Add or remove {(neighborDir is NeighborDir.In ? "sources" : "destins")} of {res}";
 
-        public static string ToggleSourceTooltip(IResource res, bool add)
-            => $"{(add ? "Choose" : "Remove")} this building as source of {res}";
+        public static string ToggleResNeighborTooltip(NeighborDir neighborDir, IResource res, bool add)
+            => $"{(add ? "Choose" : "Remove")} this building as {(neighborDir is NeighborDir.In ? "source" : "destination")} of {res}";
 
-        public static string ToggleSourceButtonName(bool add)
-            => $"{(add ? "Choose" : "Remove")} this\nsource";
+        public static string ToggleResNeighborButtonName(NeighborDir neighborDir, bool add)
+            => $"{(add ? "Choose" : "Remove")} this\n{(neighborDir is NeighborDir.In ? "source" : "destination")}";
 
         public static string AddResSourceForBuildingTooltip(IResource res)
             => $"Add new source of {res}";
@@ -57,8 +57,8 @@ namespace Game1.UI
         public static string NothingToConfigure
             => "Nothing to configure";
 
-        public static string NoResourcesProduced
-            => "Produces no\nresources";
+        public static string NoPossibleNeighbors(NeighborDir neighborDir)
+            => $"{(neighborDir is NeighborDir.In ? "Consumes" : "Produces")} no\nresources";
 
         public static string NoSourcesNeeded
             => "Consumes no\nresources";

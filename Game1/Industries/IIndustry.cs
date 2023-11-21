@@ -27,19 +27,18 @@ namespace Game1.Industries
         public sealed IIndustry? Update()
         {
             var newIndustry = UpdateImpl();
-            if (newIndustry == this || newIndustry is null)
+            if (newIndustry == this)
                 return newIndustry;
 
-            // Do this before deleting the old industry so that GetConsumedRes, GetSource, etc. return thruthful results rather than empty things
-            foreach (var res in newIndustry.GetConsumedRes())
-                if (IsDestinOf(resource: res))
-                    foreach (var source in GetSources(resource: res))
-                        ToggleSourceAndDestin(resource: res, source: source, destin: newIndustry);
-
-            foreach (var res in newIndustry.GetProducedRes())
-                if (IsSourceOf(resource: res))
-                    foreach (var destin in GetDestins(resource: res))
-                        ToggleSourceAndDestin(resource: res, source: newIndustry, destin: destin);
+            if (newIndustry is not null)
+            {
+                // Do this before deleting the old industry so that GetResWithNonEmptyNeighborhood, GetResNeighbors, etc. return thruthful results rather than empty things
+                foreach (var neighborDir in Enum.GetValues<NeighborDir>())
+                    foreach (var res in newIndustry.GetResWithPotentialNeighborhood(neighborDir: neighborDir))
+                        if (IsNeighborhoodPossible(neighborDir: neighborDir.Opposite(), resource: res))
+                            foreach (var neighbor in GetResNeighbors(neighborDir: neighborDir.Opposite(), resource: res))
+                                ToggleResEdge(neighborDir: neighborDir, resource: res, industry: newIndustry, potentialNeighbor: neighbor);
+            }
 
             Delete();
             return newIndustry;
@@ -50,27 +49,26 @@ namespace Game1.Industries
         /// <summary>
         /// Returns false if was deleted already
         /// </summary>
-        /// <returns></returns>
         protected bool Delete();
 
         MyVector2 IWithSpecialPositions.GetSpecPos(PosEnums origin)
             => BuildingImage.GetPosition(origin: origin);
 
-        public bool IsSourceOf(IResource resource);
+        public bool IsNeighborhoodPossible(NeighborDir neighborDir, IResource resource);
 
-        public bool IsDestinOf(IResource resource);
+        public IReadOnlyCollection<IResource> GetResWithPotentialNeighborhood(NeighborDir neighborDir);
 
-        public IEnumerable<IResource> GetConsumedRes();
+        public EfficientReadOnlyHashSet<IIndustry> GetResNeighbors(NeighborDir neighborDir, IResource resource);
 
-        public IEnumerable<IResource> GetProducedRes();
+        /// <summary>
+        /// <see cref="NeighborDir.In"/> means "get demand",
+        /// <see cref="NeighborDir.Out"/> means "get supply",
+        /// </summary>
+        public AllResAmounts GetResAmountsRequestToNeighbors(NeighborDir neighborDir);
 
-        public EfficientReadOnlyHashSet<IIndustry> GetSources(IResource resource);
+        //public AllResAmounts GetSupply();
 
-        public EfficientReadOnlyHashSet<IIndustry> GetDestins(IResource resource);
-
-        public AllResAmounts GetSupply();
-
-        public AllResAmounts GetDemand();
+        //public AllResAmounts GetDemand();
 
         public void TransportResTo(IIndustry destinIndustry, ResAmount<IResource> resAmount);
 
@@ -79,22 +77,17 @@ namespace Game1.Industries
         public void Arrive(ResPile arrivingResPile);
 
         /// <summary>
-        /// If <paramref name="sourceIndustry"/> is already a source of <paramref name="resource"/>, delete it. If not, add it.
-        /// DON'T CALL this directly - use ToggleSourceAndDestin instead
+        /// If <paramref name="neighbor"/> is already a neighbor of this of direction <paramref name="neighborDir"/>, delete it. If not, add it.
+        /// DON'T CALL this directly - use ToggleResEdge instead
         /// </summary>
-        protected void ToggleSource(IResource resource, IIndustry sourceIndustry);
+        protected void ToggleResNeighbor(NeighborDir neighborDir, IResource resource, IIndustry neighbor);
 
-        /// <summary>
-        /// If <paramref name="destinIndustry"/> is already a destination of <paramref name="resource"/>, delete it. If not, add it.
-        /// DON'T CALL this directly - use ToggleSourceAndDestin instead
-        /// </summary>
-        protected void ToggleDestin(IResource resource, IIndustry destinIndustry);
-
-        private static void ToggleSourceAndDestin(IResource resource, IIndustry source, IIndustry destin)
+        private static void ToggleResEdge(NeighborDir neighborDir, IResource resource, IIndustry industry, IIndustry potentialNeighbor)
         {
-            source.ToggleDestin(resource: resource, destinIndustry: destin);
-            destin.ToggleSource(resource: resource, sourceIndustry: source);
-            Debug.Assert(source.GetDestins(resource: resource).Contains(destin) == destin.GetSources(resource: resource).Contains(source));
+            industry.ToggleResNeighbor(neighborDir: neighborDir, resource: resource, neighbor: potentialNeighbor);
+            potentialNeighbor.ToggleResNeighbor(neighborDir: neighborDir.Opposite(), resource: resource, neighbor: industry);
+            Debug.Assert(industry.GetResNeighbors(neighborDir: neighborDir, resource: resource).Contains(potentialNeighbor)
+                == potentialNeighbor.GetResNeighbors(neighborDir: neighborDir.Opposite(), resource: resource).Contains(industry));
         }
 
         protected static void ToggleElement<T>(HashSet<T> set, T element)
@@ -113,125 +106,116 @@ namespace Game1.Industries
             nodeState.EnlargeFrom(source: resPile, amount: resPile.Amount.RawMatComposition());
         }
 
-        protected static EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> CreateRoutesLists(SortedResSet<IResource> resources)
-            => resources.ToEfficientReadOnlyDict(elementSelector: _ => new HashSet<IIndustry>());
+        protected static EnumDict<NeighborDir, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>>> CreateResNeighboursCollection(Func<NeighborDir, SortedResSet<IResource>> resources)
+            => new(neighbourDir => resources(neighbourDir).ToEfficientReadOnlyDict(elementSelector: _ => new HashSet<IIndustry>()));
 
         // It's static so that it's actually protected. Otherwise couldn't call it
-        protected static void DeleteSourcesAndDestins(IIndustry industry)
+        protected static void DeleteResNeighbors(IIndustry industry)
         {
-            foreach (var res in industry.GetConsumedRes())
-                foreach (var source in industry.GetSources(resource: res))
-                    ToggleSourceAndDestin(resource: res, source: source, destin: industry);
-
-            foreach (var res in industry.GetProducedRes())
-                foreach (var destin in industry.GetDestins(resource: res))
-                    ToggleSourceAndDestin(resource: res, source: industry, destin: destin);
+            foreach (var neighborDir in Enum.GetValues<NeighborDir>())
+                foreach (var res in industry.GetResWithPotentialNeighborhood(neighborDir: neighborDir))
+                    foreach (var neighbor in industry.GetResNeighbors(neighborDir: neighborDir, resource: res))
+                        ToggleResEdge(neighborDir: neighborDir, resource: res, industry: industry, potentialNeighbor: neighbor);
         }
 
-        protected static IHUDElement CreateRoutePanel(IIndustry industry, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources,
-            EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resDestins)
-            => new RoutePanelManager(industry: industry, resSources: resSources, resDestins: resDestins).routePanel;
+        protected static IHUDElement CreateRoutePanel(IIndustry industry)
+            => new RoutePanelManager(industry: industry).routePanel;
 
         [Serializable]
         private readonly struct RoutePanelManager
         {
             public readonly UIRectVertPanel<IHUDElement> routePanel;
-            private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
 
-            public RoutePanelManager(IIndustry industry, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources,
-                EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resDestins)
+            public RoutePanelManager(IIndustry industry)
             {
-                this.resSources = resSources;
-                this.resDestins = resDestins;
-
                 const HorizPosEnum childHorizPos = HorizPosEnum.Left;
                 
-                UIRectVertPanel<IHUDElement> resSourcePanel = new
+                routePanel = new
                 (
                     childHorizPos: childHorizPos,
-                    children: new List<IHUDElement>() { new TextBox(text: UIAlgorithms.ChangeResSources) }.Concat
+                    children: Enum.GetValues<NeighborDir>().Select
                     (
-                        resSources.Count switch
-                        {
-                            0 => new List<IHUDElement>() { new TextBox(text: UIAlgorithms.NoResourcesProduced) },
-                            not 0 => resSources.Select
+                        neighborDir => new UIRectVertPanel<IHUDElement>
+                        (
+                            childHorizPos: childHorizPos,
+                            children: new List<IHUDElement>() { new TextBox(text: UIAlgorithms.ChangeResNeighbors(neighborDir: neighborDir)) }.Concat
                             (
-                                resSource =>
+                                industry.GetResWithPotentialNeighborhood(neighborDir: neighborDir) switch
                                 {
-                                    var (res, sources) = resSource;
-                                    Button addOrRemoveResSourceButton = new
+                                    { Count: 0 } => new List<IHUDElement>() { new TextBox(text: UIAlgorithms.NoPossibleNeighbors(neighborDir: neighborDir)) },
+                                    var resources => resources.Select
                                     (
-                                        shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
-                                        tooltip: new ImmutableTextTooltip(text: UIAlgorithms.AddOrRemoveResSourceTooltip(res: res)),
-                                        text: res.ToString()
-                                    );
-                                    addOrRemoveResSourceButton.clicked.Add
-                                    (
-                                        listener: new ChangeResSourcesButtonListener
-                                        (
-                                            industry: industry,
-                                            resource: res
-                                        )
-                                    );
-                                    return addOrRemoveResSourceButton;
+                                        res => 
+                                        {
+                                            Button toggleResNeighborButton = new
+                                            (
+                                                shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
+                                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleResNeighborTooltip(neighborDir: neighborDir, res: res)),
+                                                text: res.ToString()
+                                            );
+                                            toggleResNeighborButton.clicked.Add
+                                            (
+                                                listener: new ChangeResNeighborsButtonListener
+                                                (
+                                                    industry: industry,
+                                                    neighborDir: neighborDir,
+                                                    resource: res
+                                                )
+                                            );
+                                            return toggleResNeighborButton;
+                                        }
+                                    )
                                 }
                             )
-                        }
+                        )
                     )
                 );
-
-                UIRectVertPanel<IHUDElement> resDestinPanel = new
-                (
-                    childHorizPos: childHorizPos,
-                    children: new List<IHUDElement>() { new TextBox(text: UIAlgorithms.ProducedResourcesDestinations) }
-                );
-
-                routePanel = new(childHorizPos: childHorizPos, children: new List<IHUDElement>() { resSourcePanel, resDestinPanel });
             }
         }
 
         [Serializable]
-        private sealed class ChangeResSourcesButtonListener(IIndustry industry, IResource resource) : IClickedListener
+        private sealed class ChangeResNeighborsButtonListener(IIndustry industry, NeighborDir neighborDir, IResource resource) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
             {
-                // Needed so that can pass toggleSourcePanelManagers when creating ChooseSourceButton clicked response
-                List<ToggleSourcePanelManager> toggleSourcePanelManagers = [];
-                toggleSourcePanelManagers.AddRange
+                // Needed so that can pass toggleNeighborPanelManagers when creating ChooseSourceButton clicked response
+                List<ToggleNeighborPanelManager> toggleNeighborPanelManagers = [];
+                toggleNeighborPanelManagers.AddRange
                 (
-                    CurWorldManager.SourcesOf(resource: resource)
-                        .Where(sourceIndustry => sourceIndustry != industry)
+                    CurWorldManager.IndustriesWithPossibleNeighbourhood(neighborDir: neighborDir.Opposite(), resource: resource)
+                        .Where(potentialNeighbor => potentialNeighbor != industry)
                         .Select
                     (
-                        sourceIndustry =>
+                        potentialNeighbor =>
                         {
-                            bool add = !industry.GetSources(resource: resource).Contains(sourceIndustry);
-                            Button toggleSourceButton = new
+                            bool add = !industry.GetResNeighbors(neighborDir: neighborDir, resource: resource).Contains(potentialNeighbor);
+                            Button toggleNeighborButton = new
                             (
                                 shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: 2 * CurGameConfig.UILineHeight),
-                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleSourceTooltip(res: resource, add: add)),
-                                text: UIAlgorithms.ToggleSourceButtonName(add: add)
+                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleResNeighborTooltip(neighborDir: neighborDir, res: resource, add: add)),
+                                text: UIAlgorithms.ToggleResNeighborButtonName(neighborDir: neighborDir, add: add)
                             );
 
-                            toggleSourceButton.clicked.Add
+                            toggleNeighborButton.clicked.Add
                             (
                                 listener: new ToggleRouteListener
                                 (
-                                    toggleSourcePanelManagers: toggleSourcePanelManagers.ToEfficientReadOnlyCollection(),
+                                    toggleNeighborPanelManagers: toggleNeighborPanelManagers.ToEfficientReadOnlyCollection(),
+                                    neighborDir: neighborDir,
                                     resource: resource,
-                                    sourceIndustry: sourceIndustry,
-                                    industry: industry
+                                    industry: industry,
+                                    potentialNeighbor: potentialNeighbor
                                 )
                             );
 
-                            return new ToggleSourcePanelManager
+                            return new ToggleNeighborPanelManager
                             (
-                                ToggleSourcePanel: toggleSourceButton,
-                                SourceIndustry: sourceIndustry,
+                                ToggleNeighborPanel: toggleNeighborButton,
+                                PotentialNeighbor: potentialNeighbor,
                                 PanelHUDPosUpdater: new HUDElementPosUpdater
                                 (
-                                    HUDElement: toggleSourceButton,
-                                    baseWorldObject: sourceIndustry,
+                                    HUDElement: toggleNeighborButton,
+                                    baseWorldObject: potentialNeighbor,
                                     HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Top),
                                     anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
                                 )
@@ -246,7 +230,7 @@ namespace Game1.Industries
                 CurWorldManager.SetIsCosmicBodyActive(nodeID: industry.NodeID, active: false);
                 CurWorldManager.DisableAllUIElements();
 
-                foreach (var (toggleSourcePanel, _, panelHUDPosUpdater) in toggleSourcePanelManagers)
+                foreach (var (toggleSourcePanel, _, panelHUDPosUpdater) in toggleNeighborPanelManagers)
                     CurWorldManager.AddWorldHUDElement(worldHUDElement: toggleSourcePanel, updateHUDPos: panelHUDPosUpdater);
 
 #warning Add arrow visual for this
@@ -254,14 +238,14 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        private sealed class ToggleRouteListener(EfficientReadOnlyCollection<ToggleSourcePanelManager> toggleSourcePanelManagers, IResource resource, IIndustry sourceIndustry, IIndustry industry) : IClickedListener
+        private sealed class ToggleRouteListener(EfficientReadOnlyCollection<ToggleNeighborPanelManager> toggleNeighborPanelManagers, NeighborDir neighborDir, IResource resource, IIndustry industry, IIndustry potentialNeighbor) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
             {
-                ToggleSourceAndDestin(resource: resource, source: sourceIndustry, destin: industry);
+                ToggleResEdge(neighborDir: neighborDir, resource: resource, industry: industry, potentialNeighbor: potentialNeighbor);
 
-                foreach (var (toggleSourcePanel, _, _) in toggleSourcePanelManagers)
-                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: toggleSourcePanel);
+                foreach (var (toggleNeighborPanel, _, _) in toggleNeighborPanelManagers)
+                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: toggleNeighborPanel);
                 CurWorldManager.EnableAllUIElements();
                 Debug.Assert(!CurWorldManager.IsCosmicBodyActive(nodeID: industry.NodeID));
                 //CurWorldManager.SetIsCosmicBodyActive(nodeID: Industry.NodeID, active: true);
@@ -269,6 +253,6 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        private readonly record struct ToggleSourcePanelManager(IHUDElement ToggleSourcePanel, IIndustry SourceIndustry, IAction PanelHUDPosUpdater);
+        private readonly record struct ToggleNeighborPanelManager(IHUDElement ToggleNeighborPanel, IIndustry PotentialNeighbor, IAction PanelHUDPosUpdater);
     }
 }

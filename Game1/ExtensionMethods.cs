@@ -1,4 +1,5 @@
 ﻿using Game1.Collections;
+using Game1.Industries;
 using Game1.Inhabitants;
 using System.Numerics;
 using System.Text;
@@ -218,5 +219,12 @@ namespace Game1
             source.TransformTo(destin: destin, amount: amountToTransform);
             return TDestinAmount.CreateFromEnergy(energy: (Energy)amountToTransform);
         }
+
+        public static NeighborDir Opposite(this NeighborDir neighborDir)
+            => neighborDir switch
+            {
+                NeighborDir.In => NeighborDir.Out,
+                NeighborDir.Out => NeighborDir.In
+            };
     }
 }

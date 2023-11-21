@@ -91,7 +91,7 @@ namespace Game1.Industries
         private Result<TProductionCycleState, TextErrors> stateOrReasonForNotStartingProduction;
         private readonly Event<IDeletedListener> deleted;
         private bool isDeleted;
-        private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
+        private readonly EnumDict<NeighborDir, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>>> resNeighbors;
         private readonly ResPile inputStorage, outputStorage;
         private AllResAmounts resTravellingHere;
         private readonly TextBox industryInfo;
@@ -110,14 +110,15 @@ namespace Game1.Industries
 
             CurWorldManager.EnergyDistributor.AddEnergyConsumer(energyConsumer: this);
 
-            resSources = IIndustry.CreateRoutesLists(resources: buildingParams.GetConsumedResources(productionParams: productionParams));
-            resDestins = IIndustry.CreateRoutesLists(resources: buildingParams.GetProducedResources(productionParams: productionParams));
-            RoutePanel = IIndustry.CreateRoutePanel
+            resNeighbors = IIndustry.CreateResNeighboursCollection
             (
-                industry: this,
-                resSources: resSources,
-                resDestins: resDestins
+                resources: neighborDir => neighborDir switch
+                {
+                    NeighborDir.In => buildingParams.GetConsumedResources(productionParams: productionParams),
+                    NeighborDir.Out => buildingParams.GetProducedResources(productionParams: productionParams)
+                }
             );
+            RoutePanel = IIndustry.CreateRoutePanel(industry: this);
             industryInfo = new();
             UIElement = new UIRectVertPanel<IHUDElement>
             (
@@ -130,32 +131,24 @@ namespace Game1.Industries
             );
         }
 
-        public bool IsSourceOf(IResource resource)
-            => resDestins.ContainsKey(resource);
+        public bool IsNeighborhoodPossible(NeighborDir neighborDir, IResource resource)
+            => resNeighbors[neighborDir].ContainsKey(resource);
 
-        public bool IsDestinOf(IResource resource)
-            => resSources.ContainsKey(resource);
+        public IReadOnlyCollection<IResource> GetResWithPotentialNeighborhood(NeighborDir neighborDir)
+            => resNeighbors[neighborDir].Keys;
 
-        public IEnumerable<IResource> GetConsumedRes()
-            => resSources.Keys;
+        public EfficientReadOnlyHashSet<IIndustry> GetResNeighbors(NeighborDir neighborDir, IResource resource)
+            => new(set: resNeighbors[neighborDir][resource]);
 
-        public IEnumerable<IResource> GetProducedRes()
-            => resDestins.Keys;
-
-        public EfficientReadOnlyHashSet<IIndustry> GetSources(IResource resource)
-            => new(set: resSources[resource]);
-
-        public EfficientReadOnlyHashSet<IIndustry> GetDestins(IResource resource)
-            => new(set: resDestins[resource]);
-
-        public AllResAmounts GetSupply()
-            => outputStorage.Amount;
-
-        public AllResAmounts GetDemand()
-            => (TProductionCycleState.IsRepeatable || !Busy) switch
+        public AllResAmounts GetResAmountsRequestToNeighbors(NeighborDir neighborDir)
+            => neighborDir switch
             {
-                true => buildingParams.MaxStoredInput(productionParams: productionParams) - inputStorage.Amount - resTravellingHere,
-                false => AllResAmounts.empty
+                NeighborDir.In => (TProductionCycleState.IsRepeatable || !Busy) switch
+                {
+                    true => buildingParams.MaxStoredInput(productionParams: productionParams) - inputStorage.Amount - resTravellingHere,
+                    false => AllResAmounts.empty
+                },
+                NeighborDir.Out => outputStorage.Amount,
             };
 
         public void TransportResTo(IIndustry destinIndustry, ResAmount<IResource> resAmount)
@@ -175,11 +168,8 @@ namespace Game1.Industries
             inputStorage.TransferAllFrom(source: arrivingResPile);
         }
 
-        public void ToggleSource(IResource resource, IIndustry sourceIndustry)
-            => IIndustry.ToggleElement(set: resSources[resource], element: sourceIndustry);
-
-        public void ToggleDestin(IResource resource, IIndustry destinIndustry)
-            => IIndustry.ToggleElement(set: resDestins[resource], element: destinIndustry);
+        public void ToggleResNeighbor(NeighborDir neighborDir, IResource resource, IIndustry neighbor)
+            => IIndustry.ToggleElement(set: resNeighbors[neighborDir][resource], element: neighbor);
 
         public void FrameStart()
         {
@@ -211,7 +201,7 @@ namespace Game1.Industries
                 stored inputs {inputStorage.Amount}
                 stored outputs {outputStorage.Amount}
                 res travelling here {resTravellingHere}
-                demand {GetDemand()}
+                demand {GetResAmountsRequestToNeighbors(NeighborDir.In)}
                 """;
             var childIndustry = stateOrReasonForNotStartingProduction.SwitchExpression
             (
@@ -233,7 +223,7 @@ namespace Game1.Industries
                 return false;
             if (!resTravellingHere.IsEmpty)
                 throw new NotImplementedException("Need to wait for all resources travelling here to arrive");
-            IIndustry.DeleteSourcesAndDestins(industry: this);
+            IIndustry.DeleteResNeighbors(industry: this);
 #warning Implement a proper industry deletion strategy
             // For now, all building materials, unused input, production, and output materials are dumped inside the planet 
             outputStorage.TransferAllFrom(source: inputStorage);

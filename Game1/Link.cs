@@ -14,12 +14,16 @@ namespace Game1
     /// Travellers going to the same direction mix their heat
     /// </summary>
     [Serializable]
-    public sealed class Link : WorldUIElement, IWithSpecialPositions, IWithRealPeopleStats
+    public sealed class Link : WorldUIElement, IWithSpecialPositions, IWithRealPeopleStats, IWorldObject
     {
         [Serializable]
         private sealed class DirLink : IEnergyConsumer, IWithRealPeopleStats
         {
             public RealPeopleStats Stats { get; private set; }
+            public HeatCapacity HeatCapacity
+                => thermalBody.HeatCapacity;
+            public HeatEnergy HeatEnergy
+                => thermalBody.HeatEnergy;
 
             public readonly ILinkFacingCosmicBody startNode, endNode;
 
@@ -167,6 +171,10 @@ namespace Game1
         public UDouble JoulesPerKg { get; private set; }
         public TimeSpan TravelTime { get; private set; }
         public RealPeopleStats Stats { get; private set; }
+        public HeatCapacity HeatCapacity
+            => link1To2.HeatCapacity + link2To1.HeatCapacity;
+        public HeatEnergy HeatEnergy
+            => link1To2.HeatEnergy + link1To2.HeatEnergy;
 
         protected sealed override EfficientReadOnlyCollection<(IHUDElement popup, IAction popupHUDPosUpdater)> Popups { get; }
         protected sealed override Color Color

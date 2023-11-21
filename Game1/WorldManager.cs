@@ -439,10 +439,20 @@ namespace Game1
             //}
         }
 
+        /// <summary>
+        /// Also simulates the game up to the point of decreasing average temperature
+        /// </summary>
         private void Initialize()
         {
             graph!.Initialize();
             lightManager.Initialize();
+            while (true)
+            {
+                var prevTemperature = graph.AverageTemperature;
+                Update(elapsedGameTime: TimeSpan.FromSeconds(10));
+                if (prevTemperature >= graph.AverageTemperature)
+                    break;
+            }
         }
 
         public void PublishMessage(IMessage message)

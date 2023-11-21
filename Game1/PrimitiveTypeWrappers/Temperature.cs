@@ -26,6 +26,12 @@
         public static bool operator >=(Temperature left, Temperature right)
             => left.valueInK >= right.valueInK;
 
+        public static bool operator <(Temperature left, Temperature right)
+            => left.valueInK < right.valueInK;
+
+        public static bool operator >(Temperature left, Temperature right)
+            => left.valueInK > right.valueInK;
+
         int IComparable<Temperature>.CompareTo(Temperature other)
             => valueInK.CompareTo(other.valueInK);
 

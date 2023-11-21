@@ -31,6 +31,7 @@ namespace Game1
         public sealed override bool CanBeClicked
             => true;
         public RealPeopleStats Stats { get; private set; }
+        public Temperature AverageTemperature { get; private set; }
 
         // THIS COLOR IS NOT USED
         protected sealed override Color Color
@@ -45,6 +46,17 @@ namespace Game1
         private EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks;
 
         private IEnumerable<WorldUIElement> WorldUIElements
+        {
+            get
+            {
+                foreach (var node in nodes)
+                    yield return node;
+                foreach (var link in links)
+                    yield return link;
+            }
+        }
+
+        private IEnumerable<IWorldObject> WorldObjects
         {
             get
             {
@@ -409,6 +421,12 @@ namespace Game1
 
             DistributeRes();
             nodes.ForEach(node => node.EndUpdate(resFirstLinks: resFirstLinks));
+
+            AverageTemperature = ResAndIndustryAlgos.CalculateTemperature
+            (
+                heatEnergy: WorldObjects.Sum(worldObject => worldObject.HeatEnergy),
+                heatCapacity: WorldObjects.Sum(worldObject => worldObject.HeatCapacity)
+            );
         }
 
         public void DistributeRes()

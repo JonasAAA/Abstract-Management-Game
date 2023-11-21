@@ -12,7 +12,7 @@ using static Game1.GameConfig;
 namespace Game1
 {
     [Serializable]
-    public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, ILightCatchingObject, IWithSpecialPositions, IWithRealPeopleStats
+    public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, ILightCatchingObject, IWithSpecialPositions, IWithRealPeopleStats, IWorldObject
     {
         [Serializable]
         private sealed class ShapeParams(NodeState state) : Disk.IParams
@@ -61,6 +61,10 @@ namespace Game1
             => industry is not null;
         public IIndustryFacingNodeState NodeState
             => state;
+        public HeatCapacity HeatCapacity
+            => state.ThermalBody.HeatCapacity;
+        public HeatEnergy HeatEnergy
+            => state.ThermalBody.HeatEnergy;
         public RealPeopleStats Stats { get; private set; }
 
         public IIndustry? Industry

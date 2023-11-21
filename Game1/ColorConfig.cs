@@ -21,8 +21,11 @@
             defRoofMatPaletteColor,
             // industry colors
             miningBuildingColor,
+            landfillBuildingColor,
+            materialProductionBuildingColor,
             manufacturingBuildingColor,
-            materialSplittingBuildingColor,
+            storageBuildingColor,
+            powerPlantbuildingColor,
 
             // UI colors
             mouseOnColor,
@@ -60,9 +63,12 @@
             defElecMatPaletteColor = C.ColorFromRGB(rgb: 0xd9f99d); // Lime-200
             defRoofMatPaletteColor = C.ColorFromRGB(rgb: 0x99f6e4); // Teal-200
             // industry colors
-            miningBuildingColor = Color.Brown;
-            manufacturingBuildingColor = Color.DarkGray;
-            materialSplittingBuildingColor = Color.LightGray;
+            miningBuildingColor = C.ColorFromRGB(rgb: 0x1d4ed8); // Blue-700
+            landfillBuildingColor = C.ColorFromRGB(rgb: 0x6d28d9); // Violet-700
+            materialProductionBuildingColor = C.ColorFromRGB(rgb: 0xa21caf); // Fuchsia-700
+            manufacturingBuildingColor = C.ColorFromRGB(rgb: 0xbe123c); // Rose-700
+            storageBuildingColor = C.ColorFromRGB(rgb: 0xb45309); // Amber-700
+            powerPlantbuildingColor = C.ColorFromRGB(rgb: 0x15803d); // Green-700
 
             // UI colors
             mouseOnColor = Color.Yellow;

@@ -26,7 +26,7 @@ namespace Game1.Industries
                 Name = name;
                 BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
 
-                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.manufacturingBuildingColor);
+                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.landfillBuildingColor);
 
                 if (energyPriority == EnergyPriority.mostImportant)
                     throw new ArgumentException("Only power plants can have highest energy priority");

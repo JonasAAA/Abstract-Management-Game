@@ -77,7 +77,7 @@ namespace Game1.Shapes
                 radius: FinishedBuildingRadius,
                 color: UIAlgorithms.MixColorsAndMakeTransparent
                 (
-                    transparency: (Propor).25,
+                    transparency: (Propor).5,
                     baseColor: parameters.color,
                     otherColor: otherColor,
                     otherColorPropor: otherColorPropor
@@ -89,7 +89,12 @@ namespace Game1.Shapes
             (
                 center: nodeShapeParams.Position,
                 radius: CurRadius,
-                color: parameters.color
+                color: UIAlgorithms.MixColors
+                (
+                    baseColor: parameters.color,
+                    otherColor: otherColor,
+                    otherColorPropor: otherColorPropor
+                )
             );
         }
 

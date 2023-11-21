@@ -13,6 +13,7 @@ using System.Runtime.Serialization;
 using System.Xml;
 using static Game1.UI.ActiveUIManager;
 using static Game1.GameConfig;
+using Game1.ContentNames;
 
 namespace Game1
 {

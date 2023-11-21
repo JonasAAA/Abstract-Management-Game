@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace Game1
+namespace Game1.ContentNames
 {
     // IMPORTANT - take care to not save system- or user-specific paths
     [NonSerializable]
@@ -52,7 +52,7 @@ namespace Game1
             => File.Copy
             (
                 sourceFileName: filePath,
-                destFileName: Path.Combine(directoryPath.directoryPath, fileNameWithExtension)     
+                destFileName: Path.Combine(directoryPath.directoryPath, fileNameWithExtension)
             );
 
         public override string ToString()

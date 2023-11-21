@@ -1,7 +1,7 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
 
-namespace Game1
+namespace Game1.ContentNames
 {
     // IMPORTANT - take care to not save system- or user-specific paths
     [NonSerializable]

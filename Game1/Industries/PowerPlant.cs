@@ -201,6 +201,13 @@ namespace Game1.Industries
                     destin: destin,
                     amount: energyToTransform
                 );
+
+            void IEnergyProducer.TakeBackUnusedEnergy(EnergyPile<ElectricalEnergy> source, ElectricalEnergy amount)
+                => source.TransformTo
+                (
+                    destin: buildingParams.NodeState.RadiantEnergyPile,
+                    amount: amount
+                );
         }
 
         public static HashSet<Type> GetKnownTypes()

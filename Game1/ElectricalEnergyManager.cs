@@ -11,7 +11,6 @@ namespace Game1
         private readonly ThrowingSet<IEnergyConsumer> energyConsumers;
         
         private ElectricalEnergy totReqEnergy, totProdEnergy, totUsedLocalEnergy, totUsedPowerPlantEnergy;
-        private readonly EnergyPile<ElectricalEnergy> energyPile;
 
         public ElectricalEnergyManager()
         {
@@ -21,7 +20,6 @@ namespace Game1
             totProdEnergy = ElectricalEnergy.zero;
             totUsedLocalEnergy = ElectricalEnergy.zero;
             totUsedPowerPlantEnergy = ElectricalEnergy.zero;
-            energyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: LocationCounters.CreateEmpty());
         }
 
         public void AddEnergyProducer(IEnergyProducer energyProducer)
@@ -46,7 +44,7 @@ namespace Game1
         }
 
         [Serializable]
-        private sealed class EnhancedEnergyConsumer
+        private readonly struct EnhancedEnergyConsumer
         {
             public ElectricalEnergy OwnedEnergy
                 => ownedEnergyPile.Amount;
@@ -80,9 +78,10 @@ namespace Game1
         // Note that in step 2. all proportions are taken with respect to still needed energy, not the total required energy.
         // E.g. have person A on planet P, person B on planet Q. They each require 10 J. But if planet P produces more local energy,
         // chances are that person A gets more energy afterall
-        // TODO(performance, GC) allocate all intermediate collections on stack/reuse heap collections from previous frame where possible
+        // TODO(performance, GC) allocate all intermediate collections on stack/reuse heap collections from the previous frame where possible
         public void DistributeEnergy(IEnumerable<NodeID> nodeIDs, Func<NodeID, INodeAsLocalEnergyProducerAndConsumer> nodeIDToNode)
         {
+            var energyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: LocationCounters.CreateEmpty());
             // TODO(performace): could probably improve performance by separating those requiring no electricity at the start
             // Then only those requiring non-zero electricity would be involved in more costly calculations
             var enhancedConsumers =
@@ -93,8 +92,18 @@ namespace Game1
                     locationCounters: energyPile.LocationCounters
                 )).ToList();
 
-            foreach (var energyProducer in energyProducers)
-                energyProducer.ProduceEnergy(destin: energyPile);
+            var producedEnergies = energyProducers.ToEfficientReadOnlyDict
+            (
+                elementSelector: energyProducer =>
+                {
+                    var prevEnergy = energyPile.Amount;
+                    energyProducer.ProduceEnergy(destin: energyPile);
+                    return energyPile.Amount - prevEnergy;
+                }
+            );
+
+            //foreach (var energyProducer in energyProducers)
+            //    energyProducer.ProduceEnergy(destin: energyPile);
             totProdEnergy = energyPile.Amount;
             totReqEnergy = enhancedConsumers.Sum(enhancedConsumer => enhancedConsumer.reqEnergy);
             totUsedLocalEnergy = ElectricalEnergy.zero;
@@ -137,6 +146,15 @@ namespace Game1
                 enhancedConsumer.ConsumeEnergy();
             }
 
+            var (allocatedEnergies, unusedEnergy) = Algorithms.SplitEnergyEvenly
+            (
+                reqEnergies: producedEnergies.Values.ToList(),
+                availableEnergy: energyPile.Amount
+            );
+            Debug.Assert(unusedEnergy.IsZero);
+            foreach (var (energyProducer, allocatedEnergy) in producedEnergies.Keys.Zip(allocatedEnergies))
+                energyProducer.TakeBackUnusedEnergy(source: energyPile, amount: allocatedEnergy);
+            Debug.Assert(energyPile.Amount.IsZero);
             return;
 
             // remaining energy is left in energySource
@@ -151,7 +169,7 @@ namespace Game1
                 }
 
                 // Reverse to give energy to the highest priority consumers first
-                foreach (var (priority, samePriorEnhancedConsumers) in enhancedConsumersByPriority.Reverse())
+                foreach (var samePriorEnhancedConsumers in enhancedConsumersByPriority.Values.Reverse())
                 {
                     var energies =
                        (from enhancedConsumer in samePriorEnhancedConsumers

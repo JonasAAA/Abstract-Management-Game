@@ -6,5 +6,7 @@
     public interface IEnergyProducer
     {
         public void ProduceEnergy(EnergyPile<ElectricalEnergy> destin);
+
+        public void TakeBackUnusedEnergy(EnergyPile<ElectricalEnergy> source, ElectricalEnergy amount);
     }
 }

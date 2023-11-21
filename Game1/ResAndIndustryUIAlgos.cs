@@ -4,10 +4,12 @@ using Game1.Shapes;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
 using static Game1.GameConfig;
+using Game1.Collections;
+using Game1.Industries;
 
-namespace Game1.Industries
+namespace Game1
 {
-    public static class IndustryUIAlgos
+    public static class ResAndIndustryUIAlgos
     {
         [Serializable]
         private sealed class ItemChoiceSetter<TItem>(IItemChoiceSetter<ProductionChoice> productionChoiceSetter) : IItemChoiceSetter<TItem>
@@ -59,7 +61,7 @@ namespace Game1.Industries
                 ),
                 additionalInfos: additionalInfos
             );
-    
+
         public static IHUDElement CreateResourceChoiceDropdown(IItemChoiceSetter<IResource> resChoiceSetter, (IHUDElement empty, Func<IResource, IHUDElement> item)? additionalInfos = null)
             => Dropdown.CreateDropdown
             (
@@ -137,6 +139,29 @@ namespace Game1.Industries
                 barColor: colorConfig.barColor,
                 backgroundColor: colorConfig.barBackgroundColor
             );
+
+        public static IHUDElement ResAmountsHUDElement<TRes>(ResAmounts<TRes> resAmounts)
+            where TRes : class, IResource
+        {
+            if (resAmounts.IsEmpty)
+                return new TextBox(text: "None");
+            return new UIRectVertPanel<IHUDElement>
+            (
+                childHorizPos: HorizPosEnum.Left,
+                children: resAmounts.Select
+                (
+                    resAmount => new UIRectHorizPanel<IHUDElement>
+                    (
+                        childVertPos: VertPosEnum.Middle,
+                        children:
+                        [
+                            new ImageHUDElement(image: resAmount.res.Icon),
+                            new TextBox(text: $"{resAmount.BlockAmount():0.0}")
+                        ]
+                    )
+                )
+            );
+        }
 
         public static IEnumerable<Type> GetKnownTypes()
             => from typeArgument in Dropdown.GetKnownTypeArgs()

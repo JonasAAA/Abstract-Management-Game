@@ -24,7 +24,7 @@ namespace Game1.Industries
 
             public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
             {
-                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.miningBuildingColor);
+                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.powerPlantbuildingColor);
                 Name = name;
                 BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
 
@@ -200,6 +200,13 @@ namespace Game1.Industries
                 (
                     destin: destin,
                     amount: energyToTransform
+                );
+
+            void IEnergyProducer.TakeBackUnusedEnergy(EnergyPile<ElectricalEnergy> source, ElectricalEnergy amount)
+                => source.TransformTo
+                (
+                    destin: buildingParams.NodeState.RadiantEnergyPile,
+                    amount: amount
                 );
         }
 

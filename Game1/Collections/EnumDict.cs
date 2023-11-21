@@ -4,7 +4,7 @@ using System.Runtime.CompilerServices;
 namespace Game1.Collections
 {
     /// <summary>
-    /// Immutable dictionary where keys are (TRes)0, (TRes)1, ...
+    /// Immutable dictionary where keys are (TKey)0, (TKey)1, ...
     /// </summary>
     /// <typeparam Name="TKey">must be integer-backed enum</typeparam>
     [Serializable]

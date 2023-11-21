@@ -251,6 +251,7 @@ namespace Game1
                 (ulong nonReactingAmount, ulong fusionProductAmount) = NuclearFusionSingleRawMat
                 (
                     amount: amount,
+                    singleRawMatArea: ResAndIndustryAlgos.rawMaterialArea,
                     compositionArea: compositionArea,
                     surfaceGravity: surfaceGravity,
                     surfaceGravityExponent: surfaceGravityExponent,
@@ -271,12 +272,12 @@ namespace Game1
             return newComposition;
         }
 
-        public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusionSingleRawMat(ulong amount, AreaDouble compositionArea, SurfaceGravity surfaceGravity, UDouble surfaceGravityExponent,
+        public static (ulong nonReactingAmount, ulong fusionProductAmount) NuclearFusionSingleRawMat(ulong amount, AreaInt singleRawMatArea, AreaDouble compositionArea, SurfaceGravity surfaceGravity, UDouble surfaceGravityExponent,
             Temperature temperature, UDouble temperatureExponent, TimeSpan duration, UDouble fusionReactionStrengthCoeff)
         {
             // Somewhat equivalent to https://en.wikipedia.org/wiki/Number_density.
             // Since all raw mats have the same area, this naming makes sense
-            double rawMatProporInComposition = (double)amount / compositionArea.valueInMetSq,
+            double rawMatProporInComposition = (double)amount * singleRawMatArea.valueInMetSq / compositionArea.valueInMetSq,
                 reactionStrength = fusionReactionStrengthCoeff
                     * rawMatProporInComposition * rawMatProporInComposition
                     * MyMathHelper.Pow(@base: surfaceGravity.valueInMetPerSeqSq, exponent: surfaceGravityExponent)

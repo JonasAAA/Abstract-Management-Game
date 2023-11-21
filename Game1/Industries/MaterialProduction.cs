@@ -29,7 +29,7 @@ namespace Game1.Industries
                 Name = name;
                 BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
 
-                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.manufacturingBuildingColor);
+                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.materialProductionBuildingColor);
 
                 if (energyPriority == EnergyPriority.mostImportant)
                     throw new ArgumentException("Only power plants can have highest energy priority");
@@ -38,7 +38,7 @@ namespace Game1.Industries
             }
 
             public IHUDElement? CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
-                => IndustryUIAlgos.CreateMaterialChoiceDropdown(materialChoiceSetter: productionChoiceSetter.Convert<MaterialProductionChoice>());
+                => ResAndIndustryUIAlgos.CreateMaterialChoiceDropdown(materialChoiceSetter: productionChoiceSetter.Convert<MaterialProductionChoice>());
 
             public IConcreteBuildingConstructionParams CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
                 => new ConcreteBuildingParams

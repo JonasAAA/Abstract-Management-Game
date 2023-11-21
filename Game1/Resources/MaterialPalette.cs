@@ -1,5 +1,4 @@
 ﻿using Game1.Collections;
-using Game1.Industries;
 using Game1.UI;
 using static Game1.WorldManager;
 
@@ -11,18 +10,19 @@ namespace Game1.Resources
         // This is a method so that each of these is independent.
         // Otherwise, if want to show it on screen twice, both of those would show up in the same position, since they are the same object.
         public static IHUDElement CreateEmptyProdStatsInfluenceVisual()
-            => IndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+            => ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
             (
-                neededElectricity: IndustryUIAlgos.emptyProdNeededElectricityFunctionGraph,
-                throughput: IndustryUIAlgos.emptyProdThroughputFunctionGraph
+                neededElectricity: ResAndIndustryUIAlgos.emptyProdNeededElectricityFunctionGraph,
+                throughput: ResAndIndustryUIAlgos.emptyProdThroughputFunctionGraph
             );
 
-        public static Result<MaterialPalette, TextErrors> CreateAndAddToResConfig(string name, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices)
+        public static Result<MaterialPalette, TextErrors> CreateAndAddToResConfig(string name, IImage image, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices)
         {
             productClass.ThrowIfWrongIMatPurposeSet(materialChoices: materialChoices);
             MaterialPalette materialPalette = new
             (
                 name: name,
+                image: image,
                 productClass: productClass,
                 materialChoices: materialChoices,
                 materialAmounts: new ResAmounts<Material>
@@ -44,23 +44,25 @@ namespace Game1.Resources
         }
 
         public readonly string name;
+        public readonly IImage image;
         public readonly ProductClass productClass;
         public readonly EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices;
         public readonly ResAmounts<Material> materialAmounts;
         private readonly IImage prodNeededElectricityFunctionGraph;
         private readonly IImage prodThroughputFunctionGraph;
 
-        public MaterialPalette(string name, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices, ResAmounts<Material> materialAmounts)
+        public MaterialPalette(string name, IImage image, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices, ResAmounts<Material> materialAmounts)
         {
             this.name = name;
+            this.image = image;
             this.productClass = productClass;
             this.materialChoices = materialChoices;
             this.materialAmounts = materialAmounts;
-            prodNeededElectricityFunctionGraph = IndustryUIAlgos.CreateGravityFunctionGraph
+            prodNeededElectricityFunctionGraph = ResAndIndustryUIAlgos.CreateGravityFunctionGraph
             (
                 func: gravity => ResAndIndustryAlgos.NeededElectricity(materialPalette: this, gravity: gravity)
             );
-            prodThroughputFunctionGraph = IndustryUIAlgos.CreateTemperatureFunctionGraph
+            prodThroughputFunctionGraph = ResAndIndustryUIAlgos.CreateTemperatureFunctionGraph
             (
                 func: temper => ResAndIndustryAlgos.Throughput(materialPalette: this, temperature: temper)
             );
@@ -69,7 +71,7 @@ namespace Game1.Resources
         // This is a method so that each prod stats is independent.
         // Otherwise, if want to show it on screen twice, both of those would show up in the same position, since they are the same object.
         public IHUDElement CreateProdStatsInfluenceVisual()
-            => IndustryUIAlgos.CreateNeededElectricityAndThroughputPanel(neededElectricity: prodNeededElectricityFunctionGraph, throughput: prodThroughputFunctionGraph);
+            => ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel(neededElectricity: prodNeededElectricityFunctionGraph, throughput: prodThroughputFunctionGraph);
 
         /// <summary>
         /// Returns text errors if contents are the same

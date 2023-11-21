@@ -1,5 +1,5 @@
-﻿using Game1.Collections;
-using Game1.ContentHelpers;
+﻿using Game1.ContentHelpers;
+using Game1.ContentNames;
 using Game1.Delegates;
 using Game1.GameStates;
 using Game1.Shapes;
@@ -12,20 +12,9 @@ using static Game1.GameConfig;
 
 namespace Game1
 {
+    [NonSerializable]
     public sealed class GameMain : Game
     {
-        public static EfficientReadOnlyHashSet<Type> NonSerializableTypes()
-            => new
-            (
-                set:
-                [
-                    typeof(GameMain),
-                    typeof(SetGameStateToPause),
-                    typeof(ContentException),
-                    typeof(InvalidStateException)
-                ]
-            );
-
         private readonly GraphicsDeviceManager graphics;
         private PlayState? playState;
         private MapCreationState? mapCreationState;
@@ -76,6 +65,7 @@ namespace Game1
             base.Initialize();
         }
 
+        [NonSerializable]
         private sealed class SetGameStateToPause(GameMain game, GameState pauseMenu) : IAction
         {
             public void Invoke()

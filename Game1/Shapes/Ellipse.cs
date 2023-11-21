@@ -1,9 +1,11 @@
-﻿namespace Game1.Shapes
+﻿using Game1.ContentNames;
+
+namespace Game1.Shapes
 {
     [Serializable]
     public sealed class Ellipse : NearRectangle
     {
-        private static readonly Texture2D diskTexture = C.LoadTexture(name: "big disk");
+        private static readonly Texture2D diskTexture = C.LoadTexture(name: TextureName.disk);
 
         public Ellipse(UDouble width, UDouble height)
             : base(width: width, height: height)

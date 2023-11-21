@@ -6,7 +6,6 @@ using Game1.Inhabitants;
 using Game1.Lighting;
 using Game1.Shapes;
 using Game1.UI;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -14,6 +13,7 @@ using System.Runtime.Serialization;
 using System.Xml;
 using static Game1.UI.ActiveUIManager;
 using static Game1.GameConfig;
+using Game1.ContentNames;
 
 namespace Game1
 {
@@ -53,8 +53,6 @@ namespace Game1
 
         private static EfficientReadOnlyCollection<Type> ComputeKnownTypes()
         {
-            var nonSerializableTypes = GameMain.NonSerializableTypes();
-
             // TODO: move to a more appropriate class?
             HashSet<Type> knownTypesSet =
             [
@@ -81,7 +79,7 @@ namespace Game1
             knownTypesSet.UnionWith(MaterialProduction.GetKnownTypes());
             knownTypesSet.UnionWith(Storage.GetKnownTypes());
             knownTypesSet.UnionWith(Dropdown.GetKnownTypes());
-            knownTypesSet.UnionWith(IndustryUIAlgos.GetKnownTypes());
+            knownTypesSet.UnionWith(ResAndIndustryUIAlgos.GetKnownTypes());
             knownTypesSet.UnionWith(FunctionGraphImage.GetKnownTypes());
             knownTypesSet.UnionWith(FunctionGraphWithHighlighImage.GetKnownTypes());
 
@@ -96,11 +94,11 @@ namespace Game1
                     || type.IsEnum)
                     knownTypesSet.Add(type);
                 else
-                    if (!nonSerializableTypes.Contains(type) && !(type.IsAbstract && type.IsSealed) && !type.IsInterface)
-                    unserializedTypeList.Add(type);
+                    if (type.GetCustomAttribute<CompilerGeneratedAttribute>() != null && type.GetCustomAttribute<NonSerializableAttribute>() is null && !(type.IsAbstract && type.IsSealed) && !type.IsInterface)
+                        unserializedTypeList.Add(type);
             }
             if (unserializedTypeList.Count > 0)
-                throw new InvalidStateException($"Every non-static, non-interface, non-enum type (except for types returned from NonSerializableTypes method(s)) must have attribute Serializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
+                throw new InvalidStateException($"Every non-static, non-interface, non-enum type must have attribute Serializable or NonSerializable. The following types don't comply {unserializedTypeList.ToDebugString()}.");
             return knownTypesSet.ToEfficientReadOnlyCollection();
         }
 
@@ -441,10 +439,21 @@ namespace Game1
             //}
         }
 
+        /// <summary>
+        /// Also simulates the game up to the point of decreasing average temperature
+        /// </summary>
         private void Initialize()
         {
             graph!.Initialize();
             lightManager.Initialize();
+            var maxAverageTemperature = Temperature.zero;
+            while (true)
+            {
+                maxAverageTemperature = MyMathHelper.Max(maxAverageTemperature, graph.AverageTemperature);
+                Update(elapsedGameTime: TimeSpan.FromSeconds(10));
+                if (graph.AverageTemperature.valueInK <= 0.9 * maxAverageTemperature.valueInK)
+                    break;
+            }
         }
 
         public void PublishMessage(IMessage message)
@@ -471,8 +480,8 @@ namespace Game1
         public void DeactivateWorldElements()
             => CurGraph.DeactivateWorldElements();
 
-        public IEnumerable<IIndustry> SourcesOf(IResource resource)
-            => CurGraph.SourcesOf(resource: resource);
+        public IEnumerable<IIndustry> IndustriesWithPossibleNeighbourhood(NeighborDir neighborDir, IResource resource)
+            => CurGraph.IndustriesWithPossibleNeighbourhood(neighborDir: neighborDir, resource: resource);
 
         public IEnumerable<IIndustry> DestinsOf(IResource resource)
             => throw new NotImplementedException();

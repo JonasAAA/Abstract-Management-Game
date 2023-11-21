@@ -18,7 +18,9 @@
         public readonly UDouble defaultGapBetweenUIElements = 10;
         public readonly UDouble standardUIElementWidth = 100;
         public readonly UDouble wideUIElementWidth = 200;
-        public readonly UDouble UILineHeight = 30;
+        public readonly UDouble iconWidth = 32;
+        public readonly UDouble iconHeight = 32;
+        public readonly UDouble UILineHeight = 32;
         public readonly ulong pointNumInSmallFunctionGraphs = 100;
         public readonly Propor minFunctionGraphHighlightPropor = (Propor).02;
 

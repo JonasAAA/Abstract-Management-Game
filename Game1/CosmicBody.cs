@@ -12,7 +12,7 @@ using static Game1.GameConfig;
 namespace Game1
 {
     [Serializable]
-    public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, ILightCatchingObject, IWithSpecialPositions, IWithRealPeopleStats
+    public sealed class CosmicBody : WorldUIElement, ILightSource, ILinkFacingCosmicBody, INodeAsLocalEnergyProducerAndConsumer, ILightCatchingObject, IWithSpecialPositions, IWithRealPeopleStats, IWorldObject
     {
         [Serializable]
         private sealed class ShapeParams(NodeState state) : Disk.IParams
@@ -35,7 +35,8 @@ namespace Game1
         private sealed class BriefInfoText(CosmicBody cosmicBody) : ILazyText
         {
             string ILazyText.GetText()
-                => $"T = {cosmicBody.state.Temperature}";
+                => "";
+            //=> $"T = {cosmicBody.state.Temperature}";
         }
 
         [Serializable]
@@ -60,6 +61,10 @@ namespace Game1
             => industry is not null;
         public IIndustryFacingNodeState NodeState
             => state;
+        public HeatCapacity HeatCapacity
+            => state.ThermalBody.HeatCapacity;
+        public HeatEnergy HeatEnergy
+            => state.ThermalBody.HeatEnergy;
         public RealPeopleStats Stats { get; private set; }
 
         public IIndustry? Industry
@@ -110,10 +115,11 @@ namespace Game1
                 return popups.ToEfficientReadOnlyCollection();
             }
         }
+
         protected sealed override Color Color
             => ColorHelpers.Interpolate
             (
-                normalized: Propor.Create(part: state.Temperature.valueInK, whole: CurWorldConfig.maxTemperatureShownInGraphs.valueInK)!.Value,
+                normalized: Propor.CreateByClamp(state.Temperature.valueInK / CurWorldConfig.maxTemperatureShownInGraphs.valueInK),
                 colorConfig.minTemperatureColor,
                 colorConfig.maxTemperatureColor
             );
@@ -135,6 +141,7 @@ namespace Game1
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
         private readonly IAction UITabPanelHUDPosUpdater;
         private readonly UIRectPanel<IHUDElement> infoPanel;
+#warning Remove textBox as it does nothing now
         private readonly LazyTextBox textBox, infoTextBox;
 
         public CosmicBody(NodeState state, Func<IIndustryFacingNodeState, IIndustry?> createIndustry)

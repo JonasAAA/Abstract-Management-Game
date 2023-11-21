@@ -26,12 +26,12 @@ namespace Game1.Industries
                 Name = name;
                 BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
 
-                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.manufacturingBuildingColor);
+                buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.storageBuildingColor);
                 this.buildingComponentPropors = buildingComponentPropors;
             }
 
             public IHUDElement? CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
-                => IndustryUIAlgos.CreateResourceChoiceDropdown(resChoiceSetter: productionChoiceSetter.Convert<StorageChoice>());
+                => ResAndIndustryUIAlgos.CreateResourceChoiceDropdown(resChoiceSetter: productionChoiceSetter.Convert<StorageChoice>());
 
             public ConcreteBuildingParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, StorageChoice storageChoice)
             {
@@ -194,7 +194,7 @@ namespace Game1.Industries
         private readonly ResPile buildingResPile, storage;
         private readonly Event<IDeletedListener> deleted;
         private bool isDeleted;
-        private readonly EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>> resSources, resDestins;
+        private readonly EnumDict<NeighborDir, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>>> resNeighbors;
         private AllResAmounts resTravellingHere;
         private readonly TextBox storageUI;
 
@@ -208,45 +208,31 @@ namespace Game1.Industries
             storage = ResPile.CreateEmpty(thermalBody: buildingParams.NodeState.ThermalBody);
             resTravellingHere = AllResAmounts.empty;
 
-            resSources = IIndustry.CreateRoutesLists(resources: storageParams.StoredResources);
-            resDestins = IIndustry.CreateRoutesLists(resources: storageParams.StoredResources);
-            RoutePanel = IIndustry.CreateRoutePanel
-            (
-                industry: this,
-                resSources: resSources,
-                resDestins: resDestins
-            );
+            resNeighbors = IIndustry.CreateResNeighboursCollection(resources: _ => storageParams.StoredResources);
+            RoutePanel = IIndustry.CreateRoutePanel(industry: this);
 
             storageUI = new();
         }
 
-        public bool IsSourceOf(IResource resource)
-            => resDestins.ContainsKey(resource);
+        public bool IsNeighborhoodPossible(NeighborDir neighborDir, IResource resource)
+            => resNeighbors[neighborDir].ContainsKey(resource);
 
-        public bool IsDestinOf(IResource resource)
-            => resSources.ContainsKey(resource);
+        public IReadOnlyCollection<IResource> GetResWithPotentialNeighborhood(NeighborDir neighborDir)
+            => resNeighbors[neighborDir].Keys;
 
-        public IEnumerable<IResource> GetConsumedRes()
-            => resSources.Keys;
+        public EfficientReadOnlyHashSet<IIndustry> GetResNeighbors(NeighborDir neighborDir, IResource resource)
+            => new(set: resNeighbors[neighborDir][resource]);
 
-        public IEnumerable<IResource> GetProducedRes()
-            => resDestins.Keys;
-
-        public EfficientReadOnlyHashSet<IIndustry> GetSources(IResource resource)
-            => new(set: resSources[resource]);
-
-        public EfficientReadOnlyHashSet<IIndustry> GetDestins(IResource resource)
-            => new(set: resDestins[resource]);
-
-        public AllResAmounts GetSupply()
-            => storage.Amount;
-
-        public AllResAmounts GetDemand()
-            => storageParams.CurStoredRes.SwitchExpression
-            (
-                ok: storedRes => buildingParams.MaxStored(storedRes: storedRes) - storage.Amount - resTravellingHere,
-                error: _ => AllResAmounts.empty
-            );
+        public AllResAmounts GetResAmountsRequestToNeighbors(NeighborDir neighborDir)
+            => neighborDir switch
+            {
+                NeighborDir.In => storageParams.CurStoredRes.SwitchExpression
+                (
+                    ok: storedRes => buildingParams.MaxStored(storedRes: storedRes) - storage.Amount - resTravellingHere,
+                    error: _ => AllResAmounts.empty
+                ),
+                NeighborDir.Out => storage.Amount,
+            };
 
         public void TransportResTo(IIndustry destinIndustry, ResAmount<IResource> resAmount)
             => buildingParams.NodeState.TransportRes
@@ -265,11 +251,8 @@ namespace Game1.Industries
             storage.TransferAllFrom(source: arrivingResPile);
         }
 
-        public void ToggleSource(IResource resource, IIndustry sourceIndustry)
-            => IIndustry.ToggleElement(set: resSources[resource], element: sourceIndustry);
-
-        public void ToggleDestin(IResource resource, IIndustry destinIndustry)
-            => IIndustry.ToggleElement(set: resDestins[resource], element: destinIndustry);
+        public void ToggleResNeighbor(NeighborDir neighborDir, IResource resource, IIndustry neighbor)
+            => IIndustry.ToggleElement(set: resNeighbors[neighborDir][resource], element: neighbor);
 
         public void FrameStart()
         { }
@@ -290,7 +273,7 @@ namespace Game1.Industries
                 return false;
             // Need to wait for all resources travelling here to arrive
             throw new NotImplementedException();
-            IIndustry.DeleteSourcesAndDestins(industry: this);
+            IIndustry.DeleteResNeighbors(industry: this);
 #warning Implement a proper industry deletion strategy
             storage.TransferAllFrom(source: buildingResPile);
             IIndustry.DumpAllResIntoCosmicBody(nodeState: buildingParams.NodeState, resPile: storage);

@@ -21,6 +21,9 @@ namespace Game1.Resources
         public AreaInt Area()
             => amount * res.Area;
 
+        public UDouble BlockAmount()
+            => (UDouble)Area().valueInMetSq / ResAndIndustryAlgos.blockArea.valueInMetSq;
+
         public static ResAmount<TRes> operator *(ulong left, ResAmount<TRes> right)
             => new(res: right.res, amount: left * right.amount);
 

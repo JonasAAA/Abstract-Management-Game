@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework.Content;
+﻿using Game1.ContentNames;
+using Microsoft.Xna.Framework.Content;
 
 namespace Game1
 {
@@ -7,8 +8,7 @@ namespace Game1
     {
         // power of two to make double / scale and double * scale lossless
         public const long accurScale = (long)1 << 10;
-        public static ContentManager ContentManager
-            => contentManager ?? throw new InvalidOperationException(mustInitializeMessage);
+    
         public static GraphicsDevice GraphicsDevice
             => graphicsDevice ?? throw new InvalidOperationException(mustInitializeMessage);
         public static SpriteBatch SpriteBatch
@@ -16,6 +16,12 @@ namespace Game1
 
         public static Texture2D PixelTexture
             => pixelTexture ?? throw new InvalidOperationException(mustInitializeMessage);
+
+        public static string ContentRootDirectory
+            => ContentManager.RootDirectory;
+
+        private static ContentManager ContentManager
+            => contentManager ?? throw new InvalidOperationException(mustInitializeMessage);
 
         private const string mustInitializeMessage = $"must initialize {nameof(C)} first";
         private static ContentManager? contentManager;
@@ -29,7 +35,7 @@ namespace Game1
             C.contentManager = contentManager;
             C.graphicsDevice = graphicsDevice;
             spriteBatch = new(graphicsDevice);
-            pixelTexture = LoadTexture(name: "pixel");
+            pixelTexture = LoadTexture(name: TextureName.pixel);
         }
 
         /// <summary>
@@ -78,11 +84,14 @@ namespace Game1
             };
         }
 
-        public static Texture2D LoadTexture(string name)
-            => ContentManager.Load<Texture2D>(name);
+        public static Texture2D LoadTexture(TextureName name)
+            => ContentManager.Load<Texture2D>(name.Path);
 
-        public static SpriteFont LoadFont(string name)
-            => ContentManager.Load<SpriteFont>(name);
+        public static SpriteFont LoadFont(FontName name)
+            => ContentManager.Load<SpriteFont>(name.Path);
+
+        public static Effect LoadShader(ShaderName name)
+            => ContentManager.Load<Effect>(name.Path);
 
         public static void Draw(Texture2D texture, Vector2Bare position, Color color, double rotation, Vector2Bare origin, UDouble scale)
             => SpriteBatch.Draw

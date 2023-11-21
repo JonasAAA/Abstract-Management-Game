@@ -5,8 +5,7 @@
     {
         public readonly Color
             // world colors
-            Res0Color,
-            Res1Color,
+            mapCreationCosmicBodyColor,
             minTemperatureColor,
             maxTemperatureColor,
             cosmosBackgroundColor,
@@ -15,10 +14,18 @@
             houseIndustryColor,
             linkTravellerColor,
             mapCreationSelectedWorldUIElementColor,
+            // material palette colors
+            otherMechMatPaletteColor,
+            defMechMatPaletteColor,
+            defElecMatPaletteColor,
+            defRoofMatPaletteColor,
             // industry colors
             miningBuildingColor,
+            landfillBuildingColor,
+            materialProductionBuildingColor,
             manufacturingBuildingColor,
-            materialSplittingBuildingColor,
+            storageBuildingColor,
+            powerPlantbuildingColor,
 
             // UI colors
             mouseOnColor,
@@ -41,8 +48,7 @@
         public ColorConfig()
         {
             // world colors
-            Res0Color = C.ColorFromRGB(rgb: 0x00754D);
-            Res1Color = C.ColorFromRGB(rgb: 0x00632D);
+            mapCreationCosmicBodyColor = C.ColorFromRGB(rgb: 0x00754D);
             minTemperatureColor = C.ColorFromRGB(rgb: 0x00476B);
             maxTemperatureColor = C.ColorFromRGB(rgb: 0xFFF07A);
             cosmosBackgroundColor = C.ColorFromRGB(rgb: 0x000E24);
@@ -51,10 +57,18 @@
             houseIndustryColor = Color.Yellow;
             linkTravellerColor = Color.Black;
             mapCreationSelectedWorldUIElementColor = Color.White;
+            // material palette colors taken from https://tailwindcss.com/docs/customizing-colors
+            otherMechMatPaletteColor = C.ColorFromRGB(rgb: 0xfb923c); // Orange-400
+            defMechMatPaletteColor = C.ColorFromRGB(rgb: 0xfed7aa); // Orange-200
+            defElecMatPaletteColor = C.ColorFromRGB(rgb: 0xd9f99d); // Lime-200
+            defRoofMatPaletteColor = C.ColorFromRGB(rgb: 0x99f6e4); // Teal-200
             // industry colors
-            miningBuildingColor = Color.Brown;
-            manufacturingBuildingColor = Color.DarkGray;
-            materialSplittingBuildingColor = Color.LightGray;
+            miningBuildingColor = C.ColorFromRGB(rgb: 0x1d4ed8); // Blue-700
+            landfillBuildingColor = C.ColorFromRGB(rgb: 0x6d28d9); // Violet-700
+            materialProductionBuildingColor = C.ColorFromRGB(rgb: 0xa21caf); // Fuchsia-700
+            manufacturingBuildingColor = C.ColorFromRGB(rgb: 0xbe123c); // Rose-700
+            storageBuildingColor = C.ColorFromRGB(rgb: 0xb45309); // Amber-700
+            powerPlantbuildingColor = C.ColorFromRGB(rgb: 0x15803d); // Green-700
 
             // UI colors
             mouseOnColor = Color.Yellow;

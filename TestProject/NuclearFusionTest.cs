@@ -17,7 +17,8 @@ namespace TestProject
                 actual: Algorithms.NuclearFusionSingleRawMat
                 (
                     amount: 1000,
-                    compositionArea: Area<UDouble>.CreateFromMetSq(5415),
+                    singleRawMatArea: Area<ulong>.CreateFromMetSq(11),
+                    compositionArea: Area<UDouble>.CreateFromMetSq(5415 * 11),
                     surfaceGravity: SurfaceGravity.CreateFromMetPerSecSq(2),
                     surfaceGravityExponent: 2,
                     temperature: Temperature.CreateFromK(3),

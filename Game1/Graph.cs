@@ -31,6 +31,7 @@ namespace Game1
         public sealed override bool CanBeClicked
             => true;
         public RealPeopleStats Stats { get; private set; }
+        public Temperature AverageTemperature { get; private set; }
 
         // THIS COLOR IS NOT USED
         protected sealed override Color Color
@@ -45,6 +46,17 @@ namespace Game1
         private EfficientReadOnlyDictionary<(NodeID, NodeID), Link?> resFirstLinks;
 
         private IEnumerable<WorldUIElement> WorldUIElements
+        {
+            get
+            {
+                foreach (var node in nodes)
+                    yield return node;
+                foreach (var link in links)
+                    yield return link;
+            }
+        }
+
+        private IEnumerable<IWorldObject> WorldObjects
         {
             get
             {
@@ -98,7 +110,7 @@ namespace Game1
                 (
                     rawMatAmount => new ResAmount<RawMaterial>
                     (
-                        res: RawMaterial.GetAndAddToCurResConfigIfNeeded(curResConfig: CurResConfig, ind: rawMatAmount.rawMatInd),
+                        res: CurResConfig.GetRawMatFromInd(ind: rawMatAmount.rawMatInd),
                         amount: rawMatAmount.amount
                     )
                 )
@@ -367,11 +379,8 @@ namespace Game1
         public UDouble ResDist(NodeID nodeID1, NodeID nodeID2)
             => resDists[(nodeID1, nodeID2)];
 
-        public IEnumerable<IIndustry> SourcesOf(IResource resource)
-            => Industries.Where(industry => industry.IsSourceOf(resource: resource));
-
-        public IEnumerable<IIndustry> DestinsOf(IResource resource)
-            => Industries.Where(industry => industry.IsDestinOf(resource: resource));
+        public IEnumerable<IIndustry> IndustriesWithPossibleNeighbourhood(NeighborDir neighborDir, IResource resource)
+            => Industries.Where(industry => industry.IsNeighborhoodPossible(neighborDir: neighborDir, resource: resource));
 
         public MyVector2 NodePosition(NodeID nodeID)
             => nodeIDToNode[nodeID].Position;
@@ -409,6 +418,12 @@ namespace Game1
 
             DistributeRes();
             nodes.ForEach(node => node.EndUpdate(resFirstLinks: resFirstLinks));
+
+            AverageTemperature = ResAndIndustryAlgos.CalculateTemperature
+            (
+                heatEnergy: WorldObjects.Sum(worldObject => worldObject.HeatEnergy),
+                heatCapacity: WorldObjects.Sum(worldObject => worldObject.HeatCapacity)
+            );
         }
 
         public void DistributeRes()
@@ -416,27 +431,41 @@ namespace Game1
             Dictionary<IResource, Dictionary<Algorithms.Vertex<IIndustry>, Algorithms.VertexInfo<IIndustry>>> resToRouteGraphs = [];
             foreach (var industry in Industries)
             {
-                AllResAmounts demand = industry.GetDemand(), supply = industry.GetSupply();
-                foreach (var res in industry.GetProducedRes())
-                    resToRouteGraphs.GetOrCreate(key: res).Add
-                    (
-                        key: new(ResOwner: industry, IsSource: true),
-                        value: new
+                foreach (var neighborDir in Enum.GetValues<NeighborDir>())
+                {
+                    AllResAmounts requestedResAmounts = industry.GetResAmountsRequestToNeighbors(neighborDir: neighborDir);
+                    foreach (var res in industry.GetResWithPotentialNeighborhood(neighborDir: neighborDir))
+                        resToRouteGraphs.GetOrCreate(key: res).Add
                         (
-                            directedNeighbours: industry.GetDestins(resource: res).ToList(),
-                            amount: supply[res]
-                        )
-                    );
-                foreach (var res in industry.GetConsumedRes())
-                    resToRouteGraphs.GetOrCreate(key: res).Add
-                    (
-                        key: new(ResOwner: industry, IsSource: false),
-                        value: new
-                        (
-                            directedNeighbours: industry.GetSources(resource: res).ToList(),
-                            amount: demand[res]
-                        )
-                    );
+                            key: new(ResOwner: industry, IsSource: neighborDir == NeighborDir.Out),
+                            value: new
+                            (
+                                directedNeighbours: industry.GetResNeighbors(neighborDir: neighborDir, resource: res).ToList(),
+                                amount: requestedResAmounts[res]
+                            )
+                        );
+                }
+                //AllResAmounts demand = industry.GetDemand(), supply = industry.GetSupply();
+                //foreach (var res in industry.GetProducedRes())
+                //    resToRouteGraphs.GetOrCreate(key: res).Add
+                //    (
+                //        key: new(ResOwner: industry, IsSource: true),
+                //        value: new
+                //        (
+                //            directedNeighbours: industry.GetDestins(resource: res).ToList(),
+                //            amount: supply[res]
+                //        )
+                //    );
+                //foreach (var res in industry.GetResWithNonEmptyNeighborhood())
+                //    resToRouteGraphs.GetOrCreate(key: res).Add
+                //    (
+                //        key: new(ResOwner: industry, IsSource: false),
+                //        value: new
+                //        (
+                //            directedNeighbours: industry.GetResNeighbors(resource: res).ToList(),
+                //            amount: demand[res]
+                //        )
+                //    );
             }
 
             foreach (var (res, routeGraph) in resToRouteGraphs)

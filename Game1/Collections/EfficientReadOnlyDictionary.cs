@@ -12,11 +12,17 @@ namespace Game1.Collections
     {
         public static readonly EfficientReadOnlyDictionary<TKey, TValue> empty = new(dict: []);
 
-        public IEnumerable<TKey> Keys
+        public IReadOnlyCollection<TKey> Keys
             => dict.Keys;
 
-        public IEnumerable<TValue> Values
+        public IReadOnlyCollection<TValue> Values
             => dict.Values;
+
+        IEnumerable<TKey> IReadOnlyDictionary<TKey, TValue>.Keys
+            => Keys;
+
+        IEnumerable<TValue> IReadOnlyDictionary<TKey, TValue>.Values
+            => Values;
 
         public int Count
             => dict.Count;

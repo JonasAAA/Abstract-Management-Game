@@ -6,7 +6,22 @@ namespace Game1
     public static class ResAndIndustryAlgos
     {
         public static string RawMaterialName(ulong ind)
-            => $"Raw material {ind}";
+            => ind switch
+            {
+                0 => "firstium",
+                1 => "secondium",
+                2 => "thirdium",
+                3 => "fourthium",
+                4 => "fifthium",
+                5 => "sixthium",
+                > maxRawMatInd => throw new ArgumentOutOfRangeException()
+            };
+
+        /// <summary>
+        /// Primitive material is material composed from single raw material
+        /// </summary>
+        public static string PrimitiveMaterialName(ulong rawMatInd)
+            => $"{RawMaterialName(rawMatInd)} material";
 
         // Want max density to be 1
         public static readonly AreaInt rawMaterialArea = AreaInt.CreateFromMetSq(valueInMetSq: RawMaterialMass(ind: 0).valueInKg);
@@ -14,8 +29,22 @@ namespace Game1
         // Formula is like this for the following reasons:
         // * Want max mass to be quite small in order to have larger amount of blocks in the world
         // * Want mass to decrease with ind
+        // * Want subsequent raw mat masses to have not-so-close of a ratio
+        // CHANGING masses would still get the same amount of energy released in fusion per unit area, ASSUMING that gravity stays the same
         public static Mass RawMaterialMass(ulong ind)
-            => Mass.CreateFromKg(valueInKg: 1 + maxRawMatInd - ind);
+            => Mass.CreateFromKg
+            (
+                ind switch
+                {
+                    0 => 12,
+                    1 => 8,
+                    2 => 6,
+                    3 => 4,
+                    4 => 3,
+                    5 => 2,
+                    > maxRawMatInd => throw new ArgumentOutOfRangeException()
+                }
+            );
 
         // The same area of stuff will always have thse same heat capacity
         // As said in https://en.wikipedia.org/wiki/Specific_heat_capacity#Monatomic_gases
@@ -27,7 +56,7 @@ namespace Game1
 
         public const ulong energyInJPerKgOfMass = 1;
 
-        public const ulong maxRawMatInd = 9;
+        public const ulong maxRawMatInd = 5;
 
         public const ulong maxProductIndInClass = 9;
 
@@ -77,15 +106,10 @@ namespace Game1
             return composition;
         }
 
-        // As ind increases, the color becomes more brown
-        // Formula is plucked out of thin air
-        public static Color RawMaterialColor(ulong ind)
-            => Color.Lerp(Color.Green, Color.Brown, amount: (float)MyMathHelper.Tanh(ind / 3.0));
-
-        // Want the amount of energy generated from fusion to be proportional to 1 / (ind + 1),
+        // Want the amount of energy generated from fusion unit area to be proportional to 1 / (ind + 1),
         // i.e. decreasing with ind quite fast
         public static UDouble RawMaterialFusionReactionStrengthCoeff(ulong ind)
-            => (ind == maxRawMatInd) ? 0 : (UDouble)0.0000000000000001 * (RawMaterialMass(ind: ind) - RawMaterialMass(ind: ind + 1)).valueInKg / (ind + 1);
+            => (ind == maxRawMatInd) ? 0 : (UDouble)0.00000000000000000005 * rawMaterialArea.valueInMetSq / ((RawMaterialMass(ind: ind) - RawMaterialMass(ind: ind + 1)).valueInKg * (ind + 1));
 
         public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
 #warning Complete this by making it actually random

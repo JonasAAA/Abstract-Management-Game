@@ -1,4 +1,5 @@
-﻿using Game1.Shapes;
+﻿using Game1.ContentNames;
+using Game1.Shapes;
 using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
@@ -6,7 +7,7 @@ namespace Game1.UI
     [Serializable]
     public sealed class LazyTextBox : HUDElement
     {
-        private static readonly SpriteFont font = C.LoadFont(name: "Fonts/MainFont");
+        private static readonly SpriteFont font = C.LoadFont(name: FontName.mainFont);
 
         protected sealed override Color Color { get; }
 

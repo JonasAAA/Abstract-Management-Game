@@ -1,6 +1,6 @@
 ﻿namespace Game1.ContentHelpers
 {
-    [Serializable]
+    [NonSerializable]
     public sealed class ContentException : Exception
     {
         public ContentException()

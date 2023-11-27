@@ -237,27 +237,6 @@ namespace Game1.Collections
             return numberOfTimesLarger;
         }
 
-        public override string ToString()
-        {
-            if (IsEmpty)
-                return "None";
-            string result = "";
-            foreach (var resAmount in this)
-                result += $"{resAmount.res}: {(UDouble)resAmount.Area().valueInMetSq / ResAndIndustryAlgos.blockArea.valueInMetSq:0.0}\n";
-            return result;
-        }
-
-        public string ToPercents()
-        {
-            if (IsEmpty)
-                return "None";
-            var totalArea = Area();
-            string result = "";
-            foreach (var resAmount in this)
-                result += $"{resAmount.res}: {Propor.Create(resAmount.Area().valueInMetSq, totalArea.valueInMetSq)!.Value.ToPercents()}\n";
-            return result;
-        }
-
         // May need to change this if later on materials and/or products are able to store energy
         public static explicit operator Energy(ResAmounts<TRes> formOfEnergy)
             => Energy.CreateFromJoules(valueInJ: formOfEnergy.Mass().valueInKg * ResAndIndustryAlgos.energyInJPerKgOfMass);

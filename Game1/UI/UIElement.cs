@@ -6,7 +6,7 @@ namespace Game1.UI
 {
     [Serializable]
     public abstract class UIElement<TChild> : IUIElement
-        where TChild : IUIElement
+        where TChild : class, IUIElement
     {
         public Event<IEnabledChangedListener> EnabledChanged { get; }
 
@@ -107,6 +107,16 @@ namespace Game1.UI
                 throw new ArgumentException();
             if (layerToChildren[layer].Count is 0)
                 layerToChildren.Remove(layer);
+        }
+
+        protected virtual void ReplaceChild<TExactChild>(ref TExactChild oldChild, TExactChild newChild)
+            where TExactChild : TChild
+        {
+            ulong layer = childToLayer[oldChild];
+            layerToChildren[layer].Replace(oldItem: oldChild, newItem: newChild);
+            childToLayer.Remove(oldChild);
+            childToLayer.Add(newChild, layer);
+            oldChild = newChild;
         }
 
         public bool Contains(Vector2Bare mouseScreenPos)

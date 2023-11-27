@@ -177,6 +177,9 @@ namespace Game1
         public static ThrowingSet<T> ToThrowingSet<T>(this IEnumerable<T> source)
             => [.. source];
 
+        public static void Replace<TItem>(this IList<TItem> list, TItem oldItem, TItem newItem)
+            => list[list.IndexOf(oldItem)] = newItem;
+
         public static bool Transparent(this Color color)
             => color.A is 0;
 

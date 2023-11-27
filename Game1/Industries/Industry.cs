@@ -68,7 +68,8 @@ namespace Game1.Industries
         public MaterialPalette? SurfaceMatPalette
             => buildingParams.SurfaceMatPalette(productionInProgress: Busy);
 
-        public IHUDElement UIElement { get; }
+        public IHUDElement UIElement
+            => industryUI;
 
         public IEvent<IDeletedListener> Deleted
             => deleted;
@@ -94,7 +95,8 @@ namespace Game1.Industries
         private readonly EnumDict<NeighborDir, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>>> resNeighbors;
         private readonly ResPile inputStorage, outputStorage;
         private AllResAmounts resTravellingHere;
-        private readonly TextBox industryInfo;
+        private readonly UIRectVertPanel<IHUDElement> industryUI;
+        private IHUDElement storedInputsUI, storedOutputsUI, resTravellingHereUI, demandUI;
         
         public Industry(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState)
         {
@@ -119,14 +121,25 @@ namespace Game1.Industries
                 }
             );
             RoutePanel = IIndustry.CreateRoutePanel(industry: this);
-            industryInfo = new();
-            UIElement = new UIRectVertPanel<IHUDElement>
+
+            storedInputsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: inputStorage.Amount);
+            storedOutputsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: outputStorage.Amount);
+            resTravellingHereUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: resTravellingHere);
+            demandUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: GetResAmountsRequestToNeighbors(NeighborDir.In));
+            industryUI = new UIRectVertPanel<IHUDElement>
             (
                 childHorizPos: HorizPosEnum.Left,
                 children: new List<IHUDElement>()
                 {
                     new TextBox(text: "Industry UI Panel"),
-                    industryInfo
+                    new TextBox(text: "stored inputs"),
+                    storedInputsUI,
+                    new TextBox(text: "stored outputs"),
+                    storedOutputsUI,
+                    new TextBox(text: "res travelling here"),
+                    resTravellingHereUI,
+                    new TextBox(text: "demand"),
+                    demandUI
                 }
             );
         }
@@ -196,13 +209,6 @@ namespace Game1.Industries
 
         public IIndustry? UpdateImpl()
         {
-#warning Complete this
-            industryInfo.Text = $"""
-                stored inputs {inputStorage.Amount}
-                stored outputs {outputStorage.Amount}
-                res travelling here {resTravellingHere}
-                demand {GetResAmountsRequestToNeighbors(NeighborDir.In)}
-                """;
             var childIndustry = stateOrReasonForNotStartingProduction.SwitchExpression
             (
                 ok: state => state.Update(outputStorage: outputStorage),
@@ -215,6 +221,24 @@ namespace Game1.Industries
                 return childIndustry;
             }
             return this;
+        }
+
+        public void UpdateUI()
+        {
+#warning Complete this: Add proper UI
+            UpdateResAmountsUI(resAmountsUI: ref storedInputsUI, resAmounts: inputStorage.Amount);
+            UpdateResAmountsUI(resAmountsUI: ref storedOutputsUI, resAmounts: outputStorage.Amount);
+            UpdateResAmountsUI(resAmountsUI: ref resTravellingHereUI, resAmounts: resTravellingHere);
+            UpdateResAmountsUI(resAmountsUI: ref demandUI, resAmounts: GetResAmountsRequestToNeighbors(NeighborDir.In));
+
+            return;
+
+            void UpdateResAmountsUI(ref IHUDElement resAmountsUI, AllResAmounts resAmounts)
+                => industryUI.ReplaceChild
+                (
+                    oldChild: ref resAmountsUI,
+                    newChild: ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: resAmounts)
+                );
         }
 
         public bool Delete()

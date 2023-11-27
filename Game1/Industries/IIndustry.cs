@@ -46,6 +46,8 @@ namespace Game1.Industries
 
         public IIndustry? UpdateImpl();
 
+        public void UpdateUI();
+
         /// <summary>
         /// Returns false if was deleted already
         /// </summary>

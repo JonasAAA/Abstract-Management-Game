@@ -196,7 +196,8 @@ namespace Game1.Industries
         private bool isDeleted;
         private readonly EnumDict<NeighborDir, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>>> resNeighbors;
         private AllResAmounts resTravellingHere;
-        private readonly TextBox storageUI;
+        private readonly UIRectVertPanel<IHUDElement> storageUI;
+        private IHUDElement storedAmountsUI;
 
         private Storage(StorageParams storageParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile)
         {
@@ -211,7 +212,23 @@ namespace Game1.Industries
             resNeighbors = IIndustry.CreateResNeighboursCollection(resources: _ => storageParams.StoredResources);
             RoutePanel = IIndustry.CreateRoutePanel(industry: this);
 
-            storageUI = new();
+            storedAmountsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: storage.Amount);
+
+            storageUI = new
+            (
+                childHorizPos: HorizPosEnum.Left,
+                children:
+                [
+                    new TextBox
+                    (
+                        text: """
+                            Storage UI Panel
+                            stored
+                            """
+                    ),
+                    storedAmountsUI
+                ]
+            );
         }
 
         public bool IsNeighborhoodPossible(NeighborDir neighborDir, IResource resource)
@@ -258,14 +275,15 @@ namespace Game1.Industries
         { }
 
         public IIndustry? UpdateImpl()
-        {
-#warning Complete this
-            storageUI.Text = $"""
-                Storage UI Panel
-                stored {storage.Amount}
-                """;
-            return this;
-        }
+            => this;
+
+        public void UpdateUI()
+#warning Complete this: Add proper UI
+            => storageUI.ReplaceChild
+            (
+                oldChild: ref storedAmountsUI,
+                newChild: ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: storage.Amount)
+            );
 
         public bool Delete()
         {

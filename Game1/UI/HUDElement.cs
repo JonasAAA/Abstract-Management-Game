@@ -23,15 +23,25 @@ namespace Game1.UI
 
         protected sealed override void AddChild(IHUDElement child, ulong layer = 0)
         {
-            base.AddChild(child, layer);
             child.SizeOrPosChanged.Add(listener: this);
+            base.AddChild(child, layer);
             RecalcSizeAndPos();
         }
 
         protected sealed override void RemoveChild(IHUDElement child)
         {
-            base.RemoveChild(child);
+
             child.SizeOrPosChanged.Remove(listener: this);
+            base.RemoveChild(child);
+            RecalcSizeAndPos();
+        }
+
+        protected sealed override void ReplaceChild<TChild>(ref TChild oldChild, TChild newChild)
+        {
+            // Do this before calling base.ReplaceChild() as oldChild reference will be reassigned there
+            oldChild.SizeOrPosChanged.Remove(listener: this);
+            newChild.SizeOrPosChanged.Add(listener: this);
+            base.ReplaceChild(oldChild: ref oldChild, newChild: newChild);
             RecalcSizeAndPos();
         }
 

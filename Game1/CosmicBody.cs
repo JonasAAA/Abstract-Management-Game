@@ -45,8 +45,6 @@ namespace Game1
             string ILazyText.GetText()
 #warning Complete this
                 => $"""
-                consists of
-                {cosmicBody.state.Composition.ToPercents()}
                 T = {cosmicBody.state.Temperature}
                 M to E per real world second =
                 {cosmicBody.massConvertedToEnergy.valueInKg / (CurWorldManager.Elapsed.TotalSeconds / CurWorldConfig.worldSecondsInGameSecond):#,0.}
@@ -141,8 +139,9 @@ namespace Game1
         private readonly UIHorizTabPanel<IHUDElement> UITabPanel;
         private readonly IAction UITabPanelHUDPosUpdater;
         private readonly UIRectPanel<IHUDElement> infoPanel;
+        private IHUDElement compositionInPercentsUI;
 #warning Remove textBox as it does nothing now
-        private readonly LazyTextBox textBox, infoTextBox;
+        private readonly LazyTextBox textBox;
 
         public CosmicBody(NodeState state, Func<IIndustryFacingNodeState, IIndustry?> createIndustry)
             : base(shape: new LightBlockingDisk(parameters: new ShapeParams(state: state), worldCamera: CurWorldManager.worldCamera))
@@ -169,8 +168,18 @@ namespace Game1
 
             List<(string tabLabelText, ITooltip tabTooltip, IHUDElement tab)> UITabs = [];
 
-            infoTextBox = new(lazyText: new MainInfoText(cosmicBody: this));
-            infoPanel = new UIRectVertPanel<IHUDElement>(childHorizPos: HorizPosEnum.Left, children: new List<IHUDElement>() { infoTextBox });
+            compositionInPercentsUI = ResAndIndustryUIAlgos.ResAmountsPercentageHUDElement(resAmounts: state.Composition);
+
+            infoPanel = new UIRectVertPanel<IHUDElement>
+            (
+                childHorizPos: HorizPosEnum.Left,
+                children:
+                [
+                    new TextBox(text: "consists of"),
+                    compositionInPercentsUI,
+                    new LazyTextBox(lazyText: new MainInfoText(cosmicBody: this))
+                ]
+            );
             UITabs.Add
             ((
                 tabLabelText: "info",
@@ -301,6 +310,17 @@ namespace Game1
                 Debug.Assert(destinationId != NodeID);
 
                 resFirstLinks[(NodeID, destinationId)]!.TransferAllFrom(start: this, resAmountsPacket: resAmountsPacket);
+            }
+
+            if (Active)
+            {
+                Industry?.UpdateUI();
+                // Only need to update UI if it is actually visible
+                infoPanel.ReplaceChild
+                (
+                    oldChild: ref compositionInPercentsUI,
+                    newChild: ResAndIndustryUIAlgos.ResAmountsPercentageHUDElement(resAmounts: state.Composition)
+                );
             }
         }
 

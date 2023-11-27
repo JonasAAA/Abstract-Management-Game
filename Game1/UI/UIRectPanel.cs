@@ -44,6 +44,12 @@ namespace Game1.UI
             base.RemoveChild(child: child);
         }
 
+        public void ReplaceChild(ref TChild oldChild, TChild newChild)
+        {
+            children.Replace(oldItem: oldChild, newItem: newChild);
+            base.ReplaceChild(oldChild: ref oldChild, newChild: newChild);
+        }
+
         public void Reinitialize(IEnumerable<TChild?> newChildren)
         {
             // Clone is needed so that don't modify the collection that am currently iterating over

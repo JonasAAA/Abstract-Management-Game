@@ -142,6 +142,25 @@ namespace Game1
 
         public static IHUDElement ResAmountsHUDElement<TRes>(ResAmounts<TRes> resAmounts)
             where TRes : class, IResource
+            => ResAmountsHUDElementImpl
+            (
+                resAmounts: resAmounts,
+                resAmountText: resAmount => $"{resAmount.BlockAmount():0.0}"
+            );
+
+        public static IHUDElement ResAmountsPercentageHUDElement<TRes>(ResAmounts<TRes> resAmounts)
+            where TRes : class, IResource
+        {
+            var totalArea = resAmounts.Area();
+            return ResAmountsHUDElementImpl
+            (
+                resAmounts: resAmounts,
+                resAmountText: resAmount => $"{Propor.Create(resAmount.Area().valueInMetSq, totalArea.valueInMetSq)!.Value.ToPercents()}"
+            );
+        }
+
+        private static IHUDElement ResAmountsHUDElementImpl<TRes>(ResAmounts<TRes> resAmounts, Func<ResAmount<TRes>, string> resAmountText)
+            where TRes : class, IResource
         {
             if (resAmounts.IsEmpty)
                 return new TextBox(text: "None");
@@ -156,7 +175,7 @@ namespace Game1
                         children:
                         [
                             new ImageHUDElement(image: resAmount.res.Icon),
-                            new TextBox(text: $"{resAmount.BlockAmount():0.0}")
+                            new TextBox(text: resAmountText(resAmount))
                         ]
                     )
                 )

@@ -187,6 +187,8 @@ namespace Game1
 
         private readonly DirLink link1To2, link2To1;
         private readonly TextBox infoTextBox;
+        private IHUDElement travellingResUI;
+        private readonly UIRectVertPanel<IHUDElement> linkUI;
 
         public Link(ILinkFacingCosmicBody node1, ILinkFacingCosmicBody node2, Length minSafeDist)
             : base
@@ -208,13 +210,19 @@ namespace Game1
             link2To1 = new(startNode: node2, endNode: node1, minSafeDist: minSafeDist);
 
             infoTextBox = new(backgroundColor: colorConfig.UIBackgroundColor);
+            travellingResUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: GetTravellingResAmounts());
+            linkUI = new
+            (
+                childHorizPos: HorizPosEnum.Left,
+                children: [infoTextBox, travellingResUI]
+            );
             Popups = new List<(IHUDElement popup, IAction popupHUDPosUpdater)>()
             {
                 (
-                    popup: infoTextBox,
+                    popup: linkUI,
                     popupHUDPosUpdater: new HUDElementPosUpdater
                     (
-                        HUDElement: infoTextBox,
+                        HUDElement: linkUI,
                         baseWorldObject: this,
                         HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Middle),
                         anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
@@ -224,6 +232,9 @@ namespace Game1
 
             RecalculateValuesAndGetLinkLength();
         }
+
+        private AllResAmounts GetTravellingResAmounts()
+            => link1To2.GetTravellingResAmounts() + link2To1.GetTravellingResAmounts();
 
         MyVector2 IWithSpecialPositions.GetSpecPos(PosEnums origin)
             => (node1.Position + node2.Position) / 2;
@@ -285,9 +296,16 @@ namespace Game1
             link2To1.UpdatePeople();
             Stats = link1To2.Stats.CombineWith(other: link2To1.Stats);
 
-            var travellingResAmounts = link1To2.GetTravellingResAmounts() + link2To1.GetTravellingResAmounts();
-
-            infoTextBox.Text = $"Travel cost is {JoulesPerKg:0.000} J/Kg\nTravelling resources {travellingResAmounts}";
+            if (Active)
+            {
+                // Only need to update UI if it is actually visible
+                infoTextBox.Text = $"Travel cost is {JoulesPerKg:0.000} J/Kg\nTravelling resources";
+                linkUI.ReplaceChild
+                (
+                    oldChild: ref travellingResUI,
+                    newChild: ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: GetTravellingResAmounts())
+                );
+            }
         }
 
         protected sealed override void DrawChildren()

@@ -17,13 +17,11 @@ namespace Game1.UI
                 if (text != value)
                 {
                     text = value;
-                    Vector2Bare textDims = text switch
+                    (Shape.Width, Shape.Height) = text switch
                     {
-                        null => Vector2Bare.zero,
+                        null => (width: UDouble.zero, height: UDouble.zero),
                         not null => MeasureText(text: text),
                     };
-                    Shape.Width = (UDouble)textDims.X;
-                    Shape.Height = (UDouble)textDims.Y;
                 }
             }
         }
@@ -43,8 +41,11 @@ namespace Game1.UI
             Text = text;
         }
 
-        public Vector2Bare MeasureText(string text)
-            => (Vector2Bare)font.MeasureString(text) * scale;
+        public (UDouble width, UDouble height) MeasureText(string text)
+        {
+            var dims = font.MeasureString(text) * (float)scale;
+            return (width: (UDouble)dims.X, height: (UDouble)dims.Y);
+        }
 
         protected sealed override void DrawChildren()
         {

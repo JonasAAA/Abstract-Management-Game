@@ -61,7 +61,7 @@ namespace Game1.UI
             
             textBox = new();
             //textBox.Text = number.ToString();
-            var width = (UDouble)textBox.MeasureText(text: "00").X;
+            var width = textBox.MeasureText(text: "00").width;
             textBox.Shape.MinWidth = width;
 
             Button<TextBox> numIncrButton = new

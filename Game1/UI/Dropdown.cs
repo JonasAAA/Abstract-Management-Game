@@ -91,14 +91,14 @@ namespace Game1.UI
             }
         }
 
-        public static IHUDElement CreateDropdown<TItem>(ITooltip dropdownButtonTooltip, IItemChoiceSetter<TItem> itemChoiceSetter,
+        public static IHUDElement CreateDropdown<TItem>(UDouble width, ITooltip dropdownButtonTooltip, IItemChoiceSetter<TItem> itemChoiceSetter,
             IEnumerable<(TItem item, Func<IHUDElement> visual, ITooltip tooltip)> itemsWithTooltips, (IHUDElement empty, Func<TItem, IHUDElement> item)? additionalInfos)
             where TItem : class
         {
             UIRectHorizPanel<IHUDElement> startItemChoiceLine = new(childVertPos: childVertPos, children: Enumerable.Empty<IHUDElement>());
             Button<IHUDElement> startItemChoice = new
             (
-                shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
+                shape: new MyRectangle(width: width, height: CurGameConfig.UILineHeight),
                 visual: GetButtonVisual(visual: null),
                 tooltip: dropdownButtonTooltip
             );

@@ -5,7 +5,8 @@ using static Game1.UI.ActiveUIManager;
 namespace Game1.UI
 {
     [Serializable]
-    public abstract class OnOffButton : BaseButton
+    public abstract class OnOffButton<TVisual> : BaseButton<TVisual>
+        where TVisual : IHUDElement
     {
         public readonly Event<IOnChangedListener> onChanged;
 
@@ -31,8 +32,8 @@ namespace Game1.UI
 
         private bool on;
 
-        protected OnOffButton(NearRectangle shape, ITooltip tooltip, string text, bool on)
-            : base(shape: shape, tooltip: tooltip, text: text)
+        protected OnOffButton(NearRectangle shape, TVisual visual, ITooltip tooltip, bool on)
+            : base(shape: shape, visual: visual, tooltip: tooltip)
         {
             onChanged = new();
             this.on = on;

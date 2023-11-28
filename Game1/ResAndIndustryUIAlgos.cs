@@ -6,6 +6,7 @@ using static Game1.UI.ActiveUIManager;
 using static Game1.GameConfig;
 using Game1.Collections;
 using Game1.Industries;
+using Game1.Resources;
 
 namespace Game1
 {
@@ -33,6 +34,8 @@ namespace Game1
                     matPalette =>
                     (
                         item: matPalette,
+                        // Conversion is needed as otherwise Select can't infer the type of the tuple
+                        visual: (Func<IHUDElement>)(() => new ImageHUDElement(image: matPalette.image)),
                         tooltip: new ImmutableTextTooltip
                         (
                             text: UIAlgorithms.ChooseMatPaletteForProductClass
@@ -56,6 +59,7 @@ namespace Game1
                     material =>
                     (
                         item: material,
+                        visual: (Func<IHUDElement>)(() => new ImageHUDElement(image: material.Icon)),
                         tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ChooseMaterial(material: material)) as ITooltip
                     )
                 ),
@@ -72,6 +76,7 @@ namespace Game1
                     resource =>
                     (
                         item: resource,
+                        visual: (Func<IHUDElement>)(() => new ImageHUDElement(image: resource.Icon)),
                         tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ChooseResource(resource: resource)) as ITooltip
                     )
                 ),

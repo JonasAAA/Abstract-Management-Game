@@ -57,26 +57,26 @@ namespace Game1.UI
         protected sealed override Color Color
             => colorConfig.UIBackgroundColor;
 
-        private readonly UIRectPanel<SelectButton> choicePanel;
-        private readonly Dictionary<TChoiceLabel, SelectButton> choices;
+        private readonly UIRectPanel<SelectButton<IHUDElement>> choicePanel;
+        private readonly Dictionary<TChoiceLabel, SelectButton<IHUDElement>> choices;
         private readonly UDouble choiceWidth, choiceHeight;
         private TChoiceLabel selectedChoiceLabel;
 
-        public MultipleChoicePanel(bool horizontal, UDouble choiceWidth, UDouble choiceHeight, IEnumerable<(TChoiceLabel label, ITooltip tooltip)> choiceLabelsAndTooltips)
+        public MultipleChoicePanel(bool horizontal, UDouble choiceWidth, UDouble choiceHeight, IEnumerable<(TChoiceLabel label, IHUDElement visual, ITooltip tooltip)> choiceLabelsAndTooltips)
             : base(shape: new MyRectangle())
         {
             choiceChanged = new();
             choicePanel = horizontal switch
             {
-                true => new UIRectHorizPanel<SelectButton>
+                true => new UIRectHorizPanel<SelectButton<IHUDElement>>
                 (
                     childVertPos: VertPosEnum.Top,
-                    children: Enumerable.Empty<SelectButton>()
+                    children: Enumerable.Empty<SelectButton<IHUDElement>>()
                 ),
-                false => new UIRectVertPanel<SelectButton>
+                false => new UIRectVertPanel<SelectButton<IHUDElement>>
                 (
                     childHorizPos: HorizPosEnum.Left,
-                    children: Enumerable.Empty<SelectButton>()
+                    children: Enumerable.Empty<SelectButton<IHUDElement>>()
                 )
             };
 
@@ -87,8 +87,8 @@ namespace Game1.UI
             if (choiceLabelsAndTooltipsArray.Length is 0)
                 throw new ArgumentException($"must provide at least one choice to start with");
             choices = [];
-            foreach (var (choiceLabel, choiceTooltip) in choiceLabelsAndTooltipsArray)
-                AddChoice(choiceLabel: choiceLabel, choiceTooltip: choiceTooltip);
+            foreach (var (choiceLabel, choiceVisual, choiceTooltip) in choiceLabelsAndTooltipsArray)
+                AddChoice(choiceLabel: choiceLabel, choiceVisual: choiceVisual, choiceTooltip: choiceTooltip);
 
             SelectedChoiceLabel = choiceLabelsAndTooltipsArray[0].label;
 
@@ -104,21 +104,21 @@ namespace Game1.UI
             choicePanel.Shape.Center = Shape.Center;
         }
 
-        public void AddChoice(TChoiceLabel choiceLabel, ITooltip choiceTooltip)
+        public void AddChoice(TChoiceLabel choiceLabel, IHUDElement choiceVisual, ITooltip choiceTooltip)
         {
             if (choices.ContainsKey(choiceLabel))
                 throw new ArgumentException();
 
-            SelectButton choice = new
+            SelectButton<IHUDElement> choice = new
             (
                 shape: new MyRectangle
                 (
                     width: choiceWidth,
                     height: choiceHeight
                 ),
+                visual: choiceVisual,
                 on: choicePanel.Count is 0,
-                tooltip: choiceTooltip,
-                text: choiceLabel.ToString() ?? throw new ArgumentException("The label text must be not null")
+                tooltip: choiceTooltip
             );
 
             ChoiceEventListener choiceEventListener = new

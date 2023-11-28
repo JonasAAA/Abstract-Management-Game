@@ -8,12 +8,12 @@ namespace Game1.UI
     public static class Dropdown
     {
         [Serializable]
-        private sealed class ItemChoiceListener<TItem>(IItemChoiceSetter<TItem> itemChoiceSetter, UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button startItemChoice, TItem item, IHUDElement? additionalInfo) : IClickedListener
+        private sealed class ItemChoiceListener<TItem>(IItemChoiceSetter<TItem> itemChoiceSetter, UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button<IHUDElement> startItemChoice, TItem item, IHUDElement visual, IHUDElement? additionalInfo) : IClickedListener
             where TItem : notnull
         {
             void IClickedListener.ClickedResponse()
             {
-                SetStartItemChoiceLineChildren(startItemChoiceLine: startItemChoiceLine, startItemChoice: startItemChoice, item: item, additionalInfo: additionalInfo);
+                SetStartItemChoiceLineChildren(startItemChoiceLine: startItemChoiceLine, startItemChoice: startItemChoice, visual: visual, additionalInfo: additionalInfo);
                 itemChoiceSetter.SetChoice(item: item);
             }
         }
@@ -23,9 +23,9 @@ namespace Game1.UI
         /// <summary>
         /// <paramref name="item"/> null means that nothing is chosen yet
         /// </summary>
-        private static void SetStartItemChoiceLineChildren<TItem>(UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button startItemChoice, TItem? item, IHUDElement? additionalInfo)
+        private static void SetStartItemChoiceLineChildren(UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button<IHUDElement> startItemChoice, IHUDElement? visual, IHUDElement? additionalInfo)
         {
-            startItemChoice.Text = GetButtonText(item: item);
+            startItemChoice.Visual = GetButtonVisual(visual: visual);
             startItemChoiceLine.Reinitialize
             (
                 newChildren: new List<IHUDElement?>()
@@ -36,12 +36,12 @@ namespace Game1.UI
             );
         }
 
-        private static string GetButtonText<TItem>(TItem? item)
-            => item?.ToString() ?? "+";
+        private static IHUDElement GetButtonVisual(IHUDElement? visual)
+            => visual ?? new TextBox(text: "+", textColor: ActiveUIManager.colorConfig.buttonTextColor);
 
         // The copy is needed so that the additional info is displayed properly within dropdown AND when a choice is made
         [Serializable]
-        private sealed class StartDropdownListener<TItem>(IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, IHUDElement? additionalInfo, IHUDElement? additionalInfoCopy, ITooltip tooltip)> itemsWithTooltips, UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button startItemChoice) : IClickedListener
+        private sealed class StartDropdownListener<TItem>(IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, IHUDElement visual, IHUDElement visualCopy, IHUDElement? additionalInfo, IHUDElement? additionalInfoCopy, ITooltip tooltip)> itemsWithTooltips, UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button<IHUDElement> startItemChoice) : IClickedListener
             where TItem : notnull
         {
             void IClickedListener.ClickedResponse()
@@ -53,13 +53,13 @@ namespace Game1.UI
                     (
                         args =>
                         {
-                            var (item, additionalInfo, additionalInfoCopy, tooltip) = args;
+                            var (item, visual, visualCopy, additionalInfo, additionalInfoCopy, tooltip) = args;
                             
-                            Button chooseItemButton = new
+                            Button<IHUDElement> chooseItemButton = new
                             (
                                 shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
-                                tooltip: tooltip,
-                                text: GetButtonText(item: item)
+                                visual: GetButtonVisual(visual: visual),
+                                tooltip: tooltip
                             );
                             chooseItemButton.clicked.Add
                             (
@@ -69,6 +69,7 @@ namespace Game1.UI
                                     startItemChoiceLine: startItemChoiceLine,
                                     startItemChoice: startItemChoice,
                                     item: item,
+                                    visual: visualCopy,
                                     additionalInfo: additionalInfoCopy
                                 )
                             );
@@ -91,20 +92,21 @@ namespace Game1.UI
         }
 
         public static IHUDElement CreateDropdown<TItem>(ITooltip dropdownButtonTooltip, IItemChoiceSetter<TItem> itemChoiceSetter,
-            IEnumerable<(TItem item, ITooltip tooltip)> itemsWithTooltips, (IHUDElement empty, Func<TItem, IHUDElement> item)? additionalInfos)
+            IEnumerable<(TItem item, Func<IHUDElement> visual, ITooltip tooltip)> itemsWithTooltips, (IHUDElement empty, Func<TItem, IHUDElement> item)? additionalInfos)
             where TItem : class
         {
             UIRectHorizPanel<IHUDElement> startItemChoiceLine = new(childVertPos: childVertPos, children: Enumerable.Empty<IHUDElement>());
-            Button startItemChoice = new
+            Button<IHUDElement> startItemChoice = new
             (
                 shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
+                visual: GetButtonVisual(visual: null),
                 tooltip: dropdownButtonTooltip
             );
-            SetStartItemChoiceLineChildren<TItem>
+            SetStartItemChoiceLineChildren
             (
                 startItemChoiceLine: startItemChoiceLine,
                 startItemChoice: startItemChoice,
-                item: null,
+                visual: null,
                 additionalInfo: additionalInfos?.empty
             );
             startItemChoice.clicked.Add
@@ -117,6 +119,8 @@ namespace Game1.UI
                         args =>
                         (
                             item: args.item,
+                            visual: args.visual(),
+                            visualCopy: args.visual(),
                             additionalInfo: additionalInfos?.item(args.item),
                             additionalInfoCopy: additionalInfos?.item(args.item),
                             tooltip: args.tooltip

@@ -10,47 +10,53 @@ namespace Game1.UI
         where TTab : class, IHUDElement
     {
         [Serializable]
-        public sealed class TabEnabledChangedListener(UIHorizTabPanel<TTab> UIHorizTabPanel, string tabLabelText) : IEnabledChangedListener
+        public sealed class TabEnabledChangedListener(UIHorizTabPanel<TTab> UIHorizTabPanel, TTab tab) : IEnabledChangedListener
         {
             void IEnabledChangedListener.EnabledChangedResponse()
                 => UIHorizTabPanel.tabChoicePanel.SetChoicePersonallyEnabled
                 (
-                    choiceLabel: tabLabelText,
-                    newPersonallyEnabled: UIHorizTabPanel.tabs[tabLabelText].Enabled
+                    choiceLabel: tab,
+                    newPersonallyEnabled: tab.Enabled
                 );
         }
 
         protected sealed override Color Color
             => colorConfig.UIBackgroundColor;
 
-        private readonly MultipleChoicePanel<string> tabChoicePanel;
-        private readonly Dictionary<string, TTab> tabs;
-        private readonly Dictionary<string, TabEnabledChangedListener> tabEnabledChangedListeners;
+        private IReadOnlyCollection<TTab> Tabs
+            => tabEnabledChangedListeners.Keys;
+        private readonly Dictionary<TTab, TabEnabledChangedListener> tabEnabledChangedListeners;
+        private readonly MultipleChoicePanel<TTab> tabChoicePanel;
         private TTab ActiveTab
-            => tabs[tabChoicePanel.SelectedChoiceLabel];
+            => tabChoicePanel.SelectedChoiceLabel;
 
-        public UIHorizTabPanel(UDouble tabLabelWidth, UDouble tabLabelHeight, IEnumerable<(string tabLabelText, ITooltip tabTooltip, TTab tab)> tabs)
+        public UIHorizTabPanel(UDouble tabLabelWidth, UDouble tabLabelHeight, IEnumerable<(TTab tab, IHUDElement tabLabelVisual, ITooltip tabTooltip)> tabs)
             : base(shape: new MyRectangle())
         {
-            this.tabs = [];
             var tabArray = tabs.ToArray();
             tabEnabledChangedListeners = [];
-            foreach (var (tabLabelText, tabTooltip, tab) in tabArray)
-                AddTab(tabLabelText: tabLabelText, tabTooltip: tabTooltip, tab: tab);
+            foreach (var (tab, tabLabelVisual, tabTooltip) in tabArray)
+                AddTab(tabLabelVisual: tabLabelVisual, tab: tab, tabTooltip: tabTooltip);
 
             tabChoicePanel = new
             (
                 horizontal: true,
                 choiceWidth: tabLabelWidth,
                 choiceHeight: tabLabelHeight,
-                choiceLabelsAndTooltips: from tab in tabArray
-                                         select (label: tab.tabLabelText, tooltip: tab.tabTooltip)
+                choiceLabelsAndTooltips:
+                    from tab in tabArray
+                    select
+                    (
+                        label: tab.tab,
+                        visual: tab.tabLabelVisual,
+                        tooltip: tab.tabTooltip
+                    )
             );
 
             // This must be before adding tabs as children because otherwise tabChoicePanel choices are personally disabled for whatever reason
             AddChild(child: tabChoicePanel);
 
-            foreach (var tab in this.tabs.Values)
+            foreach (var tab in Tabs)
                 AddChild(tab);
         }
 
@@ -61,49 +67,37 @@ namespace Game1.UI
             UDouble innerWidth = MyMathHelper.Max
             (
                 left: tabChoicePanel.Shape.Width,
-                right: tabs.Values.MaxOrDefault(tab => tab.Shape.Width)
+                right: Tabs.MaxOrDefault(tab => tab.Shape.Width)
             );
-            UDouble tabHeight = tabs.Values.MaxOrDefault(tab => tab.Shape.Height);
+            UDouble tabHeight = Tabs.MaxOrDefault(tab => tab.Shape.Height);
 
             Shape.Width = 2 * CurGameConfig.rectOutlineWidth + innerWidth;
             Shape.Height = 2 * CurGameConfig.rectOutlineWidth + tabChoicePanel.Shape.Height + tabHeight;
 
             tabChoicePanel.Shape.MinWidth = innerWidth;
-            foreach (var tab in tabs.Values)
+            foreach (var tab in Tabs)
                 tab.Shape.MinWidth = innerWidth;
 
-            foreach (var tab in tabs.Values)
+            foreach (var tab in Tabs)
                 tab.Shape.MinHeight = tabHeight;
 
             // recalc children positions
             tabChoicePanel.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2Bare(CurGameConfig.rectOutlineWidth);
-            foreach (var tab in tabs.Values)
+            foreach (var tab in Tabs)
                 tab.Shape.TopLeftCorner = Shape.TopLeftCorner + new Vector2Bare(CurGameConfig.rectOutlineWidth) + new Vector2Bare(0, tabChoicePanel.Shape.Height);
         }
 
-        private void AddTab(string tabLabelText, ITooltip tabTooltip, TTab tab)
+        private void AddTab(TTab tab, IHUDElement tabLabelVisual, ITooltip tabTooltip)
         {
-            tabs.Add(tabLabelText, tab);
+            tabEnabledChangedListeners.Add(key: tab, value: new TabEnabledChangedListener(UIHorizTabPanel: this, tab: tab));
 
-            tabEnabledChangedListeners[tabLabelText] = new TabEnabledChangedListener(UIHorizTabPanel: this, tabLabelText: tabLabelText);
-
-            tab.EnabledChanged.Add(listener: tabEnabledChangedListeners[tabLabelText]);
+            tab.EnabledChanged.Add(listener: tabEnabledChangedListeners[tab]);
 
             if (tabChoicePanel is not null)
             {
-                tabChoicePanel.AddChoice(choiceLabel: tabLabelText, choiceTooltip: tabTooltip);
+                tabChoicePanel.AddChoice(choiceLabel: tab, choiceVisual: tabLabelVisual, choiceTooltip: tabTooltip);
                 AddChild(child: tab);
             }
-        }
-
-        public void ReplaceTab(string tabLabelText, TTab tab)
-        {
-            RemoveChild(child: tabs[tabLabelText]);
-            tabs[tabLabelText].EnabledChanged.Remove(listener: tabEnabledChangedListeners[tabLabelText]);
-
-            tabs[tabLabelText] = tab;
-            tab.EnabledChanged.Add(listener: tabEnabledChangedListeners[tabLabelText]);
-            AddChild(child: tab);
         }
 
         public sealed override IUIElement? CatchUIElement(Vector2Bare mouseScreenPos)
@@ -116,7 +110,7 @@ namespace Game1.UI
 
             if (ActiveTab is null)
             {
-                Debug.Assert(tabs.Count is 0);
+                Debug.Assert(Tabs.Count is 0);
                 return this;
             }
 

@@ -31,9 +31,9 @@ namespace Game1
                     null => throw new InvalidOperationException($"Must initialize {nameof(PauseButtonTooltip)} by calling {nameof(Initialize)} first")
                 };
 
-            private OnOffButton? onOffButton;
+            private OnOffButton<TextBox>? onOffButton;
 
-            public void Initialize(OnOffButton onOffButton)
+            public void Initialize(OnOffButton<TextBox> onOffButton)
                 => this.onOffButton = onOffButton;
         }
 
@@ -58,12 +58,17 @@ namespace Game1
             [
                 typeof(Dictionary<IndustryType, Score>),
                 typeof(EfficientReadOnlyDictionary<NodeID, CosmicBody>),
+                typeof(Button<TextBox>),
+                typeof(ToggleButton<TextBox>),
+                typeof(OnOffButton<TextBox>),
+                typeof(Button<ImageHUDElement>),
+                typeof(SelectButton<IHUDElement>),
                 typeof(UIHorizTabPanel<IHUDElement>),
                 typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
-                typeof(MultipleChoicePanel<string>),
-                typeof(MultipleChoicePanel<string>.ChoiceEventListener),
+                typeof(MultipleChoicePanel<IHUDElement>),
+                typeof(MultipleChoicePanel<IHUDElement>.ChoiceEventListener),
                 typeof(UIRectHorizPanel<IHUDElement>),
-                typeof(UIRectHorizPanel<SelectButton>),
+                typeof(UIRectHorizPanel<SelectButton<IHUDElement>>),
                 typeof(UIRectVertPanel<IHUDElement>),
                 //typeof(Counter<NumPeople>),
                 typeof(EnergyCounter<HeatEnergy>),
@@ -152,11 +157,11 @@ namespace Game1
                     (
                         constrGeneralParams =>
                         {
-                            Button buildIndustryButton = new
+                            Button<TextBox> buildIndustryButton = new
                             (
                                 shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
-                                tooltip: constrGeneralParams.toopltip,
-                                text: constrGeneralParams.buildButtonName
+                                visual: new(text: constrGeneralParams.buildButtonName, textColor: colorConfig.buttonTextColor),
+                                tooltip: constrGeneralParams.toopltip
                             );
                             buildIndustryButton.clicked.Add
                             (
@@ -246,7 +251,7 @@ namespace Game1
         private readonly ActiveUIManager activeUIManager;
         private readonly TextBox globalTextBox;
         private readonly UIRectHorizPanel<IHUDElement> graphTrials;
-        private readonly ToggleButton pauseButton;
+        private readonly ToggleButton<TextBox> pauseButton;
 
         private Graph CurGraph
             => graph ?? throw new InvalidOperationException($"must initialize {nameof(graph)} first");
@@ -309,9 +314,9 @@ namespace Game1
                     width: 2 * CurGameConfig.UILineHeight,
                     height: 2 * CurGameConfig.UILineHeight
                 ),
+                visual: new TextBox(text: "Toggle\nPause", textColor: colorConfig.buttonTextColor),
                 tooltip: pauseButtonTooltip,
-                on: false,
-                text: "Toggle\nPause"
+                on: false
             );
             pauseButtonTooltip.Initialize(onOffButton: pauseButton);
 

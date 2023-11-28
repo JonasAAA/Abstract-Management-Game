@@ -4,6 +4,7 @@ using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.GameConfig;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.Industries
 {
@@ -149,11 +150,11 @@ namespace Game1.Industries
                                     (
                                         res => 
                                         {
-                                            Button toggleResNeighborButton = new
+                                            Button<ImageHUDElement> toggleResNeighborButton = new
                                             (
                                                 shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
-                                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleResNeighborTooltip(neighborDir: neighborDir, res: res)),
-                                                text: res.ToString()
+                                                visual: new ImageHUDElement(image: res.Icon),
+                                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleResNeighborTooltip(neighborDir: neighborDir, res: res))
                                             );
                                             toggleResNeighborButton.clicked.Add
                                             (
@@ -191,11 +192,15 @@ namespace Game1.Industries
                         potentialNeighbor =>
                         {
                             bool add = !industry.GetResNeighbors(neighborDir: neighborDir, resource: resource).Contains(potentialNeighbor);
-                            Button toggleNeighborButton = new
+                            Button<TextBox> toggleNeighborButton = new
                             (
                                 shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: 2 * CurGameConfig.UILineHeight),
-                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleResNeighborTooltip(neighborDir: neighborDir, res: resource, add: add)),
-                                text: UIAlgorithms.ToggleResNeighborButtonName(neighborDir: neighborDir, add: add)
+                                visual: new
+                                (
+                                    text: UIAlgorithms.ToggleResNeighborButtonName(neighborDir: neighborDir, add: add),
+                                    textColor: colorConfig.buttonTextColor
+                                ),
+                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleResNeighborTooltip(neighborDir: neighborDir, res: resource, add: add))
                             );
 
                             toggleNeighborButton.clicked.Add

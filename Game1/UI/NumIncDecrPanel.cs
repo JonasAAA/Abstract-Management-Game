@@ -45,7 +45,7 @@ namespace Game1.UI
             => colorConfig.UIBackgroundColor;
 
         private int number;
-        private readonly Button numDecrButton;
+        private readonly Button<TextBox> numDecrButton;
         private readonly int minNum;
         private readonly UIRectVertPanel<IHUDElement> panel;
         private readonly TextBox textBox;
@@ -64,7 +64,7 @@ namespace Game1.UI
             var width = (UDouble)textBox.MeasureText(text: "00").X;
             textBox.Shape.MinWidth = width;
 
-            Button numIncrButton = new
+            Button<TextBox> numIncrButton = new
             (
                 shape: new Triangle
                 (
@@ -72,6 +72,7 @@ namespace Game1.UI
                     height: incrDecrButtonHeight,
                     direction: Triangle.Direction.Up
                 ),
+                visual: new(),
                 tooltip: incrButtonTooltip,
                 color: incrDecrButtonColor
             );
@@ -85,6 +86,7 @@ namespace Game1.UI
                     height: incrDecrButtonHeight,
                     direction: Triangle.Direction.Down
                 ),
+                visual: new(),
                 tooltip: decrButtonTooltip,
                 color: incrDecrButtonColor
             );

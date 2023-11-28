@@ -3,10 +3,11 @@
 namespace Game1.UI
 {
     [Serializable]
-    public sealed class ToggleButton : OnOffButton
+    public sealed class ToggleButton<TVisual> : OnOffButton<TVisual>
+        where TVisual : IHUDElement
     {
-        public ToggleButton(NearRectangle shape, ITooltip tooltip, string text, bool on)
-            : base(shape: shape, tooltip: tooltip, text: text, on: on)
+        public ToggleButton(NearRectangle shape, TVisual visual, ITooltip tooltip, bool on)
+            : base(shape: shape, visual: visual, tooltip: tooltip, on: on)
         { }
 
         public sealed override void OnClick()

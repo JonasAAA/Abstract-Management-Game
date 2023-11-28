@@ -1,18 +1,12 @@
 ﻿using Game1.Delegates;
 using Game1.Shapes;
-using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
     [Serializable]
-    public abstract class BaseButton : HUDElement, IWithTooltip
+    public abstract class BaseButton<TVisual> : HUDElement, IWithTooltip
+        where TVisual : IHUDElement
     {
-        public string? Text
-        {
-            get => textBox.Text;
-            set => textBox.Text = value;
-        }
-
         public ITooltip Tooltip { get; }
 
         public readonly Event<IClickedListener> clicked;
@@ -20,21 +14,33 @@ namespace Game1.UI
         public override bool CanBeClicked
             => true;
 
-        protected readonly TextBox textBox;
+        public TVisual Visual
+        {
+            get => visual;
+            set => ReplaceChild(ref visual, value);
+        }
 
-        protected BaseButton(NearRectangle shape, ITooltip tooltip, string? text = null)
+        private TVisual visual;
+
+        protected BaseButton(NearRectangle shape, TVisual visual, ITooltip tooltip)
             : base(shape: shape)
         {
+            this.visual = visual;
+            AddChild(child: visual);
             clicked = new();
-            textBox = new(text: text, textColor: colorConfig.buttonTextColor);
+            
             Tooltip = tooltip;
-            AddChild(child: textBox);
         }
+
+        public override IUIElement? CatchUIElement(Vector2Bare mouseScreenPos)
+            // Override this so that button catches mouse, not the visual element
+            => Contains(mouseScreenPos: mouseScreenPos) ? this : null;
 
         protected override void PartOfRecalcSizeAndPos()
         {
             base.PartOfRecalcSizeAndPos();
-            textBox.Shape.Center = Shape.Center;
+            if (visual is not null)
+                visual.Shape.Center = Shape.Center;
         }
 
         public override void OnClick()

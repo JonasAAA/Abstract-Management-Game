@@ -39,7 +39,7 @@ namespace Game1
             private readonly UIRectVertPanel<IHUDElement> buildingConfigPanel;
             private readonly List<CosmicBodyBuildPanelManager> cosmicBodyBuildPanelManagers;
             private readonly Dictionary<ProductClass, MaterialPalette> mutableBuildingMatPaletteChoices;
-            private readonly Button cancelButton;
+            private readonly Button<TextBox> cancelButton;
             private ProductionChoice? ProductionChoice;
             private readonly FunctionGraphImage<SurfaceGravity, Propor> overallNeededElectricityGraph;
             private readonly FunctionGraphImage<Temperature, Propor> overallThroughputGraph;
@@ -54,8 +54,8 @@ namespace Game1
                 cancelButton = new
                 (
                     shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: CurGameConfig.UILineHeight),
+                    visual: new TextBox(text: "Cancel", textColor: colorConfig.buttonTextColor),
                     tooltip: new ImmutableTextTooltip(text: UIAlgorithms.CancelBuilding),
-                    text: "Cancel",
                     color: colorConfig.deleteButtonColor
                 );
 
@@ -165,11 +165,11 @@ namespace Game1
                                     highlightInterval: new CosmicBodyTemperatureInterval(cosmicBody: cosmicBody)
                                 )
                             );
-                            Button buildButton = new
+                            Button<TextBox> buildButton = new
                             (
                                 shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: CurGameConfig.UILineHeight),
-                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.BuildHereTooltip),
-                                text: "Build here"
+                                visual: new(text: "Build here", textColor: colorConfig.buttonTextColor),
+                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.BuildHereTooltip)
                             )
                             {
                                 PersonallyEnabled = false
@@ -317,7 +317,7 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct CosmicBodyBuildPanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyBuildPanel, IAction CosmicBodyPanelHUDPosUpdate, Button BuildButton);
+        private readonly record struct CosmicBodyBuildPanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyBuildPanel, IAction CosmicBodyPanelHUDPosUpdate, Button<TextBox> BuildButton);
 
         [Serializable]
         private readonly record struct CompleteBuildingConfig

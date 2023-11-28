@@ -166,7 +166,7 @@ namespace Game1
                 updateHUDPos: new TextBoxHUDPosUpdater(cosmicBody: this)
             );
 
-            List<(string tabLabelText, ITooltip tabTooltip, IHUDElement tab)> UITabs = [];
+            List<(IHUDElement tab, IHUDElement tabLabelTooltip, ITooltip tabTooltip)> UITabs = [];
 
             compositionInPercentsUI = ResAndIndustryUIAlgos.ResAmountsPercentageHUDElement(resAmounts: state.Composition);
 
@@ -182,9 +182,9 @@ namespace Game1
             );
             UITabs.Add
             ((
-                tabLabelText: "info",
-                tabTooltip: new ImmutableTextTooltip(text: "Info about the planet and the industry/building on it (if such exists)"),
-                tab: infoPanel
+                tab: infoPanel,
+                tabLabelTooltip: new TextBox(text: "info", textColor: colorConfig.buttonTextColor),
+                tabTooltip: new ImmutableTextTooltip(text: "Info about the planet and the industry/building on it (if such exists)")
             ));
 
             UITabPanel = new

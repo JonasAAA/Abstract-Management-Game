@@ -40,6 +40,7 @@
             functionGraphLineColor,
             functionGraphBackgroundColor,
             functionGraphHighlightColor,
+            iconBackgroundColor,
             barColor,
             barBackgroundColor;
 
@@ -83,6 +84,7 @@
             functionGraphLineColor = textColor;
             functionGraphBackgroundColor = Color.Black;
             functionGraphHighlightColor = Color.White * .5f;
+            iconBackgroundColor = Color.Gray;
             barColor = functionGraphLineColor;
             barBackgroundColor = functionGraphBackgroundColor;
         }

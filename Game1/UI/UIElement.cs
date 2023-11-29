@@ -141,10 +141,7 @@ namespace Game1.UI
         }
 
         public virtual void OnClick()
-        {
-            if (!CanBeClicked)
-                throw new InvalidOperationException();
-        }
+        { }
 
         public void Draw()
         {

@@ -25,8 +25,6 @@ namespace Game1.UI
         public static UDouble HUDLengthToScreenLength(UDouble HUDLength)
             => HUDCamera.HUDLengthToScreenLength(HUDLength: HUDLength);
 
-        //public Event<IClickedNowhereListener> clickedNowhere;
-
         private readonly List<IUIElement> activeUIElements;
         private readonly HashSet<IHUDElement> HUDElements;
         private readonly Dictionary<IHUDElement, IAction> worldHUDElementToUpdateHUDPosAction;
@@ -41,8 +39,6 @@ namespace Game1.UI
 
         public ActiveUIManager()
         {
-            //clickedNowhere = new();
-
             activeUIElements = [];
             HUDElements = [];
             mouseLeftButton = new();
@@ -179,6 +175,8 @@ namespace Game1.UI
                 }
             }
 
+            Mouse.SetCursor(contMouse?.CanBeClicked is true ? MouseCursor.Hand : MouseCursor.Arrow);
+
             if (contMouse == prevContMouse)
             {
                 hoverDuration += elapsed;
@@ -209,10 +207,8 @@ namespace Game1.UI
                 RemoveHUDPopup();
 
                 IUIElement? otherHalfClicked = contMouse;
-                if (halfClicked == otherHalfClicked && otherHalfClicked?.Enabled is true && otherHalfClicked.CanBeClicked)
+                if (halfClicked == otherHalfClicked && otherHalfClicked?.Enabled is true)
                     otherHalfClicked.OnClick();
-                //else
-                //    clickedNowhere.Raise(action: listener => listener.ClickedNowhereResponse());
 
                 halfClicked = null;
             }

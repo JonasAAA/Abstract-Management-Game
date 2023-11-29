@@ -55,12 +55,14 @@ namespace Game1.UI
             (
                 spriteFont: font,
                 text: text,
+                //position: Shape.Center,
                 position: Shape.TopLeftCorner,
                 color: (PersonallyEnabled && !HasDisabledAncestor) switch
                 {
                     true => textColor,
                     false => textColor * .5f
                 },
+                //origin: new Vector2Bare(x: Shape.Width, y: Shape.Height) * UDouble.half / scale,
                 origin: Vector2Bare.zero,
                 scale: scale
             );

@@ -41,7 +41,7 @@ namespace Game1.UI
 
         // The copy is needed so that the additional info is displayed properly within dropdown AND when a choice is made
         [Serializable]
-        private sealed class StartDropdownListener<TItem>(IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, IHUDElement visual, IHUDElement visualCopy, IHUDElement? additionalInfo, IHUDElement? additionalInfoCopy, ITooltip tooltip)> itemsWithTooltips, UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button<IHUDElement> startItemChoice) : IClickedListener
+        private sealed class StartDropdownListener<TItem>(UDouble Width, IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, IHUDElement visual, IHUDElement visualCopy, IHUDElement? additionalInfo, IHUDElement? additionalInfoCopy, ITooltip tooltip)> itemsWithTooltips, UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button<IHUDElement> startItemChoice) : IClickedListener
             where TItem : notnull
         {
             void IClickedListener.ClickedResponse()
@@ -57,7 +57,7 @@ namespace Game1.UI
                             
                             Button<IHUDElement> chooseItemButton = new
                             (
-                                shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
+                                shape: new MyRectangle(width: Width, height: CurGameConfig.UILineHeight),
                                 visual: GetButtonVisual(visual: visual),
                                 tooltip: tooltip
                             );
@@ -113,6 +113,7 @@ namespace Game1.UI
             (
                 listener: new StartDropdownListener<TItem>
                 (
+                    Width: width,
                     ItemChoiceSetter: itemChoiceSetter,
                     itemsWithTooltips: itemsWithTooltips.Select
                     (

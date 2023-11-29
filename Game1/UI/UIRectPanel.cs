@@ -11,14 +11,16 @@ namespace Game1.UI
         public int Count
             => children.Count;
 
-        protected sealed override Color Color
-            => colorConfig.UIBackgroundColor;
+        protected sealed override Color Color { get; }
 
         protected readonly List<TChild> children;
 
-        protected UIRectPanel()
+        protected UIRectPanel(Color? backgroundColor = null)
             : base(shape: new MyRectangle())
-            => children = [];
+        {
+            Color = backgroundColor ?? colorConfig.UIBackgroundColor;
+            children = [];
+        }
 
         protected void AddChildren(IEnumerable<TChild?> newChildren)
         {

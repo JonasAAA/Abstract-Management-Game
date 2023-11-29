@@ -13,7 +13,8 @@ namespace Game1.UI
         /// <summary>
         /// null gap means default gap
         /// </summary>
-        public UIRectVertPanel(HorizPosEnum childHorizPos, IEnumerable<TChild?> children, UDouble? gap = default)
+        public UIRectVertPanel(HorizPosEnum childHorizPos, IEnumerable<TChild?> children, Color? backgroundColor = null, UDouble? gap = default)
+            : base(backgroundColor: backgroundColor)
         {
             this.childHorizPos = childHorizPos;
             this.gap = gap ?? CurGameConfig.defaultGapBetweenUIElements;

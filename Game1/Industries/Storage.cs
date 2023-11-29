@@ -14,7 +14,7 @@ namespace Game1.Industries
         [Serializable]
         public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
-            public string Name { get; }
+            public IFunction<IHUDElement> NameVisual { get; }
             public BuildingCostPropors BuildingCostPropors { get; }
 
             public readonly DiskBuildingImage.Params buildingImageParams;
@@ -23,7 +23,7 @@ namespace Game1.Industries
 
             public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
             {
-                Name = name;
+                NameVisual = UIAlgorithms.GetBuildingNameVisual(name: name);
                 BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
 
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.storageBuildingColor);
@@ -62,7 +62,7 @@ namespace Game1.Industries
         [Serializable]
         public readonly struct ConcreteBuildingParams : IConcreteBuildingConstructionParams
         {
-            public string Name { get; }
+            public IFunction<IHUDElement> NameVisual { get; }
             public IIndustryFacingNodeState NodeState { get; }
             public MaterialPalette SurfaceMatPalette { get; }
             public AllResAmounts BuildingCost { get; }
@@ -79,7 +79,7 @@ namespace Game1.Industries
                 BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA,
                 MaterialPaletteChoices buildingMatPaletteChoices, StorageChoice storageChoice, MaterialPalette surfaceMatPalette)
             {
-                Name = generalParams.Name;
+                NameVisual = generalParams.NameVisual;
                 NodeState = nodeState;
                 this.buildingImage = buildingImage;
                 SurfaceMatPalette = surfaceMatPalette;
@@ -167,8 +167,8 @@ namespace Game1.Industries
                 typeof(Storage)
             };
 
-        public string Name
-            => buildingParams.Name;
+        public IFunction<IHUDElement> NameVisual
+            => buildingParams.NameVisual;
 
         public NodeID NodeID
             => buildingParams.NodeState.NodeID;

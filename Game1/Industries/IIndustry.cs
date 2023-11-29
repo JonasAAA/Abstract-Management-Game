@@ -10,7 +10,7 @@ namespace Game1.Industries
 {
     public interface IIndustry : IWithSpecialPositions, IDeletable
     {
-        public string Name { get; }
+        public IFunction<IHUDElement> NameVisual { get; }
         public NodeID NodeID { get; }
         public IBuildingImage BuildingImage { get; }
 
@@ -152,7 +152,7 @@ namespace Game1.Industries
                                         {
                                             Button<ImageHUDElement> toggleResNeighborButton = new
                                             (
-                                                shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
+                                                shape: new MyRectangle(width: CurGameConfig.iconWidth, height: CurGameConfig.iconHeight),
                                                 visual: new ImageHUDElement(image: res.Icon),
                                                 tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleResNeighborTooltip(neighborDir: neighborDir, res: res))
                                             );

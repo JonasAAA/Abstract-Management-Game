@@ -29,7 +29,7 @@ namespace Game1
         public UDouble MaxLinkJoulesPerKg { get; private set; }
 
         public sealed override bool CanBeClicked
-            => true;
+            => false;
         public RealPeopleStats Stats { get; private set; }
         public Temperature AverageTemperature { get; private set; }
 

@@ -1,12 +1,15 @@
-﻿namespace Game1
+﻿using Game1.Delegates;
+using Game1.UI;
+
+namespace Game1
 {
     [Serializable]
     public record BasicMessage : IMessage
     {
         private readonly NodeID nodeID;
-        private readonly string message;
+        private readonly IFunction<IHUDElement> message;
 
-        public BasicMessage(NodeID nodeID, string message)
+        public BasicMessage(NodeID nodeID, IFunction<IHUDElement> message)
         {
             this.nodeID = nodeID;
             this.message = message;

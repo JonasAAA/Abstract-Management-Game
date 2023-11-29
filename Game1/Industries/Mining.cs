@@ -14,7 +14,7 @@ namespace Game1.Industries
         [Serializable]
         public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
         {
-            public string Name { get; }
+            public IFunction<IHUDElement> NameVisual { get; }
             public BuildingCostPropors BuildingCostPropors { get; }
 
             public readonly DiskBuildingImage.Params buildingImageParams;
@@ -25,7 +25,7 @@ namespace Game1.Industries
             public GeneralBuildingParams(string name, EnergyPriority energyPriority, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
             {
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.miningBuildingColor);
-                Name = name;
+                NameVisual = UIAlgorithms.GetBuildingNameVisual(name: name);
                 BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
 
                 if (energyPriority == EnergyPriority.mostImportant)
@@ -57,7 +57,7 @@ namespace Game1.Industries
         [Serializable]
         public readonly struct ConcreteBuildingParams : Industry.IConcreteBuildingParams<UnitType>, IConcreteBuildingConstructionParams
         {
-            public string Name { get; }
+            public IFunction<IHUDElement> NameVisual { get; }
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
             public MaterialPalette SurfaceMatPalette { get; }
@@ -80,7 +80,7 @@ namespace Game1.Industries
                 BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA,
                 MaterialPaletteChoices buildingMatPaletteChoices, MaterialPalette surfaceMatPalette)
             {
-                Name = generalParams.Name;
+                NameVisual = generalParams.NameVisual;
                 NodeState = nodeState;
                 this.buildingImage = buildingImage;
                 SurfaceMatPalette = surfaceMatPalette;

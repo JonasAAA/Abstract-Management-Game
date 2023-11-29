@@ -1,6 +1,4 @@
-﻿using Game1.Collections;
-
-namespace Game1.Resources
+﻿namespace Game1.Resources
 {
     [Serializable]
     public class ResPile
@@ -166,8 +164,5 @@ namespace Game1.Resources
             thermalBody.PerformFusion(source: resPileInternal, results: finalResAmounts);
             Debug.Assert(Amount == finalResAmounts.ToAll());
         }
-
-        public override string ToString()
-            => Amount.ToString();
     }
 }

@@ -27,6 +27,7 @@ namespace Game1
         public static IHUDElement CreateMatPaletteChoiceDropdown(IItemChoiceSetter<MaterialPalette> matPaletteChoiceSetter, ProductClass productClass, (IHUDElement empty, Func<MaterialPalette, IHUDElement> item)? additionalInfos = null)
             => Dropdown.CreateDropdown
             (
+                width: CurGameConfig.iconWidth,
                 dropdownButtonTooltip: new ImmutableTextTooltip(text: UIAlgorithms.StartMatPaletteChoiceForProductClassTooltip(productClass: productClass)),
                 itemChoiceSetter: matPaletteChoiceSetter,
                 itemsWithTooltips: CurResConfig.GetMatPalettes(productClass: productClass).Select
@@ -52,6 +53,7 @@ namespace Game1
         public static IHUDElement CreateMaterialChoiceDropdown(IItemChoiceSetter<Material> materialChoiceSetter, (IHUDElement empty, Func<Material, IHUDElement> item)? additionalInfos = null)
             => Dropdown.CreateDropdown
             (
+                width: CurGameConfig.iconWidth,
                 dropdownButtonTooltip: new ImmutableTextTooltip(text: UIAlgorithms.StartMaterialChoice),
                 itemChoiceSetter: materialChoiceSetter,
                 itemsWithTooltips: CurResConfig.GetCurRes<Material>().Select
@@ -69,6 +71,7 @@ namespace Game1
         public static IHUDElement CreateResourceChoiceDropdown(IItemChoiceSetter<IResource> resChoiceSetter, (IHUDElement empty, Func<IResource, IHUDElement> item)? additionalInfos = null)
             => Dropdown.CreateDropdown
             (
+                width: CurGameConfig.iconWidth,
                 dropdownButtonTooltip: new ImmutableTextTooltip(text: UIAlgorithms.StartResourceChoiceTooltip),
                 itemChoiceSetter: resChoiceSetter,
                 itemsWithTooltips: CurResConfig.AllCurRes.Select

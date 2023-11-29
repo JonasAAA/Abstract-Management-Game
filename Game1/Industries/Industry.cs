@@ -10,7 +10,7 @@ namespace Game1.Industries
     {
         public interface IConcreteBuildingParams<TConcreteProductionParams>
         {
-            public string Name { get; }
+            public IFunction<IHUDElement> NameVisual { get; }
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
             public IBuildingImage IdleBuildingImage { get; }
@@ -59,8 +59,8 @@ namespace Game1.Industries
         where TConcreteBuildingParams : struct, Industry.IConcreteBuildingParams<TConcreteProductionParams>
         where TProductionCycleState : class, Industry.IProductionCycleState<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TProductionCycleState>
     {
-        public string Name
-            => buildingParams.Name;
+        public IFunction<IHUDElement> NameVisual
+            => buildingParams.NameVisual;
 
         public NodeID NodeID
             => buildingParams.NodeState.NodeID;

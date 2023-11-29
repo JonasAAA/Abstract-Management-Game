@@ -62,6 +62,7 @@ namespace Game1
                 typeof(ToggleButton<TextBox>),
                 typeof(OnOffButton<TextBox>),
                 typeof(Button<ImageHUDElement>),
+                typeof(Button<IHUDElement>),
                 typeof(SelectButton<IHUDElement>),
                 typeof(UIHorizTabPanel<IHUDElement>),
                 typeof(UIHorizTabPanel<IHUDElement>.TabEnabledChangedListener),
@@ -157,10 +158,10 @@ namespace Game1
                     (
                         constrGeneralParams =>
                         {
-                            Button<TextBox> buildIndustryButton = new
+                            Button<IHUDElement> buildIndustryButton = new
                             (
                                 shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
-                                visual: new(text: constrGeneralParams.buildButtonName, textColor: colorConfig.buttonTextColor),
+                                visual: constrGeneralParams.buildButtonNameVisual.Invoke(),
                                 tooltip: constrGeneralParams.toopltip
                             );
                             buildIndustryButton.clicked.Add

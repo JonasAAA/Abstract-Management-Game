@@ -5,7 +5,8 @@ namespace Game1.Industries
 {
     public interface IGeneralBuildingConstructionParams
     {
-        public string Name { get; }
+        public IFunction<IHUDElement> NameVisual { get; }
+
         public BuildingCostPropors BuildingCostPropors { get; }
 
         /// <summary>

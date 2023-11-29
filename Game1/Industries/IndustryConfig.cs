@@ -100,7 +100,7 @@ namespace Game1.Industries
                     (
                         buildingGeneralParams: new Manufacturing.GeneralBuildingParams
                         (
-                            name: UIAlgorithms.ManufacturingBasicName(prodParamsName: prodNameAndParams.Key),
+                            nameVisual: UIAlgorithms.GetBasicManufacturingNameVisual(prodParams: prodNameAndParams.Value),
                             energyPriority: averageEnergyPriority,
                             buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                             {

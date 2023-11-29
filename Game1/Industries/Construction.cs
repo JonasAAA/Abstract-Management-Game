@@ -10,19 +10,19 @@ namespace Game1.Industries
         [Serializable]
         public sealed class GeneralParams
         {
-            public readonly string name;
+            public readonly IFunction<IHUDElement> nameVisual;
             public readonly IGeneralBuildingConstructionParams buildingGeneralParams;
             public readonly EnergyPriority energyPriority;
-            public readonly string buildButtonName;
+            public readonly IFunction<IHUDElement> buildButtonNameVisual;
             public readonly ITooltip toopltip;
             public readonly EfficientReadOnlyDictionary<ProductClass, Propor> neededProductClassPropors;
 
             public GeneralParams(IGeneralBuildingConstructionParams buildingGeneralParams, EnergyPriority energyPriority)
             {
-                name = UIAlgorithms.ConstructionName(childIndustryName: buildingGeneralParams.Name);
+                nameVisual = UIAlgorithms.GetConstructionNameVisual(childIndustryNameVisual: buildingGeneralParams.NameVisual);
                 this.buildingGeneralParams = buildingGeneralParams;
                 this.energyPriority = energyPriority;
-                buildButtonName = buildingGeneralParams.Name;
+                buildButtonNameVisual = buildingGeneralParams.NameVisual;
                 toopltip = new ImmutableTextTooltip(text: UIAlgorithms.ConstructionTooltip(constrGeneralParams: this));
                 neededProductClassPropors = buildingGeneralParams.BuildingCostPropors.neededProductClassPropors;
             }
@@ -53,7 +53,7 @@ namespace Game1.Industries
         [Serializable]
         public readonly struct ConcreteParams : Industry.IConcreteBuildingParams<UnitType>
         {
-            public string Name { get; }
+            public IFunction<IHUDElement> NameVisual { get; }
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
             public readonly AllResAmounts buildingCost;
@@ -63,7 +63,7 @@ namespace Game1.Industries
 
             public ConcreteParams(IIndustryFacingNodeState nodeState, GeneralParams generalParams, IConcreteBuildingConstructionParams concreteBuildingParams)
             {
-                Name = generalParams.name;
+                NameVisual = generalParams.nameVisual;
                 NodeState = nodeState;
                 EnergyPriority = generalParams.energyPriority;
                 buildingCost = concreteBuildingParams.BuildingCost;
@@ -190,7 +190,7 @@ namespace Game1.Industries
                         message: new BasicMessage
                         (
                             nodeID: parameters.NodeState.NodeID,
-                            message: UIAlgorithms.ConstructionComplete(buildingName: childIndustry.Name)
+                            message: UIAlgorithms.GetConstructionComplete(buildingNameVisual: childIndustry.NameVisual)
                         )
                     );
                     return childIndustry;

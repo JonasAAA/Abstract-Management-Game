@@ -312,18 +312,6 @@ namespace Game1
                 * (1 + electronicsProporInBuilding * BaseElectricalEnergyPerUnitAreaPhys(electronicsMatPalette: electronicsMatPalette, temperature: temperature))
                 * (1 + (UDouble)0.1 * gravity.valueInMetPerSeqSq * relevantMassPUBA);
 
-        public static MechProdStats CurConstrStats(AllResAmounts buildingCost, SurfaceGravity gravity, Temperature temperature, ulong worldSecondsInGameSecond)
-        {
-            var buildingComponentsArea = buildingCost.Area();
-#warning Complete this
-            return new
-            (
-                ReqWatts: buildingComponentsArea.valueInMetSq / 1000000000,
-                // Means that the building will complete in 10 real world seconds
-                ProducedAreaPerSec: buildingComponentsArea.ToDouble() * ((UDouble)1.0 / (worldSecondsInGameSecond * 10))
-            );
-        }
-
         /// <summary>
         /// Throughput is the input/output area of building per unit time
         /// </summary>
@@ -388,7 +376,7 @@ namespace Game1
             );
         }
 
-        private static readonly UDouble neededElectricityFactor = (UDouble)0.001;
+        private static readonly UDouble neededElectricityFactor = (UDouble)0.0000001;
 
         /// <summary>
         /// The number of supplied buildings (assuming that the power plant has throughput of .5, the buildings have neededEnergy .5,
@@ -451,6 +439,18 @@ namespace Game1
                     buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
                 ) * (neededElectricityFactor * powerPlantSuppliedBuildings)
             );
+
+        public static MechProdStats CurConstrStats(AllResAmounts buildingCost, SurfaceGravity gravity, Temperature temperature, ulong worldSecondsInGameSecond)
+        {
+            var buildingComponentsArea = buildingCost.Area();
+#warning Complete this
+            return new
+            (
+                ReqWatts: buildingComponentsArea.valueInMetSq * neededElectricityFactor,
+                // Means that the building will complete in 10 real world seconds
+                ProducedAreaPerSec: buildingComponentsArea.ToDouble() * ((UDouble)1.0 / (worldSecondsInGameSecond * 10))
+            );
+        }
 
         public static ulong MaxAmount(AreaDouble availableArea, AreaInt itemArea)
             => (ulong)availableArea.valueInMetSq / itemArea.valueInMetSq;

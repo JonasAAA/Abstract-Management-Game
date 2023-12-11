@@ -139,7 +139,7 @@ namespace Game1.Industries
                 => SurfaceMatPalette;
 
             SortedResSet<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.GetProducedResources(ConcreteProductionParams productionParams)
-                => productionParams.ProducedResources;
+                => SortedResSet<IResource>.empty;
 
             SortedResSet<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.GetConsumedResources(ConcreteProductionParams productionParams)
                 => productionParams.ConsumedResources.UnionWith(otherResSet: buildingCost.ResSet);
@@ -166,7 +166,6 @@ namespace Game1.Industries
         [Serializable]
         public sealed class ConcreteProductionParams
         {
-            public SortedResSet<IResource> ProducedResources { get; private set; }
             public SortedResSet<IResource> ConsumedResources { get; private set; }
 
             /// <summary>
@@ -178,10 +177,10 @@ namespace Game1.Industries
                 private set
                 {
                     curResource = value;
-                    (ProducedResources, ConsumedResources) = value.SwitchExpression
+                    ConsumedResources = value.SwitchExpression
                     (
-                        ok: res => (ProducedResources: new SortedResSet<IResource>(res: res), ConsumedResources: new SortedResSet<IResource>(res: res)),
-                        error: res => (ProducedResources: SortedResSet<IResource>.empty, ConsumedResources: SortedResSet<IResource>.empty)
+                        ok: res => new SortedResSet<IResource>(res: res),
+                        error: res => SortedResSet<IResource>.empty
                     );
                 }
             }

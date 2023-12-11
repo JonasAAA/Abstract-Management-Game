@@ -33,11 +33,12 @@ namespace Game1.Industries
 
             if (newIndustry is not null)
             {
-                // Do this before deleting the old industry so that GetResWithNonEmptyNeighborhood, GetResNeighbors, etc. return thruthful results rather than empty things
+                // This makes sure that newIndustry inherits source and destination industries whenever possible.
+                // The calculation needs to be done before Delete() so that GetResWithPotentialNeighborhood, GetResNeighbors, etc. return truthful results rather than empty collections.
                 foreach (var neighborDir in Enum.GetValues<NeighborDir>())
                     foreach (var res in newIndustry.GetResWithPotentialNeighborhood(neighborDir: neighborDir))
-                        if (IsNeighborhoodPossible(neighborDir: neighborDir.Opposite(), resource: res))
-                            foreach (var neighbor in GetResNeighbors(neighborDir: neighborDir.Opposite(), resource: res))
+                        if (IsNeighborhoodPossible(neighborDir: neighborDir, resource: res))
+                            foreach (var neighbor in GetResNeighbors(neighborDir: neighborDir, resource: res))
                                 ToggleResEdge(neighborDir: neighborDir, resource: res, industry: newIndustry, potentialNeighbor: neighbor);
             }
 

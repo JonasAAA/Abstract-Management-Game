@@ -7,7 +7,10 @@ namespace Game1.UI
     public sealed class ColorRect : IImage
     {
         public static ColorRect CreateIconSized(Color color)
-            => new(width: CurGameConfig.iconWidth, CurGameConfig.iconHeight, color: color);
+            => new(width: CurGameConfig.iconWidth, height: CurGameConfig.iconHeight, color: color);
+
+        public static ColorRect CreateSmallIconSized(Color color)
+            => new(width: CurGameConfig.smallIconWidth, height: CurGameConfig.smallIconHeight, color: color);
 
         public UDouble Width { get; }
         public UDouble Height { get; }

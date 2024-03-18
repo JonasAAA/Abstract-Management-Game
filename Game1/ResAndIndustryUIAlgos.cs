@@ -6,7 +6,7 @@ using static Game1.UI.ActiveUIManager;
 using static Game1.GameConfig;
 using Game1.Collections;
 using Game1.Industries;
-using Game1.Resources;
+using Game1.ContentNames;
 
 namespace Game1
 {
@@ -189,6 +189,38 @@ namespace Game1
                 )
             );
         }
+
+        private static readonly Image arrowDownImage = new(name: TextureName.arrowDown, height: CurGameConfig.smallIconHeight * 2 / 3);
+
+        public static IHUDElement CreateIndustryFunctionVisual(this IndustryFunctionVisualParams industryFunctionVisualParams)
+            => new UIRectVertPanel<IHUDElement>
+            (
+                childHorizPos: HorizPosEnum.Middle,
+                children:
+                [
+                    new UIRectHorizPanel<IHUDElement>
+                    (
+                        childVertPos: VertPosEnum.Middle,
+                        children:
+                            from icon in industryFunctionVisualParams.InputIcons
+                            select new ImageHUDElement(icon),
+                        backgroundColor: Color.Transparent,
+                        gap: 0
+                    ),
+                    new ImageHUDElement(image: arrowDownImage, backgroundColor: Color.Transparent),
+                    new UIRectHorizPanel<IHUDElement>
+                    (
+                        childVertPos: VertPosEnum.Middle,
+                        children:
+                            from icon in industryFunctionVisualParams.OutputIcons
+                            select new ImageHUDElement(icon),
+                        backgroundColor: Color.Transparent,
+                        gap: 0
+                    )
+                ],
+                backgroundColor: Color.Transparent,
+                gap: 0
+            );
 
         public static IEnumerable<Type> GetKnownTypes()
             => from typeArgument in Dropdown.GetKnownTypeArgs()

@@ -12,14 +12,16 @@ namespace Game1.UI
 
         private readonly IImage image;
 
-        public ImageHUDElement(IImage image)
+        /// <param name="backgroundColor">
+        ///     This color will generally not be visible, except where image had transparent background.
+        ///     The important part is to make it non-transparent (as is default) if want image to capture clicks.
+        /// </param>
+        public ImageHUDElement(IImage image, Color? backgroundColor = null)
             : base(shape: new MyRectangle(width: image.Width, height: image.Height))
         {
             this.image = image;
             Tooltip = image is IMaybeWithTooltip withTooltip ? withTooltip.Tooltip : null;
-            // This color will generally not be visible, except where image had transparent background
-            // Just want it not to be transparent so that it captures clicks
-            Color = colorConfig.iconBackgroundColor;
+            Color = backgroundColor ?? colorConfig.iconBackgroundColor;
         }
 
         protected sealed override void DrawChildren()

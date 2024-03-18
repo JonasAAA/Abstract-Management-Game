@@ -54,7 +54,7 @@ namespace Game1.Resources
                 Material.CreateAndAddToCurResConfig
                 (
                     name: ResAndIndustryAlgos.PrimitiveMaterialName(rawMatInd: rawMat.Ind),
-                    icon: new Icon(name: TextureName.PrimitiveMaterialIconName(rawMatInd: rawMat.Ind)),
+                    iconName: TextureName.PrimitiveMaterialIconName(rawMatInd: rawMat.Ind),
                     rawMatAreaPropors: new(res: rawMat, amount: 1)
                 );
             var primitiveMat0 = rawMatToPrimitiveMat[indToRawMat[0]];
@@ -62,7 +62,7 @@ namespace Game1.Resources
             MaterialPalette.CreateAndAddToResConfig
             (
                 name: "other mech.",
-                image: ColorRect.CreateIconSized(ActiveUIManager.colorConfig.otherMechMatPaletteColor),
+                color: ActiveUIManager.colorConfig.otherMechMatPaletteColor,
                 productClass: ProductClass.mechanical,
                 materialChoices: new()
                 {
@@ -77,7 +77,7 @@ namespace Game1.Resources
                     MaterialPalette.CreateAndAddToResConfig
                     (
                         name: "def. mech.",
-                        image: ColorRect.CreateIconSized(ActiveUIManager.colorConfig.defMechMatPaletteColor),
+                        color: ActiveUIManager.colorConfig.defMechMatPaletteColor,
                         productClass: ProductClass.mechanical,
                         materialChoices: new()
                         {
@@ -87,7 +87,7 @@ namespace Game1.Resources
                     MaterialPalette.CreateAndAddToResConfig
                     (
                         name: "def. elec.",
-                        image: ColorRect.CreateIconSized(ActiveUIManager.colorConfig.defElecMatPaletteColor),
+                        color: ActiveUIManager.colorConfig.defElecMatPaletteColor,
                         productClass: ProductClass.electronics,
                         materialChoices: new()
                         {
@@ -98,7 +98,7 @@ namespace Game1.Resources
                     MaterialPalette.CreateAndAddToResConfig
                     (
                         name: "def. roof",
-                        image: ColorRect.CreateIconSized(ActiveUIManager.colorConfig.defRoofMatPaletteColor),
+                        color: ActiveUIManager.colorConfig.defRoofMatPaletteColor,
                         productClass: ProductClass.roof,
                         materialChoices: new()
                         {

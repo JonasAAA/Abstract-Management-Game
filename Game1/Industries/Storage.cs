@@ -2,6 +2,8 @@
 using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
+using System.Data.SqlTypes;
+using System.Net.Http;
 using static Game1.WorldManager;
 
 namespace Game1.Industries
@@ -189,6 +191,10 @@ namespace Game1.Industries
         // this will not be updated accordingly
         public IHUDElement RoutePanel { get; }
 
+        // CURRENTLY this doesn't handle changes in res consumed and res produced. So if change produced material recipe, or choose to recycle different thing,
+        // this will not be updated accordingly
+        public IHUDElement? IndustryFunctionVisual { get; }
+
         private readonly StorageParams storageParams;
         private readonly ConcreteBuildingParams buildingParams;
         private readonly ResPile buildingResPile, storage;
@@ -211,6 +217,15 @@ namespace Game1.Industries
 
             resNeighbors = IIndustry.CreateResNeighboursCollection(resources: _ => storageParams.StoredResources);
             RoutePanel = IIndustry.CreateRoutePanel(industry: this);
+            IndustryFunctionVisual = storageParams.CurStoredRes.SwitchExpression<IHUDElement?>
+            (
+                ok: res => new IndustryFunctionVisualParams
+                (
+                    InputIcons: [res.SmallIcon],
+                    OutputIcons: [res.SmallIcon]
+                ).CreateIndustryFunctionVisual(),
+                error: _ => null
+            );
 
             storedAmountsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: storage.Amount);
 

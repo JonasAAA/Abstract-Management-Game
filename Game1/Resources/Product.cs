@@ -2,6 +2,7 @@
 using Game1.ContentNames;
 using Game1.UI;
 using static Game1.WorldManager;
+using static Game1.GameConfig;
 
 namespace Game1.Resources
 {
@@ -22,7 +23,7 @@ namespace Game1.Resources
                 return ind;
             }
 
-            public static Params CreateNextOrThrow(string name, Icon icon, ProductClass productClass, ulong materialPaletteAmount, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
+            public static Params CreateNextOrThrow(string name, TextureName iconName, ProductClass productClass, ulong materialPaletteAmount, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
             {
                 ulong indInClass = GetNextInd(productClass: productClass);
                 foreach (var (ingredProd, amount) in ingredProdToAmounts)
@@ -37,7 +38,7 @@ namespace Game1.Resources
                 return new
                 (
                     name: name,
-                    icon: icon,
+                    iconName: iconName,
                     productClass: productClass,
                     materialPaletteAmount: materialPaletteAmount,
                     indInClass: indInClass,
@@ -46,7 +47,7 @@ namespace Game1.Resources
             }
 
             public readonly string name;
-            public readonly Icon icon;
+            public readonly Icon icon, smallIcon;
             public readonly ProductClass productClass;
             public readonly ulong materialPaletteAmount, indInClass;
             public readonly EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts;
@@ -56,7 +57,7 @@ namespace Game1.Resources
             //private readonly HashSet<IMaterialPurpose> neededPurposes;
             //private readonly EfficientReadOnlyDictionary<IMaterialPurpose, Propor> buildingMaterialPropors;
 
-            private Params(string name, Icon icon, ProductClass productClass, ulong materialPaletteAmount, ulong indInClass, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
+            private Params(string name, TextureName iconName, ProductClass productClass, ulong materialPaletteAmount, ulong indInClass, EfficientReadOnlyCollection<(Params prodParams, ulong amount)> ingredProdToAmounts)
             {
                 ulong ingredientAmount = productClass.matPurposeToAmount.Values.Sum() * materialPaletteAmount + ingredProdToAmounts.Sum(prodParamsAndAmount => prodParamsAndAmount.amount);
                 Debug.Assert
@@ -69,7 +70,8 @@ namespace Game1.Resources
                 // Product will still need to know what product class it is, so probably need to take such parameter here as well.
                 // That means need to assert that the components are from the same product class.
                 this.name = name;
-                this.icon = icon;
+                icon = new(name: iconName, height: CurGameConfig.iconHeight);
+                smallIcon = new(name: iconName, height: CurGameConfig.smallIconHeight);
                 this.productClass = productClass;
                 this.materialPaletteAmount = materialPaletteAmount;
                 this.indInClass = indInClass;
@@ -103,6 +105,7 @@ namespace Game1.Resources
                 (
                     name: UIAlgorithms.ProductName(prodParamsName: name, paletteName: materialPalette.name),
                     icon: new ConfigurableIcon(icon: icon, background: materialPalette.image),
+                    smallIcon: new ConfigurableIcon(icon: smallIcon, background: materialPalette.smallImage),
                     parameters: this,
                     materialPalette: materialPalette,
                     productIngredients: new ResAmounts<Product>
@@ -131,7 +134,7 @@ namespace Game1.Resources
                 Params.CreateNextOrThrow
                 (
                     name: "Gear",
-                    icon: new Icon(name: TextureName.gear),
+                    iconName: TextureName.gear,
                     productClass: ProductClass.mechanical,
                     materialPaletteAmount: 2,
                     ingredProdToAmounts: new()
@@ -139,7 +142,7 @@ namespace Game1.Resources
                 Params.CreateNextOrThrow
                 (
                     name: "Roof Tile",
-                    icon: new Icon(name: TextureName.roofTile),
+                    iconName: TextureName.roofTile,
                     productClass: ProductClass.roof,
                     materialPaletteAmount: 1,
                     ingredProdToAmounts: new()
@@ -147,7 +150,7 @@ namespace Game1.Resources
                 Params.CreateNextOrThrow
                 (
                     name: "Wire",
-                    icon: new Icon(name: TextureName.wire),
+                    iconName: TextureName.wire,
                     productClass: ProductClass.electronics,
                     materialPaletteAmount: 1,
                     ingredProdToAmounts: new()
@@ -164,6 +167,7 @@ namespace Game1.Resources
         }
 
         public IImage Icon { get; }
+        public IImage SmallIcon { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
@@ -176,10 +180,11 @@ namespace Game1.Resources
         private readonly string name;
         private readonly Params parameters;
 
-        private Product(string name, IImage icon, Params parameters, MaterialPalette materialPalette, ResAmounts<Product> productIngredients, ResAmounts<Material> materialIngredients)
+        private Product(string name, IImage icon, IImage smallIcon, Params parameters, MaterialPalette materialPalette, ResAmounts<Product> productIngredients, ResAmounts<Material> materialIngredients)
         {
             this.name = name;
             Icon = icon;
+            SmallIcon = smallIcon;
             this.parameters = parameters;
             MaterialPalette = materialPalette;
             IndInClass = parameters.indInClass;

@@ -160,6 +160,19 @@ namespace Game1.Industries
                     error: _ => AllResAmounts.empty
                 );
             }
+
+            IndustryFunctionVisualParams? Industry.IConcreteBuildingParams<ConcreteProductionParams>.IndustryFunctionVisualParams(ConcreteProductionParams productionParams)
+                => productionParams.CurMaterial.SwitchExpression<IndustryFunctionVisualParams?>
+                (
+                    ok: material => new
+                    (
+                        InputIcons:
+                            (from res in productionParams.ConsumedResources
+                             select res.SmallIcon).Append(IIndustry.electricityIcon),
+                        OutputIcons: [material.SmallIcon]
+                    ),
+                    error: _ => null
+                );
         }
 
         [Serializable]

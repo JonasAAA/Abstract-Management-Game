@@ -21,6 +21,7 @@ namespace Game1.Industries
             // but at the beginning the building doesn't have enough area to store any non-zero amount of them
             public SortedResSet<IResource> GetConsumedResources(TConcreteProductionParams productionParams);
             public AllResAmounts MaxStoredInput(TConcreteProductionParams productionParams);
+            public IndustryFunctionVisualParams? IndustryFunctionVisualParams(TConcreteProductionParams productionParams);
         }
 
         public interface IProductionCycleState<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TState>
@@ -84,6 +85,10 @@ namespace Game1.Industries
         // this will not be updated accordingly
         public IHUDElement RoutePanel { get; }
 
+        // CURRENTLY this doesn't handle changes in res consumed and res produced. So if change produced material recipe, or choose to recycle different thing,
+        // this will not be updated accordingly
+        public IHUDElement? IndustryFunctionVisual { get; }
+
         private bool Busy
             => stateOrReasonForNotStartingProduction.isOk;
         private readonly TConcreteProductionParams productionParams;
@@ -121,6 +126,7 @@ namespace Game1.Industries
                 }
             );
             RoutePanel = IIndustry.CreateRoutePanel(industry: this);
+            IndustryFunctionVisual = buildingParams.IndustryFunctionVisualParams(productionParams: productionParams)?.CreateIndustryFunctionVisual();
 
             storedInputsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: inputStorage.Amount);
             storedOutputsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: outputStorage.Amount);

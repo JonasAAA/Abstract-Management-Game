@@ -7,6 +7,7 @@ namespace Game1.Resources
     {
         // This is not Icon type because want to allow ConfigurableIcon as well and don't want to use inheritance
         public IImage Icon { get; }
+        public IImage SmallIcon { get; }
         public Mass Mass { get; }
         /// <summary>
         /// Heat capacity per area

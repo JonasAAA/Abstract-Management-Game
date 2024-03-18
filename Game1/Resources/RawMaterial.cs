@@ -1,5 +1,6 @@
 ﻿using Game1.ContentNames;
 using Game1.UI;
+using static Game1.GameConfig;
 
 namespace Game1.Resources
 {
@@ -13,7 +14,7 @@ namespace Game1.Resources
                 (
                     ind: ind,
                     name: ResAndIndustryAlgos.RawMaterialName(ind: ind),
-                    icon: new Icon(name: TextureName.RawMaterialIconName(ind: ind)),
+                    iconName: TextureName.RawMaterialIconName(ind: ind),
                     mass: ResAndIndustryAlgos.RawMaterialMass(ind: ind),
                     heatCapacity: ResAndIndustryAlgos.RawMaterialHeatCapacity(ind: ind),
                     fusionReactionStrengthCoeff: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ind)
@@ -22,6 +23,7 @@ namespace Game1.Resources
 
         public string Name { get; }
         public IImage Icon { get; }
+        public IImage SmallIcon { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
@@ -29,10 +31,11 @@ namespace Game1.Resources
         public UDouble FusionReactionStrengthCoeff { get; }
         public ulong Ind { get; }
 
-        private RawMaterial(ulong ind, string name, IImage icon, Mass mass, HeatCapacity heatCapacity, UDouble fusionReactionStrengthCoeff)
+        private RawMaterial(ulong ind, string name, TextureName iconName, Mass mass, HeatCapacity heatCapacity, UDouble fusionReactionStrengthCoeff)
         {
             Name = name;
-            Icon = icon;
+            Icon = new Icon(name: iconName, height: CurGameConfig.iconHeight);
+            SmallIcon = new Icon(name: iconName, height: CurGameConfig.smallIconHeight);
             Mass = mass;
             HeatCapacity = heatCapacity;
             Area = ResAndIndustryAlgos.rawMaterialArea;

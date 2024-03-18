@@ -16,13 +16,14 @@ namespace Game1.Resources
                 throughput: ResAndIndustryUIAlgos.emptyProdThroughputFunctionGraph
             );
 
-        public static Result<MaterialPalette, TextErrors> CreateAndAddToResConfig(string name, IImage image, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices)
+        public static Result<MaterialPalette, TextErrors> CreateAndAddToResConfig(string name, Color color, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices)
         {
             productClass.ThrowIfWrongIMatPurposeSet(materialChoices: materialChoices);
             MaterialPalette materialPalette = new
             (
                 name: name,
-                image: image,
+                image: ColorRect.CreateIconSized(color: color),
+                smallImage: ColorRect.CreateSmallIconSized(color: color),
                 productClass: productClass,
                 materialChoices: materialChoices,
                 materialAmounts: new ResAmounts<Material>
@@ -45,16 +46,18 @@ namespace Game1.Resources
 
         public readonly string name;
         public readonly IImage image;
+        public readonly IImage smallImage;
         public readonly ProductClass productClass;
         public readonly EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices;
         public readonly ResAmounts<Material> materialAmounts;
         private readonly IImage prodNeededElectricityFunctionGraph;
         private readonly IImage prodThroughputFunctionGraph;
 
-        public MaterialPalette(string name, IImage image, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices, ResAmounts<Material> materialAmounts)
+        public MaterialPalette(string name, IImage image, IImage smallImage, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices, ResAmounts<Material> materialAmounts)
         {
             this.name = name;
             this.image = image;
+            this.smallImage = smallImage;
             this.productClass = productClass;
             this.materialChoices = materialChoices;
             this.materialAmounts = materialAmounts;

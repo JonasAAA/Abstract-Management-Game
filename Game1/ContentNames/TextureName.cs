@@ -7,6 +7,11 @@
             pixel = new("Pixel"),
             triangle = new("Triangle"),
             disk = new("Disk"),
+            arrowDown = new("Arrow Down"),
+            electricity = new("Electricity"),
+            cosmicBody = new("Cosmic Body"),
+            starlight = new("Starlight"),
+            building = new("Building"),
             gear = new("Gear"),
             roofTile = new("Roof Tile"),
             wire = new("Wire");

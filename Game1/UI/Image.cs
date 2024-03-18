@@ -19,8 +19,6 @@ namespace Game1.UI
         {
             this.name = name;
             Height = height;
-            //// THIS WIDTH IS ONLY TEMPRORARY
-            //Width = height;
             LoadTexture();
         }
 
@@ -38,7 +36,6 @@ namespace Game1.UI
             => LoadTexture();
 
         public void Draw(Vector2Bare center)
-            //=> throw new NotImplementedException();
             => C.Draw
             (
                 texture: image,

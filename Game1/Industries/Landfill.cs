@@ -161,6 +161,17 @@ namespace Game1.Industries
                     error: _ => AllResAmounts.empty
                 ) + MaxBuildingComponentStoredAmount();
             }
+
+            IndustryFunctionVisualParams? Industry.IConcreteBuildingParams<ConcreteProductionParams>.IndustryFunctionVisualParams(ConcreteProductionParams productionParams)
+                => productionParams.CurResource.SwitchExpression<IndustryFunctionVisualParams?>
+                (
+                    ok: res => new
+                    (
+                        InputIcons: [res.SmallIcon, IIndustry.electricityIcon],
+                        OutputIcons: [IIndustry.cosmicBodyIcon]
+                    ),
+                    error: _ => null
+                );
         }
 
         [Serializable]

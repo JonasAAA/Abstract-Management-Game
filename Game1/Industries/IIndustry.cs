@@ -5,11 +5,15 @@ using Game1.UI;
 using static Game1.WorldManager;
 using static Game1.GameConfig;
 using static Game1.UI.ActiveUIManager;
+using Game1.ContentNames;
 
 namespace Game1.Industries
 {
     public interface IIndustry : IWithSpecialPositions, IDeletable
     {
+        public static readonly IImage electricityIcon = new Image(TextureName.electricity, height: CurGameConfig.smallIconHeight);
+        public static readonly IImage cosmicBodyIcon = new Image(TextureName.cosmicBody, height: CurGameConfig.smallIconHeight);
+
         public IFunction<IHUDElement> NameVisual { get; }
         public NodeID NodeID { get; }
         public IBuildingImage BuildingImage { get; }
@@ -22,6 +26,8 @@ namespace Game1.Industries
         public IHUDElement UIElement { get; }
 
         public IHUDElement RoutePanel { get; }
+
+        public IHUDElement? IndustryFunctionVisual { get; }
 
         public void FrameStart();
 

@@ -1,7 +1,9 @@
 ﻿using Game1.Collections;
+using Game1.ContentNames;
 using Game1.Delegates;
 using Game1.UI;
 using static Game1.WorldManager;
+using static Game1.GameConfig;
 
 namespace Game1.Industries
 {
@@ -113,6 +115,17 @@ namespace Game1.Industries
 
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => buildingCost;
+
+            private static readonly Image buildingIcon = new(TextureName.building, CurGameConfig.smallIconHeight);
+
+            IndustryFunctionVisualParams? Industry.IConcreteBuildingParams<UnitType>.IndustryFunctionVisualParams(UnitType productionParams)
+                => new
+                (
+                    InputIcons:
+                        (from res in buildingCost.ResSet
+                         select res.SmallIcon).Append(IIndustry.electricityIcon),
+                    OutputIcons: [buildingIcon]
+                );
         }
 
         [Serializable]

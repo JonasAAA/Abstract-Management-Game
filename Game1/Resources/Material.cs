@@ -1,21 +1,24 @@
-﻿using Game1.UI;
+﻿using Game1.ContentNames;
+using Game1.UI;
 using static Game1.WorldManager;
+using static Game1.GameConfig;
 
 namespace Game1.Resources
 {
     [Serializable]
     public sealed class Material : IResource
     {
-        public static Material CreateAndAddToCurResConfig(string name, Icon icon, RawMatAmounts rawMatAreaPropors)
+        public static Material CreateAndAddToCurResConfig(string name, TextureName iconName, RawMatAmounts rawMatAreaPropors)
             // Material consrutor adds itself to CurResConfig
             => new
             (
                 name: name,
-                icon: icon,
+                iconName: iconName,
                 composition: ResAndIndustryAlgos.CreateMatCompositionFromRawMatPropors(rawMatPropors: rawMatAreaPropors)
             );
 
         public IImage Icon { get; }
+        public IImage SmallIcon { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
@@ -24,10 +27,11 @@ namespace Game1.Resources
 
         private readonly string name;
 
-        private Material(string name, Icon icon, RawMatAmounts composition)
+        private Material(string name, TextureName iconName, RawMatAmounts composition)
         {
             this.name = name;
-            Icon = icon;
+            Icon = new Icon(name: iconName, height: CurGameConfig.iconHeight);
+            SmallIcon = new Icon(name: iconName, height: CurGameConfig.smallIconHeight);
             Mass = composition.Mass();
             HeatCapacity = composition.HeatCapacity();
             Area = ResAndIndustryAlgos.blockArea;

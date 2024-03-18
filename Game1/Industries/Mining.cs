@@ -73,6 +73,9 @@ namespace Game1.Industries
 
             private readonly GeneralBuildingParams generalParams;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
+            // BOTH mined and produced resources will not show any new materials the planet produces after this is built
+            // They would still be mined, I think. Or maybe the game would crash, don't know.
+            private readonly SortedResSet<RawMaterial> minedResources;
             private readonly SortedResSet<IResource> producedResources;
             private readonly AllResAmounts startingBuildingCost;
 
@@ -90,7 +93,8 @@ namespace Game1.Industries
                 this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
                 startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
-                producedResources = nodeState.Composition.ResSet.ToAll().UnionWith(otherResSet: startingBuildingCost.ResSet);
+                minedResources = nodeState.Composition.ResSet;
+                producedResources = minedResources.ToAll().UnionWith(otherResSet: startingBuildingCost.ResSet);
             }
 
             public static AreaInt HypotheticOutputStorageArea(AreaDouble hypotheticBuildingArea)
@@ -149,6 +153,15 @@ namespace Game1.Industries
 
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => AllResAmounts.empty;
+
+            IndustryFunctionVisualParams? Industry.IConcreteBuildingParams<UnitType>.IndustryFunctionVisualParams(UnitType productionParams)
+                => new
+                (
+                    InputIcons: [IIndustry.cosmicBodyIcon, IIndustry.electricityIcon],
+                    OutputIcons:
+                        from res in minedResources
+                        select res.SmallIcon
+                );
         }
 
         [Serializable]

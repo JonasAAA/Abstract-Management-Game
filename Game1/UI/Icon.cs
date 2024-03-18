@@ -1,5 +1,4 @@
 ﻿using Game1.ContentNames;
-using static Game1.GameConfig;
 
 namespace Game1.UI
 {
@@ -13,8 +12,8 @@ namespace Game1.UI
 
         private readonly Image image;
 
-        public Icon(TextureName name)
-            => image = new(name: name, height: CurGameConfig.iconHeight);
+        public Icon(TextureName name, UDouble height)
+            => image = new(name: name, height: height);
 
         public void Draw(Vector2Bare center)
             => image.Draw(center);

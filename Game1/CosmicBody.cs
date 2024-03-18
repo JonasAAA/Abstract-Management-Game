@@ -74,11 +74,27 @@ namespace Game1
                     return;
 
                 var oldPopups = Popups;
+                var oldIndustryFunctionVisual = industry?.IndustryFunctionVisual;
+                if (oldIndustryFunctionVisual is not null)
+                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: oldIndustryFunctionVisual);
                 infoPanel.RemoveChild(child: industry?.UIElement);
                 industry = value;
                 if (industry is not null)
                     infoPanel.AddChild(child: industry.UIElement);
                 RefreshPopups(oldPopups: oldPopups, newPopups: Popups);
+                var industryFunctionVisual = industry?.IndustryFunctionVisual;
+                if (industryFunctionVisual is not null)
+                    CurWorldManager.AddWorldHUDElement
+                    (
+                        worldHUDElement: industryFunctionVisual,
+                        updateHUDPos: new HUDElementPosUpdater
+                        (
+                            HUDElement: industryFunctionVisual,
+                            baseWorldObject: this,
+                            HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Middle),
+                            anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
+                        )
+                    );
             }
         }
 

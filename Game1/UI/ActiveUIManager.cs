@@ -25,6 +25,11 @@ namespace Game1.UI
         public static UDouble HUDLengthToScreenLength(UDouble HUDLength)
             => HUDCamera.HUDLengthToScreenLength(HUDLength: HUDLength);
 
+        /// <summary>
+        /// THIS should not be relied on to draw stuff in correct order or to catch mouse clicks
+        /// That's because the top most drawn element should have the toppriority in terms of catching clicks
+        /// World UI elements are always drawn first, but they may not appear first in this list
+        /// </summary>
         private readonly List<IUIElement> activeUIElements;
         private readonly HashSet<IHUDElement> HUDElements;
         private readonly Dictionary<IHUDElement, IAction> worldHUDElementToUpdateHUDPosAction;
@@ -154,26 +159,7 @@ namespace Game1.UI
             Vector2Bare mouseScreenPos = (Vector2Bare)mouseState.Position,
                 mouseHUDPos = HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos);
 
-            contMouse = null;
-            foreach (IUIElement UIElement in Enumerable.Reverse(activeUIElements))
-            {
-                IUIElement? catchingUIElement = UIElement.CatchUIElement(mouseScreenPos: getMousePos());
-
-                if (catchingUIElement is not null)
-                {
-                    contMouse = catchingUIElement;
-                    break;
-                }
-
-                Vector2Bare getMousePos()
-                {
-                    if (HUDPopup == UIElement || (UIElement is HUDElement HUDElement && (HUDElements.Contains(HUDElement) || worldHUDElementToUpdateHUDPosAction.ContainsKey(HUDElement))))
-                        return HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos);
-                    if (worldUIElements.Contains(UIElement))
-                        return mouseScreenPos;
-                    throw new InvalidStateException();
-                }
-            }
+            contMouse = CatchUIElement(mouseScreenPos: mouseScreenPos);
 
             Mouse.SetCursor(contMouse?.CanBeClicked is true ? MouseCursor.Hand : MouseCursor.Arrow);
 
@@ -221,6 +207,52 @@ namespace Game1.UI
                 top: 0,
                 bottom: screenHeight
             );
+        }
+
+        private IUIElement? CatchUIElement(Vector2Bare mouseScreenPos)
+        {
+            {
+                IUIElement? catchingUIElement = HUDPopup?.CatchUIElement
+                (
+                    mouseScreenPos: HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos)
+                );
+
+                if (catchingUIElement is not null)
+                    return catchingUIElement;
+            }
+
+            // THESE seemingly needlessly complex loops are here to catch clicks in exactly the opposite order to
+            // how they are drawn
+            foreach (var HUDElement in Enumerable.Reverse(HUDElements))
+            {
+                IUIElement? catchingUIElement = HUDElement.CatchUIElement
+                (
+                    mouseScreenPos: HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos)
+                );
+
+                if (catchingUIElement is not null)
+                    return catchingUIElement;
+            }
+
+            foreach (var worldHUDElement in Enumerable.Reverse(worldHUDElementToUpdateHUDPosAction.Keys))
+            {
+                IUIElement? catchingUIElement = worldHUDElement.CatchUIElement
+                (
+                    mouseScreenPos: HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos)
+                );
+
+                if (catchingUIElement is not null)
+                    return catchingUIElement;
+            }
+
+            foreach (IUIElement UIElement in Enumerable.Reverse(activeUIElements))
+            {
+                IUIElement? catchingUIElement = UIElement.CatchUIElement(mouseScreenPos: mouseScreenPos);
+
+                if (catchingUIElement is not null)
+                    return catchingUIElement;
+            }
+            return null;
         }
 
         public void DrawHUD()

@@ -42,6 +42,7 @@ namespace Game1
         /// Don't calculate temperature on the fly each time, as that would lead to temperature variations during the frame.
         /// </summary>
         public Temperature Temperature { get; private set; }
+        public (EnergyPile<RadiantEnergy> lightPile, UDouble lightPerSec, NodeID targetCosmicBody)? LaserToShine { get; set; }
 
         public readonly ResPile consistsOfResPile;
 

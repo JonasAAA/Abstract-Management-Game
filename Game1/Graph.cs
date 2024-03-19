@@ -382,6 +382,9 @@ namespace Game1
         public IEnumerable<IIndustry> IndustriesWithPossibleNeighbourhood(NeighborDir neighborDir, IResource resource)
             => Industries.Where(industry => industry.IsNeighborhoodPossible(neighborDir: neighborDir, resource: resource));
 
+        public IEnumerable<CosmicBody> CosmicBodies()
+            => nodeIDToNode.Values;
+
         public MyVector2 NodePosition(NodeID nodeID)
             => nodeIDToNode[nodeID].Position;
 

@@ -86,6 +86,105 @@ namespace Game1
                 additionalInfos: additionalInfos
             );
 
+        public static IHUDElement CreateTargetCosmicBodyChoiceButton(IItemChoiceSetter<NodeID> targetChoiceSetter, NodeID originCosmicBody, string buttonText, string tooltipText,
+            string chooseThisAsTarget, string chooseThisAsTargetTooltip)
+        {
+            var button = new Button<TextBox>
+            (
+                shape: new MyRectangle(width: CurGameConfig.wideUIElementWidth, height: CurGameConfig.UILineHeight),
+                visual: new(text: buttonText, textColor: colorConfig.buttonTextColor),
+                tooltip: new ImmutableTextTooltip(text: tooltipText)
+            );
+            button.clicked.Add
+            (
+                listener: new CreateTargetCosmicBodyChoiceButtonListener
+                (
+                    targetChoiceSetter: targetChoiceSetter,
+                    originCosmicBody: originCosmicBody,
+                    chooseThisAsTarget: chooseThisAsTarget,
+                    chooseThisAsTargetTooltip: chooseThisAsTargetTooltip
+                )
+            );
+            return button;
+        }
+
+        [Serializable]
+        private sealed class CreateTargetCosmicBodyChoiceButtonListener(IItemChoiceSetter<NodeID> targetChoiceSetter, NodeID originCosmicBody, string chooseThisAsTarget, string chooseThisAsTargetTooltip) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+            {
+                // Needed so that can pass chooseTargetPanelManagers when creating chooseTargetButton clicked response
+                List<ChooseTargetPanelManager> chooseTargetPanelManagers = [];
+                chooseTargetPanelManagers.AddRange
+                (
+                    CurWorldManager.CosmicBodies()
+                        .Where(potentialTarget => potentialTarget.NodeID != originCosmicBody)
+                        .Select
+                    (
+                        potentialTarget =>
+                        {
+                            Button<TextBox> chooseTargetButton = new
+                            (
+                                shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: 2 * CurGameConfig.UILineHeight),
+                                visual: new
+                                (
+                                    text: chooseThisAsTarget,
+                                    textColor: colorConfig.buttonTextColor
+                                ),
+                                tooltip: new ImmutableTextTooltip(chooseThisAsTargetTooltip)
+                            );
+                            chooseTargetButton.clicked.Add
+                            (
+                                listener: new ChooseTargetListener
+                                (
+                                    chooseTargetPanelManagers: chooseTargetPanelManagers.ToEfficientReadOnlyCollection(),
+                                    targetChoiceSetter: targetChoiceSetter,
+                                    originCosmicBody: originCosmicBody,
+                                    potentialTarget: potentialTarget.NodeID
+                                )
+                            );
+                            return new ChooseTargetPanelManager
+                            (
+                                ChooseTargetPanel: chooseTargetButton,
+                                PanelHUDPosUpdater: new HUDElementPosUpdater
+                                (
+                                    HUDElement: chooseTargetButton,
+                                    baseWorldObject: potentialTarget,
+                                    HUDElementOrigin: new(HorizPosEnum.Middle, VertPosEnum.Top),
+                                    anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
+                                )
+                            );
+                        }
+                    )
+                );
+#warning Pause the game here. Also, when click anywhere else, cancel this action
+                // PROBABLY want to pause the game here so that sources don't appear and disappear before the player's eyes
+
+                Debug.Assert(CurWorldManager.IsCosmicBodyActive(nodeID: originCosmicBody));
+                CurWorldManager.SetIsCosmicBodyActive(nodeID: originCosmicBody, active: false);
+                CurWorldManager.DisableAllUIElements();
+
+                foreach (var (chooseTargetPanel, panelHUDPosUpdater) in chooseTargetPanelManagers)
+                    CurWorldManager.AddWorldHUDElement(worldHUDElement: chooseTargetPanel, updateHUDPos: panelHUDPosUpdater);
+            }
+        }
+
+        [Serializable]
+        private sealed class ChooseTargetListener(EfficientReadOnlyCollection<ChooseTargetPanelManager> chooseTargetPanelManagers, IItemChoiceSetter<NodeID> targetChoiceSetter, NodeID originCosmicBody, NodeID potentialTarget) : IClickedListener
+        {
+            void IClickedListener.ClickedResponse()
+            {
+                targetChoiceSetter.SetChoice(item: potentialTarget);
+                foreach (var (chooseTargetPanel, _) in chooseTargetPanelManagers)
+                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: chooseTargetPanel);
+                CurWorldManager.EnableAllUIElements();
+                Debug.Assert(!CurWorldManager.IsCosmicBodyActive(nodeID: originCosmicBody));
+            }
+        }
+
+        [Serializable]
+        private readonly record struct ChooseTargetPanelManager(IHUDElement ChooseTargetPanel, IAction PanelHUDPosUpdater);
+
         /// <summary>
         /// If <paramref name="func"/> is null, the graph will be empty
         /// </summary>

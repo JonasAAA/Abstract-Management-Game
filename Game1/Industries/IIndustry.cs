@@ -13,6 +13,7 @@ namespace Game1.Industries
     {
         public static readonly IImage electricityIcon = new Image(TextureName.electricity, height: CurGameConfig.smallIconHeight);
         public static readonly IImage cosmicBodyIcon = new Image(TextureName.cosmicBody, height: CurGameConfig.smallIconHeight);
+        public static readonly IImage starlightIcon = new Image(TextureName.starlight, height: CurGameConfig.smallIconHeight);
 
         public IFunction<IHUDElement> NameVisual { get; }
         public NodeID NodeID { get; }
@@ -129,58 +130,48 @@ namespace Game1.Industries
         }
 
         protected static IHUDElement CreateRoutePanel(IIndustry industry)
-            => new RoutePanelManager(industry: industry).routePanel;
-
-        [Serializable]
-        private readonly struct RoutePanelManager
         {
-            public readonly UIRectVertPanel<IHUDElement> routePanel;
-
-            public RoutePanelManager(IIndustry industry)
-            {
-                const HorizPosEnum childHorizPos = HorizPosEnum.Left;
-                
-                routePanel = new
+            const HorizPosEnum childHorizPos = HorizPosEnum.Left;
+            return new UIRectVertPanel<IHUDElement>
+            (
+                childHorizPos: childHorizPos,
+                children: Enum.GetValues<NeighborDir>().Select
                 (
-                    childHorizPos: childHorizPos,
-                    children: Enum.GetValues<NeighborDir>().Select
+                    neighborDir => new UIRectVertPanel<IHUDElement>
                     (
-                        neighborDir => new UIRectVertPanel<IHUDElement>
+                        childHorizPos: childHorizPos,
+                        children: new List<IHUDElement>() { new TextBox(text: UIAlgorithms.ChangeResNeighbors(neighborDir: neighborDir)) }.Concat
                         (
-                            childHorizPos: childHorizPos,
-                            children: new List<IHUDElement>() { new TextBox(text: UIAlgorithms.ChangeResNeighbors(neighborDir: neighborDir)) }.Concat
-                            (
-                                industry.GetResWithPotentialNeighborhood(neighborDir: neighborDir) switch
-                                {
-                                    { Count: 0 } => new List<IHUDElement>() { new TextBox(text: UIAlgorithms.NoPossibleNeighbors(neighborDir: neighborDir)) },
-                                    var resources => resources.Select
-                                    (
-                                        res => 
-                                        {
-                                            Button<ImageHUDElement> toggleResNeighborButton = new
+                            industry.GetResWithPotentialNeighborhood(neighborDir: neighborDir) switch
+                            {
+                                { Count: 0 } => new List<IHUDElement>() { new TextBox(text: UIAlgorithms.NoPossibleNeighbors(neighborDir: neighborDir)) },
+                                var resources => resources.Select
+                                (
+                                    res =>
+                                    {
+                                        Button<ImageHUDElement> toggleResNeighborButton = new
+                                        (
+                                            shape: new MyRectangle(width: CurGameConfig.iconWidth, height: CurGameConfig.iconHeight),
+                                            visual: new ImageHUDElement(image: res.Icon),
+                                            tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleResNeighborTooltip(neighborDir: neighborDir, res: res))
+                                        );
+                                        toggleResNeighborButton.clicked.Add
+                                        (
+                                            listener: new ChangeResNeighborsButtonListener
                                             (
-                                                shape: new MyRectangle(width: CurGameConfig.iconWidth, height: CurGameConfig.iconHeight),
-                                                visual: new ImageHUDElement(image: res.Icon),
-                                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleResNeighborTooltip(neighborDir: neighborDir, res: res))
-                                            );
-                                            toggleResNeighborButton.clicked.Add
-                                            (
-                                                listener: new ChangeResNeighborsButtonListener
-                                                (
-                                                    industry: industry,
-                                                    neighborDir: neighborDir,
-                                                    resource: res
-                                                )
-                                            );
-                                            return toggleResNeighborButton;
-                                        }
-                                    )
-                                }
-                            )
+                                                industry: industry,
+                                                neighborDir: neighborDir,
+                                                resource: res
+                                            )
+                                        );
+                                        return toggleResNeighborButton;
+                                    }
+                                )
+                            }
                         )
                     )
-                );
-            }
+                )
+            );
         }
 
         [Serializable]
@@ -188,7 +179,7 @@ namespace Game1.Industries
         {
             void IClickedListener.ClickedResponse()
             {
-                // Needed so that can pass toggleNeighborPanelManagers when creating ChooseSourceButton clicked response
+                // Needed so that can pass toggleNeighborPanelManagers when creating toggleNeighborButton clicked response
                 List<ToggleNeighborPanelManager> toggleNeighborPanelManagers = [];
                 toggleNeighborPanelManagers.AddRange
                 (

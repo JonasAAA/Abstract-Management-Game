@@ -158,6 +158,18 @@ namespace Game1.UI
         public static string ChooseResource(IResource resource)
             => $"Choose {resource}";
 
+        public static string ChooseTargetCosmicBody
+            => "Choose target";
+
+        public static string ChooseTargetCosmicBodyTooltip
+            => "Choose where to redirect all incoming light";
+
+        public static string ChooseThisAsTargetCosmicBody
+            => "Choose this\ntarget";
+
+        public static string ChooseThisAsTargetCosmicBodyTooltip
+            => "Choose to redirect light to here";
+
         public static Result<TOk, TextErrors> ConvertMissingMatPurpsIntoError<TOk>(this Result<TOk, EfficientReadOnlyHashSet<MaterialPurpose>> result)
             => result.SwitchExpression<Result<TOk, TextErrors>>
             (

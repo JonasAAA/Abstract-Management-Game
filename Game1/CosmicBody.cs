@@ -139,7 +139,7 @@ namespace Game1
             );
 
         private readonly NodeState state;
-        private readonly LightPolygon lightPolygon;
+        private readonly LightPolygon lightPolygon, laserLightPolygon;
         private readonly List<Link> links;
         /// <summary>
         /// NEVER use this directly, use Planet.Industry instead
@@ -164,6 +164,7 @@ namespace Game1
         {
             this.state = state;
             lightPolygon = new();
+            laserLightPolygon = new();
             shape = (LightBlockingDisk)base.shape;
 
             links = [];
@@ -398,6 +399,9 @@ namespace Game1
         private ILightBlockingObject CurLightCatchingObject
             => (ILightBlockingObject?)(Industry?.BuildingImage) ?? shape;
 
+        MyVector2 ILightBlockingObject.Center
+            => Position;
+
         AngleArc.Params ILightBlockingObject.BlockedAngleArcParams(MyVector2 lightPos)
             => CurLightCatchingObject.BlockedAngleArcParams(lightPos: lightPos);
 
@@ -424,6 +428,40 @@ namespace Game1
         // The complexity is O(N log N) where N is lightCatchingObjects.Count
         void ILightSource.ProduceAndDistributeRadiantEnergy(List<ILightCatchingObject> lightCatchingObjects, IRadiantEnergyConsumer vacuumAsRadiantEnergyConsumer)
         {
+            if (state.LaserToShine is (EnergyPile<RadiantEnergy> lightPile, UDouble lightPerSec, NodeID targetCosmicBody) && !lightPile.IsEmpty)
+            {
+                bool found = false;
+                foreach (var lightCatchingObject in lightCatchingObjects)
+                    if (lightCatchingObject.NodeID == targetCosmicBody)
+                    {
+                        found = true;
+                        lightCatchingObject.TakeRadiantEnergyFrom(source: lightPile, amount: lightPile.Amount);
+                        var angleArc = CurLightCatchingObject.BlockedAngleArcParams(lightPos: lightCatchingObject.Center);
+                        laserLightPolygon.Update
+                        (
+                            lightSourceInfo: new
+                            (
+                                Center: lightCatchingObject.Center,
+                                Radius: Length.zero,
+                                // Division by AngleProporOfFull is necessary as light polygon assumes that this amount of light is radiated in all directions,
+                                // not in a fairly small arc as it is here
+                                // Division by startingPixelLength is necessary to make startlight visuals independent of startingPixelLength
+                                LightAmount: lightPerSec / (UDouble)MyMathHelper.AngleProporOfFull(startAngle: angleArc.startAngle, endAngle: angleArc.endAngle) / CurWorldConfig.startingPixelLength.valueInM
+                            ),
+                            vertices:
+                            [
+                                lightCatchingObject.Center,
+                                lightCatchingObject.Center + angleArc.radius * MyMathHelper.Direction(rotation: angleArc.startAngle),
+                                lightCatchingObject.Center + angleArc.radius * MyMathHelper.Direction(rotation: angleArc.endAngle)
+                            ]
+                        );
+                        break;
+                    }
+                if (!found)
+                    throw new InvalidStateException("The target cosmic body seemingly no longer exists, need to deal with that");
+            }
+            else
+                laserLightPolygon.Update(new(), vertices: []);
             if (radiantEnergyToDissipatePile.Amount.IsZero)
                 return;
             // Removed in oder to not catch the radiant energy from itself
@@ -569,7 +607,6 @@ namespace Game1
                         angleArcInd++;
                     }
 
-                    Vector2Bare rayDir = MyMathHelper.Direction(rotation: curAngle);
                     rayCatchingObjects.Add(curAngleArcs.Count == 0 ? null : curAngleArcs.Min.lightCatchingObject);
                     Length minDist = rayCatchingObjects[^1] switch
                     {
@@ -578,6 +615,7 @@ namespace Game1
                         // TODO: move the constant 1 to the constants file
                         _ => Length.CreateFromM(1) + curAngleArcs.Min.radius
                     };
+                    Vector2Bare rayDir = MyMathHelper.Direction(rotation: curAngle);
                     vertices.Add(state.Position + minDist * rayDir);
 
                     angleInd++;
@@ -631,9 +669,15 @@ namespace Game1
 
         void ILightSource.Draw(Matrix worldToScreenTransform, int actualScreenWidth, int actualScreenHeight)
         {
-            if (radiantEnergyToDissipate.IsZero)
-                return;
-            lightPolygon.Draw
+            if (!radiantEnergyToDissipate.IsZero)
+                lightPolygon.Draw
+                (
+                    worldToScreenTransform: worldToScreenTransform,
+                    color: Color,
+                    actualScreenWidth: actualScreenWidth,
+                    actualScreenHeight: actualScreenHeight
+                );
+            laserLightPolygon.Draw
             (
                 worldToScreenTransform: worldToScreenTransform,
                 color: Color,

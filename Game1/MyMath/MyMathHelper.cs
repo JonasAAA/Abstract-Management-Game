@@ -129,6 +129,19 @@
             return angle;
         }
 
+        /// <summary>
+        /// If startAngle is the same as endAngle, will return empty proportion rather than full.
+        /// This will be true even when startAngle is 0, endAngle is two pi.
+        /// </summary>
+        public static Propor AngleProporOfFull(double startAngle, double endAngle)
+        {
+            double anglePropor = (endAngle - startAngle) / (2 * pi);
+            anglePropor = (anglePropor % 1 + 1) % 1;
+            return Propor.CreateByClamp(anglePropor);
+            //anglePropor = (anglePropor % 1 + 1) % 1;
+            //return Propor.Create(value: anglePropor)!.Value;
+        }
+
         public static double Cos(double rotation)
             => Math.Cos(rotation);
 

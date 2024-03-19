@@ -9,6 +9,7 @@ namespace Game1.Industries
         public RawMatAmounts Composition { get; }
         public LocationCounters LocationCounters { get; }
         public ThermalBody ThermalBody { get; }
+        public (EnergyPile<RadiantEnergy> lightPile, UDouble lightPerSec, NodeID targetCosmicBody)? LaserToShine { get; set; }
 
         public Result<ResPile, TextErrors> Mine(AreaInt targetArea);
 

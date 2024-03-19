@@ -84,6 +84,7 @@ namespace Game1
             knownTypesSet.UnionWith(Landfill.GetKnownTypes());
             knownTypesSet.UnionWith(MaterialProduction.GetKnownTypes());
             knownTypesSet.UnionWith(Storage.GetKnownTypes());
+            knownTypesSet.UnionWith(LightRedirection.GetKnownTypes());
             knownTypesSet.UnionWith(Dropdown.GetKnownTypes());
             knownTypesSet.UnionWith(ResAndIndustryUIAlgos.GetKnownTypes());
             knownTypesSet.UnionWith(FunctionGraphImage.GetKnownTypes());
@@ -488,6 +489,9 @@ namespace Game1
 
         public IEnumerable<IIndustry> IndustriesWithPossibleNeighbourhood(NeighborDir neighborDir, IResource resource)
             => CurGraph.IndustriesWithPossibleNeighbourhood(neighborDir: neighborDir, resource: resource);
+
+        public IEnumerable<CosmicBody> CosmicBodies()
+            => CurGraph.CosmicBodies();
 
         public MyVector2 ScreenPosToWorldPos(Vector2Bare screenPos)
             => worldCamera.ScreenPosToWorldPos(screenPos: screenPos);

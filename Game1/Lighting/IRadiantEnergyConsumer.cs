@@ -2,6 +2,8 @@
 {
     public interface IRadiantEnergyConsumer
     {
+        public NodeID? NodeID { get; }
+
         // May have Propor powerPropor parameter as well
         public void TakeRadiantEnergyFrom(EnergyPile<RadiantEnergy> source, RadiantEnergy amount);
 

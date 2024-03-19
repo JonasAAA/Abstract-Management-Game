@@ -10,6 +10,8 @@ namespace Game1.Lighting
         [Serializable]
         private sealed class VacuumAsRadiantEnergyConsumer : IRadiantEnergyConsumer
         {
+            public NodeID? NodeID { get; } = null;
+
             private readonly EnergyPile<HeatEnergy> vacuumHeatEnergyPile;
 
             public VacuumAsRadiantEnergyConsumer(EnergyPile<HeatEnergy> vacuumHeatEnergyPile)

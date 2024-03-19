@@ -31,7 +31,9 @@ namespace Game1.Shapes
         public AreaDouble HypotheticalArea(AreaInt hypotheticPlanetArea)
             => ComputeBuildingArea(planetArea: hypotheticPlanetArea, buildingHeight: buildingHeight);
 
-        
+        MyVector2 ILightBlockingObject.Center
+            => nodeShapeParams.Position;
+
         private Length FinishedBuildingRadius
             => nodeShapeParams.Radius + parameters.finishedBuildingHeight;
         private Length CurRadius

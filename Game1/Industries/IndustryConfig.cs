@@ -90,6 +90,19 @@ namespace Game1.Industries
                         }.ToEfficientReadOnlyCollection()
                     ),
                     energyPriority: constrEnergyPriority
+                ),
+                new
+                (
+                    buildingGeneralParams: new LightRedirection.GeneralBuildingParams
+                    (
+                        name: "Basic light redirection",
+                        buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                        {
+                            (prodParams: Product.productParamsDict["Wire"], amount: 2),
+                            (prodParams: Product.productParamsDict["Roof Tile"], amount: 5)
+                        }.ToEfficientReadOnlyCollection()
+                    ),
+                    energyPriority: constrEnergyPriority
                 )
             ];
             constrGeneralParamsList = constrGeneralParamsIncompleteList.Concat

@@ -26,6 +26,7 @@
             manufacturingBuildingColor,
             storageBuildingColor,
             powerPlantbuildingColor,
+            lightRedirectionBuildingColor,
 
             // UI colors
             mouseOnColor,
@@ -70,6 +71,7 @@
             manufacturingBuildingColor = C.ColorFromRGB(rgb: 0xbe123c); // Rose-700
             storageBuildingColor = C.ColorFromRGB(rgb: 0xb45309); // Amber-700
             powerPlantbuildingColor = C.ColorFromRGB(rgb: 0x15803d); // Green-700
+            lightRedirectionBuildingColor = C.ColorFromRGB(rgb: 0x0e7490); // Cyan-700
 
             // UI colors
             mouseOnColor = Color.Yellow;

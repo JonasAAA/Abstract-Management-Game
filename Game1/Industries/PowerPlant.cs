@@ -3,8 +3,6 @@ using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
-using static Game1.GameConfig;
-using Game1.ContentNames;
 
 namespace Game1.Industries
 {
@@ -131,12 +129,10 @@ namespace Game1.Industries
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => AllResAmounts.empty;
 
-            private static readonly Image starlightIcon = new(TextureName.starlight, height: CurGameConfig.smallIconHeight);
-
             IndustryFunctionVisualParams? Industry.IConcreteBuildingParams<UnitType>.IndustryFunctionVisualParams(UnitType productionParams)
                 => new
                 (
-                    InputIcons: [starlightIcon],
+                    InputIcons: [IIndustry.starlightIcon],
                     OutputIcons: [IIndustry.electricityIcon]
                 );
         }

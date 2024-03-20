@@ -81,7 +81,7 @@ namespace Game1
             worldSecondsInGameSecond = 3600;
 
         public readonly Propor
-            planetTransformRadiantToElectricalEnergyPropor = (Propor).001;
+            planetTransformRadiantToElectricalEnergyPropor = Propor.empty; //(Propor).001;
 
         public readonly UDouble
             fusionReactionTemperatureExponent = 2,

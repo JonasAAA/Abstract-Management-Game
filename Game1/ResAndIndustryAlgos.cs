@@ -154,7 +154,8 @@ namespace Game1
                 temperature: temperature,
                 rawMatProperty: static (rawMat, temperature) =>
                 {
-                    return (Propor).5;
+                    return Propor.empty;
+                    //return (Propor).5;
                     // To look at the graph, paste formula into the link https://www.desmos.com/calculator \frac{1+\tanh\left(\frac{z+1}{5}\right)\ \cdot\sin\left(\left(z+1\right)\left(\frac{x}{500}+1\right)\right)}{2}
                     double wave = MyMathHelper.Sin((rawMat.Ind + 1) * (temperature.valueInK / 500 + 1));
                     Propor scale = MyMathHelper.Tanh((rawMat.Ind + 1) / 5);

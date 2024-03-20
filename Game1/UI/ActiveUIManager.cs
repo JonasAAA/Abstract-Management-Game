@@ -159,7 +159,7 @@ namespace Game1.UI
             Vector2Bare mouseScreenPos = (Vector2Bare)mouseState.Position,
                 mouseHUDPos = HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos);
 
-            contMouse = CatchUIElement(mouseScreenPos: mouseScreenPos);
+            contMouse = CatchUIElement(mouseScreenPos: mouseScreenPos, mouseHUDPos: mouseHUDPos);
 
             Mouse.SetCursor(contMouse?.CanBeClicked is true ? MouseCursor.Hand : MouseCursor.Arrow);
 
@@ -209,13 +209,10 @@ namespace Game1.UI
             );
         }
 
-        private IUIElement? CatchUIElement(Vector2Bare mouseScreenPos)
+        private IUIElement? CatchUIElement(Vector2Bare mouseScreenPos, Vector2Bare mouseHUDPos)
         {
             {
-                IUIElement? catchingUIElement = HUDPopup?.CatchUIElement
-                (
-                    mouseScreenPos: HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos)
-                );
+                var catchingUIElement = HUDPopup?.CatchUIElement(mouseScreenPos: mouseHUDPos);
 
                 if (catchingUIElement is not null)
                     return catchingUIElement;
@@ -225,10 +222,7 @@ namespace Game1.UI
             // how they are drawn
             foreach (var HUDElement in Enumerable.Reverse(HUDElements))
             {
-                IUIElement? catchingUIElement = HUDElement.CatchUIElement
-                (
-                    mouseScreenPos: HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos)
-                );
+                var catchingUIElement = HUDElement.CatchUIElement(mouseScreenPos: mouseHUDPos);
 
                 if (catchingUIElement is not null)
                     return catchingUIElement;
@@ -236,18 +230,15 @@ namespace Game1.UI
 
             foreach (var worldHUDElement in Enumerable.Reverse(worldHUDElementToUpdateHUDPosAction.Keys))
             {
-                IUIElement? catchingUIElement = worldHUDElement.CatchUIElement
-                (
-                    mouseScreenPos: HUDCamera.ScreenPosToHUDPos(screenPos: mouseScreenPos)
-                );
+                var catchingUIElement = worldHUDElement.CatchUIElement(mouseScreenPos: mouseHUDPos);
 
                 if (catchingUIElement is not null)
                     return catchingUIElement;
             }
 
-            foreach (IUIElement UIElement in Enumerable.Reverse(activeUIElements))
+            foreach (IUIElement UIElement in Enumerable.Reverse(worldUIElements))
             {
-                IUIElement? catchingUIElement = UIElement.CatchUIElement(mouseScreenPos: mouseScreenPos);
+                var catchingUIElement = UIElement.CatchUIElement(mouseScreenPos: mouseScreenPos);
 
                 if (catchingUIElement is not null)
                     return catchingUIElement;

@@ -209,51 +209,30 @@ namespace Game1.UI
             );
         }
 
+        private IEnumerable<IHUDElement> AllHUDElements
+            => worldHUDElementToUpdateHUDPosAction.Keys.Concat(HUDElements).Concat
+            (
+                HUDPopup is null ? [] : [HUDPopup]
+            );
+
         private IUIElement? CatchUIElement(Vector2Bare mouseScreenPos, Vector2Bare mouseHUDPos)
-        {
-            {
-                var catchingUIElement = HUDPopup?.CatchUIElement(mouseScreenPos: mouseHUDPos);
-
-                if (catchingUIElement is not null)
-                    return catchingUIElement;
-            }
-
-            // THESE seemingly needlessly complex loops are here to catch clicks in exactly the opposite order to
-            // how they are drawn
-            foreach (var HUDElement in Enumerable.Reverse(HUDElements))
-            {
-                var catchingUIElement = HUDElement.CatchUIElement(mouseScreenPos: mouseHUDPos);
-
-                if (catchingUIElement is not null)
-                    return catchingUIElement;
-            }
-
-            foreach (var worldHUDElement in Enumerable.Reverse(worldHUDElementToUpdateHUDPosAction.Keys))
-            {
-                var catchingUIElement = worldHUDElement.CatchUIElement(mouseScreenPos: mouseHUDPos);
-
-                if (catchingUIElement is not null)
-                    return catchingUIElement;
-            }
-
-            foreach (IUIElement UIElement in Enumerable.Reverse(worldUIElements))
-            {
-                var catchingUIElement = UIElement.CatchUIElement(mouseScreenPos: mouseScreenPos);
-
-                if (catchingUIElement is not null)
-                    return catchingUIElement;
-            }
-            return null;
-        }
+            => worldUIElements.Select
+            (
+                worldUIElement => worldUIElement.CatchUIElement(mouseScreenPos: mouseScreenPos)
+            ).Concat
+            (
+                AllHUDElements.Select
+                (
+                    HUDElement => HUDElement.CatchUIElement(mouseScreenPos: mouseHUDPos)
+                )
+            ).Where(UIElement => UIElement is not null)
+            .LastOrDefault();
 
         public void DrawHUD()
         {
             HUDCamera.BeginDraw();
-            foreach (var worldHUDElement in worldHUDElementToUpdateHUDPosAction.Keys)
-                worldHUDElement.Draw();
-            foreach (var HUDElement in HUDElements)
+            foreach (var HUDElement in AllHUDElements)
                 HUDElement.Draw();
-            HUDPopup?.Draw();
             tooltip?.Draw();
             HUDCamera.EndDraw();
         }

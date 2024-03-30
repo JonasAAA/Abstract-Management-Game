@@ -28,7 +28,7 @@ namespace Game1
             graphics = new(this);
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
-
+            
             Window.IsBorderless = true;
 
             // tries to enable antialiasing. will only work for Monogame 3.8.1 and later

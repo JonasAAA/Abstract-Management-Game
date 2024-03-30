@@ -46,9 +46,10 @@ namespace Game1
 #warning Complete this
                 => $"""
                 T = {cosmicBody.state.Temperature}
-                M to E per real world second =
-                {cosmicBody.massConvertedToEnergy.valueInKg / (CurWorldManager.Elapsed.TotalSeconds / CurWorldConfig.worldSecondsInGameSecond):#,0.}
                 """;
+            //M to E per real world second =
+            //{cosmicBody.massConvertedToEnergy.valueInKg / (CurWorldManager.Elapsed.TotalSeconds / CurWorldConfig.worldSecondsInGameSecond):#,0.}
+            //""";
         }
 
         public NodeID NodeID
@@ -247,7 +248,9 @@ namespace Game1
                         realPerson.Arrived(realPersonSource: state.WaitingPeople);
                 }
             );
-
+            if (state.LaserToShine is not null)
+                // Light redirection should take all radiant energy, at least for now
+                Debug.Assert(state.RadiantEnergyPile.IsEmpty);
             state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: state.RadiantEnergyPile);
 
             RawMatAmounts cosmicBodyNewComposition = Algorithms.CosmicBodyNewCompositionFromNuclearFusion
@@ -313,7 +316,7 @@ namespace Game1
                 }
             );
 
-            Debug.Assert(state.RadiantEnergyPile.Amount.IsZero);
+            Debug.Assert(state.RadiantEnergyPile.IsEmpty);
         }
 
         /// <summary>
@@ -409,15 +412,20 @@ namespace Game1
             => state.RadiantEnergyPile.TransferFrom(source: source, amount: amount);
 
         void IRadiantEnergyConsumer.EnergyTakingComplete(IRadiantEnergyConsumer vacuumAsRadiantEnergyConsumer)
-            => vacuumAsRadiantEnergyConsumer.TakeRadiantEnergyFrom
+        {
+            var amount = Algorithms.EnergyPropor
+            (
+                wholeAmount: state.RadiantEnergyPile.Amount,
+                propor: Industry?.SurfaceMatPalette?.Reflectivity(temperature: state.Temperature) ?? state.Composition.Reflectivity(temperature: state.Temperature)
+            );
+            // Currently the reflected amount must always be zero, as reflectivity is 0
+            Debug.Assert(amount.IsZero);
+            vacuumAsRadiantEnergyConsumer.TakeRadiantEnergyFrom
             (
                 source: state.RadiantEnergyPile,
-                amount: Algorithms.EnergyPropor
-                (
-                    wholeAmount: state.RadiantEnergyPile.Amount,
-                    propor: Industry?.SurfaceMatPalette?.Reflectivity(temperature: state.Temperature) ?? state.Composition.Reflectivity(temperature: state.Temperature)
-                )
+                amount: amount
             );
+        }
 
         void INodeAsLocalEnergyProducerAndConsumer.ConsumeUnusedLocalEnergyFrom(EnergyPile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
         {

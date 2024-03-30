@@ -154,7 +154,7 @@ namespace Game1
             stefanBoltzmannConstant = startingPixelLength.valueInM * (UDouble).000000000000000001;
             
             // Since [linkTravelSpeed] ~ m
-            linkTravelSpeed = startingPixelLength.valueInM * (UDouble)10;
+            linkTravelSpeed = startingPixelLength.valueInM * (UDouble)0.01;
             // Since [linkJoulesPerNewtonOfGravity] ~ J/m
             linkJoulesPerUnitGravitAccel = startingPixelLength.valueInM * (UDouble).00000000000000001;
             // Since [linkJoulesPerMeterOfDistance] ~ J/m

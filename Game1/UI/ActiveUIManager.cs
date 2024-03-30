@@ -31,9 +31,9 @@ namespace Game1.UI
         /// World UI elements are always drawn first, but they may not appear first in this list
         /// </summary>
         private readonly List<IUIElement> activeUIElements;
-        private readonly HashSet<IHUDElement> HUDElements;
-        private readonly Dictionary<IHUDElement, IAction> worldHUDElementToUpdateHUDPosAction;
-        private readonly HashSet<IUIElement> worldUIElements;
+        private readonly List<IHUDElement> HUDElements;
+        private readonly List<(IHUDElement HUDElement, IAction updateHUDPos)> worldHUDElements;
+        private readonly List<IUIElement> worldUIElements;
         private readonly AbstractButton mouseLeftButton;
         private IUIElement? halfClicked, contMouse;
         private readonly TimeSpan minDurationToGetTooltip;
@@ -55,7 +55,7 @@ namespace Game1.UI
 
             HUDPosSetter = new();
             worldUIElements = [];
-            worldHUDElementToUpdateHUDPosAction = [];
+            worldHUDElements = [];
 
             tooltip = null;
             HUDPopup = null;
@@ -73,8 +73,10 @@ namespace Game1.UI
 
         public void RemoveWorldUIElement(IUIElement UIElement)
         {
-            activeUIElements.Remove(UIElement);
-            worldUIElements.Remove(UIElement);
+            if (!activeUIElements.Remove(UIElement))
+                throw new ArgumentException();
+            if (!worldUIElements.Remove(UIElement))
+                throw new ArgumentException();
         }
 
         /// <summary>
@@ -88,8 +90,7 @@ namespace Game1.UI
             HUDPosSetter.AddHUDElement(HUDElement: HUDElement, position: position);
 
             activeUIElements.Add(HUDElement);
-            if (!HUDElements.Add(HUDElement))
-                throw new ArgumentException();
+            HUDElements.Add(HUDElement);
         }
 
         /// <summary>
@@ -109,7 +110,7 @@ namespace Game1.UI
             if (HUDPopup is null)
                 return;
             HUDPosSetter.RemoveHUDElement(HUDElement: HUDPopup);
-            activeUIElements.Remove(HUDPopup);
+            Debug.Assert(activeUIElements.Remove(HUDPopup));
             HUDPopup = null;
         }
 
@@ -119,13 +120,15 @@ namespace Game1.UI
         public void AddWorldHUDElement(IHUDElement worldHUDElement, IAction updateHUDPos)
         {
             activeUIElements.Add(worldHUDElement);
-            worldHUDElementToUpdateHUDPosAction.Add(key: worldHUDElement, value: updateHUDPos);
+            worldHUDElements.Add((worldHUDElement, updateHUDPos));
         }
 
         public void RemoveWorldHUDElement(IHUDElement worldHUDElement)
         {
-            activeUIElements.Remove(worldHUDElement);
-            worldHUDElementToUpdateHUDPosAction.Remove(key: worldHUDElement);
+            if (!activeUIElements.Remove(worldHUDElement))
+                throw new ArgumentException();
+            if (!worldHUDElements.Remove(worldHUDElements.Find(el => el.HUDElement == worldHUDElement)))
+                throw new ArgumentException();
         }
 
         public void RemoveHUDElement(IHUDElement? HUDElement)
@@ -134,7 +137,8 @@ namespace Game1.UI
                 return;
             if (!HUDElements.Remove(HUDElement))
                 throw new ArgumentException();
-            activeUIElements.Remove(HUDElement);
+            if (!activeUIElements.Remove(HUDElement))
+                throw new ArgumentException();
             HUDPosSetter.RemoveHUDElement(HUDElement: HUDElement);
         }
 
@@ -155,7 +159,7 @@ namespace Game1.UI
 
         public void Update(TimeSpan elapsed)
         {
-            foreach (var worldHUDElementUpdatePosAction in worldHUDElementToUpdateHUDPosAction.Values)
+            foreach (var (_, worldHUDElementUpdatePosAction) in worldHUDElements)
                 worldHUDElementUpdatePosAction.Invoke();
             IUIElement? prevContMouse = contMouse;
 
@@ -220,10 +224,17 @@ namespace Game1.UI
         }
 
         private IEnumerable<IHUDElement> AllHUDElements
-            => worldHUDElementToUpdateHUDPosAction.Keys.Concat(HUDElements).Concat
-            (
-                HUDPopup is null ? [] : [HUDPopup]
-            );
+        {
+            get
+            {
+                foreach (var (HUDElement, _) in worldHUDElements)
+                    yield return HUDElement;
+                foreach (var HUDElement in HUDElements)
+                    yield return HUDElement;
+                if (HUDPopup is not null)
+                    yield return HUDPopup;
+            }
+        }
 
         private IUIElement? CatchUIElement(Vector2Bare mouseScreenPos, Vector2Bare mouseHUDPos)
             => worldUIElements.Select

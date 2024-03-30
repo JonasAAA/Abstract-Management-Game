@@ -80,9 +80,6 @@ namespace Game1
                     CurWorldManager.RemoveWorldHUDElement(worldHUDElement: oldIndustryFunctionVisual);
                 infoPanel.RemoveChild(child: industry?.UIElement);
                 industry = value;
-                if (industry is not null)
-                    infoPanel.AddChild(child: industry.UIElement);
-                RefreshPopups(oldPopups: oldPopups, newPopups: Popups);
                 var industryFunctionVisual = industry?.IndustryFunctionVisual;
                 if (industryFunctionVisual is not null)
                     CurWorldManager.AddWorldHUDElement
@@ -96,6 +93,9 @@ namespace Game1
                             anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
                         )
                     );
+                if (industry is not null)
+                    infoPanel.AddChild(child: industry.UIElement);
+                RefreshPopups(oldPopups: oldPopups, newPopups: Popups);
             }
         }
 

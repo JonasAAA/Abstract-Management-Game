@@ -57,8 +57,7 @@ namespace Game1
                 (
                     shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: CurGameConfig.UILineHeight),
                     visual: new TextBox(text: "Done", textColor: colorConfig.buttonTextColor),
-                    tooltip: new ImmutableTextTooltip(text: UIAlgorithms.DoneChoosingNewBuildings),
-                    color: colorConfig.deleteButtonColor
+                    tooltip: new ImmutableTextTooltip(text: UIAlgorithms.DoneChoosingNewBuildings)
                 );
 
                 // Need to initialize all references so that when this gets copied, the fields are already initialized

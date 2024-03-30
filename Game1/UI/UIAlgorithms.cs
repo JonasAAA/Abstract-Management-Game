@@ -133,8 +133,8 @@ namespace Game1.UI
         public static string BuildHereTooltip
             => "Build on this cosmic body";
 
-        public static string CancelBuilding
-            => "Cancel building";
+        public static string DoneChoosingNewBuildings
+            => "Finish choosing buildings";
 
         public static string ConstructionTooltip(Construction.GeneralParams constrGeneralParams)
 #warning Complete this by adding info from constrGeneralParams.buildingGeneralParams

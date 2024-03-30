@@ -190,7 +190,7 @@ namespace Game1.Industries
                         potentialNeighbor =>
                         {
                             bool add = !industry.GetResNeighbors(neighborDir: neighborDir, resource: resource).Contains(potentialNeighbor);
-                            Button<TextBox> toggleNeighborButton = new
+                            ToggleButton<TextBox> toggleNeighborButton = new
                             (
                                 shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: 2 * CurGameConfig.UILineHeight),
                                 visual: new
@@ -198,14 +198,15 @@ namespace Game1.Industries
                                     text: UIAlgorithms.ToggleResNeighborButtonName(neighborDir: neighborDir, add: add),
                                     textColor: colorConfig.buttonTextColor
                                 ),
-                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleResNeighborTooltip(neighborDir: neighborDir, res: resource, add: add))
+                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ToggleResNeighborTooltip(neighborDir: neighborDir, res: resource, add: add)),
+                                on: !add
                             );
 
-                            toggleNeighborButton.clicked.Add
+                            toggleNeighborButton.onChanged.Add
                             (
                                 listener: new ToggleRouteListener
                                 (
-                                    toggleNeighborPanelManagers: toggleNeighborPanelManagers.ToEfficientReadOnlyCollection(),
+                                    toggleNeighborButton: toggleNeighborButton,
                                     neighborDir: neighborDir,
                                     resource: resource,
                                     industry: industry,
@@ -216,7 +217,6 @@ namespace Game1.Industries
                             return new ToggleNeighborPanelManager
                             (
                                 ToggleNeighborPanel: toggleNeighborButton,
-                                PotentialNeighbor: potentialNeighbor,
                                 PanelHUDPosUpdater: new HUDElementPosUpdater
                                 (
                                     HUDElement: toggleNeighborButton,
@@ -228,14 +228,15 @@ namespace Game1.Industries
                         }
                     )
                 );
-#warning Pause the game here. Also, when click anywhere else, cancel this action
+                CurWorldManager.SetOneUseClickedNowhereResponse(new QuitChangeResNeighborsState(toggleNeighborPanelManagers: toggleNeighborPanelManagers));
+#warning Pause the game here.
                 // PROBABLY want to pause the game here so that sources don't appear and disappear before the player's eyes
 
                 Debug.Assert(CurWorldManager.IsCosmicBodyActive(nodeID: industry.NodeID));
                 CurWorldManager.SetIsCosmicBodyActive(nodeID: industry.NodeID, active: false);
                 CurWorldManager.DisableAllUIElements();
 
-                foreach (var (toggleSourcePanel, _, panelHUDPosUpdater) in toggleNeighborPanelManagers)
+                foreach (var (toggleSourcePanel, panelHUDPosUpdater) in toggleNeighborPanelManagers)
                     CurWorldManager.AddWorldHUDElement(worldHUDElement: toggleSourcePanel, updateHUDPos: panelHUDPosUpdater);
 
 #warning Add arrow visual for this
@@ -243,21 +244,28 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        private sealed class ToggleRouteListener(EfficientReadOnlyCollection<ToggleNeighborPanelManager> toggleNeighborPanelManagers, NeighborDir neighborDir, IResource resource, IIndustry industry, IIndustry potentialNeighbor) : IClickedListener
+        private sealed class ToggleRouteListener(ToggleButton<TextBox> toggleNeighborButton, NeighborDir neighborDir, IResource resource, IIndustry industry, IIndustry potentialNeighbor) : IOnChangedListener
         {
-            void IClickedListener.ClickedResponse()
+            void IOnChangedListener.OnChangedResponse()
             {
                 ToggleResEdge(neighborDir: neighborDir, resource: resource, industry: industry, potentialNeighbor: potentialNeighbor);
-
-                foreach (var (toggleNeighborPanel, _, _) in toggleNeighborPanelManagers)
-                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: toggleNeighborPanel);
-                CurWorldManager.EnableAllUIElements();
-                Debug.Assert(!CurWorldManager.IsCosmicBodyActive(nodeID: industry.NodeID));
-                //CurWorldManager.SetIsCosmicBodyActive(nodeID: Industry.NodeID, active: true);
+                bool add = !industry.GetResNeighbors(neighborDir: neighborDir, resource: resource).Contains(potentialNeighbor);
+                toggleNeighborButton.Visual.Text = UIAlgorithms.ToggleResNeighborButtonName(neighborDir: neighborDir, add: add);
             }
         }
 
         [Serializable]
-        private readonly record struct ToggleNeighborPanelManager(IHUDElement ToggleNeighborPanel, IIndustry PotentialNeighbor, IAction PanelHUDPosUpdater);
+        private readonly record struct ToggleNeighborPanelManager(IHUDElement ToggleNeighborPanel, IAction PanelHUDPosUpdater);
+
+        [Serializable]
+        private sealed class QuitChangeResNeighborsState(List<ToggleNeighborPanelManager> toggleNeighborPanelManagers) : IAction
+        {
+            void IAction.Invoke()
+            {
+                foreach (var (toggleNeighborPanel, _) in toggleNeighborPanelManagers)
+                    CurWorldManager.RemoveWorldHUDElement(worldHUDElement: toggleNeighborPanel);
+                CurWorldManager.EnableAllUIElements();
+            }
+        }
     }
 }

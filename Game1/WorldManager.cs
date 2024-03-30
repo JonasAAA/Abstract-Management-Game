@@ -526,6 +526,9 @@ namespace Game1
         public void RemoveHUDElement(IHUDElement? HUDElement)
             => activeUIManager.RemoveHUDElement(HUDElement: HUDElement);
 
+        public void SetOneUseClickedNowhereResponse(IAction oneUseClickedNowhereResponse)
+            => activeUIManager.SetOneUseClickedNowhereResponse(oneUseClickedNowhereResponse);
+
         public void EnableAllUIElements()
             => activeUIManager.EnableAllUIElements();
 

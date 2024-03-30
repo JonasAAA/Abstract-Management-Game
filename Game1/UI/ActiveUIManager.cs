@@ -41,6 +41,7 @@ namespace Game1.UI
         private ITooltip? tooltip;
         private readonly HUDPosSetter HUDPosSetter;
         private IHUDElement? HUDPopup;
+        private IAction? oneUseClickedNowhereResponse;
 
         public ActiveUIManager()
         {
@@ -58,6 +59,7 @@ namespace Game1.UI
 
             tooltip = null;
             HUDPopup = null;
+            oneUseClickedNowhereResponse = null;
         }
 
         /// <summary>
@@ -136,6 +138,9 @@ namespace Game1.UI
             HUDPosSetter.RemoveHUDElement(HUDElement: HUDElement);
         }
 
+        public void SetOneUseClickedNowhereResponse(IAction oneUseClickedNowhereResponse)
+            => this.oneUseClickedNowhereResponse = oneUseClickedNowhereResponse;
+
         public void EnableAllUIElements()
         {
             foreach (var UIElement in activeUIElements)
@@ -195,6 +200,11 @@ namespace Game1.UI
                 IUIElement? otherHalfClicked = contMouse;
                 if (halfClicked == otherHalfClicked && otherHalfClicked?.Enabled is true)
                     otherHalfClicked.OnClick();
+                else
+                {
+                    oneUseClickedNowhereResponse?.Invoke();
+                    oneUseClickedNowhereResponse = null;
+                }
 
                 halfClicked = null;
             }

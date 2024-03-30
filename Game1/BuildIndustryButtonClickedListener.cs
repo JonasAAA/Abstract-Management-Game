@@ -25,21 +25,23 @@ namespace Game1
                     HUDElement: buildingConfigPanelManager.buildingConfigPanel,
                     position: new(HorizPosEnum.Right, VertPosEnum.Top)
                 );
-                foreach (var cosmicBodyBuildPanelManager in buildingConfigPanelManager.cosmicBodyBuildPanelManagers)
+                foreach (var cosmicBodyBuildPanelManager in buildingConfigPanelManager.cosmicBodyBuildPanelManagers.Values)
                     CurWorldManager.AddWorldHUDElement
                     (
                         worldHUDElement: cosmicBodyBuildPanelManager.CosmicBodyBuildPanel,
                         updateHUDPos: cosmicBodyBuildPanelManager.CosmicBodyPanelHUDPosUpdate
                     );
+
+                CurWorldManager.SetOneUseClickedNowhereResponse(new StopBuildingConfig(buildingConfigPanelManager: buildingConfigPanelManager));
             }
 
             public CompleteBuildingConfig? CompleteBuildingConfigOrNull { get; private set; }
 
             private readonly Construction.GeneralParams constrGeneralParams;
             private readonly UIRectVertPanel<IHUDElement> buildingConfigPanel;
-            private readonly List<CosmicBodyBuildPanelManager> cosmicBodyBuildPanelManagers;
+            private readonly Dictionary<CosmicBody, CosmicBodyBuildPanelManager> cosmicBodyBuildPanelManagers;
             private readonly Dictionary<ProductClass, MaterialPalette> mutableBuildingMatPaletteChoices;
-            private readonly Button<TextBox> cancelButton;
+            private readonly Button<TextBox> doneButton;
             private ProductionChoice? ProductionChoice;
             private readonly FunctionGraphImage<SurfaceGravity, Propor> overallNeededElectricityGraph;
             private readonly FunctionGraphImage<Temperature, Propor> overallThroughputGraph;
@@ -51,11 +53,11 @@ namespace Game1
                 ProductionChoice = null;
                 CompleteBuildingConfigOrNull = null;
 
-                cancelButton = new
+                doneButton = new
                 (
                     shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: CurGameConfig.UILineHeight),
-                    visual: new TextBox(text: "Cancel", textColor: colorConfig.buttonTextColor),
-                    tooltip: new ImmutableTextTooltip(text: UIAlgorithms.CancelBuilding),
+                    visual: new TextBox(text: "Done", textColor: colorConfig.buttonTextColor),
+                    tooltip: new ImmutableTextTooltip(text: UIAlgorithms.DoneChoosingNewBuildings),
                     color: colorConfig.deleteButtonColor
                 );
 
@@ -66,7 +68,7 @@ namespace Game1
                     children: Enumerable.Empty<IHUDElement>()
                 );
                 cosmicBodyBuildPanelManagers = [];
-                cancelButton.clicked.Add(listener: new CancelBuildingButtonListener(buildingConfigPanelManager: this));
+                doneButton.clicked.Add(listener: new DoneBuildingButtonListener(buildingConfigPanelManager: this));
 
                 overallNeededElectricityGraph = ResAndIndustryUIAlgos.CreateGravityFunctionGraph(func: null);
                 overallThroughputGraph = ResAndIndustryUIAlgos.CreateTemperatureFunctionGraph(func: null);
@@ -138,62 +140,62 @@ namespace Game1
                         {
                             new TextBox(text: "Production config"),
                             productionChoicePanel ?? new TextBox(text: UIAlgorithms.NothingToConfigure),
-                            cancelButton
+                            doneButton
                         }
                     )
                 );
 
-                cosmicBodyBuildPanelManagers.AddRange
+                var addCosmicBodyBuildPanelManagers = cosmicBodies.Where
                 (
-                    collection: cosmicBodies.Where
-                    (
-                        cosmicBody => !cosmicBody.HasIndustry
-                    ).Select
-                    (
-                        cosmicBody =>
-                        {
-                            IHUDElement buildingStatsGraphs = ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+                    cosmicBody => !cosmicBody.HasIndustry
+                ).Select
+                (
+                    cosmicBody =>
+                    {
+                        IHUDElement buildingStatsGraphs = ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+                        (
+                            neededElectricity: new FunctionGraphWithHighlighImage<SurfaceGravity, Propor>
                             (
-                                neededElectricity: new FunctionGraphWithHighlighImage<SurfaceGravity, Propor>
-                                (
-                                    functionGraph: overallNeededElectricityGraph,
-                                    highlightInterval: new CosmicBodyGravityInterval(cosmicBody: cosmicBody)
-                                ),
-                                throughput: new FunctionGraphWithHighlighImage<Temperature, Propor>
-                                (
-                                    functionGraph: overallThroughputGraph,
-                                    highlightInterval: new CosmicBodyTemperatureInterval(cosmicBody: cosmicBody)
-                                )
-                            );
-                            Button<TextBox> buildButton = new
+                                functionGraph: overallNeededElectricityGraph,
+                                highlightInterval: new CosmicBodyGravityInterval(cosmicBody: cosmicBody)
+                            ),
+                            throughput: new FunctionGraphWithHighlighImage<Temperature, Propor>
                             (
-                                shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: CurGameConfig.UILineHeight),
-                                visual: new(text: "Build here", textColor: colorConfig.buttonTextColor),
-                                tooltip: new ImmutableTextTooltip(text: UIAlgorithms.BuildHereTooltip)
+                                functionGraph: overallThroughputGraph,
+                                highlightInterval: new CosmicBodyTemperatureInterval(cosmicBody: cosmicBody)
                             )
+                        );
+                        Button<TextBox> buildButton = new
+                        (
+                            shape: new MyRectangle(width: CurGameConfig.standardUIElementWidth, height: CurGameConfig.UILineHeight),
+                            visual: new(text: "Build here", textColor: colorConfig.buttonTextColor),
+                            tooltip: new ImmutableTextTooltip(text: UIAlgorithms.BuildHereTooltip)
+                        )
+                        {
+                            PersonallyEnabled = false
+                        };
+                        buildButton.clicked.Add
+                        (
+                            listener: new BuildOnCosmicBodyButtonListener
+                            (
+                                buildingConfigPanelManager: this,
+                                cosmicBody: cosmicBody
+                            )
+                        );
+                        UIRectVertPanel<IHUDElement> cosmicBodyBuildPanel = new
+                        (
+                            childHorizPos: HorizPosEnum.Left,
+                            children: new List<IHUDElement>()
                             {
-                                PersonallyEnabled = false
-                            };
-                            buildButton.clicked.Add
+                                buildingStatsGraphs,
+                                buildButton
+                            }
+                        );
+                        return
+                        (
+                            cosmicBody,
+                            new CosmicBodyBuildPanelManager
                             (
-                                listener: new BuildOnCosmicBodyButtonListener
-                                (
-                                    buildingConfigPanelManager: this,
-                                    cosmicBody: cosmicBody
-                                )
-                            );
-                            UIRectVertPanel<IHUDElement> cosmicBodyBuildPanel = new
-                            (
-                                childHorizPos: HorizPosEnum.Left,
-                                children: new List<IHUDElement>()
-                                {
-                                    buildingStatsGraphs,
-                                    buildButton
-                                }
-                            );
-                            return new CosmicBodyBuildPanelManager
-                            (
-                                CosmicBody: cosmicBody,
                                 CosmicBodyBuildPanel: cosmicBodyBuildPanel,
                                 CosmicBodyPanelHUDPosUpdate: new HUDElementPosUpdater
                                 (
@@ -203,10 +205,12 @@ namespace Game1
                                     anchorInBaseWorldObject: new(HorizPosEnum.Middle, VertPosEnum.Middle)
                                 ),
                                 BuildButton: buildButton
-                            );
-                        }
-                    )
+                            )
+                        );
+                    }
                 );
+                foreach (var (cosmicBody, buildPanelManager) in addCosmicBodyBuildPanelManagers)
+                    cosmicBodyBuildPanelManagers.Add(key: cosmicBody, value: buildPanelManager);
             }
 
             void IItemChoiceSetter<ProductionChoice>.SetChoice(ProductionChoice item)
@@ -272,21 +276,35 @@ namespace Game1
                     }
                 );
 
-                foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers)
+                foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers.Values)
                     cosmicBodyPanelManager.BuildButton.PersonallyEnabled = CompleteBuildingConfigOrNull is not null;
+            }
+
+            public void RemoveCosmicBodyBuildPanelManager(CosmicBody cosmicBody)
+            {
+                var cosmicBodyBuildPanel = cosmicBodyBuildPanelManagers[cosmicBody].CosmicBodyBuildPanel;
+                cosmicBodyBuildPanelManagers.Remove(cosmicBody);
+                CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyBuildPanel);
             }
 
             public void StopBuildingConfig()
             {
                 CurWorldManager.RemoveHUDElement(HUDElement: buildingConfigPanel);
-                foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers)
+                foreach (var cosmicBodyPanelManager in cosmicBodyBuildPanelManagers.Values)
                     CurWorldManager.RemoveWorldHUDElement(worldHUDElement: cosmicBodyPanelManager.CosmicBodyBuildPanel);
                 CurWorldManager.EnableAllUIElements();
             }
         }
 
         [Serializable]
-        private sealed class CancelBuildingButtonListener(BuildingConfigPanelManager buildingConfigPanelManager) : IClickedListener
+        private sealed class StopBuildingConfig(BuildingConfigPanelManager buildingConfigPanelManager) : IAction
+        {
+            void IAction.Invoke()
+                => buildingConfigPanelManager.StopBuildingConfig();
+        }
+
+        [Serializable]
+        private sealed class DoneBuildingButtonListener(BuildingConfigPanelManager buildingConfigPanelManager) : IClickedListener
         {
             void IClickedListener.ClickedResponse()
                 => buildingConfigPanelManager.StopBuildingConfig();
@@ -317,7 +335,7 @@ namespace Game1
         }
 
         [Serializable]
-        private readonly record struct CosmicBodyBuildPanelManager(CosmicBody CosmicBody, UIRectVertPanel<IHUDElement> CosmicBodyBuildPanel, IAction CosmicBodyPanelHUDPosUpdate, Button<TextBox> BuildButton);
+        private readonly record struct CosmicBodyBuildPanelManager(UIRectVertPanel<IHUDElement> CosmicBodyBuildPanel, IAction CosmicBodyPanelHUDPosUpdate, Button<TextBox> BuildButton);
 
         [Serializable]
         private readonly record struct CompleteBuildingConfig
@@ -363,7 +381,7 @@ namespace Game1
                 (
                     constrConcreteParams: buildingConfigPanelManager.CompleteBuildingConfigOrNull!.Value.CreateConcreteConstrParams(cosmicBody: cosmicBody)
                 );
-                buildingConfigPanelManager.StopBuildingConfig();
+                buildingConfigPanelManager.RemoveCosmicBodyBuildPanelManager(cosmicBody: cosmicBody);
             }
         }
 

@@ -81,6 +81,7 @@ namespace Game1.Industries
                 ok: state => state.BusyBuildingImage(),
                 error: _ => buildingParams.IdleBuildingImage
             );
+
         // CURRENTLY this doesn't handle changes in res consumed and res produced. So if change produced material recipe, or choose to recycle different thing,
         // this will not be updated accordingly
         public IHUDElement RoutePanel { get; }
@@ -116,8 +117,12 @@ namespace Game1.Industries
         private readonly ResPile inputStorage, outputStorage;
         private AllResAmounts resTravellingHere;
         private IHUDElement storedInputsUI, storedOutputsUI, resTravellingHereUI, demandUI;
-        
-        public Industry(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState)
+
+        /// <summary>
+        /// statsGraphsParams should be null iff don't want to show building stats dependence on gravity and temperature graphs
+        /// </summary>
+        public Industry(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState,
+            (MaterialPaletteChoices buildingMatPaletteChoices, BuildingCostPropors buildingCostPropors)? statsGraphsParams)
         {
             this.productionParams = productionParams;
             this.buildingParams = buildingParams;
@@ -149,9 +154,42 @@ namespace Game1.Industries
             industryUI = new UIRectVertPanel<IHUDElement>
             (
                 childHorizPos: HorizPosEnum.Left,
-                children: new List<IHUDElement>()
+                children: new List<IHUDElement?>()
                 {
                     buildingParams.NameVisual.Invoke(),
+                    statsGraphsParams switch
+                    {
+                        null => null,
+                        not null => ResAndIndustryUIAlgos.CreateBuildingStatsHeaderRow()
+                    },
+                    statsGraphsParams switch
+                    {
+                        null => null,
+                        (MaterialPaletteChoices buildingMatPaletteChoices, BuildingCostPropors buildingCostPropors) => ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+                        (
+                            nodeState: buildingParams.NodeState,
+                            neededElectricityGraph: ResAndIndustryUIAlgos.CreateGravityFunctionGraph
+                            (
+                                func: gravity => ResAndIndustryAlgos.TentativeNeededElectricity
+                                (
+                                    gravity: gravity,
+                                    chosenTotalPropor: Propor.full,
+                                    matPaletteChoices: buildingMatPaletteChoices.Choices,
+                                    buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
+                                )
+                            ),
+                            throughputGraph: ResAndIndustryUIAlgos.CreateTemperatureFunctionGraph
+                            (
+                                func: temperature => ResAndIndustryAlgos.TentativeThroughput
+                                (
+                                    temperature: temperature,
+                                    chosenTotalPropor: Propor.full,
+                                    matPaletteChoices: buildingMatPaletteChoices.Choices,
+                                    buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
+                                )
+                            )
+                        )
+                    },
                     new TextBox(text: "stored inputs"),
                     storedInputsUI,
                     new TextBox(text: "stored outputs"),

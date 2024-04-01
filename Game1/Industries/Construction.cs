@@ -82,7 +82,8 @@ namespace Game1.Industries
                 (
                     productionParams: new(),
                     buildingParams: this,
-                    persistentState: new()
+                    persistentState: new(),
+                    statsGraphsParams: null
                 );
 
             public IIndustry CreateChildIndustry(ResPile buildingResPile)

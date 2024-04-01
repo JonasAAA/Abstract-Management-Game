@@ -67,12 +67,11 @@ namespace Game1.Industries
             public MaterialPalette SurfaceMatPalette { get; }
             public AllResAmounts BuildingCost { get; }
             public readonly DiskBuildingImage buildingImage;
+            // Probably the only possible dependance on material choices is how much weight it can hold.
+            public readonly BuildingCostPropors buildingCostPropors;
+            public readonly MaterialPaletteChoices buildingMatPaletteChoices;
 
             private readonly AreaDouble buildingArea;
-            // generalParams and buildingMatPaletteChoices will be used if/when storage industry depends on material choices.
-            // Probably the only possible dependance is how much weight it can hold.
-            private readonly GeneralBuildingParams generalParams;
-            private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly StorageChoice storageChoice;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
@@ -85,7 +84,7 @@ namespace Game1.Industries
                 SurfaceMatPalette = surfaceMatPalette;
                 // Building area is used in BuildingCost calculation, thus needs to be computed first
                 buildingArea = buildingImage.Area;
-                this.generalParams = generalParams;
+                this.buildingCostPropors = generalParams.BuildingCostPropors;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
                 this.storageChoice = storageChoice;
                 BuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
@@ -233,6 +232,32 @@ namespace Game1.Industries
                 children:
                 [
                     buildingParams.NameVisual.Invoke(),
+                    ResAndIndustryUIAlgos.CreateBuildingStatsHeaderRow(),
+                    ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+                    (
+                        nodeState: buildingParams.NodeState,
+                        neededElectricityGraph: ResAndIndustryUIAlgos.CreateGravityFunctionGraph
+                        (
+                            func: gravity => ResAndIndustryAlgos.TentativeNeededElectricity
+                            (
+                                gravity: gravity,
+                                chosenTotalPropor: Propor.full,
+                                matPaletteChoices: buildingParams.buildingMatPaletteChoices.Choices,
+                                buildingProdClassPropors: buildingParams.buildingCostPropors.neededProductClassPropors
+                            )
+                        ),
+                        throughputGraph: ResAndIndustryUIAlgos.CreateTemperatureFunctionGraph
+                        (
+                            func: temperature => ResAndIndustryAlgos.TentativeThroughput
+                            (
+                                temperature: temperature,
+                                chosenTotalPropor: Propor.full,
+                                matPaletteChoices: buildingParams.buildingMatPaletteChoices.Choices,
+                                buildingProdClassPropors: buildingParams.buildingCostPropors.neededProductClassPropors
+                            )
+                        )
+                    ),
+                    new TextBox(text: "THIS BUILDING DOES NOT\nDEPEND ON THE ABOVE CURRENTLY"),
                     new TextBox(text: "stored"),
                     storedAmountsUI
                 ]

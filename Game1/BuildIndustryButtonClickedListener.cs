@@ -81,15 +81,7 @@ namespace Game1
                     newChildren: new List<IHUDElement>
                     {
                         new TextBox(text: "Material Choices"),
-                        new UIRectHorizPanel<IHUDElement>
-                        (
-                            childVertPos: VertPosEnum.Middle,
-                            children: new List<IHUDElement>()
-                            {
-                                new TextBox(text: "needed\nelectricity"),
-                                new TextBox(text: "throughput")
-                            }
-                        )
+                        ResAndIndustryUIAlgos.CreateBuildingStatsHeaderRow()
                     }.Concat
                     (
                         constrGeneralParams.neededProductClassPropors.Select
@@ -127,8 +119,9 @@ namespace Game1
                             {
                                 ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
                                 (
-                                    neededElectricity: overallNeededElectricityGraph,
-                                    throughput: overallThroughputGraph
+                                    neededElectricityGraph: overallNeededElectricityGraph,
+                                    throughputGraph: overallThroughputGraph,
+                                    nodeState: null
                                 ),
                                 ResAndIndustryUIAlgos.CreateStandardVertProporBar(propor: Propor.full)
                             }
@@ -153,16 +146,9 @@ namespace Game1
                     {
                         IHUDElement buildingStatsGraphs = ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
                         (
-                            neededElectricity: new FunctionGraphWithHighlighImage<SurfaceGravity, Propor>
-                            (
-                                functionGraph: overallNeededElectricityGraph,
-                                highlightInterval: new CosmicBodyGravityInterval(cosmicBody: cosmicBody)
-                            ),
-                            throughput: new FunctionGraphWithHighlighImage<Temperature, Propor>
-                            (
-                                functionGraph: overallThroughputGraph,
-                                highlightInterval: new CosmicBodyTemperatureInterval(cosmicBody: cosmicBody)
-                            )
+                            nodeState: cosmicBody.NodeState,
+                            neededElectricityGraph: overallNeededElectricityGraph,
+                            throughputGraph: overallThroughputGraph
                         );
                         Button<TextBox> buildButton = new
                         (
@@ -307,30 +293,6 @@ namespace Game1
         {
             void IClickedListener.ClickedResponse()
                 => buildingConfigPanelManager.StopBuildingConfig();
-        }
-
-        [Serializable]
-        private sealed class CosmicBodyGravityInterval(CosmicBody cosmicBody) : FunctionGraphWithHighlighImage<SurfaceGravity, Propor>.IHighlightInterval
-        {
-            (SurfaceGravity start, SurfaceGravity stop, Color highlightColor) FunctionGraphWithHighlighImage<SurfaceGravity, Propor>.IHighlightInterval.GetHighlightInterval()
-                =>
-                (
-                    start: cosmicBody.NodeState.SurfaceGravity,
-                    stop: cosmicBody.NodeState.SurfaceGravity,
-                    highlightColor: colorConfig.functionGraphHighlightColor
-                );
-        }
-
-        [Serializable]
-        private sealed class CosmicBodyTemperatureInterval(CosmicBody cosmicBody) : FunctionGraphWithHighlighImage<Temperature, Propor>.IHighlightInterval
-        {
-            (Temperature start, Temperature stop, Color highlightColor) FunctionGraphWithHighlighImage<Temperature, Propor>.IHighlightInterval.GetHighlightInterval()
-                =>
-                (
-                    start: cosmicBody.NodeState.Temperature,
-                    stop: cosmicBody.NodeState.Temperature,
-                    highlightColor: colorConfig.functionGraphHighlightColor
-                );
         }
 
         [Serializable]

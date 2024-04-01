@@ -12,8 +12,9 @@ namespace Game1.Resources
         public static IHUDElement CreateEmptyProdStatsInfluenceVisual()
             => ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
             (
-                neededElectricity: ResAndIndustryUIAlgos.emptyProdNeededElectricityFunctionGraph,
-                throughput: ResAndIndustryUIAlgos.emptyProdThroughputFunctionGraph
+                neededElectricityGraph: ResAndIndustryUIAlgos.emptyProdNeededElectricityFunctionGraph,
+                throughputGraph: ResAndIndustryUIAlgos.emptyProdThroughputFunctionGraph,
+                nodeState: null
             );
 
         public static Result<MaterialPalette, TextErrors> CreateAndAddToResConfig(string name, Color color, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices)
@@ -50,8 +51,8 @@ namespace Game1.Resources
         public readonly ProductClass productClass;
         public readonly EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices;
         public readonly ResAmounts<Material> materialAmounts;
-        private readonly IImage prodNeededElectricityFunctionGraph;
-        private readonly IImage prodThroughputFunctionGraph;
+        private readonly FunctionGraphImage<SurfaceGravity, Propor> prodNeededElectricityFunctionGraph;
+        private readonly FunctionGraphImage<Temperature, Propor> prodThroughputFunctionGraph;
 
         public MaterialPalette(string name, IImage image, IImage smallImage, ProductClass productClass, EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices, ResAmounts<Material> materialAmounts)
         {
@@ -74,7 +75,12 @@ namespace Game1.Resources
         // This is a method so that each prod stats is independent.
         // Otherwise, if want to show it on screen twice, both of those would show up in the same position, since they are the same object.
         public IHUDElement CreateProdStatsInfluenceVisual()
-            => ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel(neededElectricity: prodNeededElectricityFunctionGraph, throughput: prodThroughputFunctionGraph);
+            => ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+            (
+                neededElectricityGraph: prodNeededElectricityFunctionGraph,
+                throughputGraph: prodThroughputFunctionGraph,
+                nodeState: null
+            );
 
         /// <summary>
         /// Returns text errors if contents are the same

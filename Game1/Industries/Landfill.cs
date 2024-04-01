@@ -68,7 +68,7 @@ namespace Game1.Industries
             private AreaDouble BuildingArea
                 => buildingImage.Area;
             
-            private readonly GeneralBuildingParams generalParams;
+            private readonly BuildingCostPropors buildingCostPropors;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly LandfillResourceChoice landfillResourceChoice;
             private readonly AllResAmounts buildingCost;
@@ -82,7 +82,7 @@ namespace Game1.Industries
                 this.buildingImage = buildingImage;
                 SurfaceMatPalette = surfaceMatPalette;
                 EnergyPriority = generalParams.energyPriority;
-                this.generalParams = generalParams;
+                buildingCostPropors = generalParams.BuildingCostPropors;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
                 this.landfillResourceChoice = landfillResourceChoice;
                 this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
@@ -110,7 +110,7 @@ namespace Game1.Industries
                 => ResAndIndustryAlgos.CurMechProdStats
                 (
                     buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
-                    buildingCostPropors: generalParams.BuildingCostPropors,
+                    buildingCostPropors: buildingCostPropors,
                     buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,
@@ -125,12 +125,16 @@ namespace Game1.Industries
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
             IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
-                => new Industry<ConcreteProductionParams, ConcreteBuildingParams, ResPile, LandfillCycleState>
+            {
+                var statsGraphsParams = (buildingMatPaletteChoices, buildingCostPropors);
+                return new Industry<ConcreteProductionParams, ConcreteBuildingParams, ResPile, LandfillCycleState>
                 (
                     productionParams: new(landfillResourceChoice: landfillResourceChoice),
                     buildingParams: this,
-                    persistentState: buildingResPile
+                    persistentState: buildingResPile,
+                    statsGraphsParams: statsGraphsParams
                 );
+            }
 
             IBuildingImage Industry.IConcreteBuildingParams<ConcreteProductionParams>.IdleBuildingImage
                 => buildingImage;

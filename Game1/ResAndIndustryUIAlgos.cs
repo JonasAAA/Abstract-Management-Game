@@ -12,6 +12,19 @@ namespace Game1
 {
     public static class ResAndIndustryUIAlgos
     {
+        // This is a function and not a field since it holds its own position.
+        // If it were a field, multiple of these could never be shown on screen at the same time.
+        public static IHUDElement CreateBuildingStatsHeaderRow()
+            => new UIRectHorizPanel<IHUDElement>
+            (
+                childVertPos: VertPosEnum.Middle,
+                children: new List<IHUDElement>()
+                {
+                    new TextBox(text: "needed\nelectricity"),
+                    new TextBox(text: "throughput")
+                }
+            );
+
         [Serializable]
         private sealed class ItemChoiceSetter<TItem>(IItemChoiceSetter<ProductionChoice> productionChoiceSetter) : IItemChoiceSetter<TItem>
             where TItem : notnull
@@ -204,8 +217,8 @@ namespace Game1
                 func: func
             );
 
-        public static readonly IImage emptyProdNeededElectricityFunctionGraph = CreateGravityFunctionGraph(func: null);
-        public static readonly IImage emptyProdThroughputFunctionGraph = CreateTemperatureFunctionGraph(func: null);
+        public static readonly FunctionGraphImage<SurfaceGravity, Propor> emptyProdNeededElectricityFunctionGraph = CreateGravityFunctionGraph(func: null);
+        public static readonly FunctionGraphImage<Temperature, Propor> emptyProdThroughputFunctionGraph = CreateTemperatureFunctionGraph(func: null);
 
         /// <summary>
         /// If <paramref name="func"/> is null, the graph will be empty
@@ -226,16 +239,66 @@ namespace Game1
                 func: func
             );
 
-        public static IHUDElement CreateNeededElectricityAndThroughputPanel(IImage neededElectricity, IImage throughput)
+        /// <summary>
+        /// If no cosmic-body-specific highlights are needed, nodeState should be null
+        /// </summary>
+        public static IHUDElement CreateNeededElectricityAndThroughputPanel(FunctionGraphImage<SurfaceGravity, Propor> neededElectricityGraph,
+            FunctionGraphImage<Temperature, Propor> throughputGraph, IIndustryFacingNodeState? nodeState)
             => new UIRectHorizPanel<IHUDElement>
             (
                 childVertPos: VertPosEnum.Top,
                 children: new List<IHUDElement>()
                 {
-                    new ImageHUDElement(image: neededElectricity),
-                    new ImageHUDElement(image: throughput)
+                    new ImageHUDElement
+                    (
+                        image: nodeState switch
+                        {
+                            not null => new FunctionGraphWithHighlighImage<SurfaceGravity, Propor>
+                            (
+                                functionGraph: neededElectricityGraph,
+                                highlightInterval: new CosmicBodyGravityInterval(nodeState: nodeState)
+                            ),
+                            null => neededElectricityGraph
+                        }
+                    ),
+                    new ImageHUDElement
+                    (
+                        image: nodeState switch
+                        {
+                            not null => new FunctionGraphWithHighlighImage<Temperature, Propor>
+                            (
+                                functionGraph: throughputGraph,
+                                highlightInterval: new CosmicBodyTemperatureInterval(nodeState: nodeState)
+                            ),
+                            null => throughputGraph
+                        }
+                    )
                 }
             );
+
+        [Serializable]
+        private sealed class CosmicBodyGravityInterval(IIndustryFacingNodeState nodeState) : FunctionGraphWithHighlighImage<SurfaceGravity, Propor>.IHighlightInterval
+        {
+            (SurfaceGravity start, SurfaceGravity stop, Color highlightColor) FunctionGraphWithHighlighImage<SurfaceGravity, Propor>.IHighlightInterval.GetHighlightInterval()
+                =>
+                (
+                    start: nodeState.SurfaceGravity,
+                    stop: nodeState.SurfaceGravity,
+                    highlightColor: colorConfig.functionGraphHighlightColor
+                );
+        }
+
+        [Serializable]
+        private sealed class CosmicBodyTemperatureInterval(IIndustryFacingNodeState nodeState) : FunctionGraphWithHighlighImage<Temperature, Propor>.IHighlightInterval
+        {
+            (Temperature start, Temperature stop, Color highlightColor) FunctionGraphWithHighlighImage<Temperature, Propor>.IHighlightInterval.GetHighlightInterval()
+                =>
+                (
+                    start: nodeState.Temperature,
+                    stop: nodeState.Temperature,
+                    highlightColor: colorConfig.functionGraphHighlightColor
+                );
+        }
 
         public static VertProporBar CreateStandardVertProporBar(Propor propor)
             => new

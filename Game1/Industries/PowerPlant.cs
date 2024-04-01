@@ -74,7 +74,7 @@ namespace Game1.Industries
             public readonly DiskBuildingImage buildingImage;
 
             private readonly AreaDouble buildingArea;
-            private readonly GeneralBuildingParams generalParams;
+            private readonly BuildingCostPropors buildingCostPropors;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly AllResAmounts buildingCost;
 
@@ -89,7 +89,7 @@ namespace Game1.Industries
                 EnergyPriority = generalParams.energyPriority;
 
                 buildingArea = buildingImage.Area;
-                this.generalParams = generalParams;
+                buildingCostPropors = generalParams.BuildingCostPropors;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
 
                 buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
@@ -98,7 +98,7 @@ namespace Game1.Industries
             public PowerPlantProdStats CurProdStats()
                 => ResAndIndustryAlgos.CurPowerPlantProdStats
                 (
-                    buildingCostPropors: generalParams.BuildingCostPropors,
+                    buildingCostPropors: buildingCostPropors,
                     buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,
@@ -112,7 +112,16 @@ namespace Game1.Industries
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
             IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
-                => new Industry<UnitType, ConcreteBuildingParams, ResPile, PowerProductionState>(productionParams: new(), buildingParams: this, persistentState: buildingResPile);
+            {
+                var statsGraphsParams = (buildingMatPaletteChoices, buildingCostPropors);
+                return new Industry<UnitType, ConcreteBuildingParams, ResPile, PowerProductionState>
+                (
+                    productionParams: new(),
+                    buildingParams: this,
+                    persistentState: buildingResPile,
+                    statsGraphsParams: statsGraphsParams
+                );
+            }
 
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => buildingImage;

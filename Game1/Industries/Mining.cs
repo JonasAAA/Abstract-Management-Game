@@ -71,7 +71,7 @@ namespace Game1.Industries
             public AreaDouble CurBuildingArea
                 => buildingImage.Area;
 
-            private readonly GeneralBuildingParams generalParams;
+            private readonly BuildingCostPropors buildingCostPropors;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             // BOTH mined and produced resources will not show any new materials the planet produces after this is built
             // They would still be mined, I think. Or maybe the game would crash, don't know.
@@ -89,7 +89,7 @@ namespace Game1.Industries
                 SurfaceMatPalette = surfaceMatPalette;
                 EnergyPriority = generalParams.energyPriority;
 
-                this.generalParams = generalParams;
+                buildingCostPropors = generalParams.BuildingCostPropors;
                 this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
                 startingBuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: CurBuildingArea);
@@ -108,7 +108,7 @@ namespace Game1.Industries
                 => ResAndIndustryAlgos.CurMechProdStats
                 (
                     buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
-                    buildingCostPropors: generalParams.BuildingCostPropors,
+                    buildingCostPropors: buildingCostPropors,
                     buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,
@@ -136,7 +136,16 @@ namespace Game1.Industries
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
             IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
-                => new Industry<UnitType, ConcreteBuildingParams, PersistentState, MiningCycleState>(productionParams: new(), buildingParams: this, persistentState: new(buildingResPile: buildingResPile));
+            {
+                var statsGraphsParams = (buildingMatPaletteChoices, buildingCostPropors);
+                return new Industry<UnitType, ConcreteBuildingParams, PersistentState, MiningCycleState>
+                (
+                    productionParams: new(),
+                    buildingParams: this,
+                    persistentState: new(buildingResPile: buildingResPile),
+                    statsGraphsParams: statsGraphsParams
+                );
+            }
 
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => buildingImage;

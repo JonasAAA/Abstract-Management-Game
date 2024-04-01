@@ -74,7 +74,7 @@ namespace Game1.Industries
             public readonly AreaInt maxStoredOutputArea;
 
             private readonly AreaDouble buildingArea;
-            private readonly GeneralBuildingParams generalParams;
+            private readonly BuildingCostPropors buildingCostPropors;
             private readonly BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA;
             private readonly MaterialPaletteChoices buildingMatPaletteChoices;
             private readonly ManufacturingProductionChoice manufacturingProductionChoice;
@@ -92,7 +92,7 @@ namespace Game1.Industries
                 EnergyPriority = generalParams.energyPriority;
                 productParams = generalParams.productParams;
                 buildingArea = buildingImage.Area;
-                this.generalParams = generalParams;
+                buildingCostPropors = generalParams.BuildingCostPropors;
                 this.buildingComponentsToAmountPUBA = buildingComponentsToAmountPUBA;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
                 this.manufacturingProductionChoice = manufacturingProductionChoice;
@@ -124,7 +124,7 @@ namespace Game1.Industries
                 => ResAndIndustryAlgos.CurMechProdStats
                 (
                     buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
-                    buildingCostPropors: generalParams.BuildingCostPropors,
+                    buildingCostPropors: buildingCostPropors,
                     buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,
@@ -139,12 +139,16 @@ namespace Game1.Industries
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
             IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
-                => new Industry<ConcreteProductionParams, ConcreteBuildingParams, ResPile, ManufacturingCycleState>
+            {
+                var statsGraphsParams = (buildingMatPaletteChoices, buildingCostPropors);
+                return new Industry<ConcreteProductionParams, ConcreteBuildingParams, ResPile, ManufacturingCycleState>
                 (
                     productionParams: new(productParams: productParams, manufacturingProductionChoice: manufacturingProductionChoice),
                     buildingParams: this,
-                    persistentState: buildingResPile
+                    persistentState: buildingResPile,
+                    statsGraphsParams: statsGraphsParams
                 );
+            }
 
             IBuildingImage Industry.IConcreteBuildingParams<ConcreteProductionParams>.IdleBuildingImage
                 => buildingImage;

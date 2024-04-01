@@ -91,6 +91,21 @@ namespace Game1.Industries
 
         private bool Busy
             => stateOrReasonForNotStartingProduction.isOk;
+        
+        //private UIRectVertPanel<IHUDElement> IndustryUI
+        //{
+        //    get
+        //    {
+        //        if (industryUI is not null)
+        //            return industryUI;
+                
+        //        return industryUI;
+        //    }
+        //}
+        ///// <summary>
+        ///// NEVER use this directly. Use IndustryUI instead
+        ///// </summary>
+        private readonly UIRectVertPanel<IHUDElement> industryUI;
         private readonly TConcreteProductionParams productionParams;
         private readonly TConcreteBuildingParams buildingParams;
         private readonly TPersistentState persistentState;
@@ -100,7 +115,6 @@ namespace Game1.Industries
         private readonly EnumDict<NeighborDir, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>>> resNeighbors;
         private readonly ResPile inputStorage, outputStorage;
         private AllResAmounts resTravellingHere;
-        private readonly UIRectVertPanel<IHUDElement> industryUI;
         private IHUDElement storedInputsUI, storedOutputsUI, resTravellingHereUI, demandUI;
         
         public Industry(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState)
@@ -137,7 +151,7 @@ namespace Game1.Industries
                 childHorizPos: HorizPosEnum.Left,
                 children: new List<IHUDElement>()
                 {
-                    new TextBox(text: "Industry UI Panel"),
+                    buildingParams.NameVisual.Invoke(),
                     new TextBox(text: "stored inputs"),
                     storedInputsUI,
                     new TextBox(text: "stored outputs"),

@@ -174,12 +174,7 @@ namespace Game1.Industries
                 childHorizPos: HorizPosEnum.Left,
                 children:
                 [
-                    new TextBox
-                    (
-                        text: """
-                            Light Redirection UI Panel
-                            """
-                    ),
+                    buildingParams.NameVisual.Invoke(),
                     ResAndIndustryUIAlgos.CreateTargetCosmicBodyChoiceButton
                     (
                         targetChoiceSetter: new TargetChoiceSetter(lightRedirection: this),

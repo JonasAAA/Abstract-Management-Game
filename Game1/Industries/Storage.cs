@@ -232,13 +232,8 @@ namespace Game1.Industries
                 childHorizPos: HorizPosEnum.Left,
                 children:
                 [
-                    new TextBox
-                    (
-                        text: """
-                            Storage UI Panel
-                            stored
-                            """
-                    ),
+                    buildingParams.NameVisual.Invoke(),
+                    new TextBox(text: "stored"),
                     storedAmountsUI
                 ]
             );

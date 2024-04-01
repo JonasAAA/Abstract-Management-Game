@@ -15,6 +15,10 @@ namespace Game1.Industries
         public static readonly IImage cosmicBodyIcon = new Image(TextureName.cosmicBody, height: CurGameConfig.smallIconHeight);
         public static readonly IImage starlightIcon = new Image(TextureName.starlight, height: CurGameConfig.smallIconHeight);
 
+        /// <summary>
+        /// This is not just TextBox (or a name string) to allow industries to include resource icons in their name
+        /// E.g. Basic (gear icon) manufacturing
+        /// </summary>
         public IFunction<IHUDElement> NameVisual { get; }
         public NodeID NodeID { get; }
         public IBuildingImage BuildingImage { get; }

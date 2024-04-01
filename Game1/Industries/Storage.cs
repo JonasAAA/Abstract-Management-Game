@@ -200,7 +200,7 @@ namespace Game1.Industries
         private readonly EnumDict<NeighborDir, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>>> resNeighbors;
         private AllResAmounts resTravellingHere;
         private readonly UIRectVertPanel<IHUDElement> storageUI;
-        private IHUDElement storedAmountsUI;
+        private IHUDElement storedAmountsUI, unusedAmountsUI;
 
         private Storage(StorageParams storageParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile)
         {
@@ -225,6 +225,7 @@ namespace Game1.Industries
             );
 
             storedAmountsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: storage.Amount);
+            unusedAmountsUI = CreateNewUnusedAmountsUI();
 
             storageUI = new
             (
@@ -259,10 +260,18 @@ namespace Game1.Industries
                     ),
                     new TextBox(text: "THIS BUILDING DOES NOT\nDEPEND ON THE ABOVE CURRENTLY"),
                     new TextBox(text: "stored"),
-                    storedAmountsUI
+                    storedAmountsUI,
+                    new TextBox(text: "unused space"),
+                    unusedAmountsUI
                 ]
             );
         }
+
+        private IHUDElement CreateNewUnusedAmountsUI()
+            => ResAndIndustryUIAlgos.ResAmountsHUDElement
+            (
+                resAmounts: buildingParams.MaxStored(storageParams.CurStoredRes.UnwrapOrThrow()) - storage.Amount
+            );
 
         public bool IsNeighborhoodPossible(NeighborDir neighborDir, IResource resource)
             => resNeighbors[neighborDir].ContainsKey(resource);
@@ -311,12 +320,18 @@ namespace Game1.Industries
             => this;
 
         public void UpdateUI()
-#warning Complete this: Add proper UI
-            => storageUI.ReplaceChild
+        {
+            storageUI.ReplaceChild
             (
                 oldChild: ref storedAmountsUI,
                 newChild: ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: storage.Amount)
             );
+            storageUI.ReplaceChild
+            (
+                oldChild: ref unusedAmountsUI,
+                newChild: CreateNewUnusedAmountsUI()
+            );
+        }
 
         public bool Delete()
         {

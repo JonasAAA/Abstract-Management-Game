@@ -10,6 +10,9 @@ namespace Game1.Industries
     {
         public interface IConcreteBuildingParams<TConcreteProductionParams>
         {
+            public static abstract bool RequiresResources { get; }
+            public static abstract bool ProducesResources { get; }
+
             public IFunction<IHUDElement> NameVisual { get; }
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
@@ -110,7 +113,8 @@ namespace Game1.Industries
         private readonly EnumDict<NeighborDir, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>>> resNeighbors;
         private readonly ResPile inputStorage, outputStorage;
         private AllResAmounts resTravellingHere;
-        private IHUDElement statusUI, storedInputsUI, storedOutputsUI, resTravellingHereUI, demandUI;
+        private IHUDElement statusUI;
+        private IHUDElement? storedInputsUI, storedOutputsUI, demandUI;
 
         /// <summary>
         /// statsGraphsParams should be null iff don't want to show building stats dependence on gravity and temperature graphs
@@ -142,10 +146,9 @@ namespace Game1.Industries
             IndustryFunctionVisual = buildingParams.IndustryFunctionVisualParams(productionParams: productionParams)?.CreateIndustryFunctionVisual();
 
             statusUI = CreateNewStatusUI();
-            storedInputsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: inputStorage.Amount);
-            storedOutputsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: outputStorage.Amount);
-            resTravellingHereUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: resTravellingHere);
-            demandUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: GetResAmountsRequestToNeighbors(NeighborDir.In));
+            storedInputsUI = TConcreteBuildingParams.RequiresResources ? ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: inputStorage.Amount) : null;
+            storedOutputsUI = TConcreteBuildingParams.ProducesResources ? ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: outputStorage.Amount) : null;
+            demandUI = TConcreteBuildingParams.RequiresResources ? ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: GetResAmountsRequestToNeighbors(NeighborDir.In)) : null;
             industryUI = new UIRectVertPanel<IHUDElement>
             (
                 childHorizPos: HorizPosEnum.Left,
@@ -186,13 +189,11 @@ namespace Game1.Industries
                         )
                     },
                     statusUI,
-                    new TextBox(text: "stored inputs"),
+                    TConcreteBuildingParams.RequiresResources ? new TextBox(text: "stored inputs") : null,
                     storedInputsUI,
-                    new TextBox(text: "stored outputs"),
+                    TConcreteBuildingParams.ProducesResources ? new TextBox(text: "stored outputs") : null,
                     storedOutputsUI,
-                    new TextBox(text: "res travelling here"),
-                    resTravellingHereUI,
-                    new TextBox(text: "demand"),
+                    TConcreteBuildingParams.RequiresResources ? new TextBox(text: "demand") : null,
                     demandUI
                 }
             );
@@ -325,7 +326,6 @@ namespace Game1.Industries
 
         public void UpdateUI()
         {
-#warning Complete this: Add proper UI
             industryUI.ReplaceChild
             (
                 oldChild: ref statusUI,
@@ -333,17 +333,19 @@ namespace Game1.Industries
             );
             UpdateResAmountsUI(resAmountsUI: ref storedInputsUI, resAmounts: inputStorage.Amount);
             UpdateResAmountsUI(resAmountsUI: ref storedOutputsUI, resAmounts: outputStorage.Amount);
-            UpdateResAmountsUI(resAmountsUI: ref resTravellingHereUI, resAmounts: resTravellingHere);
             UpdateResAmountsUI(resAmountsUI: ref demandUI, resAmounts: GetResAmountsRequestToNeighbors(NeighborDir.In));
 
             return;
 
-            void UpdateResAmountsUI(ref IHUDElement resAmountsUI, AllResAmounts resAmounts)
-                => industryUI.ReplaceChild
-                (
-                    oldChild: ref resAmountsUI,
-                    newChild: ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: resAmounts)
-                );
+            void UpdateResAmountsUI(ref IHUDElement? resAmountsUI, AllResAmounts resAmounts)
+            {
+                if (resAmountsUI is not null)
+                    industryUI.ReplaceChild
+                    (
+                        oldChild: ref resAmountsUI,
+                        newChild: ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: resAmounts)
+                    );
+            }
         }
 
         public bool Delete()

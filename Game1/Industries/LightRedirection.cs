@@ -269,7 +269,6 @@ namespace Game1.Industries
         }
 
         public void UpdateUI()
-#warning Complete this: Add proper UI
         { }
 
         public bool Delete()

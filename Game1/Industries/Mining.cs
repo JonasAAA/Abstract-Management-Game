@@ -147,6 +147,12 @@ namespace Game1.Industries
                 );
             }
 
+            static bool Industry.IConcreteBuildingParams<UnitType>.RequiresResources
+                => false;
+
+            static bool Industry.IConcreteBuildingParams<UnitType>.ProducesResources
+                => true;
+
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => buildingImage;
 

@@ -55,6 +55,8 @@ namespace Game1.Industries
         [Serializable]
         public readonly struct ConcreteParams : Industry.IConcreteBuildingParams<UnitType>
         {
+
+
             public IFunction<IHUDElement> NameVisual { get; }
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
@@ -97,6 +99,12 @@ namespace Game1.Industries
                     temperature: NodeState.Temperature,
                     worldSecondsInGameSecond: CurWorldConfig.worldSecondsInGameSecond
                 );
+
+            static bool Industry.IConcreteBuildingParams<UnitType>.RequiresResources
+                => true;
+
+            static bool Industry.IConcreteBuildingParams<UnitType>.ProducesResources
+                => false;
 
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => IncompleteBuildingImage(donePropor: Propor.empty);

@@ -1,9 +1,11 @@
 ﻿namespace Game1
 {
     [Serializable]
-    public readonly struct UnitType
+    public sealed class UnitType
     {
-        public UnitType()
+        public static readonly UnitType value = new();
+
+        private UnitType()
         { }
     }
 }

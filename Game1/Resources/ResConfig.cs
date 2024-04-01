@@ -189,7 +189,7 @@ namespace Game1.Resources
             }
             relevantMatPalettes.Add(materialPalette);
             matPaletteToInd[materialPalette] = nextMatPaletteInd++;
-            return new(ok: new());
+            return new(ok: UnitType.value);
         }
 
         public EfficientReadOnlyCollection<MaterialPalette> GetMatPalettes(ProductClass productClass)

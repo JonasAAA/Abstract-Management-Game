@@ -42,9 +42,10 @@ namespace Game1.Industries
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy);
             public void FrameStart();
             /// <summary>
-            /// Returns child industry if finished construction, null otherwise
+            /// If work is paused, return text errors indicating why
+            /// If not, return child industry, and null if no new industry constructed
             /// </summary>
-            public IIndustry? Update(ResPile outputStorage);
+            public Result<IIndustry?, TextErrors> Update(ResPile outputStorage);
             public IBuildingImage BusyBuildingImage();
             /// <summary>
             /// Dump all stuff into <paramref name="outputStorage"/>
@@ -60,6 +61,9 @@ namespace Game1.Industries
         where TConcreteBuildingParams : struct, Industry.IConcreteBuildingParams<TConcreteProductionParams>
         where TProductionCycleState : class, Industry.IProductionCycleState<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TProductionCycleState>
     {
+        [Serializable]
+        private readonly record struct StateAndPauseReasons(TProductionCycleState State, Result<UnitType, TextErrors> PauseReasons);
+
         public IFunction<IHUDElement> NameVisual
             => buildingParams.NameVisual;
 
@@ -76,9 +80,9 @@ namespace Game1.Industries
             => deleted;
 
         public IBuildingImage BuildingImage
-            => stateOrReasonForNotStartingProduction.SwitchExpression
+            => stateOrNotStartedReasons.SwitchExpression
             (
-                ok: state => state.BusyBuildingImage(),
+                ok: stateAndPauseReasons => stateAndPauseReasons.State.BusyBuildingImage(),
                 error: _ => buildingParams.IdleBuildingImage
             );
 
@@ -91,7 +95,7 @@ namespace Game1.Industries
         public IHUDElement? IndustryFunctionVisual { get; }
 
         private bool Busy
-            => stateOrReasonForNotStartingProduction.isOk;
+            => stateOrNotStartedReasons.isOk;
         
         ///// <summary>
         ///// NEVER use this directly. Use IndustryUI instead
@@ -100,7 +104,7 @@ namespace Game1.Industries
         private readonly TConcreteProductionParams productionParams;
         private readonly TConcreteBuildingParams buildingParams;
         private readonly TPersistentState persistentState;
-        private Result<TProductionCycleState, TextErrors> stateOrReasonForNotStartingProduction;
+        private Result<StateAndPauseReasons, TextErrors> stateOrNotStartedReasons;
         private readonly Event<IDeletedListener> deleted;
         private bool isDeleted;
         private readonly EnumDict<NeighborDir, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>>> resNeighbors;
@@ -117,7 +121,7 @@ namespace Game1.Industries
             this.productionParams = productionParams;
             this.buildingParams = buildingParams;
             this.persistentState = persistentState;
-            stateOrReasonForNotStartingProduction = new(errors: new("Not yet initialized"));
+            stateOrNotStartedReasons = new(errors: new("Not yet initialized"));
             deleted = new();
             isDeleted = false;
             inputStorage = ResPile.CreateEmpty(thermalBody: buildingParams.NodeState.ThermalBody);
@@ -236,17 +240,17 @@ namespace Game1.Industries
 
         public void FrameStart()
         {
-            stateOrReasonForNotStartingProduction = stateOrReasonForNotStartingProduction.SwitchExpression
+            stateOrNotStartedReasons = stateOrNotStartedReasons.SwitchExpression
             (
-                ok: state => state.ShouldRestart ? CreateProductionCycleState() : new(ok: state),
+                ok: stateOrReasons => stateOrReasons.State.ShouldRestart ? CreateProductionCycleState() : new(ok: stateOrReasons),
                 error: _ => CreateProductionCycleState()
             );
-            stateOrReasonForNotStartingProduction.PerformAction
+            stateOrNotStartedReasons.PerformAction
             (
-                action: state => state.FrameStart()
+                action: stateOrReasons => stateOrReasons.State.FrameStart()
             );
 
-            Result<TProductionCycleState, TextErrors> CreateProductionCycleState()
+            Result<StateAndPauseReasons, TextErrors> CreateProductionCycleState()
                 => TProductionCycleState.Create
                 (
                     productionParams: productionParams,
@@ -254,32 +258,57 @@ namespace Game1.Industries
                     persistentState: persistentState,
                     inputStorage: inputStorage,
                     storedOutputArea: outputStorage.Amount.Area()
+                ).Select
+                (
+                    func: state => new StateAndPauseReasons(State: state, PauseReasons: new(ok: UnitType.value))
                 );
         }
 
         public IIndustry? UpdateImpl()
         {
-            var childIndustry = stateOrReasonForNotStartingProduction.SwitchExpression
+            (IIndustry? childIndustry, stateOrNotStartedReasons) = stateOrNotStartedReasons.SwitchExpression
             (
-                ok: state => state.Update(outputStorage: outputStorage),
-                error: _ => null
+                ok: stateAndPauseReasons => stateAndPauseReasons.State.Update(outputStorage: outputStorage).SwitchExpression<(IIndustry?, Result<StateAndPauseReasons, TextErrors>)>
+                (
+                    ok: childIndustry =>
+                    (
+                        childIndustry,
+                        new(errors: new("construction is done"))
+                    ),
+                    error: pausedReasons =>
+                    (
+                        null,
+                        new
+                        (
+                            ok: new StateAndPauseReasons
+                            (
+                                State: stateAndPauseReasons.State,
+                                PauseReasons: new(errors: pausedReasons)
+                            )
+                        )
+                    )
+                ),
+                error: notStartedReasons =>
+                (
+                    null,
+                    new(errors: notStartedReasons)
+                )
             );
 
-            if (childIndustry is not null)
-            {
-                stateOrReasonForNotStartingProduction = new(errors: new("construction is done"));
-                return childIndustry;
-            }
-            return this;
+            return childIndustry ?? this;
         }
 
         private TextBox CreateNewStatusUI()
             => new
             (
-                text: stateOrReasonForNotStartingProduction.SwitchExpression
+                text: stateOrNotStartedReasons.SwitchExpression
                 (
-                    ok: _ => "Working",
-                    error: errors => $"Not working because:\n{string.Join('\n', errors)}"
+                    ok: stateAndPauseReasons => stateAndPauseReasons.PauseReasons.SwitchExpression
+                    (
+                        _ => "Working",
+                        error: pausedReasons => $"Paused because:\n{string.Join('\n', pausedReasons)}"
+                    ),
+                    error: notStartedReasons => $"Paused because:\n{string.Join('\n', notStartedReasons)}"
                 )
             );
 
@@ -317,7 +346,7 @@ namespace Game1.Industries
             // For now, all building materials, unused input, production, and output materials are dumped inside the planet 
             outputStorage.TransferAllFrom(source: inputStorage);
             TProductionCycleState.DeletePersistentState(persistentState: persistentState, outputStorage: outputStorage);
-            stateOrReasonForNotStartingProduction.PerformAction(action: state => state.Delete(outputStorage: outputStorage));
+            stateOrNotStartedReasons.PerformAction(action: stateAndPauseReasons => stateAndPauseReasons.State.Delete(outputStorage: outputStorage));
             IIndustry.DumpAllResIntoCosmicBody(nodeState: buildingParams.NodeState, resPile: outputStorage);
             deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
 
@@ -329,16 +358,16 @@ namespace Game1.Industries
             => buildingParams.EnergyPriority;
 
         ElectricalEnergy IEnergyConsumer.ReqEnergy()
-            => stateOrReasonForNotStartingProduction.SwitchExpression
+            => stateOrNotStartedReasons.SwitchExpression
             (
-                ok: state => state.ReqEnergy,
+                ok: stateAndPauseReasons => stateAndPauseReasons.State.ReqEnergy,
                 error: _ => ElectricalEnergy.zero
             );
 
         void IEnergyConsumer.ConsumeEnergyFrom(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
-            => stateOrReasonForNotStartingProduction.SwitchStatement
+            => stateOrNotStartedReasons.SwitchStatement
             (
-                ok: state => state.ConsumeElectricalEnergy(source: source, electricalEnergy: electricalEnergy),
+                ok: stateAndPauseReasons => stateAndPauseReasons.State.ConsumeElectricalEnergy(source: source, electricalEnergy: electricalEnergy),
                 error: _ => Debug.Assert(electricalEnergy.IsZero)
             );
     }

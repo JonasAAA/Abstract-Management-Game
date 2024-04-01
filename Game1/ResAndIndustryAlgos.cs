@@ -399,7 +399,15 @@ namespace Game1
         /// </summary>
         public static MechProdStats CurMechProdStats(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
             MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
-            => new
+        {
+            var producedAreaPerSec = buildingArea * TentativeThroughput
+            (
+                temperature: temperature,
+                chosenTotalPropor: Propor.full,
+                matPaletteChoices: buildingMatPaletteChoices.Choices,
+                buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
+            ) * (UDouble)0.01;
+            return new
             (
                 ReqWatts: CurReqWatts
                 (
@@ -408,14 +416,13 @@ namespace Game1
                     gravity: gravity,
                     buildingArea: buildingArea
                 ),
-                ProducedAreaPerSec: buildingArea * TentativeThroughput
-                (
-                    temperature: temperature,
-                    chosenTotalPropor: Propor.full,
-                    matPaletteChoices: buildingMatPaletteChoices.Choices,
-                    buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
-                ) * (UDouble)0.01
+                ProducedAreaPerSecOrPauseReasons: producedAreaPerSec.IsZero switch
+                {
+                    true => new(errors: new("The temperature is too high")),
+                    false => new(ok: producedAreaPerSec)
+                }
             );
+        }
 
         /// <summary>
         /// Note that this returns max production params as it doesn't know how much radiant energy is available to be transformed
@@ -449,7 +456,7 @@ namespace Game1
             (
                 ReqWatts: buildingComponentsArea.valueInMetSq * neededElectricityFactor,
                 // Means that the building will complete in 10 real world seconds
-                ProducedAreaPerSec: buildingComponentsArea.ToDouble() * ((UDouble)1.0 / (worldSecondsInGameSecond * 10))
+                ProducedAreaPerSecOrPauseReasons: new(ok: buildingComponentsArea.ToDouble() * ((UDouble)1.0 / (worldSecondsInGameSecond * 10)))
             );
         }
 

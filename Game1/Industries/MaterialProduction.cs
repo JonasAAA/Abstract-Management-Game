@@ -267,7 +267,8 @@ namespace Game1.Industries
             private readonly AreaInt areaInProduction;
 
             private MechProdStats curProdStats;
-            private Propor donePropor, workingPropor;
+            private Propor donePropor;
+            private Result<Propor, TextErrors> workingProporOrPauseReasons;
 
             private ProductionCycleState(ConcreteBuildingParams buildingParams, ResPile resInUse, Material material, ulong productionAmount, ulong overallMaxProductionAmount)
             {
@@ -294,28 +295,28 @@ namespace Game1.Industries
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
             {
                 electricalEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
-                workingPropor = ResAndIndustryHelpers.WorkingPropor(proporUtilized: proporUtilized, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
+                workingProporOrPauseReasons = ResAndIndustryHelpers.WorkingPropor(proporUtilized: proporUtilized, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
             }
 
             /// <summary>
             /// This will not remove no longer needed building components until production cycle is done since fix current max production amount
             /// and some other production stats at the start of production cycle
             /// </summary>
-            public IIndustry? Update(ResPile outputStorage)
+            public Result<IIndustry?, TextErrors> Update(ResPile outputStorage)
             {
                 buildingParams.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
 
-                donePropor = donePropor.UpdateDonePropor
+                (donePropor, var pauseReasons) = donePropor.UpdateDonePropor
                 (
-                    workingPropor: workingPropor,
-                    producedAreaPerSec: curProdStats.ProducedAreaPerSec,
+                    workingProporOrPauseReasons: workingProporOrPauseReasons,
+                    producedAreaPerSecOrPauseReasons: curProdStats.ProducedAreaPerSecOrPauseReasons,
                     elapsed: CurWorldManager.Elapsed,
                     areaInProduction: areaInProduction
                 );
 
                 if (donePropor.IsFull)
                     outputStorage.TransformFrom(source: resInUse, recipe: recipe);
-                return null;
+                return pauseReasons.Select<IIndustry?>(func: _ => null);
             }
 
             public void Delete(ResPile outputStorage)

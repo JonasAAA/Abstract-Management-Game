@@ -74,7 +74,7 @@ namespace Game1
 
                 var productionChoicePanel = constrGeneralParams.CreateProductionChoicePanel(productionChoiceSetter: this);
                 if (productionChoicePanel is null)
-                    SetProductionChoice(productionChoice: new ProductionChoice(Choice: new UnitType()));
+                    SetProductionChoice(productionChoice: new ProductionChoice(Choice: UnitType.value));
 
                 buildingConfigPanel.Reinitialize
                 (

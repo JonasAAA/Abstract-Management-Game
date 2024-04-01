@@ -80,9 +80,9 @@ namespace Game1.Industries
             public IIndustry CreateIndustry()
                 => new Industry<UnitType, ConcreteParams, UnitType, ConstructionState>
                 (
-                    productionParams: new(),
+                    productionParams: UnitType.value,
                     buildingParams: this,
-                    persistentState: new(),
+                    persistentState: UnitType.value,
                     statsGraphsParams: null
                 );
 
@@ -156,7 +156,8 @@ namespace Game1.Industries
             private readonly ResPile buildingResPile;
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
             private MechProdStats curConstrStats;
-            private Propor donePropor, workingPropor;
+            private Propor donePropor;
+            private Result<Propor, TextErrors> workingProporOrPauseReasons;
 
             private ConstructionState(ResPile buildingResPile, ConcreteParams parameters)
             {
@@ -178,20 +179,20 @@ namespace Game1.Industries
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
             {
                 electricalEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
-                workingPropor = ResAndIndustryHelpers.WorkingPropor(proporUtilized: Propor.full, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
+                workingProporOrPauseReasons = ResAndIndustryHelpers.WorkingPropor(proporUtilized: Propor.full, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
             }
 
             /// <summary>
             /// Returns child industry if finished construction, null otherwise
             /// </summary>
-            public IIndustry? Update(ResPile outputStorage)
+            public Result<IIndustry?, TextErrors> Update(ResPile outputStorage)
             {
                 parameters.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
 
-                donePropor = donePropor.UpdateDonePropor
+                (donePropor, var pauseReasons) = donePropor.UpdateDonePropor
                 (
-                    workingPropor: workingPropor,
-                    producedAreaPerSec: curConstrStats.ProducedAreaPerSec,
+                    workingProporOrPauseReasons: workingProporOrPauseReasons,
+                    producedAreaPerSecOrPauseReasons: curConstrStats.ProducedAreaPerSecOrPauseReasons,
                     elapsed: CurWorldManager.Elapsed,
                     areaInProduction: parameters.buildingComponentsArea
                 );
@@ -207,9 +208,9 @@ namespace Game1.Industries
                             message: UIAlgorithms.GetConstructionComplete(buildingNameVisual: childIndustry.NameVisual)
                         )
                     );
-                    return childIndustry;
+                    return new(ok: childIndustry);
                 }
-                return null;
+                return pauseReasons.Select<IIndustry?>(func: _ => null);
             }
 
             public void Delete(ResPile outputStorage)

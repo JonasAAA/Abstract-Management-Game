@@ -29,18 +29,34 @@ namespace Game1
                 valueInJ: MyMathHelper.RoundNonneg((decimal)watts * (decimal)proporUtilized * (decimal)elapsed.TotalSeconds)
             );
 
-        public static Propor WorkingPropor(Propor proporUtilized, ElectricalEnergy allocatedEnergy, ElectricalEnergy reqEnergy)
+        public static Result<Propor, TextErrors> WorkingPropor(Propor proporUtilized, ElectricalEnergy allocatedEnergy, ElectricalEnergy reqEnergy)
         {
             if (reqEnergy.IsZero)
-                return proporUtilized;
-            return proporUtilized * Propor.Create(part: allocatedEnergy.ValueInJ, whole: reqEnergy.ValueInJ)!.Value;
+                return new(ok: proporUtilized);
+            if (allocatedEnergy.IsZero)
+                return new(errors: new("Got no electricity"));
+            return new(ok: proporUtilized * Propor.Create(part: allocatedEnergy.ValueInJ, whole: reqEnergy.ValueInJ)!.Value);
         }
 
-        public static Propor UpdateDonePropor(this Propor donePropor, Propor workingPropor, AreaDouble producedAreaPerSec, TimeSpan elapsed, AreaInt areaInProduction)
-        {
-            AreaDouble areaProduced = workingPropor * (UDouble)elapsed.TotalSeconds * producedAreaPerSec;
-            return Propor.CreateByClamp((UDouble)donePropor + areaProduced.valueInMetSq / areaInProduction.valueInMetSq);
-        }
+        public static (Propor donePropor, Result<UnitType, TextErrors> pauseReasons) UpdateDonePropor(this Propor donePropor,
+            Result<Propor, TextErrors> workingProporOrPauseReasons, Result<AreaDouble, TextErrors> producedAreaPerSecOrPauseReasons,
+            TimeSpan elapsed, AreaInt areaInProduction)
+            => Result.Lift
+            (
+                func: (arg1, arg2) =>
+                {
+                    var workingPropor = arg1;
+                    var producedAreaPerSec = arg2;
+                    AreaDouble areaProduced = workingPropor * (UDouble)elapsed.TotalSeconds * producedAreaPerSec;
+                    return Propor.CreateByClamp((UDouble)donePropor + areaProduced.valueInMetSq / areaInProduction.valueInMetSq);
+                },
+                arg1: workingProporOrPauseReasons,
+                arg2: producedAreaPerSecOrPauseReasons
+            ).SwitchExpression<(Propor, Result<UnitType, TextErrors>)>
+            (
+                ok: newDonePropor => (newDonePropor, new(ok: UnitType.value)),
+                error: pauseReasons => (donePropor, new(errors: pauseReasons))
+            );
 
         /// <exception cref="ArgumentException">if buildingMatPaletteChoices doesn't contain all required product classes</exception>
         public static BuildingComponentsToAmountPUBA BuildingComponentsToAmountPUBA(

@@ -140,7 +140,7 @@ namespace Game1.Industries
                 var statsGraphsParams = (buildingMatPaletteChoices, buildingCostPropors);
                 return new Industry<UnitType, ConcreteBuildingParams, PersistentState, MiningCycleState>
                 (
-                    productionParams: new(),
+                    productionParams: UnitType.value,
                     buildingParams: this,
                     persistentState: new(buildingResPile: buildingResPile),
                     statsGraphsParams: statsGraphsParams
@@ -274,7 +274,8 @@ namespace Game1.Industries
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
 
             private MechProdStats curMiningStats;
-            private Propor donePropor, workingPropor;
+            private Propor donePropor;
+            private Result<Propor, TextErrors> workingProporOrPauseReasons;
 
             private MiningCycleState(ConcreteBuildingParams buildingParams, ResPile buildingResPile, ResPile miningRes, AreaInt miningArea)
             {
@@ -299,23 +300,23 @@ namespace Game1.Industries
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
             {
                 electricalEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
-                workingPropor = ResAndIndustryHelpers.WorkingPropor(proporUtilized: Propor.full, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
+                workingProporOrPauseReasons = ResAndIndustryHelpers.WorkingPropor(proporUtilized: Propor.full, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
             }
 
             /// <summary>
             /// This will not remove no longer needed building components until mining cycle is done since fix current mining volume
             /// and some other mining stats at the start of the mining cycle. 
             /// </summary>
-            public IIndustry? Update(ResPile outputStorage)
+            public Result<IIndustry?, TextErrors> Update(ResPile outputStorage)
             {
                 buildingParams.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
 
                 // If mine less than could, probably shouldn't increase mining speed because of that
                 // On the other hand that would be a very niche circumstance anyway - basically only when mining last resources of the planet
-                donePropor = donePropor.UpdateDonePropor
+                (donePropor, var pauseReasons) = donePropor.UpdateDonePropor
                 (
-                    workingPropor: workingPropor,
-                    producedAreaPerSec: curMiningStats.ProducedAreaPerSec,
+                    workingProporOrPauseReasons: workingProporOrPauseReasons,
+                    producedAreaPerSecOrPauseReasons: curMiningStats.ProducedAreaPerSecOrPauseReasons,
                     elapsed: CurWorldManager.Elapsed,
                     areaInProduction: miningArea
                 );
@@ -325,7 +326,7 @@ namespace Game1.Industries
                     outputStorage.TransferAllFrom(source: miningRes);
                     buildingParams.RemoveUnneededBuildingComponents(buildingResPile: buildingResPile, outputStorage: outputStorage);
                 }
-                return null;
+                return pauseReasons.Select<IIndustry?>(func: _ => null);
             }
 
             public void Delete(ResPile outputStorage)

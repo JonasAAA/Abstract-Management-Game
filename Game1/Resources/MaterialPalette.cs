@@ -89,7 +89,7 @@ namespace Game1.Resources
         {
             if (otherMatPalette.materialChoices.DictEquals(materialChoices))
                 return new(errors: new(UIAlgorithms.ExactSamePaletteAlreadyExists));
-            return new(ok: new());
+            return new(ok: UnitType.value);
         }
 
         public sealed override string ToString()

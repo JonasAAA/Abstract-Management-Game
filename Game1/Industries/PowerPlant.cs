@@ -116,7 +116,7 @@ namespace Game1.Industries
                 var statsGraphsParams = (buildingMatPaletteChoices, buildingCostPropors);
                 return new Industry<UnitType, ConcreteBuildingParams, ResPile, PowerProductionState>
                 (
-                    productionParams: new(),
+                    productionParams: UnitType.value,
                     buildingParams: this,
                     persistentState: buildingResPile,
                     statsGraphsParams: statsGraphsParams
@@ -202,8 +202,12 @@ namespace Game1.Industries
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
                 => Debug.Assert(electricalEnergy.IsZero);
 
-            public IIndustry? Update(ResPile outputStorage)
-                => null;
+            public Result<IIndustry?, TextErrors> Update(ResPile outputStorage)
+                => energyToTransform.IsZero switch
+                {
+                    true => new(errors: new("Receive not enough light")),
+                    false => new(ok: null)
+                };
 
             public void Delete(ResPile outputStorage)
                 => CurWorldManager.RemoveEnergyProducer(energyProducer: this);

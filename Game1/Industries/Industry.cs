@@ -93,16 +93,6 @@ namespace Game1.Industries
         private bool Busy
             => stateOrReasonForNotStartingProduction.isOk;
         
-        //private UIRectVertPanel<IHUDElement> IndustryUI
-        //{
-        //    get
-        //    {
-        //        if (industryUI is not null)
-        //            return industryUI;
-                
-        //        return industryUI;
-        //    }
-        //}
         ///// <summary>
         ///// NEVER use this directly. Use IndustryUI instead
         ///// </summary>
@@ -116,7 +106,7 @@ namespace Game1.Industries
         private readonly EnumDict<NeighborDir, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>>> resNeighbors;
         private readonly ResPile inputStorage, outputStorage;
         private AllResAmounts resTravellingHere;
-        private IHUDElement storedInputsUI, storedOutputsUI, resTravellingHereUI, demandUI;
+        private IHUDElement statusUI, storedInputsUI, storedOutputsUI, resTravellingHereUI, demandUI;
 
         /// <summary>
         /// statsGraphsParams should be null iff don't want to show building stats dependence on gravity and temperature graphs
@@ -147,6 +137,7 @@ namespace Game1.Industries
             RoutePanel = IIndustry.CreateRoutePanel(industry: this);
             IndustryFunctionVisual = buildingParams.IndustryFunctionVisualParams(productionParams: productionParams)?.CreateIndustryFunctionVisual();
 
+            statusUI = CreateNewStatusUI();
             storedInputsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: inputStorage.Amount);
             storedOutputsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: outputStorage.Amount);
             resTravellingHereUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: resTravellingHere);
@@ -190,6 +181,7 @@ namespace Game1.Industries
                             )
                         )
                     },
+                    statusUI,
                     new TextBox(text: "stored inputs"),
                     storedInputsUI,
                     new TextBox(text: "stored outputs"),
@@ -281,9 +273,24 @@ namespace Game1.Industries
             return this;
         }
 
+        private TextBox CreateNewStatusUI()
+            => new
+            (
+                text: stateOrReasonForNotStartingProduction.SwitchExpression
+                (
+                    ok: _ => "Working",
+                    error: errors => $"Not working because:\n{string.Join('\n', errors)}"
+                )
+            );
+
         public void UpdateUI()
         {
 #warning Complete this: Add proper UI
+            industryUI.ReplaceChild
+            (
+                oldChild: ref statusUI,
+                newChild: CreateNewStatusUI()
+            );
             UpdateResAmountsUI(resAmountsUI: ref storedInputsUI, resAmounts: inputStorage.Amount);
             UpdateResAmountsUI(resAmountsUI: ref storedOutputsUI, resAmounts: outputStorage.Amount);
             UpdateResAmountsUI(resAmountsUI: ref resTravellingHereUI, resAmounts: resTravellingHere);

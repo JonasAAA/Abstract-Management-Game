@@ -273,7 +273,18 @@ namespace Game1.Industries
                     ok: childIndustry =>
                     (
                         childIndustry,
-                        new(errors: new("construction is done"))
+                        childIndustry switch
+                        {
+                            not null => new(errors: new("construction is done")),
+                            null => new
+                            (
+                                ok: new
+                                (
+                                    State: stateAndPauseReasons.State,
+                                    PauseReasons: new(ok: UnitType.value)
+                                )
+                            )
+                        }
                     ),
                     error: pausedReasons =>
                     (

@@ -104,8 +104,8 @@ namespace Game1.Resources
                 return new Product
                 (
                     name: UIAlgorithms.ProductName(prodParamsName: name, paletteName: materialPalette.name),
-                    icon: new ConfigurableIcon(icon: icon, background: materialPalette.image),
-                    smallIcon: new ConfigurableIcon(icon: smallIcon, background: materialPalette.smallImage),
+                    icon: new(icon: icon, background: materialPalette.image),
+                    smallIcon: new(icon: smallIcon, background: materialPalette.smallImage),
                     parameters: this,
                     materialPalette: materialPalette,
                     productIngredients: new ResAmounts<Product>
@@ -166,8 +166,8 @@ namespace Game1.Resources
             return productParamsDict;
         }
 
-        public IImage Icon { get; }
-        public IImage SmallIcon { get; }
+        public ConfigurableIcon Icon { get; }
+        public ConfigurableIcon SmallIcon { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
@@ -180,7 +180,7 @@ namespace Game1.Resources
         private readonly string name;
         private readonly Params parameters;
 
-        private Product(string name, IImage icon, IImage smallIcon, Params parameters, MaterialPalette materialPalette, ResAmounts<Product> productIngredients, ResAmounts<Material> materialIngredients)
+        private Product(string name, ConfigurableIcon icon, ConfigurableIcon smallIcon, Params parameters, MaterialPalette materialPalette, ResAmounts<Product> productIngredients, ResAmounts<Material> materialIngredients)
         {
             this.name = name;
             Icon = icon;

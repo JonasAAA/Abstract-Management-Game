@@ -354,7 +354,7 @@ namespace Game1
 
         private static readonly Image arrowDownImage = new(name: TextureName.arrowDown, height: CurGameConfig.smallIconHeight * 2 / 3);
 
-        public static IHUDElement CreateIndustryFunctionInputOrOutputVisual(IEnumerable<IImage> icons)
+        public static IHUDElement CreateIndustryFunctionInputOrOutputVisual(IEnumerable<ConfigurableIcon> icons)
             => new UIRectHorizPanel<IHUDElement>
             (
                 childVertPos: VertPosEnum.Middle,

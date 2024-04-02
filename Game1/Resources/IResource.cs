@@ -5,9 +5,9 @@ namespace Game1.Resources
 {
     public interface IResource : IComparable<IResource>, IHasToString
     {
-        // This is not Icon type because want to allow ConfigurableIcon as well and don't want to use inheritance
-        public IImage Icon { get; }
-        public IImage SmallIcon { get; }
+        // This could be just IImage, but want to force all icons to choose their background
+        public ConfigurableIcon Icon { get; }
+        public ConfigurableIcon SmallIcon { get; }
         public Mass Mass { get; }
         /// <summary>
         /// Heat capacity per area

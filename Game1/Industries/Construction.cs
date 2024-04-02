@@ -60,7 +60,7 @@ namespace Game1.Industries
                         select incompleteMatPaletteChoices.TryGetValue(key: prodParams.productClass, out var matPalette) switch
                         {
                             true => prodParams.GetProduct(materialPalette: matPalette).SmallIcon,
-                            false => prodParams.smallIcon
+                            false => prodParams.smallIcon.WithMatPaletteNotYetChosenBackgroundColor()
                         }
                 );
 

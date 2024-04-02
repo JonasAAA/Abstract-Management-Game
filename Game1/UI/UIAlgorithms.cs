@@ -17,7 +17,7 @@ namespace Game1.UI
                     children:
                     [
                         new TextBox(text: "Basic"),
-                        new ImageHUDElement(image: prodParams.icon),
+                        new ImageHUDElement(image: prodParams.icon.WithMatPaletteNotYetChosenBackgroundColor()),
                         new TextBox(text: "manufaturing")
                     ],
                     backgroundColor: Color.Transparent

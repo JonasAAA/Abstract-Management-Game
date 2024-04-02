@@ -14,6 +14,8 @@
             houseIndustryColor,
             linkTravellerColor,
             mapCreationSelectedWorldUIElementColor,
+            defaultIconBackgroundColor,
+            matPaletteNotYetChosenBackgroundColor,
             // material palette colors
             otherMechMatPaletteColor,
             defMechMatPaletteColor,
@@ -41,7 +43,7 @@
             functionGraphLineColor,
             functionGraphBackgroundColor,
             functionGraphHighlightColor,
-            iconBackgroundColor,
+            shouldBeInvisibleIconBackgroundColor,
             barColor,
             barBackgroundColor;
 
@@ -59,6 +61,8 @@
             houseIndustryColor = Color.Yellow;
             linkTravellerColor = Color.Black;
             mapCreationSelectedWorldUIElementColor = Color.White;
+            defaultIconBackgroundColor = Color.White;
+            matPaletteNotYetChosenBackgroundColor = Color.Gray;
             // material palette colors taken from https://tailwindcss.com/docs/customizing-colors
             otherMechMatPaletteColor = C.ColorFromRGB(rgb: 0xfb923c); // Orange-400
             defMechMatPaletteColor = C.ColorFromRGB(rgb: 0xfed7aa); // Orange-200
@@ -86,7 +90,7 @@
             functionGraphLineColor = textColor;
             functionGraphBackgroundColor = Color.Black;
             functionGraphHighlightColor = Color.White * .5f;
-            iconBackgroundColor = Color.Gray;
+            shouldBeInvisibleIconBackgroundColor = Color.Pink;
             barColor = functionGraphLineColor;
             barBackgroundColor = functionGraphBackgroundColor;
         }

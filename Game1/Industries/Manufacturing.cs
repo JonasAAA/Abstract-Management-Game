@@ -375,9 +375,9 @@ namespace Game1.Industries
                          select IIndustry.materialIcon
                         ).Concat(
                          from ingredProdAndAmount in productionParams.productParams.ingredProdToAmounts
-                         select ingredProdAndAmount.prodParams.smallIcon
+                         select ingredProdAndAmount.prodParams.smallIcon.WithMatPaletteNotYetChosenBackgroundColor()
                         ).Append(IIndustry.electricityIcon),
-                    OutputIcons: [productionParams.productParams.smallIcon]
+                    OutputIcons: [productionParams.productParams.smallIcon.WithMatPaletteNotYetChosenBackgroundColor()]
                 )
             );
 

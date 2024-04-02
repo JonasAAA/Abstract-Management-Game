@@ -21,7 +21,7 @@ namespace Game1.UI
         {
             this.image = image;
             Tooltip = image is IMaybeWithTooltip withTooltip ? withTooltip.Tooltip : null;
-            Color = backgroundColor ?? colorConfig.iconBackgroundColor;
+            Color = backgroundColor ?? colorConfig.shouldBeInvisibleIconBackgroundColor;
         }
 
         protected sealed override void DrawChildren()

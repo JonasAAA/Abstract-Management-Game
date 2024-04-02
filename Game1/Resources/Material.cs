@@ -17,8 +17,8 @@ namespace Game1.Resources
                 composition: ResAndIndustryAlgos.CreateMatCompositionFromRawMatPropors(rawMatPropors: rawMatAreaPropors)
             );
 
-        public IImage Icon { get; }
-        public IImage SmallIcon { get; }
+        public ConfigurableIcon Icon { get; }
+        public ConfigurableIcon SmallIcon { get; }
         public Mass Mass { get; }
         public HeatCapacity HeatCapacity { get; }
         public AreaInt Area { get; }
@@ -30,8 +30,8 @@ namespace Game1.Resources
         private Material(string name, TextureName iconName, RawMatAmounts composition)
         {
             this.name = name;
-            Icon = new Icon(name: iconName, height: CurGameConfig.iconHeight);
-            SmallIcon = new Icon(name: iconName, height: CurGameConfig.smallIconHeight);
+            Icon = new Icon(name: iconName, height: CurGameConfig.iconHeight).WithDefaultBackgroundColor();
+            SmallIcon = new Icon(name: iconName, height: CurGameConfig.smallIconHeight).WithDefaultBackgroundColor();
             Mass = composition.Mass();
             HeatCapacity = composition.HeatCapacity();
             Area = ResAndIndustryAlgos.blockArea;

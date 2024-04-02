@@ -1,4 +1,5 @@
 ﻿using Game1.ContentNames;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
@@ -14,6 +15,31 @@ namespace Game1.UI
 
         public Icon(TextureName name, UDouble height)
             => image = new(name: name, height: height);
+
+        public ConfigurableIcon WithDefaultBackgroundColor()
+            => new
+            (
+                icon: this,
+                background: new ColorRect
+                (
+                    width: Width,
+                    height: Height,
+                    color: colorConfig.defaultIconBackgroundColor
+                )
+            );
+
+        public ConfigurableIcon WithMatPaletteNotYetChosenBackgroundColor()
+            => new
+            (
+                icon: this,
+                background: new ColorRect
+                (
+                    width: Width,
+                    height: Height,
+                    color: colorConfig.matPaletteNotYetChosenBackgroundColor
+                )
+            );
+
 
         public void Draw(Vector2Bare center)
             => image.Draw(center);

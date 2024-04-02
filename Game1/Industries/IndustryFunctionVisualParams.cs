@@ -2,5 +2,5 @@
 
 namespace Game1.Industries
 {
-    public readonly record struct IndustryFunctionVisualParams(IEnumerable<IImage> InputIcons, IEnumerable<IImage> OutputIcons);
+    public readonly record struct IndustryFunctionVisualParams(IEnumerable<ConfigurableIcon> InputIcons, IEnumerable<ConfigurableIcon> OutputIcons);
 }

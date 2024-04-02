@@ -214,8 +214,8 @@
         public static ulong Round(UDouble value)
             => Convert.ToUInt64(value);
 
-        public static long Round(double value)
-            => Convert.ToInt64(value);
+        public static long RoundSaturating(double value)
+            => long.CreateSaturating(Math.Round(value));
 
         public static long Ceiling(double value)
             => (long)Math.Ceiling(value);

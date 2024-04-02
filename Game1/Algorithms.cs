@@ -282,10 +282,11 @@ namespace Game1
                     * rawMatProporInComposition * rawMatProporInComposition
                     * MyMathHelper.Pow(@base: surfaceGravity.valueInMetPerSeqSq, exponent: surfaceGravityExponent)
                     * MyMathHelper.Pow(@base: temperature.valueInK, exponent: temperatureExponent);
+                    //* MyMathHelper.Pow(@base: 1.0003, exponent: temperature.valueInK);
             ulong reactingAmount = MyMathHelper.Min
             (
                 amount,
-                MyMathHelper.RoundNonneg((decimal)(amount * reactionStrength * duration.TotalSeconds))
+                (ulong)MyMathHelper.RoundSaturating(amount * reactionStrength * duration.TotalSeconds)
             );
             return
             (

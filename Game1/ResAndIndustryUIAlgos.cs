@@ -354,31 +354,26 @@ namespace Game1
 
         private static readonly Image arrowDownImage = new(name: TextureName.arrowDown, height: CurGameConfig.smallIconHeight * 2 / 3);
 
+        public static IHUDElement CreateIndustryFunctionInputOrOutputVisual(IEnumerable<IImage> icons)
+            => new UIRectHorizPanel<IHUDElement>
+            (
+                childVertPos: VertPosEnum.Middle,
+                children:
+                    from icon in icons
+                    select new ImageHUDElement(icon),
+                backgroundColor: Color.Transparent,
+                gap: 0
+            );
+
         public static IHUDElement CreateIndustryFunctionVisual(this IndustryFunctionVisualParams industryFunctionVisualParams)
             => new UIRectVertPanel<IHUDElement>
             (
                 childHorizPos: HorizPosEnum.Middle,
                 children:
                 [
-                    new UIRectHorizPanel<IHUDElement>
-                    (
-                        childVertPos: VertPosEnum.Middle,
-                        children:
-                            from icon in industryFunctionVisualParams.InputIcons
-                            select new ImageHUDElement(icon),
-                        backgroundColor: Color.Transparent,
-                        gap: 0
-                    ),
+                    CreateIndustryFunctionInputOrOutputVisual(icons: industryFunctionVisualParams.InputIcons),
                     new ImageHUDElement(image: arrowDownImage, backgroundColor: Color.Transparent),
-                    new UIRectHorizPanel<IHUDElement>
-                    (
-                        childVertPos: VertPosEnum.Middle,
-                        children:
-                            from icon in industryFunctionVisualParams.OutputIcons
-                            select new ImageHUDElement(icon),
-                        backgroundColor: Color.Transparent,
-                        gap: 0
-                    )
+                    CreateIndustryFunctionInputOrOutputVisual(icons: industryFunctionVisualParams.OutputIcons),
                 ],
                 backgroundColor: Color.Transparent,
                 gap: 0

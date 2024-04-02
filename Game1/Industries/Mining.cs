@@ -52,6 +52,13 @@ namespace Game1.Industries
                     buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
                     surfaceMatPalette: neededBuildingMatPaletteChoices[ProductClass.roof]
                 );
+
+            IndustryFunctionVisualParams IGeneralBuildingConstructionParams.IncompleteFunctionVisualParams(ProductionChoice? productionChoice)
+                => new
+                (
+                    InputIcons: [IIndustry.cosmicBodyIcon, IIndustry.electricityIcon],
+                    OutputIcons: [IIndustry.resIcon]
+                );
         }
 
         [Serializable]
@@ -169,7 +176,7 @@ namespace Game1.Industries
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => AllResAmounts.empty;
 
-            IndustryFunctionVisualParams? Industry.IConcreteBuildingParams<UnitType>.IndustryFunctionVisualParams(UnitType productionParams)
+            IndustryFunctionVisualParams Industry.IConcreteBuildingParams<UnitType>.IndustryFunctionVisualParams(UnitType productionParams)
                 => new
                 (
                     InputIcons: [IIndustry.cosmicBodyIcon, IIndustry.electricityIcon],

@@ -57,6 +57,9 @@ namespace Game1.Industries
 
             IConcreteBuildingConstructionParams IGeneralBuildingConstructionParams.CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
                 => CreateConcrete(nodeState: nodeState, neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices, storageChoice: (StorageChoice)productionChoice.Choice);
+
+            IndustryFunctionVisualParams IGeneralBuildingConstructionParams.IncompleteFunctionVisualParams(ProductionChoice? productionChoice)
+                => IncompleteFunctionVisualParams(storageParams: new((StorageChoice?)productionChoice?.Choice));
         }
 
         [Serializable]
@@ -84,7 +87,7 @@ namespace Game1.Industries
                 SurfaceMatPalette = surfaceMatPalette;
                 // Building area is used in BuildingCost calculation, thus needs to be computed first
                 buildingArea = buildingImage.Area;
-                this.buildingCostPropors = generalParams.BuildingCostPropors;
+                buildingCostPropors = generalParams.BuildingCostPropors;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
                 this.storageChoice = storageChoice;
                 BuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
@@ -153,12 +156,28 @@ namespace Game1.Industries
             /// </summary>
             private Result<IResource, TextErrors> curStoredRes;
 
-            public StorageParams()
-                => CurStoredRes = new(errors: new(UIAlgorithms.NoResourceIsChosen));
-
-            public StorageParams(StorageChoice storageChoice)
-                => CurStoredRes = new(ok: storageChoice);
+            public StorageParams(StorageChoice? storageChoice)
+                => CurStoredRes = storageChoice switch
+                {
+                    not null => new(ok: storageChoice),
+                    null => new(errors: new(UIAlgorithms.NoResourceIsChosen))
+                };
         }
+
+        private static IndustryFunctionVisualParams IncompleteFunctionVisualParams(StorageParams storageParams)
+            => storageParams.CurStoredRes.SwitchExpression<IndustryFunctionVisualParams>
+            (
+                ok: res => new
+                (
+                    InputIcons: [res.SmallIcon],
+                    OutputIcons: [res.SmallIcon]
+                ),
+                error: _ => new
+                (
+                    InputIcons: [IIndustry.resIcon],
+                    OutputIcons: [IIndustry.resIcon]
+                )
+            );
 
         public static HashSet<Type> GetKnownTypes()
             => new()
@@ -190,7 +209,7 @@ namespace Game1.Industries
 
         // CURRENTLY this doesn't handle changes in res consumed and res produced. So if change produced material recipe, or choose to recycle different thing,
         // this will not be updated accordingly
-        public IHUDElement? IndustryFunctionVisual { get; }
+        public IHUDElement IndustryFunctionVisual { get; }
 
         private readonly StorageParams storageParams;
         private readonly ConcreteBuildingParams buildingParams;
@@ -214,15 +233,7 @@ namespace Game1.Industries
 
             resNeighbors = IIndustry.CreateResNeighboursCollection(resources: _ => storageParams.StoredResources);
             RoutePanel = IIndustry.CreateRoutePanel(industry: this);
-            IndustryFunctionVisual = storageParams.CurStoredRes.SwitchExpression<IHUDElement?>
-            (
-                ok: res => new IndustryFunctionVisualParams
-                (
-                    InputIcons: [res.SmallIcon],
-                    OutputIcons: [res.SmallIcon]
-                ).CreateIndustryFunctionVisual(),
-                error: _ => null
-            );
+            IndustryFunctionVisual = IncompleteFunctionVisualParams(storageParams: storageParams).CreateIndustryFunctionVisual();
 
             storedAmountsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: storage.Amount);
             unusedAmountsUI = CreateNewUnusedAmountsUI();

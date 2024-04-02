@@ -45,6 +45,7 @@ namespace Game1
             private ProductionChoice? ProductionChoice;
             private readonly FunctionGraphImage<SurfaceGravity, Propor> overallNeededElectricityGraph;
             private readonly FunctionGraphImage<Temperature, Propor> overallThroughputGraph;
+            private readonly HUDElementWrapper constructionFunctionVisualWrapper, buildingFunctionVisualWrapper;
 
             private BuildingConfigPanelManager(EfficientReadOnlyCollection<CosmicBody> cosmicBodies, Construction.GeneralParams constrGeneralParams)
             {
@@ -59,6 +60,8 @@ namespace Game1
                     visual: new TextBox(text: "Done", textColor: colorConfig.buttonTextColor),
                     tooltip: new ImmutableTextTooltip(text: UIAlgorithms.DoneChoosingNewBuildings)
                 );
+                constructionFunctionVisualWrapper = new(value: GetConstructionFunctionVisual());
+                buildingFunctionVisualWrapper = new(value: GetBuildingFunctionVisual());
 
                 // Need to initialize all references so that when this gets copied, the fields are already initialized
                 buildingConfigPanel = new
@@ -110,28 +113,51 @@ namespace Game1
                                 );
                             }
                         )
-                    ).Append
-                    (
-                        new UIRectHorizPanel<IHUDElement>
-                        (
-                            childVertPos: VertPosEnum.Middle,
-                            children: new List<IHUDElement>()
-                            {
-                                ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
-                                (
-                                    neededElectricityGraph: overallNeededElectricityGraph,
-                                    throughputGraph: overallThroughputGraph,
-                                    nodeState: null
-                                ),
-                                ResAndIndustryUIAlgos.CreateStandardVertProporBar(propor: Propor.full)
-                            }
-                        )
                     ).Concat
                     (
                         new List<IHUDElement>()
                         {
-                            new TextBox(text: "Production config"),
-                            productionChoicePanel ?? new TextBox(text: UIAlgorithms.NothingToConfigure),
+                            new UIRectHorizPanel<IHUDElement>
+                            (
+                                childVertPos: VertPosEnum.Middle,
+                                children: new List<IHUDElement>()
+                                {
+                                    ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
+                                    (
+                                        neededElectricityGraph: overallNeededElectricityGraph,
+                                        throughputGraph: overallThroughputGraph,
+                                        nodeState: null
+                                    ),
+                                    ResAndIndustryUIAlgos.CreateStandardVertProporBar(propor: Propor.full)
+                                }
+                            ),
+                            new UIRectHorizPanel<IHUDElement>
+                            (
+                                childVertPos: VertPosEnum.Middle,
+                                children:
+                                [
+                                    new TextBox(text: "Building components"),
+                                    constructionFunctionVisualWrapper,
+                                ]
+                            ),
+                            new UIRectHorizPanel<IHUDElement>
+                            (
+                                childVertPos: VertPosEnum.Middle,
+                                children:
+                                [
+                                    new TextBox(text: "Production config"),
+                                    productionChoicePanel ?? new TextBox(text: UIAlgorithms.NothingToConfigure),
+                                ]
+                            ),
+                            new UIRectHorizPanel<IHUDElement>
+                            (
+                                childVertPos: VertPosEnum.Middle,
+                                children:
+                                [
+                                    new TextBox(text: "Production"),
+                                    buildingFunctionVisualWrapper,
+                                ]
+                            ),
                             doneButton
                         }
                     )
@@ -198,6 +224,18 @@ namespace Game1
                     cosmicBodyBuildPanelManagers.Add(key: cosmicBody, value: buildPanelManager);
             }
 
+            private IHUDElement GetConstructionFunctionVisual()
+                => constrGeneralParams.GetIncompleteBuildingComponentVisual
+                (
+                    incompleteMatPaletteChoices: new(mutableBuildingMatPaletteChoices)
+                );
+
+            private IHUDElement GetBuildingFunctionVisual()
+                => constrGeneralParams.IncompleteBuildingFunctionVisualParams
+                (
+                    productionChoice: ProductionChoice
+                ).CreateIndustryFunctionVisual();
+
             void IItemChoiceSetter<ProductionChoice>.SetChoice(ProductionChoice item)
                 => SetProductionChoice(productionChoice: item);
 
@@ -228,6 +266,9 @@ namespace Game1
                     ),
                     ProductionChoice: ProductionChoice
                 );
+
+                constructionFunctionVisualWrapper.Value = GetConstructionFunctionVisual();
+                buildingFunctionVisualWrapper.Value = GetBuildingFunctionVisual();
 
                 var chosenTotalPropor = (Propor)mutableBuildingMatPaletteChoices.Keys.Sum(prodClass => (UDouble)constrGeneralParams.neededProductClassPropors[prodClass]);
 

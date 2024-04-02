@@ -11,9 +11,14 @@ namespace Game1.Industries
 {
     public interface IIndustry : IWithSpecialPositions, IDeletable
     {
-        public static readonly IImage electricityIcon = new Image(TextureName.electricity, height: CurGameConfig.smallIconHeight);
-        public static readonly IImage cosmicBodyIcon = new Image(TextureName.cosmicBody, height: CurGameConfig.smallIconHeight);
-        public static readonly IImage starlightIcon = new Image(TextureName.starlight, height: CurGameConfig.smallIconHeight);
+        public static readonly IImage
+            electricityIcon = new Image(TextureName.electricity, height: CurGameConfig.smallIconHeight),
+            cosmicBodyIcon = new Image(TextureName.cosmicBody, height: CurGameConfig.smallIconHeight),
+            starlightIcon = new Image(TextureName.starlight, height: CurGameConfig.smallIconHeight),
+            buildingIcon = new Image(TextureName.building, CurGameConfig.smallIconHeight),
+            rawMaterialIcon = new Image(TextureName.rawMaterialIcon, CurGameConfig.smallIconHeight),
+            materialIcon = new Image(TextureName.materialIcon, CurGameConfig.smallIconHeight),
+            resIcon = new Image(TextureName.resIcon, CurGameConfig.smallIconHeight);
 
         /// <summary>
         /// This is not just TextBox (or a name string) to allow industries to include resource icons in their name

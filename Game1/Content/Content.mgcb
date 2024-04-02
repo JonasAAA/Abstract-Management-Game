@@ -323,6 +323,18 @@
 /processorParam:TextureFormat=Color
 /build:Textures/Raw Material.png
 
+#begin Textures/Resource.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/Resource.png
+
 #begin Textures/Roof Tile.png
 /importer:TextureImporter
 /processor:TextureProcessor

@@ -53,6 +53,8 @@ namespace Game1.Industries
                     landfillResourceChoice: (LandfillResourceChoice)productionChoice.Choice,
                     surfaceMatPalette: neededBuildingMatPaletteChoices[ProductClass.roof]
                 );
+            IndustryFunctionVisualParams IGeneralBuildingConstructionParams.IncompleteFunctionVisualParams(ProductionChoice? productionChoice)
+                => IncompleteFunctionVisualParams(productionParams: new((LandfillResourceChoice?)productionChoice?.Choice));
         }
 
         [Serializable]
@@ -172,16 +174,8 @@ namespace Game1.Industries
                 ) + MaxBuildingComponentStoredAmount();
             }
 
-            IndustryFunctionVisualParams? Industry.IConcreteBuildingParams<ConcreteProductionParams>.IndustryFunctionVisualParams(ConcreteProductionParams productionParams)
-                => productionParams.CurResource.SwitchExpression<IndustryFunctionVisualParams?>
-                (
-                    ok: res => new
-                    (
-                        InputIcons: [res.SmallIcon, IIndustry.electricityIcon],
-                        OutputIcons: [IIndustry.cosmicBodyIcon]
-                    ),
-                    error: _ => null
-                );
+            IndustryFunctionVisualParams Industry.IConcreteBuildingParams<ConcreteProductionParams>.IndustryFunctionVisualParams(ConcreteProductionParams productionParams)
+                => IncompleteFunctionVisualParams(productionParams: productionParams);
         }
 
         [Serializable]
@@ -210,10 +204,6 @@ namespace Game1.Industries
             /// NEVER use this directly. Always use CurResource instead
             /// </summary>
             private Result<IResource, TextErrors> curResource;
-
-            public ConcreteProductionParams()
-                : this(landfillResourceChoice: null)
-            { }
 
             public ConcreteProductionParams(LandfillResourceChoice? landfillResourceChoice)
                 => Update(landfillRes: landfillResourceChoice);
@@ -380,6 +370,21 @@ namespace Game1.Industries
             public static void DeletePersistentState(ResPile buildingResPile, ResPile outputStorage)
                 => outputStorage.TransferAllFrom(source: buildingResPile);
         }
+
+        private static IndustryFunctionVisualParams IncompleteFunctionVisualParams(ConcreteProductionParams productionParams)
+            => productionParams.CurResource.SwitchExpression<IndustryFunctionVisualParams>
+            (
+                ok: res => new
+                (
+                    InputIcons: [res.SmallIcon, IIndustry.electricityIcon],
+                    OutputIcons: [IIndustry.cosmicBodyIcon]
+                ),
+                error: _ => new
+                (
+                    InputIcons: [IIndustry.resIcon, IIndustry.electricityIcon],
+                    OutputIcons: [IIndustry.cosmicBodyIcon]
+                )
+            );
 
         public static HashSet<Type> GetKnownTypes()
             => new()

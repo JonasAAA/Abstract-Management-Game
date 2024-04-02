@@ -12,6 +12,9 @@
             cosmicBody = new("Cosmic Body"),
             starlight = new("Starlight"),
             building = new("Building"),
+            rawMaterialIcon = new("Raw Material"),
+            materialIcon = new("Material"),
+            resIcon = new("Resource"),
             gear = new("Gear"),
             roofTile = new("Roof Tile"),
             wire = new("Wire");

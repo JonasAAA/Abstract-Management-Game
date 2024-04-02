@@ -56,6 +56,9 @@ namespace Game1.Industries
                     materialProductionChoice: (MaterialProductionChoice)productionChoice.Choice,
                     surfaceMatPalette: neededBuildingMatPaletteChoices[ProductClass.roof]
                 );
+
+            IndustryFunctionVisualParams IGeneralBuildingConstructionParams.IncompleteFunctionVisualParams(ProductionChoice? productionChoice)
+                => IncompleteFunctionVisualParams(productionParams: new ConcreteProductionParams(materialProductionChoice: (MaterialProductionChoice?)productionChoice?.Choice));
         }
 
         [Serializable]
@@ -171,18 +174,8 @@ namespace Game1.Industries
                 );
             }
 
-            IndustryFunctionVisualParams? Industry.IConcreteBuildingParams<ConcreteProductionParams>.IndustryFunctionVisualParams(ConcreteProductionParams productionParams)
-                => productionParams.CurMaterial.SwitchExpression<IndustryFunctionVisualParams?>
-                (
-                    ok: material => new
-                    (
-                        InputIcons:
-                            (from res in productionParams.ConsumedResources
-                             select res.SmallIcon).Append(IIndustry.electricityIcon),
-                        OutputIcons: [material.SmallIcon]
-                    ),
-                    error: _ => null
-                );
+            IndustryFunctionVisualParams Industry.IConcreteBuildingParams<ConcreteProductionParams>.IndustryFunctionVisualParams(ConcreteProductionParams productionParams)
+                => IncompleteFunctionVisualParams(productionParams: productionParams);
         }
 
         [Serializable]
@@ -213,11 +206,12 @@ namespace Game1.Industries
             /// </summary>
             private Result<Material, TextErrors> curMaterial;
 
-            public ConcreteProductionParams()
-                => CurMaterial = new(errors: new(UIAlgorithms.NoMaterialIsChosen));
-
-            public ConcreteProductionParams(MaterialProductionChoice materialProductionChoice)
-                => CurMaterial = new(ok: materialProductionChoice);
+            public ConcreteProductionParams(MaterialProductionChoice? materialProductionChoice)
+                => CurMaterial = materialProductionChoice switch
+                {
+                    not null => new(ok: materialProductionChoice),
+                    null => new(errors: new(UIAlgorithms.NoMaterialIsChosen))
+                };
         }
 
         [Serializable]
@@ -334,6 +328,23 @@ namespace Game1.Industries
             public static void DeletePersistentState(ResPile buildingResPile, ResPile outputStorage)
                 => outputStorage.TransferAllFrom(source: buildingResPile);
         }
+
+        private static IndustryFunctionVisualParams IncompleteFunctionVisualParams(ConcreteProductionParams productionParams)
+            => productionParams.CurMaterial.SwitchExpression<IndustryFunctionVisualParams>
+            (
+                ok: material => new
+                (
+                    InputIcons:
+                        (from res in productionParams.ConsumedResources
+                         select res.SmallIcon).Append(IIndustry.electricityIcon),
+                    OutputIcons: [material.SmallIcon]
+                ),
+                error: _ => new
+                (
+                    InputIcons: [IIndustry.rawMaterialIcon, IIndustry.electricityIcon],
+                    OutputIcons: [IIndustry.materialIcon]
+                )
+            );
 
         public static HashSet<Type> GetKnownTypes()
             => new()

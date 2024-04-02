@@ -57,6 +57,9 @@ namespace Game1.Industries
 
             IConcreteBuildingConstructionParams IGeneralBuildingConstructionParams.CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
                 => CreateConcrete(nodeState: nodeState, neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices, targetCosmicBody: null);
+            
+            IndustryFunctionVisualParams IGeneralBuildingConstructionParams.IncompleteFunctionVisualParams(ProductionChoice? productionChoice)
+                => IncompleteFunctionVisualParams();
         }
 
         [Serializable]
@@ -117,6 +120,13 @@ namespace Game1.Industries
                 => lightRedirection.lightRedirectionParams.targetCosmicBody = item;
         }
 
+        private static IndustryFunctionVisualParams IncompleteFunctionVisualParams()
+            => new
+            (
+                InputIcons: [IIndustry.starlightIcon],
+                OutputIcons: [IIndustry.starlightIcon]
+            );
+
         public static HashSet<Type> GetKnownTypes()
             => new()
             {
@@ -161,11 +171,7 @@ namespace Game1.Industries
             isDeleted = false;
 
             RoutePanel = IIndustry.CreateRoutePanel(industry: this);
-            IndustryFunctionVisual = new IndustryFunctionVisualParams
-            (
-                InputIcons: [IIndustry.starlightIcon],
-                OutputIcons: [IIndustry.starlightIcon]
-            ).CreateIndustryFunctionVisual();
+            IndustryFunctionVisual = IncompleteFunctionVisualParams().CreateIndustryFunctionVisual();
 
             lightRedirectionUI = new
             (

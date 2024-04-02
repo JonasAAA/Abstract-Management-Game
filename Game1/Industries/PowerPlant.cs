@@ -62,6 +62,9 @@ namespace Game1.Industries
                     nodeState: nodeState,
                     neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices
                 );
+
+            IndustryFunctionVisualParams IGeneralBuildingConstructionParams.IncompleteFunctionVisualParams(ProductionChoice? productionChoice)
+                => IncompleteFunctionVisualParams();
         }
 
         [Serializable]
@@ -144,12 +147,8 @@ namespace Game1.Industries
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => AllResAmounts.empty;
 
-            IndustryFunctionVisualParams? Industry.IConcreteBuildingParams<UnitType>.IndustryFunctionVisualParams(UnitType productionParams)
-                => new
-                (
-                    InputIcons: [IIndustry.starlightIcon],
-                    OutputIcons: [IIndustry.electricityIcon]
-                );
+            IndustryFunctionVisualParams Industry.IConcreteBuildingParams<UnitType>.IndustryFunctionVisualParams(UnitType productionParams)
+                => IncompleteFunctionVisualParams();
         }
 
         [Serializable]
@@ -235,6 +234,13 @@ namespace Game1.Industries
                     amount: amount
                 );
         }
+
+        private static IndustryFunctionVisualParams IncompleteFunctionVisualParams()
+            => new
+            (
+                InputIcons: [IIndustry.starlightIcon],
+                OutputIcons: [IIndustry.electricityIcon]
+            );
 
         public static HashSet<Type> GetKnownTypes()
             => new()

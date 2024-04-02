@@ -50,13 +50,27 @@ namespace Game1.Industries
                         productionChoice: productionChoice
                     )
                 );
+
+            public IHUDElement GetIncompleteBuildingComponentVisual(EfficientReadOnlyDictionary<ProductClass, MaterialPalette> incompleteMatPaletteChoices)
+                => ResAndIndustryUIAlgos.CreateIndustryFunctionInputOrOutputVisual
+                (
+                    icons:
+                        from prodParamsAndAmount in buildingGeneralParams.BuildingCostPropors.ingredProdToAmounts
+                        let prodParams = prodParamsAndAmount.prodParams
+                        select incompleteMatPaletteChoices.TryGetValue(key: prodParams.productClass, out var matPalette) switch
+                        {
+                            true => prodParams.GetProduct(materialPalette: matPalette).SmallIcon,
+                            false => prodParams.smallIcon
+                        }
+                );
+
+            public IndustryFunctionVisualParams IncompleteBuildingFunctionVisualParams(ProductionChoice? productionChoice)
+                => buildingGeneralParams.IncompleteFunctionVisualParams(productionChoice: productionChoice);
         }
 
         [Serializable]
         public readonly struct ConcreteParams : Industry.IConcreteBuildingParams<UnitType>
         {
-
-
             public IFunction<IHUDElement> NameVisual { get; }
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
@@ -125,15 +139,13 @@ namespace Game1.Industries
             AllResAmounts Industry.IConcreteBuildingParams<UnitType>.MaxStoredInput(UnitType productionParams)
                 => buildingCost;
 
-            private static readonly Image buildingIcon = new(TextureName.building, CurGameConfig.smallIconHeight);
-
-            IndustryFunctionVisualParams? Industry.IConcreteBuildingParams<UnitType>.IndustryFunctionVisualParams(UnitType productionParams)
+            IndustryFunctionVisualParams Industry.IConcreteBuildingParams<UnitType>.IndustryFunctionVisualParams(UnitType productionParams)
                 => new
                 (
                     InputIcons:
                         (from res in buildingCost.ResSet
                          select res.SmallIcon).Append(IIndustry.electricityIcon),
-                    OutputIcons: [buildingIcon]
+                    OutputIcons: [IIndustry.buildingIcon]
                 );
         }
 

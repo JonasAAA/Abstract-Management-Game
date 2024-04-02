@@ -22,5 +22,7 @@ namespace Game1.Industries
         }
 
         public IConcreteBuildingConstructionParams CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice);
+
+        public IndustryFunctionVisualParams IncompleteFunctionVisualParams(ProductionChoice? productionChoice);
     }
 }

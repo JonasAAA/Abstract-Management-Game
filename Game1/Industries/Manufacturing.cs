@@ -59,6 +59,16 @@ namespace Game1.Industries
                     manufacturingProductionChoice: (ManufacturingProductionChoice)productionChoice.Choice,
                     surfaceMatPalette: neededBuildingMatPaletteChoices[ProductClass.roof]
                 );
+
+            IndustryFunctionVisualParams IGeneralBuildingConstructionParams.IncompleteFunctionVisualParams(ProductionChoice? productionChoice)
+                => IncompleteFunctionVisualParams
+                (
+                    productionParams: new
+                    (
+                        productParams: productParams,
+                        manufacturingProductionChoice: (ManufacturingProductionChoice?)productionChoice?.Choice
+                    )
+                );
         }
 
         [Serializable]
@@ -178,18 +188,8 @@ namespace Game1.Industries
                 );
             }
 
-            IndustryFunctionVisualParams? Industry.IConcreteBuildingParams<ConcreteProductionParams>.IndustryFunctionVisualParams(ConcreteProductionParams productionParams)
-                => productionParams.CurProduct.SwitchExpression<IndustryFunctionVisualParams?>
-                (
-                    ok: product => new
-                    (
-                        InputIcons:
-                            (from res in productionParams.ConsumedResources
-                             select res.SmallIcon).Append(IIndustry.electricityIcon),
-                        OutputIcons: [product.SmallIcon]
-                    ),
-                    error: _ => null
-                );
+            IndustryFunctionVisualParams Industry.IConcreteBuildingParams<ConcreteProductionParams>.IndustryFunctionVisualParams(ConcreteProductionParams productionParams)
+                => IncompleteFunctionVisualParams(productionParams: productionParams);
         }
 
         [Serializable]
@@ -215,15 +215,13 @@ namespace Game1.Industries
                 }
             }
 
+
+            public readonly Product.Params productParams;
+
             /// <summary>
             /// NEVER use this directly. Always use CurResource instead
             /// </summary>
             private Result<Product, TextErrors> curProduct;
-            private readonly Product.Params productParams;
-
-            public ConcreteProductionParams(Product.Params productParams)
-                : this(productParams: productParams, manufacturingProductionChoice: null)
-            { }
 
             public ConcreteProductionParams(Product.Params productParams, ManufacturingProductionChoice? manufacturingProductionChoice)
             {
@@ -359,6 +357,29 @@ namespace Game1.Industries
             public static void DeletePersistentState(ResPile buildingResPile, ResPile outputStorage)
                 => outputStorage.TransferAllFrom(source: buildingResPile);
         }
+
+        private static IndustryFunctionVisualParams IncompleteFunctionVisualParams(ConcreteProductionParams productionParams)
+            => productionParams.CurProduct.SwitchExpression<IndustryFunctionVisualParams>
+            (
+                ok: product => new
+                (
+                    InputIcons:
+                        (from res in productionParams.ConsumedResources
+                         select res.SmallIcon).Append(IIndustry.electricityIcon),
+                    OutputIcons: [product.SmallIcon]
+                ),
+                error: _ => new
+                (
+                    InputIcons:
+                        (from matPurpose in productionParams.productParams.productClass.matPurposeToAmount.Keys
+                         select IIndustry.materialIcon
+                        ).Concat(
+                         from ingredProdAndAmount in productionParams.productParams.ingredProdToAmounts
+                         select ingredProdAndAmount.prodParams.smallIcon
+                        ).Append(IIndustry.electricityIcon),
+                    OutputIcons: [productionParams.productParams.smallIcon]
+                )
+            );
 
         public static HashSet<Type> GetKnownTypes()
             => new()

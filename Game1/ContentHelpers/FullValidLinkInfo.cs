@@ -1,6 +1,4 @@
-﻿using Game1.Collections;
-
-namespace Game1.ContentHelpers
+﻿namespace Game1.ContentHelpers
 {
     [Serializable]
     public readonly struct FullValidLinkInfo

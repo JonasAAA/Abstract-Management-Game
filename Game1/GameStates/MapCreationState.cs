@@ -2,9 +2,12 @@
 using Game1.ContentHelpers;
 using Game1.ContentNames;
 using Game1.Delegates;
+using Game1.GlobalTypes;
 using Game1.Shapes;
 using Game1.UI;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.RegularExpressions;
 using static Game1.GlobalTypes.GameConfig;
 
@@ -13,14 +16,21 @@ namespace Game1.GameStates
     [NonSerializable]
     public sealed class MapCreationState : GameState
     {
+        //[NonSerializable]
+        //private sealed class BuildingCosmicBodyTextBoxHUDPosUpdater(MapCreationState mapCreationState, StartingBuilding startingBuilding) : IAction
+        //{
+        //    void IAction.Invoke()
+        //    {
+        //        if (mapCreationState.CurMapInfo.StartingInfo.StartingBuildingToCosmicBodyId[startingBuilding] is CosmicBodyId startingBuildingCosmicBodyId)
+        //            mapCreationState.startingBuildingToTextBox[startingBuilding].Shape.Center = mapCreationState.CurCosmicBodyHUDPos(cosmicBodyId: startingBuildingCosmicBodyId);
+        //    }
+        //}
+
         [NonSerializable]
-        private sealed class BuildingCosmicBodyTextBoxHUDPosUpdater(MapCreationState mapCreationState, StartingBuilding startingBuilding) : IAction
+        private sealed class CosmicBodyTextBoxHUDPosUpdater(MapCreationState mapCreationState, CosmicBodyId cosmicBodyId) : IAction
         {
             void IAction.Invoke()
-            {
-                if (mapCreationState.CurMapInfo.StartingInfo.StartingBuildingToCosmicBodyId[startingBuilding] is CosmicBodyId startingBuildingCosmicBodyId)
-                    mapCreationState.startingBuildingToTextBox[startingBuilding].Shape.Center = mapCreationState.CurCosmicBodyHUDPos(cosmicBodyId: startingBuildingCosmicBodyId);
-            }
+                => mapCreationState.cosmicBodyIdToTextBox[cosmicBodyId].Shape.Center = mapCreationState.CurCosmicBodyHUDPos(cosmicBodyId: cosmicBodyId);
         }
 
         private interface IWorldUIElementId
@@ -69,7 +79,7 @@ namespace Game1.GameStates
         }
 
         [NonSerializable]
-        private readonly record struct CosmicBodyInfoInternal(WorldCamera WorldCamera, CosmicBodyId Id, string Name, MyVector2 Position, Length Radius)
+        private readonly record struct CosmicBodyInfoInternal(WorldCamera WorldCamera, CosmicBodyId Id, string Name, MyVector2 Position, Length Radius, ImmutableHashSet<RawMaterialID> Composition)
         {
             [NonSerializable]
             private sealed class CosmicBodyShapeParams(CosmicBodyInfoInternal cosmicBody) : Disk.IParams
@@ -155,7 +165,9 @@ namespace Game1.GameStates
                         Id: new(),
                         Name: cosmicBodyInfo.Name,
                         Position: cosmicBodyInfo.Position,
-                        Radius: cosmicBodyInfo.Radius
+                        Radius: cosmicBodyInfo.Radius,
+#warning Currently the loading the map from file and saving it may change composition. Specifically, all the raw materials in the composition will be made equal in peercentage (or as close to it as possible)
+                        Composition: cosmicBodyInfo.Composition.Select(rawMatPropor => rawMatPropor.RawMaterial).ToImmutableHashSet()
                     )
                 ).ToList();
                 var cosmicBodyNameToId = cosmicBodies.ToImmutableDictionary
@@ -207,7 +219,6 @@ namespace Game1.GameStates
 
             public ValidMapInfo ToValidMapInfo()
             {
-                // needed to make code compile
                 var cosmicBodiesCopy = CosmicBodies;
                 var startingInfoCopy = StartingInfo;
                 return ValidMapInfo.CreateOrThrow
@@ -220,7 +231,8 @@ namespace Game1.GameStates
                         (
                             name: cosmicBody.Name,
                             position: cosmicBody.Position,
-                            radius: cosmicBody.Radius
+                            radius: cosmicBody.Radius,
+                            composition: TransformComposition(internalComposition: cosmicBody.Composition)
                         )
                     ).ToEfficientReadOnlyCollection(),
                     links: Links.ToImmutableSortedDictionary().Values.Select
@@ -245,6 +257,33 @@ namespace Game1.GameStates
                         )
                     )
                 );
+
+                EfficientReadOnlyCollection<ValidRawMatPropor> TransformComposition(ImmutableHashSet<RawMaterialID> internalComposition)
+                {
+                    if (internalComposition.Count is 0)
+                        return EfficientReadOnlyCollection<ValidRawMatPropor>.empty;
+                    const ulong targetPercentageSum = 100;
+                    ulong percentageEachRawMatGets = targetPercentageSum / (ulong)internalComposition.Count;
+                    var composition = internalComposition.ToImmutableSortedSet().Select
+                    (
+                        rawMatID => new
+                        {
+                            rawMaterial = rawMatID,
+                            percentage = percentageEachRawMatGets
+                        }
+                    ).ToList();
+                    var unusedPercentages = targetPercentageSum - composition.Sum(rawMatPropor => rawMatPropor.percentage);
+                    for (int i = 0; i < (int)unusedPercentages; i++)
+                        composition[i] = composition[i] with { percentage = composition[i].percentage + 1 };
+                    return composition.Select
+                    (
+                        rawMatPropor => ValidRawMatPropor.CreateOrThrow
+                        (
+                            rawMaterial: rawMatPropor.rawMaterial,
+                            percentage: rawMatPropor.percentage
+                        )
+                    ).ToEfficientReadOnlyCollection();
+                }
             }
         }
 
@@ -323,9 +362,10 @@ namespace Game1.GameStates
         private IWorldUIElementId? selectedUIElement;
         private readonly KeyButton switchToPauseMenuButton;
         private readonly TextBox globalTextBox;
-        private readonly EnumDict<StartingBuilding, (Keys key, string explanation)> startingBuildingToKeyAndExplanation;
         private readonly EnumDict<StartingBuilding, string> startingBuildingToName;
-        private readonly EnumDict<StartingBuilding, TextBox> startingBuildingToTextBox;
+        private readonly EnumDict<StartingBuilding, (Keys key, string explanation)> startingBuildingToKeyAndExplanation;
+        private readonly EnumDict<RawMaterialID, (EfficientReadOnlyCollection<Keys> keys, string explanation)> rawMatToKeysAndExplanation;
+        private EfficientReadOnlyDictionary<CosmicBodyId, TextBox> cosmicBodyIdToTextBox;
         private readonly string controlDescrContr, controlDescrExp;
 
         private MapCreationState(IAction switchToPauseMenu, (MapInfoInternal mapInfo, WorldCamera worldCamera) mapWithCamera, FilePath mapPath)
@@ -384,19 +424,22 @@ namespace Game1.GameStates
                     );
                 }
             );
-            startingBuildingToTextBox = new
+            rawMatToKeysAndExplanation = new
             (
-                startingBuilding =>
+                rawMatID =>
                 {
-                    TextBox textBox = new();
-                    activeUIManager.AddWorldHUDElement
+                    var number = rawMatID.RepresentativeNumber();
+                    return
                     (
-                        worldHUDElement: textBox,
-                        updateHUDPos: new BuildingCosmicBodyTextBoxHUDPosUpdater(mapCreationState: this, startingBuilding: startingBuilding)
+                        keys: new List<string>() { $"D{number}", $"NumPad{number}" }.Select
+                        (
+                            keyName => Enum.Parse<Keys>(value: keyName, ignoreCase: true)
+                        ).ToEfficientReadOnlyCollection(),
+                        explanation: $"select body + {number} - Toggle {rawMatID.Name()} in the selected cosmic body composition"
                     );
-                    return textBox;
                 }
             );
+            cosmicBodyIdToTextBox = new();
 
             controlDescrContr = """
                 Esc - Go to pause menu
@@ -409,6 +452,7 @@ namespace Game1.GameStates
                 N + left click - [N]ew cosmic body
                 select body + D - [D]elete cosmic body
                 {string.Join('\n', startingBuildingToKeyAndExplanation.Values.Select(keyAndExplanation => keyAndExplanation.explanation))}
+                {string.Join('\n', rawMatToKeysAndExplanation.Values.Select(keysAndExplanation => keysAndExplanation.explanation))}
                 select body + R + left click - Change cosmic body [r]adius
                 select body + M + left click - [M]ove cosmic body
                 select body + L + left click other body - Add [l]ink bewteen the two cosmic bodies
@@ -440,8 +484,48 @@ namespace Game1.GameStates
                 changeHistory.LogNewChange(newMapInfo: newMapInfo.Value);
 
             globalTextBox.Text = expandControlDescr ? controlDescrExp : controlDescrContr + "\n\n" + changeHistory.CurInfoForUser;
-            foreach (var startingBuilding in Enum.GetValues<StartingBuilding>())
-                startingBuildingToTextBox[startingBuilding].Text = CurMapInfo.StartingInfo.StartingBuildingToCosmicBodyId[startingBuilding] is null ? null : startingBuildingToName[startingBuilding];
+
+            foreach (var (cosmicBodyId, textBox) in cosmicBodyIdToTextBox)
+                if (!CurMapInfo.CosmicBodies.ContainsKey(cosmicBodyId))
+                    activeUIManager.RemoveWorldHUDElement(worldHUDElement: textBox);
+
+            cosmicBodyIdToTextBox = CurMapInfo.CosmicBodies.Keys.ToEfficientReadOnlyDict
+            (
+                elementSelector: cosmicBodyId =>
+                {
+                    TextBox textBox = GetCosmicBodyTextBox(cosmicBodyId: cosmicBodyId);
+                    var startingBuildings = CurMapInfo.StartingInfo.StartingBuildingToCosmicBodyId.SelectMany<KeyValuePair<StartingBuilding, CosmicBodyId?>, StartingBuilding>
+                    (
+                        startingBuildingAndCosmicBodyId => startingBuildingAndCosmicBodyId.Value == cosmicBodyId ? [startingBuildingAndCosmicBodyId.Key] : []
+                    ).ToList();
+                    string startingBuildingText = startingBuildings switch
+                    {
+                        [] => "",
+                        [var building] => startingBuildingToName[building],
+                        _ => throw new InvalidStateException()
+                    };
+                    textBox.Text = $"""
+                        {startingBuildingText}
+                        raw mat
+                        composition:
+                        {string.Join(", ", CurMapInfo.CosmicBodies[cosmicBodyId].Composition.Select(rawMatId => rawMatId.RepresentativeNumber()))}
+                        """;
+                    return textBox;
+                }
+            );
+            
+            TextBox GetCosmicBodyTextBox(CosmicBodyId cosmicBodyId)
+            {
+                if (cosmicBodyIdToTextBox.GetValueOrDefault(key: cosmicBodyId) is TextBox textBox)
+                    return textBox;
+                textBox = new();
+                activeUIManager.AddWorldHUDElement
+                (
+                    worldHUDElement: textBox,
+                    updateHUDPos: new CosmicBodyTextBoxHUDPosUpdater(mapCreationState: this, cosmicBodyId: cosmicBodyId)
+                );
+                return textBox;
+            }
         }
 
         private Vector2Bare CurCosmicBodyHUDPos(CosmicBodyId cosmicBodyId)
@@ -488,7 +572,8 @@ namespace Game1.GameStates
                             Id: newCosmicBodyId,
                             Name: GetNewCosmicBodyName(),
                             Position: mouseWorldPos,
-                            Radius: Length.CreateFromM(valueInM: 100)
+                            Radius: Length.CreateFromM(valueInM: 100),
+                            Composition: ImmutableHashSet<RawMaterialID>.Empty
                         )
                     )
                 };
@@ -513,6 +598,7 @@ namespace Game1.GameStates
                         }
                     };
                 }
+                
                 // Starting building location selection
                 foreach (var (startingBuilding, (key, _)) in startingBuildingToKeyAndExplanation)
                     if (keyboardState.IsKeyDown(key))
@@ -526,6 +612,20 @@ namespace Game1.GameStates
                                     newValue: selectedCosmicBodyId
                                 )
                             }
+                        };
+                // Toggle raw material in composition
+                foreach (var (rawMat, (keys, _)) in rawMatToKeysAndExplanation)
+                    if (keys.Any(keyboardState.IsKeyDown))
+                        return CurMapInfo with
+                        {
+                            CosmicBodies = CurMapInfo.CosmicBodies.SetItem
+                            (
+                                key: selectedCosmicBodyId,
+                                value: CurMapInfo.CosmicBodies[selectedCosmicBodyId] with
+                                {
+                                    Composition = CurMapInfo.CosmicBodies[selectedCosmicBodyId].Composition.ToggleElement(rawMat)
+                                }
+                            )
                         };
 
                 EnumDict<StartingBuilding, CosmicBodyId?> RemoveBuildingFromSelectedCosmicBody()

@@ -12,7 +12,7 @@ namespace Game1.Resources
             => new
             (
                 rawMatID: rawMatID,
-                name: ResAndIndustryAlgos.RawMaterialName(rawMatID: rawMatID),
+                name: rawMatID.Name(),
                 iconName: TextureName.RawMaterialIconName(rawMatID: rawMatID),
                 mass: ResAndIndustryAlgos.RawMaterialMass(rawMatID: rawMatID),
                 heatCapacity: ResAndIndustryAlgos.RawMaterialHeatCapacity(rawMatID: rawMatID),
@@ -25,7 +25,7 @@ namespace Game1.Resources
                 rawMatID => new RawMaterial
                 (
                     rawMatID: rawMatID,
-                    name: ResAndIndustryAlgos.RawMaterialName(rawMatID: rawMatID),
+                    name: rawMatID.Name(),
                     iconName: TextureName.RawMaterialIconName(rawMatID: rawMatID),
                     mass: ResAndIndustryAlgos.RawMaterialMass(rawMatID: rawMatID),
                     heatCapacity: ResAndIndustryAlgos.RawMaterialHeatCapacity(rawMatID: rawMatID),

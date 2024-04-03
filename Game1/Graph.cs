@@ -9,6 +9,7 @@ using static Game1.UI.ActiveUIManager;
 using Game1.ContentHelpers;
 using Game1.Collections;
 using Game1.Industries;
+using System.Linq;
 
 namespace Game1
 {
@@ -104,17 +105,17 @@ namespace Game1
 
         public static Graph CreateFromInfo(FullValidMapInfo mapInfo, WorldCamera mapInfoCamera, ResConfig resConfig, IndustryConfig industryConfig)
         {
-            RawMatAmounts startingRawMatTargetRatios = new
-            (
-                resAmounts: CurWorldConfig.startingRawMatTargetRatios.Select
-                (
-                    rawMatAmount => new ResAmount<RawMaterial>
-                    (
-                        res: CurResConfig.GetRawMatFromID(rawMatID: rawMatAmount.rawMatID),
-                        amount: rawMatAmount.amount
-                    )
-                )
-            );
+            //RawMatAmounts startingRawMatTargetRatios = new
+            //(
+            //    resAmounts: CurWorldConfig.startingRawMatTargetRatios.Select
+            //    (
+            //        rawMatAmount => new ResAmount<RawMaterial>
+            //        (
+            //            res: CurResConfig.GetRawMatFromID(rawMatID: rawMatAmount.rawMatID),
+            //            amount: rawMatAmount.amount
+            //        )
+            //    )
+            //);
             var magicUnlimitedStartingResPile = ResPile.CreateByMagic
             (
                 amount: new
@@ -139,7 +140,17 @@ namespace Game1
                     (
                         mapInfoCamera: mapInfoCamera,
                         cosmicBodyInfo: cosmicBodyInfo,
-                        rawMatRatios: ResAndIndustryAlgos.CosmicBodyRandomRawMatRatios(startingRawMatTargetRatios: startingRawMatTargetRatios),
+                        rawMatRatios: new
+                        (
+                            resAmounts: cosmicBodyInfo.Composition.Select
+                            (
+                                rawMatPropor => new ResAmount<RawMaterial>
+                                (
+                                    res: CurResConfig.GetRawMatFromID(rawMatID: rawMatPropor.RawMaterial),
+                                    amount: rawMatPropor.Percentage
+                                )
+                            )
+                        ),
                         resSource: magicUnlimitedStartingResPile
                     ),
                     createIndustry: nodeState =>

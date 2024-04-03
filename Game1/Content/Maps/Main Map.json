@@ -6,7 +6,17 @@
         "X": 740,
         "Y": 10
       },
-      "Radius": 504.7335930963977
+      "Radius": 504.7335930963977,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 75
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 25
+        }
+      ]
     },
     {
       "Name": "Cosmic body 1",
@@ -14,7 +24,21 @@
         "X": -799,
         "Y": 410
       },
-      "Radius": 100
+      "Radius": 100,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 2",
@@ -22,7 +46,21 @@
         "X": -800,
         "Y": 26
       },
-      "Radius": 100
+      "Radius": 100,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 3",
@@ -30,7 +68,21 @@
         "X": -786,
         "Y": -363
       },
-      "Radius": 100
+      "Radius": 100,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 4",
@@ -38,7 +90,21 @@
         "X": 32.0137939453125,
         "Y": -359.86590576171875
       },
-      "Radius": 30.55406154478103
+      "Radius": 30.55406154478103,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 5",
@@ -46,7 +112,21 @@
         "X": 27.3603515625,
         "Y": -138.05206298828125
       },
-      "Radius": 10.405413497347348
+      "Radius": 10.405413497347348,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 6",
@@ -54,7 +134,21 @@
         "X": 25.8092041015625,
         "Y": 68.2503662109375
       },
-      "Radius": 28.517455936139022
+      "Radius": 28.517455936139022,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 7",
@@ -62,7 +156,21 @@
         "X": 24.258056640625,
         "Y": 254.387939453125
       },
-      "Radius": 27.963708531079657
+      "Radius": 27.963708531079657,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 8",
@@ -70,7 +178,21 @@
         "X": 22.70703125,
         "Y": 442.0765380859375
       },
-      "Radius": 21.097769772429537
+      "Radius": 21.097769772429537,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 9",
@@ -78,7 +200,21 @@
         "X": -278,
         "Y": 366
       },
-      "Radius": 29.83691714741916
+      "Radius": 29.83691714741916,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 10",
@@ -86,7 +222,21 @@
         "X": -213,
         "Y": 257
       },
-      "Radius": 27.089625798443954
+      "Radius": 27.089625798443954,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 11",
@@ -94,7 +244,21 @@
         "X": -225,
         "Y": 67
       },
-      "Radius": 12.505750635696982
+      "Radius": 12.505750635696982,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 12",
@@ -102,7 +266,21 @@
         "X": -223,
         "Y": -178
       },
-      "Radius": 16.194454932705856
+      "Radius": 16.194454932705856,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 13",
@@ -110,7 +288,21 @@
         "X": -244.090087890625,
         "Y": -358.31475830078125
       },
-      "Radius": 25.67594854392344
+      "Radius": 25.67594854392344,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 14",
@@ -118,7 +310,21 @@
         "X": -453.494873046875,
         "Y": -369.17279052734375
       },
-      "Radius": 18.089332453075986
+      "Radius": 18.089332453075986,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 15",
@@ -126,7 +332,21 @@
         "X": -468,
         "Y": -213
       },
-      "Radius": 10.968225724204052
+      "Radius": 10.968225724204052,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 16",
@@ -134,7 +354,21 @@
         "X": -467,
         "Y": 64
       },
-      "Radius": 18.678288856532433
+      "Radius": 18.678288856532433,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 17",
@@ -142,7 +376,21 @@
         "X": -473.6597900390625,
         "Y": 279.206298828125
       },
-      "Radius": 37.86833550027543
+      "Radius": 37.86833550027543,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     },
     {
       "Name": "Cosmic body 18",
@@ -150,7 +398,21 @@
         "X": -472.108642578125,
         "Y": 463.7926025390625
       },
-      "Radius": 17.342355828912247
+      "Radius": 17.342355828912247,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 34
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 33
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 33
+        }
+      ]
     }
   ],
   "Links": [

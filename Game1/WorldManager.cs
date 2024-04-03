@@ -141,11 +141,6 @@ namespace Game1
                     HUDElement: CurWorldManager.globalTextBox,
                     position: new(HorizPosEnum.Left, VertPosEnum.Top)
                 );
-                //CurWorldManager.AddHUDElement
-                //(
-                //    HUDElement: CurWorldManager.graphTrials,
-                //    position: new(HorizPosEnum.Middle, VertPosEnum.Middle)
-                //);
                 CurWorldManager.AddHUDElement
                 (
                     HUDElement: CurWorldManager.pauseButton,

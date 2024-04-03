@@ -22,10 +22,10 @@ namespace Game1.ContentNames
             wire = new("Wire");
 
         public static TextureName RawMaterialIconName(RawMaterialID rawMatID)
-            => new($"Raw Material {rawMatID.Ind()}");
+            => new($"Raw Material {rawMatID.RepresentativeNumber()}");
 
         public static TextureName PrimitiveMaterialIconName(RawMaterialID rawMatID)
-            => new($"Primitive Material {rawMatID.Ind()}");
+            => new($"Primitive Material {rawMatID.RepresentativeNumber()}");
 
         // This is a propertry instead of field so that saves from one operating system could be loaded on another one
         public readonly string Path

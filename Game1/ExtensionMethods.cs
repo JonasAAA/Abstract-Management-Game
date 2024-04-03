@@ -1,6 +1,7 @@
 ﻿using Game1.Collections;
 using Game1.Industries;
 using Game1.Inhabitants;
+using System.Collections.Immutable;
 using System.Numerics;
 using System.Text;
 
@@ -229,5 +230,19 @@ namespace Game1
                 NeighborDir.In => NeighborDir.Out,
                 NeighborDir.Out => NeighborDir.In
             };
+
+        public static bool ContainsDuplicates<TItem>(this IEnumerable<TItem> items)
+        {
+            HashSet<TItem> itemSet = new();
+            foreach (var item in items)
+                if (!itemSet.Add(item))
+                    return true;
+            return false;
+        }
+
+        public static ImmutableHashSet<TItem> ToggleElement<TItem>(this ImmutableHashSet<TItem> set, TItem item)
+#pragma warning disable CA1868 // Unnecessary call to 'Contains(item)'. This is the neatest way I can think of to express this idea
+            => set.Contains(item) ? set.Remove(item) : set.Add(item);
+#pragma warning restore CA1868 // Unnecessary call to 'Contains(item)'
     }
 }

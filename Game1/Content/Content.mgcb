@@ -20,6 +20,9 @@
 /processorParam:TextureFormat=Compressed
 /build:Fonts/MainFont.spritefont
 
+#begin Maps/Hot Map.json
+/copy:Maps/Hot Map.json
+
 #begin Maps/Main Map.json
 /copy:Maps/Main Map.json
 
@@ -167,18 +170,6 @@
 /processorParam:TextureFormat=Color
 /build:Textures/Pixel.png
 
-#begin Textures/Primitive Material 0.png
-/importer:TextureImporter
-/processor:TextureProcessor
-/processorParam:ColorKeyColor=255,0,255,255
-/processorParam:ColorKeyEnabled=True
-/processorParam:GenerateMipmaps=False
-/processorParam:PremultiplyAlpha=True
-/processorParam:ResizeToPowerOfTwo=False
-/processorParam:MakeSquare=False
-/processorParam:TextureFormat=Color
-/build:Textures/Primitive Material 0.png
-
 #begin Textures/Primitive Material 1.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -239,7 +230,7 @@
 /processorParam:TextureFormat=Color
 /build:Textures/Primitive Material 5.png
 
-#begin Textures/Raw Material 0.png
+#begin Textures/Primitive Material 6.png
 /importer:TextureImporter
 /processor:TextureProcessor
 /processorParam:ColorKeyColor=255,0,255,255
@@ -249,7 +240,7 @@
 /processorParam:ResizeToPowerOfTwo=False
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
-/build:Textures/Raw Material 0.png
+/build:Textures/Primitive Material 6.png
 
 #begin Textures/Raw Material 1.png
 /importer:TextureImporter
@@ -310,6 +301,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Textures/Raw Material 5.png
+
+#begin Textures/Raw Material 6.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Textures/Raw Material 6.png
 
 #begin Textures/Raw Material.png
 /importer:TextureImporter

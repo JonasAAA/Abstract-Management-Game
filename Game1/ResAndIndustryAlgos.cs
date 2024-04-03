@@ -6,22 +6,11 @@ namespace Game1
 {
     public static class ResAndIndustryAlgos
     {
-        public static string RawMaterialName(RawMaterialID rawMatID)
-            => rawMatID switch
-            {
-                RawMaterialID.Firstium => "firstium",
-                RawMaterialID.Secondium => "secondium",
-                RawMaterialID.Thirdium => "thirdium",
-                RawMaterialID.Fourthium => "fourthium",
-                RawMaterialID.Fifthium => "fifthium",
-                RawMaterialID.Sixthium => "sixthium"
-            };
-
         /// <summary>
         /// Primitive material is material composed from single raw material
         /// </summary>
         public static string PrimitiveMaterialName(RawMaterialID rawMatID)
-            => $"{RawMaterialName(rawMatID)} material";
+            => $"{rawMatID.Name()} material";
 
         // Want max density to be 1
         public static readonly AreaInt rawMaterialArea = AreaInt.CreateFromMetSq(valueInMetSq: RawMaterialMass(rawMatID: 0).valueInKg);
@@ -111,10 +100,6 @@ namespace Game1
             Debug.Assert(composition.All(rawMatAmount => rawMatAmount.amount % materialCompositionDivisor is 0));
             return composition;
         }
-
-        public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
-#warning Complete this by making it actually random
-            => startingRawMatTargetRatios;
 
         public static MechComplexity ProductMechComplexity(ProductClass productClass, ulong materialPaletteAmount, ulong indInClass, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> ingredProdToAmounts)
 #warning Complete this

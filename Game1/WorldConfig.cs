@@ -101,12 +101,6 @@ namespace Game1
         public readonly UDouble
             heatEnergyDropoffExponent = 2;
         public readonly AreaInt minUsefulBuildingComponentAreaToRemove = AreaInt.CreateFromMetSq(valueInMetSq: 30);
-        public readonly List<(RawMaterialID rawMatID, ulong amount)> startingRawMatTargetRatios =
-        [
-            (rawMatID: RawMaterialID.Firstium, amount: 16),
-            (rawMatID: RawMaterialID.Secondium, amount: 4),
-            (rawMatID: RawMaterialID.Thirdium, amount: 1),
-        ];
         public readonly Propor
             buildingComponentsProporOfBuildingArea = (Propor).2,
             productionProporOfBuildingArea = (Propor).05,

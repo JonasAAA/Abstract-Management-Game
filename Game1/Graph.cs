@@ -187,7 +187,6 @@ namespace Game1
                     StartingBuilding.PowerPlant => CreatePowerPlantIndustry(),
                     StartingBuilding.GearStorage => CreateStorageIndustry(productParamsName: "Gear"),
                     StartingBuilding.WireStorage => CreateStorageIndustry(productParamsName: "Wire"),
-                    StartingBuilding.RoofTileStorage => CreateStorageIndustry(productParamsName: "Roof Tile")
                 };
 
                 IIndustry CreatePowerPlantIndustry()

@@ -275,7 +275,7 @@ namespace Game1
             (
                 heatEnergy: state.ThermalBody.HeatEnergy,
                 surfaceLength: state.SurfaceLength,
-                emissivity: Industry?.SurfaceMatPalette?.Emissivity(temperature: state.Temperature) ?? state.Composition.Emissivity(temperature: state.Temperature),
+                emissivity: CurWorldConfig.emissivity,
                 temperature: state.Temperature,
                 duration: CurWorldManager.Elapsed,
                 stefanBoltzmannConstant: CurWorldConfig.stefanBoltzmannConstant,
@@ -416,7 +416,7 @@ namespace Game1
             var amount = Algorithms.EnergyPropor
             (
                 wholeAmount: state.RadiantEnergyPile.Amount,
-                propor: Industry?.SurfaceMatPalette?.Reflectivity(temperature: state.Temperature) ?? state.Composition.Reflectivity(temperature: state.Temperature)
+                propor: CurWorldConfig.reflectivity
             );
             // Currently the reflected amount must always be zero, as reflectivity is 0
             Debug.Assert(amount.IsZero);

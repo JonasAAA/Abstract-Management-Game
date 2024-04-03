@@ -4,7 +4,6 @@
     {
         PowerPlant,
         GearStorage,
-        WireStorage,
-        RoofTileStorage
+        WireStorage
     }
 }

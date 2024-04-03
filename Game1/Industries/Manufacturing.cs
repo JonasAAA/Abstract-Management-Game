@@ -56,8 +56,7 @@ namespace Game1.Industries
                         buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
                     ),
                     buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
-                    manufacturingProductionChoice: (ManufacturingProductionChoice)productionChoice.Choice,
-                    surfaceMatPalette: neededBuildingMatPaletteChoices[ProductClass.roof]
+                    manufacturingProductionChoice: (ManufacturingProductionChoice)productionChoice.Choice
                 );
 
             IndustryFunctionVisualParams IGeneralBuildingConstructionParams.IncompleteFunctionVisualParams(ProductionChoice? productionChoice)
@@ -77,7 +76,6 @@ namespace Game1.Industries
             public IFunction<IHUDElement> NameVisual { get; }
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
-            public MaterialPalette SurfaceMatPalette { get; }
             public readonly DiskBuildingImage buildingImage;
             public readonly Product.Params productParams;
             public readonly ulong overallMaxProductAmount;
@@ -93,12 +91,11 @@ namespace Game1.Industries
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, MaterialPaletteChoices buildingMatPaletteChoices,
-                ManufacturingProductionChoice manufacturingProductionChoice, MaterialPalette surfaceMatPalette)
+                ManufacturingProductionChoice manufacturingProductionChoice)
             {
                 NameVisual = generalParams.NameVisual;
                 NodeState = nodeState;
                 this.buildingImage = buildingImage;
-                SurfaceMatPalette = surfaceMatPalette;
                 EnergyPriority = generalParams.energyPriority;
                 productParams = generalParams.productParams;
                 buildingArea = buildingImage.Area;
@@ -168,9 +165,6 @@ namespace Game1.Industries
 
             IBuildingImage Industry.IConcreteBuildingParams<ConcreteProductionParams>.IdleBuildingImage
                 => buildingImage;
-
-            MaterialPalette? Industry.IConcreteBuildingParams<ConcreteProductionParams>.SurfaceMatPalette(bool productionInProgress)
-                => SurfaceMatPalette;
 
             SortedResSet<IResource> Industry.IConcreteBuildingParams<ConcreteProductionParams>.GetProducedResources(ConcreteProductionParams productionParams)
                 => productionParams.ProducedResources;

@@ -8,14 +8,12 @@ namespace Game1.Resources
     public record MaterialPurpose
     {
         public static readonly MaterialPurpose mechanical = new(name: "Mechanical");
-        //public static readonly IMaterialPurpose hydraulicFluid = new HydraulicFluid();
-        public static readonly MaterialPurpose roofSurface = new(name: "Roof Surface");
         public static readonly MaterialPurpose electricalConductor = new(name: "Electrical Conductor");
         public static readonly MaterialPurpose electricalInsulator = new(name: "Electrical Insulator");
 
         // DON'T forget to put all material purposes in this list.
         // There is a test to check that
-        public static readonly EfficientReadOnlyCollection<MaterialPurpose> all = new List<MaterialPurpose> { mechanical, /* hydraulicFluid, */ roofSurface, electricalConductor, electricalInsulator }.ToEfficientReadOnlyCollection();
+        public static readonly EfficientReadOnlyCollection<MaterialPurpose> all = new List<MaterialPurpose> { mechanical, electricalConductor, electricalInsulator }.ToEfficientReadOnlyCollection();
 
         private readonly string name;
 

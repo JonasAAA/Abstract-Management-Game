@@ -34,8 +34,6 @@ namespace Game1.Resources
                 keySelector: prodClassAndArea => prodClassAndArea.Key,
                 elementSelector: prodClassAndArea => Propor.Create(part: prodClassAndArea.Value.valueInMetSq, areaCopy.valueInMetSq)!.Value
             );
-            if (!neededProductClassPropors.ContainsKey(ProductClass.roof))
-                throw new ArgumentException();
         }
     }
 }

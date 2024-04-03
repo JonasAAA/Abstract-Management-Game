@@ -141,14 +141,6 @@ namespace Game1.Resources
                 ),
                 Params.CreateNextOrThrow
                 (
-                    name: "Roof Tile",
-                    iconName: TextureName.roofTile,
-                    productClass: ProductClass.roof,
-                    materialPaletteAmount: 1,
-                    ingredProdToAmounts: new()
-                ),
-                Params.CreateNextOrThrow
-                (
                     name: "Wire",
                     iconName: TextureName.wire,
                     productClass: ProductClass.electronics,

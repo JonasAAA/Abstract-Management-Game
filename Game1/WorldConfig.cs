@@ -111,6 +111,10 @@ namespace Game1
 
         public readonly ulong magicUnlimitedStartingMaterialCount = ulong.MaxValue / 100;
 
+        public readonly Propor
+            emissivity = (Propor).5,
+            reflectivity = Propor.empty;
+
         public readonly Temperature maxTemperatureShownInGraphs = Temperature.CreateFromK(valueInK: 3000);
         public readonly SurfaceGravity maxGravityShownInGraphs;
 

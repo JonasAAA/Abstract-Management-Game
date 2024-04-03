@@ -95,16 +95,6 @@ namespace Game1.Resources
                             [MaterialPurpose.electricalConductor] = primitiveMat0,
                             [MaterialPurpose.electricalInsulator] = primitiveMat1
                         }
-                    ).UnwrapOrThrow(),
-                    MaterialPalette.CreateAndAddToResConfig
-                    (
-                        name: "def. roof",
-                        color: ActiveUIManager.colorConfig.defRoofMatPaletteColor,
-                        productClass: ProductClass.roof,
-                        materialChoices: new()
-                        {
-                            [MaterialPurpose.roofSurface] = primitiveMat0
-                        }
                     ).UnwrapOrThrow()
                 ]
             );

@@ -51,8 +51,7 @@ namespace Game1.Industries
                         buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
                         buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
                     ),
-                    buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
-                    surfaceMatPalette: neededBuildingMatPaletteChoices[ProductClass.roof]
+                    buildingMatPaletteChoices: neededBuildingMatPaletteChoices
                 );
             }
 
@@ -73,7 +72,6 @@ namespace Game1.Industries
             public IFunction<IHUDElement> NameVisual { get; }
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
-            public MaterialPalette SurfaceMatPalette { get; }
             public readonly DiskBuildingImage buildingImage;
 
             private readonly AreaDouble buildingArea;
@@ -83,12 +81,11 @@ namespace Game1.Industries
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA,
-                MaterialPaletteChoices buildingMatPaletteChoices, MaterialPalette surfaceMatPalette)
+                MaterialPaletteChoices buildingMatPaletteChoices)
             {
                 NameVisual = generalParams.NameVisual;
                 NodeState = nodeState;
                 this.buildingImage = buildingImage;
-                SurfaceMatPalette = surfaceMatPalette;
                 EnergyPriority = generalParams.energyPriority;
 
                 buildingArea = buildingImage.Area;
@@ -134,9 +131,6 @@ namespace Game1.Industries
 
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => buildingImage;
-
-            MaterialPalette? Industry.IConcreteBuildingParams<UnitType>.SurfaceMatPalette(bool productionInProgress)
-                => SurfaceMatPalette;
 
             SortedResSet<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
                 => SortedResSet<IResource>.empty;

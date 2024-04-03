@@ -133,54 +133,8 @@ namespace Game1
                 )
             );
 
-        public static Propor Reflectivity(this RawMatAmounts rawMatAmounts, Temperature temperature)
-            => CombineRawMatProperties
-            (
-                rawMatAmounts: rawMatAmounts,
-                temperature: temperature,
-                rawMatProperty: static (rawMat, temperature) =>
-                {
-                    return Propor.empty;
-                    //return (Propor).5;
-                    // To look at the graph, paste formula into the link https://www.desmos.com/calculator \frac{1+\tanh\left(\frac{z+1}{5}\right)\ \cdot\sin\left(\left(z+1\right)\left(\frac{x}{500}+1\right)\right)}{2}
-                    double wave = MyMathHelper.Sin((rawMat.RawMatID.Ind() + 1) * (temperature.valueInK / 500 + 1));
-                    Propor scale = MyMathHelper.Tanh((rawMat.RawMatID.Ind() + 1) / 5);
-
-                    return (Propor)((1 + scale * wave) / 2);
-                }
-            );
-
-        // For reflectivity vs reflectance, see https://en.wikipedia.org/wiki/Reflectance#Reflectivity
-        // TLDR: reflectivity is the used for thick materials
-        public static Propor Reflectivity(this MaterialPalette roofMatPalette, Temperature temperature)
-            => Reflectivity(rawMatAmounts: roofMatPalette.materialChoices[MaterialPurpose.roofSurface].RawMatComposition, temperature: temperature);
-
-        public static Propor Emissivity(this RawMatAmounts rawMatAmounts, Temperature temperature)
-            => CombineRawMatProperties
-            (
-                rawMatAmounts: rawMatAmounts,
-                temperature: temperature,
-                rawMatProperty: static (rawMat, temperature) =>
-                {
-                    return (Propor).5;
-                    // The difference from Reflectivity is + 2 part in sin
-                    double wave = MyMathHelper.Sin((rawMat.RawMatID.Ind() + 1) * (temperature.valueInK / 500 + 2));
-                    Propor scale = MyMathHelper.Tanh((rawMat.RawMatID.Ind() + 1) / 5);
-
-                    return (Propor)((1 + scale * wave) / 2);
-                }
-            );
-
-        public static Propor Emissivity(this MaterialPalette roofMatPalette, Temperature temperature)
-            => Emissivity
-            (
-                rawMatAmounts: roofMatPalette.materialChoices[MaterialPurpose.roofSurface].RawMatComposition,
-                temperature:temperature
-            );
-
         private static Propor RawMatStartingStrength(RawMaterialID rawMatID)
             => (Propor)((UDouble)rawMatID.Ind() / RawMaterialIDUtil.lastRawMatID.Ind());
-
 
         private static (Temperature temperature, Propor strength) RawMatMaxStrength(RawMaterialID rawMatID)
             => 
@@ -317,16 +271,14 @@ namespace Game1
                         material: materialPalette.materialChoices[MaterialPurpose.electricalConductor],
                         temperature: temperature
                     )
-                ),
-                roof: () => (Propor).5
+                )
             );
 
         public static Propor NeededElectricity(MaterialPalette materialPalette, SurfaceGravity gravity)
             => materialPalette.productClass.SwitchExpression
             (
                 mechanical: () => (Propor).5,
-                electronics: () => (Propor)1,
-                roof: () => (Propor).2
+                electronics: () => (Propor)1
             );
 
         private const double statsPowerMeanExponent = 0;

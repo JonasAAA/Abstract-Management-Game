@@ -383,7 +383,6 @@ namespace Game1.GameStates
                     StartingBuilding.PowerPlant => "Power\nplant",
                     StartingBuilding.GearStorage => "Gear\nstorage",
                     StartingBuilding.WireStorage => "Wire\nstorage",
-                    StartingBuilding.RoofTileStorage => "Roof tile\nstorage"
                 }
             );
             startingBuildingToButtonsAndExplanation = startingBuildingToName.SelectValues
@@ -395,7 +394,6 @@ namespace Game1.GameStates
                         StartingBuilding.PowerPlant => 'P',
                         StartingBuilding.GearStorage => 'G',
                         StartingBuilding.WireStorage => 'W',
-                        StartingBuilding.RoofTileStorage => 'F'
                     };
                     var keyLetterString = keyLetter.ToString();
                     Regex emphasizeRegex = new(keyLetterString, RegexOptions.IgnoreCase);

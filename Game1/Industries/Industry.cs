@@ -18,7 +18,6 @@ namespace Game1.Industries
             public EnergyPriority EnergyPriority { get; }
             public IBuildingImage IdleBuildingImage { get; }
 
-            public MaterialPalette? SurfaceMatPalette(bool productionInProgress);
             public SortedResSet<IResource> GetProducedResources(TConcreteProductionParams productionParams);
             // Consumed resources are not computed from MaxStoredInput directly as in ladfill you may need extra building components later on,
             // but at the beginning the building doesn't have enough area to store any non-zero amount of them
@@ -72,9 +71,6 @@ namespace Game1.Industries
 
         public NodeID NodeID
             => buildingParams.NodeState.NodeID;
-
-        public MaterialPalette? SurfaceMatPalette
-            => buildingParams.SurfaceMatPalette(productionInProgress: Busy);
 
         public IHUDElement UIElement
             => industryUI;

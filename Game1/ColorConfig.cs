@@ -20,7 +20,6 @@
             otherMechMatPaletteColor,
             defMechMatPaletteColor,
             defElecMatPaletteColor,
-            defRoofMatPaletteColor,
             // industry colors
             miningBuildingColor,
             landfillBuildingColor,
@@ -67,7 +66,6 @@
             otherMechMatPaletteColor = C.ColorFromRGB(rgb: 0xfb923c); // Orange-400
             defMechMatPaletteColor = C.ColorFromRGB(rgb: 0xfed7aa); // Orange-200
             defElecMatPaletteColor = C.ColorFromRGB(rgb: 0xd9f99d); // Lime-200
-            defRoofMatPaletteColor = C.ColorFromRGB(rgb: 0x99f6e4); // Teal-200
             // industry colors
             miningBuildingColor = C.ColorFromRGB(rgb: 0x1d4ed8); // Blue-700
             landfillBuildingColor = C.ColorFromRGB(rgb: 0x6d28d9); // Violet-700

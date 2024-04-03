@@ -24,18 +24,10 @@ namespace Game1.Resources
                 [MaterialPurpose.electricalInsulator] = 1
             }
         );
-        public static readonly ProductClass roof = new
-        (
-            name: "Roof",
-            matPurposeToAmount: new()
-            {
-                [MaterialPurpose.roofSurface] = 1
-            }
-        );
 
         // DON'T forget to put all material purposes in this list.
         // There is a test to check that
-        public static readonly EfficientReadOnlyCollection<ProductClass> all = new List<ProductClass>() { mechanical, electronics, roof }.ToEfficientReadOnlyCollection();
+        public static readonly EfficientReadOnlyCollection<ProductClass> all = new List<ProductClass>() { mechanical, electronics }.ToEfficientReadOnlyCollection();
 
         public readonly EfficientReadOnlyDictionary<MaterialPurpose, ulong> matPurposeToAmount;
 
@@ -50,14 +42,12 @@ namespace Game1.Resources
         public void ThrowIfWrongIMatPurposeSet(EfficientReadOnlyDictionary<MaterialPurpose, Material> materialChoices)
             => matPurposeToAmount.Keys.ToHashSet().SetEquals(materialChoices.Keys);
 
-        public T SwitchExpression<T>(Func<T> mechanical, Func<T> electronics, Func<T> roof)
+        public T SwitchExpression<T>(Func<T> mechanical, Func<T> electronics)
         {
             if (this == ProductClass.mechanical)
                 return mechanical();
             if (this == ProductClass.electronics)
                 return electronics();
-            if (this == ProductClass.roof)
-                return roof();
             throw new InvalidStateException();
         }
 

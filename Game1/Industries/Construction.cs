@@ -122,13 +122,6 @@ namespace Game1.Industries
 
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => IncompleteBuildingImage(donePropor: Propor.empty);
-
-            MaterialPalette? Industry.IConcreteBuildingParams<UnitType>.SurfaceMatPalette(bool productionInProgress)
-                => productionInProgress switch
-                {
-                    true => concreteBuildingParams.SurfaceMatPalette,
-                    false => null
-                };
             
             SortedResSet<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)
                 => SortedResSet<IResource>.empty;

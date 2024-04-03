@@ -50,8 +50,7 @@ namespace Game1.Industries
                         buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
                     ),
                     buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
-                    targetCosmicBody: targetCosmicBody,
-                    surfaceMatPalette: neededBuildingMatPaletteChoices[ProductClass.roof]
+                    targetCosmicBody: targetCosmicBody
                 );
             }
 
@@ -67,7 +66,6 @@ namespace Game1.Industries
         {
             public IFunction<IHUDElement> NameVisual { get; }
             public IIndustryFacingNodeState NodeState { get; }
-            public MaterialPalette SurfaceMatPalette { get; }
             public AllResAmounts BuildingCost { get; }
             public readonly DiskBuildingImage buildingImage;
             public readonly BuildingCostPropors buildingCostPropors;
@@ -78,12 +76,11 @@ namespace Game1.Industries
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA,
-                MaterialPaletteChoices buildingMatPaletteChoices, NodeID? targetCosmicBody, MaterialPalette surfaceMatPalette)
+                MaterialPaletteChoices buildingMatPaletteChoices, NodeID? targetCosmicBody)
             {
                 NameVisual = generalParams.NameVisual;
                 NodeState = nodeState;
                 this.buildingImage = buildingImage;
-                SurfaceMatPalette = surfaceMatPalette;
                 // Building area is used in BuildingCost calculation, thus needs to be computed first
                 buildingArea = buildingImage.Area;
                 buildingCostPropors = generalParams.BuildingCostPropors;
@@ -138,9 +135,6 @@ namespace Game1.Industries
 
         public NodeID NodeID
             => buildingParams.NodeState.NodeID;
-
-        public MaterialPalette? SurfaceMatPalette
-            => buildingParams.SurfaceMatPalette;
 
         public IHUDElement UIElement
             => lightRedirectionUI;

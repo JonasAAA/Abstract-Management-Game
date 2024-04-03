@@ -49,8 +49,7 @@ namespace Game1.Industries
                         buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
                         buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
                     ),
-                    buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
-                    surfaceMatPalette: neededBuildingMatPaletteChoices[ProductClass.roof]
+                    buildingMatPaletteChoices: neededBuildingMatPaletteChoices
                 );
 
             IndustryFunctionVisualParams IGeneralBuildingConstructionParams.IncompleteFunctionVisualParams(ProductionChoice? productionChoice)
@@ -67,7 +66,6 @@ namespace Game1.Industries
             public IFunction<IHUDElement> NameVisual { get; }
             public IIndustryFacingNodeState NodeState { get; }
             public EnergyPriority EnergyPriority { get; }
-            public MaterialPalette SurfaceMatPalette { get; }
             public readonly DiskBuildingImage buildingImage;
             public readonly BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA;
 
@@ -88,12 +86,11 @@ namespace Game1.Industries
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA,
-                MaterialPaletteChoices buildingMatPaletteChoices, MaterialPalette surfaceMatPalette)
+                MaterialPaletteChoices buildingMatPaletteChoices)
             {
                 NameVisual = generalParams.NameVisual;
                 NodeState = nodeState;
                 this.buildingImage = buildingImage;
-                SurfaceMatPalette = surfaceMatPalette;
                 EnergyPriority = generalParams.energyPriority;
 
                 buildingCostPropors = generalParams.BuildingCostPropors;
@@ -162,9 +159,6 @@ namespace Game1.Industries
 
             IBuildingImage Industry.IConcreteBuildingParams<UnitType>.IdleBuildingImage
                 => buildingImage;
-
-            MaterialPalette? Industry.IConcreteBuildingParams<UnitType>.SurfaceMatPalette(bool productionInProgress)
-                => SurfaceMatPalette;
 
             // This assumes that planet composition never changes while mining is happening
             SortedResSet<IResource> Industry.IConcreteBuildingParams<UnitType>.GetProducedResources(UnitType productionParams)

@@ -18,7 +18,6 @@ namespace Game1.ContentNames
             materialIcon = new("Material"),
             resIcon = new("Resource"),
             gear = new("Gear"),
-            roofTile = new("Roof Tile"),
             wire = new("Wire");
 
         public static TextureName RawMaterialIconName(RawMaterialID rawMatID)

@@ -530,8 +530,7 @@
     "StartingBuildingLocations": {
       "PowerPlant": "Cosmic body 6",
       "GearStorage": "Cosmic body 3",
-      "WireStorage": "Cosmic body 2",
-      "RoofTileStorage": "Cosmic body 1"
+      "WireStorage": "Cosmic body 2"
     }
   }
 }

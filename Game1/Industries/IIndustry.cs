@@ -28,11 +28,6 @@ namespace Game1.Industries
         public NodeID NodeID { get; }
         public IBuildingImage BuildingImage { get; }
 
-        /// <summary>
-        /// Null if no building
-        /// </summary>
-        public MaterialPalette? SurfaceMatPalette { get; }
-
         public IHUDElement UIElement { get; }
 
         public IHUDElement RoutePanel { get; }

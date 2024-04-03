@@ -10,10 +10,10 @@ using static Game1.GameConfig;
 
 namespace Game1.GameStates
 {
-    [Serializable]
+    [NonSerializable]
     public sealed class MapCreationState : GameState
     {
-        [Serializable]
+        [NonSerializable]
         private sealed class BuildingCosmicBodyTextBoxHUDPosUpdater(MapCreationState mapCreationState, StartingBuilding startingBuilding) : IAction
         {
             void IAction.Invoke()
@@ -27,7 +27,7 @@ namespace Game1.GameStates
         { }
 
         // This is not struct as it's often used as IWorldUIElementId, which would result in a lot of boxing and unboxing
-        [Serializable]
+        [NonSerializable]
         private sealed record CosmicBodyId : IWorldUIElementId, IComparable<CosmicBodyId>
         {
             private static uint nextId = 0;
@@ -48,7 +48,7 @@ namespace Game1.GameStates
                 => other is null ? 1 : id.CompareTo(other.id);
         }
 
-        [Serializable]
+        [NonSerializable]
         private sealed record LinkId : IWorldUIElementId, IComparable<LinkId>
         {
             private static uint nextId = 0;
@@ -68,10 +68,10 @@ namespace Game1.GameStates
                 => other is null ? 1 : id.CompareTo(other.id);
         }
 
-        [Serializable]
+        [NonSerializable]
         private readonly record struct CosmicBodyInfoInternal(WorldCamera WorldCamera, CosmicBodyId Id, string Name, MyVector2 Position, Length Radius)
         {
-            [Serializable]
+            [NonSerializable]
             private sealed class CosmicBodyShapeParams(CosmicBodyInfoInternal cosmicBody) : Disk.IParams
             {
                 public MyVector2 Center
@@ -89,10 +89,10 @@ namespace Game1.GameStates
                 );
         }
 
-        [Serializable]
+        [NonSerializable]
         private readonly record struct LinkInfoInternal(WorldCamera WorldCamera, LinkId Id, CosmicBodyId From, CosmicBodyId To)
         {
-            [Serializable]
+            [NonSerializable]
             private sealed class LinkShapeParams(MapInfoInternal curMapInfo, LinkInfoInternal link) : VectorShape.IParams
             {
                 public MyVector2 StartPos
@@ -113,10 +113,10 @@ namespace Game1.GameStates
                 );
         }
 
-        [Serializable]
+        [NonSerializable]
         private readonly record struct StartingInfoInternal(MyVector2 WorldCenter, Length CameraViewHeight, EnumDict<StartingBuilding, CosmicBodyId?> StartingBuildingToCosmicBodyId);
 
-        [Serializable]
+        [NonSerializable]
         private readonly record struct MapInfoInternal(ImmutableDictionary<CosmicBodyId, CosmicBodyInfoInternal> CosmicBodies, ImmutableDictionary<LinkId, LinkInfoInternal> Links, StartingInfoInternal StartingInfo)
         {
             public static (MapInfoInternal mapInfo, WorldCamera worldCamera) CreateEmpty()
@@ -248,7 +248,7 @@ namespace Game1.GameStates
             }
         }
 
-        [Serializable]
+        [NonSerializable]
         private sealed class ChangeHistory
         {
             public MapInfoInternal CurMapInfo

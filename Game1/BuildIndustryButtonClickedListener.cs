@@ -5,7 +5,7 @@ using Game1.UI;
 using Game1.Collections;
 using static Game1.WorldManager;
 using static Game1.UI.ActiveUIManager;
-using static Game1.GameConfig;
+using static Game1.GlobalTypes.GameConfig;
 
 namespace Game1
 {

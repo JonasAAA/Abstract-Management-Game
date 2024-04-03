@@ -1,5 +1,5 @@
 ﻿using Game1.Shapes;
-using static Game1.GameConfig;
+using static Game1.GlobalTypes.GameConfig;
 
 namespace Game1.UI
 {

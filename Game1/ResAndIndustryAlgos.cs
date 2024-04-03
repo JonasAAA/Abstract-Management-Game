@@ -1,48 +1,47 @@
 ﻿using Game1.Collections;
+using Game1.GlobalTypes;
 using Game1.Industries;
 
 namespace Game1
 {
     public static class ResAndIndustryAlgos
     {
-        public static string RawMaterialName(ulong ind)
-            => ind switch
+        public static string RawMaterialName(RawMaterialID rawMatID)
+            => rawMatID switch
             {
-                0 => "firstium",
-                1 => "secondium",
-                2 => "thirdium",
-                3 => "fourthium",
-                4 => "fifthium",
-                5 => "sixthium",
-                > maxRawMatInd => throw new ArgumentOutOfRangeException()
+                RawMaterialID.Firstium => "firstium",
+                RawMaterialID.Secondium => "secondium",
+                RawMaterialID.Thirdium => "thirdium",
+                RawMaterialID.Fourthium => "fourthium",
+                RawMaterialID.Fifthium => "fifthium",
+                RawMaterialID.Sixthium => "sixthium"
             };
 
         /// <summary>
         /// Primitive material is material composed from single raw material
         /// </summary>
-        public static string PrimitiveMaterialName(ulong rawMatInd)
-            => $"{RawMaterialName(rawMatInd)} material";
+        public static string PrimitiveMaterialName(RawMaterialID rawMatID)
+            => $"{RawMaterialName(rawMatID)} material";
 
         // Want max density to be 1
-        public static readonly AreaInt rawMaterialArea = AreaInt.CreateFromMetSq(valueInMetSq: RawMaterialMass(ind: 0).valueInKg);
+        public static readonly AreaInt rawMaterialArea = AreaInt.CreateFromMetSq(valueInMetSq: RawMaterialMass(rawMatID: 0).valueInKg);
 
         // Formula is like this for the following reasons:
         // * Want max mass to be quite small in order to have larger amount of blocks in the world
         // * Want mass to decrease with ind
         // * Want subsequent raw mat masses to have not-so-close of a ratio
         // CHANGING masses would still get the same amount of energy released in fusion per unit area, ASSUMING that gravity stays the same
-        public static Mass RawMaterialMass(ulong ind)
+        public static Mass RawMaterialMass(RawMaterialID rawMatID)
             => Mass.CreateFromKg
             (
-                ind switch
+                rawMatID switch
                 {
-                    0 => 12,
-                    1 => 8,
-                    2 => 6,
-                    3 => 4,
-                    4 => 3,
-                    5 => 2,
-                    > maxRawMatInd => throw new ArgumentOutOfRangeException()
+                    RawMaterialID.Firstium => 12,
+                    RawMaterialID.Secondium => 8,
+                    RawMaterialID.Thirdium => 6,
+                    RawMaterialID.Fourthium => 4,
+                    RawMaterialID.Fifthium => 3,
+                    RawMaterialID.Sixthium => 2
                 }
             );
 
@@ -50,13 +49,20 @@ namespace Game1
         // As said in https://en.wikipedia.org/wiki/Specific_heat_capacity#Monatomic_gases
         // heat capacity per mole is the same for all monatomic gases
         // That's because the atoms have nowhere else to store energy, other than in kinetic energy (and hence temperature)
-        public static HeatCapacity RawMaterialHeatCapacity(ulong ind)
+        public static HeatCapacity RawMaterialHeatCapacity(RawMaterialID rawMatID)
 #warning Make this more interesting?
             => HeatCapacity.CreateFromJPerK(valueInJPerK: 1);
 
-        public const ulong energyInJPerKgOfMass = 1;
+        // Want the amount of energy generated from fusion unit area to be proportional to 1 / (ind + 1),
+        // i.e. decreasing with ind quite fast
+        public static UDouble RawMaterialFusionReactionStrengthCoeff(RawMaterialID rawMatID)
+            => rawMatID.Next() switch
+            {
+                RawMaterialID nextRawMatID => (UDouble)0.00000000000000000005 * rawMaterialArea.valueInMetSq / ((RawMaterialMass(rawMatID: rawMatID) - RawMaterialMass(rawMatID: nextRawMatID)).valueInKg * (rawMatID.Ind() + 1)),
+                null => 0
+            };
 
-        public const ulong maxRawMatInd = 5;
+        public const ulong energyInJPerKgOfMass = 1;
 
         public const ulong maxProductIndInClass = 9;
 
@@ -106,11 +112,6 @@ namespace Game1
             return composition;
         }
 
-        // Want the amount of energy generated from fusion unit area to be proportional to 1 / (ind + 1),
-        // i.e. decreasing with ind quite fast
-        public static UDouble RawMaterialFusionReactionStrengthCoeff(ulong ind)
-            => (ind == maxRawMatInd) ? 0 : (UDouble)0.00000000000000000005 * rawMaterialArea.valueInMetSq / ((RawMaterialMass(ind: ind) - RawMaterialMass(ind: ind + 1)).valueInKg * (ind + 1));
-
         public static RawMatAmounts CosmicBodyRandomRawMatRatios(RawMatAmounts startingRawMatTargetRatios)
 #warning Complete this by making it actually random
             => startingRawMatTargetRatios;
@@ -157,8 +158,8 @@ namespace Game1
                     return Propor.empty;
                     //return (Propor).5;
                     // To look at the graph, paste formula into the link https://www.desmos.com/calculator \frac{1+\tanh\left(\frac{z+1}{5}\right)\ \cdot\sin\left(\left(z+1\right)\left(\frac{x}{500}+1\right)\right)}{2}
-                    double wave = MyMathHelper.Sin((rawMat.Ind + 1) * (temperature.valueInK / 500 + 1));
-                    Propor scale = MyMathHelper.Tanh((rawMat.Ind + 1) / 5);
+                    double wave = MyMathHelper.Sin((rawMat.RawMatID.Ind() + 1) * (temperature.valueInK / 500 + 1));
+                    Propor scale = MyMathHelper.Tanh((rawMat.RawMatID.Ind() + 1) / 5);
 
                     return (Propor)((1 + scale * wave) / 2);
                 }
@@ -178,8 +179,8 @@ namespace Game1
                 {
                     return (Propor).5;
                     // The difference from Reflectivity is + 2 part in sin
-                    double wave = MyMathHelper.Sin((rawMat.Ind + 1) * (temperature.valueInK / 500 + 2));
-                    Propor scale = MyMathHelper.Tanh((rawMat.Ind + 1) / 5);
+                    double wave = MyMathHelper.Sin((rawMat.RawMatID.Ind() + 1) * (temperature.valueInK / 500 + 2));
+                    Propor scale = MyMathHelper.Tanh((rawMat.RawMatID.Ind() + 1) / 5);
 
                     return (Propor)((1 + scale * wave) / 2);
                 }
@@ -192,37 +193,37 @@ namespace Game1
                 temperature:temperature
             );
 
-        private static Propor RawMatStartingStrength(ulong ind)
-            => (Propor)((UDouble)ind / maxRawMatInd);
+        private static Propor RawMatStartingStrength(RawMaterialID rawMatID)
+            => (Propor)((UDouble)rawMatID.Ind() / RawMaterialIDUtil.lastRawMatID.Ind());
 
 
-        private static (Temperature temperature, Propor strength) RawMatMaxStrength(ulong ind)
+        private static (Temperature temperature, Propor strength) RawMatMaxStrength(RawMaterialID rawMatID)
             => 
             (
-                temperature: Temperature.CreateFromK(valueInK: 100 + ind * 400),
+                temperature: Temperature.CreateFromK(valueInK: 100 + rawMatID.Ind() * 400),
                 strength: Propor.full
             );
 
         /// <summary>
         /// I.e. temperature after which raw material strength will be (close to) zero
         /// </summary>
-        private static Temperature RawMatMeltingPoint(ulong ind)
-            => Temperature.CreateFromK(valueInK: 2 * RawMatMaxStrength(ind: ind).temperature.valueInK);
+        private static Temperature RawMatMeltingPoint(RawMaterialID rawMatID)
+            => Temperature.CreateFromK(valueInK: 2 * RawMatMaxStrength(rawMatID: rawMatID).temperature.valueInK);
 
         /// <summary>
         /// Currently piecewise linear
         /// </summary>
-        private static Propor RawMatStrength(ulong ind, Temperature temperature)
+        private static Propor RawMatStrength(RawMaterialID rawMatID, Temperature temperature)
         {
-            var (maxStrengthTemper, maxStrength) = RawMatMaxStrength(ind: ind);
+            var (maxStrengthTemper, maxStrength) = RawMatMaxStrength(rawMatID: rawMatID);
             if (temperature <= maxStrengthTemper)
                 return Algorithms.Interpolate
                 (
                     normalized: Algorithms.Normalize(value: temperature.valueInK, start: 0, stop: maxStrengthTemper.valueInK),
-                    start: RawMatStartingStrength(ind: ind),
+                    start: RawMatStartingStrength(rawMatID: rawMatID),
                     stop: maxStrength
                 );
-            var meltingPoint = RawMatMeltingPoint(ind: ind);
+            var meltingPoint = RawMatMeltingPoint(rawMatID: rawMatID);
             if (temperature <= meltingPoint)
                 return Algorithms.Interpolate
                 (
@@ -238,45 +239,45 @@ namespace Game1
             (
                 rawMatAmounts: material.RawMatComposition,
                 temperature: temperature,
-                rawMatProperty: static (rawMat, temperature) => RawMatStrength(ind: rawMat.Ind, temperature: temperature)
+                rawMatProperty: static (rawMat, temperature) => RawMatStrength(rawMatID: rawMat.RawMatID, temperature: temperature)
             );
 
         // Only public to be testable
-        public static (Temperature temperature, Propor resistivity) RawMatResistivityMin(ulong ind)
+        public static (Temperature temperature, Propor resistivity) RawMatResistivityMin(RawMaterialID rawMatID)
             =>
             (
-                temperature: Temperature.CreateFromK(valueInK: 200 + ind * 100),
+                temperature: Temperature.CreateFromK(valueInK: 200 + rawMatID.Ind() * 100),
                 // basically further raw materials will have more extreme minimums
                 resistivity: Algorithms.Interpolate
                 (
-                    normalized: Algorithms.Normalize(value: ind, start: 0, stop: maxRawMatInd),
-                    start: RawMatResistivityMid(ind: ind),
+                    normalized: Algorithms.Normalize(value: rawMatID.Ind(), start: 0, stop: RawMaterialIDUtil.lastRawMatID.Ind()),
+                    start: RawMatResistivityMid(rawMatID: rawMatID),
                     stop: Propor.empty
                 )
             );
 
         // Only public to be testable
-        public static Propor RawMatResistivityMid(ulong ind)
-            => (Propor)((2.0 + (ind % 2)) / 5);
+        public static Propor RawMatResistivityMid(RawMaterialID rawMatID)
+            => (Propor)((2.0 + (rawMatID.Ind() % 2)) / 5);
 
         // Only public to be testable
-        public static (Temperature temperature, Propor resistivity) RawMatResistivityMax(ulong ind)
+        public static (Temperature temperature, Propor resistivity) RawMatResistivityMax(RawMaterialID rawMatID)
             =>
             (
-                temperature: Temperature.CreateFromK(valueInK: 50 + ind * 100),
+                temperature: Temperature.CreateFromK(valueInK: 50 + rawMatID.Ind() * 100),
                 // basically further raw materials will have more extreme maximums
                 resistivity: Algorithms.Interpolate
                 (
-                    normalized: Algorithms.Normalize(value: ind, start: 0, stop: maxRawMatInd),
-                    start: RawMatResistivityMid(ind: ind),
+                    normalized: Algorithms.Normalize(value: rawMatID.Ind(), start: 0, stop: RawMaterialIDUtil.lastRawMatID.Ind()),
+                    start: RawMatResistivityMid(rawMatID: rawMatID),
                     stop: Propor.full
                 )
             );
 
-        public static Propor RawMatResistivity(ulong ind, Temperature temperature)
+        public static Propor RawMatResistivity(RawMaterialID rawMatID, Temperature temperature)
         {
-            var midResistivity = RawMatResistivityMid(ind: ind);
-            return (Propor)((double)midResistivity + Bump(RawMatResistivityMin(ind: ind)) + Bump(RawMatResistivityMax(ind: ind)));
+            var midResistivity = RawMatResistivityMid(rawMatID: rawMatID);
+            return (Propor)((double)midResistivity + Bump(RawMatResistivityMin(rawMatID: rawMatID)) + Bump(RawMatResistivityMax(rawMatID: rawMatID)));
 
             double Bump((Temperature temperature, Propor resistivity) resistPoint)
             {
@@ -293,7 +294,7 @@ namespace Game1
             (
                 rawMatAmounts: material.RawMatComposition,
                 temperature: temperature,
-                rawMatProperty: static (rawMat, temperature) => RawMatResistivity(ind: rawMat.Ind, temperature: temperature)
+                rawMatProperty: static (rawMat, temperature) => RawMatResistivity(rawMatID: rawMat.RawMatID, temperature: temperature)
             );
 
         private static UDouble BaseElectricalEnergyPerUnitAreaPhys(MaterialPalette electronicsMatPalette, Temperature temperature)

@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
+using Game1.GlobalTypes;
 
 namespace Game1.ContentNames
 {

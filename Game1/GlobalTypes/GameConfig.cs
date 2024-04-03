@@ -1,9 +1,11 @@
-﻿namespace Game1
+﻿namespace Game1.GlobalTypes
 {
     [Serializable]
     public class GameConfig
     {
         public const string gameName = "Abstract Management Game";
+        // const so that could use this in switch statements/expressions
+        public const ulong rawMaterialCount = 6;
 
         public static readonly GameConfig CurGameConfig = new();
 

@@ -2,7 +2,7 @@
 using Game1.ContentNames;
 using Game1.UI;
 using static Game1.WorldManager;
-using static Game1.GameConfig;
+using static Game1.GlobalTypes.GameConfig;
 
 namespace Game1.Resources
 {
@@ -17,7 +17,7 @@ namespace Game1.Resources
             private static ulong GetNextInd(ProductClass productClass)
             {
                 var ind = nextInds[productClass];
-                if (ind > ResAndIndustryAlgos.maxRawMatInd)
+                if (ind > ResAndIndustryAlgos.maxProductIndInClass)
                     throw new ArgumentException();
                 nextInds[productClass]++;
                 return ind;

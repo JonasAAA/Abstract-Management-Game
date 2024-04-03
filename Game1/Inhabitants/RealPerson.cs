@@ -95,7 +95,7 @@ namespace Game1.Inhabitants
             (
                 resAmounts: new List<ResAmount<IResource>>()
                 {
-                    new(res: CurResConfig.GetRawMatFromInd(ind: 0), amount: 10)
+                    new(res: CurResConfig.GetRawMatFromID(rawMatID: 0), amount: 10)
                 }
             );
 

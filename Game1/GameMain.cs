@@ -8,7 +8,7 @@ using System.Globalization;
 using System.Runtime;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using static Game1.GameConfig;
+using static Game1.GlobalTypes.GameConfig;
 
 namespace Game1
 {

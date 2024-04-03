@@ -1,26 +1,37 @@
 ﻿using Game1.ContentNames;
+using Game1.GlobalTypes;
 using Game1.UI;
-using static Game1.GameConfig;
-using static Game1.UI.ActiveUIManager;
+using static Game1.GlobalTypes.GameConfig;
 
 namespace Game1.Resources
 {
     [Serializable]
     public class RawMaterial : IResource
     {
-        public static IEnumerable<RawMaterial> GetInitialRawMats()
-        {
-            for (ulong ind = 0; ind <= ResAndIndustryAlgos.maxRawMatInd; ind++)
-                yield return new
+        public static RawMaterial Create(RawMaterialID rawMatID)
+            => new
+            (
+                rawMatID: rawMatID,
+                name: ResAndIndustryAlgos.RawMaterialName(rawMatID: rawMatID),
+                iconName: TextureName.RawMaterialIconName(rawMatID: rawMatID),
+                mass: ResAndIndustryAlgos.RawMaterialMass(rawMatID: rawMatID),
+                heatCapacity: ResAndIndustryAlgos.RawMaterialHeatCapacity(rawMatID: rawMatID),
+                fusionReactionStrengthCoeff: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(rawMatID: rawMatID)
+            );
+
+        public static IEnumerable<RawMaterial> GetAllRawMats()
+            => Enum.GetValues<RawMaterialID>().Select
+            (
+                rawMatID => new RawMaterial
                 (
-                    ind: ind,
-                    name: ResAndIndustryAlgos.RawMaterialName(ind: ind),
-                    iconName: TextureName.RawMaterialIconName(ind: ind),
-                    mass: ResAndIndustryAlgos.RawMaterialMass(ind: ind),
-                    heatCapacity: ResAndIndustryAlgos.RawMaterialHeatCapacity(ind: ind),
-                    fusionReactionStrengthCoeff: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ind)
-                );
-        }
+                    rawMatID: rawMatID,
+                    name: ResAndIndustryAlgos.RawMaterialName(rawMatID: rawMatID),
+                    iconName: TextureName.RawMaterialIconName(rawMatID: rawMatID),
+                    mass: ResAndIndustryAlgos.RawMaterialMass(rawMatID: rawMatID),
+                    heatCapacity: ResAndIndustryAlgos.RawMaterialHeatCapacity(rawMatID: rawMatID),
+                    fusionReactionStrengthCoeff: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(rawMatID: rawMatID)
+                )
+            );
 
         public string Name { get; }
         public ConfigurableIcon Icon { get; }
@@ -30,9 +41,9 @@ namespace Game1.Resources
         public AreaInt Area { get; }
         public RawMatAmounts RawMatComposition { get; }
         public UDouble FusionReactionStrengthCoeff { get; }
-        public ulong Ind { get; }
+        public RawMaterialID RawMatID { get; }
 
-        private RawMaterial(ulong ind, string name, TextureName iconName, Mass mass, HeatCapacity heatCapacity, UDouble fusionReactionStrengthCoeff)
+        private RawMaterial(RawMaterialID rawMatID, string name, TextureName iconName, Mass mass, HeatCapacity heatCapacity, UDouble fusionReactionStrengthCoeff)
         {
             Name = name;
             Icon = new Icon(name: iconName, height: CurGameConfig.iconHeight).WithDefaultBackgroundColor();
@@ -42,11 +53,15 @@ namespace Game1.Resources
             Area = ResAndIndustryAlgos.rawMaterialArea;
             RawMatComposition = new(res: this, amount: 1);
             FusionReactionStrengthCoeff = fusionReactionStrengthCoeff;
-            Ind = ind;
+            RawMatID = rawMatID;
         }
 
         public RawMaterial GetFusionResult(ResConfig curResConfig)
-            => curResConfig.GetRawMatFromInd(ind: Ind + 1);
+            => RawMatID.Next() switch
+            {
+                RawMaterialID nextRawMatID => curResConfig.GetRawMatFromID(rawMatID: nextRawMatID),
+                null => throw new ArgumentException()
+            };
 
         public override string ToString()
             => Name;

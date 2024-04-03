@@ -110,7 +110,7 @@ namespace Game1
                 (
                     rawMatAmount => new ResAmount<RawMaterial>
                     (
-                        res: CurResConfig.GetRawMatFromInd(ind: rawMatAmount.rawMatInd),
+                        res: CurResConfig.GetRawMatFromID(rawMatID: rawMatAmount.rawMatID),
                         amount: rawMatAmount.amount
                     )
                 )

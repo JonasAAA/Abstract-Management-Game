@@ -6,7 +6,7 @@ using Game1.Shapes;
 using Game1.UI;
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
-using static Game1.GameConfig;
+using static Game1.GlobalTypes.GameConfig;
 
 namespace Game1.GameStates
 {
@@ -567,6 +567,7 @@ namespace Game1.GameStates
                             }
                         )
                     };
+                // Toggle raw material presence
                 // Link add
                 if (mouseLeftButton.Clicked && keyboardState.IsKeyDown(Keys.L) && hoverUIElement is CosmicBodyId hoverCosmicBodyId && selectedCosmicBodyId != hoverCosmicBodyId)
                 {

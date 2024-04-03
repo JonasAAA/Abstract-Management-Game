@@ -3,7 +3,7 @@ using Game1.Delegates;
 using Game1.Shapes;
 using Game1.UI;
 using static Game1.WorldManager;
-using static Game1.GameConfig;
+using static Game1.GlobalTypes.GameConfig;
 using static Game1.UI.ActiveUIManager;
 using Game1.ContentNames;
 

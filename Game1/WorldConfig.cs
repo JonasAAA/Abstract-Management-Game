@@ -1,5 +1,6 @@
-﻿using Game1.Shapes;
-using static Game1.GameConfig;
+﻿using Game1.GlobalTypes;
+using Game1.Shapes;
+using static Game1.GlobalTypes.GameConfig;
 
 namespace Game1
 {
@@ -100,11 +101,11 @@ namespace Game1
         public readonly UDouble
             heatEnergyDropoffExponent = 2;
         public readonly AreaInt minUsefulBuildingComponentAreaToRemove = AreaInt.CreateFromMetSq(valueInMetSq: 30);
-        public readonly List<(ulong rawMatInd, ulong amount)> startingRawMatTargetRatios =
+        public readonly List<(RawMaterialID rawMatID, ulong amount)> startingRawMatTargetRatios =
         [
-            (rawMatInd: 0, amount: 16),
-            (rawMatInd: 1, amount: 4),
-            (rawMatInd: 2, amount: 1),
+            (rawMatID: RawMaterialID.Firstium, amount: 16),
+            (rawMatID: RawMaterialID.Secondium, amount: 4),
+            (rawMatID: RawMaterialID.Thirdium, amount: 1),
         ];
         public readonly Propor
             buildingComponentsProporOfBuildingArea = (Propor).2,

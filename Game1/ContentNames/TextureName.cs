@@ -1,4 +1,6 @@
-﻿namespace Game1.ContentNames
+﻿using Game1.GlobalTypes;
+
+namespace Game1.ContentNames
 {
     [Serializable]
     public readonly struct TextureName
@@ -19,11 +21,11 @@
             roofTile = new("Roof Tile"),
             wire = new("Wire");
 
-        public static TextureName RawMaterialIconName(ulong ind)
-            => ind <= ResAndIndustryAlgos.maxRawMatInd ? new($"Raw Material {ind}") : throw new ArgumentOutOfRangeException();
+        public static TextureName RawMaterialIconName(RawMaterialID rawMatID)
+            => new($"Raw Material {rawMatID.Ind()}");
 
-        public static TextureName PrimitiveMaterialIconName(ulong rawMatInd)
-            => rawMatInd <= ResAndIndustryAlgos.maxRawMatInd ? new($"Primitive Material {rawMatInd}") : throw new ArgumentOutOfRangeException();
+        public static TextureName PrimitiveMaterialIconName(RawMaterialID rawMatID)
+            => new($"Primitive Material {rawMatID.Ind()}");
 
         // This is a propertry instead of field so that saves from one operating system could be loaded on another one
         public readonly string Path

@@ -41,47 +41,54 @@ namespace Game1.UI
 
         // The copy is needed so that the additional info is displayed properly within dropdown AND when a choice is made
         [Serializable]
-        private sealed class StartDropdownListener<TItem>(UDouble Width, IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, IHUDElement visual, IHUDElement visualCopy, IHUDElement? additionalInfo, IHUDElement? additionalInfoCopy, ITooltip tooltip)> itemsWithTooltips, UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button<IHUDElement> startItemChoice) : IClickedListener
+        private sealed class StartDropdownListener<TItem>(UDouble Width, IItemChoiceSetter<TItem> ItemChoiceSetter, IEnumerable<(TItem item, IHUDElement visual, IHUDElement visualCopy, IHUDElement? additionalInfo, IHUDElement? additionalInfoCopy, ITooltip tooltip)> itemsWithTooltips, UIRectHorizPanel<IHUDElement> startItemChoiceLine, Button<IHUDElement> startItemChoice, ulong columnCount, HorizPosEnum popupHorizPos) : IClickedListener
             where TItem : notnull
         {
             void IClickedListener.ClickedResponse()
             {
                 UIRectVertPanel<IHUDElement> choicePopup = new
                 (
-                    childHorizPos: HorizPosEnum.Middle,
-                    children: itemsWithTooltips.Select
+                    childHorizPos: HorizPosEnum.Left,
+                    children: itemsWithTooltips.Chunk((int)columnCount).Select
                     (
-                        args =>
-                        {
-                            var (item, visual, visualCopy, additionalInfo, additionalInfoCopy, tooltip) = args;
+                        itemsWithTooltipsChunk => new UIRectHorizPanel<IHUDElement>
+                        (
+                            childVertPos: VertPosEnum.Middle,
+                            children: itemsWithTooltipsChunk.Select
+                            (
+                                args =>
+                                {
+                                    var (item, visual, visualCopy, additionalInfo, additionalInfoCopy, tooltip) = args;
                             
-                            Button<IHUDElement> chooseItemButton = new
-                            (
-                                shape: new MyRectangle(width: Width, height: CurGameConfig.UILineHeight),
-                                visual: GetButtonVisual(visual: visual),
-                                tooltip: tooltip
-                            );
-                            chooseItemButton.clicked.Add
-                            (
-                                listener: new ItemChoiceListener<TItem>
-                                (
-                                    itemChoiceSetter: ItemChoiceSetter,
-                                    startItemChoiceLine: startItemChoiceLine,
-                                    startItemChoice: startItemChoice,
-                                    item: item,
-                                    visual: visualCopy,
-                                    additionalInfo: additionalInfoCopy
-                                )
-                            );
-                            return new UIRectHorizPanel<IHUDElement>
-                            (
-                                childVertPos: childVertPos,
-                                children: new List<IHUDElement?>() { chooseItemButton, additionalInfo }
-                            );
-                        }
+                                    Button<IHUDElement> chooseItemButton = new
+                                    (
+                                        shape: new MyRectangle(width: Width, height: CurGameConfig.UILineHeight),
+                                        visual: GetButtonVisual(visual: visual),
+                                        tooltip: tooltip
+                                    );
+                                    chooseItemButton.clicked.Add
+                                    (
+                                        listener: new ItemChoiceListener<TItem>
+                                        (
+                                            itemChoiceSetter: ItemChoiceSetter,
+                                            startItemChoiceLine: startItemChoiceLine,
+                                            startItemChoice: startItemChoice,
+                                            item: item,
+                                            visual: visualCopy,
+                                            additionalInfo: additionalInfoCopy
+                                        )
+                                    );
+                                    return new UIRectHorizPanel<IHUDElement>
+                                    (
+                                        childVertPos: childVertPos,
+                                        children: new List<IHUDElement?>() { chooseItemButton, additionalInfo }
+                                    );
+                                }
+                            )
+                        )
                     )
                 );
-                PosEnums popupOrigin = new(HorizPosEnum.Left, VertPosEnum.Middle);
+                PosEnums popupOrigin = new(popupHorizPos, VertPosEnum.Middle);
                 CurWorldManager.SetHUDPopup
                 (
                     HUDElement: choicePopup,
@@ -91,8 +98,12 @@ namespace Game1.UI
             }
         }
 
+        /// <summary>
+        /// When have just one column, popupHorizPos doesn't make a difference
+        /// </summary>
         public static IHUDElement CreateDropdown<TItem>(UDouble width, ITooltip dropdownButtonTooltip, IItemChoiceSetter<TItem> itemChoiceSetter,
-            IEnumerable<(TItem item, Func<IHUDElement> visual, ITooltip tooltip)> itemsWithTooltips, (IHUDElement empty, Func<TItem, IHUDElement> item)? additionalInfos)
+            IEnumerable<(TItem item, Func<IHUDElement> visual, ITooltip tooltip)> itemsWithTooltips, (IHUDElement empty, Func<TItem, IHUDElement> item)? additionalInfos,
+            ulong columnCount, HorizPosEnum popupHorizPos)
             where TItem : class
         {
             UIRectHorizPanel<IHUDElement> startItemChoiceLine = new(childVertPos: childVertPos, children: Enumerable.Empty<IHUDElement>());
@@ -128,7 +139,9 @@ namespace Game1.UI
                         )
                     ),
                     startItemChoiceLine: startItemChoiceLine,
-                    startItemChoice: startItemChoice
+                    startItemChoice: startItemChoice,
+                    columnCount: columnCount,
+                    popupHorizPos: popupHorizPos
                 )
             );
 

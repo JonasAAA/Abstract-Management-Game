@@ -60,7 +60,9 @@ namespace Game1
                         ) as ITooltip
                     )
                 ),
-                additionalInfos: additionalInfos
+                additionalInfos: additionalInfos,
+                columnCount: 1,
+                popupHorizPos: HorizPosEnum.Left
             );
 
         public static IHUDElement CreateMaterialChoiceDropdown(IItemChoiceSetter<Material> materialChoiceSetter, (IHUDElement empty, Func<Material, IHUDElement> item)? additionalInfos = null)
@@ -78,7 +80,9 @@ namespace Game1
                         tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ChooseMaterial(material: material)) as ITooltip
                     )
                 ),
-                additionalInfos: additionalInfos
+                additionalInfos: additionalInfos,
+                columnCount: 1,
+                popupHorizPos: HorizPosEnum.Right
             );
 
         public static IHUDElement CreateResourceChoiceDropdown(IItemChoiceSetter<IResource> resChoiceSetter, (IHUDElement empty, Func<IResource, IHUDElement> item)? additionalInfos = null)
@@ -96,7 +100,9 @@ namespace Game1
                         tooltip: new ImmutableTextTooltip(text: UIAlgorithms.ChooseResource(resource: resource)) as ITooltip
                     )
                 ),
-                additionalInfos: additionalInfos
+                additionalInfos: additionalInfos,
+                columnCount: 3,
+                popupHorizPos: HorizPosEnum.Right
             );
 
         public static IHUDElement CreateTargetCosmicBodyChoiceButton(IItemChoiceSetter<NodeID> targetChoiceSetter, NodeID originCosmicBody, string buttonText, string tooltipText,

@@ -195,10 +195,10 @@ namespace Game1.Industries
                 {
                     not null =>
                     (
-                        Algorithms.EnergyPropor
+                        Algorithms.ScaleEnergy
                         (
-                            wholeAmount: energyToUseAndTransform,
-                            propor: energyProporUsed.Value.Opposite()
+                            amount: energyToUseAndTransform,
+                            scale: (UDouble)energyProporUsed.Value.Opposite()
                         ),
                         Propor.Create
                         (

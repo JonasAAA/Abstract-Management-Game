@@ -352,11 +352,11 @@ namespace Game1
             return true;
         }
         
-        public static TAmount EnergyPropor<TAmount>(TAmount wholeAmount, Propor propor)
+        public static TAmount ScaleEnergy<TAmount>(TAmount amount, UDouble scale)
             where TAmount : struct, IUnconstrainedEnergy<TAmount>
             => IUnconstrainedEnergy<TAmount>.CreateFromJoules
             (
-                valueInJ: MyMathHelper.RoundNonneg(wholeAmount.ValueInJ() * (decimal)propor)
+                valueInJ: MyMathHelper.RoundNonneg(amount.ValueInJ() * (decimal)scale)
             );
 
         public static string GanerateNewName(string prefix, EfficientReadOnlyHashSet<string> usedNames)

@@ -386,6 +386,32 @@ namespace Game1
                 ) * (neededElectricityFactor * powerPlantSuppliedBuildings)
             );
 
+        /// <summary>
+        /// Note that this returns max production params as it doesn't know how much radiant energy is available to be transformed
+        /// </summary>
+        public static LightRedirectionProdStats CurLightRedirectionProdStats(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
+            SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea)
+            // COPIED from power plant for now. Later, probably just want to multiply the TentativeThroughput by a bigger constant as it makes
+            // sense to redirect more light then could convert to electricity
+#warning Complete this
+            => new
+            (
+                ReqWatts: CurReqWatts
+                (
+                    buildingCostPropors: buildingCostPropors,
+                    buildingMatPaletteChoices: buildingMatPaletteChoices,
+                    gravity: gravity,
+                    buildingArea: buildingArea
+                ),
+                RedirectWatts: buildingArea.valueInMetSq * TentativeThroughput
+                (
+                    temperature: temperature,
+                    chosenTotalPropor: Propor.full,
+                    matPaletteChoices: buildingMatPaletteChoices.Choices,
+                    buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
+                ) * (neededElectricityFactor * powerPlantSuppliedBuildings)
+            );
+
         public static MechProdStats CurConstrStats(AllResAmounts buildingCost, SurfaceGravity gravity, Temperature temperature, ulong worldSecondsInGameSecond)
         {
             var buildingComponentsArea = buildingCost.Area();

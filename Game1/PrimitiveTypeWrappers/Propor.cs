@@ -21,7 +21,7 @@ namespace Game1.PrimitiveTypeWrappers
         public static Propor? Create(UDouble part, UDouble whole)
         {
             if (whole == 0)
-                return null;
+                return part == 0 ? full : null;
             return Create(value: part / whole);
         }
 

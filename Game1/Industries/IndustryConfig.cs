@@ -91,6 +91,7 @@ namespace Game1.Industries
                     buildingGeneralParams: new LightRedirection.GeneralBuildingParams
                     (
                         name: "Basic light redirection",
+                        energyPriority: averageEnergyPriority,
                         buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                         {
                             (prodParams: Product.productParamsDict["Wire"], amount: 2)

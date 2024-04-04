@@ -6,8 +6,10 @@ using static Game1.WorldManager;
 
 namespace Game1.Industries
 {
-    [Serializable]
-    public sealed class LightRedirection : IIndustry
+    /// <summary>
+    /// Responds properly to planet shrinking, but NOT to planet widening
+    /// </summary>
+    public static class LightRedirection
     {
         [Serializable]
         public sealed class GeneralBuildingParams : IGeneralBuildingConstructionParams
@@ -16,89 +18,141 @@ namespace Game1.Industries
             public BuildingCostPropors BuildingCostPropors { get; }
 
             public readonly DiskBuildingImage.Params buildingImageParams;
+            public readonly EnergyPriority energyPriority;
 
             private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
 
-            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
+            public GeneralBuildingParams(string name, EnergyPriority energyPriority, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
             {
-                NameVisual = UIAlgorithms.GetBuildingNameVisual(name: name);
-                BuildingCostPropors = new(ingredProdToAmounts: buildingComponentPropors);
-
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.lightRedirectionBuildingColor);
+                NameVisual = UIAlgorithms.GetBuildingNameVisual(name: name);
+                BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
+
+                this.energyPriority = energyPriority;
                 this.buildingComponentPropors = buildingComponentPropors;
             }
 
-            public IHUDElement? CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
-                // Should not require target when the building is yet to be constructed.
-                // As then all planets would show "Build here" AND "Choose this as target" buttons at the same time.
+            IHUDElement? IGeneralBuildingConstructionParams.CreateProductionChoicePanel(IItemChoiceSetter<ProductionChoice> productionChoiceSetter)
                 => null;
 
-            public ConcreteBuildingParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, NodeID? targetCosmicBody)
+            public IConcreteBuildingConstructionParams CreateConcrete(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices)
             {
                 if (!BuildingCostPropors.neededProductClasses.SetEquals(neededBuildingMatPaletteChoices.Choices.Keys))
                     throw new ArgumentException();
 
-                return new
+                return new ConcreteBuildingParams
                 (
                     nodeState: nodeState,
                     generalParams: this,
-                    buildingImage: buildingImageParams.CreateImage(nodeState),
+                    buildingImage: buildingImageParams.CreateImage(nodeShapeParams: nodeState),
                     buildingComponentsToAmountPUBA: ResAndIndustryHelpers.BuildingComponentsToAmountPUBA
                     (
                         buildingComponentPropors: buildingComponentPropors,
                         buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
                         buildingComponentsProporOfBuildingArea: CurWorldConfig.buildingComponentsProporOfBuildingArea
                     ),
-                    buildingMatPaletteChoices: neededBuildingMatPaletteChoices,
-                    targetCosmicBody: targetCosmicBody
+                    buildingMatPaletteChoices: neededBuildingMatPaletteChoices
                 );
             }
 
             IConcreteBuildingConstructionParams IGeneralBuildingConstructionParams.CreateConcreteImpl(IIndustryFacingNodeState nodeState, MaterialPaletteChoices neededBuildingMatPaletteChoices, ProductionChoice productionChoice)
-                => CreateConcrete(nodeState: nodeState, neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices, targetCosmicBody: null);
-            
+                => CreateConcrete
+                (
+                    nodeState: nodeState,
+                    neededBuildingMatPaletteChoices: neededBuildingMatPaletteChoices
+                );
+
             IndustryFunctionVisualParams IGeneralBuildingConstructionParams.IncompleteFunctionVisualParams(ProductionChoice? productionChoice)
                 => IncompleteFunctionVisualParams();
         }
 
         [Serializable]
-        public readonly struct ConcreteBuildingParams : IConcreteBuildingConstructionParams
+        public readonly struct ConcreteBuildingParams : Industry.IConcreteBuildingParams<LightRedirectionParams>, IConcreteBuildingConstructionParams
         {
             public IFunction<IHUDElement> NameVisual { get; }
             public IIndustryFacingNodeState NodeState { get; }
-            public AllResAmounts BuildingCost { get; }
+            public EnergyPriority EnergyPriority { get; }
             public readonly DiskBuildingImage buildingImage;
-            public readonly BuildingCostPropors buildingCostPropors;
-            public readonly MaterialPaletteChoices buildingMatPaletteChoices;
 
             private readonly AreaDouble buildingArea;
-            private readonly NodeID? targetCosmicBody;
+            private readonly BuildingCostPropors buildingCostPropors;
+            private readonly MaterialPaletteChoices buildingMatPaletteChoices;
+            private readonly AllResAmounts buildingCost;
 
             public ConcreteBuildingParams(IIndustryFacingNodeState nodeState, GeneralBuildingParams generalParams, DiskBuildingImage buildingImage,
                 BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA,
-                MaterialPaletteChoices buildingMatPaletteChoices, NodeID? targetCosmicBody)
+                MaterialPaletteChoices buildingMatPaletteChoices)
             {
                 NameVisual = generalParams.NameVisual;
                 NodeState = nodeState;
                 this.buildingImage = buildingImage;
-                // Building area is used in BuildingCost calculation, thus needs to be computed first
+                EnergyPriority = generalParams.energyPriority;
+
                 buildingArea = buildingImage.Area;
                 buildingCostPropors = generalParams.BuildingCostPropors;
                 this.buildingMatPaletteChoices = buildingMatPaletteChoices;
-                this.targetCosmicBody = targetCosmicBody;
-                BuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
+
+                buildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
+
+            public LightRedirectionProdStats CurProdStats()
+                => ResAndIndustryAlgos.CurLightRedirectionProdStats
+                (
+                    buildingCostPropors: buildingCostPropors,
+                    buildingMatPaletteChoices: buildingMatPaletteChoices,
+                    gravity: NodeState.SurfaceGravity,
+                    temperature: NodeState.Temperature,
+                    buildingArea: buildingArea
+                );
+
+            AllResAmounts IConcreteBuildingConstructionParams.BuildingCost
+                => buildingCost;
 
             IBuildingImage IIncompleteBuildingImage.IncompleteBuildingImage(Propor donePropor)
                 => buildingImage.IncompleteBuildingImage(donePropor: donePropor);
 
             IIndustry IConcreteBuildingConstructionParams.CreateIndustry(ResPile buildingResPile)
-                => new LightRedirection
+            {
+                var statsGraphsParams = (buildingMatPaletteChoices, buildingCostPropors);
+                LightRedirectionParams lightRedirectionParams = new(targetCosmicBody: null);
+                return new Industry<LightRedirectionParams, ConcreteBuildingParams, ResPile, LightRedirectionState>
                 (
-                    lightRedirectionParams: new(targetCosmicBody: targetCosmicBody),
+                    productionParams: lightRedirectionParams,
                     buildingParams: this,
-                    buildingResPile: buildingResPile
+                    persistentState: buildingResPile,
+                    statsGraphsParams: statsGraphsParams,
+                    customHUDElement: ResAndIndustryUIAlgos.CreateTargetCosmicBodyChoiceButton
+                    (
+                        targetChoiceSetter: new TargetChoiceSetter(lightRedirectionParams: lightRedirectionParams),
+                        originCosmicBody: NodeState.NodeID,
+                        buttonText: UIAlgorithms.ChooseTargetCosmicBody,
+                        tooltipText: UIAlgorithms.ChooseTargetCosmicBodyTooltip,
+                        chooseThisAsTarget: UIAlgorithms.ChooseThisAsTargetCosmicBody,
+                        chooseThisAsTargetTooltip: UIAlgorithms.ChooseThisAsTargetCosmicBodyTooltip
+                    )
                 );
+            }
+
+            static bool Industry.IConcreteBuildingParams<LightRedirectionParams>.RequiresResources
+                => false;
+
+            static bool Industry.IConcreteBuildingParams<LightRedirectionParams>.ProducesResources
+                => false;
+
+            IBuildingImage Industry.IConcreteBuildingParams<LightRedirectionParams>.IdleBuildingImage
+                => buildingImage;
+
+            SortedResSet<IResource> Industry.IConcreteBuildingParams<LightRedirectionParams>.GetProducedResources(LightRedirectionParams productionParams)
+                => SortedResSet<IResource>.empty;
+
+            SortedResSet<IResource> Industry.IConcreteBuildingParams<LightRedirectionParams>.GetConsumedResources(LightRedirectionParams productionParams)
+                => SortedResSet<IResource>.empty;
+
+            AllResAmounts Industry.IConcreteBuildingParams<LightRedirectionParams>.MaxStoredInput(LightRedirectionParams productionParams)
+                => AllResAmounts.empty;
+
+            IndustryFunctionVisualParams Industry.IConcreteBuildingParams<LightRedirectionParams>.IndustryFunctionVisualParams(LightRedirectionParams productionParams)
+                => IncompleteFunctionVisualParams();
         }
 
         [Serializable]
@@ -111,176 +165,156 @@ namespace Game1.Industries
         }
 
         [Serializable]
-        private sealed class TargetChoiceSetter(LightRedirection lightRedirection) : IItemChoiceSetter<NodeID>
+        private sealed class TargetChoiceSetter(LightRedirectionParams lightRedirectionParams) : IItemChoiceSetter<NodeID>
         {
             void IItemChoiceSetter<NodeID>.SetChoice(NodeID item)
-                => lightRedirection.lightRedirectionParams.targetCosmicBody = item;
+                => lightRedirectionParams.targetCosmicBody = item;
+        }
+
+        [Serializable]
+        private sealed class LightRedirectionState : Industry.IProductionCycleState<LightRedirectionParams, ConcreteBuildingParams, ResPile, LightRedirectionState>
+        {
+            public static bool IsRepeatable
+                => false;
+
+            public static Result<LightRedirectionState, TextErrors> Create(LightRedirectionParams productionParams, ConcreteBuildingParams parameters, ResPile buildingResPile,
+                ResPile inputStorage, AreaInt storedOutputArea)
+                => new(ok: new(buildingParams: parameters, lightRedirectionParams: productionParams));
+
+            public ElectricalEnergy ReqEnergy { get; private set; }
+
+            public bool ShouldRestart
+                => false;
+
+            private readonly ConcreteBuildingParams buildingParams;
+            private readonly LightRedirectionParams lightRedirectionParams;
+            private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
+
+            private RadiantEnergy energyToRedirectIfGetRequiredElectricity;
+            private Result<NodeID, TextErrors> targetCosmicBody;
+            private Result<RadiantEnergy, TextErrors> energyToRedirect;
+
+            private LightRedirectionState(ConcreteBuildingParams buildingParams, LightRedirectionParams lightRedirectionParams)
+            {
+                this.buildingParams = buildingParams;
+                this.lightRedirectionParams = lightRedirectionParams;
+                energyToRedirectIfGetRequiredElectricity = RadiantEnergy.zero;
+                electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
+            }
+
+            public IBuildingImage BusyBuildingImage()
+                => buildingParams.buildingImage;
+
+            public Propor FrameStartAndReturnThroughputUtilization()
+            {
+                if (lightRedirectionParams.targetCosmicBody is NodeID nodeID)
+                {
+                    targetCosmicBody = new(ok: nodeID);
+                    var curProdStats = buildingParams.CurProdStats();
+                    var maxEnergyToRedirect = ResAndIndustryHelpers.CurEnergy<RadiantEnergy>
+                    (
+                        watts: curProdStats.RedirectWatts,
+                        proporUtilized: Propor.full,
+                        elapsed: CurWorldManager.Elapsed
+                    );
+                    energyToRedirectIfGetRequiredElectricity = MyMathHelper.Min
+                    (
+                        buildingParams.NodeState.RadiantEnergyPile.Amount,
+                        maxEnergyToRedirect
+                    );
+
+                    // Can be more than 1 if this building is extremely inefficient
+                    var proporOfEnergyToRedirectRequired = curProdStats.ReqWatts / curProdStats.RedirectWatts;
+                    ReqEnergy = ElectricalEnergy.CreateFromJoules
+                    (
+                        valueInJ: Algorithms.ScaleEnergy
+                        (
+                            amount: energyToRedirectIfGetRequiredElectricity,
+                            scale: proporOfEnergyToRedirectRequired
+                        ).ValueInJ
+                    );
+
+                    return Propor.Create
+                    (
+                        part: energyToRedirectIfGetRequiredElectricity.ValueInJ,
+                        whole: maxEnergyToRedirect.ValueInJ
+                    )!.Value;
+                }
+                else
+                {
+                    targetCosmicBody = new(errors: new("No target chosen"));
+                    energyToRedirectIfGetRequiredElectricity = RadiantEnergy.zero;
+                    ReqEnergy = ElectricalEnergy.zero;
+                    return Propor.empty;
+                }
+            }
+
+            public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
+            {
+                electricalEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
+                Debug.Assert(electricalEnergy <= ReqEnergy);
+                energyToRedirect = (ReqEnergy.IsZero, electricalEnergy.IsZero) switch
+                {
+                    (true, true) => new(ok: energyToRedirectIfGetRequiredElectricity),
+                    (true, false) => throw new InvalidStateException(),
+                    (false, true) => new(errors: new(UIAlgorithms.GotNoElectricity)),
+                    (false, false) => new
+                    (
+                        ok: Algorithms.ScaleEnergy
+                        (
+                            amount: energyToRedirectIfGetRequiredElectricity,
+                            scale: (UDouble)electricalEnergy.ValueInJ / ReqEnergy.ValueInJ
+                        )
+                    )
+                };
+            }
+
+            public Result<IIndustry?, TextErrors> Update(ResPile outputStorage)
+            {
+                buildingParams.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
+                return targetCosmicBody.SwitchExpression
+                (
+                    ok: target => energyToRedirect.Select<IIndustry?>
+                    (
+                        func: energyToRedirect =>
+                        {
+                            var lightPile = buildingParams.NodeState.LaserToShine?.lightPile ?? EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
+                            lightPile.TransferFrom(source: buildingParams.NodeState.RadiantEnergyPile, amount: energyToRedirect);
+                            buildingParams.NodeState.LaserToShine =
+                            (
+                                lightPile: lightPile,
+                                lightPerSec: lightPile.Amount.ValueInJ / (UDouble)CurWorldManager.Elapsed.TotalSeconds,
+                                targetCosmicBody: target
+                            );
+                            return null;
+                        }
+                    ),
+                    error: errors =>
+                    {
+                        buildingParams.NodeState.LaserToShine = null;
+                        return new(errors: errors);
+                    }
+                );
+            }
+
+            public void Delete(ResPile outputStorage)
+                => buildingParams.NodeState.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: electricalEnergyPile);
+
+            public static void DeletePersistentState(ResPile buildingResPile, ResPile outputStorage)
+                => outputStorage.TransferAllFrom(source: buildingResPile);
         }
 
         private static IndustryFunctionVisualParams IncompleteFunctionVisualParams()
-            => new
-            (
-                InputIcons: [IIndustry.starlightIcon],
-                OutputIcons: [IIndustry.starlightIcon]
-            );
+             => new
+             (
+                 InputIcons: [IIndustry.starlightIcon],
+                 OutputIcons: [IIndustry.starlightIcon]
+             );
 
         public static HashSet<Type> GetKnownTypes()
             => new()
             {
-                typeof(LightRedirection)
+                typeof(Industry<LightRedirectionParams, ConcreteBuildingParams, ResPile, LightRedirectionState>)
             };
-
-        public IFunction<IHUDElement> NameVisual
-            => buildingParams.NameVisual;
-
-        public NodeID NodeID
-            => buildingParams.NodeState.NodeID;
-
-        public IHUDElement UIElement
-            => lightRedirectionUI;
-
-        public IEvent<IDeletedListener> Deleted
-            => deleted;
-
-        public IBuildingImage BuildingImage
-            => buildingParams.buildingImage;
-
-        public IHUDElement RoutePanel { get; }
-
-        public IHUDElement? IndustryFunctionVisual { get; }
-
-        private readonly LightRedirectionParams lightRedirectionParams;
-        private readonly ConcreteBuildingParams buildingParams;
-        private readonly ResPile buildingResPile;
-        private readonly Event<IDeletedListener> deleted;
-        private bool isDeleted;
-        private readonly UIRectVertPanel<IHUDElement> lightRedirectionUI;
-
-        private LightRedirection(LightRedirectionParams lightRedirectionParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile)
-        {
-            this.lightRedirectionParams = lightRedirectionParams;
-            this.buildingParams = buildingParams;
-            this.buildingResPile = buildingResPile;
-            deleted = new();
-            isDeleted = false;
-
-            RoutePanel = IIndustry.CreateRoutePanel(industry: this);
-            IndustryFunctionVisual = IncompleteFunctionVisualParams().CreateIndustryFunctionVisual();
-
-            lightRedirectionUI = new
-            (
-                childHorizPos: HorizPosEnum.Left,
-                children:
-                [
-                    buildingParams.NameVisual.Invoke(),
-                    ResAndIndustryUIAlgos.CreateBuildingStatsHeaderRow(),
-                    ResAndIndustryUIAlgos.CreateNeededElectricityAndThroughputPanel
-                    (
-                        nodeState: buildingParams.NodeState,
-                        neededElectricityGraph: ResAndIndustryUIAlgos.CreateGravityFunctionGraph
-                        (
-                            func: gravity => ResAndIndustryAlgos.TentativeNeededElectricity
-                            (
-                                gravity: gravity,
-                                chosenTotalPropor: Propor.full,
-                                matPaletteChoices: buildingParams.buildingMatPaletteChoices.Choices,
-                                buildingProdClassPropors: buildingParams.buildingCostPropors.neededProductClassPropors
-                            )
-                        ),
-                        throughputGraph: ResAndIndustryUIAlgos.CreateTemperatureFunctionGraph
-                        (
-                            func: temperature => ResAndIndustryAlgos.TentativeThroughput
-                            (
-                                temperature: temperature,
-                                chosenTotalPropor: Propor.full,
-                                matPaletteChoices: buildingParams.buildingMatPaletteChoices.Choices,
-                                buildingProdClassPropors: buildingParams.buildingCostPropors.neededProductClassPropors
-                            )
-                        )
-                    ),
-                    new TextBox(text: "THIS BUILDING DOES NOT\nDEPEND ON THE ABOVE CURRENTLY"),
-                    ResAndIndustryUIAlgos.CreateTargetCosmicBodyChoiceButton
-                    (
-                        targetChoiceSetter: new TargetChoiceSetter(lightRedirection: this),
-                        originCosmicBody: buildingParams.NodeState.NodeID,
-                        buttonText: UIAlgorithms.ChooseTargetCosmicBody,
-                        tooltipText: UIAlgorithms.ChooseTargetCosmicBodyTooltip,
-                        chooseThisAsTarget: UIAlgorithms.ChooseThisAsTargetCosmicBody,
-                        chooseThisAsTargetTooltip: UIAlgorithms.ChooseThisAsTargetCosmicBodyTooltip
-                    )
-                ]
-            );
-        }
-
-        public bool IsNeighborhoodPossible(NeighborDir neighborDir, IResource resource)
-            => false;
-
-        public IReadOnlyCollection<IResource> GetResWithPotentialNeighborhood(NeighborDir neighborDir)
-            => [];
-
-        public EfficientReadOnlyHashSet<IIndustry> GetResNeighbors(NeighborDir neighborDir, IResource resource)
-            => [];
-
-        public AllResAmounts GetResAmountsRequestToNeighbors(NeighborDir neighborDir)
-            => AllResAmounts.empty;
-
-        private const string mustTransportNothingMessage = "Light Redirection building must transport nothing";
-
-        public void TransportResTo(IIndustry destinIndustry, ResAmount<IResource> resAmount)
-        {
-            if (resAmount.amount is not 0)
-                throw new ArgumentException(mustTransportNothingMessage);
-        }
-
-        public void WaitForResFrom(IIndustry sourceIndustry, ResAmount<IResource> resAmount)
-        {
-            if (resAmount.amount is not 0)
-                throw new ArgumentException(mustTransportNothingMessage);
-        }
-
-        public void Arrive(ResPile arrivingResPile)
-        {
-            if (!arrivingResPile.IsEmpty)
-                throw new ArgumentException(mustTransportNothingMessage);
-        }
-
-        public void ToggleResNeighbor(NeighborDir neighborDir, IResource resource, IIndustry neighbor)
-            => throw new InvalidOperationException(mustTransportNothingMessage);
-
-        public void FrameStart()
-        { }
-
-        public IIndustry? UpdateImpl()
-        {
-            if (lightRedirectionParams.targetCosmicBody is NodeID target)
-            {
-                var lightPile = buildingParams.NodeState.LaserToShine?.lightPile ?? EnergyPile<RadiantEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
-                lightPile.TransferAllFrom(buildingParams.NodeState.RadiantEnergyPile);
-                buildingParams.NodeState.LaserToShine =
-                (
-                    lightPile: lightPile,
-                    lightPerSec: lightPile.Amount.ValueInJ / (UDouble)CurWorldManager.Elapsed.TotalSeconds,
-                    targetCosmicBody: target
-                );
-            }
-            else
-                buildingParams.NodeState.LaserToShine = null;
-            return this;
-        }
-
-        public void UpdateUI()
-        { }
-
-        public bool Delete()
-        {
-            if (isDeleted)
-                return false;
-            IIndustry.DeleteResNeighbors(industry: this);
-#warning Implement a proper industry deletion strategy
-            IIndustry.DumpAllResIntoCosmicBody(nodeState: buildingParams.NodeState, resPile: buildingResPile);
-            deleted.Raise(action: listener => listener.DeletedResponse(deletable: this));
-            isDeleted = true;
-            return true;
-        }
     }
 }

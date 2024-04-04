@@ -170,6 +170,9 @@ namespace Game1.UI
         public static string ChooseThisAsTargetCosmicBodyTooltip
             => "Choose to redirect light to here";
 
+        public static string GotNoElectricity
+            => "Got no electricity";
+
         public static Result<TOk, TextErrors> ConvertMissingMatPurpsIntoError<TOk>(this Result<TOk, EfficientReadOnlyHashSet<MaterialPurpose>> result)
             => result.SwitchExpression<Result<TOk, TextErrors>>
             (

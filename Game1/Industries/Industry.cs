@@ -43,7 +43,7 @@ namespace Game1.Industries
             public ElectricalEnergy ReqEnergy { get; }
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy);
             /// <summary>
-            /// Return null if a question of throughput utilization doesn't make sense
+            /// Answer this as if got all the electrical energy you want
             /// </summary>
             public Propor FrameStartAndReturnThroughputUtilization();
             /// <summary>
@@ -120,7 +120,7 @@ namespace Game1.Industries
         /// statsGraphsParams should be null iff don't want to show building stats dependence on gravity and temperature graphs
         /// </summary>
         public Industry(TConcreteProductionParams productionParams, TConcreteBuildingParams buildingParams, TPersistentState persistentState,
-            (MaterialPaletteChoices buildingMatPaletteChoices, BuildingCostPropors buildingCostPropors)? statsGraphsParams)
+            (MaterialPaletteChoices buildingMatPaletteChoices, BuildingCostPropors buildingCostPropors)? statsGraphsParams, IHUDElement? customHUDElement = null)
         {
             this.productionParams = productionParams;
             this.buildingParams = buildingParams;
@@ -204,7 +204,8 @@ namespace Game1.Industries
                     TConcreteBuildingParams.ProducesResources ? new TextBox(text: "stored outputs") : null,
                     storedOutputsUI,
                     TConcreteBuildingParams.RequiresResources ? new TextBox(text: "demand") : null,
-                    demandUI
+                    demandUI,
+                    customHUDElement
                 }
             );
         }

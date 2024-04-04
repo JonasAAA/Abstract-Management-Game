@@ -201,10 +201,10 @@ namespace Game1
         public static TAmount TransferProporTo<TAmount>(this EnergyPile<TAmount> source, EnergyPile<TAmount> destin, Propor propor)
             where TAmount : struct, IUnconstrainedEnergy<TAmount>
         {
-            TAmount amountToTransfer = Algorithms.EnergyPropor
+            TAmount amountToTransfer = Algorithms.ScaleEnergy
             (
-                wholeAmount: source.Amount,
-                propor: propor
+                amount: source.Amount,
+                scale: (UDouble)propor
             );
             source.TransferTo(destin: destin, amount: amountToTransfer);
             return amountToTransfer;
@@ -215,10 +215,10 @@ namespace Game1
             where TSourceAmount : struct, IUnconstrainedEnergy<TSourceAmount>
             where TDestinAmount : struct, IUnconstrainedEnergy<TDestinAmount>
         {
-            TSourceAmount amountToTransform = Algorithms.EnergyPropor
+            TSourceAmount amountToTransform = Algorithms.ScaleEnergy
             (
-                wholeAmount: source.Amount,
-                propor: propor
+                amount: source.Amount,
+                scale: (UDouble)propor
             );
             source.TransformTo(destin: destin, amount: amountToTransform);
             return TDestinAmount.CreateFromEnergy(energy: (Energy)amountToTransform);

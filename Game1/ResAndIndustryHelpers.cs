@@ -1,4 +1,5 @@
 ﻿using Game1.Collections;
+using Game1.UI;
 
 namespace Game1
 {
@@ -33,8 +34,8 @@ namespace Game1
         {
             if (reqEnergy.IsZero)
                 return new(ok: proporUtilized);
-            if (allocatedEnergy.IsZero)
-                return new(errors: new("Got no electricity"));
+            if (!reqEnergy.IsZero && allocatedEnergy.IsZero)
+                return new(errors: new(UIAlgorithms.GotNoElectricity));
             return new(ok: proporUtilized * Propor.Create(part: allocatedEnergy.ValueInJ, whole: reqEnergy.ValueInJ)!.Value);
         }
 

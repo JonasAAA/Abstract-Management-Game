@@ -301,8 +301,8 @@ namespace Game1
                     var (nodes, links) = (ValueTuple<List<CosmicBody>, List<Link>>)state!;
                     return FindPersonAndResShortestPaths(nodes: nodes, links: links);
                 },
-                // TODO: decide if it's needed. it probably executes the function on another thread, but causes massive performance problems in Debug mode
-                creationOptions: TaskCreationOptions.LongRunning,
+                // Enabling the commented out option causes to spawn (and destroy) a lot of threads, which slows down the game significantly
+                //creationOptions: TaskCreationOptions.LongRunning,
                 state: (nodes.ToList(), links.ToList())
             );
 

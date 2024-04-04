@@ -583,8 +583,6 @@ namespace Game1
                 globalTextBox.Text = energyManager.Summary().Trim();
             }
             activeUIManager.Update(elapsed: elapsedGameTime);
-            if (Keyboard.GetState().IsKeyDown(Keys.Space))
-                                                   ;
             // THIS is a huge performance penalty
 #if DEBUG2
             GC.Collect();

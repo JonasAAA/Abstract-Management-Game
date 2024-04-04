@@ -311,7 +311,7 @@ namespace Game1.Industries
             public IBuildingImage BusyBuildingImage()
                 => buildingParams.buildingImage;
 
-            public void FrameStart()
+            public Propor FrameStartAndReturnThroughputUtilization()
             {
 #warning Currenlty, landfill adding new building components and mining removing building components doesn't cost any energy. Should probably change that 
                 curLandfillingStats = buildingParams.CurLandfillingStats(landfillingMassIfFull: landfillingMassIfFull);
@@ -322,6 +322,7 @@ namespace Game1.Industries
                     proporUtilized: proporUtilized,
                     elapsed: CurWorldManager.Elapsed
                 );
+                return proporUtilized;
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)

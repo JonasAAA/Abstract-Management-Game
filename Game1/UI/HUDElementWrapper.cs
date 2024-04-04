@@ -1,53 +1,44 @@
-﻿using Game1.Delegates;
-using Game1.Shapes;
+﻿using Game1.Shapes;
+using static Game1.UI.ActiveUIManager;
 
 namespace Game1.UI
 {
-    /// <summary>
-    /// Useful for cases where would like to replace some HUDElement later on.
-    /// Just wrap it in this, and assign a different value when appropriate, and all things should work with that as expected.
-    /// </summary>
     [Serializable]
-    public sealed class HUDElementWrapper : IHUDElement
+    public sealed class HUDElementWrapper : HUDElement
     {
-        public IHUDElement Value
+        public IHUDElement? Value
         {
             get => value;
             set
             {
-                var oldShape = this.value.Shape;
+                if (this.value is not null)
+                    RemoveChild(child: this.value);
                 this.value = value;
-#warning this is hacky, and likely will not work correctly if the new shape is of a different size than the old one
-                // The non-hacky solution would be to basically have 1-element container, so holding my own shape, which depends on the child
-                this.value.Shape.Center = oldShape.Center;
+                if (this.value is not null)
+                    AddChild(child: this.value);
             }
         }
 
-        public NearRectangle Shape => Value.Shape;
+        protected sealed override Color Color { get; }
 
-        public Event<ISizeOrPosChangedListener> SizeOrPosChanged => Value.SizeOrPosChanged;
+        private IHUDElement? value;
 
-        public bool Enabled => Value.Enabled;
+        public HUDElementWrapper(IHUDElement? value, Color? backgroundColor = null)
+            : base(shape: new MyRectangle())
+        {
+            this.value = null;
+            Value = value;
+            Color = backgroundColor ?? colorConfig.UIBackgroundColor;
+        }
 
-        public bool PersonallyEnabled { get => Value.PersonallyEnabled; set => Value.PersonallyEnabled = value; }
-        public bool HasDisabledAncestor { get => Value.HasDisabledAncestor; set => Value.HasDisabledAncestor = value; }
-        public bool MouseOn { get => Value.MouseOn; set => Value.MouseOn = value; }
+        protected sealed override void PartOfRecalcSizeAndPos()
+        {
+            base.PartOfRecalcSizeAndPos();
 
-        public bool CanBeClicked => Value.CanBeClicked;
-
-        public Event<IEnabledChangedListener> EnabledChanged => Value.EnabledChanged;
-
-        /// <summary>
-        /// ONLY set this directly at the very start. For all other purposes, use Value;
-        /// </summary>
-        private IHUDElement value;
-
-        public HUDElementWrapper(IHUDElement value)
-            => this.value = value;
-
-        public void RecalcSizeAndPos() => Value.RecalcSizeAndPos();
-        public bool Contains(Vector2Bare mouseScreenPos) => Value.Contains(mouseScreenPos);
-        public IUIElement? CatchUIElement(Vector2Bare mouseScreenPos) => Value.CatchUIElement(mouseScreenPos);
-        public void Draw() => Value.Draw();
+            Shape.Width = Value?.Shape.Width ?? 0;
+            Shape.Height = Value?.Shape.Height ?? 0;
+            if (Value is not null)
+                Value.Shape.Center = Shape.Center;
+        }
     }
 }

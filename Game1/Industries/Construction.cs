@@ -183,10 +183,11 @@ namespace Game1.Industries
             public IBuildingImage BusyBuildingImage()
                 => parameters.IncompleteBuildingImage(donePropor: donePropor);
 
-            public void FrameStart()
+            public Propor FrameStartAndReturnThroughputUtilization()
             {
                 curConstrStats = parameters.CurConstrStats();
                 ReqEnergy = ResAndIndustryHelpers.CurEnergy<ElectricalEnergy>(watts: curConstrStats.ReqWatts, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed);
+                return Propor.full;
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)

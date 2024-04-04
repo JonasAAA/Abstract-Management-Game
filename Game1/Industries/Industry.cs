@@ -42,7 +42,10 @@ namespace Game1.Industries
             public bool ShouldRestart { get; }
             public ElectricalEnergy ReqEnergy { get; }
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy);
-            public void FrameStart();
+            /// <summary>
+            /// Return null if a question of throughput utilization doesn't make sense
+            /// </summary>
+            public Propor FrameStartAndReturnThroughputUtilization();
             /// <summary>
             /// If work is paused, return text errors indicating why
             /// If not, return child industry, and null if no new industry constructed
@@ -64,7 +67,7 @@ namespace Game1.Industries
         where TProductionCycleState : class, Industry.IProductionCycleState<TConcreteProductionParams, TConcreteBuildingParams, TPersistentState, TProductionCycleState>
     {
         [Serializable]
-        private readonly record struct StateAndPauseReasons(TProductionCycleState State, Result<UnitType, TextErrors> PauseReasons);
+        private readonly record struct StateAndPauseReasons(TProductionCycleState State, Propor ProporUtilized, Result<UnitType, TextErrors> PauseReasons);
 
         public IFunction<IHUDElement> NameVisual
             => buildingParams.NameVisual;
@@ -110,6 +113,7 @@ namespace Game1.Industries
         private readonly ResPile inputStorage, outputStorage;
         private AllResAmounts resTravellingHere;
         private IHUDElement statusUI;
+        private readonly VertProporBar proporUtilizedBar;
         private IHUDElement? storedInputsUI, storedOutputsUI, demandUI;
 
         /// <summary>
@@ -142,6 +146,7 @@ namespace Game1.Industries
             IndustryFunctionVisual = buildingParams.IndustryFunctionVisualParams(productionParams: productionParams).CreateIndustryFunctionVisual();
 
             statusUI = CreateNewStatusUI();
+            proporUtilizedBar = ResAndIndustryUIAlgos.CreateStandardVertProporBar(propor: GetProporUtilized());
             storedInputsUI = TConcreteBuildingParams.RequiresResources ? ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: inputStorage.Amount) : null;
             storedOutputsUI = TConcreteBuildingParams.ProducesResources ? ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: outputStorage.Amount) : null;
             demandUI = TConcreteBuildingParams.RequiresResources ? ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: GetResAmountsRequestToNeighbors(NeighborDir.In)) : null;
@@ -185,6 +190,15 @@ namespace Game1.Industries
                         )
                     },
                     statusUI,
+                    new UIRectHorizPanel<IHUDElement>
+                    (
+                        childVertPos: VertPosEnum.Middle,
+                        children:
+                        [
+                            new TextBox(text: "Utilized"),
+                            proporUtilizedBar
+                        ]
+                    ),
                     TConcreteBuildingParams.RequiresResources ? new TextBox(text: "stored inputs") : null,
                     storedInputsUI,
                     TConcreteBuildingParams.ProducesResources ? new TextBox(text: "stored outputs") : null,
@@ -242,9 +256,12 @@ namespace Game1.Industries
                 ok: stateOrReasons => stateOrReasons.State.ShouldRestart ? CreateProductionCycleState() : new(ok: stateOrReasons),
                 error: _ => CreateProductionCycleState()
             );
-            stateOrNotStartedReasons.PerformAction
+            stateOrNotStartedReasons = stateOrNotStartedReasons.Select
             (
-                action: stateOrReasons => stateOrReasons.State.FrameStart()
+                func: stateAndReasons => stateAndReasons with
+                {
+                    ProporUtilized = stateAndReasons.State.FrameStartAndReturnThroughputUtilization()
+                }
             );
 
             Result<StateAndPauseReasons, TextErrors> CreateProductionCycleState()
@@ -257,7 +274,7 @@ namespace Game1.Industries
                     storedOutputArea: outputStorage.Amount.Area()
                 ).Select
                 (
-                    func: state => new StateAndPauseReasons(State: state, PauseReasons: new(ok: UnitType.value))
+                    func: state => new StateAndPauseReasons(State: state, ProporUtilized: Propor.empty, PauseReasons: new(ok: UnitType.value))
                 );
         }
 
@@ -278,6 +295,7 @@ namespace Game1.Industries
                                 ok: new
                                 (
                                     State: stateAndPauseReasons.State,
+                                    ProporUtilized: stateAndPauseReasons.ProporUtilized,
                                     PauseReasons: new(ok: UnitType.value)
                                 )
                             )
@@ -291,6 +309,7 @@ namespace Game1.Industries
                             ok: new StateAndPauseReasons
                             (
                                 State: stateAndPauseReasons.State,
+                                ProporUtilized: stateAndPauseReasons.ProporUtilized,
                                 PauseReasons: new(errors: pausedReasons)
                             )
                         )
@@ -320,6 +339,13 @@ namespace Game1.Industries
                 )
             );
 
+        private Propor GetProporUtilized()
+            => stateOrNotStartedReasons.SwitchExpression
+            (
+                ok: state => state.ProporUtilized,
+                error: _ => Propor.empty
+            );
+
         public void UpdateUI()
         {
             industryUI.ReplaceChild
@@ -327,6 +353,7 @@ namespace Game1.Industries
                 oldChild: ref statusUI,
                 newChild: CreateNewStatusUI()
             );
+            proporUtilizedBar.Propor = GetProporUtilized();
             UpdateResAmountsUI(resAmountsUI: ref storedInputsUI, resAmounts: inputStorage.Amount);
             UpdateResAmountsUI(resAmountsUI: ref storedOutputsUI, resAmounts: outputStorage.Amount);
             UpdateResAmountsUI(resAmountsUI: ref demandUI, resAmounts: GetResAmountsRequestToNeighbors(NeighborDir.In));

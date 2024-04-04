@@ -90,14 +90,16 @@ namespace Game1.Industries
                 BuildingCost = ResAndIndustryHelpers.CurNeededBuildingComponents(buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA, curBuildingArea: buildingArea);
             }
 
+            public AreaInt TotalStorageArea()
+                => (buildingArea * CurWorldConfig.storageProporOfBuildingAreaForStorageIndustry).RoundDown();
+
             public AllResAmounts MaxStored(IResource storedRes)
                 => new
                 (
                     res: storedRes,
                     amount: ResAndIndustryAlgos.MaxAmount
                     (
-                        availableArea: buildingArea * CurWorldConfig.storageProporOfBuildingAreaForStorageIndustry,
-                        // Could use Area here instead, if decide to have such a thing
+                        availableArea: TotalStorageArea().ToDouble(),
                         itemArea: storedRes.Area
                     )
                 );
@@ -213,7 +215,8 @@ namespace Game1.Industries
         private readonly EnumDict<NeighborDir, EfficientReadOnlyDictionary<IResource, HashSet<IIndustry>>> resNeighbors;
         private AllResAmounts resTravellingHere;
         private readonly UIRectVertPanel<IHUDElement> storageUI;
-        private IHUDElement storedAmountsUI, unusedAmountsUI;
+        private IHUDElement storedAmountsUI;
+        private readonly VertProporBar proporUtilizedBar;
 
         private Storage(StorageParams storageParams, ConcreteBuildingParams buildingParams, ResPile buildingResPile)
         {
@@ -229,8 +232,8 @@ namespace Game1.Industries
             RoutePanel = IIndustry.CreateRoutePanel(industry: this);
             IndustryFunctionVisual = IncompleteFunctionVisualParams(storageParams: storageParams).CreateIndustryFunctionVisual();
 
+            proporUtilizedBar = ResAndIndustryUIAlgos.CreateStandardVertProporBar(propor: GetProporUtilized());
             storedAmountsUI = ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: storage.Amount);
-            unusedAmountsUI = CreateNewUnusedAmountsUI();
 
             storageUI = new
             (
@@ -266,17 +269,25 @@ namespace Game1.Industries
                     new TextBox(text: "THIS BUILDING DOES NOT\nDEPEND ON THE ABOVE CURRENTLY"),
                     new TextBox(text: "stored"),
                     storedAmountsUI,
-                    new TextBox(text: "unused space"),
-                    unusedAmountsUI
+                    new UIRectHorizPanel<IHUDElement>
+                    (
+                        childVertPos: VertPosEnum.Middle,
+                        children:
+                        [
+                            new TextBox(text: "Utilized"),
+                            proporUtilizedBar
+                        ]
+                    ),
                 ]
             );
         }
 
-        private IHUDElement CreateNewUnusedAmountsUI()
-            => ResAndIndustryUIAlgos.ResAmountsHUDElement
+        private Propor GetProporUtilized()
+            => Propor.Create
             (
-                resAmounts: buildingParams.MaxStored(storageParams.CurStoredRes.UnwrapOrThrow()) - storage.Amount
-            );
+                part: storage.Amount.Area().valueInMetSq,
+                whole: buildingParams.TotalStorageArea().valueInMetSq
+            )!.Value;
 
         public bool IsNeighborhoodPossible(NeighborDir neighborDir, IResource resource)
             => resNeighbors[neighborDir].ContainsKey(resource);
@@ -326,15 +337,12 @@ namespace Game1.Industries
 
         public void UpdateUI()
         {
+            proporUtilizedBar.Propor = GetProporUtilized();
+
             storageUI.ReplaceChild
             (
                 oldChild: ref storedAmountsUI,
                 newChild: ResAndIndustryUIAlgos.ResAmountsHUDElement(resAmounts: storage.Amount)
-            );
-            storageUI.ReplaceChild
-            (
-                oldChild: ref unusedAmountsUI,
-                newChild: CreateNewUnusedAmountsUI()
             );
         }
 

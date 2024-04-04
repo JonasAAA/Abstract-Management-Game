@@ -279,6 +279,7 @@ namespace Game1.Industries
             /// </summary>
             private readonly AreaInt miningArea;
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
+            private readonly Propor proporUtilized;
 
             private MechProdStats curMiningStats;
             private Propor donePropor;
@@ -292,22 +293,24 @@ namespace Game1.Industries
                 miningMass = miningRes.Amount.Mass();
                 this.miningArea = miningArea;
                 electricalEnergyPile = EnergyPile<ElectricalEnergy>.CreateEmpty(locationCounters: buildingParams.NodeState.LocationCounters);
+                proporUtilized = Propor.full;
                 donePropor = Propor.empty;
             }
 
             public IBuildingImage BusyBuildingImage()
                 => buildingParams.buildingImage;
 
-            public void FrameStart()
+            public Propor FrameStartAndReturnThroughputUtilization()
             {
                 curMiningStats = buildingParams.CurMiningStats(miningMass: miningMass);
                 ReqEnergy = ResAndIndustryHelpers.CurEnergy<ElectricalEnergy>(watts: curMiningStats.ReqWatts, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed);
+                return proporUtilized;
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)
             {
                 electricalEnergyPile.TransferFrom(source: source, amount: electricalEnergy);
-                workingProporOrPauseReasons = ResAndIndustryHelpers.WorkingPropor(proporUtilized: Propor.full, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
+                workingProporOrPauseReasons = ResAndIndustryHelpers.WorkingPropor(proporUtilized: proporUtilized, allocatedEnergy: electricalEnergy, reqEnergy: ReqEnergy);
             }
 
             /// <summary>

@@ -176,26 +176,40 @@ namespace Game1.Industries
             public IBuildingImage BusyBuildingImage()
                 => buildingParams.buildingImage;
 
-            public void FrameStart()
+            public Propor FrameStartAndReturnThroughputUtilization()
             {
                 var curProdStats = buildingParams.CurProdStats();
                 var energyProporUsed = Propor.Create(part: curProdStats.ReqWatts, curProdStats.ProdWatts);
-                energyToTransform = energyProporUsed is null
-                    ? RadiantEnergy.zero
-                    : Algorithms.EnergyPropor
+                var maxEnergyToUseAndTranform = ResAndIndustryHelpers.CurEnergy<RadiantEnergy>
+                (
+                    watts: curProdStats.ProdWatts,
+                    proporUtilized: Propor.full,
+                    elapsed: CurWorldManager.Elapsed
+                );
+                var energyToUseAndTransform = MyMathHelper.Min
+                (
+                    buildingParams.NodeState.RadiantEnergyPile.Amount,
+                    maxEnergyToUseAndTranform
+                );
+                (energyToTransform, Propor proporUtilized) = energyProporUsed switch
+                {
+                    not null =>
                     (
-                        wholeAmount: MyMathHelper.Min
+                        Algorithms.EnergyPropor
                         (
-                            buildingParams.NodeState.RadiantEnergyPile.Amount,
-                            ResAndIndustryHelpers.CurEnergy<RadiantEnergy>
-                            (
-                                watts: curProdStats.ProdWatts,
-                                proporUtilized: Propor.full,
-                                elapsed: CurWorldManager.Elapsed
-                            )
+                            wholeAmount: energyToUseAndTransform,
+                            propor: energyProporUsed.Value.Opposite()
                         ),
-                        propor: energyProporUsed.Value.Opposite()
-                    );
+                        Propor.Create
+                        (
+                            part: energyToUseAndTransform.ValueInJ,
+                            whole: maxEnergyToUseAndTranform.ValueInJ
+                        )!.Value
+                    ),
+                    null => (RadiantEnergy.zero, Propor.empty)
+                };
+
+                return proporUtilized;
             }
 
             public void ConsumeElectricalEnergy(Pile<ElectricalEnergy> source, ElectricalEnergy electricalEnergy)

@@ -26,6 +26,9 @@
 #begin Maps/Main Map.json
 /copy:Maps/Main Map.json
 
+#begin Maps/MVP map v1.json
+/copy:Maps/MVP map v1.json
+
 #begin Shaders/BentGeom.fx
 /importer:EffectImporter
 /processor:EffectProcessor

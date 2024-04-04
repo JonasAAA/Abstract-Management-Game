@@ -95,9 +95,9 @@ namespace Game1
         public readonly UDouble stefanBoltzmannConstant;
         public readonly ulong temperatureExponentInStefanBoltzmannLaw = 4;
         public readonly Temperature
-            startingTemperature = Temperature.CreateFromK(valueInK: 250),
-            allHeatMaxTemper = Temperature.CreateFromK(valueInK: 500),
-            halfHeatTemper = Temperature.CreateFromK(valueInK: 1000);
+            startingTemperature = Temperature.CreateFromK(valueInK: 500),
+            allHeatMaxTemper = Temperature.CreateFromK(valueInK: 750),
+            halfHeatTemper = Temperature.CreateFromK(valueInK: 1250);
         public readonly UDouble
             heatEnergyDropoffExponent = 2;
         public readonly AreaInt minUsefulBuildingComponentAreaToRemove = AreaInt.CreateFromMetSq(valueInMetSq: 30);

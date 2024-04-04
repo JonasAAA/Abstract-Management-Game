@@ -309,13 +309,14 @@ namespace Game1
         private static PersonAndResShortestPaths FindPersonAndResShortestPaths(List<CosmicBody> nodes, List<Link> links)
             => new
             (
-                PersonShortestPaths: FindShortestPaths
-                (
-                    nodes: nodes,
-                    links: links,
-                    distTimeCoeff: CurWorldConfig.personDistanceTimeCoeff,
-                    distEnergyCoeff: CurWorldConfig.personDistanceEnergyCoeff
-                ),
+                PersonShortestPaths: new(),
+                //FindShortestPaths
+                //(
+                //    nodes: nodes,
+                //    links: links,
+                //    distTimeCoeff: CurWorldConfig.personDistanceTimeCoeff,
+                //    distEnergyCoeff: CurWorldConfig.personDistanceEnergyCoeff
+                //),
                 ResShortestPaths: FindShortestPaths
                 (
                     nodes: nodes,

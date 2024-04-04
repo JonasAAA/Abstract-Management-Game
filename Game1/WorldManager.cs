@@ -453,7 +453,7 @@ namespace Game1
             {
                 maxAverageTemperature = MyMathHelper.Max(maxAverageTemperature, graph.AverageTemperature);
                 Update(elapsedGameTime: TimeSpan.FromSeconds(10));
-                if (graph.AverageTemperature.valueInK <= 0.9 * maxAverageTemperature.valueInK)
+                if (graph.AverageTemperature.valueInK < maxAverageTemperature.valueInK)
                     break;
             }
         }
@@ -583,7 +583,8 @@ namespace Game1
                 globalTextBox.Text = energyManager.Summary().Trim();
             }
             activeUIManager.Update(elapsed: elapsedGameTime);
-
+            if (Keyboard.GetState().IsKeyDown(Keys.Space))
+                                                   ;
             // THIS is a huge performance penalty
 #if DEBUG2
             GC.Collect();

@@ -65,7 +65,7 @@ namespace Game1
 
         public static readonly AreaInt blockArea = rawMaterialArea * 100 * materialCompositionDivisor;
 
-        private const ulong temperatureScaling = 10000;
+        private const ulong temperatureScaling = 1000;
 
         public static Temperature CalculateTemperature(HeatEnergy heatEnergy, HeatCapacity heatCapacity)
             => Temperature.CreateFromK(valueInK: temperatureScaling * (UDouble)heatEnergy.ValueInJ() / heatCapacity.valueInJPerK);

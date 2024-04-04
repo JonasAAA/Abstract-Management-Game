@@ -492,7 +492,6 @@ namespace Game1.GameStates
                     };
                     textBox.Text = $"""
                         {startingBuildingText}
-                        raw mats:
                         {string.Join(" ", CurMapInfo.CosmicBodies[cosmicBodyId].Composition.Select(rawMatId => rawMatId.RepresentativeNumber()))}
                         """;
                     return textBox;

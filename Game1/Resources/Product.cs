@@ -129,7 +129,6 @@ namespace Game1.Resources
 
         private static EfficientReadOnlyDictionary<string, Params> CreateProductParamsDict()
         {
-            
             var beam = Params.CreateNextOrThrow
             (
                 name: "Beam",
@@ -137,8 +136,7 @@ namespace Game1.Resources
                 productClass: ProductClass.mechanical,
                 materialPaletteAmount: 1,
                 ingredProdToAmounts: new()
-            );
-            
+            );            
             var screw = Params.CreateNextOrThrow
             (
                 name: "Screw",

@@ -54,27 +54,23 @@ namespace Game1.Industries
                         (prodParams: Product.productParamsDict["Wire"], amount: 2)
                     }.ToEfficientReadOnlyCollection()
                 ),
-                new Manufacturing.GeneralBuildingParams
+                CreateManufacturingBuildingParams
                 (
-                    nameVisual: UIAlgorithms.GetBasicManufacturingNameVisual(prodParams: Product.productParamsDict["Beam"]),
-                    energyPriority: averageEnergyPriority,
-                    buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                    productName: "Beam",
+                    buildingComponentPropors: new()
                     {
                         (prodParams: Product.productParamsDict["Beam"], amount: 3),
                         (prodParams: Product.productParamsDict["Wire"], amount: 2)
-                    }.ToEfficientReadOnlyCollection(),
-                    productParams: Product.productParamsDict["Beam"]
+                    }
                 ),
-                new Manufacturing.GeneralBuildingParams
+                CreateManufacturingBuildingParams
                 (
-                    nameVisual: UIAlgorithms.GetBasicManufacturingNameVisual(prodParams: Product.productParamsDict["Wire"]),
-                    energyPriority: averageEnergyPriority,
-                    buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                    productName: "Wire",
+                    buildingComponentPropors: new()
                     {
                         (prodParams: Product.productParamsDict["Beam"], amount: 3),
                         (prodParams: Product.productParamsDict["Wire"], amount: 2)
-                    }.ToEfficientReadOnlyCollection(),
-                    productParams: Product.productParamsDict["Wire"]
+                    }
                 ),
                 startingStorageParams,
                 new Landfill.GeneralBuildingParams
@@ -97,6 +93,65 @@ namespace Game1.Industries
                         (prodParams: Product.productParamsDict["Wire"], amount: 2)
                     }.ToEfficientReadOnlyCollection()
                 ),
+                CreateManufacturingBuildingParams
+                (
+                    productName: "Screw",
+                    buildingComponentPropors: new()
+                    {
+                        (prodParams: Product.productParamsDict["Beam"], amount: 2),
+                        (prodParams: Product.productParamsDict["Wire"], amount: 2)
+                    }
+                ),
+                CreateManufacturingBuildingParams
+                (
+                    productName: "Circuit",
+                    buildingComponentPropors: new()
+                    {
+                        (prodParams: Product.productParamsDict["Beam"], amount: 2),
+                        (prodParams: Product.productParamsDict["Wire"], amount: 3)
+                    }
+                ),
+                CreateManufacturingBuildingParams
+                (
+                    productName: "Gear",
+                    buildingComponentPropors: new()
+                    {
+                        (prodParams: Product.productParamsDict["Beam"], amount: 2),
+                        (prodParams: Product.productParamsDict["Screw"], amount: 3),
+                        (prodParams: Product.productParamsDict["Wire"], amount: 2)
+                    }
+                ),
+                CreateManufacturingBuildingParams
+                (
+                    productName: "Processor",
+                    buildingComponentPropors: new()
+                    {
+                        (prodParams: Product.productParamsDict["Gear"], amount: 2),
+                        (prodParams: Product.productParamsDict["Wire"], amount: 1),
+                        (prodParams: Product.productParamsDict["Circuit"], amount: 4)
+                    }
+                ),
+                new Mining.GeneralBuildingParams
+                (
+                    name: "Electronic Mining",
+                    energyPriority: averageEnergyPriority,
+                    buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                    {
+                        (prodParams: Product.productParamsDict["Wire"], amount: 1),
+                        (prodParams: Product.productParamsDict["Circuit"], amount: 2),
+                        (prodParams: Product.productParamsDict["Processor"], amount: 3),
+                    }.ToEfficientReadOnlyCollection()
+                ),
+                new Landfill.GeneralBuildingParams
+                (
+                    name: "Electronic Landfill",
+                    energyPriority: averageEnergyPriority,
+                    buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
+                    {
+                        (prodParams: Product.productParamsDict["Wire"], amount: 4),
+                        (prodParams: Product.productParamsDict["Processor"], amount: 3),
+                    }.ToEfficientReadOnlyCollection()
+                ),
             ];
             constrGeneralParamsList = generalBuildingConstructionParamsList.Select
             (
@@ -107,6 +162,15 @@ namespace Game1.Industries
                 )
             ).ToEfficientReadOnlyCollection();
 #warning Complete this by making it configurable, if possible
+
+            Manufacturing.GeneralBuildingParams CreateManufacturingBuildingParams(string productName, List<(Product.Params prodParams, ulong amount)> buildingComponentPropors)
+                => new
+                (
+                    nameVisual: UIAlgorithms.GetBasicManufacturingNameVisual(prodParams: Product.productParamsDict[productName]),
+                    energyPriority: averageEnergyPriority,
+                    buildingComponentPropors: buildingComponentPropors.ToEfficientReadOnlyCollection(),
+                    productParams: Product.productParamsDict[productName]
+                );
         }
     }
 }

@@ -335,7 +335,7 @@ namespace Game1
         /// <summary>
         /// Mechanical production stats
         /// </summary>
-        public static MechProdStats CurMechProdStats(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
+        public static Result<MechProdStats, TextErrors> CurMechProdStatsOrPauseReasons(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
             MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
         {
             var producedAreaPerSec = buildingArea * TentativeThroughput
@@ -345,8 +345,13 @@ namespace Game1
                 matPaletteChoices: buildingMatPaletteChoices.Choices,
                 buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
             ) * (UDouble)0.01;
-            return new
+            return producedAreaPerSec.IsZero switch
+            {
+                true => new(errors: new("The temperature is too high")),
+                false => new
             (
+                    ok: new
+                    (
                 ReqWatts: CurReqWatts
                 (
                     buildingCostPropors: buildingCostPropors,
@@ -354,12 +359,10 @@ namespace Game1
                     gravity: gravity,
                     buildingArea: buildingArea
                 ),
-                ProducedAreaPerSecOrPauseReasons: producedAreaPerSec.IsZero switch
-                {
-                    true => new(errors: new("The temperature is too high")),
-                    false => new(ok: producedAreaPerSec)
-                }
-            );
+                        ProducedAreaPerSec: producedAreaPerSec
+                    )
+                )
+            };
         }
 
         /// <summary>
@@ -412,7 +415,7 @@ namespace Game1
                 ) * (neededElectricityFactor * powerPlantSuppliedBuildings)
             );
 
-        public static MechProdStats CurConstrStats(AllResAmounts buildingCost, SurfaceGravity gravity, Temperature temperature, ulong worldSecondsInGameSecond)
+        public static MechProdStats CurConstrStats(AllResAmounts buildingCost, SurfaceGravity gravity, Temperature temperature, TimeSpan constructionDuration)
         {
             var buildingComponentsArea = buildingCost.Area();
 #warning Complete this
@@ -420,7 +423,7 @@ namespace Game1
             (
                 ReqWatts: buildingComponentsArea.valueInMetSq * neededElectricityFactor,
                 // Means that the building will complete in 10 real world seconds
-                ProducedAreaPerSecOrPauseReasons: new(ok: buildingComponentsArea.ToDouble() * ((UDouble)1.0 / (worldSecondsInGameSecond * 10)))
+                ProducedAreaPerSec: buildingComponentsArea.ToDouble() * (UDouble)(1 / constructionDuration.TotalSeconds)
             );
         }
 

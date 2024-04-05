@@ -118,6 +118,8 @@ namespace Game1
         public readonly Temperature maxTemperatureShownInGraphs = Temperature.CreateFromK(valueInK: 3000);
         public readonly SurfaceGravity maxGravityShownInGraphs;
 
+        public readonly TimeSpan constructionDuration;
+
         public WorldConfig()
         {
             // Below idea works as basically the scaling metersPerStartingPixel by factor 10 means rewriting eveything
@@ -161,6 +163,9 @@ namespace Game1
 
             // Since [maxGravityShownInGraphs] ~ m
             maxGravityShownInGraphs = SurfaceGravity.CreateFromMetPerSecSq(startingPixelLength.valueInM * 1500);
+
+            // Since [constructionDuration] ~ s
+            constructionDuration = TimeSpan.FromSeconds(10) * worldSecondsInGameSecond;
         }
     }
 }

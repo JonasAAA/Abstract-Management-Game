@@ -30,6 +30,14 @@ namespace Game1
                 valueInJ: MyMathHelper.RoundNonneg((decimal)watts * (decimal)proporUtilized * (decimal)elapsed.TotalSeconds)
             );
 
+        public static TEnergy CurEnergy<TEnergy>(Result<UDouble, TextErrors> wattsOrErr, Propor proporUtilized, TimeSpan elapsed)
+            where TEnergy : struct, IUnconstrainedEnergy<TEnergy>
+            => wattsOrErr.SwitchExpression
+            (
+                ok: watts => CurEnergy<TEnergy>(watts: watts, proporUtilized: proporUtilized, elapsed: elapsed),
+                error: _ => TEnergy.AdditiveIdentity
+            );
+
         public static Result<Propor, TextErrors> WorkingPropor(Propor proporUtilized, ElectricalEnergy allocatedEnergy, ElectricalEnergy reqEnergy)
         {
             if (reqEnergy.IsZero)

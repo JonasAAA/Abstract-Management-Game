@@ -109,8 +109,8 @@ namespace Game1.Industries
                 );
 
             /// <param Name="productionMassIfFull">Mass of stuff in production if industry was fully operational</param>
-            public MechProdStats CurProdStats(Mass productionMassIfFull)
-                => ResAndIndustryAlgos.CurMechProdStats
+            public Result<MechProdStats, TextErrors> CurProdStatsOrPauseReasons(Mass productionMassIfFull)
+                => ResAndIndustryAlgos.CurMechProdStatsOrPauseReasons
                 (
                     buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
                     buildingCostPropors: buildingCostPropors,
@@ -260,7 +260,7 @@ namespace Game1.Industries
             private readonly Propor proporUtilized;
             private readonly AreaInt areaInProduction;
 
-            private MechProdStats curProdStats;
+            private Result<MechProdStats, TextErrors> curProdStats;
             private Propor donePropor;
             private Result<Propor, TextErrors> workingProporOrPauseReasons;
 
@@ -281,9 +281,14 @@ namespace Game1.Industries
 
             public Propor FrameStartAndReturnThroughputUtilization()
             {
-                curProdStats = buildingParams.CurProdStats(productionMassIfFull: prodMassIfFull);
+                curProdStats = buildingParams.CurProdStatsOrPauseReasons(productionMassIfFull: prodMassIfFull);
 #warning if production will be done this frame, could request just enough energy to complete it rather than the usual amount
-                ReqEnergy = ResAndIndustryHelpers.CurEnergy<ElectricalEnergy>(watts: curProdStats.ReqWatts, proporUtilized: proporUtilized, elapsed: CurWorldManager.Elapsed);
+                ReqEnergy = ResAndIndustryHelpers.CurEnergy<ElectricalEnergy>
+                (
+                    wattsOrErr: curProdStats.Select(prodStats => prodStats.ReqWatts),
+                    proporUtilized: proporUtilized,
+                    elapsed: CurWorldManager.Elapsed
+                );
                 return proporUtilized;
             }
 
@@ -304,7 +309,7 @@ namespace Game1.Industries
                 (donePropor, var pauseReasons) = donePropor.UpdateDonePropor
                 (
                     workingProporOrPauseReasons: workingProporOrPauseReasons,
-                    producedAreaPerSecOrPauseReasons: curProdStats.ProducedAreaPerSecOrPauseReasons,
+                    producedAreaPerSecOrPauseReasons: curProdStats.Select(prodStats => prodStats.ProducedAreaPerSec),
                     elapsed: CurWorldManager.Elapsed,
                     areaInProduction: areaInProduction
                 );

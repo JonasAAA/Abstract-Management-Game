@@ -111,7 +111,7 @@ namespace Game1.Industries
                     buildingCost: buildingCost,
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,
-                    worldSecondsInGameSecond: CurWorldConfig.worldSecondsInGameSecond
+                    constructionDuration: CurWorldConfig.constructionDuration
                 );
 
             static bool Industry.IConcreteBuildingParams<UnitType>.RequiresResources
@@ -206,7 +206,7 @@ namespace Game1.Industries
                 (donePropor, var pauseReasons) = donePropor.UpdateDonePropor
                 (
                     workingProporOrPauseReasons: workingProporOrPauseReasons,
-                    producedAreaPerSecOrPauseReasons: curConstrStats.ProducedAreaPerSecOrPauseReasons,
+                    producedAreaPerSecOrPauseReasons: new(ok: curConstrStats.ProducedAreaPerSec),
                     elapsed: CurWorldManager.Elapsed,
                     areaInProduction: parameters.buildingComponentsArea
                 );

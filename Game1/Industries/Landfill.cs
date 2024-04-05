@@ -105,8 +105,8 @@ namespace Game1.Industries
                 );
 
             /// <param Name="landfillingMassIfFull">Mass of stuff being dumped if landfill was fully operational</param>
-            public MechProdStats CurLandfillingStats(Mass landfillingMassIfFull)
-                => ResAndIndustryAlgos.CurMechProdStats
+            public Result<MechProdStats, TextErrors> CurLandfillingStatsOrPauseReasons(Mass landfillingMassIfFull)
+                => ResAndIndustryAlgos.CurMechProdStatsOrPauseReasons
                 (
                     buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
                     buildingCostPropors: buildingCostPropors,
@@ -290,7 +290,7 @@ namespace Game1.Industries
             private readonly Propor proporUtilized;
             private readonly AreaInt areaToDump;
 
-            private MechProdStats curLandfillingStats;
+            private Result<MechProdStats, TextErrors> curLandfillingStats;
             private Propor donePropor;
             private Result<Propor, TextErrors> workingProporOrPauseReasons;
 
@@ -314,11 +314,11 @@ namespace Game1.Industries
             public Propor FrameStartAndReturnThroughputUtilization()
             {
 #warning Currenlty, landfill adding new building components and mining removing building components doesn't cost any energy. Should probably change that 
-                curLandfillingStats = buildingParams.CurLandfillingStats(landfillingMassIfFull: landfillingMassIfFull);
+                curLandfillingStats = buildingParams.CurLandfillingStatsOrPauseReasons(landfillingMassIfFull: landfillingMassIfFull);
 #warning if production will be done this frame, could request just enough energy to complete it rather than the usual amount
                 ReqEnergy = ResAndIndustryHelpers.CurEnergy<ElectricalEnergy>
                 (
-                    watts: curLandfillingStats.ReqWatts,
+                    wattsOrErr: curLandfillingStats.Select(landfillingStats => landfillingStats.ReqWatts),
                     proporUtilized: proporUtilized,
                     elapsed: CurWorldManager.Elapsed
                 );
@@ -341,7 +341,7 @@ namespace Game1.Industries
                 (donePropor, var pauseReasons) = donePropor.UpdateDonePropor
                 (
                     workingProporOrPauseReasons: workingProporOrPauseReasons,
-                    producedAreaPerSecOrPauseReasons: curLandfillingStats.ProducedAreaPerSecOrPauseReasons,
+                    producedAreaPerSecOrPauseReasons: curLandfillingStats.Select(landfillingStats => landfillingStats.ProducedAreaPerSec),
                     elapsed: CurWorldManager.Elapsed,
                     areaInProduction: areaToDump
                 );

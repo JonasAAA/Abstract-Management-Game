@@ -108,8 +108,8 @@ namespace Game1.Industries
                 => CurBuildingArea * CurWorldConfig.productionProporOfBuildingArea;
 
             /// <param Name="miningMass">Mass of materials curretly being mined</param>
-            public MechProdStats CurMiningStats(Mass miningMass)
-                => ResAndIndustryAlgos.CurMechProdStats
+            public Result<MechProdStats, TextErrors> CurMiningStatsOrPauseReasons(Mass miningMass)
+                => ResAndIndustryAlgos.CurMechProdStatsOrPauseReasons
                 (
                     buildingComponentsToAmountPUBA: buildingComponentsToAmountPUBA,
                     buildingCostPropors: buildingCostPropors,
@@ -281,7 +281,7 @@ namespace Game1.Industries
             private readonly EnergyPile<ElectricalEnergy> electricalEnergyPile;
             private readonly Propor proporUtilized;
 
-            private MechProdStats curMiningStats;
+            private Result<MechProdStats, TextErrors> curMiningStats;
             private Propor donePropor;
             private Result<Propor, TextErrors> workingProporOrPauseReasons;
 
@@ -302,8 +302,13 @@ namespace Game1.Industries
 
             public Propor FrameStartAndReturnThroughputUtilization()
             {
-                curMiningStats = buildingParams.CurMiningStats(miningMass: miningMass);
-                ReqEnergy = ResAndIndustryHelpers.CurEnergy<ElectricalEnergy>(watts: curMiningStats.ReqWatts, proporUtilized: Propor.full, elapsed: CurWorldManager.Elapsed);
+                curMiningStats = buildingParams.CurMiningStatsOrPauseReasons(miningMass: miningMass);
+                ReqEnergy = ResAndIndustryHelpers.CurEnergy<ElectricalEnergy>
+                (
+                    wattsOrErr: curMiningStats.Select(miningStats => miningStats.ReqWatts),
+                    proporUtilized: proporUtilized,
+                    elapsed: CurWorldManager.Elapsed
+                );
                 return proporUtilized;
             }
 
@@ -326,7 +331,7 @@ namespace Game1.Industries
                 (donePropor, var pauseReasons) = donePropor.UpdateDonePropor
                 (
                     workingProporOrPauseReasons: workingProporOrPauseReasons,
-                    producedAreaPerSecOrPauseReasons: curMiningStats.ProducedAreaPerSecOrPauseReasons,
+                    producedAreaPerSecOrPauseReasons: curMiningStats.Select(miningStats => miningStats.ProducedAreaPerSec),
                     elapsed: CurWorldManager.Elapsed,
                     areaInProduction: miningArea
                 );

@@ -20,14 +20,8 @@
 /processorParam:TextureFormat=Compressed
 /build:Fonts/MainFont.spritefont
 
-#begin Maps/Hot Map.json
-/copy:Maps/Hot Map.json
-
-#begin Maps/Main Map.json
-/copy:Maps/Main Map.json
-
-#begin Maps/MVP map v1.json
-/copy:Maps/MVP map v1.json
+#begin Maps/Starting Map.json
+/copy:Maps/Starting Map.json
 
 #begin Shaders/BentGeom.fx
 /importer:EffectImporter

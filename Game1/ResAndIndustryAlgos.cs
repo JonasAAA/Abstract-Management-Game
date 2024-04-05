@@ -65,7 +65,7 @@ namespace Game1
 
         public static readonly AreaInt blockArea = rawMaterialArea * 100 * materialCompositionDivisor;
 
-        private const ulong temperatureScaling = 1000;
+        private const ulong temperatureScaling = 10000;
 
         public static Temperature CalculateTemperature(HeatEnergy heatEnergy, HeatCapacity heatCapacity)
             => Temperature.CreateFromK(valueInK: temperatureScaling * (UDouble)heatEnergy.ValueInJ() / heatCapacity.valueInJPerK);
@@ -349,16 +349,16 @@ namespace Game1
             {
                 true => new(errors: new("The temperature is too high")),
                 false => new
-            (
+                (
                     ok: new
                     (
-                ReqWatts: CurReqWatts
-                (
-                    buildingCostPropors: buildingCostPropors,
-                    buildingMatPaletteChoices: buildingMatPaletteChoices,
-                    gravity: gravity,
-                    buildingArea: buildingArea
-                ),
+                        ReqWatts: CurReqWatts
+                        (
+                            buildingCostPropors: buildingCostPropors,
+                            buildingMatPaletteChoices: buildingMatPaletteChoices,
+                            gravity: gravity,
+                            buildingArea: buildingArea
+                        ),
                         ProducedAreaPerSec: producedAreaPerSec
                     )
                 )
@@ -422,8 +422,7 @@ namespace Game1
             return new
             (
                 ReqWatts: buildingComponentsArea.valueInMetSq * neededElectricityFactor,
-                // Means that the building will complete in 10 real world seconds
-                ProducedAreaPerSec: buildingComponentsArea.ToDouble() * (UDouble)(1 / constructionDuration.TotalSeconds)
+                ProducedAreaPerSec: buildingComponentsArea.ToDouble() * (1 / (UDouble)constructionDuration.TotalSeconds)
             );
         }
 

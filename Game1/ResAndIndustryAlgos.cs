@@ -137,7 +137,7 @@ namespace Game1
             );
 
         private static Propor RawMatStartingStrength(RawMaterialID rawMatID)
-            => (Propor)((UDouble)rawMatID.Ind() / RawMaterialIDUtil.lastRawMatID.Ind());
+            => rawMatID.Normalized().Opposite();
 
         private static (Temperature temperature, Propor strength) RawMatMaxStrength(RawMaterialID rawMatID)
             => 

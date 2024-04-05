@@ -172,6 +172,7 @@ namespace Game1.Industries
                                 func: gravity => ResAndIndustryAlgos.TentativeNeededElectricity
                                 (
                                     gravity: gravity,
+                                    maxSurfaceGravity: CurWorldConfig.maxGravityShownInGraphs,
                                     chosenTotalPropor: Propor.full,
                                     matPaletteChoices: buildingMatPaletteChoices.Choices,
                                     buildingProdClassPropors: buildingCostPropors.neededProductClassPropors

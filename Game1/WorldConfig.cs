@@ -169,7 +169,7 @@ namespace Game1
             linkJoulesPerMeterOfDistance = startingPixelLength.valueInM * (UDouble).0000000000000000000001 * worldSecondsInGameSecond;
 
             // Since [maxGravityShownInGraphs] ~ m
-            maxGravityShownInGraphs = SurfaceGravity.CreateFromMetPerSecSq(startingPixelLength.valueInM * 1500);
+            maxGravityShownInGraphs = SurfaceGravity.CreateFromMetPerSecSq(startingPixelLength.valueInM * 400);
 
             constructionDuration = TimeSpan.FromSeconds(5) * worldSecondsInGameSecond;
             targetProductionCycleDuration = TimeSpan.FromSeconds(3) * worldSecondsInGameSecond;

@@ -280,6 +280,7 @@ namespace Game1
                         not 0 => gravity => ResAndIndustryAlgos.TentativeNeededElectricity
                         (
                             gravity: gravity,
+                            maxSurfaceGravity: CurWorldConfig.maxGravityShownInGraphs,
                             chosenTotalPropor: chosenTotalPropor,
                             matPaletteChoices: new(dict: mutableBuildingMatPaletteChoices),
                             buildingProdClassPropors: constrGeneralParams.neededProductClassPropors

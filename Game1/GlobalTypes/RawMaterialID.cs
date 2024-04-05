@@ -10,8 +10,8 @@ namespace Game1.GlobalTypes
         Secondium,
         Thirdium,
         Fourthium,
-        Fifthium,
-        Sixthium
+        //Fifthium,
+        //Sixthium
     }
 
     public static class RawMaterialIDUtil
@@ -52,8 +52,8 @@ namespace Game1.GlobalTypes
                 RawMaterialID.Secondium => "secondium",
                 RawMaterialID.Thirdium => "thirdium",
                 RawMaterialID.Fourthium => "fourthium",
-                RawMaterialID.Fifthium => "fifthium",
-                RawMaterialID.Sixthium => "sixthium"
+                //RawMaterialID.Fifthium => "fifthium",
+                //RawMaterialID.Sixthium => "sixthium"
             };
 
         /// <summary>
@@ -65,5 +65,8 @@ namespace Game1.GlobalTypes
 
         public static RawMaterialID? FromRepresentativeNumber(int representativeNum)
             => representativeNumToRawMatID.TryGetValue(key: representativeNum, value: out var value) ? value : null;
+
+        public static Propor Normalized(this RawMaterialID rawMatID)
+            => Algorithms.Normalize(value: rawMatID.Ind(), start: 0, stop: lastRawMatID.Ind());
     }
 }

@@ -60,17 +60,9 @@ namespace Game1.Resources
                 );
             var primitiveMat0 = rawMatToPrimitiveMat[IDToRawMat[RawMaterialID.Firstium]];
             var primitiveMat1 = rawMatToPrimitiveMat[IDToRawMat[RawMaterialID.Secondium]];
-            MaterialPalette.CreateAndAddToResConfig
-            (
-                name: "other mech.",
-                color: ActiveUIManager.colorConfig.otherMechMatPaletteColor,
-                productClass: ProductClass.mechanical,
-                materialChoices: new()
-                {
-                    [MaterialPurpose.mechanical] = rawMatToPrimitiveMat[IDToRawMat[0]]
-                }
-            ).UnwrapOrThrow();
-
+            var primitiveMat2 = rawMatToPrimitiveMat[IDToRawMat[RawMaterialID.Thirdium]];
+            var primitiveMat3 = rawMatToPrimitiveMat[IDToRawMat[RawMaterialID.Fourthium]];
+            
             StartingMaterialPaletteChoices = MaterialPaletteChoices.Create
             (
                 choices:
@@ -98,6 +90,30 @@ namespace Game1.Resources
                     ).UnwrapOrThrow()
                 ]
             );
+
+            MaterialPalette.CreateAndAddToResConfig
+            (
+                name: "other mech.",
+                color: ActiveUIManager.colorConfig.otherMechMatPaletteColor,
+                productClass: ProductClass.mechanical,
+                materialChoices: new()
+                {
+                    [MaterialPurpose.mechanical] = primitiveMat3
+                }
+            ).UnwrapOrThrow();
+
+            MaterialPalette.CreateAndAddToResConfig
+            (
+                name: "other elec.",
+                color: ActiveUIManager.colorConfig.otherElecMatPaletteColor,
+                productClass: ProductClass.electronics,
+                materialChoices: new()
+                {
+                    [MaterialPurpose.electricalConductor] = primitiveMat2,
+                    [MaterialPurpose.electricalInsulator] = primitiveMat3
+                }
+            ).UnwrapOrThrow();
+
             foreach (var prodParams in Product.productParamsDict.Values)
                 prodParams.GetProduct(materialPalette: StartingMaterialPaletteChoices[prodParams.productClass]);
         }

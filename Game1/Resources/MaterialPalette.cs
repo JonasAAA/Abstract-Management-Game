@@ -64,7 +64,12 @@ namespace Game1.Resources
             this.materialAmounts = materialAmounts;
             prodNeededElectricityFunctionGraph = ResAndIndustryUIAlgos.CreateGravityFunctionGraph
             (
-                func: gravity => ResAndIndustryAlgos.NeededElectricity(materialPalette: this, gravity: gravity)
+                func: gravity => ResAndIndustryAlgos.NeededElectricity
+                (
+                    materialPalette: this,
+                    gravity: gravity,
+                    maxSurfaceGravity: CurWorldConfig.maxGravityShownInGraphs
+                )
             );
             prodThroughputFunctionGraph = ResAndIndustryUIAlgos.CreateTemperatureFunctionGraph
             (

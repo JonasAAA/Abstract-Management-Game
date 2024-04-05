@@ -101,6 +101,7 @@ namespace Game1.Industries
                     buildingCostPropors: buildingCostPropors,
                     buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: NodeState.SurfaceGravity,
+                    maxSurfaceGravity: CurWorldConfig.maxGravityShownInGraphs,
                     temperature: NodeState.Temperature,
                     buildingArea: buildingArea
                 );

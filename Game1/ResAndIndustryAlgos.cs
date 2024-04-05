@@ -1,6 +1,7 @@
 ﻿using Game1.Collections;
 using Game1.GlobalTypes;
 using Game1.Industries;
+using Game1.PrimitiveTypeWrappers;
 
 namespace Game1
 {
@@ -29,10 +30,12 @@ namespace Game1
                     RawMaterialID.Secondium => 8,
                     RawMaterialID.Thirdium => 6,
                     RawMaterialID.Fourthium => 4,
-                    RawMaterialID.Fifthium => 3,
-                    RawMaterialID.Sixthium => 2
+                    //RawMaterialID.Fifthium => 3,
+                    //RawMaterialID.Sixthium => 2
                 }
             );
+
+        private static readonly Mass maxRawMatMass = Enum.GetValues<RawMaterialID>().Max(RawMaterialMass);
 
         // The same area of stuff will always have thse same heat capacity
         // As said in https://en.wikipedia.org/wiki/Specific_heat_capacity#Monatomic_gases
@@ -185,29 +188,36 @@ namespace Game1
         public static (Temperature temperature, Propor resistivity) RawMatResistivityMin(RawMaterialID rawMatID)
             =>
             (
-                temperature: Temperature.CreateFromK(valueInK: 200 + rawMatID.Ind() * 100),
+                temperature: Temperature.CreateFromK(valueInK: 200 + rawMatID.Ind() * 1000),
                 // basically further raw materials will have more extreme minimums
-                resistivity: Algorithms.Interpolate
-                (
-                    normalized: Algorithms.Normalize(value: rawMatID.Ind(), start: 0, stop: RawMaterialIDUtil.lastRawMatID.Ind()),
-                    start: RawMatResistivityMid(rawMatID: rawMatID),
-                    stop: Propor.empty
-                )
+                resistivity: RawMatResistivityMid(rawMatID: rawMatID)
+                //Algorithms.Interpolate
+                //(
+                //    normalized: rawMatID.Normalize(),
+                //    start: RawMatResistivityMid(rawMatID: rawMatID),
+                //    stop: Propor.empty
+                //)
             );
 
         // Only public to be testable
         public static Propor RawMatResistivityMid(RawMaterialID rawMatID)
-            => (Propor)((2.0 + (rawMatID.Ind() % 2)) / 5);
+        {
+            long oneOrMinusOne = 2 * ((long)rawMatID.Ind() % 2) - 1;
+            UDouble betweenZeroAndOne = Algorithms.Interpolate(normalized: rawMatID.Normalized(), start: (UDouble)0.25, 1u);
+
+            return (Propor)((1 + oneOrMinusOne * betweenZeroAndOne) / 2);
+        }
+        //=> rawMatID == RawMaterialID.Firstium ? Propor.empty : (Propor)((2.0 + (rawMatID.Ind() % 2)) / 5);
 
         // Only public to be testable
         public static (Temperature temperature, Propor resistivity) RawMatResistivityMax(RawMaterialID rawMatID)
             =>
             (
-                temperature: Temperature.CreateFromK(valueInK: 50 + rawMatID.Ind() * 100),
+                temperature: Temperature.CreateFromK(valueInK: 50 + rawMatID.Ind() * 1000),
                 // basically further raw materials will have more extreme maximums
                 resistivity: Algorithms.Interpolate
                 (
-                    normalized: Algorithms.Normalize(value: rawMatID.Ind(), start: 0, stop: RawMaterialIDUtil.lastRawMatID.Ind()),
+                    normalized: rawMatID.Normalized(),
                     start: RawMatResistivityMid(rawMatID: rawMatID),
                     stop: Propor.full
                 )
@@ -220,10 +230,20 @@ namespace Game1
 
             double Bump((Temperature temperature, Propor resistivity) resistPoint)
             {
-                double scaledTemperDiff = ((double)temperature.valueInK - resistPoint.temperature.valueInK) / 50;
+                double scaledTemperDiff = ((double)temperature.valueInK - resistPoint.temperature.valueInK) / 1000;
                 return ((double)resistPoint.resistivity - (double)midResistivity) / (1 + scaledTemperDiff * scaledTemperDiff);
             }
         }
+
+        private static Propor MaterialResistivityMid(Material material)
+            => material.RawMatComposition.WeightedAverage
+            (
+                rawMatAmount =>
+                (
+                    weight: rawMatAmount.amount,
+                    value: RawMatResistivityMid(rawMatID: rawMatAmount.res.RawMatID)
+                )
+            );
 
         /// <summary>
         /// Must be from 0 to 1
@@ -257,11 +277,22 @@ namespace Game1
                 )
             );
 
-        public static Propor NeededElectricity(MaterialPalette materialPalette, SurfaceGravity gravity)
+        public static Propor NeededElectricity(MaterialPalette materialPalette, SurfaceGravity gravity, SurfaceGravity maxSurfaceGravity)
             => materialPalette.productClass.SwitchExpression
             (
-                mechanical: () => (Propor).5,
-                electronics: () => (Propor)1
+                // This just means the higher the gravity and the more heavy the material palette, the more electricity is necessary for that building
+                mechanical: () => Algorithms.Normalize
+                (
+                    value: gravity.valueInMetPerSeqSq,
+                    start: 0,
+                    stop: maxSurfaceGravity.valueInMetPerSeqSq
+                ) * Algorithms.Normalize
+                (
+                    value: (UDouble)materialPalette.materialAmounts.Mass().valueInKg / materialPalette.materialAmounts.Area().valueInMetSq,
+                    start: 0,
+                    stop: (UDouble)maxRawMatMass.valueInKg / rawMaterialArea.valueInMetSq
+                ),
+                electronics: () => MaterialResistivityMid(material: materialPalette.materialChoices[MaterialPurpose.electricalConductor])
             );
 
         private const double statsPowerMeanExponent = 0;
@@ -276,9 +307,21 @@ namespace Game1
         /// <summary>
         /// Needed electricity from possibly not all mat palette choices
         /// </summary>
-        public static Propor TentativeNeededElectricity(SurfaceGravity gravity, Propor chosenTotalPropor, EfficientReadOnlyDictionary<ProductClass, MaterialPalette> matPaletteChoices,
+        public static Propor TentativeNeededElectricity(SurfaceGravity gravity, SurfaceGravity maxSurfaceGravity, Propor chosenTotalPropor, EfficientReadOnlyDictionary<ProductClass, MaterialPalette> matPaletteChoices,
             EfficientReadOnlyDictionary<ProductClass, Propor> buildingProdClassPropors)
-            => TentativeStats(input: gravity, matPaletteStats: NeededElectricity, chosenTotalPropor: chosenTotalPropor, matPaletteChoices: matPaletteChoices, buildingProdClassPropors: buildingProdClassPropors);
+            => TentativeStats
+            (
+                input: gravity,
+                matPaletteStats: (matPalette, gravity) => NeededElectricity
+                (
+                    materialPalette: matPalette,
+                    gravity: gravity,
+                    maxSurfaceGravity: maxSurfaceGravity
+                ),
+                chosenTotalPropor: chosenTotalPropor,
+                matPaletteChoices: matPaletteChoices,
+                buildingProdClassPropors: buildingProdClassPropors
+           );
 
         private static Propor TentativeStats<TInput>(TInput input, Func<MaterialPalette, TInput, Propor> matPaletteStats, Propor chosenTotalPropor,
             EfficientReadOnlyDictionary<ProductClass, MaterialPalette> matPaletteChoices, EfficientReadOnlyDictionary<ProductClass, Propor> buildingProdClassPropors)
@@ -308,10 +351,11 @@ namespace Game1
 
         private static readonly UDouble lightRedirectionFactorOverPowerPlant = 2;
 
-        private static UDouble CurReqWatts(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, AreaDouble buildingArea)
+        private static UDouble CurReqWatts(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, SurfaceGravity maxSurfaceGravity, AreaDouble buildingArea)
             => buildingArea.valueInMetSq * TentativeNeededElectricity
             (
                 gravity: gravity,
+                maxSurfaceGravity: maxSurfaceGravity,
                 chosenTotalPropor: Propor.full,
                 matPaletteChoices: buildingMatPaletteChoices.Choices,
                 buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
@@ -321,7 +365,7 @@ namespace Game1
         /// Mechanical production stats
         /// </summary>
         public static Result<MechProdStats, TextErrors> CurMechProdStatsOrPauseReasons(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
-            MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea, AreaDouble productionArea, TimeSpan targetProductionCycleDuration, Mass productionMass)
+            MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, SurfaceGravity maxSurfaceGravity, Temperature temperature, AreaDouble buildingArea, AreaDouble productionArea, TimeSpan targetProductionCycleDuration, Mass productionMass)
         {
             var producedAreaPerSec = productionArea * TentativeThroughput
             (
@@ -342,6 +386,7 @@ namespace Game1
                             buildingCostPropors: buildingCostPropors,
                             buildingMatPaletteChoices: buildingMatPaletteChoices,
                             gravity: gravity,
+                            maxSurfaceGravity: maxSurfaceGravity,
                             buildingArea: buildingArea
                         ),
                         ProducedAreaPerSec: producedAreaPerSec
@@ -364,7 +409,7 @@ namespace Game1
         /// Note that this returns max production params as it doesn't know how much radiant energy is available to be transformed
         /// </summary>
         public static PowerPlantProdStats CurPowerPlantProdStats(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
-            SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea)
+            SurfaceGravity gravity, SurfaceGravity maxSurfaceGravity, Temperature temperature, AreaDouble buildingArea)
             => new
             (
                 ReqWatts: CurReqWatts
@@ -372,6 +417,7 @@ namespace Game1
                     buildingCostPropors: buildingCostPropors,
                     buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: gravity,
+                    maxSurfaceGravity: maxSurfaceGravity,
                     buildingArea: buildingArea
                 ),
                 ProdWatts: PowerPlantProdWatts
@@ -387,7 +433,7 @@ namespace Game1
         /// Note that this returns max production params as it doesn't know how much radiant energy is available to be transformed
         /// </summary>
         public static LightRedirectionProdStats CurLightRedirectionProdStats(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
-            SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea)
+            SurfaceGravity gravity, SurfaceGravity maxSurfaceGravity, Temperature temperature, AreaDouble buildingArea)
             => new
             (
                 ReqWatts: CurReqWatts
@@ -395,6 +441,7 @@ namespace Game1
                     buildingCostPropors: buildingCostPropors,
                     buildingMatPaletteChoices: buildingMatPaletteChoices,
                     gravity: gravity,
+                    maxSurfaceGravity: maxSurfaceGravity,
                     buildingArea: buildingArea
                 ),
                 RedirectWatts: PowerPlantProdWatts

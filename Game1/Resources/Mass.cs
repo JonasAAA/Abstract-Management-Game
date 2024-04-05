@@ -3,7 +3,7 @@
 namespace Game1.Resources
 {
     [Serializable]
-    public readonly record struct Mass : IOrderedVector<Mass, ulong>
+    public readonly record struct Mass : IOrderedVector<Mass, ulong>, IComparable<Mass>
     {
         public static readonly Mass zero = new(valueInKg: 0);
 
@@ -51,5 +51,8 @@ namespace Game1.Resources
 
         public static bool operator >(Mass left, Mass right)
             => left.valueInKg > right.valueInKg;
+
+        int IComparable<Mass>.CompareTo(Mass other)
+            => valueInKg.CompareTo(other.valueInKg);
     }
 }

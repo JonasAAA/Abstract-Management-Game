@@ -17,9 +17,10 @@
             defaultIconBackgroundColor,
             matPaletteNotYetChosenBackgroundColor,
             // material palette colors
-            otherMechMatPaletteColor,
             defMechMatPaletteColor,
             defElecMatPaletteColor,
+            otherMechMatPaletteColor,
+            otherElecMatPaletteColor,
             // industry colors
             miningBuildingColor,
             landfillBuildingColor,
@@ -63,9 +64,10 @@
             defaultIconBackgroundColor = Color.White;
             matPaletteNotYetChosenBackgroundColor = Color.Gray;
             // material palette colors taken from https://tailwindcss.com/docs/customizing-colors
-            otherMechMatPaletteColor = C.ColorFromRGB(rgb: 0xfb923c); // Orange-400
             defMechMatPaletteColor = C.ColorFromRGB(rgb: 0xfed7aa); // Orange-200
             defElecMatPaletteColor = C.ColorFromRGB(rgb: 0xd9f99d); // Lime-200
+            otherMechMatPaletteColor = C.ColorFromRGB(rgb: 0xfb923c); // Orange-400
+            otherElecMatPaletteColor = C.ColorFromRGB(rgb: 0xa3e635); // Lime-400
             // industry colors
             miningBuildingColor = C.ColorFromRGB(rgb: 0x1d4ed8); // Blue-700
             landfillBuildingColor = C.ColorFromRGB(rgb: 0x6d28d9); // Violet-700

@@ -489,6 +489,11 @@ namespace Game1
 
         protected sealed override void Update(GameTime gameTime)
         {
+#if DEBUG
+            if (Keyboard.GetState().IsKeyDown(Keys.Q))
+                Exit();
+#endif
+
             TimeSpan elapsed = gameTime.ElapsedGameTime;
 
             gameState.Update(elapsed: elapsed);

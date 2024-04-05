@@ -1,7 +1,9 @@
 ﻿using Game1;
+using Game1.GlobalTypes;
 using Game1.PrimitiveTypeWrappers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.Diagnostics;
 using System.Linq;
 
 namespace TestProject
@@ -22,56 +24,56 @@ namespace TestProject
             (
                 Math.Abs
                 (
-                    Enumerable.Range(start: 0, count: (int)ResAndIndustryAlgos.maxRawMatInd + 1).Max
+                    Enum.GetValues<RawMaterialID>().Max
                     (
-                        ind => RawMatDensity((uint)ind)
+                        rawMatID => RawMatDensity(rawMatID)
                     ) - 1
                 ) < 0.000001
             );
 
-            static double RawMatDensity(uint ind)
-                => (double)ResAndIndustryAlgos.RawMaterialMass(ind: ind).valueInKg / ResAndIndustryAlgos.rawMaterialArea.valueInMetSq;
+            static double RawMatDensity(RawMaterialID rawMatID)
+                => (double)ResAndIndustryAlgos.RawMaterialMass(rawMatID: rawMatID).valueInKg / ResAndIndustryAlgos.rawMaterialArea.valueInMetSq;
         }
 
         [TestMethod]
         public void RawMatDensityDecreases()
         {
-            for (uint ind = 0; ind < ResAndIndustryAlgos.maxRawMatInd; ind++)
-                Assert.IsTrue
-                (
-                    RawMatDensity(ind: ind) > RawMatDensity(ind: ind + 1)
-                );
+            foreach (var rawMatID in Enum.GetValues<RawMaterialID>())
+                if (rawMatID.Next() is RawMaterialID nextRawMatID)
+                    Debug.Assert(RawMatDensity(rawMatID: rawMatID) > RawMatDensity(rawMatID: nextRawMatID));
 
-            static double RawMatDensity(uint ind)
-                => (double)ResAndIndustryAlgos.RawMaterialMass(ind: ind).valueInKg / ResAndIndustryAlgos.rawMaterialArea.valueInMetSq;
+            static double RawMatDensity(RawMaterialID rawMatID)
+                => (double)ResAndIndustryAlgos.RawMaterialMass(rawMatID: rawMatID).valueInKg / ResAndIndustryAlgos.rawMaterialArea.valueInMetSq;
         }
 
         [TestMethod]
         public void FusionReactionProducesEnergy()
         {
-            for (uint ind = 0; ind < ResAndIndustryAlgos.maxRawMatInd; ind++)
-                Assert.IsTrue(ResAndIndustryAlgos.RawMaterialMass(ind: ind) > ResAndIndustryAlgos.RawMaterialMass(ind: ind + 1));
+            foreach (var rawMatID in Enum.GetValues<RawMaterialID>())
+                if (rawMatID.Next() is RawMaterialID nextRawMatID)
+                    Assert.IsTrue(ResAndIndustryAlgos.RawMaterialMass(rawMatID: rawMatID) > ResAndIndustryAlgos.RawMaterialMass(rawMatID: nextRawMatID));
         }
 
         [TestMethod]
         public void FusionGeneratesLessEnergyFromLaterRawMats()
         {
-            for (uint ind = 0; ind < ResAndIndustryAlgos.maxRawMatInd - 1; ind++)
-                Assert.IsTrue(FusionEnergyFromRawMat(ind: ind) > FusionEnergyFromRawMat(ind: ind + 1));
+            foreach (var rawMatID in Enum.GetValues<RawMaterialID>())
+                if (rawMatID.Next() is RawMaterialID nextRawMatID && nextRawMatID.Next() is RawMaterialID nextNextRawMatID)
+                    Assert.IsTrue(FusionEnergyFromRawMat(rawMatID, nextRawMatID) > FusionEnergyFromRawMat(nextRawMatID, nextNextRawMatID));
 
-            static double FusionEnergyFromRawMat(uint ind)
+            static double FusionEnergyFromRawMat(RawMaterialID rawMatID, RawMaterialID nextRawMatID)
             {
-                double curMatMass = ResAndIndustryAlgos.RawMaterialMass(ind: ind).valueInKg,
-                    nextMatMass = ResAndIndustryAlgos.RawMaterialMass(ind: ind + 1).valueInKg;
-                return (curMatMass - nextMatMass) * ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ind);
+                double curMatMass = ResAndIndustryAlgos.RawMaterialMass(rawMatID: rawMatID).valueInKg,
+                    nextMatMass = ResAndIndustryAlgos.RawMaterialMass(rawMatID: nextRawMatID).valueInKg;
+                return (curMatMass - nextMatMass) * ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(rawMatID: rawMatID);
             }
         }
 
         [TestMethod]
         public void AllRawMatsHaveSmallMass()
         {
-            for (uint ind = 0; ind <= ResAndIndustryAlgos.maxRawMatInd; ind++)
-                Assert.IsTrue(ResAndIndustryAlgos.RawMaterialMass(ind: ind).valueInKg <= 60);
+            foreach (var rawMatID in Enum.GetValues<RawMaterialID>())
+                Assert.IsTrue(ResAndIndustryAlgos.RawMaterialMass(rawMatID: rawMatID).valueInKg <= 60);
         }
 
         [TestMethod]
@@ -79,27 +81,27 @@ namespace TestProject
             => Assert.AreEqual
             (
                 expected: (UDouble)0,
-                actual: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(ind: ResAndIndustryAlgos.maxRawMatInd)
+                actual: ResAndIndustryAlgos.RawMaterialFusionReactionStrengthCoeff(rawMatID: RawMaterialIDUtil.lastRawMatID)
             );
 
         [TestMethod]
         public void RawMatResistivityMinThenMidThenMax()
         {
-            for (uint ind = 0; ind <= ResAndIndustryAlgos.maxRawMatInd; ind++)
+            foreach (var rawMatID in Enum.GetValues<RawMaterialID>())
             {
-                Assert.IsTrue(ResAndIndustryAlgos.RawMatResistivityMin(ind: ind).resistivity <= ResAndIndustryAlgos.RawMatResistivityMid(ind: ind));
-                Assert.IsTrue(ResAndIndustryAlgos.RawMatResistivityMid(ind: ind) <= ResAndIndustryAlgos.RawMatResistivityMax(ind: ind).resistivity);
+                Assert.IsTrue(ResAndIndustryAlgos.RawMatResistivityMin(rawMatID: rawMatID).resistivity <= ResAndIndustryAlgos.RawMatResistivityMid(rawMatID: rawMatID));
+                Assert.IsTrue(ResAndIndustryAlgos.RawMatResistivityMid(rawMatID: rawMatID) <= ResAndIndustryAlgos.RawMatResistivityMax(rawMatID: rawMatID).resistivity);
             }
         }
 
         [TestMethod]
         public void RawMatMinMidMaxBetweenZeroAndOne()
         {
-            for (uint ind = 0; ind <= ResAndIndustryAlgos.maxRawMatInd; ind++)
+            foreach (var rawMatID in Enum.GetValues<RawMaterialID>())
             {
-                Assert.IsTrue((double)ResAndIndustryAlgos.RawMatResistivityMin(ind: ind).resistivity is >= 0 and <= 1);
-                Assert.IsTrue((double)ResAndIndustryAlgos.RawMatResistivityMid(ind: ind) is >= 0 and <= 1);
-                Assert.IsTrue((double)ResAndIndustryAlgos.RawMatResistivityMax(ind: ind).resistivity is >= 0 and <= 1);
+                Assert.IsTrue((double)ResAndIndustryAlgos.RawMatResistivityMin(rawMatID: rawMatID).resistivity is >= 0 and <= 1);
+                Assert.IsTrue((double)ResAndIndustryAlgos.RawMatResistivityMid(rawMatID: rawMatID) is >= 0 and <= 1);
+                Assert.IsTrue((double)ResAndIndustryAlgos.RawMatResistivityMax(rawMatID: rawMatID).resistivity is >= 0 and <= 1);
             }
         }
     }

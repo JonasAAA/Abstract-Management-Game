@@ -26,7 +26,7 @@ namespace Game1.Resources
             => this.valueInKg = valueInKg;
 
         public override string ToString()
-            => $"{valueInKg:#,0.} Kg";
+            => $"{valueInKg / 1_000_000_000:#,0.} MT";
 
         public static Mass operator +(Mass left, Mass right)
             => new(valueInKg: left.valueInKg + right.valueInKg);

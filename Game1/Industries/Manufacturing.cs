@@ -136,6 +136,8 @@ namespace Game1.Industries
                     gravity: NodeState.SurfaceGravity,
                     temperature: NodeState.Temperature,
                     buildingArea: buildingArea,
+                    productionArea: buildingArea * CurWorldConfig.productionProporOfBuildingArea,
+                    targetProductionCycleDuration: CurWorldConfig.targetProductionCycleDuration,
                     productionMass: productionMassIfFull
                 );
 

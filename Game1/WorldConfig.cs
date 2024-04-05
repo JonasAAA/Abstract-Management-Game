@@ -119,6 +119,10 @@ namespace Game1
         public readonly SurfaceGravity maxGravityShownInGraphs;
 
         public readonly TimeSpan constructionDuration;
+        /// <summary>
+        /// The production cycle duration at maximum throughput and all needed electricity
+        /// </summary>
+        public readonly TimeSpan targetProductionCycleDuration;
 
         public WorldConfig()
         {
@@ -154,19 +158,21 @@ namespace Game1
             // Since [stefanBoltzmannConstant] ~ J/m
             stefanBoltzmannConstant = startingPixelLength.valueInM * (UDouble).000000000001;
 
-            // Since [linkTravelSpeed] ~ m/s
+            // Since [linkTravelSpeed] ~ m
             ulong realTimeSecondsToTravelFromTopToBottomOfScreen = 5;
             linkTravelSpeed = startingPixelLength.valueInM * ActiveUIManager.screenHeight / (realTimeSecondsToTravelFromTopToBottomOfScreen * worldSecondsInGameSecond);
+            // These two scalings with worldSecondsInGameSecond are necessary to keep travel cost the same
+            // (as far as the player is concerned) when changing the time factor
             // Since [linkJoulesPerUnitGravitAccel] ~ J/m
-            linkJoulesPerUnitGravitAccel = startingPixelLength.valueInM * (UDouble).00000000000000001;
+            linkJoulesPerUnitGravitAccel = startingPixelLength.valueInM * (UDouble).00000000000000000001 * worldSecondsInGameSecond;
             // Since [linkJoulesPerMeterOfDistance] ~ J/m
-            linkJoulesPerMeterOfDistance = startingPixelLength.valueInM * (UDouble).0000000000000000001;
+            linkJoulesPerMeterOfDistance = startingPixelLength.valueInM * (UDouble).0000000000000000000001 * worldSecondsInGameSecond;
 
             // Since [maxGravityShownInGraphs] ~ m
             maxGravityShownInGraphs = SurfaceGravity.CreateFromMetPerSecSq(startingPixelLength.valueInM * 1500);
 
-            // Since [constructionDuration] ~ s
-            constructionDuration = TimeSpan.FromSeconds(10) * worldSecondsInGameSecond;
+            constructionDuration = TimeSpan.FromSeconds(5) * worldSecondsInGameSecond;
+            targetProductionCycleDuration = TimeSpan.FromSeconds(3) * worldSecondsInGameSecond;
         }
     }
 }

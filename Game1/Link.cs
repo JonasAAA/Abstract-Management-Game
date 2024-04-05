@@ -299,7 +299,7 @@ namespace Game1
             if (Active)
             {
                 // Only need to update UI if it is actually visible
-                infoTextBox.Text = $"Travel cost is {JoulesPerKg:0.000} J/Kg\nTravelling resources";
+                infoTextBox.Text = $"Travel cost is {JoulesPerKg / CurWorldConfig.worldSecondsInGameSecond * 1_000_000_000:0.} W/MT\nTravelling resources";
                 linkUI.ReplaceChild
                 (
                     oldChild: ref travellingResUI,

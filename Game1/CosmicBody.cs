@@ -46,6 +46,7 @@ namespace Game1
 #warning Complete this
                 => $"""
                 T = {cosmicBody.state.Temperature}
+                Mass = {cosmicBody.state.PlanetMass}
                 """;
             //M to E per real world second =
             //{cosmicBody.massConvertedToEnergy.valueInKg / (CurWorldManager.Elapsed.TotalSeconds / CurWorldConfig.worldSecondsInGameSecond):#,0.}

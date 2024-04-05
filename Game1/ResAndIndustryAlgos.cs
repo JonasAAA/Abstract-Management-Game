@@ -315,13 +315,15 @@ namespace Game1
             );
         }
 
-        private static readonly UDouble neededElectricityFactor = (UDouble)0.0000001;
+        private static readonly UDouble neededElectricityFactor = (UDouble)0.00000003;
 
         /// <summary>
         /// The number of supplied buildings (assuming that the power plant has throughput of .5, the buildings have neededEnergy .5,
         /// and power plant and each building have the same building area).
         /// </summary>
         private static readonly UDouble powerPlantSuppliedBuildings = 30;
+
+        private static readonly UDouble lightRedirectionFactorOverPowerPlant = 2;
 
         private static UDouble CurReqWatts(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, AreaDouble buildingArea)
             => buildingArea.valueInMetSq * TentativeNeededElectricity
@@ -336,15 +338,15 @@ namespace Game1
         /// Mechanical production stats
         /// </summary>
         public static Result<MechProdStats, TextErrors> CurMechProdStatsOrPauseReasons(BuildingComponentsToAmountPUBA buildingComponentsToAmountPUBA, BuildingCostPropors buildingCostPropors,
-            MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea, Mass productionMass)
+            MaterialPaletteChoices buildingMatPaletteChoices, SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea, AreaDouble productionArea, TimeSpan targetProductionCycleDuration, Mass productionMass)
         {
-            var producedAreaPerSec = buildingArea * TentativeThroughput
+            var producedAreaPerSec = productionArea * TentativeThroughput
             (
                 temperature: temperature,
                 chosenTotalPropor: Propor.full,
                 matPaletteChoices: buildingMatPaletteChoices.Choices,
                 buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
-            ) * (UDouble)0.01;
+            ) * (UDouble)(1 / targetProductionCycleDuration.TotalSeconds);
             return producedAreaPerSec.IsZero switch
             {
                 true => new(errors: new("The temperature is too high")),
@@ -365,6 +367,16 @@ namespace Game1
             };
         }
 
+        private static UDouble PowerPlantProdWatts(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
+             Temperature temperature, AreaDouble buildingArea)
+            => buildingArea.valueInMetSq * TentativeThroughput
+            (
+                temperature: temperature,
+                chosenTotalPropor: Propor.full,
+                matPaletteChoices: buildingMatPaletteChoices.Choices,
+                buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
+            ) * (neededElectricityFactor * powerPlantSuppliedBuildings);
+
         /// <summary>
         /// Note that this returns max production params as it doesn't know how much radiant energy is available to be transformed
         /// </summary>
@@ -380,13 +392,13 @@ namespace Game1
                     gravity: gravity,
                     buildingArea: buildingArea
                 ),
-                ProdWatts: buildingArea.valueInMetSq * TentativeThroughput
+                ProdWatts: PowerPlantProdWatts
                 (
+                    buildingCostPropors: buildingCostPropors,
+                    buildingMatPaletteChoices: buildingMatPaletteChoices,
                     temperature: temperature,
-                    chosenTotalPropor: Propor.full,
-                    matPaletteChoices: buildingMatPaletteChoices.Choices,
-                    buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
-                ) * (neededElectricityFactor * powerPlantSuppliedBuildings)
+                    buildingArea: buildingArea
+                )
             );
 
         /// <summary>
@@ -406,13 +418,13 @@ namespace Game1
                     gravity: gravity,
                     buildingArea: buildingArea
                 ),
-                RedirectWatts: buildingArea.valueInMetSq * TentativeThroughput
+                RedirectWatts: PowerPlantProdWatts
                 (
+                    buildingCostPropors: buildingCostPropors,
+                    buildingMatPaletteChoices: buildingMatPaletteChoices,
                     temperature: temperature,
-                    chosenTotalPropor: Propor.full,
-                    matPaletteChoices: buildingMatPaletteChoices.Choices,
-                    buildingProdClassPropors: buildingCostPropors.neededProductClassPropors
-                ) * (neededElectricityFactor * powerPlantSuppliedBuildings)
+                    buildingArea: buildingArea
+                ) * lightRedirectionFactorOverPowerPlant
             );
 
         public static MechProdStats CurConstrStats(AllResAmounts buildingCost, SurfaceGravity gravity, Temperature temperature, TimeSpan constructionDuration)

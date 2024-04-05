@@ -17,8 +17,12 @@ namespace Game1.ContentNames
             rawMaterialIcon = new("Raw Material"),
             materialIcon = new("Material"),
             resIcon = new("Resource"),
+            beam = new("Beam"),
+            screw = new("Screw"),
             gear = new("Gear"),
-            wire = new("Wire");
+            wire = new("Wire"),
+            circuit = new("Circuit"),
+            processor = new("Processor");
 
         public static TextureName RawMaterialIconName(RawMaterialID rawMatID)
             => new($"Raw Material {rawMatID.RepresentativeNumber()}");

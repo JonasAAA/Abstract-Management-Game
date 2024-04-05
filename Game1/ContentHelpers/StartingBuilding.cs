@@ -3,7 +3,7 @@
     public enum StartingBuilding
     {
         PowerPlant,
-        GearStorage,
+        BeamStorage,
         WireStorage
     }
 }

@@ -28,7 +28,7 @@ namespace Game1.Industries
                 name: "Basic Storage",
                 buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                 {
-                    (prodParams: Product.productParamsDict["Gear"], amount: 4)
+                    (prodParams: Product.productParamsDict["Beam"], amount: 4)
                 }.ToEfficientReadOnlyCollection()
             );
 
@@ -40,7 +40,7 @@ namespace Game1.Industries
                     energyPriority: averageEnergyPriority,
                     buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                     {
-                        (prodParams: Product.productParamsDict["Gear"], amount: 4),
+                        (prodParams: Product.productParamsDict["Beam"], amount: 4),
                         (prodParams: Product.productParamsDict["Wire"], amount: 1)
                     }.ToEfficientReadOnlyCollection()
                 ),
@@ -50,20 +50,20 @@ namespace Game1.Industries
                     energyPriority: averageEnergyPriority,
                     buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                     {
-                        (prodParams: Product.productParamsDict["Gear"], amount: 5),
+                        (prodParams: Product.productParamsDict["Beam"], amount: 5),
                         (prodParams: Product.productParamsDict["Wire"], amount: 2)
                     }.ToEfficientReadOnlyCollection()
                 ),
                 new Manufacturing.GeneralBuildingParams
                 (
-                    nameVisual: UIAlgorithms.GetBasicManufacturingNameVisual(prodParams: Product.productParamsDict["Gear"]),
+                    nameVisual: UIAlgorithms.GetBasicManufacturingNameVisual(prodParams: Product.productParamsDict["Beam"]),
                     energyPriority: averageEnergyPriority,
                     buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                     {
-                        (prodParams: Product.productParamsDict["Gear"], amount: 3),
+                        (prodParams: Product.productParamsDict["Beam"], amount: 3),
                         (prodParams: Product.productParamsDict["Wire"], amount: 2)
                     }.ToEfficientReadOnlyCollection(),
-                    productParams: Product.productParamsDict["Gear"]
+                    productParams: Product.productParamsDict["Beam"]
                 ),
                 new Manufacturing.GeneralBuildingParams
                 (
@@ -71,7 +71,7 @@ namespace Game1.Industries
                     energyPriority: averageEnergyPriority,
                     buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                     {
-                        (prodParams: Product.productParamsDict["Gear"], amount: 3),
+                        (prodParams: Product.productParamsDict["Beam"], amount: 3),
                         (prodParams: Product.productParamsDict["Wire"], amount: 2)
                     }.ToEfficientReadOnlyCollection(),
                     productParams: Product.productParamsDict["Wire"]
@@ -83,7 +83,7 @@ namespace Game1.Industries
                     energyPriority: averageEnergyPriority,
                     buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                     {
-                        (prodParams: Product.productParamsDict["Gear"], amount: 4),
+                        (prodParams: Product.productParamsDict["Beam"], amount: 4),
                         (prodParams: Product.productParamsDict["Wire"], amount: 2)
                     }.ToEfficientReadOnlyCollection()
                 ),

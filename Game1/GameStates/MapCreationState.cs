@@ -381,7 +381,7 @@ namespace Game1.GameStates
                 startingBuilding => startingBuilding switch
                 {
                     StartingBuilding.PowerPlant => "Power\nplant",
-                    StartingBuilding.GearStorage => "Gear\nstorage",
+                    StartingBuilding.BeamStorage => "Beam\nstorage",
                     StartingBuilding.WireStorage => "Wire\nstorage",
                 }
             );
@@ -392,7 +392,7 @@ namespace Game1.GameStates
                     char keyLetter = startingBuilding switch
                     {
                         StartingBuilding.PowerPlant => 'P',
-                        StartingBuilding.GearStorage => 'G',
+                        StartingBuilding.BeamStorage => 'B',
                         StartingBuilding.WireStorage => 'W',
                     };
                     var keyLetterString = keyLetter.ToString();

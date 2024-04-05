@@ -22,7 +22,7 @@ namespace Game1.Industries
 
         /// <summary>
         /// This is not just TextBox (or a name string) to allow industries to include resource icons in their name
-        /// E.g. Basic (gear icon) manufacturing
+        /// E.g. Basic (beam icon) manufacturing
         /// </summary>
         public IFunction<IHUDElement> NameVisual { get; }
         public NodeID NodeID { get; }

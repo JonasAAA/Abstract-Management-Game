@@ -525,7 +525,7 @@
     "CameraViewHeight": 1080,
     "StartingBuildingLocations": {
       "PowerPlant": "Cosmic body 2",
-      "GearStorage": "Cosmic body 8",
+      "BeamStorage": "Cosmic body 8",
       "WireStorage": "Cosmic body 9"
     }
   }

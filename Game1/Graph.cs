@@ -185,7 +185,7 @@ namespace Game1
                 return startingBuilding switch
                 {
                     StartingBuilding.PowerPlant => CreatePowerPlantIndustry(),
-                    StartingBuilding.GearStorage => CreateStorageIndustry(productParamsName: "Gear"),
+                    StartingBuilding.BeamStorage => CreateStorageIndustry(productParamsName: "Beam"),
                     StartingBuilding.WireStorage => CreateStorageIndustry(productParamsName: "Wire"),
                 };
 

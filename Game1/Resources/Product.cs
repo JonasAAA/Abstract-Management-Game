@@ -129,24 +129,64 @@ namespace Game1.Resources
 
         private static EfficientReadOnlyDictionary<string, Params> CreateProductParamsDict()
         {
+            
+            var beam = Params.CreateNextOrThrow
+            (
+                name: "Beam",
+                iconName: TextureName.beam,
+                productClass: ProductClass.mechanical,
+                materialPaletteAmount: 1,
+                ingredProdToAmounts: new()
+            );
+            
+            var screw = Params.CreateNextOrThrow
+            (
+                name: "Screw",
+                iconName: TextureName.screw,
+                productClass: ProductClass.mechanical,
+                materialPaletteAmount: 1,
+                ingredProdToAmounts: new(list: new() { (beam, 1) })
+            );
+            var gear = Params.CreateNextOrThrow
+            (
+                name: "Gear",
+                iconName: TextureName.gear,
+                productClass: ProductClass.mechanical,
+                materialPaletteAmount: 1,
+                ingredProdToAmounts: new(list: new() { (beam, 3), (screw, 2) })
+            );
+            var wire = Params.CreateNextOrThrow
+            (
+                name: "Wire",
+                iconName: TextureName.wire,
+                productClass: ProductClass.electronics,
+                materialPaletteAmount: 1,
+                ingredProdToAmounts: new()
+            );
+            var circuit = Params.CreateNextOrThrow
+            (
+                name: "Circuit",
+                iconName: TextureName.circuit,
+                productClass: ProductClass.electronics,
+                materialPaletteAmount: 1,
+                ingredProdToAmounts: new(list: new() { (wire, 4) })
+            );
+            var processor = Params.CreateNextOrThrow
+            (
+                name: "Processor",
+                iconName: TextureName.processor,
+                productClass: ProductClass.electronics,
+                materialPaletteAmount: 0,
+                ingredProdToAmounts: new(list: new() { (wire, 1), (circuit, 2) })
+            );
             var productParamsDict = new List<Params>()
             {
-                Params.CreateNextOrThrow
-                (
-                    name: "Gear",
-                    iconName: TextureName.gear,
-                    productClass: ProductClass.mechanical,
-                    materialPaletteAmount: 2,
-                    ingredProdToAmounts: new()
-                ),
-                Params.CreateNextOrThrow
-                (
-                    name: "Wire",
-                    iconName: TextureName.wire,
-                    productClass: ProductClass.electronics,
-                    materialPaletteAmount: 1,
-                    ingredProdToAmounts: new()
-                )
+                beam,
+                screw,
+                gear,
+                wire,
+                circuit,
+                processor
             }.ToEfficientReadOnlyDict
             (
                 keySelector: productParams => productParams.name

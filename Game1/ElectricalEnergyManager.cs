@@ -187,11 +187,9 @@ namespace Game1
 
         public string Summary()
             => $"""
-            required energy: {totReqEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:#,0.} W
-            produced energy: {totProdEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:#,0.} W
-            used local energy: {totUsedLocalEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:#,0.} W
-            used power plant energy: {totUsedPowerPlantEnergy.ValueInJ / CurWorldManager.Elapsed.TotalSeconds:#,0.} W
-
+            required electricity: {totReqEnergy.ValueInJ / (1000 * CurWorldManager.Elapsed.TotalSeconds):#,0.} kW
+            produced electricity: {totProdEnergy.ValueInJ / (1000 * CurWorldManager.Elapsed.TotalSeconds):#,0.} kW
+            used electricity: {totUsedPowerPlantEnergy.ValueInJ / (1000 * CurWorldManager.Elapsed.TotalSeconds):#,0.} kW
             """;
 
         void IDeletedListener.DeletedResponse(IDeletable deletable)

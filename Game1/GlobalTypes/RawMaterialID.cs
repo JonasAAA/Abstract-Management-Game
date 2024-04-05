@@ -64,6 +64,6 @@ namespace Game1.GlobalTypes
             => rawMatID.Ind() + 1;
 
         public static RawMaterialID? FromRepresentativeNumber(int representativeNum)
-            => representativeNumToRawMatID.GetValueOrDefault(representativeNum);
+            => representativeNumToRawMatID.TryGetValue(key: representativeNum, value: out var value) ? value : null;
     }
 }

@@ -164,8 +164,8 @@ namespace Game1
             : base(shape: new LightBlockingDisk(parameters: new ShapeParams(state: state), worldCamera: CurWorldManager.worldCamera))
         {
             this.state = state;
-            lightPolygon = new();
-            laserLightPolygon = new();
+            lightPolygon = new(physicsSpeedup: CurWorldConfig.physicsSpeedup);
+            laserLightPolygon = new(physicsSpeedup: CurWorldConfig.physicsSpeedup);
             shape = (LightBlockingDisk)base.shape;
 
             links = [];

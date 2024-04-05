@@ -78,9 +78,6 @@ namespace Game1
             // as the way industry deals with required energy requires that
             personEnergyPrior = new(value: 10);
 
-        public readonly ulong
-            worldSecondsInGameSecond = 360;
-
         public readonly Propor
             planetTransformRadiantToElectricalEnergyPropor = Propor.empty; //(Propor).001;
 
@@ -118,7 +115,8 @@ namespace Game1
         public readonly Temperature maxTemperatureShownInGraphs = Temperature.CreateFromK(valueInK: 5000);
         public readonly SurfaceGravity maxGravityShownInGraphs;
 
-        public readonly TimeSpan constructionDuration;
+        public readonly TimeSpan constructionDuration = TimeSpan.FromSeconds(10);
+        public readonly UDouble physicsSpeedup = 360;
 
         public WorldConfig()
         {
@@ -150,23 +148,20 @@ namespace Game1
             // Since [gravitConst] ~ m^(1+gravitExponent)/kg
             gravitConst = MyMathHelper.Pow(@base: startingPixelLength.valueInM, exponent: (double)gravitExponent - 1);
             // Since [fusionReactionStrengthCoeff] ~ m^(-fusionReactionSurfaceGravityExponent)
-            fusionReactionStrengthCoeff = 1000 * MyMathHelper.Pow(@base: startingPixelLength.valueInM, exponent: -fusionReactionSurfaceGravityExponent);
+            fusionReactionStrengthCoeff = 1000 * physicsSpeedup * MyMathHelper.Pow(@base: startingPixelLength.valueInM, exponent: -fusionReactionSurfaceGravityExponent);
             // Since [stefanBoltzmannConstant] ~ J/m
-            stefanBoltzmannConstant = startingPixelLength.valueInM * (UDouble).000000000001;
+            stefanBoltzmannConstant = physicsSpeedup * startingPixelLength.valueInM * (UDouble).000000000001;
 
             // Since [linkTravelSpeed] ~ m/s
             ulong realTimeSecondsToTravelFromTopToBottomOfScreen = 5;
-            linkTravelSpeed = startingPixelLength.valueInM * ActiveUIManager.screenHeight / (realTimeSecondsToTravelFromTopToBottomOfScreen * worldSecondsInGameSecond);
+            linkTravelSpeed = startingPixelLength.valueInM * ActiveUIManager.screenHeight / realTimeSecondsToTravelFromTopToBottomOfScreen;
             // Since [linkJoulesPerUnitGravitAccel] ~ J/m
-            linkJoulesPerUnitGravitAccel = startingPixelLength.valueInM * (UDouble).00000000000000001;
+            linkJoulesPerUnitGravitAccel = startingPixelLength.valueInM * (UDouble).00000000000000000001;
             // Since [linkJoulesPerMeterOfDistance] ~ J/m
-            linkJoulesPerMeterOfDistance = startingPixelLength.valueInM * (UDouble).0000000000000000001;
+            linkJoulesPerMeterOfDistance = startingPixelLength.valueInM * (UDouble).0000000000000000000001;
 
             // Since [maxGravityShownInGraphs] ~ m
             maxGravityShownInGraphs = SurfaceGravity.CreateFromMetPerSecSq(startingPixelLength.valueInM * 1500);
-
-            // Since [constructionDuration] ~ s
-            constructionDuration = TimeSpan.FromSeconds(10) * worldSecondsInGameSecond;
         }
     }
 }

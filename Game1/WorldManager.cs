@@ -564,7 +564,7 @@ namespace Game1
             if (elapsedGameTime < TimeSpan.Zero)
                 throw new ArgumentException();
             double speedup = (Mouse.GetState().MiddleButton == ButtonState.Pressed) ? 100 : 1;
-            Elapsed = pauseButton.On ? TimeSpan.Zero : elapsedGameTime * CurWorldConfig.worldSecondsInGameSecond * speedup;
+            Elapsed = pauseButton.On ? TimeSpan.Zero : elapsedGameTime * speedup;
             CurTime += Elapsed;
 
             worldCamera.Update(elapsed: elapsedGameTime, canScroll: true);
@@ -587,7 +587,7 @@ namespace Game1
                 activityManager.ManageActivities(people: people);
 
                 Debug.Assert(people.Count == CurGraph.Stats.totalNumPeople);
-                globalTextBox.Text = ($"elapsed real time: {(CurTime - GameStartTime) / CurWorldConfig.worldSecondsInGameSecond:hh\\:mm\\:ss}\n" + energyManager.Summary()).Trim();
+                globalTextBox.Text = ($"elapsed real time: {CurTime - GameStartTime:hh\\:mm\\:ss}\n" + energyManager.Summary()).Trim();
             }
             activeUIManager.Update(elapsed: elapsedGameTime);
             // THIS is a huge performance penalty

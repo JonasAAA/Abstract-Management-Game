@@ -14,9 +14,11 @@ namespace Game1.Lighting
         private List<MyVector2> vertices;
         private VertexPositionColor[] vertPosTexs;
         private ushort[] inds;
+        private readonly UDouble physicsSpeedup;
 
-        public LightPolygon()
+        public LightPolygon(UDouble physicsSpeedup)
         {
+            this.physicsSpeedup = physicsSpeedup;
             vertices = [];
             vertPosTexs = [];
             inds = [];
@@ -70,7 +72,8 @@ namespace Game1.Lighting
             );
             starLightEffect.Parameters["Center"].SetValue(Transform(lightSourceInfo.Center));
             starLightEffect.Parameters["Radius"].SetValue((float)lightSourceInfo.Radius.valueInM);
-            starLightEffect.Parameters["LightAmount"].SetValue((float)lightSourceInfo.LightAmount);
+            // dividing by physics speedup is necessary, otherwise changing physics speed will change how bright the light is
+            starLightEffect.Parameters["LightAmount"].SetValue((float)(lightSourceInfo.LightAmount / physicsSpeedup));
 
             foreach (var effectPass in starLightEffect.CurrentTechnique.Passes)
             {

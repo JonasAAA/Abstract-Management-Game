@@ -132,7 +132,7 @@ namespace Game1
         }
 
         protected sealed override Color Color
-            => ColorHelpers.Interpolate
+            => ColorHelpers.InterpolateStarColor
             (
                 normalized: Propor.CreateByClamp(state.Temperature.valueInK / CurWorldConfig.maxTemperatureShownInGraphs.valueInK),
                 colorConfig.minTemperatureColor,
@@ -248,9 +248,6 @@ namespace Game1
                         realPerson.Arrived(realPersonSource: state.WaitingPeople);
                 }
             );
-            if (state.LaserToShine is not null)
-                // Light redirection should take all radiant energy, at least for now
-                Debug.Assert(state.RadiantEnergyPile.IsEmpty);
             state.ThermalBody.TransformAllEnergyToHeatAndTransferFrom(source: state.RadiantEnergyPile);
 
             RawMatAmounts cosmicBodyNewComposition = Algorithms.CosmicBodyNewCompositionFromNuclearFusion
@@ -413,10 +410,10 @@ namespace Game1
 
         void IRadiantEnergyConsumer.EnergyTakingComplete(IRadiantEnergyConsumer vacuumAsRadiantEnergyConsumer)
         {
-            var amount = Algorithms.EnergyPropor
+            var amount = Algorithms.ScaleEnergy
             (
-                wholeAmount: state.RadiantEnergyPile.Amount,
-                propor: CurWorldConfig.reflectivity
+                amount: state.RadiantEnergyPile.Amount,
+                scale: (UDouble)CurWorldConfig.reflectivity
             );
             // Currently the reflected amount must always be zero, as reflectivity is 0
             Debug.Assert(amount.IsZero);

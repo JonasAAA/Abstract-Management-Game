@@ -1,5 +1,5 @@
-﻿using Game1.GlobalTypes;
-using Game1.Shapes;
+﻿using Game1.Shapes;
+using Game1.UI;
 using static Game1.GlobalTypes.GameConfig;
 
 namespace Game1
@@ -79,13 +79,16 @@ namespace Game1
             personEnergyPrior = new(value: 10);
 
         public readonly ulong
-            worldSecondsInGameSecond = 3600;
+            worldSecondsInGameSecond = 360;
 
         public readonly Propor
             planetTransformRadiantToElectricalEnergyPropor = Propor.empty; //(Propor).001;
 
+        // It is 4 IRL
+        public readonly ulong temperatureExponentInStefanBoltzmannLaw = 2;
+        public readonly UDouble heatEnergyDropoffExponent = 1;
         public readonly UDouble
-            fusionReactionTemperatureExponent = 2,
+            fusionReactionTemperatureExponent = 1,
             fusionReactionSurfaceGravityExponent = 2,
             fusionReactionStrengthCoeff;
 
@@ -93,13 +96,10 @@ namespace Game1
         /// I.e. energy dissipation factor
         /// </summary>
         public readonly UDouble stefanBoltzmannConstant;
-        public readonly ulong temperatureExponentInStefanBoltzmannLaw = 4;
         public readonly Temperature
             startingTemperature = Temperature.CreateFromK(valueInK: 500),
-            allHeatMaxTemper = Temperature.CreateFromK(valueInK: 750),
-            halfHeatTemper = Temperature.CreateFromK(valueInK: 1250);
-        public readonly UDouble
-            heatEnergyDropoffExponent = 2;
+            allHeatMaxTemper = Temperature.CreateFromK(valueInK: 1000),
+            halfHeatTemper = Temperature.CreateFromK(valueInK: 1500);
         public readonly AreaInt minUsefulBuildingComponentAreaToRemove = AreaInt.CreateFromMetSq(valueInMetSq: 30);
         public readonly Propor
             buildingComponentsProporOfBuildingArea = (Propor).2,
@@ -115,7 +115,7 @@ namespace Game1
             emissivity = (Propor).5,
             reflectivity = Propor.empty;
 
-        public readonly Temperature maxTemperatureShownInGraphs = Temperature.CreateFromK(valueInK: 3000);
+        public readonly Temperature maxTemperatureShownInGraphs = Temperature.CreateFromK(valueInK: 5000);
         public readonly SurfaceGravity maxGravityShownInGraphs;
 
         public readonly TimeSpan constructionDuration;
@@ -150,13 +150,14 @@ namespace Game1
             // Since [gravitConst] ~ m^(1+gravitExponent)/kg
             gravitConst = MyMathHelper.Pow(@base: startingPixelLength.valueInM, exponent: (double)gravitExponent - 1);
             // Since [fusionReactionStrengthCoeff] ~ m^(-fusionReactionSurfaceGravityExponent)
-            fusionReactionStrengthCoeff = MyMathHelper.Pow(@base: startingPixelLength.valueInM, exponent: -fusionReactionSurfaceGravityExponent);
+            fusionReactionStrengthCoeff = 1000 * MyMathHelper.Pow(@base: startingPixelLength.valueInM, exponent: -fusionReactionSurfaceGravityExponent);
             // Since [stefanBoltzmannConstant] ~ J/m
-            stefanBoltzmannConstant = startingPixelLength.valueInM * (UDouble).000000000000000001;
-            
-            // Since [linkTravelSpeed] ~ m
-            linkTravelSpeed = startingPixelLength.valueInM * (UDouble)0.01;
-            // Since [linkJoulesPerNewtonOfGravity] ~ J/m
+            stefanBoltzmannConstant = startingPixelLength.valueInM * (UDouble).000000000001;
+
+            // Since [linkTravelSpeed] ~ m/s
+            ulong realTimeSecondsToTravelFromTopToBottomOfScreen = 5;
+            linkTravelSpeed = startingPixelLength.valueInM * ActiveUIManager.screenHeight / (realTimeSecondsToTravelFromTopToBottomOfScreen * worldSecondsInGameSecond);
+            // Since [linkJoulesPerUnitGravitAccel] ~ J/m
             linkJoulesPerUnitGravitAccel = startingPixelLength.valueInM * (UDouble).00000000000000001;
             // Since [linkJoulesPerMeterOfDistance] ~ J/m
             linkJoulesPerMeterOfDistance = startingPixelLength.valueInM * (UDouble).0000000000000000001;

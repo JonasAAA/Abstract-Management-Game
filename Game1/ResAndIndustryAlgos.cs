@@ -236,23 +236,6 @@ namespace Game1
                 rawMatProperty: static (rawMat, temperature) => RawMatResistivity(rawMatID: rawMat.RawMatID, temperature: temperature)
             );
 
-        private static UDouble BaseElectricalEnergyPerUnitAreaPhys(MaterialPalette electronicsMatPalette, Temperature temperature)
-            => (UDouble)0.1 * Resistivity
-            (
-                material: electronicsMatPalette.materialChoices[MaterialPurpose.electricalConductor],
-                temperature: temperature
-            );
-
-        /// <summary>
-        /// Electrical energy needed to use/produce unit area of physical result.
-        /// relevantMass here is the exact same thing as in MaxMechThroughput function
-        /// </summary>
-        private static UDouble ElectricalEnergyPerUnitAreaPhys(Propor electronicsProporInBuilding, MaterialPalette electronicsMatPalette, SurfaceGravity gravity, Temperature temperature, UDouble relevantMassPUBA)
-#warning make this depend on complexity of production
-            => 10 /* amount of useful work. */
-                * (1 + electronicsProporInBuilding * BaseElectricalEnergyPerUnitAreaPhys(electronicsMatPalette: electronicsMatPalette, temperature: temperature))
-                * (1 + (UDouble)0.1 * gravity.valueInMetPerSeqSq * relevantMassPUBA);
-
         /// <summary>
         /// Throughput is the input/output area of building per unit time
         /// </summary>
@@ -382,7 +365,6 @@ namespace Game1
         /// </summary>
         public static PowerPlantProdStats CurPowerPlantProdStats(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
             SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea)
-#warning Complete this
             => new
             (
                 ReqWatts: CurReqWatts
@@ -406,9 +388,6 @@ namespace Game1
         /// </summary>
         public static LightRedirectionProdStats CurLightRedirectionProdStats(BuildingCostPropors buildingCostPropors, MaterialPaletteChoices buildingMatPaletteChoices,
             SurfaceGravity gravity, Temperature temperature, AreaDouble buildingArea)
-            // COPIED from power plant for now. Later, probably just want to multiply the TentativeThroughput by a bigger constant as it makes
-            // sense to redirect more light then could convert to electricity
-#warning Complete this
             => new
             (
                 ReqWatts: CurReqWatts
@@ -430,7 +409,6 @@ namespace Game1
         public static MechProdStats CurConstrStats(AllResAmounts buildingCost, SurfaceGravity gravity, Temperature temperature, TimeSpan constructionDuration)
         {
             var buildingComponentsArea = buildingCost.Area();
-#warning Complete this
             return new
             (
                 ReqWatts: buildingComponentsArea.valueInMetSq * neededElectricityFactor,

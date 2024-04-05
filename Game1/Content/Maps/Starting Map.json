@@ -389,13 +389,379 @@
           "Percentage": 100
         }
       ]
+    },
+    {
+      "Name": "Cosmic body 25",
+      "Position": {
+        "X": 1610.853271484375,
+        "Y": 428.076416015625
+      },
+      "Radius": 511.4393126560965,
+      "Composition": [
+        {
+          "RawMaterial": 3,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 31",
+      "Position": {
+        "X": 1376.882568359375,
+        "Y": 1684.8916015625
+      },
+      "Radius": 547.0287331005926,
+      "Composition": [
+        {
+          "RawMaterial": 2,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 29",
+      "Position": {
+        "X": -1688.20263671875,
+        "Y": -532.65234375
+      },
+      "Radius": 234.63824009580335,
+      "Composition": [
+        {
+          "RawMaterial": 3,
+          "Percentage": 50
+        },
+        {
+          "RawMaterial": 4,
+          "Percentage": 50
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 34",
+      "Position": {
+        "X": -1228.543701171875,
+        "Y": -410.49072265625
+      },
+      "Radius": 124.4237365760643,
+      "Composition": [
+        {
+          "RawMaterial": 3,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 35",
+      "Position": {
+        "X": -1185.0625,
+        "Y": -698.2952880859375
+      },
+      "Radius": 43.04077590201903,
+      "Composition": [
+        {
+          "RawMaterial": 4,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 36",
+      "Position": {
+        "X": -1435.597412109375,
+        "Y": -986.0997314453125
+      },
+      "Radius": 33.41499902337249,
+      "Composition": [
+        {
+          "RawMaterial": 3,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 37",
+      "Position": {
+        "X": -1731.68408203125,
+        "Y": 20.1806640625
+      },
+      "Radius": 41.05275428133015,
+      "Composition": [
+        {
+          "RawMaterial": 4,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 38",
+      "Position": {
+        "X": -1951.160888671875,
+        "Y": -178.5908203125
+      },
+      "Radius": 106.51589239919863,
+      "Composition": [
+        {
+          "RawMaterial": 4,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 39",
+      "Position": {
+        "X": -2197.5546875,
+        "Y": -443.619384765625
+      },
+      "Radius": 163.15844691510281,
+      "Composition": [
+        {
+          "RawMaterial": 3,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 40",
+      "Position": {
+        "X": -2017.41796875,
+        "Y": 304.5341796875
+      },
+      "Radius": 100,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 50
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 50
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 41",
+      "Position": {
+        "X": -1932.52587890625,
+        "Y": 772.475341796875
+      },
+      "Radius": 72.91403132231277,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 50
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 50
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 42",
+      "Position": {
+        "X": -1818.646484375,
+        "Y": 1184.511962890625
+      },
+      "Radius": 141.12752697695183,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 25
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 25
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 25
+        },
+        {
+          "RawMaterial": 4,
+          "Percentage": 25
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 26",
+      "Position": {
+        "X": -2375.62060546875,
+        "Y": 131.298583984375
+      },
+      "Radius": 66.38758348988716,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 50
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 50
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 27",
+      "Position": {
+        "X": -2651.001953125,
+        "Y": -106.81201171875
+      },
+      "Radius": 146.0130767112092,
+      "Composition": [
+        {
+          "RawMaterial": 4,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 28",
+      "Position": {
+        "X": -2307.29296875,
+        "Y": 748.3193359375
+      },
+      "Radius": 164.9165276716285,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 25
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 25
+        },
+        {
+          "RawMaterial": 3,
+          "Percentage": 25
+        },
+        {
+          "RawMaterial": 4,
+          "Percentage": 25
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 30",
+      "Position": {
+        "X": -2791.79833984375,
+        "Y": 636.509521484375
+      },
+      "Radius": 64.98256657581913,
+      "Composition": [
+        {
+          "RawMaterial": 4,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 32",
+      "Position": {
+        "X": -2284.51708984375,
+        "Y": 1194.864013671875
+      },
+      "Radius": 93.22228169856503,
+      "Composition": [
+        {
+          "RawMaterial": 3,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 33",
+      "Position": {
+        "X": -2679.989501953125,
+        "Y": 1368.788818359375
+      },
+      "Radius": 68.34237743651224,
+      "Composition": [
+        {
+          "RawMaterial": 3,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 43",
+      "Position": {
+        "X": -1400.398193359375,
+        "Y": 1270.09375
+      },
+      "Radius": 27.23356792788295,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 50
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 50
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 44",
+      "Position": {
+        "X": -1679.920654296875,
+        "Y": 1580.67431640625
+      },
+      "Radius": 37.49907909613597,
+      "Composition": [
+        {
+          "RawMaterial": 3,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 45",
+      "Position": {
+        "X": -2036.052734375,
+        "Y": 1808.43310546875
+      },
+      "Radius": 62.15049130530594,
+      "Composition": [
+        {
+          "RawMaterial": 3,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 46",
+      "Position": {
+        "X": -1102.2412109375,
+        "Y": 1452.30126953125
+      },
+      "Radius": 13.889607019958776,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 100
+        }
+      ]
+    },
+    {
+      "Name": "Cosmic body 47",
+      "Position": {
+        "X": -1166.427734375,
+        "Y": 1746.3173828125
+      },
+      "Radius": 219.3696074094688,
+      "Composition": [
+        {
+          "RawMaterial": 1,
+          "Percentage": 50
+        },
+        {
+          "RawMaterial": 2,
+          "Percentage": 50
+        }
+      ]
     }
   ],
   "Links": [
-    {
-      "From": "Cosmic body 1",
-      "To": "Cosmic body 0"
-    },
     {
       "From": "Cosmic body 1",
       "To": "Cosmic body 2"
@@ -515,6 +881,142 @@
     {
       "From": "Cosmic body 23",
       "To": "Cosmic body 10"
+    },
+    {
+      "From": "Cosmic body 29",
+      "To": "Cosmic body 36"
+    },
+    {
+      "From": "Cosmic body 29",
+      "To": "Cosmic body 35"
+    },
+    {
+      "From": "Cosmic body 29",
+      "To": "Cosmic body 34"
+    },
+    {
+      "From": "Cosmic body 29",
+      "To": "Cosmic body 37"
+    },
+    {
+      "From": "Cosmic body 29",
+      "To": "Cosmic body 38"
+    },
+    {
+      "From": "Cosmic body 29",
+      "To": "Cosmic body 39"
+    },
+    {
+      "From": "Cosmic body 25",
+      "To": "Cosmic body 31"
+    },
+    {
+      "From": "Cosmic body 0",
+      "To": "Cosmic body 31"
+    },
+    {
+      "From": "Cosmic body 27",
+      "To": "Cosmic body 39"
+    },
+    {
+      "From": "Cosmic body 27",
+      "To": "Cosmic body 30"
+    },
+    {
+      "From": "Cosmic body 30",
+      "To": "Cosmic body 33"
+    },
+    {
+      "From": "Cosmic body 45",
+      "To": "Cosmic body 33"
+    },
+    {
+      "From": "Cosmic body 45",
+      "To": "Cosmic body 47"
+    },
+    {
+      "From": "Cosmic body 47",
+      "To": "Cosmic body 44"
+    },
+    {
+      "From": "Cosmic body 44",
+      "To": "Cosmic body 32"
+    },
+    {
+      "From": "Cosmic body 32",
+      "To": "Cosmic body 28"
+    },
+    {
+      "From": "Cosmic body 28",
+      "To": "Cosmic body 26"
+    },
+    {
+      "From": "Cosmic body 26",
+      "To": "Cosmic body 38"
+    },
+    {
+      "From": "Cosmic body 40",
+      "To": "Cosmic body 38"
+    },
+    {
+      "From": "Cosmic body 41",
+      "To": "Cosmic body 40"
+    },
+    {
+      "From": "Cosmic body 42",
+      "To": "Cosmic body 41"
+    },
+    {
+      "From": "Cosmic body 43",
+      "To": "Cosmic body 42"
+    },
+    {
+      "From": "Cosmic body 46",
+      "To": "Cosmic body 43"
+    },
+    {
+      "From": "Cosmic body 46",
+      "To": "Cosmic body 47"
+    },
+    {
+      "From": "Cosmic body 46",
+      "To": "Cosmic body 44"
+    },
+    {
+      "From": "Cosmic body 42",
+      "To": "Cosmic body 32"
+    },
+    {
+      "From": "Cosmic body 26",
+      "To": "Cosmic body 40"
+    },
+    {
+      "From": "Cosmic body 28",
+      "To": "Cosmic body 30"
+    },
+    {
+      "From": "Cosmic body 33",
+      "To": "Cosmic body 44"
+    },
+    {
+      "From": "Cosmic body 39",
+      "To": "Cosmic body 26"
+    },
+    {
+      "From": "Cosmic body 34",
+      "To": "Cosmic body 7"
+    },
+    {
+      "From": "Cosmic body 35",
+      "To": "Cosmic body 5"
+    },
+    {
+      "From": "Cosmic body 25",
+      "To": "Cosmic body 20"
+    },
+    {
+      "From": "Cosmic body 0",
+      "To": "Cosmic body 1"
     }
   ],
   "StartingInfo": {

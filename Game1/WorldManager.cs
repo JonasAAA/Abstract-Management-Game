@@ -221,6 +221,11 @@ namespace Game1
 
         public TimeSpan StartTime { get; }
 
+        /// <summary>
+        /// The time when the player actually can start playing, i.e. the moment initial simulation ends
+        /// </summary>
+        private TimeSpan GameStartTime { get; set; }
+
         public TimeSpan CurTime { get; private set; }
 
         public TimeSpan Elapsed { get; private set; }
@@ -257,7 +262,9 @@ namespace Game1
         private WorldManager()
         {
             StartTime = TimeSpan.Zero;
-            CurTime = TimeSpan.Zero;
+            // Initial value, to be overriden later
+            GameStartTime = StartTime;
+            CurTime = StartTime;
             worldConfig = new();
             CurWorldConfig = worldConfig;
             CurResConfig = resConfig = new();
@@ -453,9 +460,10 @@ namespace Game1
             {
                 maxAverageTemperature = MyMathHelper.Max(maxAverageTemperature, graph.AverageTemperature);
                 Update(elapsedGameTime: TimeSpan.FromSeconds(10));
-                if (graph.AverageTemperature.valueInK < maxAverageTemperature.valueInK)
+                if (graph.AverageTemperature.valueInK <= maxAverageTemperature.valueInK)
                     break;
             }
+            GameStartTime = CurTime;
         }
 
         public void PublishMessage(IMessage message)
@@ -555,7 +563,6 @@ namespace Game1
         {
             if (elapsedGameTime < TimeSpan.Zero)
                 throw new ArgumentException();
-#warning Complete this. Do this speedup properly - have an initial simulation stage of the game (similar to Dwarf Fortress) when the speedup happens
             double speedup = (Mouse.GetState().MiddleButton == ButtonState.Pressed) ? 100 : 1;
             Elapsed = pauseButton.On ? TimeSpan.Zero : elapsedGameTime * CurWorldConfig.worldSecondsInGameSecond * speedup;
             CurTime += Elapsed;
@@ -580,7 +587,7 @@ namespace Game1
                 activityManager.ManageActivities(people: people);
 
                 Debug.Assert(people.Count == CurGraph.Stats.totalNumPeople);
-                globalTextBox.Text = energyManager.Summary().Trim();
+                globalTextBox.Text = ($"elapsed real time: {(CurTime - GameStartTime) / CurWorldConfig.worldSecondsInGameSecond:hh\\:mm\\:ss}\n" + energyManager.Summary()).Trim();
             }
             activeUIManager.Update(elapsed: elapsedGameTime);
             // THIS is a huge performance penalty

@@ -24,9 +24,9 @@ namespace Game1.Industries
 
             private readonly EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors;
 
-            public GeneralBuildingParams(string name, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority)
+            public GeneralBuildingParams(IFunction<IHUDElement> nameVisual, EfficientReadOnlyCollection<(Product.Params prodParams, ulong amount)> buildingComponentPropors, EnergyPriority energyPriority)
             {
-                NameVisual = UIAlgorithms.GetBuildingNameVisual(name: name);
+                NameVisual = nameVisual;
                 BuildingCostPropors = new BuildingCostPropors(ingredProdToAmounts: buildingComponentPropors);
 
                 buildingImageParams = new DiskBuildingImage.Params(finishedBuildingHeight: CurWorldConfig.diskBuildingHeight, color: ActiveUIManager.colorConfig.materialProductionBuildingColor);

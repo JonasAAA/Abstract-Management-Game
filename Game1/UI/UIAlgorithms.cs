@@ -8,6 +8,26 @@ namespace Game1.UI
     public static class UIAlgorithms
     {
         [Serializable]
+        private sealed class BasicMaterialProductionNameVisual : IFunction<IHUDElement>
+        {
+            IHUDElement IFunction<IHUDElement>.Invoke()
+                => new UIRectHorizPanel<IHUDElement>
+                (
+                    childVertPos: VertPosEnum.Middle,
+                    children:
+                    [
+                        new TextBox(text: "Basic"),
+                        new ImageHUDElement(image: IIndustry.materialIcon),
+                        new TextBox(text: "production")
+                    ],
+                    backgroundColor: Color.Transparent
+                );
+        }
+
+        public static IFunction<IHUDElement> GetBasicMaterialProductionNameVisual
+            => new BasicMaterialProductionNameVisual();
+
+        [Serializable]
         private sealed class BasicManufacturingNameVisual(Product.Params prodParams) : IFunction<IHUDElement>
         {
             IHUDElement IFunction<IHUDElement>.Invoke()

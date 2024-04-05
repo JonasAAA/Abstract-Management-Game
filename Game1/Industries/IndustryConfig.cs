@@ -46,7 +46,7 @@ namespace Game1.Industries
                 ),
                 new MaterialProduction.GeneralBuildingParams
                 (
-                    name: "Basic material production",
+                    nameVisual: UIAlgorithms.GetBasicMaterialProductionNameVisual,
                     energyPriority: averageEnergyPriority,
                     buildingComponentPropors: new List<(Product.Params prodParams, ulong amount)>()
                     {

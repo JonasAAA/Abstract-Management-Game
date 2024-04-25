@@ -22,8 +22,8 @@
         public readonly UDouble wideUIElementWidth = 200;
         public readonly UDouble iconWidth = 32;
         public readonly UDouble iconHeight = 32;
-        public readonly UDouble smallIconWidth = 24;
-        public readonly UDouble smallIconHeight = 24;
+        public readonly UDouble smallIconWidth = 32;
+        public readonly UDouble smallIconHeight = 32;
         public readonly UDouble UILineHeight = 32;
         public readonly ulong pointNumInSmallFunctionGraphs = 100;
         public readonly Propor minFunctionGraphHighlightPropor = (Propor).02;
